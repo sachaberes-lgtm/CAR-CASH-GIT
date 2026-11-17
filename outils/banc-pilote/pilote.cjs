@@ -21,6 +21,8 @@
 // (5e tour, 17/11)
 // pic / vraipic : S1, libre N2 : un pic d'une seconde (30 % de ratés / une sonde à 40 ms) ne pose aucun mur (2 lancements, @modèle)
 // critmort / serigel : S2, critical / serious, 0 raté, 3 gels/s, vrai 6 ms, --n 5 courses : le cran de table tenu, jamais SURVIE
+// (6e tour, 17/11) deuxpic : deux pics en 35 s, aucun mur · courts : courses courtes à ratés tenus, mur au cumul ≥ 30 s · constr : M2 (construction simulée, puis vraie piste en tranches) ·
+//   haute : M1 (HAUTE choisie, k2) · cycle --expire 1 : le mur échu, le 2e échec pose 7 j · vraipic : une seule sonde haute isolée (vrai1)
 // compteurs : M5, à lancer avec --q sans=pilote (ou --pc 1 : sans émulation du téléphone) : aucun compteur du pilote ne bouge
 // Une ligne JSON par essai. Chrome est fermé à la fin, quoi qu'il arrive.
 const fs = require('fs'), path = require('path');
@@ -37,7 +39,7 @@ const COMPTEUR = "(function(){try{var P=HTMLCanvasElement.prototype,gc=P.getCont
 const ETAT = `(function(){var o={};try{o.gouv=dbgGouvPaliers();delete o.gouv.lourd;}catch(e){o.gouvErr=String(e.message)}try{o.nette=dbgNette();}catch(e){}try{o.img=imgRegle();}catch(e){}
   try{var p=dbgPrf();o.prf={niveau:p.niveau,reglage:p.reglage,fps:p.fps,plafond:p.plafond,toile:p.toile,ombre:p.ombre,halo:p.halo,ql:p.ql}}catch(e){}try{var c=dbgCadence();o.cad={on:c.on,gel:c.gel}}catch(e){}
   try{o.cadPer=dbgPilote?dbgPilote().cadPer:null}catch(e){}return JSON.stringify(o)})()`;
-const LEV = `(function(){try{var i=imgRegle(),g=dbgGouvPaliers(),p=dbgPilote(),f=dbgPrf();return JSON.stringify({n:f.niveau,dpr:i.dpr,cap:i.cap,halo:i.halo,mips:i.mips,ombre:i.ombre,ciel:i.ciel,stries:i.stries,ql:i.ql,qlMin:g.qlMin,ventK:g.ventK,emiK:g.emiK,palier:g.palier,cadPer:p.cadPer,pil:p.on,K:p.K,vise:p.vise,borne:p.borne,src:p.src,cle:p.cle})}catch(e){return JSON.stringify({err:String(e.message)})}})()`;
+const LEV = `(function(){try{var i=imgRegle(),g=dbgGouvPaliers(),p=window.dbgPilote?dbgPilote():{},f=dbgPrf();return JSON.stringify({n:f.niveau,dpr:i.dpr,cap:i.cap,halo:i.halo,mips:i.mips,ombre:i.ombre,ciel:i.ciel,stries:i.stries,ql:i.ql,qlMin:g.qlMin,ventK:g.ventK,emiK:g.emiK,palier:g.palier,cadPer:p.cadPer,pil:p.on,K:p.K,vise:p.vise,borne:p.borne,src:p.src,cle:p.cle})}catch(e){return JSON.stringify({err:String(e.message)})}})()`;
 const PIL = `(function(){try{var p=dbgPilote();return JSON.stringify({on:p.on,K:p.K,vise:p.vise,niveau:p.niveau,plafond:p.plafond,capN:p.capN,gels:p.gels,urgence:p.urgence,portails:p.portails,departs:p.departs,cand:p.cand,mort:p.mort,mortP:p.mortP,auto:p.auto,src:p.src,cle:p.cle,table:p.table,zone:p.zone,per:p.per,tic:p.tic,cadPer:p.cadPer,retailles:p.retailles,dettes:p.dettes,img:p.img,qlMin:p.qlMin,poly:p.poly,histo:p.histo,chg:p.changements,mur:p.mur,geleux:p.geleux,glS:p.glS,constructions:p.constructions,nBorne:p.nBorne,jeton:p.jeton,src2:p.src,nEchec:p.nEchec,rgSuite:p.rgSuite,capGel:p.capGel,consEn:p.consEn})}catch(e){return JSON.stringify({err:String(e.message)})}})()`;
 (async () => {
   for (const p of [P_HTTP, P_CDP]) if (!portLibre(p)) { console.error('port occupé :', p); process.exit(2); }
@@ -229,10 +231,63 @@ const PIL = `(function(){try{var p=dbgPilote();return JSON.stringify({on:p.on,K:
           if (i) { if (!(await recharge())) { R.erreur = 'rechargement'; break; } }
           await dormir(2500); const d = await pil();
           await ev('dbgPiloteSim({vrai:8,rates:0,gels:0});1'); await tient(40, 'marge' + i, false, suivi); const a = JSON.parse(await ev("JSON.stringify(dbgPilote())"));
-          if (i === 0) { await ev(MODE === 'pic' ? 'dbgPiloteSim({rates:.3});1' : 'dbgPiloteSim({vrai:40});1'); await dormir(1100); await ev('dbgPiloteSim({rates:0,vrai:8});1'); }
+          if (i === 0) { if (MODE === 'pic') { await ev('dbgPiloteSim({rates:.3});1'); await dormir(1100); await ev('dbgPiloteSim({rates:0});1'); }
+          else { /* (6e tour) UNE sonde haute isolée (vrai1), une seule fois ; les échantillons à 8 ms continuent toutes les 10 s */ const n0 = await ev('dbgPilote().nVrai'); await ev('dbgPiloteSim({vrai1:40});1'); await dormir(2200);
+            R.sonde = JSON.parse(await ev("JSON.stringify((function(p){return {nVrai:p.nVrai,vrai:p.vrai,vraiP:p.vraiP,zone:p.zone,K:p.K}})(dbgPilote()))")); R.sonde.avant = n0; } }
           await tient(20, 'apres' + i, false, suivi); const f = JSON.parse(await ev("JSON.stringify(dbgPilote())")); await mort(); await dormir(1500);
           const m = JSON.parse(await ev("localStorage.getItem('cashcarPilote')"));
-          R.courses.push({ i, depart: 'N' + d.niveau + ' K' + d.K, avant: { K: a.K, zone: a.zone, nEchec: a.nEchec }, fin: { n: f.niveau, K: f.K, vise: f.vise, zone: f.zone, nEchec: f.nEchec }, mem: m, jr: f.journal.filter(x => /ÉCHEC|mur|rouge|K\d+→/.test(x)) });
+          R.courses.push({ i, depart: 'N' + d.niveau + ' K' + d.K, avant: { K: a.K, zone: a.zone, nEchec: a.nEchec }, fin: { n: f.niveau, K: f.K, vise: f.vise, zone: f.zone, nEchec: f.nEchec, seg: f.seg }, mem: m, jr: f.journal.filter(x => /ÉCHEC|mur|rouge|K\d+→/.test(x)) });
+        }
+      } else if (MODE === 'deuxpic') {
+        /* (6e tour, repris du contrôle adverse) libre N2 : 6 s de marge, pic (1,1 s à 30 %), 13 s, pic, 13 s (≈ 35 s : « ORANGE majoritaire » de l'ancienne règle) ; rechargement, 2e course sans pic : aucun mur, N2 gardé */
+        R.courses = [];
+        const recharge = async () => { await ev('window.name="banc-garde";1'); await c.send('Page.reload', {}); await dormir(1000); if (!(await pret())) return false; await dormir(1500); await voile(); return lance(); };
+        for (let i = 0; i < 2; i++) {
+          if (i) { if (!(await recharge())) { R.erreur = 'rechargement'; break; } }
+          await dormir(500); const d = await pil();
+          await ev('dbgPiloteSim({vrai:8,rates:0,gels:0});1'); await tient(+(A.m || 6), 'm' + i, false, suivi);
+          const np = i === 0 ? +(A.np || 2) : 0;
+          for (let j = 0; j < np; j++) { await ev('dbgPiloteSim({rates:.3});1'); await dormir(1100); await ev('dbgPiloteSim({rates:0});1'); await tient(+(A.e || 13), 'p' + j, false, suivi); }
+          if (!np) await tient(25, 'x', false, suivi);
+          const f = JSON.parse(await ev("JSON.stringify(dbgPilote())")); await mort(); await dormir(1500);
+          const m = JSON.parse(await ev("localStorage.getItem('cashcarPilote')"));
+          R.courses.push({ i, depart: 'N' + d.niveau + ' K' + d.K + ' ' + d.src, fin: { n: f.niveau, K: f.K, vise: f.vise, zone: f.zone, nEchec: f.nEchec, rgSuite: f.rgSuite, seg: f.seg }, mem: m, jr: f.journal.filter(x => /ÉCHEC|mur|rouge|orange|K\d+→/.test(x)) });
+        }
+      } else if (MODE === 'courts') {
+        /* (6e tour, mineur 2) libre N2, --n courses COURTES (--s 12) sans rechargement, 5 % de ratés tenus : aucune n'échoue seule ; le cumul ≥ 30 s pose le mur N2 (24 h) */
+        R.courses = [];
+        for (let i = 0; i < +(A.n || 4); i++) {
+          if (i) { if (!(await lance())) { R.erreur = 'relance ' + i; break; } }
+          await dormir(500); const d = await pil();
+          await ev('dbgPiloteSim({vrai:8,rates:' + (A.r || .05) + ',gels:0});1'); await tient(SEC, 'c' + i, false, suivi);
+          const f = JSON.parse(await ev("JSON.stringify(dbgPilote())")); await mort(); await dormir(1500);
+          const p = JSON.parse(await ev("JSON.stringify(dbgPilote())")), m = JSON.parse(await ev("localStorage.getItem('cashcarPilote')")), e = m && m.K ? m.K[Object.keys(m.K)[0]] : null;
+          R.courses.push({ i, depart: 'N' + d.niveau + ' K' + d.K + ' ' + d.src, seg: f.seg, court: p.court, nEchec: p.nEchec, murJ: e && e.mur2 ? +((e.mur2 - Date.now()) / 864e5).toFixed(1) : 0, jr: p.journal.filter(x => /ÉCHEC|courtes|mémoire/.test(x)) });
+        }
+        R.departs = R.courses.map(x => x.depart.split(' ')[0]).join(',');
+      } else if (MODE === 'constr') {
+        /* (6e tour, M2) 1) une construction simulée de 4 s (pilConstr) sous 30 % de ratés : rien ne compte ; 2) une VRAIE piste refaite par le générateur, une tranche toutes les 150 ms, sous 30 % de ratés */
+        await ev('dbgPiloteSim({vrai:8,rates:0,gels:0});1'); await tient(8, 'calme', false, suivi);
+        const a = await pil(); await ev('dbgPiloteSim({rates:.3,constr:4000});1'); const pend = [];
+        for (let j = 0; j < 4; j++) { await dormir(1000); const o = JSON.parse(await ev("JSON.stringify((function(p){return {consEn:p.consEn,rgSuite:p.rgSuite,K:p.K,zone:p.zone,r3:p.rates3}})(dbgPilote()))")); pend.push(o); }
+        await ev('dbgPiloteSim({rates:0});1'); await tient(4, 'apres', false, suivi);
+        R.sim = { avant: { K: a.K, vise: a.vise }, pendant: pend, apres: await pil() };
+        await tient(12, 'calme2', false, suivi); const b = await pil();
+        const r = await ev("dbgPisteTranches(150)"); await ev('dbgPiloteSim({rates:.3});1'); const pv = [];
+        for (let j = 0; j < 40; j++) { await dormir(500); const o = JSON.parse(await ev("JSON.stringify((function(p){return {t:Math.round(performance.now()),consEn:p.consEn,rgSuite:p.rgSuite,K:p.K,zone:p.zone,tr:window.__pisteTr}})(dbgPilote()))")); pv.push(o); if (o.tr && (o.tr.fini || o.tr.err)) break; }
+        await ev('dbgPiloteSim({rates:0});1'); await tient(4, 'apres2', false, suivi);
+        R.vraie = { lance: r, avant: { K: b.K, vise: b.vise }, pendant: pv, apres: await pil(), tranches: JSON.parse(await ev('JSON.stringify(window.__pisteTr)')) };
+      } else if (MODE === 'haute') {
+        /* (6e tour, M1 et mineur 5) HAUTE choisie : la mémoire apprend k2 (le cran de N2) ; une course à K9 (le niveau descend) l'écrit aussi dans k2 ; le départ suivant lit k2 */
+        R.courses = [];
+        const recharge = async () => { await ev('window.name="banc-garde";1'); await c.send('Page.reload', {}); await dormir(1000); if (!(await pret())) return false; await dormir(1500); await voile(); return lance(); };
+        for (let i = 0; i < 4; i++) {
+          if (i === 3) { if (!(await recharge())) { R.erreur = 'rechargement'; break; } } else if (i) { if (!(await lance())) { R.erreur = 'relance ' + i; break; } }
+          await dormir(2500); const d = await pil();
+          await ev('dbgPiloteSim({vrai:8,rates:0,gels:0' + (i === 1 ? ',Kv:9' : '') + '});1'); await tient(SEC, 'c' + i, false, suivi);
+          const f = await pil(); await mort(); await dormir(1500);
+          const m = JSON.parse(await ev("localStorage.getItem('cashcarPilote')")), e = m && m.K ? m.K[Object.keys(m.K)[0]] : null;
+          R.courses.push({ i, depart: 'N' + d.niveau + ' K' + d.K + ' · ' + d.src, fin: 'N' + f.niveau + ' K' + f.K + ' visé ' + f.vise, mem: e ? { k: e.k, n: e.n, k2: e.k2, n2: e.n2 } : null, jr: (JSON.parse(await ev("JSON.stringify(dbgPilote().journal)")) || []).filter(x => /mémoire/.test(x)) });
         }
       } else if (MODE === 'critmort' || MODE === 'serigel') {
         /* (5e tour, S2, repris du contrôle adverse) séance au chaud (critmort : critical ; serigel : serious), 0 raté, 3 gels/s, vrai 6 ms : --n courses (5) de --s s, mortes ; le cran et les leviers à chaque départ (attendu : le cran de table, identique à la base, jamais SURVIE) */
@@ -257,7 +312,10 @@ const PIL = `(function(){try{var p=dbgPilote();return JSON.stringify({on:p.on,K:
           await ev(n2 && R.n2 === 'rate' ? 'dbgPiloteSim({rates:.15,gels:0});1' : n2 && R.n2 === 'orange' ? 'dbgPiloteSim({rates:.033,gels:0,vrai:8});1' : 'dbgPiloteSim({vrai:8,rates:0,gels:0});1');
           await tient(SEC, 'c' + i, false, suivi); const f = await pil(); await mort(); await dormir(1500);
           const m = JSON.parse(await ev("localStorage.getItem('cashcarPilote')")); const e = m && m.K ? m.K[Object.keys(m.K)[0]] : null;
-          R.courses.push({ i, depart: 'N' + d.niveau + ' K' + d.K, src: d.src, fin: 'N' + f.niveau + ' K' + f.K + ' ' + f.zone + (f.urgence ? ' urg' : ''), mem: e ? { k: e.k, n: e.n, k2: e.k2, n2: e.n2, murJ: e.mur2 ? +((e.mur2 - Date.now()) / 864e5).toFixed(1) : 0 } : null, echec: await ev('dbgPilote().nEchec') });
+          const murJ0 = e && e.mur2 ? +((e.mur2 - Date.now()) / 864e5).toFixed(1) : 0;
+          if (murJ0 > 0 && (R.expire | 0) < +(A.expire || 0)) { /* (6e tour) --expire k : le mur N2 est déclaré échu (k fois), comme 24 h plus tard : le N2 est retenté, son 2e échec pose 7 j */
+            R.expire = (R.expire | 0) + 1; await ev("(function(){var a=JSON.parse(localStorage.getItem('cashcarPilote'));for(var k in a.K)if(a.K[k].mur2)a.K[k].mur2=Date.now()-1000;localStorage.setItem('cashcarPilote',JSON.stringify(a));return 1})()"); }
+          R.courses.push({ i, depart: 'N' + d.niveau + ' K' + d.K, src: d.src, fin: 'N' + f.niveau + ' K' + f.K + ' ' + f.zone + (f.urgence ? ' urg' : ''), mem: e ? { k: e.k, n: e.n, k2: e.k2, n2: e.n2, murJ: murJ0, d2J: e.d2 ? Math.round(e.d2 / 864e5) : 0 } : null, echec: await ev('dbgPilote().nEchec'), jr: (JSON.parse(await ev("JSON.stringify(dbgPilote().journal)")) || []).filter(x => /ÉCHEC/.test(x)) });
         }
         R.departs = R.courses.map(x => x.depart.split(' ')[0]).join(',');
       } else if (MODE === 'gelchaud') {

@@ -190,6 +190,7 @@ function pilMoment(m){ /* les moments invisibles : 'depart' (resetGame, start), 
   if(m==='depart'){PILO.raz=false;PILO.jeton=false;if(now-PILO.depT<1500){PILO.depIgn++;return;} /* (corrections) resetGame puis start : un seul départ */
     PILO.nDep++;PILO.depT=now;PILO.h.fill(0);PILO.fen.length=0;PILO.rgSuite=0;PILO.nI=PILO.nR=PILO.nT=0;PILO.bleuS=0;PILO.bleuK='';PILO.monte=null;PILO.rgT0=0;PILO.mort=false;PILO.mortP=false;PILO.avMort=null;PILO.seg={};
     PILO.urg=null;PILO.urgFait=false;PILO.gels=PILO.gelsC=PILO.gelMax=0;
+    PILO.vraiT=PILO.vraiPT=0;if(PILO.sim)PILO.sim.vsT=0; /* (6e tour, mineur 4) la sonde confirmée n'apparie que des échantillons de CETTE course */
     if(PIL_FIGE&&PILO.fait)return;const c0=pilCond(),c=pilCondDep(c0);PILO.c=c0;if(c===c0){PILO.cle=c.cle;PILO.cand='';}PILO.tPrev=c0.t;
     const k=pilDepartK(c),n0=PRF.n;PILO.Kv=k;PILO.fait=true;pilAppliquer(k,'depart','départ');
     pilNote('départ N'+PRF.n+' K'+PILO.K+' · clé '+(PRF.modele||'?')+'|'+c.cle+(c!==c0?' (hystérésis : '+c0.cle+' pas encore 60 s)':'')+' · source '+PILO.src+' · '+pilCondTx(c0)+' · plafond '+(PIL_NF?'forcé N'+PIL_NF:pilChoisi()?(PRF.q==='haute'?'HAUTE':'BASSE'):PIL_AUTO?'AUTO':'BASSE (sans pilauto)')+(n0!==PRF.n?' · N'+n0+' → N'+PRF.n:''));return;}
@@ -252,10 +253,13 @@ function pilTick(now,enC){ /* une fois par seconde (mobPalTick) : LE PILOTE */
      rgSuite = secondes ROUGE vraies DE SUITE (une seconde hors calme, hors course ou propre remet à 0) : seul ce compteur pose l'échec N2 par ROUGE (≥ 3) */
   const rS8=calme&&nI>=10&&nR/nI>.08,rS2=calme&&nI>=10&&nR>=1&&nR/nI>=.02;PILO.rgSuite=rS8?(PILO.rgSuite|0)+1:0;
   {let gi=0,gg=0;for(const f of PILO.fen){gi+=f[0];gg+=f[2]|0;}PILO.geleux=gg>=2||(gi>0&&gg>.005*gi);PILO.glS=PILO.geleux?PILO.glS+1:0;if(!PILO.geleux)PILO.glNote=0;} /* (S2) gels + trous > 0,5 % des images de la fenêtre, ou ≥ 2 gels sur 10 s */
-  const g=PILO.seg[c.cle]||(PILO.seg[c.cle]={s:0,kv:0,ro:0,kmax:0,N:0,n:0,rg:0,gl:0,nMax:0,urg:0,k0:PILO.K});g.s++;g.kv=PILO.Kv;g.N=pilPlafEff();g.n=PRF.n;if(PRF.n>g.nMax)g.nMax=PRF.n;if(PILO.K>g.kmax)g.kmax=PILO.K;if(PILO.geleux)g.gl++;if(rS2)g.rS=(g.rS|0)+1;if(PILO.rgSuite>(g.rgMax|0))g.rgMax=PILO.rgSuite; /* (étape 4) le segment de cette condition ; N = le niveau de base, ro = secondes ORANGE ou ROUGE, kmax = le cran le plus lourd tenu */
+  const g=PILO.seg[c.cle]||(PILO.seg[c.cle]={s:0,kv:0,ro:0,kmax:0,N:0,n:0,rg:0,gl:0,nMax:0,urg:0,k0:PILO.K});g.s++;g.kv=PILO.Kv;g.N=pilPlafEff();g.n=PRF.n;if(PRF.n>g.nMax)g.nMax=PRF.n;if(PILO.K>g.kmax)g.kmax=PILO.K;if(PILO.geleux)g.gl++;if(rS2){g.rS=(g.rS|0)+1;if(!g.rsRun)g.ep=(g.ep|0)+1;g.rsRun=(g.rsRun|0)+1;if(g.rsRun>(g.rsMax|0))g.rsMax=g.rsRun;}else if(calme)g.rsRun=0;if(PILO.rgSuite>(g.rgMax|0))g.rgMax=PILO.rgSuite; /* (6e tour) rS = secondes à ≥ 2 % de vrais ratés ; un ACCROC = une suite de telles secondes (ep = le nombre d'accrocs, rsMax = le plus long) */ /* (étape 4) le segment de cette condition ; N = le niveau de base, ro = secondes ORANGE ou ROUGE, kmax = le cran le plus lourd tenu */
   pilNoteGels(now,false);
-  if(S&&S.vrai!=null){QLR.vrai=+S.vrai;QLR.vraiT=now;}
-  if(QLR.vraiT&&QLR.vraiT!==PILO.vT&&now-QLR.vraiT<12000){PILO.vT=QLR.vraiT;PILO.vraiP=PILO.vrai;PILO.vraiPT=PILO.vraiT;PILO.vrai=QLR.vrai;PILO.vraiT=now;}
+  /* (6e tour, banc fidèle) la sonde simulée échantillonne comme la vraie : un échantillon toutes les 10 s (et tout de suite quand le banc change la valeur) ; `vrai1` = UN échantillon isolé, une seule fois ;
+     pendant la simulation, les vrais échantillons de la sonde du banc sont ignorés (ils ne sont pas ceux du téléphone) */
+  if(S&&(S.vrai!=null||S.vrai1!=null)){if(S.vrai!=null){QLR.vrai=+S.vrai;QLR.vraiT=now;}PILO.vT=QLR.vraiT;
+    if(S.vrai1!=null){pilVraiPrend(+S.vrai1,now);S.vrai1=null;S.vsT=now;S.vN=0;}else if(S.vN||!S.vsT||now-S.vsT>=10000){pilVraiPrend(+S.vrai,now);S.vsT=now;S.vN=0;}}
+  else if(QLR.vraiT&&QLR.vraiT!==PILO.vT&&now-QLR.vraiT<12000){PILO.vT=QLR.vraiT;pilVraiPrend(QLR.vrai,now);}
   if(PIL_SONDE&&now-PILO.sondeT>10000&&QLR.sN<=0&&!(QLR.S&&QLR.S.pend>0)){PILO.sondeT=now;try{qlSondeArme();}catch(e){}}
   if(PIL_FIGE||PIL_KF>=0||!calme){PILO.zone='';return;}
   const T=PILO.per,b=(PIL_B||(PRF.haute()&&pilChoisi()?.85:.75))-(c.B&&c.E?.05:0),r3=pilRates(3),r10=pilRates(10),vOk=now-PILO.vraiT<15000&&PILO.vraiT,deux=vOk&&PILO.vraiPT&&PILO.vraiT-PILO.vraiPT<25000;
@@ -283,6 +287,7 @@ function pilTick(now,enC){ /* une fois par seconde (mobPalTick) : LE PILOTE */
     if(PILO.bleuS>=60&&now-PILO.rougeT>120000&&PILO.Kv>=PILO.K&&PILO.K>0&&pilMurPlancher(c.cle)<PILO.K&&!pilDescend()){
       const k=PILO.K-1,d0=pilVoulu(PILO.K).o.dpr,d1=pilVoulu(k).o.dpr,p=vB*Math.pow(d1/Math.max(.1,d0),2)*(k===8&&PILO.K===9?1.6:1);
       PILO.bleuS=0;PILO.bleuC[PILO.bleuK]=0;if(p<.7*T){PILO.Kv=k;pilNote('bleu · 60 s de marge · visé K'+k+' (prédit '+p.toFixed(1).replace('.',',')+' / '+T.toFixed(1).replace('.',',')+')');}}}}
+function pilVraiPrend(v,now){PILO.vraiP=PILO.vrai;PILO.vraiPT=PILO.vraiT;PILO.vrai=v;PILO.vraiT=now;PILO.nVrai=(PILO.nVrai|0)+1;} /* un échantillon de la sonde ; la paire (vrai, vraiP) confirme */
 function pilAnticipe(c,tn,to){ /* la différence de table posée en dette (ou rendue) ; un changement de départ (niveau BASSE ⇄ plein) change la base du cran */
   const s=PILO.sess[c.cle],pire=pilPire(tn,to);let pl=4,nb=1;try{pl=pilPlafond();nb=pilNivBas();}catch(e){}
   let kv=PILO.Kv,cap=PILO.capN;
@@ -300,15 +305,19 @@ function pilDeCle(cle){const m=/^B(\d)E(\d)T(-?\d)$/.exec(cle||'');return m?{B:m
 window.dbgPilote=function(o){if(o==='oubli'){try{pilOubli();}catch(e){}}
   const c=pilCond();return {on:pilOn(),force:PIL_F||null,gel:PIL_GEL,K:PILO.K,nom:PIL_NOM[PILO.K],vise:PILO.Kv,dette:PILO.Kv-PILO.K,niveau:PRF.n,plafond:(function(){try{return pilPlafEff();}catch(e){return null;}})(),plafondJoueur:(function(){try{return pilPlafond();}catch(e){return null;}})(), /* (M5) l'ordinateur n'a pas de classe : dbgPilote ne lève plus */auto:PIL_AUTO&&!pilChoisi(),src:PILO.src,cond:c,cle:(PRF.modele||'?')+'|'+c.cle,
     table:pilTable(c),tic:+pilTic().toFixed(1),per:+PILO.per.toFixed(1),eM:CAD.eM||0,zone:PILO.zone,rates3:pilRates(3),rates10:pilRates(10),vrai:PILO.vraiT?+PILO.vrai.toFixed(1):null,bleu:PILO.bleuS,
-    mur:PILO.mur,seance:PILO.sess,retailles:PILO.nRet,halo:PILO.nBloom,ombresNeuves:PILO.nOmb,dettes:{dpr:PILO.dDpr,halo:PILO.dBloom},capN:PILO.capN,descend:pilDescend(),gels:PILO.gels,trous:PILO.nT,geleux:PILO.geleux,glS:PILO.glS,constructions:PILO.nCons,borne:PILO.borne,nBorne:PILO.nBorne,jeton:PILO.jeton,razIgnores:PILO.razIgn,wDer:+PILO.wDer.toFixed(1),urgence:PILO.urg?PILO.urg.pq:PILO.urgFait?'payée':null,nUrg:PILO.nUrg,nEchec:PILO.nEchec|0,rgSuite:PILO.rgSuite|0,consEn:!!PILO.consEn,capGel:(function(){try{return pilCapGel(c);}catch(e){return null;}})(),jetonExp:PILO.jetonExp|0,bleuCumul:PILO.bleuC,portails:{payes:PILO.nPort,ignores:PILO.portIgn,raz:PILO.razIgn},departs:{notes:PILO.nDep,ignores:PILO.depIgn},cand:PILO.cand||null,mort:PILO.mort,mortP:PILO.mortP,histo:Array.from(PILO.h),changements:PILO.chg,journal:PILO.jr.slice(-15),
+    mur:PILO.mur,seance:PILO.sess,retailles:PILO.nRet,halo:PILO.nBloom,ombresNeuves:PILO.nOmb,dettes:{dpr:PILO.dDpr,halo:PILO.dBloom},capN:PILO.capN,descend:pilDescend(),gels:PILO.gels,trous:PILO.nT,geleux:PILO.geleux,glS:PILO.glS,constructions:PILO.nCons,borne:PILO.borne,nBorne:PILO.nBorne,jeton:PILO.jeton,razIgnores:PILO.razIgn,wDer:+PILO.wDer.toFixed(1),urgence:PILO.urg?PILO.urg.pq:PILO.urgFait?'payée':null,nUrg:PILO.nUrg,nEchec:PILO.nEchec|0,rgSuite:PILO.rgSuite|0,consEn:!!PILO.consEn,capGel:(function(){try{return pilCapGel(c);}catch(e){return null;}})(),court:PILO.court||{},nVrai:PILO.nVrai|0,vraiP:PILO.vraiPT?+PILO.vraiP.toFixed(1):null,seg:(function(){const o={};for(const k in PILO.seg){const g=PILO.seg[k];o[k]={s:g.s,rS:g.rS|0,ep:g.ep|0,rsMax:g.rsMax|0,rgMax:g.rgMax|0,ro:g.ro,kv:g.kv,k0:g.k0};}return o;})(),jetonExp:PILO.jetonExp|0,bleuCumul:PILO.bleuC,portails:{payes:PILO.nPort,ignores:PILO.portIgn,raz:PILO.razIgn},departs:{notes:PILO.nDep,ignores:PILO.depIgn},cand:PILO.cand||null,mort:PILO.mort,mortP:PILO.mortP,histo:Array.from(PILO.h),changements:PILO.chg,journal:PILO.jr.slice(-15),
     img:window.imgRegle(),qlMin:PAL.b('qlMin',0),poly:MOB_POLY?window.__ccPoly.on:null,cadPer:(function(){try{return +cadPer().toFixed(1);}catch(e){return null;}})(),memoire:(function(){try{return pilMemLit();}catch(e){return null;}})()};};
-window.dbgPiloteOu=function(){return pilOu();}; /* (banc) le moment de cet instant : course, depart, portail, mort, pause, menu */
+window.dbgPiloteOu=function(){return pilOu();};
+window.dbgPisteTranches=function(pas){ /* (6e tour, banc M2) une piste refaite EN COURSE par le générateur, une tranche toutes les `pas` ms (comme le chargement sous le serpent, mais étalée sur plusieurs secondes) : la construction dure plusieurs images */
+  if(!started||gameOver)return 'pas de course';const g=newTrackG(),t0=performance.now();let n=0;window.__pisteTr={n:0,fini:false};
+  const f=function(){let r;PISTE_TRANCHE=4;try{r=g.next();n++;}catch(e){window.__pisteTr={n:n,err:String(e&&e.message)};return;}finally{PISTE_TRANCHE=Infinity;}if(r.done){window.__pisteTr={n:n,fini:true,ms:Math.round(performance.now()-t0)};return;}window.__pisteTr.n=n;setTimeout(f,+pas||150);};
+  f();return 1;}; /* (banc) le moment de cet instant : course, depart, portail, mort, pause, menu */
 window.dbgPiloteSim=function(o){ /* (banc) simule les capteurs : t (thermique iOS, joué aussi par dbgThermique), B (branché), E (économie), bat (%), vrai (ms), rates (part) ; null efface */
   if(o===null){PILO.sim=null;return null;}o=o||{};
   if(o.t!=null)try{mobThermo(+o.t);}catch(e){}
   if(o.B!=null)window.__ccBranche=o.B?2:1;if(o.E!=null)window.__ccEco=o.E?1:0;if(o.bat!=null)window.__ccBatterie=+o.bat;
   if(o.K!=null)pilAppliquer(Math.max(0,Math.min(8,+o.K)),'course','banc : K posé');if(o.Kv!=null)PILO.Kv=Math.max(0,Math.min(12,+o.Kv)); /* (banc) un cran posé en course, un cran visé */
-  const S=PILO.sim||(PILO.sim={});if('vrai' in o)S.vrai=o.vrai;if('eM' in o)S.eM=o.eM;if(S.eM==null)delete S.eM;if('rates' in o)S.rates=o.rates;if('gels' in o)S.gels=o.gels;if(S.gels==null)delete S.gels;if(S.vrai==null)delete S.vrai;if(S.rates==null)delete S.rates;return Object.assign({},S);};
+  const S=PILO.sim||(PILO.sim={});if('vrai' in o){S.vrai=o.vrai;S.vN=1;}if(o.vrai1!=null)S.vrai1=+o.vrai1;if(o.constr!=null){pilConstr(1);setTimeout(function(){pilConstr(0);},+o.constr);} /* (6e tour) vrai1 : un échantillon isolé ; constr : une construction de constr ms */if('eM' in o)S.eM=o.eM;if(S.eM==null)delete S.eM;if('rates' in o)S.rates=o.rates;if('gels' in o)S.gels=o.gels;if(S.gels==null)delete S.gels;if(S.vrai==null)delete S.vrai;if(S.rates==null)delete S.rates;return Object.assign({},S);};
 function pilPrechauffe(){ /* (étape 2) LES CARTES D'OMBRE PRÉCHAUFFÉES : les tailles que les crans [C] et [P] peuvent poser sur ce niveau (un cran plus bas, 512) sont allouées SOUS VOILE ; en course, un cran d'ombre
      ne fait plus que changer de carte (QL.ombres, rendu/nettete-qualite.js qlPose). Coût : ~10 Mo de mémoire graphique au N2 (1024 + 512). Comme three le ferait (WebGLShadowMap : RGBA, filtres au plus proche). */
   if(!PIL_PRECH)return;let P0=null;try{P0=mobP0Niv();}catch(e){return;}const C=QL.ombres||(QL.ombres={}),cur=sun.shadow.mapSize.x;
@@ -350,18 +359,31 @@ function pilEchecN2(g,cle,fin){ /* (4e tour) l'échec du niveau plein (libre, AU
   if(!(g.nMax>nb)||pilTableC(Object.assign({bat:-1},pilDeCle(cle))).cap)return '';
   /* (5e tour, S1) ROUGE = 3 s DE SUITE de vrais ratés dans la seconde même (g.rgMax), course courte comprise (la même exigence : plus de « course < 30 s qui a vu un tic ROUGE ») */
   if((g.rgMax|0)>=3)return 'ROUGE '+g.rgMax+' s de suite (vrais ratés)';if(g.urg)return 'urgence payée';
-  if(g.s>=30&&2*g.ro>=g.s)return 'ORANGE majoritaire ('+g.ro+'/'+g.s+' s)';
-  if(g.kv>=g.k0+3&&(g.rS|0)>=3)return 'K'+g.kv+' ≥ K départ '+g.k0+' + 3 ('+g.rS+' s de vrais ratés)'; /* (5e tour) les crans perdus sur un seul accroc ne comptent pas */
+  /* (6e tour, S1 du contrôle) plus de fenêtre glissante ici : seules comptent les secondes qui ont ELLES-MÊMES ≥ 2 % de vrais ratés (rS) ; et il faut plus que deux accrocs isolés :
+     au moins 3 s de vrais ratés ET (un accroc de 3 s ou plus, ou 3 accrocs ou plus). Un ou deux accrocs isolés (≤ 2 s chacun) ne posent jamais de mur */
+  const rS=g.rS|0,tenu=rS>=3&&((g.rsMax|0)>=3||(g.ep|0)>=3);if(!tenu)return '';
+  if(g.s>=30&&2*rS>=g.s)return 'ratés majoritaires ('+rS+'/'+g.s+' s à ≥ 2 % de vrais ratés)';
+  if(g.kv>=g.k0+3)return 'K'+g.kv+' ≥ K départ '+g.k0+' + 3 ('+rS+' s de vrais ratés, '+(g.ep|0)+' accrocs)';
   return '';}
+function pilEchecPose(cle,g,r,quoi){g.echec=1;PILO.nEchec=(PILO.nEchec|0)+1; /* l'échec constaté : le mur N2 écrit, la séance revient à N1 */
+  if(PIL_MEM)pilApprend(cle,g.kv,r+(quoi?' · '+quoi:''),true,false,true);else pilNote('échec N2 · '+r+' (sans mémoire)');
+  const c=Object.assign({bat:-1},pilDeCle(cle));c.cle=cle;if(cle===(PILO.cle||'')){let nb=1;try{nb=pilNivBas();}catch(e){}PILO.capN=nb;const d=pilDepartCalc(c);if(!PIL_MEM)d.cap=nb;PILO.Kv=d.k;PILO.sess[cle]={k:d.k,cap:nb};}}
 function pilVerifEchec(fin,quoi){ /* à chaque seconde, et aux fins : le mur N2 s'écrit dès que l'échec est constaté ; le départ suivant (et le prochain moment sous voile) est N1 */
-  const G=PILO.seg;for(const cle in G){const g=G[cle],r=pilEchecN2(g,cle,fin);if(!r)continue;g.echec=1;PILO.nEchec=(PILO.nEchec|0)+1;
-    if(PIL_MEM)pilApprend(cle,g.kv,r+(quoi?' · '+quoi:''),true,false,true);else pilNote('échec N2 · '+r+' (sans mémoire)');
-    const c=Object.assign({bat:-1},pilDeCle(cle));c.cle=cle;if(cle===(PILO.cle||'')){let nb=1;try{nb=pilNivBas();}catch(e){}PILO.capN=nb;const d=pilDepartCalc(c);if(!PIL_MEM)d.cap=nb;PILO.Kv=d.k;PILO.sess[cle]={k:d.k,cap:nb};}}}
+  const G=PILO.seg;for(const cle in G){const g=G[cle],r=pilEchecN2(g,cle,fin);if(r)pilEchecPose(cle,g,r,quoi);}}
+/* (6e tour, mineur 2) LES COURSES COURTES : une course de moins de 30 s n'apprend rien seule ; son constat (secondes jouées, secondes à vrais ratés, accrocs) se CUMULE dans la séance, par
+   condition et niveau (PILO.court), et la règle d'échec s'applique au cumul dès 30 s. Le cumul repart de zéro après un verdict (échec, ou 30 s cumulées sans échec) et après une course longue. */
+function pilCumulCourt(G,quoi){let nb=1;try{nb=pilNivBas();}catch(e){}const C=PILO.court||(PILO.court={});
+  for(const cle in G){const g=G[cle];if(g.echec||!(g.nMax>nb))continue;const ck=cle+'|N'+g.nMax;
+    if(g.s>=30){delete C[ck];continue;}
+    const a=C[ck]||(C[ck]={s:0,rS:0,ep:0,rsMax:0,kv:0,k0:g.k0,nMax:g.nMax,n:0});a.s+=g.s;a.rS+=g.rS|0;a.ep+=g.ep|0;a.rsMax=Math.max(a.rsMax,g.rsMax|0);a.kv=g.kv;a.n++;
+    if(a.s<30)continue;delete C[ck];
+    const r=pilEchecN2({s:a.s,rS:a.rS,ep:a.ep,rsMax:a.rsMax,kv:a.kv,k0:a.k0,nMax:a.nMax,ro:0,rgMax:0,urg:0},cle,true);
+    if(r)pilEchecPose(cle,g,'cumul de '+a.n+' courses courtes ('+a.s+' s) · '+r,quoi);else pilNote('courses courtes · '+cle+' : '+a.n+' courses, '+a.s+' s cumulées, '+a.rS+' s de vrais ratés · N'+a.nMax+' tient');}}
 function pilFinCourse(quoi){ /* à la mort, au retour au menu : les segments de la course */
-  pilVerifEchec(true,quoi);
+  pilVerifEchec(true,quoi);pilCumulCourt(PILO.seg,quoi);
   const G=PILO.seg;PILO.seg={};const c=PILO.c||pilCond();if(!PIL_MEM||(c.bat>=0&&c.bat<20))return;let nb=1;try{nb=pilNivBas();}catch(e){}
   for(const cle in G){const g=G[cle];if(g.s<30||g.echec)continue;
-    pilApprend(cle,g.kv,g.s+' s de course'+(g.ro?', '+g.ro+' s orange/rouge':'')+(g.rg?', '+g.rg+' s rouge':'')+(g.urg?', urgence':'')+(g.gl?', '+g.gl+' s de gels':''),g.nMax>nb&&g.n>nb,!g.ro&&!g.gl&&!g.kmax&&!g.kv,false);}} /* (S2) des gels sur la fenêtre : pas de marge */
+    pilApprend(cle,g.kv,g.s+' s de course'+(g.ro?', '+g.ro+' s orange/rouge':'')+(g.rg?', '+g.rg+' s rouge':'')+(g.urg?', urgence':'')+(g.gl?', '+g.gl+' s de gels':''),g.N>nb&&(g.n>nb||g.kv>=9),!g.ro&&!g.gl&&!g.kmax&&!g.kv,false);}} /* (S2) des gels sur la fenêtre : pas de marge ; (6e tour, mineur 5) l'échelle du cran est celle du PLAFOND (g.N) : à K ≥ 9 le niveau descend d'un cran, mais le cran appris reste celui de N2 (k2), celui que le départ lit */
 function pilApprendChaud(){if(!pilOn())return;const c=pilCond(),cle='B'+(c.B?1:0)+'E'+(c.E?1:0)+'T2';pilApprend(cle,Math.min(12,PILO.K+2),'course brûlante : critical vu à K'+PILO.K,false,false,false);}
 try{const vu=function(){try{if(pilOn()&&!PIL_GEL&&(document.visibilityState==='hidden'||this===window))pilVerifEchec(true,'page cachée');}catch(e){}};document.addEventListener('visibilitychange',vu);window.addEventListener('pagehide',vu);}catch(e){} /* (4e tour) l'échec ne se perd pas si iOS tue la page */
 function pilOubli(){try{localStorage.removeItem('cashcarPilote');}catch(e){}try{const Pr=pilPrefs();if(Pr){const p9=Pr.remove({key:'cashcarPilote'});if(p9&&p9.catch)p9.catch(function(){});}}catch(e){}PILO.sess={};PILO.mur={};}
