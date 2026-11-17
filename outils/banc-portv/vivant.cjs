@@ -52,7 +52,7 @@ const CAS = 'JSON.stringify(dbgPortvCas())';
           try{if(P==='quitte'){dbgPortvCas('pause');window.__ev2.push(['quitte',dbgQuitte(),JSON.stringify(dbgPortvCas())]);}
           else if(P==='pause'){dbgPortvCas('pause');window.__ev2.push(['pause',JSON.stringify(dbgPortvCas())]);setTimeout(function(){window.__ev2.push(['pendant',JSON.stringify(dbgPortvCas())]);dbgPortvCas('pause');window.__ev2.push(['reprise',Math.round(performance.now())]);},1500);}
           else if(P==='cache'){Object.defineProperty(document,'hidden',{value:true,configurable:true});document.dispatchEvent(new Event('visibilitychange'));setTimeout(function(){window.__ev2.push(['pendant',JSON.stringify(dbgPortvCas())]);delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));window.__ev2.push(['visible',Math.round(performance.now())]);},1200);}
-          else if(P==='mort'){window.__ev2.push(['mort',JSON.stringify(dbgChance('mort')),JSON.stringify(dbgPortvCas())]);}
+          else if(P==='mort'){dbgImmortel(false);let k=0;const tue=function(){k++;const x=dbgChance('mort');const C2=dbgPortvCas();if(C2.mode==='boom'||C2.gameOver||k>400){window.__ev2.push(['mort',k,JSON.stringify(x),JSON.stringify(C2),JSON.stringify(dbgPortvEtale())]);return;}setTimeout(tue,0);};tue();} /* (2e tour) l'immortalité du banc et le bouclier refusaient la mort : on la redemande jusqu'à l'explosion */
           }catch(e){window.__ev2.push(['err',String(e)]);}return;}setTimeout(t,0);};setTimeout(t,0);});1`);
   const attendPret = async (cible, max) => { for (let i = 0; i < (max || 1200); i++) { await dormir(250);
       const e = await ev('(function(){const p=dbgPrebati();return {e:p.etat,c:String(p.carte||"")};})()'); if (e.e === 'pret' && e.c.indexOf(cible) === 0) return true; } return false; };
@@ -85,7 +85,7 @@ const CAS = 'JSON.stringify(dbgPortvCas())';
   const fais = async (nom, f) => { if (SAUTE.has(nom)) return; try { const P = await f(); P.nom = nom; R.cas.push(P); } catch (e) { R.cas.push({ nom, err: String(e && e.stack || e).slice(0, 400) }); } ecrit(); };
   await fais('pause', () => portail('grotte', { piege: 'pause' }));
   await fais('cache', () => portail('jade', { piege: 'cache' }));
-  await fais('mort', async () => { const P = await portail('ville', { piege: 'mort' });
+  await fais('mort', async () => { const P = await portail('ville', { piege: 'mort', avant: async (I) => { I.immortel = await ev('dbgImmortel(false)'); } }); /* (2e tour) mortel dès l'approche : le bouclier (CHANCE.inv) s'use avant le portail */
     for (let i = 0; i < 40; i++) { const k = await cas(); if (k.gameOver) break; await dormir(250); }
     P.apresMort = await cas(); P.reanime = await ev('JSON.stringify(dbgChance("joue"))').catch(e => String(e)); await dormir(3000); P.apresReanime = await cas(); await dormir(2000); P.roule = await cas();
     await ev('dbgImmortel(true);1'); if (P.roule.gameOver || !P.roule.started) await depart(); return P; });

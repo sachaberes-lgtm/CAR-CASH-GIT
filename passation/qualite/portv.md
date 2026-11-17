@@ -135,6 +135,83 @@ Même page, mêmes conditions ; avant = `?sans=portv`.
 4. Console : `dbgPortv()` (étapes de chaque construction : actif, sousVoile, pas, pasMx, chauffe), `dbgPortvEtale()`.
 5. `?sans=portv` (via CC_QS) : l'avant, pour comparer.
 
+## 7. 2e tour (17/11 soir) — après le contrôle adverse
+
+### 7.1 La route de la grotte qui différait : LA CAUSE EXACTE (prouvée en Node)
+Ce n'était PAS le découpage en tranches ni le jeu vivant entre deux tranches. Une route ne dépend pas que de (graine, palier) : les générateurs lisent ET écrivent
+une **mémoire des routes d'avant** — la grotte : `GRT_LIB_MEM.perso` (la personnalité de la grotte d'avant, écrite à CHAQUE essai de grtTrace, dès la 1re pause)
+et `GRT_VUS` ; l'orbite : `ORB_PIOCHE`, `OU`, `OU_FORMES` ; Jade et l'orbite : le sac `RU` des routes uniques (figé avec ?pistegraine=).
+Un **pré-bâti annulé** (map d'en face changée — le banc le fait à chaque `dbgClassique` —, partie finie, QUITTER, newTrack d'ailleurs) avait déjà écrit dans cette
+mémoire : la grotte suivante se tirait avec la personnalité d'une **grotte fantôme**. Combien le fantôme avait avancé dépend du temps (taille des tranches, départ
+attendu 7 s ou non) : avant et après lot, deux histoires de fantômes, donc trois grottes différentes à graine égale. Jade, ville et nuages n'ont pas cette
+mémoire au banc (RU figé par ?pistegraine) : identiques.
+Preuve (`node outils/banc-portv/memoire.cjs`, Node, sans Chrome) : grotte graine 2 tirée après la grotte 1 installée = `6d7c45…` (palier 0) ; après un fantôme
+(graine 50) annulé après 1, 3 ou 8 pauses : perso « slalom » → « coulee » / « vertige », route `90f9a9…` **DIFFÉRENTE** ; palier 10 : différente après 1 et 3
+pauses, égale après 8 (le fantôme avait réécrit « slalom » : le hasard du temps). Avec la mémoire remise : **égale** dans les 6 cas. Orbite : fantôme fini puis jeté
+→ différente ; mémoire remise → égale.
+Le découpage, lui : genCtrlG (une pause à chaque occasion) contre genCtrl d'un trait, ville/crypto/nuages/espace × paliers 0/10/20 × graines 1-6 : **72/72** ;
+grotte en tranches (PORTV_ON) contre le code d'un trait : **18/18**. Total du banc : **97/97**.
+Et le contrôle `?routeverif=1` du 1er essai de ce tour donnait encore « grotte DIFF, espace DIFF » : sa route de référence (bâtie d'un trait avant la vraie)
+écrivait elle-même `GRT_LIB_MEM.perso` et `ORB_PIOCHE` (elle ne remettait que GRT_VUS) — le même mécanisme, dans le banc.
+
+**Correctif** (`code/moteur/route-memoire.js`, nouveau morceau avant piste-prebati.js) : `rmPrend()` photographie toute la mémoire des routes, `rmRemet()` la remet.
+- `prebPart` la photographie ; `prebAnnule` la REMET si le travail annulé y avait écrit (seules les routes installées comptent) et l'inscrit dans
+  `dbgRouteVerif().fantomes` (toujours relevé, même sans le lot). `?sans=portvmem` (ou `?sans=portv`) : gardée comme avant.
+- `rvRef` (la référence de ?routeverif=1) photographie et remet TOUTE la mémoire.
+- localStorage du sac RU : une écriture d'un fantôme y reste jusqu'à la prochaine route gardée (qui réécrit tout) — la mémoire en jeu est remise.
+- Conséquence voulue : avec le lot, la suite des routes ne dépend plus des pré-bâtis annulés (avant, si). Avant/après ne sont donc identiques qu'à mémoire égale :
+  la comparaison valable est `?routeverif=1` (même graine, palier, zone, mémoire).
+- Le merge des routes uniques : `genCtrl` repris tel quel ; `genCtrlG` (en tranches) seulement pour ville, crypto et nuages ; l'ORBITE se tire d'un trait (ses reprises
+  sont bornées par l'horloge, 50 ms : une pause au milieu en changerait le nombre).
+
+### 7.2 La règle de l'étalement (commit 62f113f19, pveTick)
+- PAUSE ou ARRIÈRE-PLAN : suspendu, reprend où il en était ; le temps suspendu ne compte pas dans la borne du voile.
+- MORT (mode 'boom'), FIN DE PARTIE (endGame, QUITTER), retour au menu : se finit en tranches en mode « partie finie » (`PVE.mort`) : la caisse posée au départ de
+  la piste neuve, mais ni mode='drive', ni vitesse, ni sons, ni campDebut (`pvFinPartie`) ; annonces jetées.
+- NOUVELLE COURSE (REJOUER, RECOMMENCER, newTrack d'ailleurs) : celui en cours se finit d'abord d'un trait (pveFinit), ses annonces jetées, puis la piste neuve.
+- Annonces du niveau (bannière, musique, porte de l'orbite, « LA NUIT TOMBE ») : `pvAnn`, retenues jusqu'à l'ouverture du voile.
+
+### 7.3 Les mineurs
+- JF.lim : remis à sa valeur d'avant par jadeFini (jade-1.js).
+- Le voile : UNE borne pour l'attente du pré-bâti et son reste (`pveMax` : 25 s, 60 s tant que le travailleur de la grotte creuse ; pauses exclues) ; au-delà le reste
+  se fait d'un trait (comme avant). **Pire cas à 20 i/s** : 25 s (grotte : 60 s) de reste de pré-bâti, puis la construction elle-même, non bornée mais en tranches
+  de 22 ms : ~1,5 s de calcul au 13 Pro chaud ≈ 70 images ≈ **3,5 s** de plus, puis la chauffe (~0,5-1 s). Cas courant (pré-bâti fini) : ~3-4 s de voile à 20 i/s.
+- pvAttendDepart : hystérésis (une fois lâchée, l'attente des 7 s ne reprend plus).
+- Restent d'un bloc : l'orbite (genCtrl d'un trait, ≤ ~90 ms ×1 au pire de ses reprises), un essai de route de Jade (jadeAGenG, le tirage des routes uniques), la torsion
+  d'un essai de grotte, quelques décors de grotte (grtD, grtExiCoupe), rythmeMesure ; et tout newTrack hors portail (REJOUER, départ) comme avant.
+
+### 7.5 PROUVÉ dans le jeu vivant (Chrome, ×4, tel=1, 17/11 23 h — `vivant.cjs`, avec le lot puis `?sans=portv`)
+- **Routes bâties en course = la même d'un trait aux mêmes entrées** (?routeverif=1) : avec le lot **23/23** (jade ×6, grotte ×7 dont une non pré-bâtie, ville ×4,
+  nuages ×3, espace, canyon ; 21 étalées sous le voile, avec pause / arrière-plan / mort / QUITTER pendant l'étalement) ; sans le lot **22/22**.
+  Le 1er essai de ce tour (référence qui écrivait la mémoire) : grotte et espace DIFF — disparus avec la mémoire remise.
+- Mêmes entrées dans les deux pages (map, graine, palier, mémoire des grottes) : routes d'un trait **4/4 identiques** avant/après.
+- **Les fantômes vus en jeu** : sans le lot, 3 pré-bâtis annulés avaient écrit dans la mémoire et l'y ont laissée (`espace-matin (map) : ORB_PIOCHE,OU,OU_FORMES`,
+  `grotte-matin (map) : GRT_VUS`, `grotte-soir (fin) : GRT_LIB_MEM`) ; avec le lot, 2 (espace) — mémoire remise.
+- Pause pendant l'étalement : `suspendu` vrai pendant 1,5 s, reprise, arrivée en grotte en 'drive' ; arrière-plan (document caché 1,2 s) : suspendu, reprise.
+- **Mort sous le voile** (explosion à ph = 1, en pleine construction de la ville) : l'étalement se finit en « partie finie » — règle `["mort",3,0]` (3 annonces jetées),
+  mode reste 'boom', gameOver vrai, s = 0 sur la piste neuve, jamais 'drive'. 0 exception. (La réanimation `dbgChance('joue')` ne relance pas la partie au banc, ni avant
+  ni après le lot : pas d'offre sans l'écran de fin — non prouvée.)
+- QUITTER sous le voile : règle `["mort",1,0]`, gameOver vrai, mode pas remis, s = 0 ; nouvelle course propre (ph 0, lieu nuages) puis portail suivant ÉGAL.
+  QUITTER en plein pré-bâti de la grotte puis nouvelle course : pré-bâti annulé, nouvelle course propre, portail suivant ÉGAL.
+- Deux portails rapprochés (nuages puis jade à 150 m) : les deux ÉGAUX, état propre. Grotte non pré-bâtie (pré-bâti coupé) : bâtie en tranches au passage, ÉGALE.
+- **Portail à grande vitesse réellement roulé** (moteur palier 24, la caisse posée ~5 s avant, roule jusqu'au portail) : passage à **803 km/h**, grotte ÉGALE, 'drive'.
+- Fuite (renderer.info, géométries / textures / programmes) sur 11 portails puis 8 cas : avec le lot jade 589 → 604 → 604, grotte 954 → 951 → 1027, ville 528 → 531,
+  textures 91 → 97-102, programmes 150 → 158 ; sans le lot jade 589 → 604 → 602, grotte 955 → 953 → 1023, ville 528 → 531, textures 91 → 97-104, programmes 150 → 158.
+  Aucune croissance propre au lot ; « à libérer » 0 et tâches remises 0 après chaque portail.
+- 0 exception, 0 erreur console dans les quatre passages.
+
+### 7.6 NON PROUVÉ (2e tour)
+- Rien sur le téléphone. La réanimation après une mort sous le voile (voir plus haut). L'arrivée en jade après l'arrière-plan finit en 'fall' à s ≈ 190, avec ET sans le lot (pas lié).
+- Le pire cas du voile (25 s / 60 s) est un calcul, pas une mesure.
+- La reproduction exacte du banc avF/apF du 1er tour n'a pas été rejouée : la cause est prouvée en Node (§ 7.1) et vue en jeu (les fantômes ci-dessus).
+
+### 7.4 Bancs
+- `node outils/banc-portv/memoire.cjs` (Node) : A tranches/d'un trait, B grotte, C la grotte fantôme.
+- `node outils/banc-portv/vivant.cjs --out x.json [--q sans=portv] --bride 4` (Chrome, sous le verrou) : chaque route bâtie en course comparée à la même d'un trait
+  (?routeverif=1) sur jade, grotte, ville, nuages, espace, canyon ; renderer.info après chaque portail ; les cas (pause, arrière-plan, mort + réanimation, grotte non
+  pré-bâtie, deux portails rapprochés, portail à grande vitesse, QUITTER sous le voile, QUITTER en plein pré-bâti). Lecture : `vivant-lire.cjs x.json [y.json]`.
+- `ctl-adverse.cjs` : le banc du contrôle, gardé tel quel (il ne tourne pas : il lit des noms internes).
+
 ## Commandes
 ```
 node outils/banc-portv/portv.cjs --page index.html --tours 3 --prof 1 [--photos <dossier>] [--q sans=portv] --out <x.json>
