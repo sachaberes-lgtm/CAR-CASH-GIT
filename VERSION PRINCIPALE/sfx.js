@@ -288,7 +288,7 @@ function play(id,o){
       stop:function(tc){try{const n=ac.currentTime;g.gain.cancelScheduledValues(n);g.gain.setTargetAtTime(0,n,tc||.03);s.stop(n+(tc||.03)*6);S.coupe=Math.max(S.coupe||0,n+(tc||.03)*6);}catch(e){}x.fin=0;},
       gain:function(db,tc){try{g.gain.setTargetAtTime(dbL(TRIM+f.db+db),ac.currentTime,tc||.05);}catch(e){}},
       rate:function(r,tc){try{r=+r;if(!(r>=.125))r=1;else if(r>16)r=16;s.playbackRate.setTargetAtTime(r,ac.currentTime,tc||.05);}catch(e){}}};
-    if(S.amF&&!S.amT)for(const k9 in S.amF)if(!S.amF[k9]){amorceSuite();break;} /* (lot lenteur) une amorce attendait le contexte réveillé */
+    if(S.amF&&!S.amT&&!S.enCourse)for(const k9 in S.amF)if(!S.amF[k9]){amorceSuite();break;} /* (lot lenteur) une amorce attendait le contexte réveillé */
     L.push(x);if(f.grp&&S.grp[f.grp]){const V=S.grp[f.grp].voix;V.push(x);if(V.length>32)V.shift();}
     return x;
   }catch(e){return null;}
@@ -307,10 +307,12 @@ function liste(){const o={},M=S.m||(G.CCSON_BANQUE&&G.CCSON_BANQUE.m)||{};for(co
    amorce(ids) : chaque son de la liste est joué UNE fois, en silence (gain 0, 30 ms), par le même chemin de lecture (tampon décodé, source, gain, bus), au MENU — à l'heure
    où rien ne presse — pour que son premier vrai jeu ne paie plus rien de « première fois » (décodage, tampon, chemin du bus). Un son à la fois, en tranches (un minuteur
    chacun). Pas encore décodé ou contexte endormi : il attend (relancé au premier son qui joue, au décodage). Ni la polyphonie, ni le chef d'orchestre, ni le délai minimal
-   ne le voient : le résultat sonore est le même, au silence près. Le jeu l'appelle (console-son.js) ; `?sans=swapchaud` = jamais appelé. */
-function amorce(ids){try{for(const id of ids||[]){if(!S.amF)S.amF={};if(S.amF[id]==null)S.amF[id]=0;}amorceSuite();}catch(e){}}
+   ne le voient : le résultat sonore est le même, au silence près. Le jeu l'appelle (console-son.js) ; `?sans=swapchaud` = jamais appelé.
+   (2e tour, contrôle) JAMAIS EN COURSE (`S.enCourse`) ni quand le jeu dit non (`ok()`, donné par le jeu : effets coupés, page cachée, partie lancée) : l'amorce attend le menu suivant. */
+function amorce(ids,ok){try{if(typeof ok==='function')S.amOk=ok;for(const id of ids||[]){if(!S.amF)S.amF={};if(S.amF[id]==null)S.amF[id]=0;}amorceSuite();}catch(e){}}
 function amorceSuite(){if(S.amT||!S.amF)return;S.amT=setTimeout(function(){S.amT=0;try{amorceUn();}catch(e){}},120);}
-function amorceUn(){const ac=S.ac;if(!S.ok||!ac||ac.state!=='running')return; /* relancé par play() */
+function amorceUn(){const ac=S.ac;if(!S.ok||!ac||ac.state!=='running'||S.enCourse)return; /* relancé par play() */
+  let ok9=true;try{ok9=!S.amOk||!!S.amOk();}catch(e){ok9=false;}if(!ok9){S.amNon=(S.amNon|0)+1;return;} /* son coupé, page cachée, course : pas maintenant */
   for(const id in S.amF){if(S.amF[id])continue;const f=S.m&&S.m[id];if(!f){S.amF[id]=2;continue;}
     const cle=id+'#0#'+((f.bases&&f.bases[0])||0),ab=S.buf[cle];if(!ab){if(S.demande)S.demande(cle);continue;} /* pas encore décodé : demandé, il attend */
     const n=ac.currentTime,src=ac.createBufferSource(),g=ac.createGain();src.buffer=ab;g.gain.value=0;src.connect(g);g.connect(S.bus[f.bus]||S.bus.rec||S.dest);
@@ -323,7 +325,7 @@ G.CCSON={charge:charge,init:init,play:play,amorce:amorce,chauffe:function(ids,fi
   finCourse:function(){if(S.finCourse)S.finCourse();},enCourse:function(){S.enCourse=true;},horsCourse:function(){S.enCourse=false;},debutCourse:function(){if(S.debutCourse)S.debutCourse();},
   densite:function(){return {actif:!!S.shelf,n:+DENS.n.toFixed(2),plateau:S.shelf?+S.shelf.gain.value.toFixed(1):null};}, /* (2026-11-11) LA DENSITÉ des récompenses */
   etat:function(){let oct=0,n=0;for(const k in S.buf){const b=S.buf[k];if(b){n++;oct+=b.length*b.numberOfChannels*4;}}
-    return{amorces:S.amN|0,ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn,residents:n,mo:Math.round(oct/104857.6)/10,tardifs:S.tard,perdus:S.perdus,tardIds:S.tardIds||{},plafonnes:S.plaf|0,evinces:S.evinces,enAttente:Object.keys(S.att).length,banqueTard:S.banqueTard|0,banqueFilm:S.banqueFilm?{debut:S.banqueFilm.t0,lu:S.banqueFilm.tLu,fin:S.banqueFilm.tFin,sons:S.banqueFilm.n,tranches:S.banqueFilm.tr,ms:Math.round(S.banqueFilm.ms),pire:Math.round(S.banqueFilm.pire*10)/10,err:S.banqueFilm.err,delai:S.banqueFilm.tDelai||0}:null};}, // (2026-11-05) residents/mo : le PCM en mémoire ; tardifs/perdus/evinces : LES SONS À LA DEMANDE
+    return{amorces:S.amN|0,amorcesRefusees:S.amNon|0,ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn,residents:n,mo:Math.round(oct/104857.6)/10,tardifs:S.tard,perdus:S.perdus,tardIds:S.tardIds||{},plafonnes:S.plaf|0,evinces:S.evinces,enAttente:Object.keys(S.att).length,banqueTard:S.banqueTard|0,banqueFilm:S.banqueFilm?{debut:S.banqueFilm.t0,lu:S.banqueFilm.tLu,fin:S.banqueFilm.tFin,sons:S.banqueFilm.n,tranches:S.banqueFilm.tr,ms:Math.round(S.banqueFilm.ms),pire:Math.round(S.banqueFilm.pire*10)/10,err:S.banqueFilm.err,delai:S.banqueFilm.tDelai||0}:null};}, // (2026-11-05) residents/mo : le PCM en mémoire ; tardifs/perdus/evinces : LES SONS À LA DEMANDE
   // le banc : où commence chaque son (ms) — tous doivent tomber près des 30 ms de tête (± le retard de l'encodeur)
   attaques:function(){const v=Object.keys(S.off).map(function(k){return Math.round(S.off[k]*1000);}).sort(function(a,b){return a-b;});
     return {etalon:S.t0==null?null:Math.round(S.t0*10000)/10,n:v.length,min:v[0],med:v[v.length>>1],max:v[v.length-1],hors:Object.keys(S.off).filter(function(k){return S.off[k]<.02||S.off[k]>.07;})};}};
