@@ -355,3 +355,87 @@ l'enregistreur (`PL`, `H`, `RET`, `prf.K`), la boîte noire (genre `pilote`, pla
 
 ### Commits (corrections)
 - `aeb804041` le code et le banc.
+
+## 10. 3e TOUR (17/11, deux contrôles adverses : S1-S3, M1-M5) — branche `qa/pilote`
+
+Fait nouveau mesuré sur le 13 Pro : les freezes suivent la chaleur (4-6 par minute à nominal/fair, 19-21 à serious/critical), en majorité HORS boucle. D'où S2.
+
+### Ce qui a changé
+1. **S1 — la mémoire ne pompe plus.** Avant : N1, N1, N2, N1, N1, N2… quand N2 ratait (`pilApprend` remettait l'entrée à zéro sur un changement de base, et `pilMemK` exige n ≥ 2). Désormais :
+   - un changement de base (N1 ⇄ N2) garde le compte `n` ; `k` repart du cran tenu ;
+   - un **échec à N2** (une course où le niveau plein a tourné avec ROUGE tenu ≥ 3 s, ou une urgence payée) pose `e.mur2` = date + 7 j, doublé à chaque nouvel échec (`e.d2`), 30 j au plus ; l'entrée revient à la base BASSE (N1, son cran d'avant), la marge repart de 0 ;
+   - pendant le mur, N2 n'est ni tenté par la marge, ni gardé par la mémoire, ni posé par la table (même débranché à froid), ni rendu par l'anticipation ; une entrée sous mur n'est pas jetée à 7 jours ;
+   - un N2 qui tient devient la base de l'entrée : gardé d'un lancement à l'autre.
+2. **S2 — les gels ne sont pas une marge.** Chaque seconde de la fenêtre compte aussi gels + trous (`fen[i][2]`). Gels + trous > 0,5 % des images, ou ≥ 2 gels sur 10 s → `PILO.geleux` : ni BLEU, ni remontée (aucun paiement « mieux », journal `remontée refusée · gels hors boucle`), ni marge pour la mémoire (`g.gl`). Gels soutenus (10 s) ET serious ou plus → **ORANGE** (`dette · orange (gels au chaud …)`), payé au moment invisible. Aucun cran ne descend EN COURSE pour des gels.
+3. **S3 — jamais plus lourd que la base au chaud.** Hors « débranché + sans éco + nominal », `pilAppliquer` borne chaque levier par `pilBase(c)` : ce que `?sans=pilote` poserait dans la même condition, CALCULÉ par le gouverneur de base (`mobPalTable` + `mobPalVoulu(t, niveau)`, gouverneur-paliers.js — le palier de la condition, critical = `gdxCrit()`, lu au niveau de base `prfNivT(…, PRF.q, …)`). Pas de seconde table : `mobPalVoulu`, `mobP0Niv`, `gdxDkDoux` prennent un niveau en argument, `mobCapNiv(n)` = `prfDprDe(n)`. Leviers : DPR et plafond, taille et étages du halo, ombre, ciel, plancher et cran QL, traits, vent et émission. À fair et plus, le **niveau** lui-même est borné par celui de la base (un niveau de plus allume des budgets statiques — `eteints` — que la borne par levier ne voit pas). À nominal branché / éco, un N2 appris par la mémoire reste N2 mais avec les leviers de la base. `?sans=pilborne` = sans (A-B). `dbgPilote().borne` = la dernière borne posée.
+   **Cadence au critique** : la mesure sur téléphone n'est pas faite → le défaut redevient celui de la base (50 ms visés) ; le 33 régulier vit derrière `?plus=pilcad33`.
+4. **M1 — jeton de portail.** `portailPasse` paie et pose `PILO.jeton` ; la fin de `newTrackG` (`pilMoment('piste')`) le consomme. Sans jeton, hors départ (dbgSaut, événements) = un moment à lui seul. `resetGame` appelle `pilMoment('raz')` d'abord : sa piste ne paie rien (`portails.raz`). Plus de fenêtre de 1,5 s.
+5. **M2 — construction ≠ gel.** Les accrocs de 80-400 ms (et plus) dans les 1,5 s après un portail, une piste refaite ou `loop._rebuildT` sont comptés `constructions` et journalisés `construction · n accrocs … · pas un gel`.
+6. **M3 — urgence au critical** : exige ORANGE (ou ROUGE) tenu 5 s (`PILO.orT0`). À 0 % de ratés, la dette attend le portail ou la mort.
+7. **M4 — seconde chance + machine à sous** : à la mort, la reprise reste possible 1,5 s au moins, puis tant que `SAVE.d.spinJ > 0` et que la machine n'a pas été vue (20 s au plus si elle ne vient jamais), et tant qu'elle est ouverte.
+8. **M5 — compteurs muets** : sous `?sans=pilote` et sur ordinateur, `pilImg`, `pilRaf`, `pilCout`, `pilRetaille` et les compteurs d'ombre / halo de `qlPose` passent par `pilOn()`. `dbgPilote()` ne lève plus sur ordinateur.
+
+### Table de départ finale (13 Pro, AUTO, rien d'appris)
+| Condition | Départ | Leviers posés (banc, borne comprise) |
+|---|---|---|
+| débranché, sans éco, nominal, bat ≥ 20 % (LIBRE, non borné) | N2 K0 | DPR 1,5, halo 1 / 4 étages, ombre 1280 |
+| branché seul / éco seule, nominal | N1 K0 | = la base : DPR 1,25, halo ½ / 3 étages, ombre 768 |
+| branché + éco, nominal | N1 K1 | = la base, plancher QL 1 (base 0) |
+| fair (toutes) | N1 K1 (K2 branché + éco) | DPR 1,25, halo ½ / 2 étages, ombre 512 (base 768), QL 2 |
+| serious | N1 K5 (K6 branché + éco) | DPR 1,25, halo ½ / 2 étages, ombre 512, ciel 4, QL 2 ; K6 : traits, vent, émission ×0,75 |
+| critical | N1 K10 | **DPR 1,00** (borne : K10 seul donnait 1,13), halo ½ / 2 étages, ombre 512, ciel 8, traits ×0,5, cadence 50 visés |
+| batterie < 20 % | + 2 crans, N1 | — |
+| mur N2 actif (échec à N2 il y a moins de 7 / 14 / 30 j) | N1, même table | — |
+| mémoire : 2 courses N1 K0 en marge (sans gels), nominal | N2 K3 | leviers bornés par la base si branché / éco |
+
+### Tableau S3 (`--mode borne`, 16 conditions B×E×T, bat 80, leviers 3 s après le départ ; pilote / `?sans=pilote` ; gras = pilote plus lourd)
+| condition | n | dpr | cap | halo | mips | ombre | stries | ventK | emiK | ciel | ql | qlMin | verdict |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| B0E0T0 K0 | 2 / 1 | 1,5 / 1,25 | 1,5 / 1,25 | 1 / 0,5 | 4 / 3 | 1280 / 768 | · / · | 1 / 1 | 1 / 1 | 0 / 0 | 1 / 1 | 0 / 0 | libre (non borné) |
+| B0E0T1 K1 | 1 / 1 | 1,25 / 1,25 | 1,25 / 1,25 | 0,5 / 0,5 | 2 / 2 | 512 / 768 | · / · | 1 / 1 | 1 / 1 | 0 / 0 | 2 / 2 | 2 / 2 | ok |
+| B0E0T2 K5 | 1 / 1 | 1,25 / 1,25 | 1,25 / 1,25 | 0,5 / 0,5 | 2 / 2 | 512 / 512 | · / · | 1 / 1 | 1 / 1 | 4 / 4 | 2 / 2 | 2 / 2 | ok |
+| B0E0T3 K10 | 1 / 1 | 1 / 1 | 1 / 1 | 0,5 / 0,5 | 2 / 2 | 512 / 512 | 0,5 / 0,5 | 0,5 / 0,5 | 0,5 / 0,5 | 8 / 8 | 2 / 2 | 2 / 2 | ok |
+| B0E1T0 K0 | 1 / 1 | 1,25 / 1,25 | 1,25 / 1,25 | 0,5 / 0,5 | 3 / 3 | 768 / 768 | · / · | 1 / 1 | 1 / 1 | 0 / 0 | 1 / 1 | 0 / 0 | ok |
+| B0E1T1 K1 | 1 / 1 | 1,25 / 1,25 | 1,25 / 1,25 | 0,5 / 0,5 | 2 / 2 | 512 / 768 | · / · | 1 / 1 | 1 / 1 | 0 / 0 | 2 / 2 | 2 / 2 | ok |
+| B0E1T2 K5 | 1 / 1 | 1,25 / 1,25 | 1,25 / 1,25 | 0,5 / 0,5 | 2 / 2 | 512 / 512 | · / · | 1 / 1 | 1 / 1 | 4 / 4 | 2 / 2 | 2 / 2 | ok |
+| B0E1T3 K10 | 1 / 1 | 1 / 1 | 1 / 1 | 0,5 / 0,5 | 2 / 2 | 512 / 512 | 0,5 / 0,5 | 0,5 / 0,5 | 0,5 / 0,5 | 8 / 8 | 2 / 2 | 2 / 2 | ok |
+| B1E0T0 K0 | 1 / 1 | 1,25 / 1,25 | 1,25 / 1,25 | 0,5 / 0,5 | 3 / 3 | 768 / 768 | · / · | 1 / 1 | 1 / 1 | 0 / 0 | 1 / 1 | 0 / 0 | ok |
+| B1E0T1 K1 | 1 / 1 | 1,25 / 1,25 | 1,25 / 1,25 | 0,5 / 0,5 | 2 / 2 | 512 / 768 | · / · | 1 / 1 | 1 / 1 | 0 / 0 | 2 / 2 | 2 / 2 | ok |
+| B1E0T2 K5 | 1 / 1 | 1,25 / 1,25 | 1,25 / 1,25 | 0,5 / 0,5 | 2 / 2 | 512 / 512 | · / · | 1 / 1 | 1 / 1 | 4 / 4 | 2 / 2 | 2 / 2 | ok |
+| B1E0T3 K10 | 1 / 1 | 1 / 1 | 1 / 1 | 0,5 / 0,5 | 2 / 2 | 512 / 512 | 0,5 / 0,5 | 0,5 / 0,5 | 0,5 / 0,5 | 8 / 8 | 2 / 2 | 2 / 2 | ok |
+| B1E1T0 K1 | 1 / 1 | 1,25 / 1,25 | 1,25 / 1,25 | 0,5 / 0,5 | 3 / 3 | 768 / 768 | · / · | 1 / 1 | 1 / 1 | 0 / 0 | 1 / 1 | 1 / 0 | ok |
+| B1E1T1 K2 | 1 / 1 | 1,25 / 1,25 | 1,25 / 1,25 | 0,5 / 0,5 | 2 / 2 | 512 / 768 | · / · | 1 / 1 | 1 / 1 | 2 / 0 | 2 / 2 | 2 / 2 | ok |
+| B1E1T2 K6 | 1 / 1 | 1,25 / 1,25 | 1,25 / 1,25 | 0,5 / 0,5 | 2 / 2 | 512 / 512 | 0,75 / · | 0,75 / 1 | 0,75 / 1 | 4 / 4 | 2 / 2 | 2 / 2 | ok |
+| B1E1T3 K10 | 1 / 1 | 1 / 1 | 1 / 1 | 0,5 / 0,5 | 2 / 2 | 512 / 512 | 0,5 / 0,5 | 0,5 / 0,5 | 0,5 / 0,5 | 8 / 8 | 2 / 2 | 2 / 2 | ok |
+
+cases jugées 180 · plus lourdes 0  (pilote / base ; halo = la taille du halo posée, 0 = coupé ; stries · = le régime des budgets)
+
+A-B `?sans=pilborne` (branché + éco, même banc) : **7 cases plus lourdes** sans la borne — fair : étages 3 / 2, cran QL 1 / 2, plancher 1 / 2 ; serious : cran QL et plancher 1 / 2 ; critical : DPR et plafond 1,13 / 1,00. Avec la borne : 0 sur 180.
+
+### Prouvé au banc (17/11, `outils/banc-pilote/pilote.cjs`, Chrome sans fenêtre, 13 Pro émulé, sous `verrou-banc.sh` ; compteurs, aucune mesure de temps)
+- **S3** `--mode borne` (×2, `--part 0..3`) + `borne-table.cjs` : le tableau ci-dessus, **0 case plus lourde sur 180** ; critical : DPR 1,00 partout, `cadPer` 50 (pilote comme base) ; fair branché + éco : 2 étages, ombre 512.
+- **S1** `--mode cycle --n2 rate` (branché seul, nominal, modèle posé comme l'app, 8 lancements de 35 s) : départs **N1, N1, N1, N2, N1, N1, N1, N1** — un seul essai N2 (K3, ROUGE simulé, urgence → N1 K9), `ÉCHEC à N2 … → mur N2 7 j · base N1 K0 (n 2)`, puis marge 1, 2, 3, 4 sans nouvel essai. `--n2 tient` : **N1, N1, N1, N2, N2, N2, N2, N2** (mémoire N2 K3, n 3 → 5). (La 1re course du banc n'écrit pas la mémoire : 3 courses N1 au lieu de 2 avant l'essai.)
+- **S2** `--mode gelchaud` (branché + éco ; marge simulée — vrai 8 ms, 0 raté — et 3 gels / s) : zone VERT (jamais BLEU), `geleux` ; K4 posé, visé K2 : `dbgSaut` → `remontée refusée`, K4 tient ; serious + gels soutenus → zone **ORANGE** (vrai 8 ms, 0 raté : seuls les gels l'expliquent) ; gels coupés → BLEU revient quand la fenêtre se vide. `--mode gels` (vrais gels hors boucle, 120 ms toutes les 350 ms) : 86 gels, K1 inchangé, zone VERT (avant : BLEU) ; vraie charge : K1 → 10.
+- **M1** `--mode portail` : VRAI portail ×2 → `payes` +1 et `ignores` +1 par passage (le jeton), K4 → 3 → 2 ; `dbgSaut` → `payes` +1 (un moment) ; mort puis nouvelle course → `raz` +1, `payes` inchangé.
+- **M2** : dans tous les modes, les accrocs après portail / reconstruction (167-850 ms) sont `construction · … pas un gel` ; 0 compté en gel.
+- **M3** `--mode urgence --crit 1` (fair → critical, vrai 8 ms, 0 raté, 25 s) : visé K10, **aucune urgence** (`nUrg 0`, BLEU) ; puis 4 % de ratés : ORANGE tenu 5 s → urgence payée au nitro, `retaille · urgence · DPR 1,00` (une fois).
+- **M4** `--mode spin` (dette posée K2 → visé K9) : avec un jeton, 10 s d'écran de mort, la machine s'ouvre à 3 s : **rien n'est payé** ; sans jeton : payé à 4,5 s (`K2→9 · dette payée au mort`).
+- **M5** `--mode compteurs` sous `?sans=pilote` (course, piste refaite, mort) et `--pc 1` (ordinateur) : tous les compteurs à 0 (retailles, halo, ombres, gels, trous, wDer, constructions, portails, départs, changements, histogramme, journal).
+- Gardes : `garde-demarrage`, `garde-allege`, `garde-charte`, `node --check` du gros script : OK. 0 exception dans les bancs.
+
+### NON prouvé
+- Rien sur le téléphone (interdit à ce lot). Les seuils de S2 (0,5 %, 2 gels / 10 s, 10 s soutenus à serious) sont posés sur la mesure de Sacha (4-6 gels / min à froid = 0,7-1 toutes les 10 s : sous le seuil ; 19-21 / min au chaud = 3-3,5 / 10 s : au-dessus), pas vérifiés sur l'appareil.
+- La borne est lue AU DÉPART et à chaque paiement ; en course, la base réagit tout de suite au thermique (palier posé à la seconde), le pilote en dette jusqu'au moment suivant : entre les deux, quelques secondes où le pilote est plus lourd que la base (voulu : pas de retaille en pleine course).
+- La base de la borne ignore ce que la MESURE de la base aurait ajouté (image lourde à serious, échelle QL) : la borne est celle de la condition, pas celle d'une course mesurée.
+- `mobP0Niv(n)` pour un niveau autre que le courant lit la table des profils (`eteints` « a » = halo entier) : exact sur le 13 Pro, à revoir si une classe garde le budget « a » au N2+.
+- Le cœur gagné à la machine APRÈS que la mort a payé (reprise sous le volet) : toujours non joué au banc.
+
+### Protocole 13 Pro (branché + économie, chaud, budget thermique ≥ 380) — A-B-A-B contre `?sans=pilote`
+1. Quatre courses de 3 min : pilote, `?sans=pilote`, pilote, `?sans=pilote`, même map, `&perfrec=2`.
+2. Départ attendu : `départ N1 K1 · source table` (nominal), K2 (fair), K6 (serious), K10 DPR 1,00 (critical) ; jamais plus lourd que la course `?sans=pilote` d'à côté (`dbgPilote().borne` / la boîte noire).
+3. Journal `pilote` : lignes `gel · …` (combien ; boucle légère ?), `construction · …` après chaque portail, `remontée refusée` quand ça gèle, `dette · orange (gels au chaud …)` à serious ; jamais `retaille · course`.
+4. Comparer gels par minute et i/s (`H`) pilote contre base, à serious et critical. Au critique, une course `&plus=pilcad33` contre le défaut (50 visés) : régularité de `H`, budget thermique.
+5. Mémoire : 2 courses sans orange ni gels branché seul → le 3e lancement part N2 K3 ; s'il rate, la boîte noire dit `ÉCHEC à N2 … mur N2 7 j` et les lancements suivants restent N1.
+
+### Commits (3e tour)
+- `4c5287abb` le code (S1-S3, M1-M5) et le banc (modes borne, cycle, gelchaud, spin, compteurs ; `borne-table.cjs`).
