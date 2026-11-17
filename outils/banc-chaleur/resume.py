@@ -72,15 +72,15 @@ if lanc > 1: raisons.append('relancée %d×' % lanc)
 if lanc == 0: raisons.append('pas de lancement vu')
 if muet: raisons.append('page muette %d×' % muet)
 if err: raisons.append('erreur ' + err[0])
-if charge: raisons.append('BATTERIE EN CHARGE')
+# (17/11 05 h 54) la batterie s'est remise à charger (80 % tenus puis charge reprise) : SystemLoad ne compte pas la charge, la PUISSANCE reste juste ; la TEMPÉRATURE de batterie, elle, est faussée (pente ×2)
 if len(BA) < dur / 10: raisons.append('puissance lue %d fois' % len(BA))
 r = dict(nom=nom, qs=qs, debut=h0, dur=round(dur), valide=not raisons, raisons=raisons, pc_etat=pc, cartes=cartes, meteos=meteos, moteur=mot,
          kmh=med('km/h'), ips=med('ips'), rendu_ms=med('rendu_ms'), ql=ql, dpr=med('DPR'), cad=med('cad'), th_max=thm, eco=med('eco', HB), lum=med('lum', HB),
-         W_30_120=moy(30, 120), W_120_240=moy(120, 240), W_240_fin=moy(240, dur + 1), W_30_fin=moy(30, dur + 1), W_entree=moy(30, dur + 1, 'in'),
+         W_30_120=moy(30, 120), W_30_180=moy(30, 180), W_120_240=moy(120, 240), W_240_fin=moy(240, dur + 1), W_30_fin=moy(30, dur + 1), W_entree=moy(30, dur + 1, 'in'),
          tbat0=tb0, tbat1=tb1, dT=(round((tb1 - tb0) / 100, 2) if tb else None), pente_C_min=pente, pct0=pct[0] if pct else None, pct1=pct[-1] if pct else None,
-         noyau_2500=ak(2500), noyau_2000=ak(2000), noyau_min=kmin, niveau_max=max([v for t, v in LV] or [0]))
-with open(os.path.join(os.path.dirname(J), 'essais.jsonl'), 'a') as o: o.write(json.dumps(r, ensure_ascii=False) + '\n')
+         noyau_2500=ak(2500), noyau_2000=ak(2000), noyau_min=kmin, niveau_max=max([v for t, v in LV] or [0]), charge=charge)
+with open(os.environ.get('ESSAIS_JSONL') or os.path.join(os.path.dirname(J), 'essais.jsonl'), 'a') as o: o.write(json.dumps(r, ensure_ascii=False) + '\n')
 x = lambda v: '-' if v is None else str(v)
 print('%-18s %s | %s %d%% %s/%s mot %s %s km/h %s i/s rendu %s ms QL %s DPR %s | W 30-120 %s · 120-240 %s · 240-fin %s · moy %s | tbat %s→%s (%s °C, %s °C/min) | noyau <2500 %s s <2000 %s s min %s | th %s niv %s | bat %s→%s %% lum %s' % (
-    nom, 'VALIDE' if r['valide'] else 'INVALIDE (' + ', '.join(raisons) + ')', attendu, pc, ','.join(cartes) or '-', ','.join(meteos) or '-', mot, x(r['kmh']), x(r['ips']), x(r['rendu_ms']), x(ql), x(r['dpr']),
+    nom + (' [EN CHARGE]' if charge else ''), 'VALIDE' if r['valide'] else 'INVALIDE (' + ', '.join(raisons) + ')', attendu, pc, ','.join(cartes) or '-', ','.join(meteos) or '-', mot, x(r['kmh']), x(r['ips']), x(r['rendu_ms']), x(ql), x(r['dpr']),
     x(r['W_30_120']), x(r['W_120_240']), x(r['W_240_fin']), x(r['W_30_fin']), x(tb0), x(tb1), x(r['dT']), x(pente), x(r['noyau_2500']), x(r['noyau_2000']), x(kmin), thm, r['niveau_max'], x(r['pct0']), x(r['pct1']), x(r['lum'])))

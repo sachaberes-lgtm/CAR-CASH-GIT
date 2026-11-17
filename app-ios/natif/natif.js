@@ -55,7 +55,7 @@
       var sp=document.getElementById('splash');if(sp)sp.remove();
       try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}
       /* les réglages d'essai : chaldpr=0.5 (plafond de résolution forcé, repris si le gouverneur le change) · chalrendu=0 (plus aucun dessin 3D : il reste le script) */
-      try{var mD=/[?&]chaldpr=([\d.]+)/.exec(location.search);if(mD&&!window.__chD&&typeof window.dbgBancDpr==='function'){window.__chD=1;window.dbgBancDpr(+mD[1]);}}catch(e){} /* (17/11) par crochet : curDPR n'est pas visible d'ici. UNE SEULE FOIS (série v3, build 1194) : reposé toutes les 1,5 s, imgRegle relançait qlPose dès que le gouverneur bougeait le DPR — 4,3 W au lieu de 3,8, l'essai mesurait le crochet */
+      try{var mD=/[?&]chaldpr=([\d.]+)/.exec(location.search);if(mD&&typeof window.dbgBancDpr==='function')window.dbgBancDpr(+mD[1]);}catch(e){} /* (17/11) par crochet : curDPR n'est pas visible d'ici. Reposé à chaque tour (une seule fois, build 1195, le plafond se perdait au départ de la course) ; le crochet ne touche à rien si le plafond est déjà le bon */
       try{if(/[?&]chalrendu=0/.test(location.search)&&!window.__chR&&typeof window.dbgBancSansRendu==='function'){window.__chR=1;window.dbgBancSansRendu();}}catch(e){}
       try{if(/[?&]chalhud=0/.test(location.search)&&typeof window.dbgBancSansHud==='function')window.dbgBancSansHud(true);}catch(e){}
       try{var mC=/[?&]carte=(\w+)/.exec(location.search),mM=/[?&]meteo=(\w+)/.exec(location.search);if(mC&&typeof window.dbgBancCarte==='function')window.dbgBancCarte(mC[1],mM?mM[1]:null);}catch(e){} /* (17/11) la même carte et la même météo à chaque portail */

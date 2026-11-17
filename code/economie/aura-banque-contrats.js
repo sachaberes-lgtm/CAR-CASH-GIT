@@ -89,7 +89,7 @@ function testPalierPose(){if(!TEST_PAL.on||!started||!running||gameOver||paused|
   const E=ENGINE_TIERS[TEST_PAL.n];if(!E)return;try{if(typeof TUTO!=='undefined'&&TUTO.on)return;}catch(e){}addCoins(Math.max(1,E.coins-coinsGot));}
 /* (2026-11-17) CROCHETS DU BANC DE CHALEUR (app-ios/natif/natif.js, build Debug + CC_QS) : le jeu vit dans une fonction fermée, natif.js ne voit ni TEST_PAL ni curDPR ni renderer — chalpal, chaldpr et chalrendu ne faisaient donc RIEN (série du 17/11). Rien n'est écrit dans le localStorage (dbgCodeTest, lui, y écrit ccTestPalier). */
 window.dbgBancPal=function(on){TEST_PAL.on=!!on;return TEST_PAL.on;};
-window.dbgBancDpr=function(x){try{if(x>0&&typeof window.imgRegle==='function'&&Math.abs(curDPR-x)>.02)window.imgRegle({dpr:x});}catch(e){}return +curDPR;};
+window.dbgBancDpr=function(x){try{if(x>0&&typeof window.imgRegle==='function'&&Math.abs(DPR_CAP-x)>.02)window.imgRegle({dpr:x});}catch(e){}return +curDPR;}; /* (17/11, série v3) on compare le PLAFOND, pas curDPR : le gouverneur bouge curDPR, et chaque écart relançait imgRegle → qlPose toutes les 1,5 s (+0,4 à +0,9 W mesurés : l'essai mesurait le crochet) */
 /* (2026-11-17, banc fiable) dbgBancEtat : ce que fait l'app, pour le BATTEMENT du banc (natif.js écrit une ligne CCBANC toutes les 10 s dans le journal du téléphone) — images comptées (loop._fr), temps CPU des appels de rendu (render/composer chronométrés au 1er appel), carte, météo, moteur, vitesse, cran QL, DPR.
    dbgBancCarte(c,m) : la MÊME carte et la même météo à chaque portail (SF.force reposé, sfImpose le consomme). dbgBancSansHud(on) : le HUD (#hud) en display:none. */
 window.dbgBancEtat=function(){const B=window.__bcR||(window.__bcR={t:0,n:0});
