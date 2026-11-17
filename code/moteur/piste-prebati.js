@@ -571,7 +571,7 @@ const PREB_CPU={},PREB_CPU_DEF={grotte:8000,jade:2500}; /* (ms de calcul) la der
    `dbgPortv()` : les 8 dernières constructions ; `dbgPortv(1)` remet les compteurs du banc (pire tranche de pré-bâti PVM.trMx). */
 const PORTV_ON=!/[?&]sans=[^&]*\bportv\b/.test(location.search);
 const PVM={cur:null,der:null,tA:0,l:[],trMx:0,trL:[]};
-function pvDebut(){const t=performance.now();PVM.cur={t0:t,m:{},o:[],z:runStats.zones|0,st:!!started,etale:false,pas:0,pasMx:0};PVM.tA=t;}
+function pvDebut(){const t=performance.now();PVM.cur={t0:t,m:{},o:[],z:runStats.zones|0,st:!!started,etale:!!(PVE.ph&&PVE.dedans),pas:0,pasMx:0};PVM.tA=t;}
 function pvMq(nom){const c=PVM.cur;if(!c)return;const t=performance.now(),d=t-PVM.tA;PVM.tA=t;if(!(nom in c.m)){c.m[nom]=0;c.o.push(nom);}c.m[nom]+=d;}
 function pvFin(){const c=PVM.cur;if(!c)return;pvMq('fin');PVM.cur=null;let a=0;const m={};for(const k of c.o){m[k]=Math.round(c.m[k]*10)/10;a+=c.m[k];}
   const o={carte:LVL.cur?(LVL.cur.carte||LVL.cur.id)+'-'+(LVL.cur.meteo||''):'',z:c.z,st:c.st,actif:Math.round(a),duree:Math.round(performance.now()-c.t0),etale:c.etale,pas:c.pas,pasMx:Math.round(c.pasMx),m:m};
@@ -586,7 +586,7 @@ const PVE={ph:0,apres:[],g:null,tok:0,so:null,t0:0,tr:22,n:0,mx:0,act:0,ser:fals
   chauffe:!/[?&]sans=[^&]*\bportvchauffe\b/.test(location.search)};
 function portvPorte(tok,so){PVE.pb=0;PVE.tok=tok;PVE.so=so;PVE.g=newTrackG();PVE.ph=1;PVE.t0=performance.now();PVE.n=0;PVE.mx=0;PVE.act=0;PVE.prem=true;PVE.chN=0;PVE.chMs=0;
   PVE.ser=false;if(GV_PORT&&PVE.serT&&PVE.t0-PVE.serT<80){PVE.ser=true;PORTV.ser=true;try{voileSerpent(true);}catch(e){}} /* l'attente du pré-bâti avait le serpent : il reste (pas de clignement) */
-  if(PVM.cur)PVM.cur.etale=true;}
+}
 function pvePas(lim){ /* une tranche de la construction jusqu'à l'échéance lim ; vrai : finie */
   const g=PVE.g;let r=null;const pr=PVE.prem;PVE.prem=false;const l0=JF.lim;PVE.dedans=true;
   if(pr)PREB.porte=true; /* (prebPorte) c'est le portail qui construit : la 1re tranche va de prebGraine à prebPrend sans rendre la main (aucun yield entre les deux) */
@@ -689,3 +689,16 @@ window.dbgPortvScene=function(){const h0=0x811c9dc5,vus=new Map();
     hg=Math.imul(hg^g,16777619)>>>0;ht=Math.imul(Math.imul(ht^g,16777619)^t,16777619)>>>0;l.push((o.name||o.type).slice(0,24)+':'+g.toString(36)+':'+t.toString(36));});
   const f=new Float64Array(3);let hr=fnv(h0,Float64Array.of(L,NP));for(const A of [pts,T,Nn,B])for(const v of A){f[0]=v.x;f[1]=v.y;f[2]=v.z;hr=fnv(hr,f);} /* la route : pts, T, Nn, B au bit près */
   return {objets:n,route:hr.toString(36),geo:hg.toString(36),tout:ht.toString(36),l:l};};
+/* (banc, lot portv) LA ROUTE BÂTIE D'AVANCE EN TRANCHES = LA ROUTE D'UN TRAIT ? dbgPortvRouteAB(carte, météo, graine) : la route de la map d'en face (pisteRoute, comme le pré-bâti :
+   état de travail W, échange avec la piste vivante à CHAQUE tranche — prebAvec) menée une pause à chaque occasion (JF.lim = −1), puis la même d'un trait (JF.lim infinie) ;
+   la mémoire des grottes (GRT_VUS) est remise entre les deux. Rend les deux empreintes (pts, T, Nn, B, L, les marques des modules) et le nombre de tranches. */
+window.dbgPortvRouteAB=function(carte,meteo,graine){const zn=Math.max(0,(runStats.zones|0)-(LVL.tutoZ|0));const c={t:{carte:carte,meteo:meteo,teinte:null},z:(runStats.zones|0)+1,zn:zn};
+  const vus0=(typeof GRT_VUS!=='undefined')?GRT_VUS.map(function(a){return a.slice();}):null,remet=function(){if(vus0){GRT_VUS.length=0;for(const a of vus0)GRT_VUS.push(a.slice());}};
+  const h0=0x811c9dc5,fnv=function(h,a){const u=new Uint32Array(a.buffer,a.byteOffset,a.byteLength>>2);for(let i=0;i<u.length;i++)h=Math.imul(h^u[i],16777619);return h>>>0;};
+  const hache=function(W){const f=new Float64Array(3);let h=fnv(h0,Float64Array.of(W.L,W.NP));for(const A of [W.pts,W.T,W.Nn,W.B])for(const v of A){f[0]=v.x;f[1]=v.y;f[2]=v.z;h=fnv(h,f);}
+    const mk=JSON.stringify((W.tab.MODMARK||[]).map(function(m){return [m.i0,m.i1,m.fig||null];}));for(let i=0;i<mk.length;i++)h=Math.imul(h^mk.charCodeAt(i),16777619)>>>0;return h.toString(36);};
+  const mene=function(lim){const W=pisteTravail(c),g=pisteRoute(graine,W);let n=0,fini=false;const l0=JF.lim;
+    try{while(!fini){prebAvec(W,function(){JF.lim=lim;try{fini=g.next().done;}finally{JF.lim=l0;}});n++;}}finally{JF.lim=l0;}
+    for(const m of W.tab.trackMeshes||[])if(m.geometry)m.geometry.dispose();return {h:hache(W),n:n,L:Math.round(W.L)};};
+  remet();const a=mene(-1);remet();const b=mene(Infinity);remet();
+  return {carte:carte,meteo:meteo,graine:graine,tranches:a,dunTrait:b,egales:a.h===b.h};};

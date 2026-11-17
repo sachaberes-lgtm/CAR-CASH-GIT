@@ -29,9 +29,10 @@ const ROUTE = (c, g, p) => `(function(){const r=dbgTrace({carte:${JSON.stringify
       const t = await (await fetch(`http://127.0.0.1:${P_CDP}/json/new?about:blank`, { method: 'PUT' })).json(); const c = new CDP(t.webSocketDebuggerUrl); await c.ok;
       await c.send('Page.enable'); await c.send('Runtime.enable'); await c.send('Network.enable'); await c.send('Network.setBypassServiceWorker', { bypass: true });
       await c.send('Page.addScriptToEvaluateOnNewDocument', { source: "try{localStorage.setItem('cashcarSave',JSON.stringify({v:2,tuto:1,plq:{m:'fr',x:'BANC',ok:1},bank:50000,ex:{runs:3},sfx:false,mus:false,vox:false}));}catch(e){}" });
-      await c.send('Page.bringToFront'); await c.send('Page.navigate', { url: `http://127.0.0.1:${P_HTTP}/${pg}?colonne=0&intro=ancien&attente=0&prebati=0&tel=1${q}` }); pages.push(c); c.nom = pg + q;
-      let ok = false; for (let i = 0; i < 900 && !ok; i++) { await dormir(1000); try { ok = await c.ev('!!window.__gameReady&&typeof dbgTrace==="function"', 120000); } catch (e) {} } if (!ok) throw new Error('page pas prête ' + c.nom); /* une page après l'autre, au premier plan */
-      await dormir(4000); try { await c.ev("(function(){const e=document.getElementById('splash');try{e&&e.click();}catch(x){}return 1;})()"); } catch (e) {} await c.ev(SC);
+      await c.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }); await c.send('Page.bringToFront'); await c.send('Page.navigate', { url: `http://127.0.0.1:${P_HTTP}/${pg}?intro=ancien&chute=0&tel=1&appareil=iPhone14,2&prebati=0${q}` }); pages.push(c); c.nom = pg + q;
+      let ok = false; for (let i = 0; i < 300 && !ok; i++) { await dormir(1000); try { ok = await c.ev('!!window.__gameReady', 120000); } catch (e) {} } /* une page après l'autre, au premier plan */
+      await dormir(4000); try { await c.ev("(function(){const e=document.getElementById('splash');try{e&&e.click();}catch(x){}return 1;})()"); } catch (e) {}
+      ok = false; for (let i = 0; i < 300 && !ok; i++) { await dormir(1000); try { ok = await c.ev('typeof dbgTrace==="function"', 120000); } catch (e) {} } if (!ok) throw new Error('page pas prête ' + c.nom); await c.ev(SC);
     }
     await dormir(3000); console.log('A', pages[0].nom, '\nB', pages[1].nom);
     for (const carte of CARTES) for (const p of PAL) for (let g = g0; g <= g1; g++) {
@@ -46,5 +47,11 @@ const ROUTE = (c, g, p) => `(function(){const r=dbgTrace({carte:${JSON.stringify
       if (seul && seul < 30) console.log('    A seul : ' + a.filter(x => !sb.has(x)).slice(0, 8).join(' ') + '\n    B seul : ' + b.filter(x => !sa.has(x)).slice(0, 8).join(' '));
     }
     console.log('BILAN', egal, 'égales ·', diff, 'différentes · objets mouvants écartés', nInst);
+    /* la route bâtie D'AVANCE en tranches (une pause à chaque occasion, échange avec la piste vivante à chaque tranche) contre la même d'un trait — page B (dbgPortvRouteAB) */
+    const pb = pages[1]; await pb.send('Page.bringToFront'); let rOk = 0, rKo = 0;
+    if (await pb.ev('typeof dbgPortvRouteAB==="function"')) for (const [c, m] of (A.routes || 'jade:midi,grotte:midi,grotte:nuit,ville:orage,crypto:midi,nuages:midi,nuages:orage,espace:matin').split(',').map(x => x.split(':'))) for (let g = 1; g <= +(A.grtr || 3); g++) {
+      const r = await pb.ev(`JSON.stringify(dbgPortvRouteAB(${JSON.stringify(c)},${JSON.stringify(m)},${g}))`, 600000).then(JSON.parse).catch(e => ({ err: String(e.message).slice(0, 160) }));
+      if (r.egales) rOk++; else rKo++; console.log(`AVANCE ${c}-${m} g${g} : en tranches ${r.tranches ? r.tranches.h + ' (' + r.tranches.n + ' tranches)' : r.err} · d'un trait ${r.dunTrait ? r.dunTrait.h : ''} ${r.egales ? '=' : '≠'} L ${r.tranches ? r.tranches.L : ''}`); }
+    console.log('BILAN AVANCE', rOk, 'égales ·', rKo, 'différentes');
   } finally { for (const c of pages) try { c.close(); } catch (e) {} tueChrome(ch); srv.close(); await dormir(800); try { fs.rmSync(prof, { recursive: true, force: true }); } catch (e) {} }
 })().catch(e => { console.error(e); process.exit(1); });
