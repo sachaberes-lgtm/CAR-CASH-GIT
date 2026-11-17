@@ -140,9 +140,17 @@ if G:
 # Si 4 tranches au moins dépassent ×3 (et 3 ms), ce n'est pas une tranche : c'est TOUT le fil qui ralentit → « fil entier ralenti ×N ».
 def med(v):
     v=sorted(v);return v[len(v)//2] if v else 0
+def lh(c):
+    # (3e tour) les lignes des loops lourdes : c.LH ; les vols du lot d'avant le 3e tour les mettaient dans c.H (liste de LISTES).
+    # c.H du pilote de qualité (qa/pilote) = l'histogramme des intervalles, une liste d'ENTIERS : ce n'est pas une ligne → ignoré.
+    L=c.get('LH')
+    if L is not None:return L,c.get('LHp'),c.get('LHt'),c.get('LHN'),c.get('LHNp'),c.get('LHNpN')
+    H=c.get('H')
+    if isinstance(H,list) and H and all(isinstance(h,list) for h in H):return H,c.get('Hp'),c.get('Ht'),c.get('HN'),c.get('HNp'),c.get('HNpN')
+    return None,None,None,None,None,None
 def g_plein(c,G):
     # G plein : c.Gp (builds du lot MESURE-RAFALES, plafond 1200) ; sinon l'ancien plafond de 240
-    return bool(c.get('Gp')) or len(G)>=(1200 if c.get('H') is not None else 240)
+    return bool(c.get('Gp')) or len(G)>=(1200 if (lh(c)[0] is not None or c.get('SR') is not None) else 240)
 def reference(c,G):
     T=c.get('TR')
     if T and len(T)>8 and T[8]>=20:return [T[i]/T[8] for i in range(8)]
@@ -314,7 +322,7 @@ if X:
 
 # (2026-11-17, lot MESURE-RAFALES) LES RAFALES : des paquets de secondes où le fil entier ralentit (vol 1448 : une image sur 3-4 pèse ~115 ms, tranches de montant FIXE).
 # Détection : une seconde est « en rafale » si elle porte ≥ 2 loops ≥ 80 ms dont ≥ 4 tranches dépassent ×3 leur référence (fil_entier) ; deux secondes de rafale à ≤ 2 s
-# l'une de l'autre = la même rafale. Source : c.H (loops > 60 ms, builds du lot) ; sinon G (loop d'avant G[3], tranches G[10:18], seconde G[0] : l'ancien format).
+# l'une de l'autre = la même rafale. Source : c.LH (loops > 60 ms, builds du lot ; c.H avant le 3e tour) ; sinon G (loop d'avant G[3], tranches G[10:18], seconde G[0] : l'ancien format).
 # Par rafale (builds du lot) : la PART D'ATTENTE DE LA PUCE (appels WebGL synchrones + Canvas 2D + envois WebGL, en % de la loop lourde), les sous-tranches dominantes
 # (ms par loop lourde contre leur référence c.SR sur les images légères), les sentinelles début / après rendu / fin (contre la base de la course), la sentinelle Swift et
 # le retard du battement natif, la pression mémoire. Puis le croisement économie × thermique × branché en gels « fil entier » par minute (tous formats, M ≥ 12 colonnes).
@@ -325,15 +333,15 @@ def classe_gel(g,ref):
     return max(parts,key=parts.get)=='boucle' and bool(fil_entier(g[10:18],ref))
 def lourdes(c,ref):
     # [(t s, loop ms, ligne H ou None, tranches)] des loops « fil entier » ≥ 80 ms
-    # (contrôle du lot) H PLEIN (c.Hp loops perdues dès c.Ht) : après c.Ht on se REPLIE sur G (loop d'avant G[3], tranches G[10:18]) — sans sentinelles ni sous-tranches
-    H=c.get('H')
+    # (contrôle du lot) LH PLEIN (c.LHp loops perdues dès c.LHt) : après c.LHt on se REPLIE sur G (loop d'avant G[3], tranches G[10:18]) — sans sentinelles ni sous-tranches
+    H,Hp,Ht=lh(c)[:3]
     if H is not None:
         o=[]
         for h in H:
             tr=[x/10 for x in h[13:21]]
             if h[1]/10>=80 and fil_entier(tr,ref):o.append((h[0]/10,h[1]/10,h,tr))
-        if c.get('Hp'):
-            tH=c.get('Ht',H[-1][0] if H else 0)/10
+        if Hp:
+            tH=(Ht if Ht is not None else (H[-1][0] if H else 0))/10
             o+=[(g[0],g[3],None,g[10:18]) for g in (c.get('G') or []) if g[0]>=tH and g[3]>=80 and fil_entier(g[10:18],ref)]
         return o,True
     return [(g[0],g[3],None,g[10:18]) for g in (c.get('G') or []) if g[3]>=80 and fil_entier(g[10:18],ref)],False
@@ -353,19 +361,19 @@ print("\n--- LES RAFALES (≥ 2 loops ≥ 80 ms « fil entier » dans la même s
 NR=0
 for c in C:
     G=c.get('G')
-    if not G and c.get('H') is None:continue
+    if not G and lh(c)[0] is None:continue
     ref=reference(c,G or [[0]*40]) if G else [0.5]*8
     ev,neuf=lourdes(c,ref)
     R=rafales(ev)
     if not R:continue
     W=c.get('Mw',0);M=c.get('M') or [];m=[M[i:i+W] for i in range(0,len(M)-W+1,W)] if W else []
     base=base_sentinelle(m) if W>=12 and m else None
-    HN=c.get('HN') or [];SR=c.get('SR') or [];SRn=c.get('SRn') or 0
+    _,Hp,Ht,HN,HNp,HNpN=lh(c);HN=HN or [];SR=c.get('SR') or [];SRn=c.get('SRn') or 0
     print(' %s %s %5.0f s  %s  · %d rafale(s)%s · sentinelle de base %s ms'%(c.get('d','')[5:16],c.get('v',''),c.get('dur',0),'>'.join(c.get('cartes',[])),len(R),'' if neuf else ' (ancien format : G seulement)',f2(base)))
-    if c.get('Hp'):print('  ⚠ H PLEIN à %.0f s : %d loops lourdes perdues ; après, repli sur G (tranches seulement : ni sentinelles, ni attente puce, ni sous-tranches)'%(c.get('Ht',0)/10,c['Hp']))
+    if Hp:print('  ⚠ LH PLEIN à %.0f s : %d loops lourdes perdues ; après, repli sur G (tranches seulement : ni sentinelles, ni attente puce, ni sous-tranches)'%((Ht or 0)/10,Hp))
     if c.get('Gp'):print('  ⚠ G PLEIN : %d gels perdus — le repli et les fils/min sous-comptent la fin de course'%c['Gp'])
     if c.get('Mp'):print('  ⚠ M PLEIN : %d secondes perdues en fin de course'%c['Mp'])
-    if c.get('HNp'):print('  ⚠ %d nom(s) de sous-tranche PERDUS (plus de case) : %s — leur temps ne s\'écrit nulle part'%(c['HNp'],', '.join(c.get('HNpN') or [])))
+    if HNp:print('  ⚠ %d nom(s) de sous-tranche PERDUS (plus de case) : %s — leur temps ne s\'écrit nulle part'%(HNp,', '.join(HNpN or [])))
     SY=c.get('SY');ry=None
     if SY and SRn and SY[6]>0:ry=((SY[0]+SY[2]+SY[4])/SY[6],SY[0]/10/SRn,SY[2]/10/SRn,SY[4]/10/SRn,SY[1]/SRn,SY[3]/SRn,SY[5]/SRn)
     for a,b in R:

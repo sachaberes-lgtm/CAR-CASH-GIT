@@ -21,8 +21,9 @@ luneVoile=function(dt9,lunOk){
   LUNE_ENT.bloque=!!(LUNE_ON&&!ORB.peinte&&ORB.pinceau&&(!started||gameOver)&&!(ORB.actif&&lunOk)&&!entreeTour('lune'));
   try{return LUNE_ENT.voile(dt9,lunOk);}finally{LUNE_ENT.bloque=false;}};
 function loop(now){
+  if(MG.on)mgSt('b1 entrée (chargement, cadence)'); /* (lot MESURE-RAFALES) sous-tranche, ?perfrec=2 seulement ; sur sa ligne (fusion avec qa/portv) */
   loop._raf=requestAnimationFrame(loop); /* (2026-11-07, finition) l'identifiant : dbgStep annule l'image qu'un appel manuel programme (il empilait n boucles) */
-  if(MG.on)mgSt('b1 entrée (chargement, cadence)');if(chargementTick(now)){loop._pn=now;last=now;return;} /* (2026-11-05, passe perf mobile 2, A2.a) le chargement sous la boule : une étape par image, sans dessiner — voir CHARGEMENT */
+  if(chargementTick(now)){loop._pn=now;last=now;return;} /* (2026-11-05, passe perf mobile 2, A2.a) le chargement sous la boule : une étape par image, sans dessiner — voir CHARGEMENT */
   if(window.__introCouvre){loop._pn=now;last=now;return;} // (2026-10-22, Léo : « ça bug ») l'INTRO DU STUDIO couvre tout l'écran : dessous, le jeu ne calcule ni ne dessine rien (il faisait saccader le film, surtout sur un Mac chargé) — voir moteur/intro-161.js
   if(lierDemarrage(now)){loop._pn=now;last=now;return;}
   if(DENSE.ok&&denseTick(now)){loop._pn=now;last=now;return;} /* (2026-11-13, demarrage-vite) LE CHARGEMENT DENSE : sous le serpent, l'image ne fait que du chargement — voir interface/vignette-moteur.js */ /* (2026-10-27) LA LIAISON EN ARRIÈRE-PLAN : les programmes de la 1re image se lient à côté, le jeu ne dessine pas encore — voir interface/vignette-moteur.js */

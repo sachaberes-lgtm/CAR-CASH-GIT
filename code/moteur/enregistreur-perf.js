@@ -95,7 +95,7 @@ function bvNeuve(now){let lev='base';
   if(MG.on){MG.sec.nL=0;MG.sec.nR=0;MG.sec.hS=0;mgRVide();} /* (contrôle du lot GELS) la 1re seconde ne compte pas le menu */
   const mgo=MG.on; /* sans mouchard, la course ne porte ni G ni M : l'analyse retombe sur la table « dans / hors boucle » */
   const o={d:new Date().toISOString(),ses:BV.ses,tl:Math.round(now/1000),lev:lev,gv:0,v:(typeof CC_VER==='string'?CC_VER:'?'),pal:(typeof PAL!=='undefined'?PAL.n:-1),
-    ecr:screen.width+'x'+screen.height+'@'+(window.devicePixelRatio||1),app:String(window.__ccAppareil||''),eco:(window.__ccEco|0),cartes:[],mot:0,th:[0,0,0,0,0],prf:bvPrf(),mg:mgEtat(),G:mgo?[]:null,GN:mgo?[]:null,Q:mgo?{}:null,M:mgo?[]:null,Mw:mgo?27:undefined,H:mgo?[]:undefined,SR:mgo?[0]:undefined,SY:mgo?[0,0,0,0,0,0,0]:undefined,x0:mgo?mgSeance():undefined,D:mgo?[]:undefined,TR:mgo?[0,0,0,0,0,0,0,0,0]:undefined,prfN:0,cadE:CAD.entrees,cadS:CAD.sorties,B:{},L:[],S:[],n:0,t0:now,der:0,fin:now,sec:null};if(!mgo){delete o.mg;delete o.G;delete o.GN;delete o.Q;delete o.M;delete o.Mw;delete o.x0;delete o.D;delete o.TR;delete o.H;delete o.SR;delete o.SY;}return o;}
+    ecr:screen.width+'x'+screen.height+'@'+(window.devicePixelRatio||1),app:String(window.__ccAppareil||''),eco:(window.__ccEco|0),cartes:[],mot:0,th:[0,0,0,0,0],prf:bvPrf(),mg:mgEtat(),G:mgo?[]:null,GN:mgo?[]:null,Q:mgo?{}:null,M:mgo?[]:null,Mw:mgo?27:undefined,LH:mgo?[]:undefined,SR:mgo?[0]:undefined,SY:mgo?[0,0,0,0,0,0,0]:undefined,x0:mgo?mgSeance():undefined,D:mgo?[]:undefined,TR:mgo?[0,0,0,0,0,0,0,0,0]:undefined,prfN:0,cadE:CAD.entrees,cadS:CAD.sorties,B:{},L:[],S:[],n:0,t0:now,der:0,fin:now,sec:null};if(!mgo){delete o.mg;delete o.G;delete o.GN;delete o.Q;delete o.M;delete o.Mw;delete o.x0;delete o.D;delete o.TR;delete o.H;delete o.SR;delete o.SY;}return o;}
 function bvSec(c,e){ /* une seconde finie : la ligne, la carte, le palier du moteur, l'état thermique */
   let th=4;try{if(MOB_S.capteur)th=Math.max(0,Math.min(3,MOB_S.thermo|0));}catch(x){}
   c.th[th]++;bvPrfSuit(c);
@@ -122,7 +122,8 @@ function bvSec(c,e){ /* une seconde finie : la ligne, la carte, le palier du mot
 function bvCycOte(){try{for(const k of BV.CYC){const L9=BV.LEV[k];if(L9&&L9.cls)document.body.classList.remove(L9.cls);}}catch(x){}}
 function bvFinit(coupe){const c=BV.c;BV.c=null;if(!c)return;
   if(c.sec)bvSec(c,c.sec);
-  c.dur=+((c.fin-c.t0)/1000).toFixed(1);c.cadE=CAD.entrees-c.cadE;c.cadS=CAD.sorties-c.cadS;if(coupe)c.coupe=1;if(MG.on){c.mg1=mgEtat();c.x1=mgSeance();if(c.TR)for(let i=0;i<9;i++)c.TR[i]=Math.round(c.TR[i]*10)/10;mgRFinit(c);}
+  c.dur=+((c.fin-c.t0)/1000).toFixed(1);c.cadE=CAD.entrees-c.cadE;c.cadS=CAD.sorties-c.cadS;if(coupe)c.coupe=1;if(MG.on){c.mg1=mgEtat();c.x1=mgSeance();if(c.TR)for(let i=0;i<9;i++)c.TR[i]=Math.round(c.TR[i]*10)/10;}
+  if(MG.on)mgRFinit(c); /* (lot MESURE-RAFALES) les noms des sous-tranches, SR, SY, Y — voir mgRFinit */
   try{if(MOB_P.n!==BV.levN)c.gv=1;if(BV.lev==='cycle'){bvCycOte();BV.cyc=-1;}else if(BV.lev!=='base'){if(BV.LEV[BV.lev]&&BV.LEV[BV.lev].cls)document.body.classList.remove(BV.LEV[BV.lev].cls);else if(MOB_P.t===0)imgRegle('reset');else mobPalApplique(MOB_P.t);}}catch(e){}
   BV.lev='base';
   for(const k in c.B){const b=c.B[k];b.ms=Math.round(b.ms);b.w=Math.round(b.w);b.mx=Math.round(b.mx);}
@@ -178,30 +179,30 @@ MG.apres=function(t1){const c=BV.c;if(!c||!c.G)return;if(c.G.length>=1200){c.Gp=
     MG.pMax<0?-1:Math.round(MG.pMax)); /* (lot RETOURPIVOT) [37] le plus long silence du pouls pendant le trou (ms ; -1 : le pouls n'a pas battu) — ≈ 5-10 : fil LIBRE, l'image est retenue ailleurs ; ≈ le trou : fil PRIS */
   {const t9=mgToile();r.push(t9[4],t9[2]);} /* [38] toile 3D / fenêtre en % des pixels, [39] gl.drawingBufferWidth */
   {const R=MGR,c100=function(v){return v>=0?Math.round(v*100):-1;}; /* (lot MESURE-RAFALES) L'IMAGE D'AVANT (celle de G[3] et G[10-17]) : [40] sentinelle au début, [41] après le rendu, [42] à la fin (ms ×100, -1 non mesurée),
-     [43] ms ×10 dans les appels WebGL synchrones, [44] leur nombre, [45] ms ×10 Canvas 2D, [46] nombre, [47] ms ×10 envois WebGL, [48] nombre, [49] sa ligne dans c.H (-1 : loop ≤ 60 ms),
+     [43] ms ×10 dans les appels WebGL synchrones, [44] leur nombre, [45] ms ×10 Canvas 2D, [46] nombre, [47] ms ×10 envois WebGL, [48] nombre, [49] sa ligne dans c.LH (-1 : loop ≤ 60 ms),
      [50] ms ×10 d'appels à la puce HORS boucle depuis l'image calculée d'avant (toutes familles) */
    if(R.on)r.push(c100(R.senDAv),c100(R.senRAv),c100(R.senFAv),Math.round(R.imAv[0]*10),R.imNAv[0],Math.round(R.imAv[1]*10),R.imNAv[1],Math.round(R.imAv[2]*10),R.imNAv[2],R.hAv,Math.round(R.hors*10));
    else r.push(-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1);}
   c.G.push(r);};
 /* ===== LES IMAGES LOURDES DANS LA BOÎTE DE VOL (2026-11-17, lot MESURE-RAFALES — voir « LES RAFALES » dans moteur/mouchard-gels.js) =====
-   c.H : une ligne par loop de plus de 60 ms (1500 au plus : vol 1448, ≈ 1,2/s en course chaude → 15 min et plus), écrite à la fin de la loop. H PLEIN : c.Hp compte les loops lourdes
-     perdues, c.Ht l'instant (s ×10) de la première perdue — analyse-vol.py se replie alors sur G après c.Ht. Une ligne :
+   c.LH : une ligne par loop de plus de 60 ms (1500 au plus : vol 1448, ≈ 1,2/s en course chaude → 15 min et plus), écrite à la fin de la loop. H PLEIN : c.LHp compte les loops lourdes
+     perdues, c.LHt l'instant (s ×10) de la première perdue — analyse-vol.py se replie alors sur G après c.LHt. Une ligne :
      [t (s ×10 depuis le départ), loop (ms ×10), calculée 1 / sautée 0, sentinelle début / après le rendu / fin (ms ×100, -1 non mesurée), sentinelle prise dans la loop (ms ×10, déjà retirée),
       ms ×10 et nombre d'appels WebGL synchrones, ms ×10 et nombre Canvas 2D, ms ×10 et nombre d'envois WebGL, les 8 tranches (b1…b6, rendu, après ; ms ×10),
-      n = le nombre de sous-tranches qui suivent, puis n paires (indice dans c.HN, ms ×10) — seulement celles ≥ 0,3 ms]
-   c.HN : les noms des sous-tranches (indice 0 vide). c.SR : la RÉFÉRENCE des sous-tranches — leur somme (ms ×10) sur les images LÉGÈRES (loop < 25 ms) ; c.SRn leur nombre.
+      n = le nombre de sous-tranches qui suivent, puis n paires (indice dans c.LHN, ms ×10) — seulement celles ≥ 0,3 ms]
+   c.LHN : les noms des sous-tranches (indice 0 vide). c.SR : la RÉFÉRENCE des sous-tranches — leur somme (ms ×10) sur les images LÉGÈRES (loop < 25 ms) ; c.SRn leur nombre.
    c.Y : par appel enveloppé (« gl getError », « 2d putImageData », « envoi drawElements »…) sur la course : [nombre, ms ×10, pire ×10]. */
-MG.lourde=function(t0){const c=BV.c;if(!c||!c.H||!MGR.on)return;if(c.H.length>=1500){if(!c.Hp)c.Ht=Math.round((t0-c.t0)/100);c.Hp=(c.Hp|0)+1;return;}const R=MGR,T=MG.tr,c100=function(v){return v>=0?Math.round(v*100):-1;};
-  R.hCur=c.H.length;
+MG.lourde=function(t0){const c=BV.c;if(!c||!c.LH||!MGR.on)return;if(c.LH.length>=1500){if(!c.LHp)c.LHt=Math.round((t0-c.t0)/100);c.LHp=(c.LHp|0)+1;return;}const R=MGR,T=MG.tr,c100=function(v){return v>=0?Math.round(v*100):-1;};
+  R.hCur=c.LH.length;
   const r=[Math.round((t0-c.t0)/100),Math.round(MG.lDur*10),MG.calc?1:0,c100(R.senDv),c100(R.senR),c100(R.senF),Math.round(R.mes*10),
     Math.round(R.im[0]*10),R.imN[0],Math.round(R.im[1]*10),R.imN[1],Math.round(R.im[2]*10),R.imN[2]];
   for(let i=0;i<8;i++)r.push(Math.round(T[i]*10));
   const k=r.length;r.push(0);for(let i=1;i<R.spN.length;i++)if(R.sd[i]>=.3){r.push(i,Math.round(R.sd[i]*10));r[k]++;}
-  c.H.push(r);};
-function mgRFinit(c){const R=MGR;if(!R.on||!c.H)return;c.HN=R.spN.slice();if(R.spPn){c.HNp=R.spPn;c.HNpN=R.spP.slice();}
+  c.LH.push(r);};
+function mgRFinit(c){const R=MGR;if(!R.on||!c.LH)return;c.LHN=R.spN.slice();if(R.spPn){c.LHNp=R.spPn;c.LHNpN=R.spP.slice();}
   if(c.SY)for(let i=0;i<7;i++)c.SY[i]=i===6||!(i&1)?Math.round(c.SY[i]*10):c.SY[i];
   if(c.SR)for(let i=0;i<c.SR.length;i++)c.SR[i]=Math.round((c.SR[i]||0)*10);
-  const y={};for(let i=0;i<R.yN.length;i++)if(R.yC[i])y[['gl ','2d ','envoi '][R.yF[i]]+R.yN[i]]=[R.yC[i],Math.round(R.yMs[i]*10),Math.round(R.yMx[i]*10)];c.Y=y;}
+  const y={};for(let i=0;i<R.yN.length;i++)if(R.yC[i])y[['gl ','2d ','envoi '][R.yF[i]]+R.yN[i]]=[R.yC[i],Math.round(R.yMs[i]*10),Math.round(R.yMx[i]*10)];c.Y=y;if(R.repose)c.YR=R.repose;} /* (3e tour) c.YR : nos enveloppes reposées après la fin du guet du démarrage (voir mgYGarde) */
 /* ===== LA SÉANCE ET LES DÉCODAGES DANS LA COURSE (2026-11-16, lot SENTINELLE) — boîte de vol + mouchard seulement =====
    c.x0 / c.x1 (départ / fin) : [âge de la vue web (s), durée du dernier arrière-plan (s), textures, géométries, programmes] (sur une séance de 25 min : 128 → 156 textures, 155 → 186 programmes, sans plateau).
    c.D : la fin de chaque décodage d'un segment de musique (assets/audio/pouce-bleu-jeu.js) pendant la course : [t (s ×10), durée (ms), Ko] (120 au plus).
