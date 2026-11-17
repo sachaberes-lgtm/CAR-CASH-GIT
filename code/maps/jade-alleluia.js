@@ -81,7 +81,7 @@ function* genJadeAG(rnd,graine){const g0=(rnd()*4294967296)>>>0,gr=(graine==null
   else{for(let t7=0;;t7++){best=null;notes.length=0; /* (LES ROUTES UNIQUES) t7 : une route dont la suite de modules a déjà été jouée (ruDeja) est refaite sur une variante de son plan, trois fois au plus */
     for(let e=0;e<JADE_A.essais;e++){if(e>0||t7>0){ms+=performance.now()-t9;yield;t9=performance.now();}
       const r9=JADE_PBT&&!jadeADirect()?(yield* jadeAGenG(mulberry32((g0^Math.imul(e+1,0x9E3779B1))>>>0),fam,rot,gr)):jadeAGen(mulberry32((g0^Math.imul(e+1,0x9E3779B1))>>>0),fam,rot,gr);r9.essai=e;notes.push(+r9.note.toFixed(2));if(!best||r9.note<best.note)best=r9;if(r9.note<=.6)break;}
-    if(JADE_RU&&best.u&&t7<3&&ruDeja('jade',best.MK,gr)){ruRefait('jade',jadeUCle(gr,vP/rP));cle=cleDe();continue;}break;}
+    if(JADE_RU&&best.u&&t7<3&&(ruDeja('jade',best.MK,gr)||ruFormeProche('jade',ruForme(best.ctrl),gr,70))){ /* …ou dont les 3 premiers km sont à moins de 70 m (RMS) d'une route déjà faite */ruRefait('jade',jadeUCle(gr,vP/rP));cle=cleDe();continue;}break;}
     JADE_AMEMO.m.set(cle,{e:best.essai,notes:notes.slice()});if(JADE_AMEMO.m.size>8)JADE_AMEMO.m.delete(JADE_AMEMO.m.keys().next().value);}
   ms+=performance.now()-t9;best.notes=notes;best.fam=fam;best.ms=Math.round(ms);jadeAApplique(best);return best.ctrl;}
 function jadeAGen(r,fam,rot,gr9){return jadeAMene(jadeAGenG(r,fam,rot,gr9));} /* (lot JADEPREBATI) d'un trait : le même essai, mené jusqu'au bout */
@@ -349,7 +349,7 @@ function jadeAApplique(b){
   JADE.rac3=b.RAC.filter(function(R9){return R9.i1!=null;}).map(function(R9){return {p0:C[R9.iL].clone(),p1:C[R9.i1].clone()};}); /* les lèvres des raccourcis (les fils d'or : jadeFilsOr) */
   JADE.Q={depart:{p:C[0].clone(),phi:b.phi0},fin:{p:C[b.iFin].clone(),phi:0}};
   JADE.vrille=b.vri;JADE.desc=b.pente;JADE.mk=b.MK;
-  JADE.u=b.u?{cap:b.u.cap,relief:b.u.relief,ouv:b.u.ouv,itin:b.u.itin,ordre:b.u.ordre.slice()}:null;if(b.u)ruMarque('jade',b.gr,b.MK,{cap:b.u.cap,relief:b.u.relief,ouv:b.u.ouv,itin:String(b.u.itin)}); /* (LES ROUTES UNIQUES) la route gardée vieillit le sac */
+  JADE.u=b.u?{cap:b.u.cap,relief:b.u.relief,ouv:b.u.ouv,itin:b.u.itin,ordre:b.u.ordre.slice()}:null;if(b.u)ruFormeGarde('jade',ruForme(b.ctrl),b.gr);if(b.u)ruMarque('jade',b.gr,b.MK,{cap:b.u.cap,relief:b.u.relief,ouv:b.u.ouv,itin:String(b.u.itin)}); /* (LES ROUTES UNIQUES) la route gardée vieillit le sac */
   JADE.a3={ms:b.ms,note:+b.note.toFixed(2),essai:b.essai,notes:b.notes,famille:b.fam,croisDur:b.croisDur,confl:b.confl,conflits:b.conflits,nForce:b.nForce,t30:b.t30,t8:b.t8,rollMax:b.rollMax,rollP95:b.rollP95,
     envers:b.envers,enversMaxS:b.enversMaxS,dMin:b.dMin,racOk:b.racOk,racRob:b.racRob,racVm:b.racVm,penteMax:b.penteMax,lon:b.lon,LC:b.LC,chute:b.chute,pente:b.pente,bankMax:b.bankMax,vP:b.vP,vT:b.vT,rP:b.rP,
     scenes:b.SCN.map(function(s){return s.nom;}),climax:b.MM.filter(function(m){return m.climax;}).map(function(m){return m.nom;}),raccourcis:b.MM.filter(function(m){return m.rac;}).map(function(m){return m.nom;})};}

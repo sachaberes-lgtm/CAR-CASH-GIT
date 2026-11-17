@@ -66,7 +66,7 @@ function orbVoyModules(M,X){
      (~25°) — le sommet d'une bosse passe à ~5° sous l'horizontale, le creux plonge à ~45°. La dalle se couche un peu (12°) dans chaque virage. */
   M.bosses=function(){let s=balai(30);const cB=.21,c=[],A=K.ru?U(14,18):U(19,24), /* (LES ROUTES UNIQUES) des bosses un peu moins hautes (MESURÉ : 66-68°/s vus de l'horizon) */PF=[.55,1,.55,-.55,-1,-.55];fS(.6*Tt,-.03*.6*Tt,1);
     for(let k=0;k<3;k++){const a=Math.max(40,borne(s,U(50,66),36)),Lh=U(3.6,4.1)*Tt, /* (MESURÉ, juge : à ±28-40° le cap restait 13,8 s dans le même cône de 30°) */R=Lh/(a/57.2958),i0=K.i();let im=0;
-      for(let j=0;j<6;j++){arc(s*a/6,R,-.03+pente(A*PF[j]));if(j===2)im=K.i();}
+      for(let j=0;j<6;j++){arc((K.ru&&j>=3?-s:s)*a/6,R,-.03+pente(A*PF[j]));if(j===2)im=K.i();} /* (LES ROUTES UNIQUES) chaque bosse en S : le repère libre ne sort plus penché (MESURÉ : −61° à la sortie des trois bosses, 72°/s au retour) */
       c.push([i0,im,-s*cB,OK],[im,K.i(),s*cB,OK]);s=-s;}
     fS(.5*Tt,-.03*.5*Tt,1);
     return {fig:'bosses',nom:ORB_NOM.bosses,g:1,c:c,pente:1};};
@@ -83,7 +83,7 @@ function orbVoyModules(M,X){
     fS(.6*Tt,p*.6*Tt,1);ev.push([iP,K.i(),s*th,OK]);fS(.3*Tt,p*.3*Tt,1);
     return {fig:'balancier',nom:ORB_NOM.balancier,calme:1,g:1,c:ev};};
   /* LE DÉVERS INVERSÉ (calme) : un virage de 72-98° où la dalle se couche VERS L'EXTÉRIEUR jusqu'à passer la verticale (110-122°) — on pend au-dessus du vide, puis elle revient */
-  M.stengel=function(){const s=cote(90),a=Math.min(98,Math.max(72,borne(s,U(74,96),60))),R=Rt(7.2,a,3.6),ang=U(1.92,2.12),p=-.05;
+  M.stengel=function(){const s=cote(90),a=Math.min(98,Math.max(72,borne(s,U(74,96),60))),R=Rt(7.2,a,3.6),ang=U(1.92,2.12)*(K.ru&&K.longue/(K.el||1)<40?1.08:1),p=-.05; /* (LES ROUTES UNIQUES) plus loin au plafond sur une route courte */
     const i0=K.i();fS(.4*Tt,-.03*.4*Tt,1);arc(s*a/2,R,p);const i1=K.i();arc(s*a/2,R,p);fS(.4*Tt,-.03*.4*Tt,1);const i2=K.i();
     return {fig:'stengel',nom:ORB_NOM.stengel,calme:1,g:1,c:[[i0,i1,s*ang,OK],[i1,i2,-s*ang,OK]]};};
   /* LES MARCHES (figure) : une marche raide (~17° de plus que la descente), un palier À PLAT qui tourne (relevé de 27° dans le dessin : à plat sur la route), de l'autre côté à chaque palier */
@@ -93,8 +93,8 @@ function orbVoyModules(M,X){
   const glisseV=function(aDeg,L,d0,d1){const n=Math.max(4,Math.ceil(Math.abs(d1-d0)/2.5)),Lx=Math.max(L,RVv*Math.abs(d1-d0)/57.2958*1.5);
     for(let q=0;q<n;q++){const u=(q+.5)/n,d=d0+(d1-d0)*u*u*(3-2*u),l=Lx/n;if(Math.abs(aDeg)<.5)fS(l,pente(d)*l,1);else arc(aDeg/n,l/(Math.abs(aDeg)/n/57.2958),pente(d));}};
   const marchesU=function(){let s=balai(50);const n=K.longue>=90?3:2,c=[],pM=14,pP=21;let d9=-1.7;
-    for(let k=0;k<n;k++){glisseV(0,.3*Tt,d9,-pM);fS(1.2*Tt,-pente(pM)*1.2*Tt,2);const a=Math.max(40,borne(s,U(48,64),36)),R=Rt(3.2,a,2.6),Lh=a*.5/57.2958*R,ia=K.i();glisseV(s*a*.5,Lh,-pM,pP);const im=K.i();arc(s*a*.5,R,pente(pP));
-      c.push([ia,im,-s*.4,OK],[im,K.i(),s*.4,OK]);s=-s;d9=pP;}
+    for(let k=0;k<n;k++){glisseV(0,.3*Tt,d9,-pM);fS(1.2*Tt,-pente(pM)*1.2*Tt,2);const a=Math.max(40,borne(s,U(48,64),36)),R=Rt(3.2,a,2.6),Lh=a*.5/57.2958*R,ia=K.i();glisseV(s*a*.5,Lh,-pM,pP);const im=K.i();arc(-s*a*.5,R,pente(pP));
+      c.push([ia,im,-s*.3,OK],[im,K.i(),s*.3,OK]);s=-s;d9=pP;} /* (le palier en S : le repère libre ne sort plus penché) */
     glisseV(0,.3*Tt,d9,-pM);fS(.8*Tt,-pente(pM)*.8*Tt,2);glisseV(0,.3*Tt,-pM,-1.7);
     return {fig:'marches',nom:ORB_NOM.marches,g:1,c:c,pente:1};};
   M.marches=function(){if(K.ru)return marchesU();let s=balai(50);const cM=.4,n=K.longue>=90?3:2,c=[];
@@ -126,10 +126,10 @@ function orbVoyModules(M,X){
       function(){const i0=K.i();arc(s*a/2,R,p);const im=K.i();arc(s*a/2,R,p);const i1=K.i();return {c:[[i0,i1,s*(e2-e1),OK]],nu:coeur('lune',i0,im,i1)};},
       function(){const i0=K.i();arc(-s*a0*1.3,4.4*Tt/(a0*1.3/57.2958),p);return {c:[[i0,K.i(),-s*e2,OK]]};});};
   /* L'ASTÉROÏDE PERCÉ : un S léger ; dans le tunnel la dalle fait un demi-tonneau (π en ~6 s), on ressort la tête en bas, puis elle revient dans un grand virage */
-  const percee=function(k,dur,dS){return function(pose,cx){const sg=rf()<.5?-1:1,s=cote(60),p=-.03,a1=U(26,34),a2=U(dS[0],dS[1]);
-    trois(pose,cx,k,function(){arc(-s*a1,2.6*Tt/(a1/57.2958),p);return {c:[]};},
+  const percee=function(k,dur0,dS){return function(pose,cx){const kc=K.ru&&K.longue/(K.el||1)<40,dur=dur0*(kc?U(.72,.9):1),sg=rf()<.5?-1:1,s=kc&&Math.abs(K.dev())>10?(K.dev()>0?-1:1):cote(60),p=-.03,a1=kc?U(30,44):U(26,34),a2=kc?U(dS[0]-12,dS[1]+8):U(dS[0],dS[1]); /* kc : (LES ROUTES UNIQUES) sur une route courte, le géant raccourci (entrée 1,8 s, tunnel × 0,8, sortie 4,2 s : ~11 s au lieu de ~15) — il tient aux paliers rapides ; il tourne vers l'axe de la route (entrée du même côté, sortie 30-38° : il en garde ~80°) */
+    trois(pose,cx,k,function(){arc((kc?s:-s)*a1,(kc?1.8:2.6)*Tt/(a1/57.2958),p);return {c:[]};},
       function(){const i0=K.i();arc(s*a2/2,dur*.5*Tt/(a2/2/57.2958),p);const im=K.i();arc(s*a2/2,dur*.5*Tt/(a2/2/57.2958),p);const i1=K.i();return {c:[[i0,i1,sg*PI,OK]],nu:coeur(k,i0,im,i1)};},
-      function(){const i9=K.i();const a3=U(66,84);arc(-s*a3,5*Tt/(a3/57.2958),p);return {c:[[i9,K.i(),-sg*PI,OK]]};});};};
+      function(){const i9=K.i();const a3=kc?U(30,38):U(66,84);arc(-s*a3,(kc?4.2:5)*Tt/(a3/57.2958),p);return {c:[[i9,K.i(),-sg*PI,OK]]};});};};
   M.asteroide=percee('asteroide',6,[75,92]);
   M.nebuleuse=percee('nebuleuse',6.2,[80,96]);
 }

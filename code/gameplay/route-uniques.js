@@ -21,7 +21,7 @@ function ruChoix(c,champ,cles,rf,poids){const d=RU.fige?null:ruH(c).der[champ];l
 /* tout le sac, dans un ordre tiré au hasard pesé (clé d'Efraimidis : −ln(u)/poids) — items : [{k, w}] ; rend les clés */
 function ruOrdre(c,items,rf){const A=items.map(function(o){const w=Math.max(1e-4,(o.w==null?1:o.w)*ruPoids(c,o.k));return {k:o.k,q:-Math.log(Math.max(1e-12,rf()))/w};});
   A.sort(function(a,b){return a.q-b.q;});return A.map(function(o){return o.k;});}
-function ruPlan(c,graine,fait){const cle=c+':'+graine;let p=RU.P.get(cle);if(p)return p;p=fait(RU.V[cle]|0);p.cle=cle;RU.P.set(cle,p);if(RU.P.size>12)RU.P.delete(RU.P.keys().next().value);return p;}
+function ruPlan(c,graine,fait){const cle=c+':'+graine;let p=RU.P.get(cle);if(p)return p;p=fait(RU.V[cle]|0);p.cle=cle;RU.P.set(cle,p);if(RU.P.size>48)RU.P.delete(RU.P.keys().next().value);return p;}
 /* la route gardée : ses modules vieillissent le sac (une fois par graine), ses tirages deviennent « ceux d'avant » */
 function ruMarque(c,graine,noms,der){if(RU.fige)return;const h=ruH(c);if(h.dg===graine)return;h.dg=graine;h.n++;for(const k of noms)h.vu[k]=h.n;if(der)h.der=der;if(!h.sq)h.sq=[];{const e9=ruHache(noms.join('>'));h.sq.push(e9);if(h.sq.length>400)h.sq.splice(0,h.sq.length-400);if(!h.sg)h.sg=[];h.sg.push(String(graine)+'='+e9);if(h.sg.length>48)h.sg.splice(0,h.sg.length-48);}
   if(h.n>4000){for(const k in h.vu)h.vu[k]=Math.max(0,h.vu[k]-3000);h.n-=3000;}
@@ -32,4 +32,12 @@ function ruSig(p){return p?p.sig:'';}
 function ruHache(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(36);}
 function ruDeja(c,noms,graine){if(RU.fige)return false;const h=ruH(c),e9=ruHache(noms.join('>'));if(!h.sq||h.sq.indexOf(e9)<0)return false;return !(h.sg&&h.sg.indexOf(String(graine)+'='+e9)>=0);} /* (le contrôle adverse, 17/11) la suite que CETTE graine a déjà marquée n'est pas une redite : la même graine régénérée (pré-bâti puis départ, REJOUER, dbgGenRoute) rend la même route */
 function ruRefait(c,graine){const cle=c+':'+graine,n=Object.keys(RU.V);if(n.length>64)delete RU.V[n[0]];RU.V[cle]=(RU.V[cle]|0)+1;RU.P.delete(cle);return RU.V[cle];}
+/* LA FORME (le contrôle adverse, 17/11 : « aucune paire de parties avec un tracé proche sur les 3 premiers km ») : les 3 premiers km d'une route dans le repère de son départ
+   (origine au 1er point, z = son cap), un point tous les 150 m ; ruFormeProche : l'écart RMS 3D (m) à la plus proche des 300 dernières routes gardées de la séance
+   (au miroir gauche/droite près ; la route de la même graine ne compte pas) est-il sous `seuil` ? Mémoire de la séance seulement (rien dans localStorage). */
+function ruForme(C){const n=C.length,F=new Float32Array(63);if(n<2)return F;let k=1;while(k<n-1&&Math.hypot(C[k].x-C[0].x,C[k].z-C[0].z)<40)k++;const a=Math.atan2(C[k].x-C[0].x,C[k].z-C[0].z),ca=Math.cos(a),sa=Math.sin(a);
+  let i=1,acc=0,l=C[1].distanceTo(C[0]);for(let q=0;q<21;q++){const s=q*150;while(i<n-1&&acc+l<s){acc+=l;i++;l=C[i].distanceTo(C[i-1]);}const t=l>0?Math.max(0,Math.min(1,(s-acc)/l)):0,A=C[i-1],B=C[i],x=A.x+(B.x-A.x)*t-C[0].x,y=A.y+(B.y-A.y)*t-C[0].y,z=A.z+(B.z-A.z)*t-C[0].z;
+    F[q*3]=x*ca-z*sa;F[q*3+1]=y;F[q*3+2]=x*sa+z*ca;}return F;}
+function ruFormeProche(c,F,graine,seuil){if(RU.fige)return false;const L=RU.F&&RU.F[c];if(!L)return false;const s2=seuil*seuil*21;for(const o of L){if(o.g===graine)continue;let d=0,m=0;for(let q=0;q<63;q+=3){const dy=F[q+1]-o.f[q+1],dz=F[q+2]-o.f[q+2],dx=F[q]-o.f[q],mx=F[q]+o.f[q];d+=dx*dx+dy*dy+dz*dz;m+=mx*mx+dy*dy+dz*dz;if(d>s2&&m>s2)break;}if(d<=s2||m<=s2)return true;}return false;}
+function ruFormeGarde(c,F,graine){if(RU.fige)return;if(!RU.F)RU.F={};const L=RU.F[c]||(RU.F[c]=[]);for(const o of L)if(o.g===graine)return;L.push({g:graine,f:F});if(L.length>300)L.shift();}
 if(typeof window!=='undefined')window.dbgRoutesU=function(raz){if(raz){RU.H={};RU.P.clear();try{localStorage.removeItem(RU.cle);}catch(e){}}return {on:ROUTES_U,fige:RU.fige,H:JSON.parse(JSON.stringify(RU.H)),plans:Array.from(RU.P.values()).map(function(p){return {cle:p.cle,sig:p.sig};})};};

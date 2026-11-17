@@ -146,3 +146,92 @@ Diagnostic de zone (80 graines) : pointes 57 (p0, dans les marches) / 59 (p10, c
 - Le roulis reste tenu par des marges, pas par une garantie : sur 80 graines par palier le pire est 57-59 ; un tirage malheureux peut s'approcher de 60.
 - L'envers au palier 20 : la moitié des routes sous 6 % (comme avant : 12 sur 32), une à 0 % — sur une route courte, choisir entre un 2e module qui passe l'envers et la variété.
 - Les reprises : 5 au plus, une seule géométrie chacune ; la pire route d'une séance passe de ~55 à ~69 ms au palier 27.
+
+## TOUR 3 (2026-11-17 soir) — après le contrôle adverse (`passation/routes-uniques/ADVERSE.md`)
+Toutes les mesures ci-dessous avec SES outils (`outils/banc-routes/uniques/adverse/` : `gen.cjs` + `ana.cjs` + `mem.cjs`, ses graines 32 bits, 30 routes de rodage puis 200 de suite), sauf mention.
+⚠ `gen.cjs` réécrit `adverse/data/espace-apres-p*.json` : les données d'origine de l'adverse (p20, p27) sont gardées sous `adverse/data/espace-apres-tour2-p20|27.json` (p0/p10 étaient sur le même code que le tour 2).
+
+### A. La direction
+- `orbVoyAxe` : une **dérive d'ensemble** `S.B` (170-310°, son côté tiré) sous les silhouettes qui reviennent (S, zigzag, vague, libre) ; spirale 240-340°, crochet 180-300° (tôt : u0 0,08-0,35), dérive 150-240° ; le S part du côté de la dérive.
+- Le pilote **ramène vers l'axe** : un geste de liaison loin de l'axe (> 20°, > 15° sur route courte) est un virage qui y ramène ; une liaison entière devient ce virage quand l'écart dépasse 40° (25° sur route courte) ; l'ouverture part 3 fois sur 4 du côté de la silhouette ; les grands virages de fin aussi — **jamais en prolongeant un virage qui dure** (`OU_SENSOK` : 2,2 s de croisière) ; et un **contre-virage** (`casse`) avant un module quand la route tourne du même côté depuis 3,5 s.
+- Route courte (< 40 s réelles) : la silhouette se joue plus tôt (u^0,6, u^0,45 sous 30 s) ; le géant (astéroïde, nébuleuse) tourne vers l'axe (entrée du même côté, sortie 30-38°).
+- `startPhi` (cap de départ du monde) : **laissé à 0** — le départ, le portail, la caméra du lâcher et le pré-bâti le supposent (depart-avance.js, hors de mes fichiers) ; la direction se joue donc par la route elle-même.
+
+| fin vue du départ |.| méd / ± et (distance) | p0 | p10 | p20 | p27 |
+|---|---|---|---|---|
+| avant | 112° / 115° (1,2 km) | 93° / 105° (1,6 km) | 139° / 129° (2,0 km) | 30° / 46° (2,7 km) |
+| tour 2 (adverse) | 39° | — | — | 43° |
+| **tour 3** | **81° / 95° (2,7 km)** | **76° / 89° (4,3 km)** | **116° / 119° (3,9 km)** | **118° / 121° (5,1 km)** |
+| faisceau latéral à 3 km (±) avant → tour 3 | 891 → 1205 m | 804 → 1279 m | 1148 → 1115 m | 1278 → 1114 m |
+
+Cible (≥ 75° et ≥ 90°) tenue sauf l'écart-type à p10 (89°). Faisceau à 3 km : plus large à p0/p10, ~3 % et ~13 % plus étroit à p20/p27 (la route y suit davantage son axe).
+« Même côté » (orbite-v5, 32 graines) : 13,1 / 11,8 / 9,3 s (avant 13,6 / 12,9 / 20,6).
+
+### B. Le rayon vertical
+- `glisse(a°, L, θ0, θ1)` (orbUModules) : une pente ne change plus d'un coup — en pas de ≤ 2,5°, sur au moins 1,35 × rayonPalier × |Δθ| × 1,5 (la crête comme le creux). La `marche`, le `plongeon` (et leur ressource) l'utilisent ; la `bosse` suit une sinusoïde en 16 pas longue d'au moins 2π·A·RV.
+- Les `marches` des voyages, sous `K.ru` : la même chose (`glisseV`), marche 14°, palier 21° en S. (`?sans=uniques` et `?espace=voyages` sans RU : identiques.)
+- Résultat (adverse, 200 routes) : **0 route sous rayonPalier aux 4 paliers** (avant le tour : 73 / 69 / 78 / 96) ; minimum 72 / 114 / 181 / 323 m (rayonPalier 63 / 87 / 142 / 172).
+- Le décollage aux crêtes (~0,85·v²/g de Jade) : **pas applicable tel quel** — en gravité d'orbite (16,5 m/s²) à 140-440 m/s il faudrait des crêtes de 1,4 à 14 km de rayon ; l'AVANT dépassait déjà 1 partout (mesure relative de l'adverse) et le jeu tient la caisse sur la dalle. J'ai borné le rayon (rayonPalier) et pas la portance.
+
+### C. L'unicité vécue
+- **La signature vécue** `orbUSig(ctrl, marks)` : l'ouverture (type, côté, angle tourné arrondi à 20°), la silhouette (et son côté), le relief, puis chaque module qui commence dans les 10 premières secondes réelles, par **famille de forme** (fronde ≈ surbaisse ≈ plongeant ≈ rentrée ; mur ≈ quart ; marche ≈ marches ; bosse ≈ bosses ; plongeon ≈ piqué ; faille ≈ cascade ; torsade ≈ S retourné ; astéroïde ≈ nébuleuse) **avec son côté**. Vocabulaire fini (bornes du localStorage). Gardée dans le sac commun sous la carte `'espace-sig'` (`ruMarque('espace-sig', g, jetons)` / `ruDeja('espace-sig', jetons, g)` — la signature à 3 arguments du pilote). C'est elle, et plus la suite de noms, qui fait refaire une route.
+- **La forme** `orbUForme` / `orbUProche` : les 3 premiers km de la route dessinée, un point tous les 250 m, repère du départ, au miroir près ; les 400 dernières de la séance (en mémoire) ; une route à moins de **110 m RMS en plan** d'une d'elles est refaite (5 reprises au plus pour la forme, 8 pour la signature). Seuil réglé sur l'adverse : la route finale (après pisteTord) est plus serrée que le dessin. `?orbformes=` au banc.
+- **Les essais tirés de (graine, variante)** : la même graine régénérée retombe sur la route gardée même après des reprises (le contrôle adverse : 0/10 → **10/10 à p0 et p27**, A-B-A 10/10). Reste « A puis 13 autres puis A : DIFFÉRENTE » : `RU.P` ne garde que 12 plans (le fichier du pilote).
+- Géométrie variée à même module : plongeon (piqué 12-24°, longueurs, ressource 56-90° à 2-3 rP), bosse (12-22°, 56-84°), géants raccourcis (tunnel × 0,72-0,9, angles élargis) ; la pente du départ tirée par route (`m0`, 16-35°).
+- **Grands modules aux paliers rapides** : l'astéroïde et la nébuleuse **raccourcis honnêtement** (entrée 1,8 s, tunnel × 0,72-0,9, sortie 4,2 s : ~11 s au lieu de ~15 ; roulis ≤ 56 °/s) — présence p20 24 % / 22 %, p27 20 % / 21 % (avant le tour : 0-1 %). **Physiquement hors d'atteinte** à p20-p27 : la faille à l'envers (≥ 100 s de croisière : sa faille est dessinée pour le saut, sa tête en bas dépasse 9,5 s), la roue et la petite lune (jante / lune au centre d'un arc de 125-150° à 7,4 rP : ~14 s, la moitié d'une route de 25-34 s), la grande torsade et le S retourné (13-16 s et 6,4-7,6 s d'envers : au-dessus du budget de 22 % sur 25-34 s), la cascade (deux failles). Ils restent au tirage (paliers lents).
+
+| | p0 | p10 | p20 | p27 |
+|---|---|---|---|---|
+| **signatures vécues distinctes / 300 de suite** (unicite.cjs, 2 séries) | 300 / 300 | 300 / 300 | 300 / 300 | 300 / 300 |
+| suites de NOMS distinctes / 300 (pour info) | 297-298 | 286-292 | 225-245 | 105-118 |
+| paires < 50 m / < 100 m sur 3 km, miroir (adverse, 19 900) — avant | 68 / 523 | 78 / 1088 | 2211 / 9364 | 1211 / 4542 |
+| — tour 2 (adverse) | 0 / 1 | 2 / 12 | 24 / 221 | 52 / 308 |
+| — **tour 3** | **0 / 3** | **0 / 2** | **4 / 72 (0,36 %)** | **23 / 199 (1,0 %)** |
+| 1er module distincts (le + fréquent) | 27 (bosse 13 %) | 27 (bosse 11 %) | 20 (stengel 20 %) | 13 (nébuleuse 21 %) |
+| modules par route | 4,9 | 4,0 | 3,0 | 2,0 |
+
+Hors d'atteinte : **0 paire sous 50 m à p20-p27** (4 et 23). Le prédicteur de forme (sur le dessin) ne voit pas tout ce que pisteTord resserre ; plus de reprises (8 pour la forme) n'a rien gagné (essayé, 44 / 321 à p27) ; un seuil plus large (150 m) épuise les reprises (13 → pire). À p27 une route ne dure que ~25 s et tient ~2 modules : les 3 premiers km (6,8 s) sont le départ, l'ouverture et le 1er module.
+
+### D. L'envers
+Route courte : le temps fort est un géant raccourci 1 fois sur 2 (`geantC`), sinon un virage au plafond ; les virages au plafond (surbaisse, fronde, plongeant, dévers inversé) s'y couchent 8 % plus loin (`kE`) ; toujours un 2e module qui passe l'envers quand il en manque.
+Routes à ≥ 6 % d'envers (adverse) : p0 198/200, p10 200/200, **p20 166/200 (83 %)**, **p27 194/200 (97 %)** ; aucune au-dessus du budget (max 13-16 %). Avant le tour : 151 / 151 sur 200 à p20/p27. À p20, juste sous les 85 % visés.
+
+### E. Le roulis (adverse, 200 routes)
+Pires : **48 / 59 / 59 / 56 °/s** (p0 / p10 / p20 / p27 ; avant le tour 62 / 68 / 66 / 70 ; avant tout 51 / 46 / 48 / 46). Corrections : les bosses et les marches des voyages en S (le repère libre ne sort plus penché de 40-60°), la marche/la bosse/le plongeon/le lacet suivis de ~1 s de droite et d'un grand arc doux, 0,3 s de droite entre deux virages opposés d'une liaison (route longue), le lacet à 3,2 rP et une marge avant l'arrivée, le rappel de l'arrivée un peu plus lent (demi-tour en 6 s de croisière). orbite-v5 (32 graines) : 44 / 51 / 46 °/s.
+
+### F. Où le sac vieillit
+`orbUMarque` (→ `ruMarque('espace', …)` et `ruMarque('espace-sig', …)`) et `orbUFormeGarde` sont appelés dans **`genCtrl`** (ville-entree.js), à la génération — donc aussi pour un pré-bâti annulé et pour `dbgGenRoute` / les bancs. **Proposition** (hors de mes fichiers) : `genCtrl` ne fait que préparer `OU.attente = {g, noms, jetons, forme}` ; l'appel réel se fait quand la route devient LA piste jouée — dans `depart-avance.js`, là où le départ prend la piste pré-bâtie ou la bâtit (après `pisteTordPropre`, au même endroit que `orbiteBuild(seed)`) — et `prebAnnule` jette l'attente. Les reprises restent à la génération (elles lisent la mémoire, ne l'écrivent pas).
+
+### Bilan des autres mesures (tour 3)
+- `?sans=uniques` (empreinte.cjs, 12 graines × p0/p10) : **identique** (avec et sans `?espace=voyages`) ; ville, crypto, nuages identiques RU allumé.
+- tirage-ms.cjs (graines 1-24) : avant 46 / 50 / 52 / 46 ms → **32 / 37 / 42 / 35 ms** (méd. p0/10/20/27) ; adverse (séance) méd. 56-57 ms, pire 72-87 ms à p20/p27 (reprises comprises).
+- orbite-v5 (32 graines) : 0 contact, aucune zone refusée hors plongée.
+- Les 4 gardes : OK. index.html réassemblé (`--depuis-morceaux`).
+- Mesures et planches `apres` refaites (mesure.cjs + planche.cjs, 200 graines, p0/p10).
+
+### Ce qui reste hors d'atteinte (tour 3)
+1. 0 paire sous 50 m sur 3 km à p20 (4) et p27 (23) ; < 1 % sous 100 m tenu à p20 (0,36 %), à la limite à p27 (1,0 %).
+2. Envers ≥ 6 % : 83 % des routes à p20 (85 % visé).
+3. Écart-type de la direction de fin à p10 : 89° (90° visé) ; faisceau latéral à 3 km un peu plus étroit qu'avant à p20/p27.
+4. Les grands modules impossibles aux paliers rapides (ci-dessus, C).
+5. `RU.P` à 12 plans : la même graine revue après 13 autres routes n'est plus la même (fichier du pilote).
+
+## TOUR 4 (2026-11-17 nuit) — les deux critères à la fois
+Critère de Sacha : « aucune paire de parties avec la même suite de modules NI un tracé proche sur les 3 premiers km ».
+- `genCtrl` refait une route si **sa suite de noms** (`ruDeja('espace', orbUNoms(), g)`), **sa signature vécue** (`ruDeja('espace-sig', …)`) **ou sa forme** (`orbUProche`, 6 premières reprises) a déjà été vue. Une reprise = un seul essai **sans fiche de rythme** (~1 ms) ; 150 reprises au plus, et plus après 50 ms de reprises. L'essai de base passe de 3 à 2 géométries (`ORB_UN`). La même graine régénérée reprend sa variante gardée (10/10, A-B-A 10/10).
+- Jamais une route à un seul module : la fin cède sa place au plus court des petits modules s'il le faut ; sur une route courte le temps fort laisse la place de deux petits ; sous 30 s réelles la roue et la petite lune (~14 s) ne sont plus tirées, la fin est « dernier module », l'envers de complément vise 8 % (11 % au-dessus) et se tire au hasard parmi les modules qui tiennent ; les virages au plafond s'y couchent 14 % plus loin ; les virages de ramenée vers l'axe ≤ 75°. Une variante refaite deux fois tire son ordre à plat (le sac pèse trop les modules récents aux paliers rapides).
+- `unicite.cjs` vérifie et affiche les deux (code 1 si l'un a une redite).
+
+| (tour 4) | p0 | p10 | p20 | p27 |
+|---|---|---|---|---|
+| suites de noms distinctes / 300 de suite (2 séries) | 300 / 300 | 300 / 300 | 300 / 300 | 300 / 300 |
+| signatures vécues distinctes / 300 (2 séries) | 300 / 300 | 300 / 300 | 300 / 300 | 300 / 300 |
+| modules par route (min) | 4,9 (3) | 4,0 (2) | 3,3 (2) | 2,8 (2) |
+| paires < 50 / < 100 m sur 3 km (adverse) | 0 / 2 | 0 / 4 | 2 / 74 | 37 / 352 (1,8 %) |
+| fin vue du départ \|méd\| / ± et | 84° / 96° | 80° / 93° | 119° / 120° | 104° / 112° |
+| roulis max (adverse) | 52 | 59 | 58 | 58 °/s |
+| routes ≥ 6 % d'envers | 199 | 200 | 175 (88 %) | 192 (96 %) |
+| rayon vertical sous rayonPalier | 0 | 0 | 0 | 0 |
+
+`test.cjs` : ✔ tout tient. tirage-ms (graines 1-24) : 27 / 35 / 36 / 33 ms (avant tout 46 / 50 / 52 / 46) ; séance de 300 : pire 58 ms (p0), 47 ms (p27). `?sans=uniques` au bit près (avec et sans voyages), ville/crypto/nuages identiques, 4 gardes OK, planches `apres` refaites.
+Régression assumée : à p27 les paires < 50 m remontent de 23 (tour 3) à 37 et < 100 m de 1,0 % à 1,8 % — la suite de noms unique y coûte de la variété de forme (des routes de ~25 s à ~3 modules, beaucoup de reprises pour les noms).

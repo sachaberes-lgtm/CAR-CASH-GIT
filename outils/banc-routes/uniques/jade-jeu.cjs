@@ -52,7 +52,7 @@ const dodo=function(ms){return new Promise(function(r){setTimeout(r,ms);});};
   const photo=async function(nom){const im=await call('Page.captureScreenshot',{format:'png'});if(im&&im.data){fs.writeFileSync(path.join(out,nom+'.png'),Buffer.from(im.data,'base64'));return nom+'.png';}return null;};
   for(const cas of CAS){
     const opt=function(k,d){const m=new RegExp('(?:^|&)'+k+'=([^&]*)').exec(cas);return m?m[1]:d;};
-    const ESP=opt('carte','jade')==='espace',CARTE=ESP?'espace':'jade',pay=opt('pay','0')==='1',MAX=+opt('max','420'),ph=opt('photos','depart'),q=cas.replace(/(^|&)(pay|max|photos|carte)=[^&]*/g,'').replace(/^&/,'');
+    const SAUT=+opt('saut','0'),ESP=opt('carte','jade')==='espace',CARTE=ESP?'espace':'jade',pay=opt('pay','0')==='1',MAX=+opt('max','420'),ph=opt('photos','depart'),q=cas.replace(/(^|&)(pay|max|photos|carte|saut)=[^&]*/g,'').replace(/^&/,'');
     R={cas:cas,format:pay?'844x390':'390x844',exc:[],con:[],photos:[],morts:[],t0:Date.now()};
     console.log('— cas',cas);
     await call('Emulation.setDeviceMetricsOverride',{width:pay?844:390,height:pay?390:844,deviceScaleFactor:2,mobile:true});await call('Emulation.setTouchEmulationEnabled',{enabled:true});
@@ -96,7 +96,7 @@ const dodo=function(ms){return new Promise(function(r){setTimeout(r,ms);});};
       R.petits.push(e);}
     if(ph==='petits'||ph==='tout'){await ev('dbgImmortel(false);dbgJadeAller(0)');await dodo(300);}
     await ev('__bancU.reprend()');
-    await ev('dbgAuto(1,0,{nit:0,vol:true,saut:0,latK:0})');
+    await ev('dbgAuto(1,0,{nit:0,vol:true,saut:'+SAUT+',latK:0})');
     R.progDepart=await ev('__bancU.info()');
     /* l'échantillonneur : chaque image (appels, triangles, écart), toutes les 100 ms (s, mode, caméra dans la roche) */
     await ev(`(function(){const R9=__bancU.rdr(),W=window.__echU={C:[],Tr:[],F:[],S:[],on:true,t0:performance.now()};R9.info.autoReset=false;R9.info.reset();let tp=performance.now(),tS=0;
@@ -105,7 +105,7 @@ const dodo=function(ms){return new Promise(function(r){setTimeout(r,ms);});};
         requestAnimationFrame(pas);};requestAnimationFrame(pas);})()`);
     const tDep=Date.now();const NOMS=await ev('JSON.stringify(__bancU.fiche())');let fiche={};try{const f9=JSON.parse(NOMS);fiche={u:f9.u,sc:f9.a3&&f9.a3.scenes};}catch(e){}
     const g=(/pistegraine=(\d+)/.exec(q)||[])[1]||'x',ouv=ESP?(R.orb&&R.orb.u&&R.orb.u.der?R.orb.u.der.ouv:'ancien'):fiche.u?fiche.u.ouv:'ancien',m1=ESP?(R.orb&&R.orb.mods&&R.orb.mods[0]?R.orb.mods[0].fig:'?'):fiche.sc&&fiche.sc[0]||'?';
-    const base=(ESP?'esp-':'')+(pay?'pay-':'')+'g'+g+'-'+ouv+'-'+m1+(opt('jsceneu')?'-force':'');
+    const base=(SAUT?'saut-':'')+(/sans=uniques/.test(q)?'avant'+(/jade=avatar/.test(q)?'V':'')+'-':'')+(ESP?'esp-':'')+(pay?'pay-':'')+'g'+g+'-'+ouv+'-'+m1+(opt('jsceneu')?'-force':'');
     for(const ts of [2,5,9]){while(Date.now()-tDep<ts*1000)await dodo(50);if(ph!=='0')R.photos.push(await photo(base+'-'+ts+'s'));}
     /* la course entière */
     const Lr=await ev('Math.round(dbgRoute().L)');R.L=Lr;let sMax=0;
@@ -113,7 +113,7 @@ const dodo=function(ms){return new Promise(function(r){setTimeout(r,ms);});};
       if(st.s>sMax)sMax=st.s;
       if(st.go){R.morts.push({s:Math.round(st.s),cause:st.cause,mode:st.mode,lat:+(+st.lat).toFixed(1)});if(R.morts.length>20)break;const rep=Math.round(st.s)+80;if(rep>Lr-60)break;
         await ev('dbgAuto(0)');let v=false;for(let k=0;k<3&&!v;k++){await ev("try{dbgClassique('"+CARTE+"',"+(m9?"'"+m9+"'":'null')+");}catch(e){}dbgJouer()");for(let i=0;i<80&&!v;i++){await dodo(250);v=await ev('!!(dbgState().started&&dbgState().running&&!dbgState().gameOver&&'+(ESP?'__bancU.etat().id==="espace"':'__bancU.etat().piste==="jade"')+')');}}
-        if(!v){R.echecReprise=1;break;}R.Lreprise=await ev('Math.round(dbgRoute().L)');await ev('dbgJadeAller('+rep+');dbgAuto(1,0,{nit:0,vol:true,saut:0,latK:0})');continue;}
+        if(!v){R.echecReprise=1;break;}R.Lreprise=await ev('Math.round(dbgRoute().L)');await ev('dbgJadeAller('+rep+');dbgAuto(1,0,{nit:0,vol:true,saut:'+SAUT+',latK:0})');continue;}
       if(st.s>Lr-60||(ESP?st.id!=='espace':st.piste!=='jade'))break;}
     R.couvert=Math.round(sMax);R.duree=Math.round((Date.now()-tDep)/1000);
     const E=await ev('(function(){const W=window.__echU;W.on=false;return JSON.stringify({C:W.C,Tr:W.Tr,F:W.F,S:W.S});})()');let e9={};try{e9=JSON.parse(E);}catch(x){}
@@ -128,7 +128,7 @@ const dodo=function(ms){return new Promise(function(r){setTimeout(r,ms);});};
     for(const e of R.petits)e.morts=R.morts.filter(function(m){return m.s>=e.s0-30&&m.s<=e.s1+30;}).length;
     R.temps=Math.round((Date.now()-R.t0)/1000);
     fs.writeFileSync(path.join(out,base+'.json'),JSON.stringify(R,null,1));
-    console.log(JSON.stringify({cas:cas,orb:ESP&&R.orb&&R.orb.u&&R.orb.u.der?{ouv:R.orb.u.der.ouv,fin:R.orb.u.der.fin,rel:R.orb.u.der.rel,sil:R.orb.u.der.sil,cx:R.orb.u.der.cx,mods:(R.orb.mods||[]).map(function(m){return m.fig+'@'+m.s0;})}:undefined,endroit:R.endroit,u:R.fiche.u&&[R.fiche.u.ouv,R.fiche.u.cap,R.fiche.u.relief],sc:R.fiche.a3&&R.fiche.a3.scenes,exc:R.exc.length,jadeErr:!!R.jadeErr,regle:R.regle&&R.regle.heurts,couloir:R.audit&&R.audit.couloir&&R.audit.couloir.heurts,
+    console.log(JSON.stringify({cas:cas,vols:R.vols,rac:R.fiche&&R.fiche.a3&&R.fiche.a3.raccourcis,orb:ESP&&R.orb&&R.orb.u&&R.orb.u.der?{ouv:R.orb.u.der.ouv,fin:R.orb.u.der.fin,rel:R.orb.u.der.rel,sil:R.orb.u.der.sil,cx:R.orb.u.der.cx,mods:(R.orb.mods||[]).map(function(m){return m.fig+'@'+m.s0;})}:undefined,endroit:R.endroit,u:R.fiche.u&&[R.fiche.u.ouv,R.fiche.u.cap,R.fiche.u.relief],sc:R.fiche.a3&&R.fiche.a3.scenes,exc:R.exc.length,jadeErr:!!R.jadeErr,regle:R.regle&&R.regle.heurts,couloir:R.audit&&R.audit.couloir&&R.audit.couloir.heurts,
       morts:R.morts.map(function(m){return [m.s,m.cause,m.mode];}),couvert:R.couvert+'/'+R.L,camRoc:R.nCamRoc+'/'+R.nEchant,decolle:R.decolle.length,recoupe:R.recoupe&&R.recoupe.n,appels:R.appels.moy+'/'+R.appels.p95,tri:R.triangles.moy+'/'+R.triangles.p95,ips:R.ips,
       prog:[R.progDepart&&R.progDepart.prog,R.progFin&&R.progFin.prog],geo:R.progFin&&R.progFin.geo,tex:R.progFin&&R.progFin.tex,deco:R.deco,petits:R.petits.map(function(x){return x.nom+':'+x.heurts+'/'+x.morts;})}));
   }
