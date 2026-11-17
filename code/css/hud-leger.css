@@ -91,6 +91,9 @@ html body.touch.play #cashHud .chD{position:absolute;right:0;bottom:calc(50% + 1
 @media (orientation:landscape) and (max-height:540px){html body.touch.play #cashHud{right:calc(var(--hudD) + 71px)!important}}
 html[data-hud="d"] body.touch.play #cashHud .chV span{font-size:var(--f5)} /* ?hud=d grossissait l'argent à 28 px : la place entre la barre et le ⏸ n'y suffit pas — même taille que le HUD par défaut */
 html[data-hud="d"] body.touch.play #cashHud .chV i{font-size:var(--f3)}
+/* (2026-11-17, qualité · compteur) ESSAIS DE PLACE pour les maquettes de Sacha (?cashplace=a|b|c, éteints par défaut ; passe-textes.js cashFit).
+   b : au-delà de 5 chiffres l'argent descend SOUS le ⏸ (6 px sous lui) et prend toute la colonne de droite ; la colonne (pouvoirs, emblème) commence sous lui (hudColMesure). */
+html[data-cashplace="b"] body.touch.play #cashHud.cpBas{top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 62px)!important;right:var(--hudD)!important;height:auto}
 /* ---- LE RAPPEL DES FIGURES, EN LIGNES (2026-11-13, Sacha : « police classique, juste la couleur de leur rareté, plus discrètes mais adaptées au reste du HUD »,
    puis, sur la police du système : « fais un truc beau », et « que en mode horizontal ») ----
    Le même langage que les lignes des pouvoirs : pas de plaque, la police du jeu (Press Start), 8 px, cernée d'un fil d'encre (aucun flou, aucune lueur). UNE LIGNE PAR GESTE,

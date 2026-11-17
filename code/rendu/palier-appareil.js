@@ -328,6 +328,21 @@ let BLOOM_RES=BLOOM_BASE; // (2026-09-27, passe perf iPhone) part de la résolut
    lit désormais `VP`, tenu à jour ici (écouteur posé AVANT tous les autres : ils le trouvent déjà à jour). */
 const VP={w:innerWidth,h:innerHeight};
 addEventListener('resize',()=>{VP.w=innerWidth;VP.h=innerHeight;});
+/* ===== LA VUE RELUE (2026-11-17, qualité · compteur — Sacha : le compteur d'argent « tout petit », durablement) =====
+   VP n'était tenu à jour QUE par `resize`. Or WKWebView livre ce resize en retard, ou avec l'ancienne taille (pivot, retour d'arrière-plan) : VP restait couché sur un
+   écran debout, et tout ce qui le lit se trompait jusqu'au resize suivant (MESURÉ au banc compteur.cjs : 55 555 € à 7 px, et il y reste). On RELIT donc la taille
+   au retour visible, après `orientationchange` (+60 ms, puis +400 ms) et 400 ms après chaque resize ; si elle a changé, on rejoue le MÊME chemin que resize
+   (un resize envoyé à la fenêtre : VP, caméra, toiles, HUD, menus). Rien n'a changé : rien n'est fait. `?sans=vpfrais` = comme avant. */
+const VPFRAIS=!/[?&]sans=[^&]*vpfrais/.test(location.search);
+let VPFR_T=0;
+function vpFrais(){if(!VPFRAIS||innerWidth<1||innerHeight<1)return false;if(innerWidth===VP.w&&innerHeight===VP.h)return false;
+  try{dispatchEvent(new Event('resize'));}catch(e){VP.w=innerWidth;VP.h=innerHeight;}return true;}
+if(VPFRAIS){const deux=function(){setTimeout(vpFrais,60);setTimeout(vpFrais,400);};
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){vpFrais();deux();}});
+  addEventListener('orientationchange',deux);
+  addEventListener('resize',function(){clearTimeout(VPFR_T);VPFR_T=setTimeout(vpFrais,400);});
+  try{matchMedia('(orientation: landscape)').addEventListener('change',deux);}catch(e){}}
+window.dbgVp=function(w,h){if(w)VP.w=w;if(h)VP.h=h;return {vp:[VP.w,VP.h],vue:[innerWidth,innerHeight],frais:VPFRAIS};}; /* (banc compteur.cjs) pose une VP périmée */
 /* (2026-11-07, chasse PC-N02) LA DENSITÉ QUI CHANGE APRÈS LE CHARGEMENT (ordi) : la page-cadre dispatche un resize dans l'iframe quand son zoom change
    (tete.html, 2026-11-06), mais DPR_CAP n'était lu qu'une fois : fenêtre agrandie, F11 ou autre écran = 3D étirée et floue jusqu'au rechargement. Le téléphone
    garde son plafond (ALLEGE / TEL_NATIF). Anti-rebond de 150 ms : qlReprise réalloue la toile et les cibles. */
