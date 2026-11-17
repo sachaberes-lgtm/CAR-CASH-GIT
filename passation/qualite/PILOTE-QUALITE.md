@@ -439,3 +439,57 @@ A-B `?sans=pilborne` (branché + éco, même banc) : **7 cases plus lourdes** sa
 
 ### Commits (3e tour)
 - `4c5287abb` le code (S1-S3, M1-M5) et le banc (modes borne, cycle, gelchaud, spin, compteurs ; `borne-table.cjs`).
+
+## 11. 4e TOUR (17/11, intégrateur) — branche `qa/pilote`
+
+Fait de terrain : 13 Pro branché à haute charge → critical en ~5 min. La séance réelle de Sacha s'est jouée toute à critical : 23 gels / min, surtout HORS boucle, 4-6 ms de travail par image. **Les gels sans ratés sont LE cas courant au chaud.** Au banc de puissance, baisser le DPR n'a rien fait gagner de mesurable (à confirmer).
+
+### Ce qui a changé
+1. **Les gels au chaud n'arment plus l'urgence.** `chaudGel` (gels soutenus à serious ou plus) reste une dette ORANGE payée au moment invisible, mais ne compte NI pour `orT0` NI pour la condition `cr`. L'urgence exige de VRAIS ratés (≥ 2 % sur 10 s) ou un vrai coût > (budget + 0,05) × période, tenus 5 s (`orV`).
+2. **N2 seulement en condition libre.** La montée à N2 par la mémoire hors libre est RETIRÉE (`pilDepartCalc`). Partout ailleurs (AUTO) : N1, leviers bornés par la base ; la mémoire n'apprend que le cran K. Libre : N2 au cran appris pour N2 (`k2`, K0 sans mémoire). **ÉCHEC** (`pilEchecN2`) = ROUGE ≥ 3 s, urgence payée, ORANGE ≥ 50 % d'un segment ≥ 30 s, K visé ≥ K de départ + 3, ou course < 30 s qui a vu ROUGE → mur N2 (7 j, doublé, 30 j max). Le mur s'écrit DÈS le constat (chaque seconde, `pilVerifEchec`), et aux fins : mort, retour menu, `pagehide`, `visibilitychange` caché. Le retour à N1 se fait au moment sous voile suivant.
+   Plafond « table + 4 » retiré : un départ prend le cran appris (séance, sinon mémoire n ≥ 2, sinon la table), jamais plus léger.
+   La marge BLEU se cumule d'une course à l'autre (même séance, condition et niveau : `PILO.bleuC`) : un N1/N2 qui tient remonte vers K0 même en courses courtes. Une course quittée pour le menu sans que la mort ait payé garde son cran dans la séance.
+   Mémoire au format v3 (`k, n` pour N1 ; `k2, n2` pour N2) : les entrées v2, qui portaient un niveau appris, sont jetées.
+3. `traces-pneus.js` remis en CRLF : le diff contre `origin/qualite-appareil` ne montre que la ligne `pilMoment('piste')`.
+4. `pilMoment('portail')` est appelé APRÈS le test `dejaPaye` (pas de jeton orphelin). Un jeton non consommé expire au bout de 5 s (`jetonExp`). Le portail seul n'ouvre plus la fenêtre « construction » : un gel > 80 ms à boucle légère dans les 1,5 s n'est « construction » que si une vraie construction a eu lieu (piste refaite, `loop._rebuildT`). Sinon c'est un gel.
+
+### La règle finale, en dix lignes (pour Sacha)
+1. Débranché, sans économie, téléphone frais, batterie ≥ 20 % : le jeu part au niveau plein (N2).
+2. Dans tous les autres cas, il part au niveau d'aujourd'hui (N1), jamais plus lourd que le jeu sans pilote.
+3. Plus le téléphone chauffe, plus le départ est léger : frais K0-K1, tiède K1-K2, chaud K5-K6, brûlant K10.
+4. En course, rien ne change à l'écran, sauf de petits crans quand des images ratent vraiment.
+5. La résolution ne change qu'à un moment invisible : départ, mort, pause, menu.
+6. Une seule exception : de vrais ratés tenus 5 s au brûlant. Les gels seuls ne la déclenchent jamais.
+7. Les gels sont notés, puis payés au prochain moment invisible. Ils ne donnent jamais de marge.
+8. Si N2 rate (rouge, orange la moitié du temps, ou 3 crans perdus), N2 est interdit 7 jours dans cette condition (puis 14, puis 30).
+9. Le téléphone retient le cran qui tient dans chaque condition, et remonte doucement quand il y a de la marge.
+10. `?sans=pilote` = le jeu d'avant, pour comparer.
+
+### Prouvé au banc (17/11, `outils/banc-pilote/pilote.cjs`, Chrome sans fenêtre, 13 Pro émulé, sous `verrou-banc.sh` ; compteurs, aucune mesure de temps)
+- **1 — gels au chaud** `--mode critgel` (branché + éco → critical par `dbgPiloteSim`, 0 raté, 3 gels / s, vrai 8 ms, 60 s) : `nUrg 0`, urgence `null`, **0 toile refaite en course** (retailles : menu 2 seulement, au chargement), DPR 1,25 tenu ; zone ORANGE (`dette · orange (gels au chaud : 45 s, th 3) · visé K11`) ; la dette K1 → K8 est payée au PORTAIL (crans [C]/[P] seulement), le reste attend la mort.
+- **2a — N2 qui rate en ORANGE** `--mode cycle --n2 orange` (libre, 3,3 % de ratés à N2, 4 lancements de 35 s, stockage gardé) : départs **N2, N1, N1, N1**. Un seul essai : `ÉCHEC à N2 (K3 ≥ K départ 0 + 3) → mur N2 7 j · retour N1 K0`, écrit pendant la course. Puis N1 K0 tenu, appris (n 1 → 3), mur 7 j gardé.
+- **2b — branché nominal** `--mode cycle --n2 tient` (branché seul, nominal, 4 lancements, marge simulée) : départs **N1, N1, N1, N1**, mémoire `k 0, n 1 → 3`, aucun `k2`, aucun N2.
+- **2c — libre qui tient** `--mode cycle --n2 tient` (libre) : départs **N2, N2, N2, N2**, `k2 0, n2 1 → 3`, 0 échec.
+- **2d — remontée en courses courtes** `--mode remonte` (libre, 8 courses de 20 s sans rechargement, K2 posé à la 1re, marge simulée) : départs N2 K0 (puis K2 posé), K2, K2, **K2 → K1** (BLEU cumulé 18 + 18 + 18 + 6 = 60 s sur 4 courses), K1, K1, **K1 → K0**, K0. Payé à la mort, un cran à la fois.
+- **S3** `--mode borne` avec et sans `--q sans=pilote` + `borne-table.cjs` : **0 case plus lourde sur 180** (tableau identique au 3e tour, §10 : libre N2 K0 non borné ; partout ailleurs N1).
+- 0 exception dans tous les bancs. Gardes : `garde-demarrage`, `garde-allege`, `garde-charte`, `node --check` du gros script : OK.
+
+### NON prouvé
+- Rien sur le téléphone (interdit à ce lot).
+- `--mode critgel` n'a pas été rejoué sur l'ancien code (pas de copie du jeu : disque plein). Le défaut est lu dans le code : `chaudGel` mettait `orT0` à l'heure, et `cr` ne demandait que `orT0` tenu 5 s.
+- Les déclencheurs `pagehide` / `visibilitychange` de l'échec N2 ne sont pas joués au banc (même fonction que la mort, `pilVerifEchec(true)`).
+- Gain réel du DPR au critical, et 20 contre 30 i/s au critical : non mesurés.
+
+### Protocole 13 Pro (branché + économie, chaud, budget thermique ≥ 380) — A-B-A-B contre `?sans=pilote`
+1. Quatre courses de 3 min, même map, `&perfrec=2` : pilote, `?sans=pilote`, pilote, `?sans=pilote`. Laisser monter jusqu'au critical (≈ 5 min branché).
+2. Au critical : journal `pilote` → AUCUNE ligne `urgence armée` ni `retaille · urgence` tant qu'il n'y a pas de vrais ratés ; les `gel · …` et `dette · orange (gels au chaud …)` sont attendus, payés à la mort ou au portail.
+3. Départs attendus : N1 partout (K1 nominal, K2 fair, K6 serious, K10 critical) ; aucun `départ N2` branché.
+4. Comparer gels / min et i/s (`H`) pilote contre base, à serious et critical.
+5. Débranché, sans éco, frais : `départ N2 K0`. S'il rate : `ÉCHEC à N2 … mur N2 7 j`, puis N1 aux lancements suivants.
+
+### Ce qui reste à mesurer
+- **Gain réel du DPR** : au banc de puissance, 1,25 → 1,00 n'a rien fait gagner de mesurable. Si le 13 Pro le confirme, les crans 10-11 (résolution) coûtent de l'image pour rien : les remplacer par un levier qui paie.
+- **20 contre 30 i/s au critical** : défaut 50 ms visés (la base) contre `?plus=pilcad33` (33 réguliers). Mesurer gels / min, régularité de `H` et budget thermique.
+
+### Commits (4e tour)
+- `73bb6eff5` le code (1, 2, 3, 4) et le banc (modes critgel, remonte, cycle `--n2 orange`).
