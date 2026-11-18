@@ -93,6 +93,7 @@ function bvNeuve(now){let lev='base';
   try{if(!BV.sansLev){const T=MOB_P.t===0?BV.TIR:BV.TIR_DOM;lev=T[(Math.random()*T.length)|0];const L=BV.LEV[lev];if(L&&(L.cls||L.cyc)){if(!document.getElementById('bvCss')){const st=document.createElement('style');st.id='bvCss';st.textContent='body.bvFx0 *{filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;animation:none!important;transition:none!important}body.bvAir0 #airHud{display:none!important}body.bvAnim0 *{animation:none!important;transition:none!important}body.bvFiltre0 *{filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}body.bvTexte0 :is(#cashHud .chV i,#cashHud .chV span,#avVal,#avX,#avPts){filter:none!important}body.bvFig0 :is(#fh,#fh *,#slam9,#slam9 *,#verdHud,#verdHud *,#popTxt,#lvlNum,#lvlNum *){filter:none!important;text-shadow:none!important;animation:none!important}';document.head.appendChild(st);}if(L.cls)document.body.classList.add(L.cls);}else if(L)imgRegle(L);}}catch(e){lev='base';}
   BV.lev=lev;try{BV.levN=MOB_P.n;}catch(e){BV.levN=0;}
   if(MG.on){MG.sec.nL=0;MG.sec.nR=0;MG.sec.hS=0;mgRVide();} /* (contrôle du lot GELS) la 1re seconde ne compte pas le menu */
+  if(SDCALME){CAD.rN=1;CAD.rMin=99;} /* (2026-11-18, lot sondecalme) …ni les images d'ÉCRAN du menu : R[0] de la 1re seconde comptait tous les rAF depuis la course d'avant (jusqu'à 12 256 après 8 min de menu, « 75 i/s au sol »). 1 : l'image de cette loop, déjà comptée par cadSaute */
   const mgo=MG.on; /* sans mouchard, la course ne porte ni G ni M : l'analyse retombe sur la table « dans / hors boucle » */
   const o={d:new Date().toISOString(),ses:BV.ses,tl:Math.round(now/1000),lev:lev,gv:0,v:(typeof CC_VER==='string'?CC_VER:'?'),pal:(typeof PAL!=='undefined'?PAL.n:-1),
     ecr:screen.width+'x'+screen.height+'@'+(window.devicePixelRatio||1),app:String(window.__ccAppareil||''),eco:(window.__ccEco|0),cartes:[],mot:0,th:[0,0,0,0,0],prf:bvPrf(),mg:mgEtat(),G:mgo?[]:null,GN:mgo?[]:null,Q:mgo?{}:null,M:mgo?[]:null,Mw:mgo?27:undefined,LH:mgo?[]:undefined,SR:mgo?[0]:undefined,SY:mgo?[0,0,0,0,0,0,0]:undefined,x0:mgo?mgSeance():undefined,D:mgo?[]:undefined,TR:mgo?[0,0,0,0,0,0,0,0,0]:undefined,prfN:0,cadE:CAD.entrees,cadS:CAD.sorties,B:{},L:[],S:[],n:0,t0:now,der:0,fin:now,sec:null};if(!mgo){delete o.mg;delete o.G;delete o.GN;delete o.Q;delete o.M;delete o.Mw;delete o.x0;delete o.D;delete o.TR;delete o.H;delete o.SR;delete o.SY;}return o;}
@@ -184,7 +185,19 @@ MG.apres=function(t1){const c=BV.c;if(!c||!c.G)return;if(c.G.length>=1200){c.Gp=
      [50] ms ×10 d'appels à la puce HORS boucle depuis l'image calculée d'avant (toutes familles) */
    if(R.on)r.push(c100(R.senDAv),c100(R.senRAv),c100(R.senFAv),Math.round(R.imAv[0]*10),R.imNAv[0],Math.round(R.imAv[1]*10),R.imNAv[1],Math.round(R.imAv[2]*10),R.imNAv[2],R.hAv,Math.round(R.hors*10));
    else r.push(-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1);}
+  if(SDCALME){const g0=MG.l0-MG.dw;r.push(BVSW.t>=g0&&BVSW.t<=t1?Math.round(BVSW.t-g0):-1);} /* (lot sondecalme) [51] un battement natif est-il tombé dans ce trou ? ms depuis le début de l'image calculée d'avant jusqu'à son arrivée dans la page (jusqu'à la fin de CETTE loop), -1 aucun — voir « LES BATTEMENTS NATIFS HORODATÉS » */
   c.G.push(r);};
+/* ===== LES BATTEMENTS NATIFS HORODATÉS (2026-11-18, lot sondecalme — la preuve directe qui manquait au vol 1118-0416 : le battement natif tombe-t-il dans les gels ?) =====
+   Le natif (SondeNatif) pose chaque seconde `window.__ccSw` puis `window.__ccSwN` : un accesseur sur __ccSwN note l'instant où la page l'exécute (performance.now). Rien à changer
+   côté natif : marche aussi avec l'ancien battement (`?sondemain=1`). Par course (mouchard allumé), c.SW : 5 nombres par battement — [ms depuis le début de la course,
+   sentinelle Swift µs (-1 pas mesurée), retard du battement ms ×10, attente du fil principal de l'app µs (-1 : ancien battement, qui ne la mesure pas), sentinelle à l'horloge µs
+   (-1)] ; 1200 battements au plus (c.SWp compte les perdus). G[51] : voir MG.apres. `?sans=sondecalme` : ni accesseur, ni c.SW, ni G[51]. */
+const BVSW={t:-1,n:0};
+function bvBat(){const t=performance.now();BVSW.t=t;BVSW.n++;const c=BV.c;if(!c||!c.M)return;
+  if(!c.SW)c.SW=[];if(c.SW.length>=6000){c.SWp=(c.SWp|0)+1;return;}
+  const a=window.__ccSw,v=function(i){return a&&a.length>i?(+a[i]|0):-1;};c.SW.push(Math.round(t-c.t0),v(1),v(2),v(3),v(4));}
+if(SDCALME&&MG.on)try{let v9=window.__ccSwN;
+  Object.defineProperty(window,'__ccSwN',{configurable:true,enumerable:true,get:function(){return v9;},set:function(x){v9=x;try{bvBat();}catch(e){}}});}catch(e){}
 /* ===== LES IMAGES LOURDES DANS LA BOÎTE DE VOL (2026-11-17, lot MESURE-RAFALES — voir « LES RAFALES » dans moteur/mouchard-gels.js) =====
    c.LH : une ligne par loop de plus de 60 ms (1500 au plus : vol 1448, ≈ 1,2/s en course chaude → 15 min et plus), écrite à la fin de la loop. H PLEIN : c.LHp compte les loops lourdes
      perdues, c.LHt l'instant (s ×10) de la première perdue — analyse-vol.py se replie alors sur G après c.LHt. Une ligne :
