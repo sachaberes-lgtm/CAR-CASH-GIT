@@ -1,6 +1,7 @@
 // LE BANC DE LA VOITURE D'ABORD (2026-11-18, lot « voituredabord »), dans le VRAI jeu. UN Chrome sans fenêtre et muet (sfx/mus/vox coupés dans la sauvegarde),
 // iPhone 13 Pro émulé 844×390 DPR 3, tactile, UA iPhone → TEL_NATIF vrai ; profil N1 BASSE (?appareil=iPhone14,2, réglage 'fast'), comme Sacha cette nuit.
-//   node outils/banc-voituredabord/vda.cjs --essai avec|sans [--mode ql|photo|tout] [--effondre <s> : pose QL.effondre à la seconde s du téléphone lent] [--out <dossier>] [--lent 45] [--t1 60] [--http 9981] [--cdp 9982]
+//   node outils/banc-voituredabord/vda.cjs --essai avec|sans [--mode ql|photo|tout] [--effondre <s> : pose QL.effondre à la seconde s du téléphone lent]
+// crans : téléphone lent + effondrement posés, l'échelle menée cran par cran (dbgQual 0..kMax, 2,5 s chacun) dans la boucle vivante : DPR, toile, loupe, décor, écritures de la toile. [--out <dossier>] [--lent 45] [--t1 60] [--http 9981] [--cdp 9982]
 // ql    : serious + branché (dbgThermique(2), __ccBranche=2), puis un téléphone LENT simulé (dbgGouvLent : un coût qui suit les pixels) → l'échelle descend et s'effondre ;
 //         seconde par seconde : cran QL, DPR, cran du décor, loupe posée, largeur de la toile, écritures de la toile (chaque groupe = une réallocation).
 // photo : la boucle menée à la main (rAF coupé, dbgStep 33 ms, échelle figée par dbgQual) ; aux crans 0, 5 et effondré (kMax + QL.effondre) : image entière + caisse.
@@ -20,6 +21,7 @@ const LIT = `(function(){var o={};try{var g=imgRegle();o.ql=g.ql;o.dpr=g.dpr;o.c
   try{var G=dbgGouvPaliers();o.palier=G.palier;o.qlMin=G.qlMin;o.doux=G.doux}catch(e){}
   try{var n=dbgNette();o.kNet=n.kNet;o.kBas=n.kBas;o.niv=dbgPrf().niveau}catch(e){}
   try{o.toile=(window.__bancToile||{ev:[]}).ev.length}catch(e){}
+  try{var B=dbgBarriere();o.vrai=Math.round(B.vrai*10)/10;o.chrono=B.chrono}catch(e){}
   return JSON.stringify(o)})()`;
 (async () => {
   for (const p of [P_HTTP, P_CDP]) if (!portLibre(p)) { console.error('port occupé :', p); process.exit(2); }
@@ -69,6 +71,15 @@ const LIT = `(function(){var o={};try{var g=imgRegle();o.ql=g.ql;o.dpr=g.dpr;o.c
       R.toile = JSON.parse(await c.ev("JSON.stringify((function(){var g=[],ev=(window.__bancToile||{ev:[]}).ev;for(var i=0;i<ev.length;i++){var e=ev[i],d=g[g.length-1];if(!d||e[0]-d.t>8)g.push(d={t:e[0],w:null,h:null,n:0,change:false});d.n++;d[e[1]==='width'?'w':'h']=e[3];if(e[2]!==e[3])d.change=true;}return g})())"));
       R.reallocations = R.toile.filter(g => g.change).length;
       R.maxQl = Math.max(...suivi.map(o => o.ql)); R.minDpr = Math.min(...suivi.map(o => o.dpr)); R.loupeRetireeSecondes = suivi.filter(o => o.loupe === false).length; R.secondes = suivi.length;
+    }
+    if (MODE === 'crans') { /* l'échelle menée cran par cran dans la boucle VIVANTE (dbgQual), téléphone lent et effondrement posés : ce que chaque cran retire, les réallocations */
+      await c.ev(`dbgGouvLent(${+(A.lent || 45)});dbgVoitureDabord({effondre:1});1`); await dormir(2000);
+      await c.ev('window.__bancToile.ev.length=0;1'); const kMax = (await lit()).kBas + 1; R.crans = [];
+      for (let k = 0; k <= kMax; k++) { const n0 = await c.ev('window.__bancToile.ev.length'); await c.ev(`dbgQual(${k});dbgVoitureDabord({effondre:${k > 5 ? 1 : 0}});1`); await dormir(2500); await relance();
+        const o = await lit(); o.k = k; o.ecrituresToile = (await c.ev('window.__bancToile.ev.length')) - n0; R.crans.push(o); }
+      await c.ev('dbgGouvLent(0);1');
+      R.toile = JSON.parse(await c.ev("JSON.stringify((function(){var g=[],ev=(window.__bancToile||{ev:[]}).ev;for(var i=0;i<ev.length;i++){var e=ev[i],d=g[g.length-1];if(!d||e[0]-d.t>8)g.push(d={t:e[0],w:null,h:null,n:0,change:false});d.n++;d[e[1]==='width'?'w':'h']=e[3];if(e[2]!==e[3])d.change=true;}return g})())"));
+      R.reallocations = R.toile.filter(g => g.change).length;
     }
     if (MODE === 'photo' || MODE === 'tout') {
       await c.ev('dbgVoitureDabord({effondre:0});dbgQual(0);1'); await dormir(21000); /* la mémoire de chaleur de la loupe (20 s) se vide */
