@@ -1,11 +1,13 @@
 id,nom,type,prix_eur
 cashcar.car.b_pizza,LA PIZZA EXPRESS,car,161.00
+cashcar.car.e_aigle,L'AIGLE DE FEU,car,1.61
 cashcar.car.e_feline,LA FÉLINE,car,1.61
 cashcar.car.a_eternelle,L'ÉTERNELLE,car,1.61
 cashcar.car.d_chevalier,LE BLINDÉ NOIR,car,1.61
 cashcar.car.e_murduson,LE MUR DU SON,car,1.61
 cashcar.car.e_dragon,LE DRAGON D'OR,car,1.61
 cashcar.car.squale,SQUALE,car,1.61
+cashcar.car.iceberg,L'ICEBERG,car,0.80
 cashcar.car.mx5na,KELLY CHERRY,car,1.61
 cashcar.peinture.lagon,LAGON,peinture,1.00
 cashcar.peinture.poupee,ROSE POUPÉE,peinture,1.00

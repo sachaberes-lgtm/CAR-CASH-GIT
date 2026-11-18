@@ -167,7 +167,7 @@ les musiques, les voix et les images ont été faites avec Claude (11/11 : plus 
 | Violence réaliste, contenu sexuel, nudité, grossièretés, alcool/tabac/drogues, horreur, contenu médical | Aucun |
 | Jeux d'argent simulés, concours, paris | **Rare / peu fréquent** — la machine à sous FINAL SPIN (levier, rouleaux, trois 7 = JACKPOT) tire un lot au hasard à l'écran de fin ; ses jetons se ramassent en course et dans les missions du jour, aucun achat ne les donne, aucune mise en vrai argent, aucun gain en vrai argent. Concours, paris : Aucun. La note attendue passe alors à **13+** (au barème actuel d'Apple) |
 | Navigation web libre, contenu généré par les utilisateurs, messagerie, pubs | Non |
-| Achats intégrés | **Oui** — 37 produits non consommables (8 voitures + 29 peintures ; CHAT POP-TART est hors vente), achetés une fois ; « caisse » = achat direct d'une voiture connue, jamais de tirage aléatoire (boîtes à butin : Non) |
+| Achats intégrés | **Oui** — 39 produits non consommables (10 voitures + 29 peintures ; CHAT POP-TART est hors vente ; L'AIGLE DE FEU et L'ICEBERG ajoutées le 18/11, à créer dans App Store Connect), achetés une fois ; « caisse » = achat direct d'une voiture connue, jamais de tirage aléatoire (boîtes à butin : Non) |
 
 ## 6. Notes pour le testeur d'Apple (App Review Information)
 

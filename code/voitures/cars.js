@@ -32,10 +32,11 @@ const CARS=[
  // carnet de trois missions (voir `CARNETS`). Des silhouettes que tout le monde reconnaît de loin, sans
  // leur nom ni leur logo : la bulle, le combi, l'inox à portes papillon. Ajoutées EN FIN de gamme : les
  // index 0-5 des sauvegardes existantes ne bougent pas.
- {name:'LE SCARABÉE',     shape:'bulle',   color:0x5fb4c2,accent:0xf3ead6,maxKmh:215,accel:24,turn:2.75,h:1.55,w:1.57,l:4.07,spoiler:0,rar:'commun', // (2026-10-18, Léo) COMMUNE (était RARE : contrat 1) ; (même jour, Léo, sur la planche) LA BULLE → LE SCARABÉE · (2026-10-18, RONDES) refaite sur le plan coté de la 1962 : cotes réelles, le bleu de l'annonce · (2026-10-26, la V1 figée) 0x93cfd6 → 0x5fb4c2 : le bleu glacé brûlait au blanc sous la lampe, un bleu-vert franc qui tient
-  desc:'Ronde comme un sou neuf. Tout le monde lui sourit, même la police.'},
+ {retire:1,name:'LE SCARABÉE'}, /* (2026-11-18, Sacha : « supprime du jeu les voitures : cabossées, La fidèle, La scarabée [...] la perle, la queue de canard ») RETIRÉE : sa ligne reste (index de sauvegarde) ; qui l'avait la perd sans remboursement (elle se GAGNAIT : contrat 1 puis la mission fig5, qui paie désormais de l'argent) et repart en LA HONTE s'il roulait avec ; son dessin `bulle` reste dans SHAPES (rondes-1.js) */
+ /* (2026-11-18, Sacha : « La combi, mets-la en voiture secrète, qui se débloque après avoir passé 10 niveaux dans les nuages ») SECRÈTE : la mission secrète `nuages10` (missions/table.js) — dix portails franchis sur la mer de nuages, comptés depuis cette version */
  {name:'LE COMBI',        shape:'combi',   color:0x86c9b1,accent:0xf4ecd8,maxKmh:245,accel:27,turn:2.55,h:1.94,w:1.72,l:4.28,spoiler:0,rar:'commun', // (2026-10-18, Léo : « il est rare actuellement : le passer en commune ») (2026-10-18, BOÎTES) refait au plan coté, façon Fillmore — `yeux:1` = les yeux dans le pare-brise
   desc:'Des fleurs sur la tôle, la paix sur le nez, et 45 chevaux qui font de leur mieux.'},
+ /* (2026-11-18, Sacha : « La Dolores aussi, elle se met en voiture secrète. C'est après avoir téléchargé le jeu depuis 1 mois ») SECRÈTE : la mission secrète `mois1` (missions/table.js) — 30 jours depuis la naissance du compte (SAVE.d.prof.ne), pas 30 jours de jeu */
  {name:'LA DOLORÈS',      shape:'dolores', color:0xc3c7cc,accent:0x141518,maxKmh:360,accel:40,turn:2.9, h:1.14,w:1.86,l:4.22,spoiler:0,
   desc:'Inox brossé, portes papillon. À 88 à l\'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.'},
  // ---- LES CAISSES PREMIUM (2026-09-25) : la gamme des 15 retrouvée, en BOUTIQUE (vrai argent). Hors du garage tant
@@ -101,8 +102,7 @@ const CARS=[
  {name:'LE CHARGEUR 69',color:0x0e0e10,accent:0xe9ecf0,maxKmh:360,accel:40,turn:2.55,h:1.35,w:1.95,l:5.28,spoiler:0,shape:'a_chargeur69',rar:'rare',
   desc:'Phares cachés, intentions aussi. Quand la calandre s\'ouvre dans ton rétro, c\'est déjà trop tard.'},
  {retire:1,name:'L\'ÉTALON'},
- {name:'LA QUEUE DE CANARD',color:0xf2efe6,accent:0x1f5fd8,maxKmh:340,accel:37,turn:3,h:1.32,w:1.65,l:4.15,spoiler:0,shape:'b_canard',rar:'epique', // (2026-10-18, Léo : « mets-la en Epic ») ÉPIQUE (était RARE)
-  desc:'Le moteur est derrière, le becquet aussi. Toi, tu seras devant — c\'est tout ce qui compte.'},
+ {retire:1,name:'LA QUEUE DE CANARD'}, /* (2026-11-18, Sacha : « supprime du jeu les voitures : cabossées, La fidèle, La scarabée [...] la perle, la queue de canard ») RETIRÉE : sa ligne reste (index de sauvegarde) ; qui l'avait ACHETÉE est remboursé (son prix dans CAR_UNLOCK), qui l'avait GAGNÉE par la mission km100k ne l'est pas (GAG dans SAVE.san) ; son dessin `b_canard` reste dans SHAPES (rondes-3.js) */
  // (2026-10-18, Léo : « enlève la daytona du main ») RETIRÉE : la ligne reste (les index de sauvegarde ne bougent pas), qui l'avait
  // achetée est remboursé (550 000 $) et repart en LA HONTE s'il roulait avec (voir LES CAISSES RETIRÉES dans SAVE).
  {retire:1,name:'LA DAYTONA',color:0xd01a1a,accent:0x121316,maxKmh:360,accel:40,turn:2.8,h:1.25,w:1.76,l:4.42,spoiler:0,shape:'b_daytona',rar:'epique',
@@ -115,7 +115,7 @@ const CARS=[
   desc:'Un aileron si grand qu\'on l\'a interdite sur route. Toi, tu roules dans le ciel : personne ne dira rien.'},
  {retire:1,name:'LA PAGODE'},
  {retire:1,name:'LA DÉESSE'},
- {name:'L\'AIGLE DE FEU',color:0x0b1022,accent:0xd9a520,maxKmh:340,accel:38,turn:2.6,h:1.25,w:1.85,l:5.1,spoiler:0,shape:'e_aigle',rar:'rare', // (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE → RARE
+ {name:'L\'AIGLE DE FEU',color:0x0b1022,accent:0xd9a520,maxKmh:340,accel:38,turn:2.6,h:1.25,w:1.85,l:5.1,spoiler:0,shape:'e_aigle',rar:'legendaire', /* (2026-11-18, Sacha : « la voiture Aigle de Feu, tu la mets en payante à 1,61 € en légendaire ») LÉGENDAIRE, en boutique (CAR_UNLOCK) ; avant : RARE, mission secrète `lave` */ // (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE → RARE
   desc:'Un oiseau d\'or sur le capot, un shérif dans le rétro. Le shérif n\'a jamais rattrapé l\'oiseau.'},
  {retire:1,name:'LA ZED'}, /* (2026-10-22, Sacha : « tableau des voitures » : à supprimer) RETIRÉE ; sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement */
  {name:'LA FÉLINE',color:0xeee3c6,accent:0xe9ecf0,maxKmh:320,accel:36,turn:2.8,h:1.22,w:1.66,l:4.45,spoiler:0,shape:'e_feline',rar:'legendaire',
@@ -167,7 +167,7 @@ const CARS=[
  // (2026-10-09, Léo : « fais-en une hyper abstraite mais travaillée, concept, ajoute-la à la liste ») L'ABSTRAITE (voir SHAPES.abstraite). Ajoutée EN DERNIER (les index de sauvegarde ne bougent pas).
  {retire:1,name:'L\'ABSTRAITE'}, /* (2026-10-22, Sacha : « tableau des voitures » : à supprimer) RETIRÉE ; sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement */
  // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg, stylisée, dynamique ») L'ICEBERG (voir SHAPES.iceberg). Ajoutée EN DERNIER (les index de sauvegarde ne bougent pas).
- {name:'L\'ICEBERG',shape:'iceberg',color:0x52c8f0,accent:0xf4faff,maxKmh:415,accel:49,turn:3.1,h:1.15,w:2.1,l:4.75,spoiler:0,rar:'epique',
+ {name:'L\'ICEBERG',shape:'iceberg',color:0x52c8f0,accent:0xf4faff,maxKmh:415,accel:49,turn:3.1,h:1.15,w:2.1,l:4.75,spoiler:0,rar:'legendaire', /* (2026-11-18, Sacha : « l'iceberg, tu la mets là où elle était Nyan Cat avant, en mode offre de l'hiver ») LÉGENDAIRE (comme LE SQUALE le 21/10 : en boutique payante, elle l'est) ; L'OFFRE DE L'HIVER : voir CAR_UNLOCK */
   fx:{jet:0x9fe8ff,core:0xffffff,trail:[.75,1.15,1.45],light:0x8fe0ff},
   desc:'Un iceberg fendu en trois : deux blocs de glace sur les roues, une bulle au milieu pour un seul pilote. Le vent passe entre.'},
  // (2026-10-10, Léo : « une voiture flamme — dur, vas-y dur ; une autre technique ; une forme de voiture originale, associée au feu ») LA FOURNAISE (voir SHAPES.fournaise). Ajoutée EN DERNIER.
@@ -197,9 +197,7 @@ const CARS=[
  // (2026-10-16, Léo : « Taycan 4S » ; puis « trop style jouet, mimétisme » → « blanche, laquée comme une vraie, lissée, tous les traits
  // du plan », nom « la perle ») LA PERLE (voir SHAPES.perle) : la berline électrique, BLANC LAQUÉ, refaite sur un plan coté. Elle
  // remplace L'ONYX (noire). Pas de marque (ni le nom, ni le blason). Électrique : pas de pots, deux fentes bleues dans le diffuseur.
- {name:'LA PERLE',shape:'perle',color:0xf3f3f1,accent:0xd31f2a,maxKmh:450,accel:56,turn:3.2,h:1.38,w:1.97,l:4.96,spoiler:0,rar:'epique',
-  fx:{jet:0x6fd6ff,core:0xe8fbff,trail:[.3,1.0,1.5],light:0x46c8ff},
-  desc:'Blanc laqué, zéro bruit, 571 chevaux. Elle passe sans un son, et tout le monde se retourne quand même.'},
+ {retire:1,name:'LA PERLE'}, /* (2026-11-18, Sacha : « supprime du jeu les voitures : cabossées, La fidèle, La scarabée [...] la perle, la queue de canard ») RETIRÉE : sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement ; son dessin `perle` reste dans SHAPES (perle.js : ses outils servent à d'autres caisses) */
  /* ===== LES NOUVELLES VOITURES (2026-10-18, Léo : « actuellement la seule commune du jeu est LA HONTE, ajoute… ») — HUIT PLACES RÉSERVÉES
     (index 79-86), CACHÉES (`retire:1`) jusqu'à ce que la discussion qui modèle la caisse la livre : elle remplace SA ligne (nom, gabarit,
     fiche) et retire `retire:1`. Les commentaires « · » entre les places sont là pour que trois discussions en parallèle fusionnent sans conflit.
@@ -207,8 +205,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LA CABOSSÉE',shape:'simpson',color:0xd090d0,accent:0x4b474f,maxKmh:205,accel:23,turn:2.5,h:1.56,w:1.84,l:4.95,spoiler:0,rar:'commun', // 79 — discussion BOITES : la berline rose des Simpson, telle que dans la série (SHAPES.simpson)
-  desc:'Rose bonbon, l\'aile avant gauche froissée depuis toujours, l\'antenne en zigzag. Elle démarre une fois sur deux, mais elle démarre.'},
+ {retire:1,name:'LA CABOSSÉE'}, /* 79 — (2026-11-18, Sacha : « supprime du jeu les voitures : cabossées, La fidèle, La scarabée [...] la perle, la queue de canard ») RETIRÉE : sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement ; son dessin `simpson` reste dans SHAPES (simpson.js : sa grille sert au CAÏD) */
  /* · */
  /* · */
  /* · */
@@ -217,8 +214,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LA FIDÈLE',shape:'corolla',color:0x9fa3a9,accent:0x17181b,maxKmh:215,accel:24,turn:2.7,h:1.44,w:1.78,l:4.63,spoiler:0,rar:'commun', // 81 — discussion JAPONAISES : la berline compacte de 2019 (la ligne de la Toyota Corolla E210), argent (SHAPES.corolla)
-  desc:'La voiture la plus vendue de la planète. Elle ne tombe jamais en panne, ce qui est presque suspect.'},
+ {retire:1,name:'LA FIDÈLE'}, /* 81 — (2026-11-18, Sacha : « supprime du jeu les voitures : cabossées, La fidèle, La scarabée [...] la perle, la queue de canard ») RETIRÉE : sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement ; son dessin `corolla` reste dans SHAPES (japonaises-1.js), hors de la préchauffe (japChauffe) */
  /* · */
  /* · */
  /* · */

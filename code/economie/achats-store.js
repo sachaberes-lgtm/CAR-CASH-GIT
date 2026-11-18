@@ -171,6 +171,18 @@ function prixTxt(cle,eurRepli){ /* Apple impose d'afficher le prix qu'il facture
   const id=produitDe(cle),p=id&&ACH_PRIX[id];
   return p?p:eurTxt(eurRepli);
 }
+/* ===== L'OFFRE DE L'HIVER (2026-11-18, Sacha : « l'iceberg, tu la mets là où elle était Nyan Cat avant, en mode offre de l'hiver ; elle est à 80 centimes au lieu de 1,61 € en mode promo ») =====
+   `CAR_UNLOCK[i].promo` = {av : le prix d'AVANT, écrit barré ; t : le bandeau}. Le prix barré ne s'écrit qu'à côté d'un prix EN EUROS (celui du jeu, ou celui d'Apple quand il
+   est en €) : à côté de « $0.99 », un « 1,61 € » barré ne voudrait rien dire — le bandeau reste seul. Rien sur une caisse à toi ni plus en vente. `?promo=0` éteint les deux
+   (la caisse garde son prix). ⚠ En Europe, un prix barré doit être le plus bas pratiqué dans les 30 jours d'avant (voir passation/qualite/voitures-tri.md). */
+const PROMO_ON=!/[?&]promo=0\b/.test(location.search);
+Object.assign(I18N,{"OFFRE DE L'HIVER":"WINTER DEAL"});
+function promoDe(i){const u=CAR_UNLOCK[i];return PROMO_ON&&u&&u.k==='premium'&&u.promo&&carEnVente(i)&&!carOwned(i)?u.promo:null;}
+function prixNombre(t){const m=String(t||'').replace(/\s/g,'').match(/(\d+)(?:[,.](\d{1,2}))?/);return m?+(m[1]+'.'+(m[2]||'0')):NaN;}
+function prixBarreHtml(i){const p=promoDe(i);if(!p||!p.av)return '';const t=String(prixTxt(i,CAR_UNLOCK[i].eur)||'');if(t.indexOf('€')<0)return '';
+  if(!(prixNombre(t)<prixNombre(p.av)))return ''; /* le prix facturé (celui d'Apple dès qu'il est connu) n'est PAS plus bas que le prix barré — l'offre finie chez Apple avant la mise à jour du jeu : jamais « 1,61 € barré, 1,61 € » */
+  return '<s>'+eurTxt(p.av)+'</s>';}
+function promoBandeau(i,cls){const p=promoDe(i);return p&&p.t?'<i class="'+(cls||'shOffre')+'">'+sansAcc(TR(p.t))+'</i>':'';}
 function prixGroupe(cles,eurRepli){ /* le prix écrit UNE fois pour un groupe (l'intertitre d'une rareté de peintures) : celui d'Apple pour la première peinture à vendre du groupe, sinon l'euro du jeu. ⚠ Toutes les peintures d'une rareté sont supposées dans le MÊME palier de prix Apple (PEINT_EUR) */
   for(let i=0;i<cles.length;i++)if(produitDe(cles[i]))return prixTxt(cles[i],eurRepli);
   return eurTxt(eurRepli);

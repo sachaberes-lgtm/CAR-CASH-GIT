@@ -65,12 +65,12 @@ function shopPop(src){
   const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'},rar=u.rar||'leg';
   const arc=shArcHtml(i,a).replace('class="shArc"','class="shArc spArc"'); // (2026-10-20) le chat : « + TRAÎNÉE ARC-EN-CIEL INCLUSE » sous son nom
   el.innerHTML='<div class="spCarte '+rar+(arc?' avecArc':'')+'" data-car="'+i+'">'
-    +'<span class="spRare">'+sansAcc(TR(RAR[rar]))+'</span>'+''
+    +'<span class="spRare">'+sansAcc(TR(RAR[rar]))+'</span>'+promoBandeau(i,'spOffre') /* (2026-11-18) l'offre de l'hiver : son bandeau sous la rareté */
     +'<div class="shPhoto big">'+(ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture shAttente"></i>')+'</div>'
     +'<b class="spNom" id="spNom">'+insec(TR(CARS[i].name))+'</b>'+arc
     +'<span class="spDesc">'+(LANG==='fr'?CARS[i].desc:TR(CARS[i].desc))+'</span>'
     +(a?'<div class="spPrix aToi">'+pxi('coche')+'<b>'+sansAcc(TR('À TOI'))+'</b></div>'
-       :'<div class="spPrix">'+'<em>'+prixTxt(i,u.eur)+'</em></div>')
+       :'<div class="spPrix">'+prixBarreHtml(i)+'<em>'+prixTxt(i,u.eur)+'</em></div>')
     +'<div class="spBtns"><div class="pbtn pb-gold spOui" role="button" data-sp="oui">'+pxi(a?'coche':'panier')+'<span>'+sansAcc(TR(a?'ÉQUIPER':'ACHETER'))+'</span></div>'
     +'<div class="pbtn pb-cyan spNon" role="button" data-sp="non">'+pxi('gauche')+'<span>'+TR('ANNULER')+'</span></div></div>'
     +'<small class="spNote">'+(a?TR("Elle t'attend à l'atelier."):'')+'</small></div>'; /* (2026-11-08, Sacha : « enlève la ligne achat unique via compte Apple Store ») rien sous les plaques tant que la caisse n'est pas à toi (la note vide se cache ; le refus de l'achat la remplit) */
@@ -169,7 +169,8 @@ function shopPopAJour(){const el=SPOP.el;if(!el||!el.classList.contains('on')||e
   if(carOwned(i)){el.classList.remove('refus');p.className='spPrix aToi';p.innerHTML=pxi('coche')+'<b>'+sansAcc(TR('À TOI'))+'</b>';
     const b=el.querySelector('.spOui');if(b){b.classList.remove('off');b.innerHTML=pxi('coche')+'<span>'+sansAcc(TR('ÉQUIPER'))+'</span>';}
     const n=el.querySelector('.spNote');if(n)n.textContent=TR("Elle t'attend à l'atelier.");return;}
-  const em=p.querySelector('em'),t=prixTxt(i,u.eur);if(em&&em.textContent!==t)em.textContent=t;}
+  const em=p.querySelector('em'),t=prixTxt(i,u.eur);if(em&&em.textContent!==t)em.textContent=t;
+  {const sb=p.querySelector('s'),bh=prixBarreHtml(i);if(sb&&!bh)sb.remove();else if(!sb&&bh)p.insertAdjacentHTML('afterbegin',bh);}} /* (2026-11-18) l'offre de l'hiver : le prix d'Apple arrivé dans une autre monnaie, le prix barré en € s'en va */
 /* LES PHOTOS DE LA BOUTIQUE ARRIVENT UNE PAR UNE (2026-09-30, revue de GAMEPLAY) : la vitrine s'ouvre tout de suite, chaque vignette
    attend en pulsant (une voiture pixel), et les photos se prennent une par une ENTRE deux images, après la transition d'écran — puis
    restent en cache pour la session. */
