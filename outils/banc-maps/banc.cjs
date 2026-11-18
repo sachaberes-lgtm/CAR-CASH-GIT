@@ -62,6 +62,7 @@ async function ouvrePage(){
   await p.call('Runtime.enable');await p.call('Log.enable');await p.call('Page.enable');
   await p.call('Network.enable');await p.call('Network.setBypassServiceWorker',{bypass:true});
   if(opt.tel==='1'){await p.call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});await p.call('Emulation.setTouchEmulationEnabled',{enabled:true});}
+  else if(opt.ecran){const e9=opt.ecran.split('x').map(Number);await p.call('Emulation.setDeviceMetricsOverride',{width:e9[0],height:e9[1],deviceScaleFactor:1,mobile:false});} /* (2026-11-18, finition des maps) --ecran=844x390 : le format iPhone, sans l'émulation tactile */
   else await p.call('Emulation.setDeviceMetricsOverride',{width:1280,height:800,deviceScaleFactor:1,mobile:false});
   /* la sauvegarde du banc : auto-école faite, plaque posée, un peu de banque — et MUETTE (sfx, mus, vox) : règle de Sacha, jamais de son dans un navigateur de test */
   await p.call('Page.addScriptToEvaluateOnNewDocument',{source:"try{localStorage.setItem('cashcarSave',JSON.stringify({v:2,tuto:1,plq:{m:'fr',x:'BANC',ok:1},bank:50000,ex:{runs:3},sfx:false,mus:false,vox:false}));}catch(e){}"+
@@ -196,6 +197,7 @@ const SC={
     await p.ev("(function(){for(const id of ['hud','garage','mobCtl','bNitro','pauseBtn']){const e=document.getElementById(id);if(e)e.style.display='none';}try{serieWFerme();}catch(e){}for(const id of ['serieW','mvW']){const e=document.getElementById(id);if(e)e.style.display='none';}})()");
     const fs2=require('fs');const defs=JSON.parse(fs2.readFileSync(opt.vuesfile,'utf8'));
     for(const v of defs){
+      if(v.ecran){const e9=v.ecran.split('x').map(Number);await p.call('Emulation.setDeviceMetricsOverride',{width:e9[0],height:e9[1],deviceScaleFactor:1,mobile:false});await dort(1500);log('  écran',v.ecran);continue;} /* (2026-11-18) {ecran:'390x844'} : le format change en cours de passage (paysage puis portrait, une seule construction) */
       const o=await p.ev(v.expr,60000);
       if(v.log){log('  ',v.nom,JSON.stringify(o));continue;}
       if(o!=='ok')await p.ev("dbgGrotte('"+(o.lac?'lac':'vue')+"',"+JSON.stringify(o)+")");await dort(900); /* (2026-11-13) 'ok' : l'expression a posé la caméra elle-même (dbgGrotte('module',{n,d})) */ /* (2026-11-11) {lac:1,k:'lave'|'eau',h,a,d} : la vue au ras d'un lac */
