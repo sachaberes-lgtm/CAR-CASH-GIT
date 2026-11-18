@@ -149,24 +149,29 @@ function qlBornesPrf(){const t=PRF.T.n[PRF.n],cap=DPR_CAP,pl=Math.min(cap,Math.m
    retiré la loupe de la caisse dès la 6e course ; vrai coût 24 ms contre 21, 23,2 contre 23,1 i/s, gels pas moins nombreux : la voiture a perdu sa netteté pour rien.
    Désormais, sur téléphone profilé sous le gouverneur doux (`gdxOn()`), à SERIOUS (capteur 2, ou palier 2 de la dose) et tant qu'on n'est pas critical :
      · la RÉSOLUTION ne bouge plus : les crans au-delà du 5 (`qlDpr`) valent le plafond — ni réallocation de la toile, ni essai de résolution ;
-     · ces crans retirent du DÉCOR à la place, dans cet ordre (VDA_DECOR) : ciel lisse 1 image sur 8 · traits d'air ×0,7 · halo un étage de moins · traits d'air ×0,5 ;
-       le dernier cran (kMax) coupe le halo, comme avant. Rien n'est réalloué ni recompilé (un compteur d'images, une densité, un nombre de passes) ;
+     · ces crans retirent du DÉCOR à la place, dans cet ordre (VDA_DECOR) : ciel lisse 1 image sur 8 (cran 6) · halo un étage de moins (cran 7) ; les crans suivants
+       n'ajoutent rien, le dernier (kMax) coupe le halo, comme avant. Rien n'est réalloué ni recompilé (un compteur d'images, un nombre de passes) ;
+       (2nd tour, 18/11, contrôle) les « traits d'air ×0,7 / ×0,5 » sont RETIRÉS : `emiVit` ne tourne que sous `?traits=0` (TRAITS_NEUFS), ils ne changeaient aucun pixel ;
+       les filets de vitesse du shader final non plus (éteints dès le cran 5 : FLOU_OK faux → uSpeed 0) ; la taille du halo ou de l'ombre réalloue ; l'ombre porte la caisse ;
+     · un cran de décor au plus toutes les `QL_DOUX.res` ms (10 s) dans la descente (`qlDoux`), comme un cran de résolution sous le doux ;
+     · si l'état thermique change sans pas de l'échelle, `vdaVeille` (boucle-1, une fois par seconde) repose le cran : résolution et décor suivent l'état ;
      · l'effondrement ne retire plus la loupe de la caisse (rendu/loupe-caisse.js `loupeChaud`) : elle ne part qu'à critical.
    Critical, nominal, fair, hors profil, ordinateur : l'échelle d'avant. Exception : `gdxLourd()` (N2+ seulement, la mesure a vu une image trop chère à serious : l'échelle
    d'avant). `?sans=voituredabord` = tout comme avant, au bit près. `dbgVoitureDabord()` : l'état ; `dbgVoitureDabord({effondre:1})` pose l'effondrement (banc). */
 const VDA_ON=!/[?&]sans=[^&]*\bvoituredabord\b/.test(location.search);
-const VDA_DECOR=['ciel 1/8','traits d\'air ×0,7','halo un étage de moins','traits d\'air ×0,5'];
-const VDA={d:0,tient:false,bascules:0};
+const VDA_DECOR=['ciel 1/8','halo un étage de moins'];
+const VDA={d:0,tient:false,bascules:0,pT:-1e9,vT:0};
 function vdaTient(){if(!VDA_ON)return false;
   try{if(!gdxOn())return false;const th=MOB_S.thermo|0,t=MOB_P.t|0,cr=gdxCrit();if(th>=3||t>=cr||(th<2&&t<2))return false;if(gdxLourd())return false;return true;}catch(e){return false;}}
 function vdaDecor(k,b){ /* le décor que vaut le cran k sous LA VOITURE D'ABORD (0 : rien) — appelé par qlPose */
   const t=vdaTient();if(t!==VDA.tient){VDA.tient=t;VDA.bascules++;}
   const d=t&&k>QL.N_EFF?Math.max(0,Math.min(VDA_DECOR.length,k-QL.N_EFF,b.kMax-QL.N_EFF-1)):0;VDA.d=d;
-  IMG_DYN.vdaCiel=d>=1?8:0;IMG_DYN.vdaDens=d>=4?.5:d>=2?.7:1;IMG_DYN.vdaMips=d>=3?1:0;return d;}
+  IMG_DYN.vdaCiel=d>=1?8:0;IMG_DYN.vdaMips=d>=2?1:0;return d;}
+function vdaVeille(now){if(!VDA_ON||now-VDA.vT<1000)return;VDA.vT=now;if(vdaTient()!==VDA.tient)qlPose(QL.k);} /* l'état a changé sans pas de l'échelle : on repose le cran (boucle-1) */
 window.dbgVoitureDabord=function(o){if(o&&o.effondre!=null)QL.effondre=!!o.effondre;
   let L=null;try{L={on:LOUPE.on,ok:LOUPE.ok,chaud:loupeChaud(),bw:LOUPE.bw,bh:LOUPE.bh};}catch(e){}
   return {on:VDA_ON,tient:vdaTient(),d:VDA.d,decor:VDA_DECOR.slice(0,VDA.d),bascules:VDA.bascules,k:QL.k,effondre:QL.effondre,dpr:+curDPR.toFixed(3),
-    ciel:IMG_DYN.vdaCiel,dens:IMG_DYN.vdaDens,mips:IMG_DYN.vdaMips,halo:!!(bloomPass&&bloomPass.enabled),loupe:L};};
+    ciel:IMG_DYN.vdaCiel,mips:IMG_DYN.vdaMips,halo:!!(bloomPass&&bloomPass.enabled),loupe:L};};
 function qlDpr(k,b){ // la résolution que vaut le cran k
   if(k<=QL.N_EFF||vdaTient())return b.cap; /* (LA VOITURE D'ABORD) à serious la résolution reste au plafond */
   if(k<=b.kNet)return b.cap-(b.cap-b.pl)*(k-QL.N_EFF)/Math.max(1,b.nA);
@@ -189,6 +194,7 @@ function qlDoux(k,b){if(k===QL.k||VHD.on||QL.force||!(curDPR>0)||!prfDoux())retu
   let en=false;try{en=started&&!gameOver;}catch(e){}if(!en)return k;
   const N=QL.N_EFF,r0=qlDpr(QL.k,b),tot=performance.now()-(QL.dT||-1e9)<QL_DOUX.res;
   if(k>QL.k){k=Math.min(k,Math.max(QL.k,N)+1);if(tot&&qlDpr(k,b)<r0-.001)k=Math.max(QL.k,Math.min(k,N)); /* la descente : un cran de résolution, pas avant 10 s */
+    if(vdaTient()&&k>Math.max(QL.k,N)){if(performance.now()-VDA.pT<QL_DOUX.res)k=Math.max(QL.k,N);else VDA.pT=performance.now();} /* (LA VOITURE D'ABORD) un cran de décor au plus toutes les 10 s */
     if(QL.essai&&QL.essai.k0===QL.k&&!(qlDpr(k,b)<r0-.001))QL.essai=null;return k;}
   if((QL.plafT||0)>(QL.roseT||0))return k; /* le retour d'un essai raté (boucle-1 : plafT posé à cette image) : le cran d'avant, tout de suite */
   if(QL.k>N){k=Math.max(k,QL.k-1);if(tot&&qlDpr(k,b)>r0+.001){k=QL.k;if(PRF.T.n9)QL.roseT=Math.max(QL.plafT||0,performance.now()-6001);}} /* la remontée : un cran de résolution, pas avant 10 s — (2026-11-15, relecture n9) une remontée REFUSÉE n'arme plus la détection « remonté puis retombé » (boucle-1 vient de poser QL.roseT : il passe à plus de 6 s, jamais sous QL.plafT, pour que le retour d'un essai raté ne passe pas outre le doux ; `?sans=roset` = sans) */
