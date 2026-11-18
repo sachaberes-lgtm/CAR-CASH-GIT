@@ -27,3 +27,12 @@ Périmètre : la carte `ville` seulement (ni Crypto City ni la vitrée, qui part
 Méthode : un lot = un auteur + un contrôle adverse qui EXÉCUTE (banc Node des vrais générateurs, puis Chrome sous verrou) ; seul un lot FUSIONNABLE entre sur la branche.
 Empreintes de référence (`node outils/banc-routes/empreinte.cjs graines=1-12`, a42e9ec50) : ville p0 `d63b36e2af8b` p10 `fb378a8c6756` ; crypto `5447610bd8f2` / `eae97981f833` ;
 nuages `469d52aff855` / `2e1661d8fe93` ; espace `9c99fae61d38` / `ea2d9e750351`.
+
+## 0 bis. Le jury de conception (03 h 10) — À LIRE par tout auteur, contrôleur ou correcteur d'un lot
+
+Synthèse et propositions : `passation/ville-cyber/JURY.md`. Ce qui s'applique tout de suite :
+- **Lot A** (critique du jury, à vérifier au contrôle) : un module neuf inscrit dans `VS.scenes` change AUSSI Crypto City (`MCJ` de crypto) → l'inscrire hors de `VS.scenes`, gardé `MC==='ville'` ;
+  le slalom ne pose ses tours que côté INTÉRIEUR des arcs (en vol la caisse part sur la tangente), jamais dans un AIRZ ni sur une lèvre de raccourci ; la crête du piqué et celles
+  des montagnes russes LANCENT la caisse dès que le rayon vertical est sous v²/g : cône `FILETMARK.air` et piste de réception dans l'axe, dévers `nul`, ressource ≥ 3 rP ;
+  la tranchée : un vol droit sort du S en ~1,5 s → R ≥ 4 rP ou preuve au simulateur de vol mains libres ; chaque module a son entrée dans `LONG`.
+- **Lot U** (tirage unique) : cahier des charges au § (2) de la synthèse. **Lot A2** : l'étage qui change, la corde et la fenêtre, les murs d'avenue (§ 3), après une mesure du « 1er rang édenté » (`jade-balade.js`, `tourLibre`).
