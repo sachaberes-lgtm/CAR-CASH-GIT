@@ -143,8 +143,37 @@ function qlBornes(){ // les crans de résolution se recalculent (RAPIDE/NETTE, �
 function qlBornesPrf(){const t=PRF.T.n[PRF.n],cap=DPR_CAP,pl=Math.min(cap,Math.max(DPR_MIN,t.pl!=null?t.pl:Math.max(t.bas0||0,cap*t.plK))),bas=Math.min(pl,Math.max(DPR_MIN,t.bas!=null?t.bas:Math.max(t.bas0||0,cap*t.basK))),
   nA=t.gros?(cap-pl>.01?2:0):Math.max(0,Math.ceil((cap-pl)/.08-1e-6)),nB=t.gros?(pl-bas>.01?1:0):Math.max(0,Math.ceil((pl-bas)/.08-1e-6)),kNet=QL.N_EFF+nA,kBas=kNet+nB;
   return {cap,pl,bas,nA,nB,kNet,kBas,kMax:kBas+1};}
+/* ===== LA VOITURE D'ABORD (2026-11-18, Sacha : « je préférais que ça soit la map qui baisse en qualité en priorité et que la voiture soit toujours le plus nette,
+   dans la meilleure définition possible ; d'abord les textures, ensuite la voiture ») =====
+   MESURÉ (vol du build 121, 18/11, 851 s à serious, branché + économie) : l'échelle QL est tombée du cran 5 au cran 10 — DPR 1,25 → 1,0, halo coupé — et son effondrement a
+   retiré la loupe de la caisse dès la 6e course ; vrai coût 24 ms contre 21, 23,2 contre 23,1 i/s, gels pas moins nombreux : la voiture a perdu sa netteté pour rien.
+   Désormais, sur téléphone profilé sous le gouverneur doux (`gdxOn()`), à SERIOUS (capteur 2, ou palier 2 de la dose) et tant qu'on n'est pas critical :
+     · la RÉSOLUTION ne bouge plus : les crans au-delà du 5 (`qlDpr`) valent le plafond — ni réallocation de la toile, ni essai de résolution ;
+     · ces crans retirent du DÉCOR à la place, dans cet ordre (VDA_DECOR) : ciel lisse 1 image sur 8 (cran 6) · halo un étage de moins (cran 7) ; les crans suivants
+       n'ajoutent rien, le dernier (kMax) coupe le halo, comme avant. Rien n'est réalloué ni recompilé (un compteur d'images, un nombre de passes) ;
+       (2nd tour, 18/11, contrôle) les « traits d'air ×0,7 / ×0,5 » sont RETIRÉS : `emiVit` ne tourne que sous `?traits=0` (TRAITS_NEUFS), ils ne changeaient aucun pixel ;
+       les filets de vitesse du shader final non plus (éteints dès le cran 5 : FLOU_OK faux → uSpeed 0) ; la taille du halo ou de l'ombre réalloue ; l'ombre porte la caisse ;
+     · un cran de décor au plus toutes les `QL_DOUX.res` ms (10 s) dans la descente (`qlDoux`), comme un cran de résolution sous le doux ;
+     · si l'état thermique change sans pas de l'échelle, `vdaVeille` (boucle-1, une fois par seconde) repose le cran : résolution et décor suivent l'état ;
+     · l'effondrement ne retire plus la loupe de la caisse (rendu/loupe-caisse.js `loupeChaud`) : elle ne part qu'à critical.
+   Critical, nominal, fair, hors profil, ordinateur : l'échelle d'avant. Exception : `gdxLourd()` (N2+ seulement, la mesure a vu une image trop chère à serious : l'échelle
+   d'avant). `?sans=voituredabord` = tout comme avant, au bit près. `dbgVoitureDabord()` : l'état ; `dbgVoitureDabord({effondre:1})` pose l'effondrement (banc). */
+const VDA_ON=!/[?&]sans=[^&]*\bvoituredabord\b/.test(location.search);
+const VDA_DECOR=['ciel 1/8','halo un étage de moins'];
+const VDA={d:0,tient:false,bascules:0,pT:-1e9,vT:0};
+function vdaTient(){if(!VDA_ON)return false;
+  try{if(!gdxOn())return false;const th=MOB_S.thermo|0,t=MOB_P.t|0,cr=gdxCrit();if(th>=3||t>=cr||(th<2&&t<2))return false;if(gdxLourd())return false;return true;}catch(e){return false;}}
+function vdaDecor(k,b){ /* le décor que vaut le cran k sous LA VOITURE D'ABORD (0 : rien) — appelé par qlPose */
+  const t=vdaTient();if(t!==VDA.tient){VDA.tient=t;VDA.bascules++;}
+  const d=t&&k>QL.N_EFF?Math.max(0,Math.min(VDA_DECOR.length,k-QL.N_EFF,b.kMax-QL.N_EFF-1)):0;VDA.d=d;
+  IMG_DYN.vdaCiel=d>=1?8:0;IMG_DYN.vdaMips=d>=2?1:0;return d;}
+function vdaVeille(now){if(!VDA_ON||now-VDA.vT<1000)return;VDA.vT=now;if(vdaTient()!==VDA.tient)qlPose(QL.k);} /* l'état a changé sans pas de l'échelle : on repose le cran (boucle-1) */
+window.dbgVoitureDabord=function(o){if(o&&o.effondre!=null)QL.effondre=!!o.effondre;
+  let L=null;try{L={on:LOUPE.on,ok:LOUPE.ok,chaud:loupeChaud(),bw:LOUPE.bw,bh:LOUPE.bh};}catch(e){}
+  return {on:VDA_ON,tient:vdaTient(),d:VDA.d,decor:VDA_DECOR.slice(0,VDA.d),bascules:VDA.bascules,k:QL.k,effondre:QL.effondre,dpr:+curDPR.toFixed(3),
+    ciel:IMG_DYN.vdaCiel,mips:IMG_DYN.vdaMips,halo:!!(bloomPass&&bloomPass.enabled),loupe:L};};
 function qlDpr(k,b){ // la résolution que vaut le cran k
-  if(k<=QL.N_EFF)return b.cap;
+  if(k<=QL.N_EFF||vdaTient())return b.cap; /* (LA VOITURE D'ABORD) à serious la résolution reste au plafond */
   if(k<=b.kNet)return b.cap-(b.cap-b.pl)*(k-QL.N_EFF)/Math.max(1,b.nA);
   return Math.max(b.bas,b.pl-(b.pl-b.bas)*(k-b.kNet)/Math.max(1,b.nB));}
 const QL_OMB_REL=!/[?&]sans=[^&]*qlombre/.test(location.search); /* `?sans=qlombre` = l'ombre absolue d'avant (768 / 512) à tous les niveaux */
@@ -165,6 +194,7 @@ function qlDoux(k,b){if(k===QL.k||VHD.on||QL.force||!(curDPR>0)||!prfDoux())retu
   let en=false;try{en=started&&!gameOver;}catch(e){}if(!en)return k;
   const N=QL.N_EFF,r0=qlDpr(QL.k,b),tot=performance.now()-(QL.dT||-1e9)<QL_DOUX.res;
   if(k>QL.k){k=Math.min(k,Math.max(QL.k,N)+1);if(tot&&qlDpr(k,b)<r0-.001)k=Math.max(QL.k,Math.min(k,N)); /* la descente : un cran de résolution, pas avant 10 s */
+    if(vdaTient()&&k>Math.max(QL.k,N)){if(performance.now()-VDA.pT<QL_DOUX.res)k=Math.max(QL.k,N);else VDA.pT=performance.now();} /* (LA VOITURE D'ABORD) un cran de décor au plus toutes les 10 s */
     if(QL.essai&&QL.essai.k0===QL.k&&!(qlDpr(k,b)<r0-.001))QL.essai=null;return k;}
   if((QL.plafT||0)>(QL.roseT||0))return k; /* le retour d'un essai raté (boucle-1 : plafT posé à cette image) : le cran d'avant, tout de suite */
   if(QL.k>N){k=Math.max(k,QL.k-1);if(tot&&qlDpr(k,b)>r0+.001){k=QL.k;if(PRF.T.n9)QL.roseT=Math.max(QL.plafT||0,performance.now()-6001);}} /* la remontée : un cran de résolution, pas avant 10 s — (2026-11-15, relecture n9) une remontée REFUSÉE n'arme plus la détection « remonté puis retombé » (boucle-1 vient de poser QL.roseT : il passe à plus de 6 s, jamais sous QL.plafT, pour que le retour d'un essai raté ne passe pas outre le doux ; `?sans=roset` = sans) */
@@ -174,8 +204,8 @@ function qlPose(k){ const b=qlBornes();k=Math.max((VHD.on||QL.force)?0:PAL.b('ql
   const om=VHD.on?VHD.ombre:POSTE.fixe?QL.ombre0:(PRF.on&&PRF.n>=2&&QL_OMB_REL)?(k>=2?Math.min(QL.ombre0,qlOmbreBas(PRF.T.n[PRF.n].ombre,k>=4?2:1)):QL.ombre0):qlOmbN1(k); /* (2026-11-14, lot juge) sous profil N2-N4 l'échelle retire des crans d'ombre AU NIVEAU (cran 2 : un de moins, cran 4 : deux), sans jamais remonter au-dessus de ce que le gouverneur a posé ; N1 et hors profil : 768 / 512 absolus, comme avant */ /* (2026-11-11) Mac (POSTE.fixe) : ni carte d'ombre ni cibles du halo refaites en course — zéro allocation graphique à chaud */ // (2026-09-28) l'ACCUEIL en haute définition a sa carte d'ombre à lui (voir VHD)
   if(sun.shadow.mapSize.x!==om){const a9=sun.shadow.mapSize.x,C9=QL.ombres||(QL.ombres={});if(sun.shadow.map){if(a9<=1280)C9[a9]=sun.shadow.map;else sun.shadow.map.dispose();} /* (P2, bascules gratuites) les cartes ≤ 1280 se GARDENT par taille : revenir à 768/512/1024 ne réalloue plus rien (les grandes de la vitrine, elles, sont libérées) */if(!C9[om])try{if(pilOn()){const o9=pilOu();PILO.nOmb[o9]=(PILO.nOmb[o9]|0)+1;}}catch(e){} /* (2026-11-17, LE PILOTE) une carte d'ombre jamais vue : comptée avec son moment (préchauffées, il n'y en a plus en course) */sun.shadow.map=C9[om]||null;sun.shadow.mapSize.set(om,om);renderer.shadowMap.needsUpdate=true;} // zéro recompilation
   let vr9=0;try{vr9=pilVerrouV();}catch(e){} /* (2026-11-17, LE PILOTE DE QUALITÉ, étape 2) LE VERROU DE LA RÉSOLUTION : en course (2), ni la toile ni les cibles du halo ne se refont ; au portail (1), le halo oui, la toile non. Ce qui est refusé devient une DETTE, payée au prochain moment sous voile (départ, mort, pause, menu). Une toile à refaire d'office (curDPR < 0 : sortie de la vitrine, reprise) passe toujours. `?sans=pilverrou` = sans */
-  const br=(k>=3&&!POSTE.fixe?.75:1)*BLOOM_BASE;if(br!==BLOOM_RES){if(vr9===2&&curDPR>0){try{PILO.dBloom=1;}catch(e){}}else{BLOOM_RES=br;if(bloomPass&&bloomPass._W){bloomPass.setSize(bloomPass._W,bloomPass._H);try{if(pilOn()){const o9=pilOu();PILO.nBloom[o9]=(PILO.nBloom[o9]|0)+1;}}catch(e){}}}}
-  FLOU_OK=k<5;
+  const br=(k>=3&&!POSTE.fixe?.75:1)*BLOOM_BASE*(VHD.on?mchHalo():1); /* (2026-11-18, LE MENU AU CHAUD) la vitrine au chaud : halo en ½ résolution */if(br!==BLOOM_RES){if(vr9===2&&curDPR>0){try{PILO.dBloom=1;}catch(e){}}else{BLOOM_RES=br;if(bloomPass&&bloomPass._W){bloomPass.setSize(bloomPass._W,bloomPass._H);try{if(pilOn()){const o9=pilOu();PILO.nBloom[o9]=(PILO.nBloom[o9]|0)+1;}}catch(e){}}}}
+  FLOU_OK=k<5;vdaDecor(k,b); /* (LA VOITURE D'ABORD) les crans du décor */
   if(bloomPass)bloomPass.enabled=!REDUCED_MOTION&&k<b.kMax&&!PAL.b('bloomOff',0); /* (2026-10-24, allègement mobile) palier 0 : plus de bloom du tout (une passe plein écran de moins) — `?bloom=1` le rend */
   if(k<1&&renderer.shadowMap.autoUpdate===false)renderer.shadowMap.autoUpdate=true;
   const d=VHD.on?VHD.dpr:Math.min(qlDpr(k,b),devicePixelRatio);if(Math.abs(d-curDPR)>.001&&vr9&&curDPR>0){try{PILO.dDpr=1;}catch(e){}}else if(Math.abs(d-curDPR)>.001){curDPR=d;QL.dT=performance.now(); /* (2026-11-14, LE GOUVERNEUR DOUX) l'heure du dernier changement de résolution */applyDPR();}
@@ -241,9 +271,37 @@ function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),v9=PRF.on&&PRF.pc
 function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(IMG_TEL?4:8,m); /* (2026-11-14) IMG_TEL : l'image PC du profil a l'anisotropie de l'ordi */
   for(const t of [ASPH_TEX,LIGNE_TEX])if(t&&t.anisotropy!==n){t.anisotropy=n;t.needsUpdate=true;}}
 function vhdBascule(on){ if(VHD.off||on===VHD.on)return;
-  if(on){VHD.k0=QL.k;VHD.dpr=VHD.max=vhdDpr();VHD.lT=VHD.bT=VHD.sT=0;VHD.ombre=Math.min(TEL_NATIF?(MENU_MAX?PAL.b('vhdOmbre',2048):(PRF.on&&PRF.pc)?PRF.T.vhd[PRF.nMax].ombre:Math.min(PAL.b('vhdOmbre',2048),PAL.b('vhdOmbreTel',1024))):VHE_MODE===2?2048:4096,renderer.capabilities.maxTextureSize);VHD.t=0;VHD.on=true;curDPR=-1;qlPose(0);}
-  else{VHD.on=false;curDPR=-1;qlPose(VHD.k0);}
+  if(on){VHD.k0=QL.k;VHD.dpr=VHD.max=vhdDpr();VHD.lT=VHD.bT=VHD.sT=0;MCH.on=mchVoulu();VHD.ombre=mchOmbre(Math.min(TEL_NATIF?(MENU_MAX?PAL.b('vhdOmbre',2048):(PRF.on&&PRF.pc)?PRF.T.vhd[PRF.nMax].ombre:Math.min(PAL.b('vhdOmbre',2048),PAL.b('vhdOmbreTel',1024))):VHE_MODE===2?2048:4096,renderer.capabilities.maxTextureSize));VHD.t=0;VHD.on=true;mchMips();curDPR=-1;qlPose(0);} /* (LE MENU AU CHAUD) à l'entrée de la vitrine, l'état du téléphone décide de l'ombre et du halo */
+  else{VHD.on=false;mchMips();curDPR=-1;qlPose(VHD.k0);}
   vhdAniso(on);}
+/* ===== LE MENU AU CHAUD — MCH (2026-11-18, lot menuchaud, Sacha : « sur l'interface, le jeu, tout ça, il y a encore pas mal de freeze » ; « je préférais que ça soit la map
+   qui baisse en qualité en priorité et que la voiture soit toujours le plus nette ») =====
+   LU (plan chaleur du 18/11) : au menu, au garage et à la boutique la vitrine rend 1,32 M de pixels (2,6 fois une course) avec une ombre 1024 et 30 i/s même à SERIOUS
+   (L'ACCUEIL FLUIDE, cadence.js) : le téléphone chauffe entre deux courses au lieu de refroidir. Désormais, sur un VRAI téléphone (TEL_NATIF), état thermique SERIOUS ou plus
+   (`window.__ccThermique` ≥ 2, ou le capteur lu par le gouverneur) :
+     · la vitrine GARDE sa résolution (VHD.dpr, densité 2) : la voiture reste aussi nette ;
+     · le DÉCOR baisse : carte d'ombre 768 au lieu de 1024 (une taille que QL.ombres garde : rien ne se réalloue au retour), halo en ½ résolution (sa taille à l'écran est
+       normée : HALO_LOG, triptyque-bloom.js) et 2 étages au plus ;
+     · la bascule de l'ombre et du halo tombe SOUS LE VOLET (ecranWipe couvre l'écran) ou à l'entrée de la vitrine : jamais sous les yeux ;
+     · au repos (aucun geste depuis 10 s), le menu tourne à 15 i/s réguliers (66,7 ms, cadence.js hcRepos) ; le premier toucher rend les 60 i/s (HC GESTE), puis 30.
+       Un doigt sur la caisse (garageDrag, le donut BURN, la boutique GBQ) compte toujours comme un geste : jamais 15 i/s sous le doigt.
+   Nominal, fair, ordinateur, `?menu=max` : rien ne change. `?sans=menuchaud` = comme avant. `dbgMenuChaud()` : l'état ; `dbgMenuChaud(1|0)` force l'état chaud / froid et
+   le pose tout de suite (banc) ; `dbgMenuChaud(null)` rend la main au capteur. */
+const MCH_ON=TEL_NATIF&&!MENU_MAX&&!/[?&]sans=[^&]*\bmenuchaud\b/.test(location.search);
+const MCH={on:false,force:null,n:0,repos:10000,ombre:768,halo:.5,mips:2};
+function mchVoulu(){if(!MCH_ON)return false;if(MCH.force!=null)return !!MCH.force;
+  let th=+window.__ccThermique||0;try{if(MOB_S.capteur)th=Math.max(th,MOB_S.thermo|0);}catch(e){}return th>=2;}
+function mchOmbre(om){return MCH_ON&&MCH.on?Math.min(om,MCH.ombre):om;}
+function mchMips(){IMG_DYN.mchMips=MCH_ON&&MCH.on&&VHD.on?MCH.mips:0;}
+function mchHalo(){return MCH_ON&&MCH.on&&VHD.on?MCH.halo:1;} /* qlPose : la part du halo de la vitrine au chaud */
+function mchPose(v){if(!MCH_ON||v===MCH.on)return;MCH.on=v;MCH.n++;if(!VHD.on)return; /* hors vitrine : l'entrée de la vitrine posera l'état */
+  VHD.ombre=v?Math.min(VHD.ombre,MCH.ombre):Math.min(TEL_NATIF?(PRF.on&&PRF.pc)?PRF.T.vhd[PRF.nMax].ombre:Math.min(PAL.b('vhdOmbre',2048),PAL.b('vhdOmbreTel',1024)):VHE_MODE===2?2048:4096,renderer.capabilities.maxTextureSize);
+  mchMips();qlPose(0);} /* VHD.dpr ne bouge pas : la toile n'est pas réallouée, seuls l'ombre et le halo changent */
+function mchVolet(){if(MCH_ON)mchPose(mchVoulu());} /* appelé par ecranWipe quand le volet couvre l'écran */
+window.dbgMenuChaud=function(f){if(f!==undefined){MCH.force=f==null?null:!!f;mchPose(mchVoulu());}
+  let H=null;try{H={per:HC.per,on:HC.on,calme:Math.round(performance.now()-HC.gT)};}catch(e){}
+  return {actif:MCH_ON,voulu:mchVoulu(),on:MCH.on,force:MCH.force,poses:MCH.n,vhd:VHD.on,dpr:+curDPR.toFixed(3),vhdDpr:+VHD.dpr.toFixed(3),ombre:sun.shadow.mapSize.x,halo:bloomPass&&bloomPass.enabled?BLOOM_RES:0,
+    etages:bloomPass?Math.min(bloomPass.nMips,bloomPass._nM||bloomPass.nMips,IMG_DYN.mchMips||9):null,toile:[renderer.domElement.width,renderer.domElement.height],cadence:H};};
 function vhdMonte(now,vrai){ // (2026-10-13, LE FILET v2) un cran de netteté qui revient (×1,25), jamais au-delà de l'écran ni vers le cran qui vient d'échouer ;
   // vrai = le coût mesuré par la sonde (ms) : on ne monte que si l'image agrandie (coût ∝ pixels, pessimiste) tient encore sous 14 ms
   const d9=Math.min(VHD.max,VHD.dpr*1.25);if(VHD.murT&&now-VHD.murT<45000&&d9>VHD.mur-.02)return false;

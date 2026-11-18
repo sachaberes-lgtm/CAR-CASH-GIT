@@ -75,7 +75,7 @@ function loupeChaud(){try{if(pilOn())return PILO.lpOff;}catch(e){} /* (2026-11-1
   /* (2026-11-14, LE GOUVERNEUR DOUX, moteur/gouverneur-paliers.js) sur téléphone profilé la loupe RESTE à serious (la chaleur vient de la charge, pas du rendu) : coupée seulement à critical
      (ou au palier critical de la dose) et quand l'échelle QL s'effondre ; `?sans=gouvdoux` = coupée dès serious, comme avant */
   if(d9){try{if(MOB_S.thermo>=3)c=true;}catch(e){}try{if(MOB_P.t>=gdxCrit())c=true;}catch(e){}}
-  else{try{if(MOB_S.thermo>=2)c=true;}catch(e){}try{if(MOB_P.t>=2)c=true;}catch(e){}}try{if(QL.effondre)c=true;}catch(e){}
+  else{try{if(MOB_S.thermo>=2)c=true;}catch(e){}try{if(MOB_P.t>=2)c=true;}catch(e){}}try{if(QL.effondre&&!(d9&&VDA_ON))c=true;}catch(e){} /* (2026-11-18, LA VOITURE D'ABORD, rendu/nettete-qualite.js) sous le doux, l'effondrement ne retire plus la loupe : seul critical la retire ; `?sans=voituredabord` = avant */
   const n=performance.now();if(c)LOUPE.chaudT=n;return c||n-LOUPE.chaudT<20000;}
 /* ===== LA LOUPE SUIT LA RÉSOLUTION (2026-11-14, Sacha : « les traînées de lumière sont mal foutues, elles sont assez floues ») =====
    Sur les profils N2-N4 la scène est rendue à DPR 1,5 à 3 : la loupe n'agrandit plus ×2,4 mais ×2, ×1,5… ou plus du tout. Elle mesure à chaque image l'agrandissement

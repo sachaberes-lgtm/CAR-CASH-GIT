@@ -80,6 +80,7 @@ function loop(now){
   if(!loop._qlT||now-loop._qlT>250){loop._qlT=now;const n9=QLR.n,s9=QLR.s;for(let i=0;i<n9;i++)s9[i]=QLR.a[i];
     const v9=s9.subarray(0,n9).sort();QLR.p50=n9?v9[n9>>1]:16;QLR.p75=n9?v9[(n9*.75)|0]:16;QLR.p90=n9?v9[Math.min(n9-1,(n9*.9)|0)]:16;}
   QL.efT=(calme9&&QL.k>=qb9.kNet&&QLR.p50>24)?QL.efT+dt:0;if(QL.efT>6)QL.effondre=true;
+  if(started&&!gameOver&&!VHD.on&&!QL.force)vdaVeille(now); /* (2026-11-18, LA VOITURE D'ABORD, rendu/nettete-qualite.js) serious ⇄ autre état sans pas de l'échelle : résolution et décor suivent */
   // ÉTAGE 1 : l'ombre en vol, une image sur deux — seulement LOIN de toute dalle (radar de tryLand), jamais au sol
   {const loin9=QL.k>=1&&mode==='fall'&&(lastNearH2+(fallPos.y-lastNearY)*(fallPos.y-lastNearY))>196;
    if(loin9){renderer.shadowMap.autoUpdate=false;QL.fr^=1;renderer.shadowMap.needsUpdate=QL.fr===0;}
