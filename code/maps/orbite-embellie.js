@@ -18,6 +18,10 @@
    nuages, fil d'air fin : voir le patch du globe). Paliers : orbQ [0,1,1] (l'aube, la 3e octave des nuages ; les nuages à 60 % au palier 0).
    Hooks : `dbgBeau()` (état + réglages à chaud : vid, pl, nua), `dbgBeau('photo',{vid,pl,nua,yaw,pitch,fov,planete})` (UNE image rendue, renvoie le JPEG). */
 PAL.B.orbQ=[0,1,1]; /* (2026-11-12, L'ORBITE FAÇON GRAVITY) les étoiles-vedettes et la poussière cosmique sont retirées : voir plus bas */
+/* ===== LA FINITION DE L'ESPACE (2026-11-18, finition des maps : « le plus jolies possible tout en restant aussi optimisées qu'elles le sont ») =====
+   Des NOMBRES seulement (aucune géométrie, aucune texture, aucun programme, aucune instruction de shader en plus) : voir « LA FINITION DE L'ESPACE, LES NOMBRES » plus bas
+   et le globe de Mars et de Saturne ci-dessous. `?sans=espacefini` = l'image d'avant, au bit près. */
+const ESPACE_FINI=!/[?&]sans=([^&]*,)?espacefini(,|&|$)/.test(location.search);
 const OBEAU={u:{uOrb:{value:0},uOrbQ:{value:PAL.b('orbQ',1)},uSunO:{value:new THREE.Vector3(-.55,.7,.4).normalize()},uNua:{value:PAL.b('orbQ',1)?1:.6},uTyp:{value:0}},kPl:1,kSol:.6,sunP:new THREE.Vector3(-.55,.7,.4).normalize(),sunOk:false,t2:new THREE.Vector3(),kPous:1,rate:[],cp:new THREE.Vector3(),vel:new THREE.Vector3(),t1:new THREE.Vector3(),ok:false,
   q:new THREE.Quaternion(),fov:0};
 function orbRempl(src,cherche,par,qui){ /* remplace TOUTES les occurrences ; si le texte cherché a bougé (un autre morceau l'a réécrit), on le note : l'effet manque, rien ne casse */
@@ -65,8 +69,10 @@ skyU.uVid={value:1};
          SATURNE (uTyp 2) : l'atmosphère épaisse — terminateur doux, l'assombrissement du bord marqué, les bandes crème. Même recette que la Terre, sans ses nuages ni ses villes. */
       '    if(uTyp>.5){bool ma=uTyp<1.5;',
       '      float jr=ma?smoothstep(-.03,.07,ndl):smoothstep(-.18,.32,ndl),lu=dot(c0,vec3(.30,.59,.11));',
-      '      vec3 cj=mix(vec3(lu),c0,ma?.62:.50)*(ma?vec3(1.04,.94,.86):vec3(1.,.97,.90));',
-      '      vec3 ct=mix(c0*vec3(.012,.010,.012),cj,jr);',
+      /* (2026-11-18, LA FINITION DE L'ESPACE) côté jour, la rouille et la crème gardent leur couleur (Mars sortait chocolat à 62 % de saturation) ; côté NUIT, le disque n'est
+         plus un trou plus noir que le ciel : la même ombre, teintée du bleu-violet de la nuit du jeu. Les mêmes opérations, d'autres nombres (`?sans=espacefini` = avant). */
+      '      vec3 cj=mix(vec3(lu),c0,ma?'+(ESPACE_FINI?'.80:.60':'.62:.50')+')*(ma?vec3(1.04,.94,.86):vec3(1.,.97,.90));',
+      '      vec3 ct=mix(c0*vec3('+(ESPACE_FINI?'.024,.032,.090':'.012,.010,.012')+'),cj,jr);',
       '      ct*=ma?.52+.48*smoothstep(0.,.75,nv):.30+.70*pow(nv,.5);',
       '      float fl=pow(1.-nv,ma?10.:6.),sl=smoothstep(-.15,.6,ndl);',
       '      ct+=fl*(ma?vec3(.82,.64,.52):vec3(.90,.82,.62))*(.02+.50*sl);',
@@ -155,6 +161,13 @@ if(!/[?&]daorb=0\b/.test(location.search)){
       env:[[0,'#0e0c1c'],[.3,'#241e3c'],[.48,'#4a4060'],[.58,'#ffd08a'],[.66,'#241e3c'],[1,'#08071a']]}}; /* SATURNE : la crème et l'or des anneaux, des ombres lavande */
   for(const k in DA_ORB)if(BIOMES[k])Object.assign(BIOMES[k],DA_ORB[k],{kickC:ROSE});}
 /* ===== fin de LA DA DE L'ORBITE ===== */
+/* ===== LA FINITION DE L'ESPACE, LES NOMBRES (2026-11-18, finition des maps : « ça manque de finition graphique » — sobre, pas d'effet en plus) =====
+   Le semis d'étoiles de Mars et de Saturne était allumé plus fort que celui de la Terre (.6 et .7 contre .35) : des points tous pareils, tous blancs, partout. Un cran plus bas,
+   seules les plus vives restent, le ciel prend de la profondeur et le globe redevient le sujet. */
+if(ESPACE_FINI){
+  const F9={espaceMars:{stars:.45},espaceSaturne:{stars:.5}};
+  for(const k in F9)if(BIOMES[k])Object.assign(BIOMES[k],F9[k]);}
+/* ===== fin de LA FINITION DE L'ESPACE, LES NOMBRES ===== */
 window.dbgBeau=function(k,o){o=o||{};
   if(o.vid!=null)skyU.uVid.value=+o.vid;if(o.pl!=null)OBEAU.kPl=+o.pl;if(o.nua!=null)OBEAU.u.uNua.value=+o.nua;
   if(k==='photo'){if(started&&!gameOver&&!paused)togglePause();
