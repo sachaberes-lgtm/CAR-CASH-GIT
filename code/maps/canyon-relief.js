@@ -129,14 +129,21 @@ const CY_PISTE=(function(){if(/[?&]sans=([^&]*,)?cyfinal(,|&|$)/.test(location.s
 const CY_FINI=!/[?&]sans=([^&]*,)?canyonfini(,|&|$)/.test(location.search);
 const CY_FINI_R={
   /* LE SOIR : tout virait au rouge (soleil [1,.56,.30] et rebond [1,.48,.30] sur un grès doré, brume orange [.92,.52,.34], sol de l'hémisphère brique [.45,.25,.18]).
-     Le coucher reste chaud (soleil or-orangé, contre-jour or) mais l'ombre et le remplissage passent au bleu-violet, la brume au corail rosé, le fond de la gorge au mauve ardoise. */
-  canyonSoir:{sunC:[1,.60,.36],cyL:[.92,.58,.44],hemiS:[.34,.40,.66],hemiG:[.36,.24,.26],fillC:[.36,.42,.80],fog:[.84,.50,.50],fogCj:[1,.64,.44],fogIn:[.94,.80,.82],cyF:[.72,.62,.80],cyH:[1,.58,.32],sat:.92},
-  /* LA NUIT : la route d'un bleu électrique (rtT [.86,.93,1.14]) ramenée vers l'encre ; l'ombre et la brume indigo-violet au lieu du bleu gris, la lune un cran lavande. */
-  canyonNuit:{rtT:[.94,.95,1.04],hemiS:[.14,.13,.34],fillC:[.28,.24,.64],fogCj:[.14,.12,.28],cyF:[.07,.06,.15],sunC:[.52,.54,.92]},
-  /* LA PLUIE (hors tirage) : la brume grise devient ardoise turquoise, le rebond de la roche mouillée terre cuite. */
-  canyonPluie:{fog:[.36,.45,.52],fogCj:[.46,.50,.56],fogIn:[.50,.56,.62],hemiS:[.44,.54,.68],cyF:[.44,.52,.60],cyL:[.62,.46,.40],sat:1.08},
-  /* L'ORAGE (hors tirage) : la nuit d'orage bleu-noir passe à l'indigo-violet, l'ombre un cran plus colorée. */
-  canyonOrage:{fog:[.07,.07,.16],fogCj:[.20,.16,.32],fogIn:[.22,.20,.34],hemiS:[.22,.22,.40],fillC:[.36,.32,.70],cyF:[.17,.16,.28]}};
+     Le coucher reste chaud (soleil or-orangé, horizon or cyH, contre-jour or) mais l'ombre et le remplissage passent au bleu-violet, la brume au corail rosé, le fond de la gorge
+     au mauve ardoise. Contrôle du tour 1 : en COURSE le ciel et les mesas du fond restaient orange (le dégradé du ciel n'était pas touché) et sat ×0,92 délavait. Donc pas de
+     clé sat ; le zénith [.10,.11,.39] → [.10,.12,.42] et le milieu du ciel [.48,.30,.42] → [.44,.30,.54] passent au violet, les nuages éclairés [1,.55,.32] → [1,.64,.44] à l'or,
+     leur ombre [.30,.22,.34] → [.26,.22,.40] et les mesas du fond [.42,.27,.33] → [.36,.26,.40] au mauve. */
+  canyonSoir:{sunC:[1,.60,.36],cyL:[.92,.58,.44],hemiS:[.34,.40,.66],hemiG:[.36,.24,.26],fillC:[.36,.42,.80],fog:[.84,.50,.50],fogCj:[1,.64,.44],fogIn:[.94,.80,.82],cyF:[.72,.62,.80],cyH:[1,.58,.32],
+    cyZ:[.10,.12,.42],jZen:[.10,.12,.42],cyM:[.44,.30,.54],jMid:[.44,.30,.54],cyC:[1,.64,.44],cyD:[.26,.22,.40],cyR:[.36,.26,.40]},
+  /* LA NUIT : la route bleu électrique est GARDÉE (rtT d'avant). Seuls l'ombre (hemiS [.28,.32,.64] → [.30,.27,.66]) et le remplissage glissent du bleu vers le bleu-violet,
+     à luminance égale (le tour 1 assombrissait la nuit de 20 % : retiré). */
+  canyonNuit:{hemiS:[.30,.27,.66],fillC:[.34,.28,.74]},
+  /* LA PLUIE (hors tirage) : le ciel gris bleu passe au bleu canard, la brume ardoise turquoise, les nuages un cran plus froids, le rebond de la roche mouillée terre cuite. */
+  canyonPluie:{fog:[.34,.46,.52],fogCj:[.46,.52,.56],fogIn:[.50,.58,.62],hemiS:[.44,.56,.70],cyF:[.42,.54,.60],cyL:[.72,.46,.36],sat:1.12,
+    cyZ:[.10,.24,.36],jZen:[.10,.24,.36],cyM:[.20,.36,.44],jMid:[.20,.36,.44],cyC:[.46,.52,.58],cyD:[.15,.20,.27]},
+  /* L'ORAGE (hors tirage) : la nuit d'orage bleu-noir passe à l'indigo-violet, à luminance d'avant (l'ombre [.28,.36,.54] → [.30,.28,.60]), le ciel et les mesas au violet. */
+  canyonOrage:{fog:[.07,.07,.17],fogCj:[.20,.16,.34],fogIn:[.22,.20,.36],hemiS:[.30,.28,.60],fillC:[.38,.32,.74],cyF:[.17,.16,.30],
+    cyZ:[.03,.02,.09],jZen:[.03,.02,.09],cyM:[.08,.05,.15],jMid:[.08,.05,.15],cyH:[.16,.10,.24],jHor:[.16,.10,.24],cyC:[.18,.15,.28],cyR:[.10,.08,.17]}};
 if(CY_FINI&&CY_PISTE==='A')for(const k in CY_FINI_R)CY_LOOK.bio[k]=Object.assign(CY_LOOK.bio[k]||{},CY_FINI_R[k]);
 function cyFS(CYD){return ['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uBnc,uRkT,uWS,uWD,uSkH,uSkZ,uMist,uMud,uPhP,uPhD,uPhC;uniform vec4 uQ;uniform float uTime,uFlash,uWet;',
   'varying vec3 vW,vN;varying vec4 vA,vB;varying float vWL;','#include <fog_pars_fragment>',
