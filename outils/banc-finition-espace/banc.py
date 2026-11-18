@@ -2,7 +2,7 @@
 # LE BANC DE LA FINITION DE L'ESPACE (2026-11-18, finition des maps) — d'après outils/banc-embellir.py (embellir-photos), même crochets et même mesure.
 #
 #   python3 banc.py --avant <racine-avant> --racine <worktree> --sortie <dossier> --ports 8620 9620 [--versions avant,apres,sans] \
-#                   [--formats paysage,portrait] [--graines 12345,7] [--etapes 240,600] meteo[:graine] …     (meteo : matin = Terre, midi = Mars, soir = Saturne)
+#                   [--formats paysage,portrait] [--etapes 240,600] meteo[:graine[:formats+…[:version|version~a=b;c=d|…]]] …     (meteo : matin = Terre, midi = Mars, soir = Saturne)
 #
 # AVANT = index.html de <racine-avant> (le jeu d'avant, en lecture seule) ; APRÈS = index.html assemblé du worktree ; SANS = le même avec ?sans=espacefini.
 # Vrai jeu, ?tel=1, format iPhone (paysage 844×390, portrait 390×844), sauvegarde MUETTE (sfx/mus/vox false), Chrome --mute-audio.
@@ -97,9 +97,11 @@ def scenario(c, port_http, version, meteo, graine, fmt, etapes, sortie):
     # un VRAI téléphone (tactile, écran < 600 px) : la page ne monte pas le cadre-iframe de l'ordi (code/page/tete.html), le jeu EST la page
     c.send('Emulation.setDeviceMetricsOverride', {'width': w, 'height': h, 'deviceScaleFactor': 2, 'mobile': True, 'screenWidth': w, 'screenHeight': h})
     c.send('Emulation.setTouchEmulationEnabled', {'enabled': True, 'maxTouchPoints': 5})
+    # une version = « nom » (avant, apres, sans) ou « nom~a=b;c=d » : la même version d'APRÈS avec des paramètres de banc en plus (ex. n1~espnuit=.02/.03/.08)
+    version, _, extra = version.partition('~')
     dossier = 'avant' if version == 'avant' else 'apres'
-    u = ('http://127.0.0.1:%d/%s/index.html?colonne=0&simu=1&garde=1&tel=1&pistegraine=%d&carte=espace&meteo=%s%s'
-         % (port_http, dossier, graine, meteo, '&sans=espacefini' if version == 'sans' else ''))
+    u = ('http://127.0.0.1:%d/%s/index.html?colonne=0&simu=1&garde=1&tel=1&pistegraine=%d&carte=espace&meteo=%s%s%s'
+         % (port_http, dossier, graine, meteo, '&sans=espacefini' if version == 'sans' else '', ('&' + extra.replace(';', '&')) if extra else ''))
     c.send('Page.navigate', {'url': u})
     time.sleep(2)
     for _ in range(240):
@@ -162,9 +164,10 @@ def main():
         c.send('Page.addScriptToEvaluateOnNewDocument', {'source': 'try{localStorage.setItem("cashcarSave",%s)}catch(e){}' % json.dumps(json.dumps(SAVE)) + ';' + HOOK})
         for sc in a.scenarios:
             p = sc.split(':'); meteo = p[0]; graine = int(p[1]) if len(p) > 1 else 12345
-            fmts = p[2].split('+') if len(p) > 2 else a.formats.split(',')
+            fmts = p[2].split('+') if len(p) > 2 and p[2] else a.formats.split(',')
+            vers = p[3].split('|') if len(p) > 3 else a.versions.split(',')   # meteo:graine:formats:versions (séparées par |)
             for fmt in fmts:
-                for version in a.versions.split(','):
+                for version in vers:
                     if time.time() - t0 > 540: break
                     try: tout.append(scenario(c, http_p, version, meteo, graine, fmt, etapes, a.sortie))
                     except Exception as e: print('  ÉCHEC', version, sc, fmt, repr(e)[:200], flush=True)
