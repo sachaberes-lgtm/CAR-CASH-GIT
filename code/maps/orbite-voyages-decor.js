@@ -8,6 +8,14 @@
    · la géométrie du décor est rendue (dispose) quand la route change (en quittant l'orbite, elle restait en mémoire) ; voyTick n'alloue plus rien.
    `?sans=espaceopt` : tout comme avant. */
 let VOY_OPT=!(typeof location!=='undefined'&&/[?&]sans=[^&]*espaceopt/.test(location.search));
+/* ===== LES MODULES FINIS (2026-11-18, finition des maps : « on retravaille les modules de l'espace… là ils sont affreusement moches », « ça doit rester sobre ») =====
+   Les ouvrages des modules (la jante de la roue, le tunnel de l'astéroïde percé) dans la famille de la route : une laque sombre bleutée, un liseré blanc lunaire (#E8EEF2),
+   UN accent par ouvrage (l'or chaud des hublots ; la glace pour les cristaux), plus d'orange vif ni de néon cyan. Que des NOMBRES (couleurs de sommet, aK) : pas un triangle,
+   pas un appel, pas un programme de plus ; les tirages au hasard sont les mêmes, dans le même ordre. `?sans=modulesfinis` = l'image d'avant. */
+let MODFIN=!(typeof location!=='undefined'&&/[?&]sans=([^&]*,)?modulesfinis(,|&|$)/.test(location.search)); /* let : dbgModulesFinis (banc) le bascule */
+const MODFIN_ROUE={blanc:[.40,.45,.56],gris:[.28,.32,.41],sol:[.19,.21,.28],liser:[.91,.93,.95],fen:[.46,.31,.13],feu:[.34,.39,.46],kD:[1,0,.55],lis:[11,8]}; /* lèvres et coque · flancs · sol · liseré · hublots (or : ×2,5 au shader, ils brûlaient au blanc) · feux du sol (blanc froid) · aK (la laque : un reflet plus net) · le liseré du sol, de 11 à 8 m du bord (8 m de large avant : 3 m) */
+const MODFIN_ROC={fen:[.44,.30,.13],cri:[[.30,.40,.52],[.27,.36,.48],[.34,.43,.54]],l0:.45,l1:.53}; /* les lampes du tunnel (or, dosé) · les cristaux (une glace, trois nuances proches : le tirage reste le même) · la bande des lampes en travers du pas (.35-.60 avant : un cadre blanc brûlé ; un filet) */
+const MODFIN_NEB={col:[[.58,.46,1],[1,.50,.38],[.80,.62,1]],br:.50,voile:.10}; /* la nébuleuse : un violet de nuit (plus le rose bonbon plein écran), Mars garde sa poussière ; sa brillance .72 → .50 ; le voile dedans .16 → .10 (la route reste lisible) */
 const VOY_D={jante:null,roc:null,neb:null,zonesSaut:[],zonesPente:[],ms:0,err:null,info:[],vues:[]};
 const VOY_F=[0,1,2,3].map(function(){return {p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};});
 function voyMaille(){const M={P:[],N:[],C:[],K:[],a:new THREE.Vector3(),b:new THREE.Vector3(),n:new THREE.Vector3(),f:null,nb:0};
@@ -63,7 +71,8 @@ function voyCercle(A,B,Cp){const a=new THREE.Vector3().subVectors(A,B),b=new THR
    le moyeu au centre, trois rayons (hors de l'arc de la route), deux moignons ; les morceaux qui passeraient à moins de ~70 m d'une autre portion de route ne sont pas posés */
 function voyRoue(sa,sm,sb,r){
   const F=VOY_F[0],tel=GT_TEL,W2=78,H=30,E=22,OFF=THICK_ROUTE+1.2,st=tel?10:6,M=voyMaille();
-  const blanc=[.74,.75,.74],gris=[.42,.43,.45],sol=[.30,.32,.36],orange=[1,.55,.15],fen=[1,.86,.55],neon=[.5,.9,1],kD=[1,0,.25],kI=[.85,0,.15],kL=[0,1,0];
+  let blanc=[.74,.75,.74],gris=[.42,.43,.45],sol=[.30,.32,.36],orange=[1,.55,.15],fen=[1,.86,.55],neon=[.5,.9,1],kD=[1,0,.25];const kI=[.85,0,.15],kL=[0,1,0];
+  let li0=14,li1=6;if(MODFIN){const P9=MODFIN_ROUE;blanc=P9.blanc;gris=P9.gris;sol=P9.sol;orange=P9.liser;fen=P9.fen;neon=P9.feu;kD=P9.kD;li0=P9.lis[0];li1=P9.lis[1];} /* (finition des maps) la station dans la famille de la route : laque bleutée, liseré lunaire, or des hublots */
   frameAt(sa,F);const A=F.p.clone();frameAt(sm,F);const B=F.p.clone(),nB=F.n.clone();frameAt(sb,F);const Cc=F.p.clone();const cer=voyCercle(A,B,Cc);
   const coupe=function(p,n,b,col,i){const pt=function(x,h){return p.clone().addScaledVector(b,x).addScaledVector(n,h);};
     return {fl:pt(-W2,-OFF),fr:pt(W2,-OFF),ll:pt(-W2,H),lr:pt(W2,H),hl:pt(-W2,-OFF-E),hr:pt(W2,-OFF-E),p:p,n:n,b:b,pt:pt,i:i};};
@@ -71,7 +80,7 @@ function voyRoue(sa,sm,sb,r){
     voyQuad(M,c0.fl,c0.fr,c1.fr,c1.fl,sol,kI);voyQuad(M,c0.hl,c1.hl,c1.hr,c0.hr,j%3?blanc:gris,kD);
     voyQuad(M,c0.fl,c1.fl,c1.ll,c0.ll,blanc,kD);voyQuad(M,c0.fr,c0.lr,c1.lr,c1.fr,blanc,kD);
     voyQuad(M,c0.fl,c0.hl,c1.hl,c1.fl,gris,kD);voyQuad(M,c0.fr,c1.fr,c1.hr,c0.hr,gris,kD);
-    for(const sg of [-1,1]){voyQuad(M,c0.pt(sg*(W2-14),-OFF+.4),c0.pt(sg*(W2-6),-OFF+.4),c1.pt(sg*(W2-6),-OFF+.4),c1.pt(sg*(W2-14),-OFF+.4),orange,kI);
+    for(const sg of [-1,1]){voyQuad(M,c0.pt(sg*(W2-li0),-OFF+.4),c0.pt(sg*(W2-li1),-OFF+.4),c1.pt(sg*(W2-li1),-OFF+.4),c1.pt(sg*(W2-li0),-OFF+.4),orange,kI);
       if(j%2===0){const a1=c0.pt(sg*(W2-.6),12),a2=c0.pt(sg*(W2-.6),20),b1=c1.pt(sg*(W2-.6),12),b2=c1.pt(sg*(W2-.6),20);voyQuad(M,a1,a2,a2.clone().lerp(b2,.6),a1.clone().lerp(b1,.6),fen,kL);} /* les hublots des lèvres */
       if(j%3===0){const a1=c0.pt(sg*(W2-24),-OFF+.5),a2=c0.pt(sg*(W2-20),-OFF+.5),b1=c1.pt(sg*(W2-24),-OFF+.5),b2=c1.pt(sg*(W2-20),-OFF+.5);voyQuad(M,a1,a2,a2.clone().lerp(b2,.5),a1.clone().lerp(b1,.5),neon,kL);}}}; /* les feux du sol */
   /* 1) le chenal le long de la route */
@@ -125,12 +134,12 @@ function voyIco(det){let I=VOY_ICO[det];if(I)return I;const g=new THREE.Icosahed
 if(ORB_VOY&&VOY_OPT)try{voyIco(GT_TEL?9:14);}catch(e){}
 function voyAsteroide(sa,sm,sb,r){
   const F=VOY_F[0],tel=GT_TEL,M=voyMaille(),Rt9=46,Hc=20,ns=tel?12:18,st=tel?12:8,ton=VOY_TON[Math.max(0,Math.min(2,GEANTS.typ|0))];
-  const roc=[ton[0]*.62,ton[1]*.62,ton[2]*.62],roc2=[ton[0]*.48,ton[1]*.48,ton[2]*.5],fen=[1,.82,.5],cri=[[.5,.95,1],[1,.45,.85],[.6,1,.55]],kI=[.5,0,.12],kL=[0,1,0];
+  const roc=[ton[0]*.62,ton[1]*.62,ton[2]*.62],roc2=[ton[0]*.48,ton[1]*.48,ton[2]*.5],fen=MODFIN?MODFIN_ROC.fen:[1,.82,.5],cri=MODFIN?MODFIN_ROC.cri:[[.5,.95,1],[1,.45,.85],[.6,1,.55]],kI=[.5,0,.12],kL=[0,1,0]; /* (finition) les cristaux : UN accent (la glace), plus trois couleurs fun */
   const CT=[];let prev=null,lastL=-1e9;
   for(let s9=sa-40;s9<=sb+40;s9+=st){frameAt(s9,F);const c=F.p.clone().addScaledVector(F.n,Hc);CT.push(c);const ring=[];
     for(let q=0;q<ns;q++){const a=q/ns*2*Math.PI;ring.push(c.clone().addScaledVector(F.b,Math.cos(a)*Rt9).addScaledVector(F.n,Math.sin(a)*Rt9));}
     if(prev){for(let q=0;q<ns;q++){const q2=(q+1)%ns,P9=ring[q],k9=.78+.22*voyBruit(P9.x,P9.y,P9.z)+(r()-.5)*.08;voyQuad(M,prev[q],prev[q2],ring[q2],ring[q],[roc[0]*k9,roc[1]*k9,roc[2]*k9],kI);} /* la paroi : des tons de roche irréguliers (un damier en photo) */
-      if(s9-lastL>70){lastL=s9;for(let q=0;q<ns;q++){if(q>=Math.round(ns*.7)&&q<=Math.round(ns*.8))continue;const q2=(q+1)%ns;voyQuad(M,prev[q].clone().lerp(ring[q],.35),prev[q2].clone().lerp(ring[q2],.35),prev[q2].clone().lerp(ring[q2],.6),prev[q].clone().lerp(ring[q],.6),fen,kL);}}
+      if(s9-lastL>70){lastL=s9;const l0=MODFIN?MODFIN_ROC.l0:.35,l1=MODFIN?MODFIN_ROC.l1:.6;for(let q=0;q<ns;q++){if(q>=Math.round(ns*.7)&&q<=Math.round(ns*.8))continue;const q2=(q+1)%ns;voyQuad(M,prev[q].clone().lerp(ring[q],l0),prev[q2].clone().lerp(ring[q2],l0),prev[q2].clone().lerp(ring[q2],l1),prev[q].clone().lerp(ring[q],l1),fen,kL);}}
       if(r()<.45){const q=(r()*ns)|0;if(q<Math.round(ns*.65)||q>Math.round(ns*.85)){const A9=prev[q].clone().lerp(ring[q],.5),inw=c.clone().sub(A9).normalize(),h=6+r()*10;voyTri(M,A9.clone().addScaledVector(F.t,-3),A9.clone().addScaledVector(F.t,3),A9.clone().addScaledVector(inw,h),cri[(r()*3)|0],kL);}}}
     prev=ring;}
   frameAt(sm,F);const C=F.p.clone().addScaledVector(F.n,Hc);let Ra=.5*CT[0].distanceTo(CT[CT.length-1])-30;Ra=Math.min(Ra,gtDistRoute(C,sa-260,sb+260)-ROAD_HALF-40);
@@ -154,15 +163,15 @@ function voyAsteroide(sa,sm,sb,r){
 const VOY_NEB=[[1,.42,.86],[1,.5,.42],[1,.62,.82]];
 function voyNebuleuse(sa,sm,sb,r){
   const F=VOY_F[0];if(GT_VOLS[2].userData.on)return;frameAt(sa,F);const A=F.p.clone();frameAt(sb,F);const B=F.p.clone();frameAt(sm,F);const C=F.p.clone().addScaledVector(F.n,30);
-  const sg=Math.max(240,Math.min(520,.36*A.distanceTo(B))),col=VOY_NEB[Math.max(0,Math.min(2,GEANTS.typ|0))];
-  gtVol(2,C,F.t,[-3*sg,3*sg,3*sg,3*sg],[1,0,1,0],[sg,.72,2.1*sg,.24],[0,0,0],col);VOY_D.neb={C:C,sg:sg,col:col};VOY_D.info.push('nébuleuse σ'+Math.round(sg));
+  const sg=Math.max(240,Math.min(520,.36*A.distanceTo(B))),col=(MODFIN?MODFIN_NEB.col:VOY_NEB)[Math.max(0,Math.min(2,GEANTS.typ|0))];
+  gtVol(2,C,F.t,[-3*sg,3*sg,3*sg,3*sg],[1,0,1,0],[sg,MODFIN?MODFIN_NEB.br:.72,2.1*sg,.24],[0,0,0],col);VOY_D.neb={C:C,sg:sg,col:col};VOY_D.info.push('nébuleuse σ'+Math.round(sg));
   VOY_D.vues.push(['nebuleuse',C.clone().addScaledVector(F.b,sg*3.2).addScaledVector(F.n,sg*.8).addScaledVector(F.t,-sg*1.2),C.clone()]);
 }
 /* CHAQUE IMAGE (geantsTick) : la visibilité ; le voile dans la nébuleuse (rend [r, g, b] à ajouter) */
 const VOY_V9=[0,0,0]; /* (VOY_OPT) le voile rendu par voyTick : le même tableau à chaque image */
 function voyTick(on){
   if(VOY_MESH.length){VOY_MESH[0].visible=on&&!!VOY_D.jante;VOY_MESH[1].visible=on&&!!VOY_D.roc;}
-  const N9=VOY_D.neb;if(!on||!N9)return null;const d2=camera.position.distanceToSquared(N9.C),k=Math.exp(-d2/(N9.sg*N9.sg))*.16;
+  const N9=VOY_D.neb;if(!on||!N9)return null;const d2=camera.position.distanceToSquared(N9.C),k=Math.exp(-d2/(N9.sg*N9.sg))*(MODFIN?MODFIN_NEB.voile:.16);
   if(VOY_OPT){VOY_V9[0]=k*N9.col[0];VOY_V9[1]=k*N9.col[1];VOY_V9[2]=k*N9.col[2];return VOY_V9;}return [k*N9.col[0],k*N9.col[1],k*N9.col[2]];}
 /* LE SAUT REFUSÉ (vol-equilibre.js, comme espSautRefuse) : dans la jante et le tunnel ; et dans les bosses, le piqué et les marches dès que la route plonge plus fort devant
    (12° de plus dans les ~2,7 s qui viennent) : un saut lancé d'une crête survolerait la descente jusqu'à la jauge vide — dans un creux, devant une remontée, il reste permis */
@@ -185,6 +194,11 @@ function voyBanc(n){n=Math.max(1,n|0||5);const o={},sauve=VOY_OPT,G0=VOY_MESH.ma
       o[c]={med:+T[T.length>>1].toFixed(2),min:+T[0].toFixed(2),max:+T[T.length-1].toFixed(2),empreinte:e,memeEmpreinte:p?p.empreinte===e:null,tri:VOY_MESH[i9].geometry.attributes.position.count/3};}}}
   finally{VOY_OPT=sauve;VOY_MESH.forEach(function(m,i){if(m.geometry!==G0[i]){if(m.geometry!==VOY_VIDE_G)m.geometry.dispose();m.geometry=G0[i];}});VOY_D.jante=D0.jante;VOY_D.roc=D0.roc;VOY_D.info=D0.info;VOY_D.vues=D0.vues;}
   return o;}
+/* (banc, finition des maps) dbgModulesFinis(on) : la jante, la roche percée et la nébuleuse de la route en cours rebâties au même hasard (mulberry32(0x5EED)) avec ou sans la finition —
+   la MÊME scène, la même caméra : avant/après côte à côte et renderer.info comparables ; rend l'état et le nombre de triangles de chaque maille. Sans argument : l'état seulement. */
+window.dbgModulesFinis=function(on){
+  if(on!=null){MODFIN=!!on;if(VOY_D.neb&&GT_VOLS[2])GT_VOLS[2].userData.on=false;voyDecorPose(mulberry32(0x5EED));}
+  return {on:MODFIN,jante:VOY_D.jante?VOY_D.jante.tri:null,roc:VOY_D.roc?VOY_D.roc.tri:null,neb:VOY_D.neb?Math.round(VOY_D.neb.sg):null,err:VOY_D.err};};
 window.dbgVoyage=function(k,a){ /* (banc) le voyage de la route en cours : sa clé, sa silhouette, ses modules, son décor · 'banc', n : voir voyBanc */
   if(k==='banc')return voyBanc(a);
   return {on:ORB_VOY,vo:ORB_PIOCHE.vo,der:ORB_PIOCHE.voyDer||null,voy:VOY?{cle:VOY.cle,cxG:VOY.cxG,fortG:VOY.fortG,fortFait:VOY.fortFait}:null,
