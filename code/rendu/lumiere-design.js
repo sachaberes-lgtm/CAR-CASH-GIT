@@ -68,8 +68,8 @@ if(JADE_NUIT2&&BIOMES.jadeNuit)Object.assign(BIOMES.jadeNuit,{
    `?sans=jadefini` = les valeurs d'avant (et l'astre d'avant, scene-ciel.js). */
 const JADE_FINI=!/[?&]sans=([^&]*,)?jadefini(,|&|$)/.test(location.search);
 if(JADE_FINI&&BIOMES.jadeNuit){
-  Object.assign(BIOMES.jade,{ /* SOIR : le zénith bleu-violet, une bande mauve-rose, le corail puis l'or à l'horizon (il était gris-beige au milieu) */
-    jdZ:[.30,.34,.70],jdL:[.80,.52,.74],jdM:[1,.56,.46],jdH:[1,.76,.46],jdB:[.94,.70,.64],jdR:[.42,.30,.46],jdS:[1,.70,.40],
+  Object.assign(BIOMES.jade,{ /* SOIR : le zénith bleu-violet, une bande rose (au banc : un mauve .80,.52,.74 faisait un aplat lilas, un rose .94,.58,.64 sous la saturation du soir 1,2 virait au fluo), le corail puis l'or à l'horizon (il était gris-beige au milieu) */
+    jdZ:[.36,.38,.64],jdL:[.92,.64,.64],jdM:[1,.62,.50],jdH:[1,.76,.46],jdB:[.94,.70,.64],jdR:[.42,.30,.46],jdS:[1,.70,.40],
     fog:[.86,.66,.58],fogIn:[.92,.74,.66],fogCj:[1,.70,.50]});
   Object.assign(BIOMES.jadeMatin,{ /* MATIN : azur plus franc, le céladon du milieu passe au vert jade-menthe, l'horizon pêche-rose ; brume pêche */
     jdZ:[.18,.46,.86],jdL:[.44,.70,.86],jdM:[.62,.88,.76],jdH:[1,.76,.62],jdB:[.82,.90,.84],
@@ -78,7 +78,7 @@ if(JADE_FINI&&BIOMES.jadeNuit){
     jdZ:[.10,.40,.88],jdL:[.36,.70,.90],jdM:[.52,.88,.80],jdH:[1,.86,.68],
     fog:[.62,.80,.86],fogIn:[.78,.90,.92]});
   Object.assign(BIOMES.jadeNuit,{ /* NUIT : indigo-violet au zénith, bleu au milieu, la lueur jade gardée au ras de l'horizon ; brume indigo (plus de bleu-vert gris) ; lune or pâle */
-    jdZ:[.040,.030,.110],jdL:[.050,.050,.150],jdM:[.050,.100,.170],jdH:[.060,.180,.180],jdB:[.065,.120,.190],jdR:[.04,.06,.12],jdS:[1,.88,.62],
+    jdZ:[.040,.030,.110],jdL:[.062,.056,.175],jdM:[.060,.112,.200],jdH:[.060,.180,.180],jdB:[.065,.120,.190],jdR:[.04,.06,.12],jdS:[1,.88,.62],
     fog:[.050,.100,.170],fogCj:[.10,.16,.26],fogIn:[.07,.12,.20],volSky:[.06,.10,.20],
     hemiS:[.16,.26,.46],fillC:[.22,.36,.60],
     env:[[0,'#06061c'],[.3,'#121a40'],[.48,'#243e6a'],[.58,'#3a8f80'],[.66,'#121a34'],[1,'#060816']]});

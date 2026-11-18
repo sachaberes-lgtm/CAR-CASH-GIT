@@ -56,11 +56,17 @@ const t0 = Date.now();
         await c.ev("window.requestAnimationFrame=function(){return 0;};dbgAuto(1,0,{nit:1});1");
         await dormir(300); await c.ev(MASQUE);
         await pas(+A.pas);
+        await shot(nom + '-couche.png'); /* AVANT la mesure : l'image de la boucle (composer : ACES, bloom), pas le rendu brut de MESURE */
         const m = await c.ev(MESURE);
         const et = await c.ev("(function(){var s=dbgState();return JSON.stringify({go:s.gameOver,d:Math.round(s.dist||s.d||0),z:s.z!=null?+(+s.z).toFixed(2):null,x:s.x!=null?+(+s.x).toFixed(2):null,vH:s.vH})})()");
-        await shot(nom + '-couche.png');
         await taille(390, 844); await dormir(500); await pas(2); await dormir(300);
         await shot(nom + '-debout.png');
+        if (A.astre) { /* l'ASTRE : la caméra tournée vers le soleil / la lune de Jade (la direction du disque, scene-ciel.js : sv), une image rendue à la main */
+          await taille(844, 390); await dormir(400); await pas(1);
+          try { await c.ev("(function(){try{var p=dbgGpu({n:1,k:1});return p&&p.then?p.then(function(){return 1},function(){return 1}):1}catch(e){return 0}})()", 30000); } catch (e) {}
+          const ok2 = await c.ev("(function(){var d=dbgScene(),u=null,G=window.__gpuObj;d.scene.traverse(function(o){var m=o.material;if(!u&&m&&m.uniforms&&m.uniforms.uSunDir)u=m.uniforms.uSunDir.value;});if(!u||!G)return 0;var v=new u.constructor(u.x*.966,0,u.z*.966);var L=Math.hypot(v.x,v.z)||1;v.set(v.x/L*.966,.259,v.z/L*.966).normalize();var p=d.cam.position;d.cam.lookAt(p.x+v.x*10,p.y+v.y*10,p.z+v.z*10);d.cam.updateMatrixWorld();if(G.post())G.composer.render();else d.rdr.render(d.scene,d.cam);return 1})()");
+          if (ok2) await shot(nom + '-astre.png');
+        }
         const pan = await c.ev("(function(){try{return dbgErreurs().filter(function(e){return ['gel','serpent','son'].indexOf(e.g)<0}).map(function(e){return e.k})}catch(e){return String(e)}})()");
         console.log('MESURE', nom, m, 'etat', et, 'pannes', JSON.stringify(pan), 'exc', JSON.stringify(exc.slice(0, 3)), Math.round((Date.now() - t0) / 1000) + 's');
       } catch (e) { console.log('ECHEC', nom, String(e).slice(0, 300)); }
