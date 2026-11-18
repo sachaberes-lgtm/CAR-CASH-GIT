@@ -1,0 +1,1236 @@
+{
+ "a42e9ec50": {
+  "essais": [
+   {
+    "caisse": 0,
+    "doigt": "toucher",
+    "ouvert": true,
+    "permis": true,
+    "garageI": 0,
+    "centre": [
+     151,
+     394
+    ],
+    "a400": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0.03,
+     "t": 0,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 0
+    },
+    "tenu": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 0.98,
+     "t": 0.65,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 53
+    },
+    "tourneMs": 3956,
+    "tourne": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 1,
+     "t": 4.62,
+     "tours": 1,
+     "donut": 2.76,
+     "donM": 0.25,
+     "w": 3.11,
+     "cap": 2.73,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 586
+    },
+    "apres": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 1,
+     "t": 5.22,
+     "tours": 1,
+     "donut": 0.44,
+     "donM": 0.18,
+     "w": -0.2,
+     "cap": 3,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 676
+    },
+    "leve": {
+     "x": [
+      true,
+      false,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0.01,
+     "t": 5.23,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0.01,
+     "w": 0,
+     "cap": 3.01,
+     "doigt": null,
+     "son": true,
+     "fumee": 670
+    },
+    "ok": true
+   },
+   {
+    "caisse": 6,
+    "doigt": "toucher",
+    "ouvert": true,
+    "permis": false,
+    "garageI": 6,
+    "centre": [
+     160,
+     446
+    ],
+    "a400": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0,
+     "t": 5.23,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 445
+    },
+    "tenu": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0,
+     "t": 5.23,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 284
+    },
+    "tourneMs": 3954,
+    "tourne": {
+     "x": [
+      true,
+      false,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0,
+     "t": 5.23,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 3
+    },
+    "apres": {
+     "x": [
+      true,
+      false,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0,
+     "t": 5.23,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 0
+    },
+    "leve": {
+     "x": [
+      true,
+      false,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0,
+     "t": 5.23,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": null,
+     "son": true,
+     "fumee": 0
+    },
+    "ok": false
+   },
+   {
+    "caisse": 12,
+    "doigt": "toucher",
+    "ouvert": true,
+    "permis": true,
+    "garageI": 0,
+    "centre": [
+     160,
+     387
+    ],
+    "a400": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0.03,
+     "t": 5.23,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 0
+    },
+    "tenu": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 0.98,
+     "t": 0.65,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 54
+    },
+    "tourneMs": 3980,
+    "tourne": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 1,
+     "t": 4.63,
+     "tours": 1,
+     "donut": 2.77,
+     "donM": 0.25,
+     "w": 3.16,
+     "cap": 2.46,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 592
+    },
+    "apres": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 1,
+     "t": 5.23,
+     "tours": 1,
+     "donut": 0.44,
+     "donM": 0.18,
+     "w": -0.2,
+     "cap": 2.74,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 677
+    },
+    "leve": {
+     "x": [
+      true,
+      false,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0.01,
+     "t": 5.25,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0.01,
+     "w": 0,
+     "cap": 2.75,
+     "doigt": null,
+     "son": true,
+     "fumee": 669
+    },
+    "ok": true
+   },
+   {
+    "caisse": 20,
+    "doigt": "toucher",
+    "ouvert": true,
+    "permis": true,
+    "garageI": 0,
+    "centre": [
+     155,
+     393
+    ],
+    "a400": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0.03,
+     "t": 5.25,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 456
+    },
+    "tenu": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 0.98,
+     "t": 0.67,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 362
+    },
+    "tourneMs": 3994,
+    "tourne": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 1,
+     "t": 4.67,
+     "tours": 1,
+     "donut": 2.61,
+     "donM": 0.25,
+     "w": 2.99,
+     "cap": 2.26,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 602
+    },
+    "apres": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 1,
+     "t": 5.27,
+     "tours": 1,
+     "donut": 0.42,
+     "donM": 0.18,
+     "w": -0.2,
+     "cap": 2.53,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 678
+    },
+    "leve": {
+     "x": [
+      true,
+      false,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0.01,
+     "t": 5.28,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0.01,
+     "w": 0,
+     "cap": 2.53,
+     "doigt": null,
+     "son": true,
+     "fumee": 669
+    },
+    "ok": true
+   },
+   {
+    "caisse": 28,
+    "doigt": "toucher",
+    "ouvert": true,
+    "permis": true,
+    "garageI": 0,
+    "centre": [
+     154,
+     391
+    ],
+    "a400": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0.03,
+     "t": 5.28,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 439
+    },
+    "tenu": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 0.98,
+     "t": 0.65,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 335
+    },
+    "tourneMs": 3930,
+    "tourne": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 1,
+     "t": 4.58,
+     "tours": 1,
+     "donut": 2.78,
+     "donM": 0.25,
+     "w": 3.15,
+     "cap": 2.67,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 577
+    },
+    "apres": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 1,
+     "t": 5.18,
+     "tours": 1,
+     "donut": 0.44,
+     "donM": 0.18,
+     "w": -0.2,
+     "cap": 2.95,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 666
+    },
+    "leve": {
+     "x": [
+      true,
+      false,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0.01,
+     "t": 5.2,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0.01,
+     "w": 0,
+     "cap": 2.96,
+     "doigt": null,
+     "son": true,
+     "fumee": 666
+    },
+    "ok": true
+   }
+  ],
+  "pret": true,
+  "sauve": [
+   false,
+   false,
+   false
+  ],
+  "moteurSon": false,
+  "son": 1,
+  "sfxOk": true,
+  "ac": "running",
+  "tel": [
+   true,
+   true,
+   true
+  ],
+  "hab": "[{\"hab\":\"trainee:billets\",\"rar\":\"legendaire\",\"ailes\":6,\"anim\":2,\"fx\":{\"pop\":\"billets\",\"rubOff\":false}}]",
+  "erreurs": [
+   "error : [\"TypeError: Cannot read properties of undefined (reading 'length')\\n    at stNote (http://127.0.0.1:9971/index-a42e9ec50.html?colonne=0&tel=1&garde=1&intro=ancien&attente=0&chute=0&v=1794976520527:100184:31)\\n    at addEventListener.capture (http://127.0.0.1:9971/index-a42e9ec50.html?colonne=0&tel=1&garde=1&intro=ancien&attente=0&chute=0&v=1794976520527:100227:7)\\n    at <anonymous>:1:63\\n    at ",
+   "TypeError: Cannot read properties of undefined (reading 'length')\n    at stNote (http://127.0.0.1:9971/index-a42e9ec50.html?colonne=0&tel=1&garde=1&intro=ancien&attente=0&chute=0&v=1794976520527:100184:31)\n    at addEventListener.capture (http://127.0.0.1:9971/index-a42e9ec50.html?colonne=0&tel=1&ga"
+  ],
+  "nErreurs": 2,
+  "s": 68,
+  "resume": "0/toucher:DONUT on=true tours=1 cap=2.73 · 6/toucher:NON on=false tours=0 cap=0 · 12/toucher:DONUT on=true tours=1 cap=2.46 · 20/toucher:DONUT on=true tours=1 cap=2.26 · 28/toucher:DONUT on=true tours=1 cap=2.67"
+ },
+ "4324e2b91": {
+  "essais": [
+   {
+    "caisse": 0,
+    "doigt": "toucher",
+    "ouvert": true,
+    "permis": true,
+    "garageI": 0,
+    "centre": [
+     151,
+     394
+    ],
+    "a400": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0.03,
+     "t": 0,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 0
+    },
+    "tenu": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 0.98,
+     "t": 0.65,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 53
+    },
+    "tourneMs": 3994,
+    "tourne": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 1,
+     "t": 4.65,
+     "tours": 1,
+     "donut": 2.76,
+     "donM": 0.25,
+     "w": 3.11,
+     "cap": 2.62,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 589
+    },
+    "apres": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 1,
+     "t": 5.25,
+     "tours": 1,
+     "donut": 0.44,
+     "donM": 0.18,
+     "w": -0.2,
+     "cap": 2.89,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 673
+    },
+    "leve": {
+     "x": [
+      true,
+      false,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0.01,
+     "t": 5.27,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0.01,
+     "w": 0,
+     "cap": 2.9,
+     "doigt": null,
+     "son": true,
+     "fumee": 670
+    },
+    "ok": true
+   },
+   {
+    "caisse": 6,
+    "doigt": "toucher",
+    "ouvert": true,
+    "permis": false,
+    "garageI": 6,
+    "centre": [
+     161,
+     445
+    ],
+    "a400": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0,
+     "t": 5.27,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 457
+    },
+    "tenu": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0,
+     "t": 5.27,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 291
+    },
+    "tourneMs": 3954,
+    "tourne": {
+     "x": [
+      true,
+      false,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0,
+     "t": 5.27,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 0
+    },
+    "apres": {
+     "x": [
+      true,
+      false,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0,
+     "t": 5.27,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 0
+    },
+    "leve": {
+     "x": [
+      true,
+      false,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0,
+     "t": 5.27,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": null,
+     "son": true,
+     "fumee": 0
+    },
+    "ok": false
+   },
+   {
+    "caisse": 12,
+    "doigt": "toucher",
+    "ouvert": true,
+    "permis": true,
+    "garageI": 0,
+    "centre": [
+     159,
+     390
+    ],
+    "a400": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0.03,
+     "t": 5.27,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 1
+    },
+    "tenu": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 0.98,
+     "t": 0.65,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 54
+    },
+    "tourneMs": 3925,
+    "tourne": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 1,
+     "t": 4.58,
+     "tours": 1,
+     "donut": 2.88,
+     "donM": 0.25,
+     "w": 3.24,
+     "cap": 2.65,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 580
+    },
+    "apres": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 1,
+     "t": 5.18,
+     "tours": 1,
+     "donut": 0.46,
+     "donM": 0.18,
+     "w": -0.21,
+     "cap": 2.93,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 670
+    },
+    "leve": {
+     "x": [
+      true,
+      false,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0.01,
+     "t": 5.2,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0.01,
+     "w": 0,
+     "cap": 2.94,
+     "doigt": null,
+     "son": true,
+     "fumee": 668
+    },
+    "ok": true
+   },
+   {
+    "caisse": 20,
+    "doigt": "toucher",
+    "ouvert": true,
+    "permis": true,
+    "garageI": 0,
+    "centre": [
+     155,
+     393
+    ],
+    "a400": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0.03,
+     "t": 5.2,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 444
+    },
+    "tenu": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 0.98,
+     "t": 0.65,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 325
+    },
+    "tourneMs": 3942,
+    "tourne": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 1,
+     "t": 4.6,
+     "tours": 1,
+     "donut": 2.92,
+     "donM": 0.25,
+     "w": 3.38,
+     "cap": 2.72,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 585
+    },
+    "apres": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 1,
+     "t": 5.2,
+     "tours": 1,
+     "donut": 0.46,
+     "donM": 0.18,
+     "w": -0.21,
+     "cap": 3.01,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 669
+    },
+    "leve": {
+     "x": [
+      true,
+      false,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0.01,
+     "t": 5.22,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0.01,
+     "w": 0,
+     "cap": 3.02,
+     "doigt": null,
+     "son": true,
+     "fumee": 669
+    },
+    "ok": true
+   },
+   {
+    "caisse": 28,
+    "doigt": "toucher",
+    "ouvert": true,
+    "permis": true,
+    "garageI": 0,
+    "centre": [
+     151,
+     394
+    ],
+    "a400": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0.03,
+     "t": 5.22,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 442
+    },
+    "tenu": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 0.98,
+     "t": 0.65,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0,
+     "w": 0,
+     "cap": 0,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 354
+    },
+    "tourneMs": 3977,
+    "tourne": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 1,
+     "t": 4.63,
+     "tours": 1,
+     "donut": 2.78,
+     "donM": 0.25,
+     "w": 3.14,
+     "cap": 2.77,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 596
+    },
+    "apres": {
+     "x": [
+      true,
+      true,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": true,
+     "k": 1,
+     "t": 5.23,
+     "tours": 1,
+     "donut": 0.44,
+     "donM": 0.18,
+     "w": -0.2,
+     "cap": 3.04,
+     "doigt": "caisse",
+     "son": true,
+     "fumee": 676
+    },
+    "leve": {
+     "x": [
+      true,
+      false,
+      0,
+      0,
+      0,
+      true
+     ],
+     "on": false,
+     "k": 0.01,
+     "t": 5.25,
+     "tours": 0,
+     "donut": 0,
+     "donM": 0.01,
+     "w": 0,
+     "cap": 3.05,
+     "doigt": null,
+     "son": true,
+     "fumee": 662
+    },
+    "ok": true
+   }
+  ],
+  "pret": true,
+  "sauve": [
+   false,
+   false,
+   false
+  ],
+  "moteurSon": "absent",
+  "son": 1,
+  "sfxOk": true,
+  "ac": "running",
+  "tel": [
+   true,
+   true,
+   null
+  ],
+  "hab": "[{\"hab\":\"trainee:billets\",\"rar\":\"legendaire\",\"ailes\":6,\"anim\":2,\"fx\":{\"pop\":\"billets\",\"rubOff\":false}}]",
+  "erreurs": [
+   "error : [\"TypeError: Cannot read properties of undefined (reading 'length')\\n    at stNote (http://127.0.0.1:9971/index-4324e2b91.html?colonne=0&tel=1&garde=1&intro=ancien&attente=0&chute=0&v=1794976588291:99083:31)\\n    at addEventListener.capture (http://127.0.0.1:9971/index-4324e2b91.html?colonne=0&tel=1&garde=1&intro=ancien&attente=0&chute=0&v=1794976588291:99126:7)\\n    at <anonymous>:1:63\\n    at <a",
+   "TypeError: Cannot read properties of undefined (reading 'length')\n    at stNote (http://127.0.0.1:9971/index-4324e2b91.html?colonne=0&tel=1&garde=1&intro=ancien&attente=0&chute=0&v=1794976588291:99083:31)\n    at addEventListener.capture (http://127.0.0.1:9971/index-4324e2b91.html?colonne=0&tel=1&gar"
+  ],
+  "nErreurs": 2,
+  "s": 68,
+  "resume": "0/toucher:DONUT on=true tours=1 cap=2.62 · 6/toucher:NON on=false tours=0 cap=0 · 12/toucher:DONUT on=true tours=1 cap=2.65 · 20/toucher:DONUT on=true tours=1 cap=2.72 · 28/toucher:DONUT on=true tours=1 cap=2.77"
+ }
+}
