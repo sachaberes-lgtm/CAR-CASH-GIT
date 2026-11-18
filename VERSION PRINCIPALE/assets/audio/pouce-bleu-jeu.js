@@ -257,6 +257,9 @@
           v.g.gain.setValueAtTime(0, t); v.g.gain.linearRampToValueAtTime(G, t + FONDU);
           /* l'ancien palier sort en 8 ms à partir de la mesure : la voix en cours, ET celle de son segment suivant quand la bascule tombe pile sur un bord de segment (sinon l'ancien était coupé net à ce bord) ; ses voix d'après restent muettes */
           S.V.forEach(o => { if (o === v || o.p !== S.cur || o.mort) return; try { if (o.k > kN) { o.g.gain.cancelScheduledValues(0); o.g.gain.setValueAtTime(0, now); } else { o.g.gain.cancelScheduledValues(0); o.g.gain.setValueAtTime(gainDe(o.p), o.k === kN ? t : now); o.g.gain.setValueAtTime(gainDe(o.p), t); o.g.gain.linearRampToValueAtTime(0, t + FONDU); } } catch (e) {} });
+          /* (lot MUSIQUECALME) à chaud, la bascule sur un bord de segment sans la suite de l'ancien palier (pas décodée) : l'ancien finit au bord, son fichier s'arrête net ; il sort donc en
+             8 ms AVANT le bord (le nouveau entre en 8 ms après) : un creux de 16 ms au lieu d'une marche */
+          if (C && !(kN % MS) && !couvre(S.cur, kN)) S.V.forEach(o => { if (o === v || o.p !== S.cur || o.mort || (o.j + 1) * MS !== kN) return; try { const G0 = gainDe(o.p); o.g.gain.cancelScheduledValues(0); o.g.gain.setValueAtTime(G0, now); o.g.gain.setValueAtTime(G0, Math.max(now, t - FONDU)); o.g.gain.linearRampToValueAtTime(0, t); } catch (e) {} });
           S.pend = { p: q, k: kN }; } }
       /* la suite : le début du segment suivant, posé dès que son fichier est décodé ; en secours, la mesure qui vient */
       const jn = Math.floor(k0 / MS) + 1, kk = jn * MS, pn = palA(kk);

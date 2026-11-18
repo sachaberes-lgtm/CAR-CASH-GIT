@@ -92,6 +92,12 @@ async function essai(nom, qs, env, chaud, scen, flux) {
   let trousM = 0, doubles = 0, mauvais = 0, inexact = 0; const jouePal = [];
   const kDeb = Math.ceil((T1 - T0) / mes), nbM = Math.floor((T1 + DUREE - T0) / mes) - 1;
   const infos = VOIX.filter(s => s.t != null).map(s => { const k = Math.round((s.t - T0) / mes), j = Math.floor(k / MS); return { s, k, j, g: s._g && s._g.gain, f: s.buffer.__f }; });
+  /* les arêtes : une voix qui s'arrête au bout de son fichier encore audible sans que la suite du même palier prenne le relais (une marche, un clic possible) */
+  let coupesNettes = 0; const pal = v => F.seg.findIndex(L => L.some(x => F.fichiers[x] === v.f)), tDebA = T1 + .5;
+  for (const v of infos) { const e = v.s._fin; if (v.s.t < tDebA) continue;
+    const suite = infos.some(w => w !== v && Math.abs(w.s.t - e) < 1e-9 && pal(w) === pal(v) && (!w.g || w.g.a(e + 1e-4) > .5));
+    if (v.s._stop >= e - 1e-9 && e < T1 + DUREE - 1 && v.g && v.g.a(e - 1e-6) > .05 && !suite) coupesNettes++;
+  }
   for (const v of infos) { if (v.s.t !== T0 + v.k * mes || Math.abs(v.s.off - (v.k - v.j * MS) * mes) > 1e-12) inexact++; }
   for (let k = 0; k < kDeb; k++) jouePal.push(-1);
   for (let k = kDeb; k < nbM; k++) { const tm = T0 + (k + .5) * mes, jk = Math.floor(k / MS);
@@ -111,7 +117,7 @@ async function essai(nom, qs, env, chaud, scen, flux) {
   return { nom, flux: flux || 'lecteur', decodagesLobby30s: flux === 'pb' ? decLobby : undefined, decodagesTotal: DEC.length, decodagesDepart: DEC.length - decC.length - decLobby, decodagesEnCourse: decC.length, parMinute: +(decC.length / ((DUREE - 4) / 60)).toFixed(1),
     parSegment: +(decC.length / ((DUREE - 4) / (MS * mes))).toFixed(2), enParallele: enVolMax, lancesDansLaSecondeApresUnGel: sousGel, enCourseParRaison_lances_apresGel: et.calme && et.calme.on ? apresGel : undefined,
     raisons: et.calme && et.calme.on ? { prep: et.calme.prep, suivant: et.calme.suivant, force: et.calme.force, secours: et.calme.secours } : null,
-    mesures: nbM - kDeb, mesuresSansVoix: trousM, mesuresADeuxVoix: doubles, mauvaisFichier: mauvais, departsInexacts: inexact, trousNotes: et.trous,
+    coupesNettes, mesures: nbM - kDeb, mesuresSansVoix: trousM, mesuresADeuxVoix: doubles, mauvaisFichier: mauvais, departsInexacts: inexact, trousNotes: et.trous,
     picMo: et.picMo, memoireMaxVueMo: Math.max(...vues), basculesDemandees: demandes.length, basculesFaites: ok.length, retardMedianS: q(.5), retardP90S: q(.9), retardMaxS: ok.length ? +ok[ok.length - 1].toFixed(1) : null };
 }
 const scie = R => { const L = []; let m = 1, s = 1; for (let t = PAS; t < DUREE; t += PAS) { m += s; if (m >= 30) { m = 30; s = -1; } if (m <= 1) { m = 1; s = 1; } L.push({ t, m }); } return L; };
