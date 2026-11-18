@@ -428,7 +428,7 @@ const ACC30=TEL_NATIF&&!/[?&]sans=[^&]*acc30/.test(location.search);
 const ACC30_CHAUD=!/[?&]sans=[^&]*acc30chaud/.test(location.search);
 function accFrais(){try{return MOB_S.capteur&&MOB_S.thermo<(ACC30_CHAUD?3:2);}catch(e){return false;}}
 function hcRepos(now){if(MENU_MAX||HC_REPOS_OFF||!TEL_NATIF)return 0; /* (2026-11-10) le repos à 15 i/s est une affaire de chaleur de téléphone : un ordi aux régimes LÉGER / MINIMUM garde ses menus à 30 */const d=now-HC.gT;
-  if(ACC30&&d<=60000&&accFrais())return 0; /* L'ACCUEIL FLUIDE : 30 i/s (CAD.per) tant que le téléphone est frais et qu'on l'a touché depuis moins d'une minute */
+  if(ACC30&&d<=60000&&accFrais()&&!(d>MCH.repos&&mchVoulu()))return 0; /* L'ACCUEIL FLUIDE : 30 i/s (CAD.per) tant que le téléphone est frais et qu'on l'a touché depuis moins d'une minute */ /* (2026-11-18, LE MENU AU CHAUD, nettete-qualite.js) à SERIOUS, après 10 s sans geste : 15 i/s réguliers (reposLongMs) ; le premier toucher rend les 60 puis les 30 */
   return d>8000?PAL.b('reposLongMs',0):d>3000?PAL.b('reposMs',0):0;}
 /* ===== LA FENÊTRE DE TRANSITION (2026-11-13, transitions-ui — Sacha : « soigner les transitions dans l'interface, animation, plus de fluidité ») =====
    Un changement d'écran (mGo, le volet ecranWipe, garMode/gModeVa du garage, le voile du départ) joue son entrée en 0,4 à 1,5 s, mais la cadence des menus

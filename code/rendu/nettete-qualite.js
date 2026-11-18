@@ -203,7 +203,7 @@ function qlOmbN1(k){const a=k>=4?512:k>=2?768:QL.ombre0;return prfDoux()&&prfGou
 function qlPose(k){ const b=qlBornes();k=Math.max((VHD.on||QL.force)?0:PAL.b('qlMin',0),Math.min(b.kMax,k|0));k=qlDoux(k,b); /* (2026-11-14, LE GOUVERNEUR DOUX) voir qlDoux */if(PRF.on){if(PRF.q==='haute'&&!VHD.on&&!QL.force&&prfGouv()<(prfDoux()?prfCrit():2)&&!prfLourd())k=Math.min(k,PRF.T.hauteK);} /* (2026-11-14, PROFIL) HAUTE : deux crans au plus (accrocs acceptés) ; dès que le gouverneur de chaleur est au palier « sérieux » ou plus, son plancher (qlMin) garde la main */else if(qHaute())k=0;if(k!==QL.k)QL.kT=performance.now();QL.k=k; /* (OPTIMISATION) HAUTE : jamais baissé */ // (2026-10-14, passe perf mobile) le cran sous lequel ce palier ne remonte pas — voir LE DÉPART AU BON CRAN
   const om=VHD.on?VHD.ombre:POSTE.fixe?QL.ombre0:(PRF.on&&PRF.n>=2&&QL_OMB_REL)?(k>=2?Math.min(QL.ombre0,qlOmbreBas(PRF.T.n[PRF.n].ombre,k>=4?2:1)):QL.ombre0):qlOmbN1(k); /* (2026-11-14, lot juge) sous profil N2-N4 l'échelle retire des crans d'ombre AU NIVEAU (cran 2 : un de moins, cran 4 : deux), sans jamais remonter au-dessus de ce que le gouverneur a posé ; N1 et hors profil : 768 / 512 absolus, comme avant */ /* (2026-11-11) Mac (POSTE.fixe) : ni carte d'ombre ni cibles du halo refaites en course — zéro allocation graphique à chaud */ // (2026-09-28) l'ACCUEIL en haute définition a sa carte d'ombre à lui (voir VHD)
   if(sun.shadow.mapSize.x!==om){const a9=sun.shadow.mapSize.x,C9=QL.ombres||(QL.ombres={});if(sun.shadow.map){if(a9<=1280)C9[a9]=sun.shadow.map;else sun.shadow.map.dispose();} /* (P2, bascules gratuites) les cartes ≤ 1280 se GARDENT par taille : revenir à 768/512/1024 ne réalloue plus rien (les grandes de la vitrine, elles, sont libérées) */sun.shadow.map=C9[om]||null;sun.shadow.mapSize.set(om,om);renderer.shadowMap.needsUpdate=true;} // zéro recompilation
-  const br=(k>=3&&!POSTE.fixe?.75:1)*BLOOM_BASE;if(br!==BLOOM_RES){BLOOM_RES=br;if(bloomPass&&bloomPass._W)bloomPass.setSize(bloomPass._W,bloomPass._H);}
+  const br=(k>=3&&!POSTE.fixe?.75:1)*BLOOM_BASE*(VHD.on?mchHalo():1); /* (2026-11-18, LE MENU AU CHAUD) la vitrine au chaud : halo en ½ résolution */if(br!==BLOOM_RES){BLOOM_RES=br;if(bloomPass&&bloomPass._W)bloomPass.setSize(bloomPass._W,bloomPass._H);}
   FLOU_OK=k<5;vdaDecor(k,b); /* (LA VOITURE D'ABORD) les crans du décor */
   if(bloomPass)bloomPass.enabled=!REDUCED_MOTION&&k<b.kMax&&!PAL.b('bloomOff',0); /* (2026-10-24, allègement mobile) palier 0 : plus de bloom du tout (une passe plein écran de moins) — `?bloom=1` le rend */
   if(k<1&&renderer.shadowMap.autoUpdate===false)renderer.shadowMap.autoUpdate=true;
@@ -270,9 +270,37 @@ function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),v9=PRF.on&&PRF.pc
 function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(IMG_TEL?4:8,m); /* (2026-11-14) IMG_TEL : l'image PC du profil a l'anisotropie de l'ordi */
   for(const t of [ASPH_TEX,LIGNE_TEX])if(t&&t.anisotropy!==n){t.anisotropy=n;t.needsUpdate=true;}}
 function vhdBascule(on){ if(VHD.off||on===VHD.on)return;
-  if(on){VHD.k0=QL.k;VHD.dpr=VHD.max=vhdDpr();VHD.lT=VHD.bT=VHD.sT=0;VHD.ombre=Math.min(TEL_NATIF?(MENU_MAX?PAL.b('vhdOmbre',2048):(PRF.on&&PRF.pc)?PRF.T.vhd[PRF.nMax].ombre:Math.min(PAL.b('vhdOmbre',2048),PAL.b('vhdOmbreTel',1024))):VHE_MODE===2?2048:4096,renderer.capabilities.maxTextureSize);VHD.t=0;VHD.on=true;curDPR=-1;qlPose(0);}
-  else{VHD.on=false;curDPR=-1;qlPose(VHD.k0);}
+  if(on){VHD.k0=QL.k;VHD.dpr=VHD.max=vhdDpr();VHD.lT=VHD.bT=VHD.sT=0;MCH.on=mchVoulu();VHD.ombre=mchOmbre(Math.min(TEL_NATIF?(MENU_MAX?PAL.b('vhdOmbre',2048):(PRF.on&&PRF.pc)?PRF.T.vhd[PRF.nMax].ombre:Math.min(PAL.b('vhdOmbre',2048),PAL.b('vhdOmbreTel',1024))):VHE_MODE===2?2048:4096,renderer.capabilities.maxTextureSize));VHD.t=0;VHD.on=true;mchMips();curDPR=-1;qlPose(0);} /* (LE MENU AU CHAUD) à l'entrée de la vitrine, l'état du téléphone décide de l'ombre et du halo */
+  else{VHD.on=false;mchMips();curDPR=-1;qlPose(VHD.k0);}
   vhdAniso(on);}
+/* ===== LE MENU AU CHAUD — MCH (2026-11-18, lot menuchaud, Sacha : « sur l'interface, le jeu, tout ça, il y a encore pas mal de freeze » ; « je préférais que ça soit la map
+   qui baisse en qualité en priorité et que la voiture soit toujours le plus nette ») =====
+   LU (plan chaleur du 18/11) : au menu, au garage et à la boutique la vitrine rend 1,32 M de pixels (2,6 fois une course) avec une ombre 1024 et 30 i/s même à SERIOUS
+   (L'ACCUEIL FLUIDE, cadence.js) : le téléphone chauffe entre deux courses au lieu de refroidir. Désormais, sur un VRAI téléphone (TEL_NATIF), état thermique SERIOUS ou plus
+   (`window.__ccThermique` ≥ 2, ou le capteur lu par le gouverneur) :
+     · la vitrine GARDE sa résolution (VHD.dpr, densité 2) : la voiture reste aussi nette ;
+     · le DÉCOR baisse : carte d'ombre 768 au lieu de 1024 (une taille que QL.ombres garde : rien ne se réalloue au retour), halo en ½ résolution (sa taille à l'écran est
+       normée : HALO_LOG, triptyque-bloom.js) et 2 étages au plus ;
+     · la bascule de l'ombre et du halo tombe SOUS LE VOLET (ecranWipe couvre l'écran) ou à l'entrée de la vitrine : jamais sous les yeux ;
+     · au repos (aucun geste depuis 10 s), le menu tourne à 15 i/s réguliers (66,7 ms, cadence.js hcRepos) ; le premier toucher rend les 60 i/s (HC GESTE), puis 30.
+       Un doigt sur la caisse (garageDrag, le donut BURN, la boutique GBQ) compte toujours comme un geste : jamais 15 i/s sous le doigt.
+   Nominal, fair, ordinateur, `?menu=max` : rien ne change. `?sans=menuchaud` = comme avant. `dbgMenuChaud()` : l'état ; `dbgMenuChaud(1|0)` force l'état chaud / froid et
+   le pose tout de suite (banc) ; `dbgMenuChaud(null)` rend la main au capteur. */
+const MCH_ON=TEL_NATIF&&!MENU_MAX&&!/[?&]sans=[^&]*\bmenuchaud\b/.test(location.search);
+const MCH={on:false,force:null,n:0,repos:10000,ombre:768,halo:.5,mips:2};
+function mchVoulu(){if(!MCH_ON)return false;if(MCH.force!=null)return !!MCH.force;
+  let th=+window.__ccThermique||0;try{if(MOB_S.capteur)th=Math.max(th,MOB_S.thermo|0);}catch(e){}return th>=2;}
+function mchOmbre(om){return MCH_ON&&MCH.on?Math.min(om,MCH.ombre):om;}
+function mchMips(){IMG_DYN.mchMips=MCH_ON&&MCH.on&&VHD.on?MCH.mips:0;}
+function mchHalo(){return MCH_ON&&MCH.on&&VHD.on?MCH.halo:1;} /* qlPose : la part du halo de la vitrine au chaud */
+function mchPose(v){if(!MCH_ON||v===MCH.on)return;MCH.on=v;MCH.n++;if(!VHD.on)return; /* hors vitrine : l'entrée de la vitrine posera l'état */
+  VHD.ombre=v?Math.min(VHD.ombre,MCH.ombre):Math.min(TEL_NATIF?(PRF.on&&PRF.pc)?PRF.T.vhd[PRF.nMax].ombre:Math.min(PAL.b('vhdOmbre',2048),PAL.b('vhdOmbreTel',1024)):VHE_MODE===2?2048:4096,renderer.capabilities.maxTextureSize);
+  mchMips();qlPose(0);} /* VHD.dpr ne bouge pas : la toile n'est pas réallouée, seuls l'ombre et le halo changent */
+function mchVolet(){if(MCH_ON)mchPose(mchVoulu());} /* appelé par ecranWipe quand le volet couvre l'écran */
+window.dbgMenuChaud=function(f){if(f!==undefined){MCH.force=f==null?null:!!f;mchPose(mchVoulu());}
+  let H=null;try{H={per:HC.per,on:HC.on,calme:Math.round(performance.now()-HC.gT)};}catch(e){}
+  return {actif:MCH_ON,voulu:mchVoulu(),on:MCH.on,force:MCH.force,poses:MCH.n,vhd:VHD.on,dpr:+curDPR.toFixed(3),vhdDpr:+VHD.dpr.toFixed(3),ombre:sun.shadow.mapSize.x,halo:bloomPass&&bloomPass.enabled?BLOOM_RES:0,
+    etages:bloomPass?Math.min(bloomPass.nMips,bloomPass._nM||bloomPass.nMips,IMG_DYN.mchMips||9):null,toile:[renderer.domElement.width,renderer.domElement.height],cadence:H};};
 function vhdMonte(now,vrai){ // (2026-10-13, LE FILET v2) un cran de netteté qui revient (×1,25), jamais au-delà de l'écran ni vers le cran qui vient d'échouer ;
   // vrai = le coût mesuré par la sonde (ms) : on ne monte que si l'image agrandie (coût ∝ pixels, pessimiste) tient encore sous 14 ms
   const d9=Math.min(VHD.max,VHD.dpr*1.25);if(VHD.murT&&now-VHD.murT<45000&&d9>VHD.mur-.02)return false;

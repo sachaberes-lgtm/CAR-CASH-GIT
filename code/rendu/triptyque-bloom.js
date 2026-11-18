@@ -421,7 +421,7 @@ if(CAN_POST){ try{
       if(!pl){this.highPassUniforms.tDiffuse.value=rb.texture;this.highPassUniforms.luminosityThreshold.value=this.threshold;
         this.fsQuad.material=this.materialHighPassFilter;rd.setRenderTarget(this.renderTargetBright);rd.clear();this.fsQuad.render(rd);}
       let inp=pl?rb:this.renderTargetBright;
-      let nM=Math.min(this.nMips,this._nM||this.nMips);if(IMG_DYN.vdaMips>0)nM=Math.max(1,nM-IMG_DYN.vdaMips); /* (2026-11-18, LA VOITURE D'ABORD) un étage de halo de moins, sans rien réallouer */ // (2026-10-14, passe perf mobile) les étages de flou de ce palier — voir postBloomMips
+      let nM=Math.min(this.nMips,this._nM||this.nMips);if(IMG_DYN.vdaMips>0)nM=Math.max(1,nM-IMG_DYN.vdaMips); /* (2026-11-18, LA VOITURE D'ABORD) un étage de halo de moins, sans rien réallouer */if(IMG_DYN.mchMips>0)nM=Math.min(nM,IMG_DYN.mchMips); /* (2026-11-18, LE MENU AU CHAUD, nettete-qualite.js) la vitrine au chaud : 2 étages au plus */ // (2026-10-14, passe perf mobile) les étages de flou de ce palier — voir postBloomMips
       for(let i=0;i<nM;i++){const m=this.separableBlurMaterials[i],hz=this.renderTargetsHorizontal[i],vt=this.renderTargetsVertical[i];
         if(pl&&i>=3&&this.plie2d!==false){const q=this._p2[i];q.uniforms.colorTexture.value=inp.texture;q.uniforms.texSize.value=m.uniforms.texSize.value; // mips 3-4 : le flou 2D en UNE passe
           this.fsQuad.material=q;rd.setRenderTarget(vt);rd.clear();this.fsQuad.render(rd);inp=vt;continue;}
