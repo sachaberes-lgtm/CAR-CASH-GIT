@@ -5,6 +5,7 @@
 cd "$(dirname "$0")/../.." || exit 2
 E="$1";T="${2:-2}";shift;shift
 M=outils/banc-transitions/mesures
+mkdir -p "$M"
 ~/cash-car/verrou-banc.sh prendre "auteur-transitions"
 timeout 340 python3 outils/banc-transitions/transitions.py --tours "$T" --qs "&sans=transitions" --json "$M/$E-avant.json" "$@"
 timeout 340 python3 outils/banc-transitions/transitions.py --tours "$T" --json "$M/$E-apres.json" "$@"

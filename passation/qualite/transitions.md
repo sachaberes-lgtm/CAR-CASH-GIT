@@ -75,9 +75,20 @@ Lecture : le balayage ne saute plus (17 % = le pas normal d'une image à 60 i/s)
 - `sous-verrou.sh` : une commande sous le verrou, ne rend que SON verrou.
 - `balayage.cjs` : le banc sans navigateur ci-dessus (sortie 1 si l'après saute plus que l'avant).
 
-## 6. Mesures Chrome
+## 6. Mesures Chrome (inventaire, avant/après dans une vraie page)
 
-(voir la section « MESURES CHROME » plus bas si elle existe : le verrou commun était tenu par 15 à 20 chantiers cette nuit.)
+**AUCUNE mesure Chrome cette nuit.** Le verrou commun des bancs avait 13 à 21 chantiers en attente ; `passe.sh` a attendu de 4 h 25 à 8 h 38
+sans jamais l'avoir (tirage toutes les 15 s, aucune file). Abandonné proprement (mon attente tuée, le verrou des autres jamais touché).
+Donc NI le tableau d'inventaire chiffré, NI les suites d'images de la relance, NI le temps appui → course mesuré dans une vraie page.
+À lancer quand la machine sera calme (≈ 2 × 5 min) :
+    sh outils/banc-transitions/passe.sh nuit 5          # → mesures/nuit-avant.json, nuit-apres.json (inventaire, 5 tours, ×4)
+    python3 outils/banc-transitions/transitions.py --film /tmp/film-avant --qs "&sans=transitions"   # suites d'images JOUER et REJOUER
+    python3 outils/banc-transitions/transitions.py --film /tmp/film-apres
+    python3 outils/banc-transitions/transitions.py --profil   # la cause dans la relance (profil 0,5 ms)
+(les deux dernières : sous `sous-verrou.sh`). À lire : pour REJOUER, `out pire` (pire intervalle pendant le retrait) et `>50` avant/après ;
+`appui→levé` (attendu : + la durée des images lourdes) et `appui→course` (attendu : égal).
+Piège rencontré : le dossier de travail (scratchpad) est PARTAGÉ avec d'autres sessions — un autre banc a écrit dans mon `p1.log`. Le banc écrit
+ses chiffres dans `outils/banc-transitions/mesures/` (noms uniques) ; ne pas se fier aux journaux du scratchpad.
 
 ## 7. Non prouvé / à voir sur le téléphone
 - Sur le 13 Pro : `dbgTransitions()` après un REJOUER (attente, sortie `régulier` / `450 ms`, `outPire`). Si la sortie est souvent `450 ms`,
@@ -85,3 +96,15 @@ Lecture : le balayage ne saute plus (17 % = le pas normal d'une image à 60 i/s)
 - WebKit : la toile 2D se dessine sur le fil principal comme dans Chrome ; aucune hypothèse sur le compositeur n'est faite.
 - Les autres transitions de l'inventaire (pause, mort, portail) : voir les mesures Chrome ; le lot TRANSITIONS-UI a traité la cadence des menus,
   les photos de caisses et le voile du lâcher ; le lot portv le passage du portail.
+
+## 8. L'inventaire (non chiffré ce soir : lu dans le code et dans les lots précédents)
+
+| transition | ce qui anime | ce qui travaille pendant | état |
+|---|---|---|---|
+| fin → REJOUER | balayage doré (toile 2D, rAF) 150 + 280 ms | rejoueAttend (tranches 30 ms sous le volet), resetGame d'un bloc sous le volet, puis 1res images lourdes | **corrigé ici** (lever sur image régulière, horloge du retrait) |
+| accueil → JOUER | balayage, puis le lâcher 3D, puis le voile chaud `#gFade` | openGarage sous le volet ; à la fin du lâcher closeGarage + resetGame/start + buildCar | volet : corrigé ici ; voile chaud : déjà tenu (`departVoileLeve`, TRANSITIONS-UI) |
+| fin → MENU / GARAGE / MISSIONS, garage → boutique | balayage | accueilRetour / openGarage | même volet : corrigé ici |
+| pause / reprise | opacity + translate (compositeur) | 65 ms au tap (×4, TRANSITIONS-UI) | rien à corriger (TRANSITIONS-UI) |
+| mort → écran de fin | `m6File`, `k4Clac` (filter : pas composé) | engVigRender lit la puce à chaque image | NON corrigé : changerait l'allure (proposition TRANSITIONS-UI, à montrer à Sacha) |
+| portail | voile du portail | construction étalée sous le voile (lot portv) | tenu par portv (`?sans=portv`) |
+| mort → seconde chance | — | — | non mesuré (passe par la pub ; aucun banc ce soir) |
