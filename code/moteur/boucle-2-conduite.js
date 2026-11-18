@@ -1,4 +1,4 @@
-if(MG.on)MG.ts[2]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 2 — voir moteur/mouchard-gels.js */
+if(MG.on)mgTs(2); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 2 — voir moteur/mouchard-gels.js */
     if(mode==='drive'){
       landMark.visible=false;LM.a=0; // (au sol : le prochain vol repart d'un viseur éteint)
       // ANTI-IDLE : la musique n'avance pas sans toi — reste quasi à l'arrêt trop longtemps et la caisse explose

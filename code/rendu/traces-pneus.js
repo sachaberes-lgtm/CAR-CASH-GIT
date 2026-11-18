@@ -90,7 +90,8 @@ function ccConstr(etape,ms){try{document.dispatchEvent(new CustomEvent('cc:const
    de la route et entre deux décors (voir `pisteDirecteG`, `buildTrackG`). Partout ailleurs `newTrack()` le mène d'un trait, comme avant ; seul le chargement sous le serpent le mène par tranches
    de PISTE_TRANCHE ms (`chargeTranches`, vignette-moteur.js). */
 function* newTrackG(){
-  const t0NT=performance.now();ccConstr('debut');try{pilConstr(1);}catch(e){} /* (5e tour, M2) construction en cours : ni gels ni ratés ne comptent */try{yield* newTrack0G();}finally{ccConstr('fin',Math.round(performance.now()-t0NT));try{pilConstr(0);}catch(e){}try{if(started&&!gameOver)pilMoment('piste');}catch(e){} /* (2026-11-17, LE PILOTE DE QUALITÉ) un changement de carte : le jeton du portail est consommé ; sans jeton (dbgSaut), un moment invisible (crans 0-8) ; sous resetGame, rien */}}
+  if(PVE.ph&&!PVE.dedans)pveFinit(); /* (lot portv) un passage étalé en cours finit d'abord, d'un trait */
+  const t0NT=performance.now();ccConstr('debut');try{pilConstr(1);}catch(e){} /* (5e tour, M2) construction en cours : ni gels ni ratés ne comptent */pvDebut();try{yield* newTrack0G();}finally{pvFin();ccConstr('fin',Math.round(performance.now()-t0NT));try{pilConstr(0);}catch(e){}try{if(started&&!gameOver)pilMoment('piste');}catch(e){} /* (2026-11-17, LE PILOTE DE QUALITÉ) un changement de carte : le jeton du portail est consommé ; sans jeton (dbgSaut), un moment invisible (crans 0-8) ; sous resetGame, rien */}}
 function newTrack(){const g=newTrackG();while(!g.next().done);}
 function* newTrack0G(){
   PORTV.paye=0; // (audit p8) une piste neuve est bâtie : son portail paiera de nouveau
@@ -105,11 +106,11 @@ function* newTrack0G(){
   const niv=lvlChoisir();try{sonsChauffeCarte(niv);}catch(e){} /* (2026-11-10, refonte du son) les sons propres à cette map décodés pendant qu'on la bâtit */ // LE NIVEAU D'ABORD : buildClouds et buildVoxCity le lisent pendant la construction
   try{flowLieu(niv&&niv.id==='ville'?'ville':'');}catch(e){} // (2026-09-28, FLOW2 loi 15) en VILLE, la triade se gagne sur la route
   {const id9=niv&&niv.id,av9=ORBFX.prev;ORBFX.prev=id9; // (2026-09-28) L'ORBITE A SES PORTES : tunnel en y entrant, feu en en sortant (portail franchi en course)
-   if(started&&!gameOver&&runStats.zones>0&&!PARK.on&&av9&&id9&&av9!==id9){if(id9==='espace')orbWarp();else if(av9==='espace')orbFeu();}}
-  if(!leger9){const s9=prebGraine(niv);if(s9!=null)sd=s9;} // (2026-10-17) LE PRÉ-BÂTI : au passage du portail, la piste d'en face bâtie d'avance garde SA graine (voir PREB)
+   if(started&&!gameOver&&runStats.zones>0&&!PARK.on&&av9&&id9&&av9!==id9)pvAnn(function(){if(id9==='espace')orbWarp();else if(av9==='espace')orbFeu();});} /* (lot portv, 2e tour) pvAnn : à l'ouverture du voile pendant l'étalement */
+  pvMq('debut');if(!leger9){const s9=prebGraine(niv);if(s9!=null)sd=s9;}pvMq('graine'); // (2026-10-17) LE PRÉ-BÂTI : au passage du portail, la piste d'en face bâtie d'avance garde SA graine (voir PREB)
   if(niv&&niv.graine)sd=niv.graine; // (2026-09-27) CAMPAGNE : la même piste, les mêmes pièces, les mêmes nuages à chaque essai
   if(!leger9){const e9=prebPalier();try{yield* buildTrackG(sd);}finally{if(e9!=null)engTier=e9;} // (LE PRÉ-BÂTI) le décor d'une piste bâtie d'avance se bâtit à son palier (prebPalier)
-  padsInstancier();} // (2026-09-27, passe perf iPhone) …et les plaques turbo : 82 appels de dessin → 1
+  padsInstancier();pvMq('pads');}if(PORTV_ON)yield; /* (lot portv) les yields de la fin de newTrack0G : des pauses possibles pour le passage étalé (d'un trait, rien ne change) */ // (2026-09-27, passe perf iPhone) …et les plaques turbo : 82 appels de dessin → 1
   // LE CIEL : chaque NIVEAU tire le sien dans sa propre liste (voir NIVEAUX). Hors niveaux (parc
   // freestyle), l'ancien CYCLE DU CIEL : une heure du jour au hasard, jamais deux fois la même de
   // suite, et la VRAIE NUIT au 3e portail (runStats.zones est ++ AVANT newTrack, remis à 0 par resetGame).
@@ -121,12 +122,12 @@ function* newTrack0G(){
   bioGo(nb9,started?bioPortDur():.01); // (2026-09-26, vague 2) 1,2 s au portail (et au replay) en passant par le sombre (voir bioStep) — c'était 4 s de brume laiteuse ; instantané au boot
   if(started&&!PCV.fen)BIO.dip=1;
   lvlGo(started?bioPortDur():.01);     // …et le monde (étoiles de l'orbite, taille de la planète) bascule avec lui
-  if(niv&&started&&!gameOver&&runStats.zones>0)lvlAnnonce(); // « NIVEAU 2 — MER DE NUAGES » (le niveau 1, lui, s'annonce après le logo du départ : voir fireLaunchBoost)
-  else if(nightFalls)showMsg('LA NUIT TOMBE…','#9ac8ff'); // le déblocage s'annonce
-  if(!leger9)computeMinimap();
-  try{musicSuitLieu();}catch(e){} // LA MUSIQUE PAR MONDE : change si le lieu en réclame une autre
-  if(!leger9){spawnPickups(mulberry32(sd^0x9e3779b9));} /* (2026-11-05, LES SENTIERS DE LUCIOLES) les fils de la forêt : après les pièces */
-  dmtCoupe();POSE_F=null;hopY=0;hopV=0;try{frCoupe();}catch(e){}sonsChauffe(SONS_COURSE);s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;loop._camDriveT=0; // (2026-09-28) la caméra repart de sa place sur la NOUVELLE piste (la coupe se cache sous le flash du portail)
+  if(niv&&started&&!gameOver&&runStats.zones>0)pvAnn(lvlAnnonce); /* (lot portv, 2e tour) la bannière part à l'ouverture du voile */ // « NIVEAU 2 — MER DE NUAGES » (le niveau 1, lui, s'annonce après le logo du départ : voir fireLaunchBoost)
+  else if(nightFalls)pvAnn(function(){showMsg('LA NUIT TOMBE…','#9ac8ff');}); // le déblocage s'annonce
+  pvMq('ciel');if(PORTV_ON)yield;if(!leger9)computeMinimap();pvMq('minicarte');if(PORTV_ON)yield;
+  pvAnn(function(){try{musicSuitLieu();}catch(e){}}); /* (lot portv, 2e tour) le morceau du niveau entre à l'ouverture du voile */ // LA MUSIQUE PAR MONDE : change si le lieu en réclame une autre
+  if(!leger9){if(PORTV_ON)yield* spawnPickupsG(mulberry32(sd^0x9e3779b9));else spawnPickups(mulberry32(sd^0x9e3779b9));}pvMq('pieces');if(PORTV_ON)yield; /* (lot portv) les pièces en tranches */ /* (2026-11-05, LES SENTIERS DE LUCIOLES) les fils de la forêt : après les pièces */
+  dmtCoupe();POSE_F=null;hopY=0;hopV=0;try{frCoupe();}catch(e){}s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;loop._camDriveT=0;if(pvFinPartie())return; /* (lot portv, 2e tour) l'étalement finit sur une partie finie (mort, QUITTER) : la caisse posée sur la piste neuve, rien de plus — ni sons, ni vitesse, ni mode='drive' */sonsChauffe(SONS_COURSE); // (2026-09-28) la caméra repart de sa place sur la NOUVELLE piste (la coupe se cache sous le flash du portail)
   if(vA<20)vA=20;
   mode='drive';
   campDebut(); // (2026-09-27) la zone qui commence : l'orage repart, la caisse-nuage se range, l'événement rare se pose

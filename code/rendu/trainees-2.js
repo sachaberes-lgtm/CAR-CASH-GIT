@@ -119,14 +119,27 @@ const TRX_EMET={
       p.vx=C.R.x*sl+C.U.x*su-C.F.x*sa;p.vy=C.R.y*sl+C.U.y*su-C.F.y*sa;p.vz=C.R.z*sl+C.U.z*su-C.F.z*sa;trxVit(p,.88);
       p.g=-1.2;p.dr=.9;p.sw=1.1;p.sf=3+Math.random()*2;p.sx=C.R.x;p.sy=C.R.y;p.sz=C.R.z;p.vr=(Math.random()-.5)*5;p.fl=3+Math.random()*5;
       p.l=1.8+Math.random()*.9;p.w=p.h=.1+Math.random()*.06;p.c=27+((Math.random()*3)|0);p.fi=.12;p.fo=.6;p.cu=TC_ON?1:0;}},
-  billets:function(T,C,k,dt,on,debut){if(!on)return; // FAIS PLEUVOIR — des billets qui jaillissent, tournoient (recto, verso) et planent
-    let nb=0;T.acc+=dt*(C.pv?8:TRX_DENSE?19:12)*k;while(T.acc>=1){T.acc-=1;nb++;}if(debut)nb+=C.pv?10:18;
-    for(let q=0;q<nb;q++){const p=trxNait(0);if(!p)return;const lat=(Math.random()-.5)*.8,up=.3+Math.random()*.7,sl=(Math.random()-.5)*7,su=2+Math.random()*3.5,sa=1+Math.random()*2.5;
-      p.x=C.P.x+C.R.x*lat+C.U.x*up;p.y=C.P.y+C.R.y*lat+C.U.y*up;p.z=C.P.z+C.R.z*lat+C.U.z*up;
-      p.vx=C.R.x*sl+C.U.x*su-C.F.x*sa;p.vy=C.R.y*sl+C.U.y*su-C.F.y*sa;p.vz=C.R.z*sl+C.U.z*su-C.F.z*sa;trxVit(p,.86);
-      p.g=-5.5;p.dr=1.4;p.sw=.8;p.sf=4+Math.random()*3;p.sx=C.R.x;p.sy=C.R.y;p.sz=C.R.z;p.vr=(Math.random()-.5)*6;p.fl=6+Math.random()*6;
-      p.l=1.8+Math.random()*.6;p.w=p.h=.3;p.c=30;p.c2=31;p.fo=.5;p.cu=TC_ON?2:0;p.bi=tcBilTire();p.wr=tcBilWear();
-      if(Math.random()<(debut&&q<10?.8:.28)){const s=trxNait(1);if(s){s.x=p.x;s.y=p.y;s.z=p.z;s.vx=p.vx*.6;s.vy=p.vy*.6;s.vz=p.vz*.6;s.dr=1;s.l=.35+Math.random()*.25;s.w=s.h=.16+Math.random()*.08;s.c=2;s.vr=7;s.cr=1.7;s.cg=1.55;s.cb=.7;s.fo=.2;s.tw=14+Math.random()*8;s.cu=TC_ON?3:0;}}}}, /* (2026-10-17, TRAÎNÉES) l'ÉCLAT DE L'ARGENT : un billet sur quatre lâche une étincelle d'or qui scintille (presque tous à l'allumage) */
+  /* ===== FAIS PLEUVOIR v3 — LE CANON À CONFETTIS (2026-11-17, Sacha : « que les billets d'euros sortent de la fenêtre du conducteur, plus
+     petits, beaucoup plus — que ça sorte comme des confettis tout le temps quand tu es sur le nitro ; stylé et bien optimisé ») =====
+     Les billets ne sortent plus de la poupe : ils JAILLISSENT de la vitre du conducteur (CAR_VITRE, relevée sur le verre de chaque caisse),
+     en gerbe vers l'extérieur et vers le haut, puis retombent en pluie en se retournant. Avant : 19 billets/s d'un mètre (~30 cubes chacun).
+     Désormais, sous nitro : 160/s (110 sur ALLEGE, 100 sans TRX_DENSE, 55 au garage), des CONFETTIS au quart de la taille (4 cubes, voir
+     tcBilPoseC), un billet détaillé sur seize (la moitié de l'ancien), une RAFALE de 48 à l'allumage. Budget en course : ~230 billets en
+     l'air, ~1 100 cubes, UN appel de dessin (la piscine TC.s), mesuré 0,1-0,45 ms par image pour toute la traînée (banc-trainees). L'élan gardé (.92) et un air léger (.55) les gardent dans l'image de la poursuite. Le cadre de la vitre luit d'un
+     éclat d'or (une lueur en bandes, toutes les 70 ms) : on voit d'où sort l'argent. */
+  billets:function(T,C,k,dt,on,debut){if(!on)return;
+    let nb=0;T.acc+=dt*(C.pv?55:TRX_DENSE?(ALLEGE?110:160):100)*k;while(T.acc>=1){T.acc-=1;nb++;}if(debut)nb+=C.pv?24:48;
+    const W=C.W,N=C.N,U=C.U,F=C.F;
+    for(let q=0;q<nb;q++){const p=trxNait(0);if(!p)return;
+      const gros=debut?q<5:Math.random()<.06,az=(Math.random()-.5)*.5,ay=(Math.random()-.5)*.16, /* la place dans le cadre de la vitre : 50 cm de long, 16 de haut */
+        so=(debut?3:2.2)+Math.random()*4.2,su=.6+Math.random()*(debut?3.4:2.6),sa=.3+Math.random()*2,sf=(Math.random()-.5)*1.4; /* dehors · en l'air · vers l'arrière · un peu de flou */
+      p.x=W.x+F.x*az+U.x*ay;p.y=W.y+F.y*az+U.y*ay;p.z=W.z+F.z*az+U.z*ay;
+      p.vx=N.x*so+U.x*su+F.x*(sf-sa);p.vy=N.y*so+U.y*su+F.y*(sf-sa);p.vz=N.z*so+U.z*su+F.z*(sf-sa);trxVit(p,.92);
+      p.g=-3.2;p.dr=.55;p.sw=.9;p.sf=5+Math.random()*4;p.sx=F.x;p.sy=F.y;p.sz=F.z;p.vr=(Math.random()-.5)*8;p.fl=8+Math.random()*8;
+      p.l=gros?1.5+Math.random()*.5:1.1+Math.random()*.6;p.bs=gros?.5:(C.pv?.38:.25)+Math.random()*.12;p.mi=gros?0:1;
+      p.w=p.h=.3*p.bs;p.c=30;p.c2=31;p.fo=.35;p.cu=TC_ON?2:0;p.bi=tcBilTire();p.wr=gros?tcBilWear():0;
+      if(Math.random()<(debut&&q<12?.6:.07)){const s=trxNait(1);if(s){s.x=p.x;s.y=p.y;s.z=p.z;s.vx=p.vx*.6;s.vy=p.vy*.6;s.vz=p.vz*.6;s.dr=1;s.l=.3+Math.random()*.2;s.w=s.h=.1+Math.random()*.06;s.c=2;s.vr=7;s.cr=1.7;s.cg=1.55;s.cb=.7;s.fo=.2;s.tw=14+Math.random()*8;s.cu=TC_ON?3:0;}}} /* l'ÉCLAT DE L'ARGENT : une étincelle d'or de temps en temps, une gerbe à l'allumage */
+    T.boltT-=dt;if(T.boltT<=0){T.boltT=.07;const f=trxNait(1);if(f){f.x=W.x+N.x*.1;f.y=W.y+N.y*.1;f.z=W.z+N.z*.1;trxVit(f,1);f.l=.1;f.w=f.h=.22+Math.random()*.08;f.c=2;f.cr=1.6;f.cg=1.5;f.cb=.55;f.fo=.08;f.cu=TC_ON?4:0;}}},
   /* (2026-10-16, session TRAÎNÉES — Sacha : « il faut qu'elle donne toute envie d'acheter ») LES TROIS RUBANS ONT ENFIN LEUR SIGNATURE.
      En course on voit ~3 m de traînée dans l'axe : MENTHE, ROSE NÉON et POUDRE D'OR n'étaient qu'un fil d'une autre couleur à côté du
      feu orange. Chacun gagne ses éclats, lancés SUR LES CÔTÉS et VERS LE HAUT (là où la caméra de poursuite les voit), élan gardé ~0,93. */

@@ -44,6 +44,19 @@ function cyVouBank(C,i0,i1,sg){const n=C.length,sc=new Float32Array(n),N=[];for(
 /* (2026-11-12, LA REFONTE DU CANYON) PLUSIEURS DÉVERS : le grand mur (Q.mur1 → Q.mur2, 86°) et ceux que les pièces déclarent (`GA` : les gabarits de genre 'devers', leur roulis maximal en
    degrés — le toboggan, la vire). Chacun est calculé seul (cyMurBank : sa courbure, son roulis borné) ; en chaque point la dalle garde le dévers le plus couché. Un seul mur et rien d'autre :
    les normales d'avant, au bit près. `CY.murI` reste le bilan du premier ; `CY.murI.z` les liste tous. */
+/* ===== LES OUVRAGES D'APLOMB (2026-11-17, le canyon final — Sacha : « encore des bugs de génération… les parois ») =====
+   MESURÉ (banc devers-ouvrages.cjs, 40 graines) : depuis « le dévers partout » de la V3, la dalle penchait de 21 à 28° DANS la galerie, la mine et le tunnel d'arrivée, et
+   de 60° au bout du pont naturel (la rampe du dévers de la corniche suivante) — or ces ouvrages sont bâtis d'aplomb (cyV3Fr, le repère horizontal de la route) : le bord relevé
+   de la dalle entrait dans leurs piliers et leurs murs (40 graines sur 40 : 30 sommets du tunnel dans le couloir, 105 à 132 de la galerie, ~1000 de la mine). La dalle y reste
+   À PLAT : un gabarit `plat` par ouvrage (le masque lissé de cyMurPose, avant la borne de vitesse du roulis). ?sans=cyplat = l'avant. */
+const CY_PLAT=!/[?&]sans=([^&]*,)?cyplat(,|&|$)/.test(location.search);
+function cyPlatOuvrages(C,Q,GA,VW){if(!CY_PLAT||!GA||!C||C.length<8)return;const kV=Math.max(1,(VW||CY_PLATV)/CY_PLATV), /* les rampes suivent la vitesse du palier : le roulis se compte en °/s, pas en °/m (contrôle adverse : à rampe fixe, le dévers refluait dans l'ouvrage aux paliers 10 et 20) */n=C.length,ix=p=>{let bi=0,bd=1e18;for(let j=0;j<n;j++){const d=C[j].distanceToSquared(p);if(d<bd){bd=d;bi=j;}}return bi;},P=[];
+  for(const g of GA)if(g.t==='galerie'||g.t==='pont')P.push({t:'plat',i0:g.i0,i1:Math.min(n-1,g.i1),ramp:(g.t==='pont'?CY_PLATP:CY_PLATR)*kV,ouv:g.t});
+  if(Q&&Q.mine0&&Q.mine1)P.push({t:'plat',i0:ix(Q.mine0.p),i1:ix(Q.mine1.p),ramp:CY_PLATR*kV,ouv:'mine'});
+  {let i=n-1,d=0;while(i>0&&d<CY_PLATT){d+=Math.hypot(C[i].x-C[i-1].x,C[i].z-C[i-1].z);i--;}P.push({t:'plat',i0:i,i1:n-1,ramp:CY_PLATR*kV,ouv:'tunnel'});} /* le tunnel d'arrivée : ses ~460 derniers mètres, et l'approche de sa bouche */
+  for(const p of P)GA.push(p);}
+const CY_PLATR=150,CY_PLATP=340,CY_PLATT=520,CY_PLATV=78; /* rampes (m, à la croisière du palier 0 : 78 m/s) : ouvrages, pont ; l'arrivée ; la vitesse de référence */
+const CY_COURT=!/[?&]sans=([^&]*,)?cycourt(,|&|$)/.test(location.search),CY_COURTM=12; /* (2026-11-17, canyon final) LES PAS COURTS : voir `large` dans genCanyon */
 function cyMurPose(C,Q,VW,GA){
   CY.murN=null;CY.murI=null;if(!CY_MUR.on)return;
   const ix=p=>{let bi=0,bd=1e18;for(let j=0;j<C.length;j++){const d=C[j].distanceToSquared(p);if(d<bd){bd=d;bi=j;}}return bi;},Z=[];
@@ -67,6 +80,10 @@ function cyMurPose(C,Q,VW,GA){
      24°/s de croisière au plus — MESURÉ : à 1,2 × 24, le 95e centile du roulis vu (l'horizon qui penche) était de 52°/s au palier 0 */
   {const sc9=new Float32Array(n9);for(let i=1;i<n9;i++)sc9[i]=sc9[i-1]+Math.hypot(C[i].x-C[i-1].x,C[i].z-C[i-1].z);const kV9=CY_V3.on?Math.min(CY_MUR.vmax,CY_V3.roulisV/57.2958/cyElan()):1.2*CY_MUR.vmax,lim9=(i,j)=>kV9/Math.max(30,VW)*Math.abs(sc9[i]-sc9[j]);
     for(let i=n9-2;i>=0;i--)Bk[i]=Math.max(Bk[i+1]-lim9(i,i+1),Math.min(Bk[i+1]+lim9(i,i+1),Bk[i]));for(let i=1;i<n9;i++)Bk[i]=Math.max(Bk[i-1]-lim9(i,i-1),Math.min(Bk[i-1]+lim9(i,i-1),Bk[i]));}
+  if(GA){const PO=GA.filter(function(g){return g.t==='plat'&&g.ouv;}); /* (2026-11-17, LES OUVRAGES D'APLOMB) le masque des ouvrages REDIT après la borne de vitesse : elle fait refluer le dévers voisin dans l'ouvrage (35° au bout du pont) ; redit, la dalle y est à plat quoi qu'il arrive, et la rampe (à la vitesse du palier) tient le roulis */
+    if(PO.length){const sc9=new Float32Array(n9);for(let i=1;i<n9;i++)sc9[i]=sc9[i-1]+Math.hypot(C[i].x-C[i-1].x,C[i].z-C[i-1].z);
+      for(const g of PO){const a=sc9[Math.max(0,Math.min(n9-1,g.i0))],b=sc9[Math.max(0,Math.min(n9-1,g.i1))],rp=g.ramp||90;
+        for(let i=0;i<n9;i++){const d=sc9[i]<a?a-sc9[i]:sc9[i]>b?sc9[i]-b:0;if(d>=rp)continue;const t=d/rp,w=1-t*t*(3-2*t);Bk[i]*=1-w;}}}}
   const N=[];for(let i=0;i<n9;i++){const a9=C[Math.max(0,i-1)],c9=C[Math.min(n9-1,i+1)],tl=Math.hypot(c9.x-a9.x,c9.z-a9.z)||1,tx=(c9.x-a9.x)/tl,tz=(c9.z-a9.z)/tl,b9=Math.max(-CY_MUR.max,Math.min(CY_MUR.max,Bk[i]))+Bt[i];
     N.push(new THREE.Vector3(-tz*Math.sin(b9),Math.cos(b9),tx*Math.sin(b9)));}
   CY.murN=N;CY.murI=Object.assign({},bil[0]||{genre:'doux'},{z:bil,doux:CY_V3.on?CY_V3.doux:0});

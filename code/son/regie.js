@@ -45,7 +45,7 @@ function regBatit(){
   if(GOM.sSrc&&GOM.sSrc.buffer&&!GOM_SOUFFLE&&CRISSE_DOUX){const s=src(GOM.sSrc.buffer,.6),hp=bq('highpass',TEL_NATIF?190:110,.6),lp=bq('lowpass',900,.5),g=ac.createGain(),p=pan();g.gain.value=0;
    s.connect(hp);hp.connect(lp);lp.connect(g);g.connect(p);p.connect(pB);REG.dG=g;REG.dS=s;REG.dP=p;porte(g,p);}
   /* LES OREILLES : le moteur (à sa sortie) et la musique, pondérés : on ne compare que ce qui se MASQUE (au-dessus de 160 Hz) — la basse et la grosse caisse d'un morceau ne couvrent pas le moteur, elles ne doivent pas le faire monter */
-  {const hm=bq('highpass',TEL_NATIF?200:160,.7),am=ac.createAnalyser();am.fftSize=2048;engDose.connect(hm);hm.connect(am);REG.anM=am;
+  if(engDose){const hm=bq('highpass',TEL_NATIF?200:160,.7),am=ac.createAnalyser();am.fftSize=2048;engDose.connect(hm);hm.connect(am);REG.anM=am; /* (2026-11-17, LE MOTEUR SE TAIT) sans moteur, rien à écouter ni à doser : pas d'oreilles */
    const hs=bq('highpass',TEL_NATIF?200:160,.7),as=ac.createAnalyser();as.fftSize=2048;hs.connect(as);REG.anS=as;REG.hS=hs;REG.buf=new Float32Array(2048);}
   REG.ok=true;
 }
@@ -78,7 +78,7 @@ function regPas(dt,spd3,dk){
   /* le choc du moteur : il retombe en 0,5 à 1,4 s selon sa force ; pendant qu'il dure, des ratés ; à la fin, la reprise */
   if(REG.coup>0){const av=REG.coup;REG.coup*=Math.exp(-dt/(.35+.75*REG.c0));
     if(sol&&REG.gate<=0&&REG.coup>.1&&Math.random()<dt*(5+9*REG.coup)){REG.gate=.04+.05*Math.random();REG.nRate++;
-      if(T-REG.popT>.22){REG.popT=T;try{const e9=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0];if(e9.crk>0)crackle(.18+.3*REG.coup);else noiseBurst(.04,.035,700);if(MB.ok&&MB.creuse)MB.creuse(.7);}catch(e){}}}
+      if(MOTEUR_SON&&T-REG.popT>.22){REG.popT=T;try{const e9=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0];if(e9.crk>0)crackle(.18+.3*REG.coup);else noiseBurst(.04,.035,700);if(MB.ok&&MB.creuse)MB.creuse(.7);}catch(e){}}}
     if(REG.coup<.1){if(av>=.1&&REG.c0>.3)REG.rep=Math.min(1,REG.c0*1.2);REG.coup=0;}}
   if(REG.gate>0)REG.gate-=dt;
   if(REG.rep>0)REG.rep=REG.rep<.02?0:REG.rep*Math.exp(-dt/.28);
@@ -146,10 +146,10 @@ function regAirGain(){return REG_ON&&REG.ok?REG_NIV.air:1;}
    le curseur MUSIQUE du joueur reste SON réglage, la régie ne le rattrape pas), lissées sur ~2,5 s ; le dosage vise `cible` dB sous la musique, borné. */
 function regEquilibre(dt,T,sol,dk){
   const P=window.POUCE_JEU,ch=P&&P.ch,n=ch&&ch.e||null;
-  if(n!==REG.musN){try{if(REG.musN)REG.musN.disconnect(REG.hS);}catch(e){}REG.musN=n;REG.pS=0;try{if(n)n.connect(REG.hS);}catch(e){}}
+  if(REG.hS&&n!==REG.musN){try{if(REG.musN)REG.musN.disconnect(REG.hS);}catch(e){}REG.musN=n;REG.pS=0;try{if(n)n.connect(REG.hS);}catch(e){}}
   REG.tA+=dt;
   if(REG.tA>=.2){const d=REG.tA;REG.tA=0;
-    if(sol&&dk>.85&&REG.coup<=0){
+    if(REG.anM&&sol&&dk>.85&&REG.coup<=0){
       const g0=Math.max(.05,engDose.gain.value),pm=regPw(REG.anM)/(g0*g0),k=1-Math.exp(-d/2.5);
       if(pm>1e-9)REG.pM=REG.pM?REG.pM+(pm-REG.pM)*k:pm;
       if(n&&SND.music){const u=Math.max(.05,VOL.mus/.7),ps=regPw(REG.anS)/(u*u);if(ps>1e-8)REG.pS=REG.pS?REG.pS+(ps-REG.pS)*k:ps;}
@@ -159,7 +159,7 @@ function regEquilibre(dt,T,sol,dk){
         REG.bal+=(Math.max(REG_NIV.balMin,Math.min(REG_NIV.balMax,b))-REG.bal)*(1-Math.exp(-d/1.2));}}
     /* le creux de la musique s'ouvre quand le moteur parle */
     try{const B=ch&&ch.bus;if(B&&B.parole&&Math.abs(REG.att-(REG._pp||0))>.04){REG._pp=REG.att;B.parole(REG.att);}}catch(e){}}
-  stt(engDose.gain,MIX_MOTEUR*REG.bal/.71*(REG_NIV.recul+REG_NIV.devant*REG.att),T,.14); /* en retrait quand rien ne se passe (−4 dB), devant quand il parle (+1,4 dB) */
+  if(engDose)stt(engDose.gain,MIX_MOTEUR*REG.bal/.71*(REG_NIV.recul+REG_NIV.devant*REG.att),T,.14); /* en retrait quand rien ne se passe (−4 dB), devant quand il parle (+1,4 dB) */
   stt(REG.pB.gain,Math.max(.55,Math.min(1.7,REG.bal/.6)),T,.3);
 }
 window.dbgRegie=function(c,o){
@@ -169,6 +169,6 @@ window.dbgRegie=function(c,o){
   const r=function(x){return x==null?null:+(+x).toFixed(3);};
   return {on:REG_ON,ok:REG.ok,sol:REG.sol,appui:r(REG.app),drift:r(REG.dr),driftT:r(REG.drT),coup:r(REG.coup),reprise:r(REG.rep),pose:r(REG.pose),attention:r(REG.att),
     dosage:r(REG.bal),moteurDb:REG.pM?r(10*Math.log10(REG.pM)):null,musiqueDb:REG.pS?r(10*Math.log10(REG.pS)):null,rates:REG.nRate,coups:REG.nCoup,
-    gains:REG.ok?{roul:r(REG.rG.gain.value),quinte:REG.dG?r(REG.dG.gain.value):null,moteur:r(engDose.gain.value)}:null,force:REG.f};};
+    gains:REG.ok?{roul:r(REG.rG.gain.value),quinte:REG.dG?r(REG.dG.gain.value):null,moteur:engDose?r(engDose.gain.value):null}:null,force:REG.f};};
 /* (le banc) `dbgSonTap()` : les points d'écoute du graphe, pour outils/banc-son/mixage.mjs. */
 window.dbgSonTap=function(){let mus=null;try{const P=window.POUCE_JEU;mus=P&&P.ch&&P.ch.e||null;}catch(e){}return {ac:AC,master:MASTER,sortie:MASTER&&MASTER._lim,pneus:REG.pB||null,gomme:GOM.sG||null,moteur:typeof engDose!=='undefined'?engDose:null,musique:mus};};

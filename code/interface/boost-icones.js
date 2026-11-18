@@ -267,7 +267,7 @@ function nxfTick(dt,d,pal,aQ,clig,appui,rm,fh){
   if(mobhChaud()){if(d===MOBH_nx3D&&tn-MOBH_nx3T<MOBH_R.nx3Ms)return;MOBH_nx3T=tn;}
   else if(d===MOBH_nx3D&&pal===NX3.palD&&tn-(NX3.tD||0)<29)return;
   MOBH_nx3D=d;NX3.palD=pal;NX3.tD=tn;NX3.k1=k1;NX3.k2=k2;NX3.k3=k3;
-  if(NXF_DBL.on)nxfDouble(d,pal,aQ,clig);else nxfDessine(d,pal,aQ,clig);NX3.ms=(NX3.ms||0)*.9+(performance.now()-tn)*.1;NX3.nD=(NX3.nD||0)+1;
+  if(NXF_DBL.on)nxfDouble(d,pal,aQ,clig);else nxfDessine(d,pal,aQ,clig);NX3.ms=(NX3.ms||0)*.9+(performance.now()-tn)*.1;if(MG.on)mgAj('dont nxfDessine (flamme + putImageData)',performance.now()-tn);NX3.nD=(NX3.nD||0)+1;
 }
 /* (2026-11-16, lot jsimage) LA PREUVE À L'OCTET : dbgNxfDouble(1) fait dessiner chaque image DEUX fois sur le même état — l'avant (JSI.ok faux) puis le lot — et compare la toile
    (NX3.u32), la grille du feu (B), le rectangle gardé (rc), NXP.Lc et l'appel putImageData. dbgNxfDouble() rend {n, diff, ms avant, ms lot, premier écart}. Banc seulement. */
