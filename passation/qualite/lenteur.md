@@ -1,4 +1,4 @@
-# Lot LENTEUR (17/11, 2e tour) — branche `qa/lenteur`, partie d'`origin/qualite-appareil`
+# Lot LENTEUR (17/11, 3e tour) — branche `qa/lenteur`, partie d'`origin/qualite-appareil`
 
 Source : l'analyse du vol du build 120 (juge adverse). En économie d'énergie + téléphone tiède/chaud (pire branché),
 des RAFALES de 3 à 34 s : une image sur 3-4 pèse ~115 ms. Et une fuite du calage : 81 secondes sur 864 calculaient 34 à 44 images au lieu de 30.
@@ -7,7 +7,7 @@ des RAFALES de 3 à 34 s : une image sur 3-4 pèse ~115 ms. Et une fuite du cala
 
 | | quoi | par défaut ? | interrupteur |
 |---|---|---|---|
-| A | L'HORLOGE DU CALAGE (`cadence.js`, cadSauteH ; appelée par `boucle-1.js`) | **NON** (elle ne saute rien, voir plus bas) | `?plus=cadhorloge` |
+| A | L'HORLOGE DU CALAGE (`cadence.js`, cadSauteH ; appelée par `boucle-1.js`) | **NON** (sur nos bancs, elle ne gagne rien et casse l'exigence à 75/100 Hz : voir plus bas) | `?plus=cadhorloge` |
 | B | LE SON DE LA CARTE MOTEUR AMORCÉ AU MENU (`sfx.js` amorce, `console-son.js`) | OUI (même son, gain 0) | `?sans=swapchaud` |
 
 **C (gouverneur de lenteur) et D (loupe au chaud) sont SORTIS du lot** (décision de la session parente, 2e tour), par un commit de retrait.
@@ -30,9 +30,16 @@ Sinon : cadSaute, au bit près. Une image sautée passe quand même par cadSaute
 Elle n'est donc pas comptée comme calculée (le `pilImg` du pilote reste juste après la fusion).
 L'appel passe par `boucle-1.js` (`cadSauteH` au lieu de `cadSaute`) : cadSaute n'est pas touchée, aucun conflit avec `qa/pilote` ni `qa/portv`.
 
-**Résultat : la règle tient l'exigence, mais ne saute AUCUNE image.** 41 graines × 14 écrans × 30 et 20 i/s : 0 saut.
-La fuite n'existe que sur un écran qui livre moins de 50 images/s ou de travers ; là, tout saut fait un trou.
-Sur un écran régulier à 60 ou 120 Hz, cadSaute tient déjà 30,0 i/s. **A est donc ÉTEINTE par défaut** (`?plus=cadhorloge` pour une mesure sur le téléphone).
+**Résultat sur MON banc (14 écrans) : 0 saut, avant = après.** 41 graines × 14 écrans × 30 et 20 i/s.
+**FAUX ailleurs (3e tour, banc du contrôle `h3.cjs`, 8 graines) : A saute des images et casse l'exigence.**
+- 100 Hz : 680 sauts en 70 s ; 33,3 → 30 i/s mais σ 0 → 4,7 ms (alternance 30/40 ms).
+- 75 Hz : 40 sauts.
+- 100 Hz qui BASCULE vers un écran irrégulier à 34-44 Hz : intervalles > 50 ms/min 25,6 → 26,5 et 16,8 → 17,7 ; temps perdu 91 → 94 et 71 → 79 ms/min. Casse sur 4 graines sur 8.
+  Cause : la régularité (`reg`) et le plus long intervalle (`max`) ne sont remesurés que toutes les 15 images. Juste après la bascule, la règle agit sur une mesure PÉRIMÉE.
+- 100 Hz avec des rafales de travail de 30-45 ms : 32,1 → 28,8 i/s, sous 30 alors qu'avant ça tenait.
+La fuite du vol vient d'un écran qui livre moins de 50 images/s ou de travers ; là, tout saut fait un trou.
+Sur un écran régulier à 60 ou 120 Hz, cadSaute tient déjà 30,0 i/s. **A reste ÉTEINTE par défaut** (`?plus=cadhorloge`, mesure seulement).
+Avant de l'allumer un jour : remesurer `reg`/`max` à CHAQUE image (ou dès qu'un intervalle sort de la fourchette), et ne rien sauter entre 60 et 120 Hz exclus.
 Sans le paramètre, `cadSauteH` appelle `cadSaute` tel quel (un appel de fonction de plus).
 
 Banc : `node outils/banc-lenteur/horloge.cjs` (sans navigateur, déterministe ; `GRAINE=n` ; `--json` ; sortie 1 si l'exigence casse).
@@ -50,7 +57,7 @@ Chiffres complets : `outils/banc-lenteur/mesures/horloge.json`. Avant = défaut,
 | 20 · 60 Hz, travail 22-30 ms | 22,32 = | 7,3 | 51 | 25,6 | 26 |
 | 20 · le vol rejoué | 19,72 = | 8,7 | 85 | 565,8 | 4 537 |
 
-(« = » : identique avant et après, partout. Les autres cas — 30 % en retard de 9 ms, gigue 5 ms, vsync manquée 1/20, 90 Hz, 120 Hz en retard, travail 12-20 ms — aussi.)
+(« = » : identique avant et après sur ces cas. Les autres cas de mon banc — 30 % en retard de 9 ms, gigue 5 ms, vsync manquée 1/20, 90 Hz, 120 Hz en retard, travail 12-20 ms — aussi.)
 Le 1er tour, sur les mêmes cas : 60 Hz moitié en retard 32,8 → 28,3 i/s et trous 19,7 → 38,3 /min ; 20 i/s travail 22-30 : temps perdu 21 → 4 457 ms/min.
 
 Note : à 20 i/s sur un écran à 60, la base fait déjà 50/51 ms (arrondi de l'horodatage à 1 ms) : ces « > 50 ms » valent 1 ms chacun. Rien de neuf.
@@ -60,26 +67,36 @@ Note : à 20 i/s sur un écran à 60, la base fait déjà 50/51 ms (arrondi de l
 - Vol : gel de 332 ms à 0,8 s de course, dont 157 ms dans `engSwapArme` → `engSwapSnd` → `moteur.palier` (69 ms dans un autre vol du jour).
 - Le son, déjà décodé d'avance, est JOUÉ une fois en silence au menu : gain posé à 0 avant tout branchement, aucune automation, 30 ms, même chemin (tampon, source, gain, bus).
 - 2e tour (remarque du contrôle : « contexte endormi au menu → l'amorce part au premier son, possiblement en course ») :
-  - jamais en course (`S.enCourse` de sfx.js) : ni l'amorce, ni sa relance par `play()` ;
-  - jamais si le jeu dit non : `amorceOk()` (console-son.js) = effets allumés (`SND.sfx`), page visible, hors partie (menu ou écran de mort) ;
+  - jamais si le jeu dit non : `amorceOk()` (console-son.js) = effets allumés (`SND.sfx`), page visible, hors partie (`!(started&&!gameOver)` : menu ou écran de mort) ; ni l'amorce, ni sa relance par `play()` ;
+- 3e tour (sérieux du contrôle) : au 2e tour, l'amorce gardait AUSSI sur `S.enCourse` de sfx.js. Or ce drapeau veut dire « paquet de course chargé » :
+  `sonConsole()` → `sonsChauffe(SONS_COURSE)` → `CCSON.enCourse()` le pose DÈS L'INIT, avant `amorce()`. L'amorce ne partait donc JAMAIS avant la 1re course,
+  le cas visé (le gel de 157 ms = 1er jeu du son dans la session). Corrigé : sfx.js ne garde plus que sur `ok()` du jeu (`amPeut()`) ; `S.enCourse` ne sert plus
+  que si le jeu n'a pas donné d'`ok`.
   - refus comptés : `CCSON.etat().amorcesRefusees` ; faites : `CCSON.etat().amorces`.
-- Banc : `node outils/banc-lenteur/amorce.cjs` (vraie sfx.js, faux AudioContext qui note tout) :
+- Banc : `node outils/banc-lenteur/amorce.cjs` (vraie sfx.js, faux AudioContext qui note tout ; la VRAIE `amorceOk`, lue dans console-son.js, sur un faux jeu) :
+  - ORDRE RÉEL DE L'INIT (`enCourse()` puis `amorce()`) : menu du démarrage 1 (gain 0) ; partie lancée 0 (1 refus) ; son coupé 0 ; page cachée 0 ;
+  - ce même cas sur la sfx.js du 2e tour : CASSÉ (0 au menu du démarrage) — le banc voit maintenant le défaut ;
   - au menu : 1 source, gain 0 posé avant le branchement, jamais changé, 30 ms ; le vrai `play('moteur.palier')` qui suit part (ni polyphonie max 1, ni délai) ;
   - son coupé : 0 amorce, 1 refus ; rallumé, au son suivant : 1 amorce ;
-  - contexte réveillé EN COURSE : 0 amorce ; au menu suivant : 1 ;
+  - contexte réveillé EN COURSE (partie lancée) : 0 amorce, 0 source ; à la mort (gameOver) : 1 ;
   - contexte endormi au menu : 0, puis 1 au premier son.
 
 ## Vérifié aussi
 - `git merge-tree` de `qa/lenteur` avec `origin/qa/pilote` et avec `origin/qa/portv` : sans conflit.
   (Le pilote et portv entre eux : conflit dans `rendu/traces-pneus.js`, qui n'est pas de ce lot.)
 - Gardes : démarrage, allège, charte ; `node --check` de sfx.js et du gros script.
+- B et `qa/sansmoteur` (le moteur se tait) : cette branche retire la VOIX CONTINUE du moteur, mais GARDE `moteur.palier` (la carte moteur,
+  `engSwapArme` → `engSwapSnd`, graphe-audio.js) : l'amorce reste utile. Si `moteur.palier` disparaissait un jour de la banque, `amorceUn` le marque
+  « absent » (`S.amF[id]=2`) et ne fait rien : inoffensive. Elle ne touche aucun nœud du moteur (source + gain 0 sur le bus du son).
 
 ## Non prouvé
 - B : la cause des 157 ms n'est pas connue (Chrome ne la reproduit pas, sauvegarde muette au banc). À relire dans la boîte de vol (Q : `engSwapArme`).
+- B, 3e tour : prouvé sur la vraie sfx.js et la vraie amorceOk (banc sans navigateur), PAS dans une vraie page avec le son allumé (jamais de son au banc), ni sur le téléphone.
+- A : « ne saute aucune image » ne vaut que sur mon banc ; le contrôle l'a cassée à 75/100 Hz et après une bascule 100 Hz → écran irrégulier.
 - A : le vrai motif image par image des images d'écran du 13 Pro (le vol ne donne que des comptes par seconde ; les secondes du vol sont reconstruites).
 
 ## Protocole sur le téléphone (13 Pro, branché + économie + chaud)
 1. Build de mesure (`?perfrec=2`), même carte, 3 courses de 3 min par variante, en alternant : défaut · `?sans=swapchaud` · `?plus=cadhorloge`.
 2. Lire dans la boîte de vol :
-   - Q `engSwapArme` (B) : plus de rappel > 8 ms au premier moteur ;
-   - pour A : S[1] (images calculées / s), `dbgHorloge().sauts` (attendu : 0 ou presque), intervalles calculés > 50 ms /min et temps de jeu perdu, avant et après.
+   - Q `engSwapArme` (B) : plus de rappel > 8 ms au premier moteur de la 1re course de la session (`CCSON.etat().amorces` = 1 dès le menu du démarrage, son allumé) ;
+   - pour A : S[1] (images calculées / s), `dbgHorloge().sauts` (attendu : 0 ou presque ; à 75/100 Hz, des sauts = le défaut connu), intervalles calculés > 50 ms /min et temps de jeu perdu, avant et après.
