@@ -718,6 +718,15 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
      · 1,0 s →        les MISSIONS entrent une à une, leurs barres et leurs comptes montent ensemble (objRenderV2), les coches claquent.
      Une seule fois par mort ; REDUCED_MOTION : tout est posé d'un coup. Les mouvements sont dans css/mort-flottante.css (« LE FIL »). */
   const M6_CPT=2000;
+  /* ===== LES BOUGIES À ZÉRO NE SONT PLUS DES SOULIGNÉS (2026-11-18, qualité · hudmort, Sacha : « quand on meurt, il y a des petits pixels comme
+     si c'était souligné, mais à moitié ») =====
+     La carte AURA de l'écran de mort : une partie à 0 d'aura (ou une moyenne, un record à 0) gardait une bougie de 3 px (min-height:3px, --h ≥ 3 %)
+     posée sur la ligne de base : un trait clair de 28 px sous le « 0 », comme un soulignement coupé. Et sans aucun record, le pointillé d'or du
+     record (.m6Ligne) se couchait lui aussi sur la ligne de base. Maintenant : une valeur nulle n'a PAS de bougie (.m6Nul), le pointillé ne se
+     trace que s'il y a un record ; une valeur petite mais non nulle garde une vraie bougie, assez haute pour se lire comme une bougie (8 px,
+     css/mort-flottante.css). `?sans=hudmort` = les bougies d'avant. */
+  const HUDMORT=!/[?&]sans=[^&]*hudmort/.test(location.search);
+  if(HUDMORT)document.documentElement.classList.add('hudMort');
   function m6Fil(el,D,f,fin){const t0=performance.now();(function p(){if(!el.isConnected)return;const k=Math.min(1,(performance.now()-t0)/D);f(k);if(k<1)requestAnimationFrame(p);else if(fin)fin();})();} /* D ms, k de 0 à 1 à chaque image */
   /* LE COMPTEUR À ROULEAUX (2026-11-05, Sacha : « on voit tous les chiffres s'ajouter les uns les autres, avec un compteur ») : le montant s'écrit
      en TOUS ses chiffres (« $ 7 210 », plus « 7,2 k »), une case par signe, réservée dès le départ à la largeur finale — les zéros d'avant le
@@ -870,7 +879,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
                 recV=Math.max(commitExploits._recAvant||0,SAVE.d.auraMax||0,au),M9=Math.max(1,au,moyV,recV),
                 hP=function(v){return Math.max(3,Math.round(v/M9*100));},
                 lb9=LANG==='en'?['RUN','AVG','BEST']:['PARTIE','MOY.','RECORD'],
-                bg9=function(k,v,l){return '<div class="m6Col m6'+k+(k==='P'&&au>0&&au>=recV&&!tq9?' rec':'')+'" style="--h:'+hP(v)+'"><span class="m6Val">'+fA(v)+'</span><i class="m6Barre"></i><small>'+l+'</small></div>';},
+                bg9=function(k,v,l){return '<div class="m6Col m6'+k+(k==='P'&&au>0&&au>=recV&&!tq9?' rec':'')+(HUDMORT&&!(v>0)?' m6Nul':'')/* (hudmort) pas de bougie à zéro */+'" style="--h:'+hP(v)+'"><span class="m6Val">'+fA(v)+'</span><i class="m6Barre"></i><small>'+l+'</small></div>';},
                 pas9=function(c,t){return '<em class="m6Badge '+c+'">'+t+'</em>';};
           let vd9='';
           if(!tq9&&au>0&&(commitExploits._recAvant||0)>0&&(recA||au>commitExploits._recAvant))vd9=pas9('rec',pxi('etoile')+'<span>'+TR('RECORD')+'</span>');
@@ -883,7 +892,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
             +'<div class="m6Carte m6Aura">'
             +'<div class="m6Tete"><span class="m6Lb">'+pxi('aile')+'<span>'+TR('AURA')+'</span></span>'+vd9+'</div>'
             +'<div class="m6Big"><b id="mAuraV" style="--n:'+fA(au).length+'">0</b></div>'
-            +'<div class="m6Graphe"><i class="m6Ligne" style="--h:'+hP(recV)+'"></i>'+bg9('P',au,lb9[0])+bg9('M',moyV,lb9[1])+bg9('R',recV,lb9[2])+'</div></div>';
+            +'<div class="m6Graphe">'+(HUDMORT&&!(recV>0)?'':'<i class="m6Ligne" style="--h:'+hP(recV)+'"></i>')/* (hudmort) pas de pointillé du record sans record */+''+bg9('P',au,lb9[0])+bg9('M',moyV,lb9[1])+bg9('R',recV,lb9[2])+'</div></div>';
         }
         else if(h){h.className='mHero';h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV" style="--n:'+fA(au).length+'">0</b>'
             +(recA&&!tq9&&au>0?'<em>'+TR('RECORD !')+'</em><div class="hNx hNxC6">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>':'<div class="hNx">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>')+'</div>' /* (2026-10-14, charte 6) cartes JUMELLES : la sous-ligne MEILLEUR est toujours là (.hNxC6 = celle que seule la charte 6 montre, quand le badge RECORD ! se tait) */
