@@ -84,7 +84,7 @@ function gdxCrit(){return MOB_S.capteur&&MOB_LONG.on?4:3;} /* l'indice du palier
    (la règle du N1-N2 : la mesure — l'échelle QL, l'image lourde — décide) ; à critical, 0,8 comme avant. Course suivante : les deux passages sont rendus (encore baissé au départ = déjà compté). */
 const GDX_DK={bas:false,dn:0,crs:false}; /* bas : la part dkDoux est posée ; dn : passages vers le bas dans cette course (au plus 1 ; le retour, lui, suit forcément) */
 const GDX_N3=!/[?&]sans=[^&]*douxn3/.test(location.search);
-function gdxDkDoux(){try{const n=mobNiv();return n>=3&&PRF.T.n[n].dkDoux||0;}catch(e){return 0;}} /* la part du plafond du niveau à serious (0 = rien) */
+function gdxDkDoux(nn){try{const n=nn||mobNiv();return n>=3&&PRF.T.n[n].dkDoux||0;}catch(e){return 0;}} /* nn (2026-11-17, LE PILOTE, borne S3) : la part d'un autre niveau */ /* la part du plafond du niveau à serious (0 = rien) */
 const GDX_SER=Object.freeze({halo:'demi',mips:-1,ombre:-1,ciel:4,ql:2}),GDX_CRI=Object.freeze({halo:'demi',mips:2,ombre:512,ciel:8,stries:.5,k:.5,ql:2,dk:.8});
 /* ===== FAIR N'EST PLUS MOINS BEAU QUE SERIOUS (2026-11-14, Sacha : « les graphismes ne sont pas au maximum » — question 1 du rapport doux) =====
    Sous le doux, serious pose le plancher de l'échelle QL au cran 2 (halo entier) alors que fair le posait au cran 3 : au N1, fair avait le halo à 3/8 (½ × ¾) et serious ½ — fair, plus FRAIS,
@@ -136,7 +136,8 @@ function mobPalTable(){if(gdxOn())return MOB_S.capteur?MOB_PDX:MOB_PPDX; /* LE G
 const MOB_P0N1=Object.freeze({halo:'demi',mips:3,ombre:768,ciel:0,stries:null}); /* le départ de P2 au N1 (et hors profil) */
 const MOB_OMB=[512,768,1024,1280]; /* les tailles d'ombre que qlPose garde en réserve (QL.ombres) : descendre d'un cran ne réalloue rien */
 function mobOmbreBas(om,n){let i=MOB_OMB.length-1;while(i>0&&MOB_OMB[i]>om)i--;return MOB_OMB[Math.max(0,i-n)];}
-function mobP0Niv(){let n=1;try{n=PRF.on&&PRF.n>=2?PRF.n:1;}catch(e){}if(n<2)return MOB_P0N1; /* (même sous ?sans=prfgouv : le départ du niveau, comme le rattrapage du lot 1) */let h=1,m=5,om=1024;try{h=PAL.bT('imgBloomRes',1,'a');m=bloomNM();om=ombreTel();}catch(e){}return {halo:h===.5?'demi':h===1?'tout':h,mips:m,ombre:om,ciel:0,stries:null};}
+function mobP0Niv(nn){let n=1;try{n=nn||(PRF.on&&PRF.n>=2?PRF.n:1);}catch(e){}if(n<2)return MOB_P0N1;
+  try{if(nn&&nn!==PRF.n){const t=PRF.T.n[nn];return {halo:/a/.test(t.eteints||'')?'tout':'demi',mips:Math.min(t.mips,PAL.bT('imgBloomMips2',5,'j')),ombre:t.ombre,ciel:0,stries:null};}}catch(e){} /* (2026-11-17, LE PILOTE, borne S3) le départ d'un AUTRE niveau, lu dans la table des profils (le budget « a » éteint = halo entier) */ /* (même sous ?sans=prfgouv : le départ du niveau, comme le rattrapage du lot 1) */let h=1,m=5,om=1024;try{h=PAL.bT('imgBloomRes',1,'a');m=bloomNM();om=ombreTel();}catch(e){}return {halo:h===.5?'demi':h===1?'tout':h,mips:m,ombre:om,ciel:0,stries:null};}
 const MOB_P0={};['halo','mips','ombre','ciel','stries'].forEach(function(k){Object.defineProperty(MOB_P0,k,{enumerable:true,get:function(){return mobP0Niv()[k];},set:function(){}});}); /* la VUE du départ (voir plus haut) */
 const MOB_RA=[null,{dpr:'cap'},{dpr:'cap',halo:'tout',mips:5,ombre:1024}]; /* la remontée, par cran (palier −1, −2) */
 const MOB_R={on:/[?&]mob_raise=1\b/.test(location.search),frais:40,fen:60,wMed:12,wMax:16,p75:19,mal:5};
@@ -154,12 +155,13 @@ function mobPalCible(){if(MOB_S.capteur&&gdxOn())return MOB_S.thermo>=3?gdxCrit(
   if(MOB_S.capteur)return MOB_LONG.on?(MOB_S.thermo>=3||(MOB_S.thermo===2&&mobBranche())?4:(MOB_S.thermo===2&&MOB_LONG.n>=MOB_LONG.s)?3:MOB_S.thermo):MOB_S.thermo; /* (2026-11-10) le capteur : le palier est l'état d'iOS, la dose ne compte plus */
   let t=0;for(let i=1;i<MOB_PP.length;i++)if(MOB_S.D>=MOB_PP[i].d)t=i;
   if(MOB_S.thermo>=3)t=3;else if(MOB_S.thermo>=2)t=Math.max(t,2);return t;}
+function mobCapNiv(nn){try{if(PRF.on&&nn)return prfDprDe(nn);}catch(e){}return mobPalCapJoueur();} /* (2026-11-17, LE PILOTE, borne S3) le plafond de résolution du niveau nn */
 function mobPalCapJoueur(){let c=DPR_CAP;try{c=dprPlafond(SAVE.d.q==='fast');}catch(e){}return c;} /* le plafond du réglage du joueur (RAPIDE 1, NETTE ce que le départ de P2 en fait) */
 function mobPalCapPlein(){if(mobNiv()>=2)return mobPalCapJoueur(); /* (2026-11-14) sous profil : le plafond du niveau */let c=1.5;try{c=SAVE.d.q==='fast'?1:Math.min(devicePixelRatio,PAL.b('dprNetCap',1.5));}catch(e){}return c;} /* « vers l'ordinateur » : le plafond de la NETTE d'avant la passe 3 */
-function mobPalVoulu(t){ /* ce qu'on pose à ce palier : TOUTES les clés (le départ de P2, puis les écarts du palier) pour un seul appel à imgRegle ; null au palier 0 (c'est `reset`) */
-  if(!t)return null;const P=t>0?mobPalTable()[t]:MOB_RA[-t],o=Object.assign({dpr:mobPalCapJoueur()},MOB_P0);
+function mobPalVoulu(t,nn){ /* ce qu'on pose à ce palier : TOUTES les clés (le départ de P2, puis les écarts du palier) pour un seul appel à imgRegle ; null au palier 0 (c'est `reset`) ; nn (2026-11-17, LE PILOTE, borne S3) : lu au niveau nn au lieu du niveau courant */
+  if(!t)return null;const P=t>0?mobPalTable()[t]:MOB_RA[-t],o=Object.assign({dpr:nn?mobCapNiv(nn):mobPalCapJoueur()},nn?mobP0Niv(nn):MOB_P0);
   if(t>0&&gdxOn()){ /* (LE GOUVERNEUR DOUX) relatif au départ du niveau, N1 compris ; la résolution ne bouge qu'à critical (`dk`) — sauf N3 / N4 à serious (GDX_N3) */
-    const dkd=GDX_N3&&MOB_S.capteur&&t>=2&&GDX_DK.bas?gdxDkDoux():0;if(P.dk||dkd)o.dpr=o.dpr*Math.min(P.dk||1,dkd||1);
+    const dkd=GDX_N3&&MOB_S.capteur&&t>=2&&(nn||GDX_DK.bas)?gdxDkDoux(nn):0; /* (borne S3) au niveau nn : la part comptée d'office (la borne la plus basse que la base peut poser) */if(P.dk||dkd)o.dpr=o.dpr*Math.min(P.dk||1,dkd||1);
     if(P.mips!=null)o.mips=P.mips<0?Math.max(1,o.mips+P.mips):P.mips;
     if(P.ombre!=null)o.ombre=P.ombre<0?mobOmbreBas(o.ombre,-P.ombre):P.ombre;
     for(const k of ['halo','ciel','stries'])if(P[k]!=null)o[k]=P[k];
@@ -191,6 +193,7 @@ function mobPalTick(now){ /* à chaque image d'écran (appelé par mobGouvTick) 
   if(MOB_POLY)window.__ccPoly.on=MOB_P.t>=2&&enCourse; /* (voir MOB_POLY) */
   {const c9=started&&!gameOver&&!garageOn;if(c9&&!GDX_DK.crs){GDX_DK.crs=true;GDX_DK.dn=GDX_DK.bas?1:0;}else if(!c9)GDX_DK.crs=false;} /* (2026-11-15, GDX_DK) une nouvelle course : le passage vers le bas est rendu (déjà baissé = déjà compté) */
   if(MOB_S.capteur){if(MOB_S.thermo<2)MOB_LONG.n=0;else if(enCourse)MOB_LONG.n++;} /* (voir LE SÉRIEUX QUI DURE) une fois par seconde */
+  if(pilOn()){pilTick(now,enCourse);return;} /* (2026-11-17, LE PILOTE DE QUALITÉ, moteur/pilote-qualite.js) un seul décideur : paliers, image lourde et remontée ne décident plus */
   gdxLourdTick(now,enCourse); /* (2026-11-14, voir L'IMAGE LOURDE À SERIOUS) */
   if(!enCourse){MOB_P.s.length=0;MOB_P.mal=0;if(!started||gameOver||garageOn)MOB_P.non=false;}
   const c=mobPalCible();
