@@ -61,5 +61,33 @@ if(JADE_NUIT2&&BIOMES.jadeNuit)Object.assign(BIOMES.jadeNuit,{
   hemiS:[.14,.36,.40],hemiG:[.03,.09,.08],sunC:[.80,.90,.92],sunI:.75,fillC:[.16,.50,.44],kickC:[.30,.85,.65],
   env:[[0,'#04101c'],[.3,'#0a2630'],[.48,'#1c5a58'],[.58,'#3a8f80'],[.66,'#0e2a2c'],[1,'#04100f']],
   rtK:.78});
+/* ===== LA FINITION DE JADE (2026-11-18, finition des maps : « des couleurs plus fun, plus franches, plus typées par ambiance ; la nuit bleue/violette ») =====
+   Que des NOMBRES d'ambiance (ciel peint jdZ/jdL/jdM/jdH, abîme jdB, lointain jdR, brumes, lumières, env) posés en DERNIER, sur les six temps de Jade
+   (niveaux.js : matin, midi, soir, nuit, pluie, orage). La famille de la marque : zénith azur saturé → horizon pêche le jour, corail·magenta·or au soir,
+   indigo·violet et clair de lune la nuit, le vert jade (#4FE0A8) gardé en accent (le bas du ciel, le liseré). Zéro programme, texture ou appel de dessin de plus.
+   `?sans=jadefini` = les valeurs d'avant (et l'astre d'avant, scene-ciel.js). */
+const JADE_FINI=!/[?&]sans=([^&]*,)?jadefini(,|&|$)/.test(location.search);
+if(JADE_FINI&&BIOMES.jadeNuit){
+  Object.assign(BIOMES.jade,{ /* SOIR : le zénith bleu-violet, une bande mauve-rose, le corail puis l'or à l'horizon (il était gris-beige au milieu) */
+    jdZ:[.30,.34,.70],jdL:[.80,.52,.74],jdM:[1,.56,.46],jdH:[1,.76,.46],jdB:[.94,.70,.64],jdR:[.42,.30,.46],jdS:[1,.70,.40],
+    fog:[.86,.66,.58],fogIn:[.92,.74,.66],fogCj:[1,.70,.50]});
+  Object.assign(BIOMES.jadeMatin,{ /* MATIN : azur plus franc, le céladon du milieu passe au vert jade-menthe, l'horizon pêche-rose ; brume pêche */
+    jdZ:[.18,.46,.86],jdL:[.44,.70,.86],jdM:[.62,.88,.76],jdH:[1,.76,.62],jdB:[.82,.90,.84],
+    fog:[.90,.80,.70],fogIn:[.94,.86,.76]});
+  Object.assign(BIOMES.jadeMidi,{ /* MIDI : cobalt au zénith, jade au milieu, crème-pêche à l'horizon ; brume bleu ciel */
+    jdZ:[.10,.40,.88],jdL:[.36,.70,.90],jdM:[.52,.88,.80],jdH:[1,.86,.68],
+    fog:[.62,.80,.86],fogIn:[.78,.90,.92]});
+  Object.assign(BIOMES.jadeNuit,{ /* NUIT : indigo-violet au zénith, bleu au milieu, la lueur jade gardée au ras de l'horizon ; brume indigo (plus de bleu-vert gris) ; lune or pâle */
+    jdZ:[.040,.030,.110],jdL:[.050,.050,.150],jdM:[.050,.100,.170],jdH:[.060,.180,.180],jdB:[.065,.120,.190],jdR:[.04,.06,.12],jdS:[1,.88,.62],
+    fog:[.050,.100,.170],fogCj:[.10,.16,.26],fogIn:[.07,.12,.20],volSky:[.06,.10,.20],
+    hemiS:[.16,.26,.46],fillC:[.22,.36,.60],
+    env:[[0,'#06061c'],[.3,'#121a40'],[.48,'#243e6a'],[.58,'#3a8f80'],[.66,'#121a34'],[1,'#060816']]});
+  Object.assign(BIOMES.jadePluie,{ /* PLUIE : ardoise BLEUE au zénith, jade mouillé à l'horizon (il était gris-vert) ; un cran de saturation */
+    sat:1.14,jdZ:[.20,.30,.42],jdL:[.28,.46,.50],jdM:[.36,.58,.54],jdH:[.56,.70,.62],jdB:[.38,.52,.52],jdR:[.20,.30,.32],
+    fog:[.38,.50,.52],fogCj:[.48,.58,.62],fogIn:[.50,.62,.62],volSky:[.38,.50,.54]});
+  Object.assign(BIOMES.jadeOrage,{ /* ORAGE : ardoise VIOLETTE au zénith, horizon bleu-vert (il était gris) */
+    jdZ:[.12,.10,.20],jdL:[.14,.15,.24],jdM:[.16,.22,.28],jdH:[.22,.32,.34],jdB:[.22,.28,.34],
+    fog:[.20,.24,.32],fogCj:[.26,.28,.38],fogIn:[.24,.28,.36],hemiS:[.34,.38,.54]});
+}
 /* (2026-11-17, LE RENDU FINAL DU CANYON : CY_LOOKS dans maps/canyon-relief.js) les retouches d'ambiance de la piste choisie, posées en DERNIER (après l'équilibre des maps et le plan de feu) ; sans piste : rien */
 if(CY_LOOK&&CY_LOOK.bio)for(const k in CY_LOOK.bio)if(BIOMES[k])eqApplique(BIOMES[k],CY_LOOK.bio[k]);
