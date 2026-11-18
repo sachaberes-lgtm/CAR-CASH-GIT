@@ -24,7 +24,7 @@ const t0 = Date.now();
   const { ch, pg } = await lanceChrome(+A.cdp, tmp(), 844, 390);
   const c = new CDP(pg.webSocketDebuggerUrl); await c.ok;
   const fin = () => { try { c.close(); } catch (e) {} for (const s of srvs) try { s.close(); } catch (e) {} tueChrome(ch); };
-  process.on('exit', fin);
+  process.on('exit', fin); process.on('SIGTERM', () => process.exit(143)); process.on('SIGINT', () => process.exit(130)); /* tué par passage.sh : fermer SON Chrome quand même (vu au banc : un Chrome orphelin gardait le port) */
   setTimeout(() => { console.log('CHIEN DE GARDE 8 min 20 : arrêt'); process.exit(3); }, 500000).unref();
   const exc = [];
   c.ws.addEventListener('message', e => { try { const m = JSON.parse(e.data); if (m.method === 'Runtime.exceptionThrown') exc.push(JSON.stringify(m.params.exceptionDetails).slice(0, 300)); } catch (x) {} });
@@ -40,10 +40,11 @@ const t0 = Date.now();
     await c.send('Page.addScriptToEvaluateOnNewDocument', { source: 'try{localStorage.clear();localStorage.setItem("cashcarSave",' + JSON.stringify(JSON.stringify(SAVE)) + ')}catch(e){}' });
     for (const sc of SC) {
       if (Date.now() - t0 > 450000) { console.log('9 min : arrêt (le verrou doit être rendu)'); break; }
-      const [tag, port, meteo, graine, q] = sc.split('@');
+      const [tag0, port, meteo, graine, q] = sc.split('@');
+      const DEB = /P$/.test(tag0), tag = tag0.replace(/P$/, ''); /* « avP », « apP » : la partie lancée DEBOUT (390×844) dès le chargement : le jeu ne se recadre pas quand on tourne la toile en boucle figée */
       const nom = `${tag}-${meteo}-g${graine}`;
       try {
-        await taille(844, 390); exc.length = 0;
+        await taille(DEB ? 390 : 844, DEB ? 844 : 390); exc.length = 0;
         const url = `http://127.0.0.1:${port}/index.html?colonne=0&tel=1&garde=1&intro=ancien&attente=0&prebati=0&carte=jade&meteo=${meteo}&pistegraine=${graine}` + (q ? '&' + q : '');
         await c.send('Page.navigate', { url });
         for (let i = 0; i < 120; i++) { await dormir(500); try { if (await c.ev("!!window.__gameReady&&typeof dbgJouer==='function'", 8000)) break; } catch (e) {} }
@@ -56,11 +57,11 @@ const t0 = Date.now();
         await c.ev("window.requestAnimationFrame=function(){return 0;};dbgAuto(1,0,{nit:1});1");
         await dormir(300); await c.ev(MASQUE);
         await pas(+A.pas);
+        if (DEB) { await shot(nom + '-debout.png'); const m = await c.ev(MESURE); console.log('MESURE', nom + '-debout', m, Math.round((Date.now() - t0) / 1000) + 's'); continue; }
         await shot(nom + '-couche.png'); /* AVANT la mesure : l'image de la boucle (composer : ACES, bloom), pas le rendu brut de MESURE */
         const m = await c.ev(MESURE);
         const et = await c.ev("(function(){var s=dbgState();return JSON.stringify({go:s.gameOver,d:Math.round(s.dist||s.d||0),z:s.z!=null?+(+s.z).toFixed(2):null,x:s.x!=null?+(+s.x).toFixed(2):null,vH:s.vH})})()");
-        await taille(390, 844); await dormir(500); await pas(2); await dormir(300);
-        await shot(nom + '-debout.png');
+        if (A.debout) { await taille(390, 844); await dormir(500); await pas(2); await dormir(300); await shot(nom + '-debout.png'); } /* ⚠ (vu au banc) la toile ne suit pas : moitié noire — préférer « avP / apP » */
         if (A.astre) { /* l'ASTRE : la caméra tournée vers le soleil / la lune de Jade (la direction du disque, scene-ciel.js : sv), une image rendue à la main */
           await taille(844, 390); await dormir(400); await pas(1);
           try { await c.ev("(function(){try{var p=dbgGpu({n:1,k:1});return p&&p.then?p.then(function(){return 1},function(){return 1}):1}catch(e){return 0}})()", 30000); } catch (e) {}
