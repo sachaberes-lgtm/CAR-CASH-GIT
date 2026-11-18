@@ -123,6 +123,21 @@ const CY_LOOKS={
   C:{sat:'.92',omb:'.92,.84,.86',ardK:'.14',ardF:'.38',ard:'.98,.88,.92',bnc:1,pal:{m:[.92,.54,.36,.75,.90],n:[.62,.30,.22,.82,.84]},
      bio:{canyonMatin:{hemiS:[.50,.50,.60],cyF:[1.053,0.66,0.436],cyZ:[.04,.36,.62],jZen:[.04,.36,.62]},canyonMidi:{cyZ:[.03,.34,.66],jZen:[.03,.34,.66],cyF:[0.998,0.751,0.6]},canyonSoir:{hemiS:[.38,.36,.50],rtT:[.78,.98,1.0],cyF:[0.98,0.551,0.4]}}}};
 const CY_PISTE=(function(){if(/[?&]sans=([^&]*,)?cyfinal(,|&|$)/.test(location.search))return '0';const m=/[?&]cypiste=([^&]*)/.exec(location.search);return m?m[1]:'A';})(),CY_LOOK=Object.prototype.hasOwnProperty.call(CY_LOOKS,CY_PISTE)?CY_LOOKS[CY_PISTE]:null;
+/* ===== LE CANYON FINI (2026-11-18, finition des maps : « le plus jolies possible tout en restant aussi optimisées qu'elles le sont ») =====
+   Sur la piste A (« grès doré équilibré par des froids », le choix de Sacha du 17/11), des NOMBRES d'ambiance seulement, posés avec les retouches de la piste (lumiere-design.js,
+   après l'équilibre et le plan de feu) : zéro instruction de shader, zéro texture, zéro appel, zéro triangle. `?sans=canyonfini` = l'image d'avant. Valeurs et mesures : CY_FINI_R. */
+const CY_FINI=!/[?&]sans=([^&]*,)?canyonfini(,|&|$)/.test(location.search);
+const CY_FINI_R={
+  /* LE SOIR : tout virait au rouge (soleil [1,.56,.30] et rebond [1,.48,.30] sur un grès doré, brume orange [.92,.52,.34], sol de l'hémisphère brique [.45,.25,.18]).
+     Le coucher reste chaud (soleil or-orangé, contre-jour or) mais l'ombre et le remplissage passent au bleu-violet, la brume au corail rosé, le fond de la gorge au mauve ardoise. */
+  canyonSoir:{sunC:[1,.60,.36],cyL:[.92,.58,.44],hemiS:[.34,.40,.66],hemiG:[.36,.24,.26],fillC:[.36,.42,.80],fog:[.84,.50,.50],fogCj:[1,.64,.44],fogIn:[.94,.80,.82],cyF:[.72,.62,.80],cyH:[1,.58,.32],sat:.92},
+  /* LA NUIT : la route d'un bleu électrique (rtT [.86,.93,1.14]) ramenée vers l'encre ; l'ombre et la brume indigo-violet au lieu du bleu gris, la lune un cran lavande. */
+  canyonNuit:{rtT:[.94,.95,1.04],hemiS:[.14,.13,.34],fillC:[.28,.24,.64],fogCj:[.14,.12,.28],cyF:[.07,.06,.15],sunC:[.52,.54,.92]},
+  /* LA PLUIE (hors tirage) : la brume grise devient ardoise turquoise, le rebond de la roche mouillée terre cuite. */
+  canyonPluie:{fog:[.36,.45,.52],fogCj:[.46,.50,.56],fogIn:[.50,.56,.62],hemiS:[.44,.54,.68],cyF:[.44,.52,.60],cyL:[.62,.46,.40],sat:1.08},
+  /* L'ORAGE (hors tirage) : la nuit d'orage bleu-noir passe à l'indigo-violet, l'ombre un cran plus colorée. */
+  canyonOrage:{fog:[.07,.07,.16],fogCj:[.20,.16,.32],fogIn:[.22,.20,.34],hemiS:[.22,.22,.40],fillC:[.36,.32,.70],cyF:[.17,.16,.28]}};
+if(CY_FINI&&CY_PISTE==='A')for(const k in CY_FINI_R)CY_LOOK.bio[k]=Object.assign(CY_LOOK.bio[k]||{},CY_FINI_R[k]);
 function cyFS(CYD){return ['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uBnc,uRkT,uWS,uWD,uSkH,uSkZ,uMist,uMud,uPhP,uPhD,uPhC;uniform vec4 uQ;uniform float uTime,uFlash,uWet;',
   'varying vec3 vW,vN;varying vec4 vA,vB;varying float vWL;','#include <fog_pars_fragment>',
   'float gCs;', /* (2026-10-25, Sacha : « retravaille les textures, inspire-toi de la forêt : des gros pixels, mais lisses ») LES GROS PIXELS DE LA ROCHE : gCs = la case sous ce pixel (~10 px d'écran, par paliers doublés fondus l'un dans l'autre) */
