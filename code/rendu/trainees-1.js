@@ -17,7 +17,7 @@
    Console : `dbgTrx()` (l'état), `dbgTrx('grille')` (la forcer en course, n'importe quelle caisse), `dbgTrx(null)` (rendre la main).
    ========================================================================== */
 var TRX=null,TRX_FORCE=null;
-const TRX_N=900,TRX_PN=560,TRX_HN=240,TRX_MUR=1.6,TRX_HIST={grille:1,glouton:1,foudre:1};
+const TRX_N=900,TRX_PN=720,TRX_HN=240,TRX_MUR=1.6,TRX_HIST={grille:1,glouton:1,foudre:1};
 const TRX_VS='attribute vec4 iP;attribute vec4 iA;attribute vec4 iB;attribute vec4 iC;uniform vec2 uNear;varying vec2 vUv;varying vec4 vC;\n'
  +'void main(){vec2 q=position.xy;vec4 mv;\n'
  +' if(iP.w<.5){float c=cos(iA.x),s=sin(iA.x);vec2 r=vec2(q.x*iA.y,q.y*iA.z);mv=viewMatrix*vec4(iP.xyz,1.);mv.xy+=vec2(r.x*c-r.y*s,r.x*s+r.y*c);}\n'
@@ -168,7 +168,7 @@ function trxBati(){if(TRX)return TRX;
     return {m:m,mi:mi,g:g,a:a,n:0,add:add};};
   const V=function(){return new THREE.Vector3();};
   TRX={L:[mk(false),mk(true)],P:[],pi:0,type:null,n:0,t:0,acc:0,dist:0,cnt:0,kp:0,gk:0,peur:0,boltT:0,ms:0,apercu:false,
-    C:{P:V(),F:V(),U:V(),R:V(),V:V(),B:V(),WL:V(),WR:V(),pv:false,dp:0,sol:true},v1:V(),wl0:V(),wr0:V(),pP:V(),bolts:[],
+    C:{P:V(),F:V(),U:V(),R:V(),V:V(),B:V(),WL:V(),WR:V(),W:V(),N:V(),pv:false,dp:0,sol:true},v1:V(),wl0:V(),wr0:V(),pP:V(),bolts:[],
     H:{x:new Float32Array(TRX_HN*3),b:new Float32Array(TRX_HN*3),u:new Float32Array(TRX_HN*3),k:new Float32Array(TRX_HN),t:new Float32Array(TRX_HN),n:0}};
   for(let i=0;i<TRX_PN;i++)TRX.P.push({v:false,L:0,md:0,cu:0,x:0,y:0,z:0,vx:0,vy:0,vz:0,g:0,dr:0,a:0,l:1,w:.2,h:.2,s1:1,r:0,vr:0,sn:0,st:0,sg:1,fl:0,fp:0,
     c:0,c0:0,c2:-1,cf:0,ct:0,cn:0,cr:1,cg:1,cb:1,ca:1,fi:0,fo:.3,bk:0,dx:0,dy:0,dz:1,ln:0,gr:.3,an:false,ux:0,uy:1,uz:0,sw:0,sf:0,sx:0,sy:0,sz:0});
@@ -177,7 +177,7 @@ function trxBati(){if(TRX)return TRX;
   return TRX;}
 function trxNait(L){const T=TRX;for(let n=0;n<TRX_PN;n++){const i=(T.pi+n)%TRX_PN,p=T.P[i];if(p.v)continue;T.pi=(i+1)%TRX_PN;
   p.v=true;p.L=L;p.md=0;p.vx=p.vy=p.vz=0;p.g=0;p.dr=0;p.a=0;p.l=1;p.s1=1;p.r=0;p.vr=0;p.sn=0;p.st=0;p.sg=1;p.fl=0;p.fp=Math.random()*6.283;
-  p.c2=-1;p.cf=0;p.ct=0;p.cn=0;p.cr=p.cg=p.cb=p.ca=1;p.fi=0;p.fo=.3;p.bk=0;p.an=false;p.sw=0;p.ln=0;p.gr=.3;p.fk=0;p.tw=0;p.mo=0;p.cw=0;p.sb=0;p.cu=0;return p;}return null;}
+  p.c2=-1;p.cf=0;p.ct=0;p.cn=0;p.cr=p.cg=p.cb=p.ca=1;p.fi=0;p.fo=.3;p.bk=0;p.an=false;p.sw=0;p.ln=0;p.gr=.3;p.fk=0;p.tw=0;p.mo=0;p.cw=0;p.sb=0;p.cu=0;p.bs=1;p.mi=0;return p;}return null;}
 function trxMeurt(p){ // (2026-10-16, TRAÎNÉES) ce qui meurt avec un éclat : la bulle de savon CREVE (un anneau de gouttes qui s'ouvre, une étincelle)
   if(p.mo===1){const s=trxNait(1);if(s){s.x=p.x;s.y=p.y;s.z=p.z;s.vx=p.vx;s.vy=p.vy;s.vz=p.vz;s.l=.13;s.w=s.h=p.w*1.6;s.s1=1.8;s.c=2;s.cr=1.2;s.cg=1.7;s.cb=1.5;s.fo=.1;s.vr=4;}
     for(let i=0;i<4;i++){const d=trxNait(1);if(!d)break;const a=i*1.5708+Math.random()*.6;d.x=p.x;d.y=p.y;d.z=p.z;
@@ -237,7 +237,8 @@ function trxLe(d,out,pied){const H=TRX.H,X=pied?H.b:H.x,C=TRX.C,Q=pied?C.B:C.P;l
     acc+=l;px=qx;py=qy;pz=qz;}
   out.set(px,py,pz);return -1;}
 function trxRoues(sp){const C=TRX.C,w=(sp&&sp.w||2)*.4,l=sp&&sp.l||4.4; // les deux roues arrière et le pied de la poupe, en monde
-  C.WL.set(w,.03,-l*.3);carGroup.localToWorld(C.WL);C.WR.set(-w,.03,-l*.3);carGroup.localToWorld(C.WR);C.B.set(0,.04,-(l/2+.05));carGroup.localToWorld(C.B);}
+  C.WL.set(w,.03,-l*.3);carGroup.localToWorld(C.WL);C.WR.set(-w,.03,-l*.3);carGroup.localToWorld(C.WR);C.B.set(0,.04,-(l/2+.05));carGroup.localToWorld(C.B);
+  potMonde(CAR_VITRE,C.W);potMonde(TRX.v1.copy(CAR_VITRE).add(CAR_VITRE_N),C.N).sub(C.W).normalize();} /* (2026-11-17) la vitre du conducteur et la normale qui sort de sa portière, en monde (voir CAR_VITRE) */
 /* (2026-10-18, Sacha : « améliore largement hyper espace ») HYPERESPACE v2 — UN FILÉ (dessiné par trxParts : encre, couleur, cœur, étoile de naissance).
    Le TUNNEL : plus dense vers l'extérieur (√ du hasard), la caisse reste lisible au milieu ; trois lumières — bleu électrique, cyan, blanc chauffé.
    `sk` : la VITESSE (×1 à 75 m/s, de ×0,75 à ×2) — les filés s'allongent quand NITROOO accélère, la vitesse lumière se SENT. `saut` : l'averse de
@@ -316,7 +317,19 @@ function tcBilBati(){TC_BIL=TC_EUR.map(function(E,ix){const w=E[1]/160,h=E[2]/16
   add(.36,.1,.17,.4,.075,pal(.72,1.05));                      // la fenêtre de droite (le portrait d'Europe)
   add(.05,-.32,.27,.07,.08,col(.45));                         // le pont : le tablier…
   add(-.015,-.245,.09,.08,.085,col(.45));add(.115,-.245,.09,.08,.085,col(.45)); // …et ses deux arches
-  return {k:k,w:w,h:h,ix:ix,c:{}};});}
+  const kc=[[0,0,0,w,h,.06].concat(pal(.12,1)),[.22*w,0,0,.09*w,1.02*h,.08,1.35,1.4,1.5],[-.27*w,.12*h,0,.26*w,.46*h,.075].concat(pal(.75,1.05))]; /* le CONFETTI : le champ, l'hologramme, la fenêtre (voir tcBilPoseC) */
+  return {k:k,kc:kc,w:w,h:h,ix:ix,c:{},cc:{}};});}
+/* ===== LE BILLET-CONFETTI (2026-11-17, Sacha : « des billets plus petits, beaucoup plus, comme des confettis ») =====
+   Un billet détaillé coûte ~30 cubes (bordure, champ, étoiles, chiffres, pont… taillés en quatre tranches) : à 40 cm de long dans
+   l'image, ces détails ne font qu'un ou deux pixels. Le CONFETTI garde ce qui se LIT de loin — sa couleur d'euro (le champ), la bande
+   argentée de l'hologramme, la fenêtre claire — en DEUX tranches qui se décalent (le papier plie encore) : 4 cubes. La traînée en
+   lance quatre fois plus pour le même budget. Le billet détaillé passe aussi en confetti au-delà de `TC_BIL_LOIN` mètres de l'objectif. */
+const TC_BIL_LOIN=11,TC_SL2=[-.5,0,.5],TC_POSES2=[[0,0],[.045,0],[0,.045],[.04,-.03],[-.04,0]];
+function tcBilPoseC(B,pose){const C=B.cc[pose];if(C)return C;const out=[],off=TC_POSES2[pose],W=B.w;
+  for(const e of B.kc){const x0=e[0]-e[3]/2,x1=e[0]+e[3]/2;
+    for(let s=0;s<2;s++){const a=Math.max(x0,TC_SL2[s]*W),b=Math.min(x1,TC_SL2[s+1]*W);if(b-a<1e-4)continue;
+      out.push([(a+b)/2,e[1],off[s],b-a,e[4],e[5],e[6],e[7],e[8]]);}}
+  return (B.cc[pose]=out);}
 const TC_BIL_W=[22,22,20,16,10,6,4]; // beaucoup de petites coupures, un 500 rare
 function tcBilTire(){if(!TC_BIL)tcBilBati();let r=Math.random()*100,i=0;while(i<6&&r>=TC_BIL_W[i]){r-=TC_BIL_W[i];i++;}return i;}
 /* (2026-10-25, Léo : « ils peuvent se plier, abîmés un peu : là ils sont trop solides ») LE PAPIER SOUPLE ET USÉ. Le billet est taillé en QUATRE TRANCHES dans sa longueur ;
@@ -354,7 +367,7 @@ function tcPool(N,kind,op){ // kind : 's' plein · 'o' contour · 'g' lueur
   m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);m.instanceColor.setUsage(THREE.DynamicDrawUsage);
   m.count=0;m.frustumCulled=false;m.visible=false;if(kind==='g')m.renderOrder=2;scene.add(m);
   return {m:m,M:m.instanceMatrix.array,C:m.instanceColor.array,n:0,N:N};}
-function tcBati(){if(!TC)TC={s:tcPool(2400,'s'),o:tcPool(500,'o'),g:tcPool(900,'g',.2)};return TC;}
+function tcBati(){if(!TC)TC={s:tcPool(3000,'s'),o:tcPool(500,'o'),g:tcPool(900,'g',.2)};return TC;}
 function tcRaz(){if(TC)TC.s.n=TC.o.n=TC.g.n=0;}
 function tcFin(){if(!TC)return;for(const Y of [TC.s,TC.o,TC.g]){const n=Y.n;Y.m.count=n;Y.m.visible=n>0;
   if(n){Y.m.instanceMatrix.updateRange.count=n*16;Y.m.instanceMatrix.needsUpdate=true;Y.m.instanceColor.updateRange.count=n*3;Y.m.instanceColor.needsUpdate=true;}}}
@@ -376,7 +389,7 @@ function tcBilletMesh(Y,m,bi,pose,wear){const B=TC_BIL[bi|0]||TC_BIL[TC_BIL_100]
 function tcFinY(Y){if(!Y)return;const n=Y.n;Y.m.count=n;Y.m.visible=n>0;if(n){Y.m.instanceMatrix.updateRange.count=n*16;Y.m.instanceMatrix.needsUpdate=true;Y.m.instanceColor.updateRange.count=n*3;Y.m.instanceColor.needsUpdate=true;}}
 function tcPart(p,al,E){const T=TC,pv=TRX.C.pv;
   let f=al>=.8?1:al>=.55?.84:al>=.36?.68:al>=.18?.5:0;if(!f)return; // l'ancienne OPACITÉ devient la TAILLE : les cubes fondent par crans
-  if(!pv){const c=camera.position,dx=p.x-c.x,dy=p.y-c.y,dz=p.z-c.z,d=Math.sqrt(dx*dx+dy*dy+dz*dz);f*=d<1.8?0:d<2.7?.5:d<3.8?.8:1;if(!f)return;} // près de l'objectif : par crans aussi
+  let d=0;if(!pv){const c=camera.position,dx=p.x-c.x,dy=p.y-c.y,dz=p.z-c.z;d=Math.sqrt(dx*dx+dy*dy+dz*dz);f*=d<1.8?0:d<2.7?.5:d<3.8?.8:1;if(!f)return;} // près de l'objectif : par crans aussi
   const k=p.cu;
   if(k===1){ // LE PÉTALE : trois cubes plats, qui basculent
     const u0=TC_K.pet*E*(p.c===29?1.45:1),gq=u0*TC_K.pas,ox=Math.round(p.x/gq)*gq,oy=Math.round(p.y/gq)*gq,oz=Math.round(p.z/gq)*gq,
@@ -384,9 +397,10 @@ function tcPart(p,al,E){const T=TC,pv=TRX.C.pv;
     for(let i=0;i<3;i++){const c=TC_PET[i],pc=TC_PETC[(c[2]+v)%3];
       tcLocal(T.s,pm,ox,oy,oz,(c[0]-.33)*u0*mir,(c[1]-.33)*u0,0,s,s,s*.42,pc[0]*p.cr,pc[1]*p.cg,pc[2]*p.cb);}
   }else if(k===2){ // LE BILLET : un cadre, un panneau, le médaillon — il se retourne par quarts de tour
-    const u=TC_K.bil*E,gq=u*TC_K.pas,ox=Math.round(p.x/gq)*gq,oy=Math.round(p.y/gq)*gq,oz=Math.round(p.z/gq)*gq,pm=TC_PERM[TC_SEQ[((p.a*p.fl*.5+p.fp)|0)%6]],uf=u*f;
+    const u=TC_K.bil*E*p.bs,gq=u*TC_K.pas,ox=Math.round(p.x/gq)*gq,oy=Math.round(p.y/gq)*gq,oz=Math.round(p.z/gq)*gq,pm=TC_PERM[TC_SEQ[((p.a*p.fl*.5+p.fp)|0)%6]],uf=u*f;
     const B=TC_BIL[p.bi|0]||TC_BIL[TC_BIL_100],W=4.4*uf,kb=pm[2]===1?1:1.6; // (2026-10-25) le billet d'EUROS (voir TC_EUR) : le 500 fait 4,4 de long, les autres à leur vraie proportion ; debout, sa face reçoit l'ombrage des flancs : on la relève
-    for(const c of tcBilPose(B,TC_PSEQ[((p.a*3+p.fp)|0)%6],p.wr|0))tcLocal(T.s,pm,ox,oy,oz,c[0]*W,c[1]*W,c[2]*W,c[3]*W,c[4]*W,c[5]*W,c[6]*kb,c[7]*kb,c[8]*kb);
+    const ps=TC_PSEQ[((p.a*3+p.fp)|0)%6]; /* (2026-11-17) le CONFETTI (p.mi) et le billet détaillé vu de loin (> TC_BIL_LOIN m) : 4 cubes au lieu de ~30 (voir tcBilPoseC) */
+    for(const c of (p.mi||d>TC_BIL_LOIN?tcBilPoseC(B,ps):tcBilPose(B,ps,p.wr|0)))tcLocal(T.s,pm,ox,oy,oz,c[0]*W,c[1]*W,c[2]*W,c[3]*W,c[4]*W,c[5]*W,c[6]*kb,c[7]*kb,c[8]*kb);
   }else if(k===3){ // L'ÉTINCELLE : une croix de cubes, à la couleur de la particule
     const u=p.w*E*.3,gq=u*TC_K.pas*2,x=Math.round(p.x/gq)*gq,y=Math.round(p.y/gq)*gq,z=Math.round(p.z/gq)*gq,s=u*f,a=s*1.5,r=p.cr*1.1,g=p.cg*1.1,b=p.cb*1.1,s7=s*.7,r7=r*.8,g7=g*.8,b7=b*.8;
     tcBox(T.s,x,y,z,s,s,s,r,g,b);tcBox(T.s,x+a,y,z,s7,s7,s7,r7,g7,b7);tcBox(T.s,x-a,y,z,s7,s7,s7,r7,g7,b7);

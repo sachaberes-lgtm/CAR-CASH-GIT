@@ -292,6 +292,35 @@ let CAR_POT_1=false,CAR_POT_SRC='canon';
    dans les 90 cm de la poupe), un point par côté (`CAR_FEUX`, repère caisse) ; sinon la place des feux du gabarit (`A.tl`). Les sillages
    (`SILS`) et les halos des feux (`HALO.t`) s'y accrochent ; `potMonde` les suit à travers le roulis. */
 const CAR_FEUX=[];let CAR_FEUX_SRC='gabarit';
+/* ===== LA VITRE DU CONDUCTEUR (2026-11-17, Sacha : « les billets d'euros doivent sortir de la fenêtre du conducteur ») =====
+   `buildCar` relève, une fois par caisse, la VRAIE vitre côté conducteur (à gauche : +x dans le repère caisse, la poupe est en −z)
+   dans les sommets de son VERRE (la matière `g` du kit et le verre des gabarits) : la BANDE HAUTE du verre (le vitrage de l'habitacle,
+   pas les phares sous globe), son bord le plus à gauche, au milieu de sa hauteur, un peu en avant du milieu de sa longueur (le siège).
+   Sans verre (ou un verre trop bas pour être un habitacle) : la boîte de la carrosserie, aux trois quarts de sa hauteur, flanc gauche.
+   `CAR_VITRE` est dans le repère caisse comme CAR_POTS (`potMonde` le suit dans le roulis), `CAR_VITRE_N` la normale qui sort de la
+   portière. Coût : un passage sur les sommets à la construction de la caisse, rien en course. Console : `dbgVitre()`. */
+const CAR_VITRE=new THREE.Vector3(.8,1,0),CAR_VITRE_N=new THREE.Vector3(1,0,0);let CAR_VITRE_SRC='gabarit';
+function vitreReleve(verres,demiW){ /* demiW : la demi-largeur de la fiche — le repli sans verre n'en sort pas (un aileron, une oreille débordent) */
+  carGroup.updateMatrixWorld(true);
+  const inv=new THREE.Matrix4().copy(carBody.matrixWorld).invert(),M=new THREE.Matrix4(),v=new THREE.Vector3(),G=[],B=[1e9,1e9,1e9,-1e9,-1e9,-1e9];
+  carBody.traverse(function(o){
+    if(!o.isMesh||o.isInstancedMesh||!o.geometry||!o.geometry.attributes.position||(o.userData&&o.userData.sol))return;
+    for(let a=o;a&&a!==carBody;a=a.parent)if(!a.visible)return; /* une pièce cachée (aile repliée, variante) ne compte pas */
+    const mt=o.material,vr=Array.isArray(mt)?mt.some(function(m){return verres.indexOf(m)>=0;}):verres.indexOf(mt)>=0,
+      ps=o.geometry.attributes.position,pas=vr?1:Math.max(1,Math.floor(ps.count/3000)); /* la tôle : un sommet sur N suffit pour sa boîte */
+    M.multiplyMatrices(inv,o.matrixWorld);
+    for(let i=0;i<ps.count;i+=pas){v.fromBufferAttribute(ps,i).applyMatrix4(M);
+      if(v.x<B[0])B[0]=v.x;if(v.y<B[1])B[1]=v.y;if(v.z<B[2])B[2]=v.z;if(v.x>B[3])B[3]=v.x;if(v.y>B[4])B[4]=v.y;if(v.z>B[5])B[5]=v.z;
+      if(vr)G.push(v.x,v.y,v.z);}});
+  if(B[0]>B[3]){CAR_VITRE.set(.8,1,0);CAR_VITRE_SRC='gabarit';return;}
+  let yt=-1e9;for(let i=1;i<G.length;i+=3)if(G[i]>yt)yt=G[i];
+  if(G.length>=9&&yt>B[1]+(B[4]-B[1])*.45){
+    const yb=yt-.42;let xm=-1e9,ya=1e9,za=1e9,zb=-1e9;
+    for(let i=0;i<G.length;i+=3){if(G[i+1]<yb||G[i]<=0)continue;
+      if(G[i]>xm)xm=G[i];if(G[i+1]<ya)ya=G[i+1];if(G[i+2]<za)za=G[i+2];if(G[i+2]>zb)zb=G[i+2];}
+    if(xm>.1){CAR_VITRE.set(xm+.02,(ya+yt)*.5,za+(zb-za)*.56);CAR_VITRE_SRC='verre';return;}}
+  CAR_VITRE.set(Math.min(B[3]*.96,(demiW||1)+.05),B[1]+(B[4]-B[1])*.72,(B[2]+B[5])*.5+(B[5]-B[2])*.04);CAR_VITRE_SRC='boite';}
+window.dbgVitre=function(){const w=potMonde(CAR_VITRE,new THREE.Vector3());return {src:CAR_VITRE_SRC,caisse:CAR_VITRE.toArray().map(function(x){return +x.toFixed(2);}),monde:w.toArray().map(function(x){return +x.toFixed(2);})};};
 window.dbgFeux=function(){const d9=new THREE.Vector3();carGroup.getWorldDirection(d9);return {cap:+Math.atan2(d9.x,d9.z).toFixed(3),src:CAR_FEUX_SRC,feux:CAR_FEUX.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),pots:CAR_POTS.length,sils:SILS.map(function(t){return {n:t.n,lg:+t.lg.toFixed(1),hk:+t.hk.toFixed(2),vis:t.m.visible};})};}; // (banc) où naissent les traînées de lumière
 function potMonde(v,out){ // un point du repère caisse → monde, À TRAVERS la carrosserie qui penche (carBody) : le pot bouge avec elle
   return out.copy(v).applyEuler(carBody.rotation).add(carBody.position).multiply(carGroup.scale).applyQuaternion(carGroup.quaternion).add(carGroup.position);}

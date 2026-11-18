@@ -409,6 +409,7 @@ function buildCar(spec){
   // LA CARROSSERIE PENCHE (voir carBody) : on y range tout, sauf les roues et ce qui épouse le bitume (néon, flaques)
   for(const ch of carGroup.children.slice())if(wheels.indexOf(ch)<0&&!(ch.userData&&ch.userData.sol))carBody.add(ch);
   carGroup.add(carBody);carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);carBody.userData.pivY=wheels.length?wheels[wheels.length-1].position.y:.45; // pivot = hauteur des moyeux (⚠ pas de carRoll9=0 ici : buildCar tourne AVANT leur déclaration — zone morte)
+  try{vitreReleve([glassM,lpM.g].filter(Boolean),W9/2);}catch(e){console.warn('vitre',e);} /* (2026-11-17) la vitre du conducteur, d'où FAIS PLEUVOIR jette ses billets (voir CAR_VITRE) — avant la soudure, le verre est encore une pièce à lui */
   carGroup.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // toute la caisse porte son ombre LONGUE — sauf la nappe néon (un carré d'ombre, non merci)
   if(bodyM.userData.mot)carGroup.traverse(function(o9){const m9=o9.material;if(o9.isMesh&&m9&&!Array.isArray(m9)&&m9.userData&&m9.userData.mot&&!MOT_FAIT.has(m9))try{motGreffe(m9,m9.userData.mot);}catch(e){}}); // (2026-10-16) un gabarit qui CLONE la tôle (l'épave : K.body.clone()) : le clone garde la couleur blanche, il reprend le motif
   finMarbre(spec); // (2026-11-05) la marbrure propre de la tôle, comme LA HONTE (voir finition.js)
