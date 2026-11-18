@@ -33,7 +33,7 @@ function emiN(k,dt,K9){const K=K9!=null?K9:PAL.b('emiK',1);if(K>=1){const a=(EMI
    `PAL.B.imgDensVit=[1,1,.5]` (colonnes ancien/moyen non lues) ; `?img=max` / `?imgsans=e` = comme avant ; l'ordinateur ne change pas. */
 PAL.B.imgDensVit=[1,1,.5];
 function densVit(kmh){if(IMG_DYN.dens!=null)return kmh>IMG_DYN.vmin?IMG_DYN.dens:1; /* `imgRegle({stries:f})` : imposé à chaud */return kmh>200?PAL.bT('imgDensVit',1,'e'):1;}
-function emiVit(k,n,kmh){const f=densVit(kmh);if(f>=1)return n;const a=(EMI[k+'v']||0)+n*f,m=Math.round(a);EMI[k+'v']=a-m;return m;}
+function emiVit(k,n,kmh){const f=densVit(kmh)*IMG_DYN.vdaDens; /* (2026-11-18, LA VOITURE D'ABORD) les traits d'air seuls : la traînée de la caisse n'en dépend pas */if(f>=1)return n;const a=(EMI[k+'v']||0)+n*f,m=Math.round(a);EMI[k+'v']=a-m;return m;}
 /* (2026-10-28, Léo : « il y a toujours quelques traits moins droits et exacts que ceux autour, trouve-les ») LES ANCIENS TRAITS D'AIR s'effacent : ces points posés dans le monde
    filent en perspective vers un point de fuite un peu différent de celui des filets de l'écran (shader final) — d'où les quelques traits de travers parmi les droits. Les filets les remplacent ; `?traits=0` rend les deux. */
 const TRAITS_NEUFS=!/[?&]traits=0\b/.test(location.search);
