@@ -1,0 +1,156 @@
+=== 1 courses · 1 min de course · versions ['LOCALE'] · appareils ['390x844@3']
+
+--- TOUT, par phase et vitesse
+  00 sol <300 km/h            396 img   14.0 s   28.4 i/s  moy  35.3 ms  >21: 100.0 %  >34,5:   3.3 %  >51:  3.3 %  pire  100  travail  6.5 ms (>12:  7.8 %)  calé30 100.0 %
+                                      pré-bâti  0.9 ms par image (dans le travail)
+  01 sol 300-600 km/h         351 img   14.6 s   24.1 i/s  moy  41.5 ms  >21: 100.0 %  >34,5:  24.5 %  >51: 24.2 %  pire  100  travail 16.7 ms (>12: 44.2 %)  calé30 100.0 %
+                                      pré-bâti  0.1 ms par image (dans le travail)
+  02 sol 600-1000 km/h         10 img    0.3 s   30.0 i/s  moy  33.3 ms  >21: 100.0 %  >34,5:   0.0 %  >51:  0.0 %  pire   33  travail  3.9 ms (>12:  0.0 %)  calé30 100.0 %
+                                      pré-bâti  0.0 ms par image (dans le travail)
+  03 sol 1000-1600 km/h         1 img    0.0 s   29.4 i/s  moy  34.0 ms  >21: 100.0 %  >34,5:   0.0 %  >51:  0.0 %  pire   34  travail 87.0 ms (>12: 100.0 %)  calé30 100.0 %
+                                      pré-bâti  0.0 ms par image (dans le travail)
+  10 vol <300 km/h            116 img    4.6 s   25.2 i/s  moy  39.7 ms  >21: 100.0 %  >34,5:  10.3 %  >51: 10.3 %  pire  100  travail 12.3 ms (>12: 10.3 %)  calé30 100.0 %
+                                      pré-bâti  0.0 ms par image (dans le travail)
+  11 vol 300-600 km/h         496 img   16.5 s   30.0 i/s  moy  33.3 ms  >21: 100.0 %  >34,5:   0.0 %  >51:  0.0 %  pire   34  travail  3.3 ms (>12:  0.0 %)  calé30 100.0 %
+                                      pré-bâti  0.0 ms par image (dans le travail)
+  12 vol 600-1000 km/h        183 img    8.1 s   22.7 i/s  moy  44.1 ms  >21: 100.0 %  >34,5:  16.4 %  >51: 16.4 %  pire  133  travail 18.9 ms (>12: 38.3 %)  calé30 100.0 %
+                                      pré-bâti  0.0 ms par image (dans le travail)
+  13 vol 1000-1600 km/h        50 img    3.1 s   16.3 i/s  moy  61.3 ms  >21: 100.0 %  >34,5:  40.0 %  >51: 40.0 %  pire  133  travail 41.3 ms (>12: 100.0 %)  calé30 100.0 %
+                                      pré-bâti  0.0 ms par image (dans le travail)
+
+--- TOUT, par phase
+  0 sol                       758 img   28.9 s   26.2 i/s  moy  38.1 ms  >21: 100.0 %  >34,5:  13.1 %  >51: 12.9 %  pire  100  travail 11.3 ms (>12: 24.7 %)  calé30 100.0 %
+                                      pré-bâti  0.5 ms par image (dans le travail)
+  1 vol                       845 img   32.3 s   26.2 i/s  moy  38.2 ms  >21: 100.0 %  >34,5:   7.3 %  >51:  7.3 %  pire  133  travail 10.1 ms (>12: 15.6 %)  calé30 100.0 %
+                                      pré-bâti  0.0 ms par image (dans le travail)
+
+--- BASE seulement (aucun levier), par phase et vitesse
+  00 sol <300 km/h            396 img   14.0 s   28.4 i/s  moy  35.3 ms  >21: 100.0 %  >34,5:   3.3 %  >51:  3.3 %  pire  100  travail  6.5 ms (>12:  7.8 %)  calé30 100.0 %
+                                      pré-bâti  0.9 ms par image (dans le travail)
+  01 sol 300-600 km/h         351 img   14.6 s   24.1 i/s  moy  41.5 ms  >21: 100.0 %  >34,5:  24.5 %  >51: 24.2 %  pire  100  travail 16.7 ms (>12: 44.2 %)  calé30 100.0 %
+                                      pré-bâti  0.1 ms par image (dans le travail)
+  02 sol 600-1000 km/h         10 img    0.3 s   30.0 i/s  moy  33.3 ms  >21: 100.0 %  >34,5:   0.0 %  >51:  0.0 %  pire   33  travail  3.9 ms (>12:  0.0 %)  calé30 100.0 %
+                                      pré-bâti  0.0 ms par image (dans le travail)
+  03 sol 1000-1600 km/h         1 img    0.0 s   29.4 i/s  moy  34.0 ms  >21: 100.0 %  >34,5:   0.0 %  >51:  0.0 %  pire   34  travail 87.0 ms (>12: 100.0 %)  calé30 100.0 %
+                                      pré-bâti  0.0 ms par image (dans le travail)
+  10 vol <300 km/h            116 img    4.6 s   25.2 i/s  moy  39.7 ms  >21: 100.0 %  >34,5:  10.3 %  >51: 10.3 %  pire  100  travail 12.3 ms (>12: 10.3 %)  calé30 100.0 %
+                                      pré-bâti  0.0 ms par image (dans le travail)
+  11 vol 300-600 km/h         496 img   16.5 s   30.0 i/s  moy  33.3 ms  >21: 100.0 %  >34,5:   0.0 %  >51:  0.0 %  pire   34  travail  3.3 ms (>12:  0.0 %)  calé30 100.0 %
+                                      pré-bâti  0.0 ms par image (dans le travail)
+  12 vol 600-1000 km/h        183 img    8.1 s   22.7 i/s  moy  44.1 ms  >21: 100.0 %  >34,5:  16.4 %  >51: 16.4 %  pire  133  travail 18.9 ms (>12: 38.3 %)  calé30 100.0 %
+                                      pré-bâti  0.0 ms par image (dans le travail)
+  13 vol 1000-1600 km/h        50 img    3.1 s   16.3 i/s  moy  61.3 ms  >21: 100.0 %  >34,5:  40.0 %  >51: 40.0 %  pire  133  travail 41.3 ms (>12: 100.0 %)  calé30 100.0 %
+                                      pré-bâti  0.0 ms par image (dans le travail)
+
+--- LES LEVIERS (courses sans bascule du gouverneur), sol puis vol+figure
+ levier base : 1 courses
+  sol                         758 img   28.9 s   26.2 i/s  moy  38.1 ms  >21: 100.0 %  >34,5:  13.1 %  >51: 12.9 %  pire  100  travail 11.3 ms (>12: 24.7 %)  calé30 100.0 %
+                                      pré-bâti  0.5 ms par image (dans le travail)
+  vol + figure                845 img   32.3 s   26.2 i/s  moy  38.2 ms  >21: 100.0 %  >34,5:   7.3 %  >51:  7.3 %  pire  133  travail 10.1 ms (>12: 15.6 %)  calé30 100.0 %
+                                      pré-bâti  0.0 ms par image (dans le travail)
+  vol ≥ 600 km/h              233 img   11.1 s   20.9 i/s  moy  47.8 ms  >21: 100.0 %  >34,5:  21.5 %  >51: 21.5 %  pire  133  travail 23.7 ms (>12: 51.5 %)  calé30 100.0 %
+                                      pré-bâti  0.0 ms par image (dans le travail)
+
+--- PAR ÉTAT THERMIQUE (secondes de course ; images par seconde et pire image de la seconde)
+  thermique 0 sol  :     22 s   24.7 i/s  pire moyenne  56.2 ms  secondes avec une image > 50 ms :  54.5 %  calé30 100.0 %
+  thermique 0 vol  :     41 s   25.9 i/s  pire moyenne  54.3 ms  secondes avec une image > 50 ms :  24.4 %  calé30 100.0 %
+  secondes par état (0 nominal · 1 fair · 2 serious · 3 critical · 4 sans capteur) : [0, 0, 0, 0, 63]
+
+--- PAR MAP (courses d'une seule map)
+ ville (1 courses)
+  sol                         758 img   28.9 s   26.2 i/s  moy  38.1 ms  >21: 100.0 %  >34,5:  13.1 %  >51: 12.9 %  pire  100  travail 11.3 ms (>12: 24.7 %)  calé30 100.0 %
+                                      pré-bâti  0.5 ms par image (dans le travail)
+  vol + figure                845 img   32.3 s   26.2 i/s  moy  38.2 ms  >21: 100.0 %  >34,5:   7.3 %  >51:  7.3 %  pire  133  travail 10.1 ms (>12: 15.6 %)  calé30 100.0 %
+                                      pré-bâti  0.0 ms par image (dans le travail)
+
+--- LES 25 PIRES IMAGES (t s, durée ms, travail ms, phase, km/h, cran QL, drapeaux 1 calé30 · 2 reconstruction · 4 portail) — date de la course, levier, cartes
+    100 ms travail   93  vol      254 km/h  QL  1  f1  à   11.4 s · 11-17T23:42:52 base ville
+    100 ms travail   93  vol      254 km/h  QL  1  f1  à   11.5 s · 11-17T23:42:52 base ville
+    100 ms travail   93  vol      254 km/h  QL  1  f1  à   11.6 s · 11-17T23:42:52 base ville
+    100 ms travail   93  vol      254 km/h  QL  1  f1  à   11.7 s · 11-17T23:42:52 base ville
+    100 ms travail   93  vol      254 km/h  QL  1  f1  à   11.8 s · 11-17T23:42:52 base ville
+    100 ms travail   93  vol      254 km/h  QL  1  f1  à   11.9 s · 11-17T23:42:52 base ville
+    100 ms travail   92  vol      254 km/h  QL  1  f1  à   12.0 s · 11-17T23:42:52 base ville
+    100 ms travail   92  vol      254 km/h  QL  1  f1  à   12.1 s · 11-17T23:42:52 base ville
+    100 ms travail   92  vol      254 km/h  QL  1  f1  à   12.3 s · 11-17T23:42:52 base ville
+    100 ms travail    4  vol      254 km/h  QL  1  f1  à   12.4 s · 11-17T23:42:52 base ville
+    100 ms travail   45  sol      368 km/h  QL  5  f1  à   23.2 s · 11-17T23:42:52 base ville
+     67 ms travail   23  sol       49 km/h  QL  1  f3  à    0.1 s · 11-17T23:42:52 base ville
+     67 ms travail    7  sol       59 km/h  QL  1  f3  à    0.2 s · 11-17T23:42:52 base ville
+     67 ms travail   93  vol      254 km/h  QL  1  f1  à   11.3 s · 11-17T23:42:52 base ville
+     67 ms travail   92  vol      254 km/h  QL  1  f1  à   12.2 s · 11-17T23:42:52 base ville
+     67 ms travail   29  sol      317 km/h  QL  1  f1  à   17.4 s · 11-17T23:42:52 base ville
+     67 ms travail   35  sol      318 km/h  QL  1  f1  à   17.5 s · 11-17T23:42:52 base ville
+     67 ms travail   38  sol      318 km/h  QL  1  f1  à   17.5 s · 11-17T23:42:52 base ville
+     67 ms travail   40  sol      318 km/h  QL  1  f1  à   17.6 s · 11-17T23:42:52 base ville
+     67 ms travail   37  sol      317 km/h  QL  1  f1  à   17.7 s · 11-17T23:42:52 base ville
+     67 ms travail   34  sol      315 km/h  QL  1  f1  à   17.8 s · 11-17T23:42:52 base ville
+     67 ms travail   37  sol      314 km/h  QL  1  f1  à   17.9 s · 11-17T23:42:52 base ville
+     67 ms travail   33  sol      313 km/h  QL  1  f1  à   18.0 s · 11-17T23:42:52 base ville
+     67 ms travail   34  sol      312 km/h  QL  1  f1  à   18.1 s · 11-17T23:42:52 base ville
+     67 ms travail   36  sol      311 km/h  QL  1  f1  à   18.1 s · 11-17T23:42:52 base ville
+
+--- LES IMAGES LONGUES par phase : nombre pour 1000 s de phase
+  sol       68 images longues en     29 s → 2351.6 / 1000 s
+  vol       12 images longues en     32 s → 371.9 / 1000 s
+
+--- L'ÉCRAN ET LA PUCE (builds ≥ 52) : images d'écran reçues, images calculées, plus petit intervalle médian, vrai coût médian d'une image
+  sol     22 s   écran 30.2 /s   calculées 24.7 /s   intervalle mini médian 33.2 ms   vrai coût médian 11.1 ms (p90 42.8, 21 mesures)
+  vol     41 s   écran 31.3 /s   calculées 25.9 /s   intervalle mini médian 33.2 ms   vrai coût médian 10.1 ms (p90 29.3, 37 mesures)
+
+--- PAR NIVEAU D'IMAGE (réglage, niveau, cadence visée, appareil) : secondes, part en vol, images calculées /s, vrai coût médian, secondes par état thermique
+  BASSE N1 30 i/s ?              63 s (vol  65 %)   25.4 i/s  vrai coût médian 10.1 ms  thermique nominal 63 · fair 0 · serious 0 · critical 0 s
+  changements de réglage en course : 0 (sur 1 courses profilées)
+
+--- LES GELS : QUI (images > 80 ms, par course)
+ 11-17T23:42 LOCALE    69 s  ville  64 gels (G) · séance 1794958929269 : avant tout retour long (≥ 30 s) + pivot
+    gels avant / après (état de séance) : 64 / 0 · dont hors boucle 0 / 0
+    référence des tranches (images de loop < 25 ms, c.TR) : b1 0.2 · b2 0.3 · b3 0.1 · b4 0.5 · b5 0.1 · b6 0.9 · rendu 2.1 · après 0.6 ms
+      51 gels    5671 ms  fil entier ralenti (toutes les tranches ×3 et plus)  ×15.1 médian (10.1-19.4)  · sentinelle moy. 2.18 ms (51 mesures)
+      12 gels    1153 ms  boucle d'avant · b4 effets (×90 sa référence)  · sentinelle moy. 0.32 ms (12 mesures)
+       1 gels      84 ms  boucle d'avant · après rendu (×76 sa référence)  · sentinelle moy. 0.30 ms (1 mesures)
+    hors boucle non attribué médian 13 ms · contexte audio {'suspended': 64} · retour d'arrière-plan à -1 s · pivot à -1 s · minuteries [1, 2, 3, 4, 5, 14] · intervalles [16, 17] · tas 195 Mo
+    par seconde (médianes) : images de loop 30 · autres rAF 30 · rappels hors boucle 3 ms · intervalles 16→18 · écouteurs 397→398
+    SENTINELLE (par seconde, iOS : horloge au ms → lire les moyennes) : moyenne 1.22 ms · base (meilleure moyenne sur 10 s, plancher 0,1) 0.36 ms · pire 5.90
+      par 10 s (moyenne ms, ×base) : 0:0.38(×1.1) 10:1.53(×4.3) 20:3.19(×8.9) 30:1.73(×4.8) 40:0.36(×1.0) 50:0.38(×1.1) 60:0.40(×1.1)
+      aux gels : moyenne 1.80 ms (64 mesures) → ×5.0
+    TÉMOIN DU RAMASSE-MIETTES : 48 passages en 63 s (0.76 /s) · âge médian de l'appât 325 ms
+      aux gels : dernier passage il y a 480 ms (médiane) · gels à moins de 300 ms d'un passage : 20/63
+    ÉTAT NATIF (thermique·branché·autre musique·économie, 9 = inconnu ; secondes) : 9999:63
+    RETOUR + PIVOT : rAF par image d'écran (max par seconde → secondes) {2: 61, 3: 1, 6: 1} · loop par image {1: 63} · toile/fenêtre % {156: 1, 900: 62}
+      écouteurs 397 → 398 (min 397, max 398) · course après un retour+pivot (pivot ≤ 5 s après le retour) dès la seconde —
+      POULS aux gels HORS boucle (0) : fil LIBRE (silence ≤ 15 ms : image retenue hors du fil) 0 · fil PRIS (silence ≥ moitié du trou) 0 · entre les deux 0 · pas de pouls (G[37] = -1 : le guet n'a pas battu) 0 · silence médian — ms
+      gels DANS la boucle (loop d'avant ≥ 40 ms et hors boucle < ½ intervalle, pouls non lu) : 64
+      toile aux gels : toile/fenêtre % {900: 64} · tampon (largeur) {1170: 64}
+    départ → fin : minuteries/intervalles/écouteurs [4, 16, 382] → [5, 18, 398]
+    séance départ → fin [âge vue web s, dernier arrière-plan s, textures, géométries, programmes] : [44, 0, 120, 360, 154] → [113, 0, 137, 603, 155]
+
+--- GELS × CHALEUR × RETOUR+PIVOT (1 courses à mouchard ; retour long ≥ 30 s, --long pour changer) : secondes · gels · gels/min · hors boucle/min
+  thermique | AVANT                                | APRÈS                                | TOUT
+  inconnu   |    63 s   64 gels  61.0/min (hb   0.0) |                                    — |    63 s   64 gels  61.0/min (hb   0.0)
+  tout avant      63 s   64 gels  61.0/min (hb   0.0)
+
+--- LES RAFALES (≥ 2 loops ≥ 80 ms « fil entier » dans la même seconde ; voir passation/qualite/mesure-rafales.md)
+ 11-17T23:42 LOCALE    69 s  ville  · 1 rafale(s) · sentinelle de base 0.36 ms
+  RAFALE 28-37 s (10 s) : 50 loops lourdes, médiane 91 ms (min 84 · max 118)
+    tranches moyennes (ms) : b1 0.7 · b2 15.5 · b3 2.6 · b4 16.2 · b5 14.5 · b6 19.0 · rendu 23.8 · après 0.5
+    ATTENTE PUCE (part de la loop lourde) : 1 % en moyenne (max 3 %) · WebGL synchrones 0.0 ms (0.0 appels) · Canvas 2D 0.4 ms (41.2 appels) · envois WebGL 0.5 ms (132 appels) par loop lourde
+      référence, images légères (1375) : 5 % de la loop · synchrones 0.00 ms (0.2 appels) · 2D 0.11 ms (45.0) · envois 0.11 ms (145) par image  → rafale ×0.2
+    SENTINELLES des loops lourdes (ms) : début 2.30 (×6.4) [32] · après rendu 2.32 (×6.4) [50] · fin 2.08 (×5.8) [50]
+    SOUS-TRANCHES dominantes (ms par loop lourde · référence sur les images légères · écart) :
+        74.8 ms  réf  0.00       banc · fil entier exprès
+         9.5 ms  réf  2.08  ×5  rendu composer
+         8.6 ms  réf  1.88  ×5  passe 0 scène
+         1.9 ms  réf  0.37  ×5  nx3Tick
+         1.8 ms  réf  0.35  ×5  dont nxfDessine (flamme + putImageData)
+         0.7 ms  réf  0.23  ×3  b4 pièces (couloir, coinFlush)
+         0.6 ms  réf  0.16  ×4  b6 HUD (missions, aura, compteurs)
+         0.4 ms  réf  0.11  ×4  passe 1 bloom
+         0.4 ms  réf  0.08  ×5  nfeuPas
+         0.3 ms  réf  0.08  ×4  passe 2 ACES (+ loupe)
+    PAR SECONDE dans / hors rafale : sentinelle début 2.11 / 1.03 ms · Swift 26 / 26 µs · retard du battement natif 0.3 / 0.3 ms · WebGL sync 0.1 / 2.0 ms/s · 2D 7.6 / 4.6 ms/s · envois 7.2 / 8.1 ms/s · pression mémoire {0: 10}
+    appels à la puce de la course (les 8 plus coûteux : nombre, ms, pire ms) : 2d drawImage 72800/209/6.6 · envoi drawElements 90460/118/2.7 · envoi bufferSubData 24524/110/2.7 · 2d putImageData 825/96/1.5 · envoi drawArrays 73203/94/2.6 · gl readPixels 32/84/24.2 · envoi bufferData 1140/61/2.6 · envoi clear 20473/44/2.8
+
+--- FILS ENTIERS × ÉCONOMIE × THERMIQUE × BRANCHÉ (gels « fil entier » de G par minute ; secondes en rafale)
+  économie thermique branché  secondes   fils  fils/min  en rafale
+  ?        ?         ?              63     51      48.6        16 %

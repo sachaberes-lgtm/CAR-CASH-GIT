@@ -32,6 +32,9 @@
      et sans son (le contexte audio ne démarre jamais) sauf `chalson=1`. Une app normale n'a ni la variable ni rien de tout cela. */
   try{if(window.__ccQSsup)QS=(QS||'')+String(window.__ccQSsup);}catch(e){}
   try{if(QS&&!location.search)history.replaceState(null,'',location.pathname+'?'+String(QS).replace(/^[?&]/,''));}catch(e){}
+  /* (2026-11-17, lot qualité MESURE-RAFALES) LA SONDE NATIVE : dans l'app de mesure (`perfrec=2`) seulement, le côté natif (JeuViewController.swift, SondeNatif) bat chaque seconde —
+     pression mémoire, sentinelle Swift, retard du battement — dans window.__ccSw (boîte de vol, M[24-26]). `sans=sondenatif` la laisse éteinte. Une app normale n'envoie rien. */
+  try{if(/[?&]perfrec=2\b/.test(location.search)&&!/[?&]sans=[^&]*sondenatif/.test(location.search))window.webkit.messageHandlers.ccSonde.postMessage('go');}catch(e){}
   var CHAL=null;try{CHAL=(/[?&]chaleur=(\w+)/.exec(location.search)||[])[1]||null;}catch(e){}
   /* (2026-11-17, banc fiable) LE BATTEMENT : toutes les 10 s, une ligne « CCBANC … » part dans le journal du téléphone (JeuViewController.swift, BancBattement, Debug + CC_QS : NSLog,
      le côté natif y ajoute th= eco= branché= batterie= autreSon=, et écrit « CCBANC état=muet » si la page se tait 25 s : page morte). Le Mac la lit par `pymobiledevice3 syslog live`. */

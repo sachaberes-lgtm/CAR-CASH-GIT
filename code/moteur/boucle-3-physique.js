@@ -1,4 +1,4 @@
-if(MG.on)MG.ts[3]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 3 — voir moteur/mouchard-gels.js */
+if(MG.on)mgTs(3); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 3 — voir moteur/mouchard-gels.js */
       if(mode==='drive'){
         frameAt(s,F);
         if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
