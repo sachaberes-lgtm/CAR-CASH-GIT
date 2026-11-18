@@ -68,26 +68,32 @@ if(JADE_NUIT2&&BIOMES.jadeNuit)Object.assign(BIOMES.jadeNuit,{
    `?sans=jadefini` = les valeurs d'avant (et l'astre d'avant, scene-ciel.js). */
 const JADE_FINI=!/[?&]sans=([^&]*,)?jadefini(,|&|$)/.test(location.search);
 if(JADE_FINI&&BIOMES.jadeNuit){
-  Object.assign(BIOMES.jade,{ /* SOIR : le zénith bleu-violet, une bande rose (au banc : un mauve .80,.52,.74 faisait un aplat lilas, un rose .94,.58,.64 sous la saturation du soir 1,2 virait au fluo), le corail puis l'or à l'horizon (il était gris-beige au milieu) */
-    jdZ:[.36,.38,.64],jdL:[.92,.64,.64],jdM:[1,.62,.50],jdH:[1,.76,.46],jdB:[.94,.70,.64],jdR:[.42,.30,.46],jdS:[1,.70,.40],
+  Object.assign(BIOMES.jade,{ /* SOIR : le zénith bleu-violet, une bande rose (au banc : un mauve .80,.52,.74 faisait un aplat lilas, un rose .94,.58,.64 sous la saturation du soir 1,2 virait au fluo), le corail puis l'or à l'horizon (il était gris-beige au milieu).
+    (contrôle, tour 1 : le soleil vermillon se perdait dans la bande rose) la bande rose tire un cran vers le rose de la marque (.92,.64,.64 → .90,.62,.70) et le milieu passe du corail à la pêche dorée (1,.62,.50 → 1,.70,.48) : le disque rouge se découpe sur du chaud clair */
+    jdZ:[.36,.38,.64],jdL:[.90,.62,.70],jdM:[1,.70,.48],jdH:[1,.76,.46],jdB:[.94,.70,.64],jdR:[.42,.30,.46],jdS:[1,.70,.40],
     fog:[.86,.66,.58],fogIn:[.92,.74,.66],fogCj:[1,.70,.50]});
-  Object.assign(BIOMES.jadeMatin,{ /* MATIN : azur plus franc, le céladon du milieu passe au vert jade-menthe, l'horizon pêche-rose ; brume pêche */
-    jdZ:[.18,.46,.86],jdL:[.44,.70,.86],jdM:[.62,.88,.76],jdH:[1,.76,.62],jdB:[.82,.90,.84],
+  Object.assign(BIOMES.jadeMatin,{ /* MATIN : azur plus franc, le céladon du milieu passe au vert jade-menthe, l'horizon pêche-rose ; brume pêche.
+    (contrôle, tour 1 : « presque invisible ») poussé : saturation × 1,08 (sur celle de l'étalonnage et de l'équilibre), la menthe plus franche (.62,.88,.76 → .56,.90,.76 ; .48,.92,.74 virait à l'acide au banc), l'horizon plus rose (1,.76,.62 → 1,.70,.60) */
+    sat:+((BIOMES.jadeMatin.sat||1)*1.08).toFixed(3),jdZ:[.16,.44,.90],jdL:[.40,.70,.90],jdM:[.56,.90,.76],jdH:[1,.70,.60],jdB:[.82,.90,.84],
     fog:[.90,.80,.70],fogIn:[.94,.86,.76]});
-  Object.assign(BIOMES.jadeMidi,{ /* MIDI : cobalt au zénith, jade au milieu, crème-pêche à l'horizon ; brume bleu ciel */
-    jdZ:[.10,.40,.88],jdL:[.36,.70,.90],jdM:[.52,.88,.80],jdH:[1,.86,.68],
+  Object.assign(BIOMES.jadeMidi,{ /* MIDI : cobalt au zénith, jade au milieu, crème-pêche à l'horizon ; brume bleu ciel.
+    (contrôle, tour 1 : « presque invisible ») poussé : la saturation × 1,07 (l'équilibre l'avait rabattue de × 0,93), le jade du milieu plus franc (.52,.88,.80 → .48,.88,.78 ; .40,.90,.76 virait à l'acide au banc), l'horizon or-pêche (1,.86,.68 → 1,.84,.60) */
+    sat:+((BIOMES.jadeMidi.sat||1)*1.07).toFixed(3),jdZ:[.08,.38,.90],jdL:[.32,.70,.92],jdM:[.48,.88,.78],jdH:[1,.84,.60],
     fog:[.62,.80,.86],fogIn:[.78,.90,.92]});
-  Object.assign(BIOMES.jadeNuit,{ /* NUIT : indigo-violet au zénith, bleu au milieu, la lueur jade gardée au ras de l'horizon ; brume indigo (plus de bleu-vert gris) ; lune or pâle */
-    jdZ:[.040,.030,.110],jdL:[.062,.056,.175],jdM:[.060,.112,.200],jdH:[.060,.180,.180],jdB:[.065,.120,.190],jdR:[.04,.06,.12],jdS:[1,.88,.62],
+  Object.assign(BIOMES.jadeNuit,{ /* NUIT (contrôle, tour 1 : le zénith en bleu roi pur tirait à l'électrique : .040,.030,.110 → .062,.034,.098, la bande .062,.056,.175 → .072,.050,.150 : un cran de rouge, l'indigo-violet au lieu du bleu roi) : indigo-violet au zénith, bleu au milieu, la lueur jade gardée au ras de l'horizon ; brume indigo (plus de bleu-vert gris) ; lune or pâle */
+    jdZ:[.062,.034,.098],jdL:[.072,.050,.150],jdM:[.060,.112,.200],jdH:[.060,.180,.180],jdB:[.065,.120,.190],jdR:[.04,.06,.12],jdS:[1,.88,.62],
     fog:[.050,.100,.170],fogCj:[.10,.16,.26],fogIn:[.07,.12,.20],volSky:[.06,.10,.20],
     hemiS:[.16,.26,.46],fillC:[.22,.36,.60],
     env:[[0,'#06061c'],[.3,'#121a40'],[.48,'#243e6a'],[.58,'#3a8f80'],[.66,'#121a34'],[1,'#060816']]});
-  Object.assign(BIOMES.jadePluie,{ /* PLUIE : ardoise BLEUE au zénith, jade mouillé à l'horizon (il était gris-vert) ; un cran de saturation */
-    sat:1.14,jdZ:[.20,.30,.42],jdL:[.28,.46,.50],jdM:[.36,.58,.54],jdH:[.56,.70,.62],jdB:[.38,.52,.52],jdR:[.20,.30,.32],
+  Object.assign(BIOMES.jadePluie,{ /* PLUIE : ardoise BLEUE au zénith, jade mouillé à l'horizon (il était gris-vert) ; un cran de saturation.
+    (contrôle, tour 1 : « presque invisible ») poussé : saturation 1,14 → 1,16, le zénith plus bleu (.20,.30,.42 → .17,.28,.48), le jade du milieu plus franc (.36,.58,.54 → .32,.58,.56 ; 1,20 et .30,.62,.56 faisaient un beau temps turquoise au banc) */
+    sat:1.16,jdZ:[.17,.28,.48],jdL:[.26,.46,.54],jdM:[.32,.58,.56],jdH:[.54,.68,.62],jdB:[.38,.52,.52],jdR:[.20,.30,.32],
     fog:[.38,.50,.52],fogCj:[.48,.58,.62],fogIn:[.50,.62,.62],volSky:[.38,.50,.54]});
-  Object.assign(BIOMES.jadeOrage,{ /* ORAGE : ardoise VIOLETTE au zénith, horizon bleu-vert (il était gris) */
-    jdZ:[.12,.10,.20],jdL:[.14,.15,.24],jdM:[.16,.22,.28],jdH:[.22,.32,.34],jdB:[.22,.28,.34],
-    fog:[.20,.24,.32],fogCj:[.26,.28,.38],fogIn:[.24,.28,.36],hemiS:[.34,.38,.54]});
+  Object.assign(BIOMES.jadeOrage,{ /* ORAGE : ardoise VIOLETTE au zénith, horizon bleu-vert (il était gris).
+    (contrôle, tour 1 : devenu une seconde NUIT, ciel indigo S 184 V 115) rabattu vers l'ardoise : zénith .12,.10,.20 → .10,.09,.14, bande .14,.15,.24 → .13,.14,.19,
+    milieu .16,.22,.28 → .16,.21,.24, brume .20,.24,.32 → .17,.20,.25, ciel du dessus .34,.38,.54 → .30,.33,.42 ; l'horizon bleu-vert garde l'orage à part de la nuit indigo */
+    jdZ:[.10,.09,.14],jdL:[.13,.14,.19],jdM:[.16,.21,.24],jdH:[.22,.32,.34],jdB:[.22,.28,.32],
+    fog:[.17,.20,.25],fogCj:[.22,.24,.30],fogIn:[.21,.24,.29],hemiS:[.30,.33,.42]});
 }
 /* (2026-11-17, LE RENDU FINAL DU CANYON : CY_LOOKS dans maps/canyon-relief.js) les retouches d'ambiance de la piste choisie, posées en DERNIER (après l'équilibre des maps et le plan de feu) ; sans piste : rien */
 if(CY_LOOK&&CY_LOOK.bio)for(const k in CY_LOOK.bio)if(BIOMES[k])eqApplique(BIOMES[k],CY_LOOK.bio[k]);

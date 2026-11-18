@@ -1,14 +1,14 @@
 // LE BANC DE LA FINITION DE JADE (2026-11-18, finition des maps : « le plus jolies possible tout en restant aussi optimisées »).
 // UN Chrome sans fenêtre et muet, au format iPhone (844×390 couché, puis 390×844 debout, DPR 3, tactile, ?tel=1), la boucle menée à la main
 // (rAF neutralisé, dbgStep à 33 ms) : des images figées, comparables d'une version à l'autre au même pas de la même piste.
-//   node outils/banc-finition-jade/photos.cjs --out <dossier> --pas 150 <tag>@<port>@<meteo>@<graine>[@<q>] …
+//   node outils/banc-finition-jade/photos.cjs --out <dossier> --pas 150 [--nit 1] [--astre 1] <tag>@<port>@<meteo>@<graine>[@<q>] …
 //   <port> : le serveur du jeu (lancé par ce script : --avant <dossier VP> sur --pa, --apres <dossier VP> sur --pb).
 // Par scénario : <tag>-<meteo>-g<graine>-couche.png et -debout.png, et une ligne « mesure » (renderer.info d'UNE image rendue à la main,
 // juste après le pas : appels, triangles, programmes, géométries, textures) + l'empreinte de l'état (dbgState) + pannes/exceptions.
 // ⚠ Sous le verrou commun seulement (passage.sh).
 const fs = require('fs'), path = require('path');
 const { serveur, portLibre, lanceChrome, tueChrome, CDP, dormir, tmp } = require('../banc-trainees/cdp.cjs');
-const A = { out: 'prises', pas: '150', pa: '8630', pb: '8631', cdp: '9630' }, SC = [];
+const A = { nit: '0', out: 'prises', pas: '150', pa: '8630', pb: '8631', cdp: '9630' }, SC = [];
 for (let i = 2; i < process.argv.length; i++) { const x = process.argv[i]; if (x.startsWith('--')) A[x.slice(2)] = process.argv[++i]; else SC.push(x); }
 const OUT = path.resolve(A.out); fs.mkdirSync(OUT, { recursive: true });
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
@@ -54,7 +54,7 @@ const t0 = Date.now();
         let ok = false;
         for (let i = 0; i < 90 && !ok; i++) { if (i % 16 === 0) { try { await c.ev('dbgJouer()'); } catch (e) {} } await dormir(500); try { ok = await c.ev("(function(){var s=dbgState();return !!(s.started&&s.running&&!s.gameOver)})()"); } catch (e) {} }
         if (!ok) throw new Error('course pas lancée');
-        await c.ev("window.requestAnimationFrame=function(){return 0;};dbgAuto(1,0,{nit:1});1");
+        await c.ev(`window.requestAnimationFrame=function(){return 0;};dbgAuto(1,0,{nit:${+A.nit||0}});1`); /* (contrôle, tour 1) sans NITRO par défaut : son flou radial cachait le décor ; --nit 1 pour le reprendre */
         await dormir(300); await c.ev(MASQUE);
         await pas(+A.pas);
         if (DEB) { await shot(nom + '-debout.png'); const m = await c.ev(MESURE); console.log('MESURE', nom + '-debout', m, Math.round((Date.now() - t0) / 1000) + 's'); continue; }
