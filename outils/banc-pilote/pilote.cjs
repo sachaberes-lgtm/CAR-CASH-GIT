@@ -23,6 +23,8 @@
 // critmort / serigel : S2, critical / serious, 0 raté, 3 gels/s, vrai 6 ms, --n 5 courses : le cran de table tenu, jamais SURVIE
 // (6e tour, 17/11) deuxpic : deux pics en 35 s, aucun mur · courts : courses courtes à ratés tenus, mur au cumul ≥ 30 s · constr : M2 (construction simulée, puis vraie piste en tranches) ·
 //   haute : M1 (HAUTE choisie, k2) · cycle --expire 1 : le mur échu, le 2e échec pose 7 j · vraipic : une seule sonde haute isolée (vrai1)
+// (7e tour, 17/11) deuxpic1 (--nf n images ratées isolées après deux pics : aucun mur) · sondeT (la sonde seule tenue) · vert · alterne (--conds, pompage) — repris du banc du contrôle ·
+//   quitte : une course quittée sans fin (on rejoue, puis on recharge) écrit la mémoire · courts --ni 60 : 60 images/s simulées (une seconde à 4 images ratées = 6,7 % : ratée, pas ROUGE)
 // compteurs : M5, à lancer avec --q sans=pilote (ou --pc 1 : sans émulation du téléphone) : aucun compteur du pilote ne bouge
 // Une ligne JSON par essai. Chrome est fermé à la fin, quoi qu'il arrive.
 const fs = require('fs'), path = require('path');
@@ -83,6 +85,7 @@ const PIL = `(function(){try{var p=dbgPilote();return JSON.stringify({on:p.on,K:
       const nat = E.ap.startsWith('@'), ap = E.ap.replace(/^@/, ''); /* @iPhone14,2 : le modèle posé comme le ferait l'app (window.__ccAppareil), sans ?appareil= (la mémoire du pilote ne s'écrit pas sous ?appareil=) */
       let pose = 'try{if(window.name!=="banc-garde"){localStorage.clear();sessionStorage.clear();localStorage.setItem("cashcarSave",' + JSON.stringify(JSON.stringify(SAVE)) + ')}}catch(e){}window.name="";';
       if (nat) pose += `window.__ccAppareil=${JSON.stringify(ap)};`;
+      pose += `window.__ccSimNi=${+(A.ni || 30)};`; /* (8e tour) les ratés simulés comptent sur ni images par seconde : 30 par défaut (le téléphone), --ni 60 */
       if (C.t != null) pose += `window.__ccThermique=${C.t};`; if (C.B != null) pose += `window.__ccBranche=${C.B ? 2 : 1};`; if (C.E != null) pose += `window.__ccEco=${C.E};`; if (C.bat != null) pose += `window.__ccBatterie=${C.bat};`;
       if (idScript) await c.send('Page.removeScriptToEvaluateOnNewDocument', { identifier: idScript });
       idScript = (await c.send('Page.addScriptToEvaluateOnNewDocument', { source: pose })).identifier;
@@ -259,7 +262,7 @@ const PIL = `(function(){try{var p=dbgPilote();return JSON.stringify({on:p.on,K:
         for (let i = 0; i < +(A.n || 4); i++) {
           if (i) { if (!(await lance())) { R.erreur = 'relance ' + i; break; } }
           await dormir(500); const d = await pil();
-          await ev('dbgPiloteSim({vrai:8,rates:' + (A.r || .05) + ',gels:0});1'); await tient(SEC, 'c' + i, false, suivi);
+          await ev('dbgPiloteSim({vrai:8,rates:' + (A.r || .05) + (A.ni ? ',ni:' + A.ni : '') + ',gels:0});1'); await tient(SEC, 'c' + i, false, suivi);
           const f = JSON.parse(await ev("JSON.stringify(dbgPilote())")); await mort(); await dormir(1500);
           const p = JSON.parse(await ev("JSON.stringify(dbgPilote())")), m = JSON.parse(await ev("localStorage.getItem('cashcarPilote')")), e = m && m.K ? m.K[Object.keys(m.K)[0]] : null;
           R.courses.push({ i, depart: 'N' + d.niveau + ' K' + d.K + ' ' + d.src, seg: f.seg, court: p.court, nEchec: p.nEchec, murJ: e && e.mur2 ? +((e.mur2 - Date.now()) / 864e5).toFixed(1) : 0, jr: p.journal.filter(x => /ÉCHEC|courtes|mémoire/.test(x)) });
@@ -302,6 +305,75 @@ const PIL = `(function(){try{var p=dbgPilote();return JSON.stringify({on:p.on,K:
         }
         R.toile = JSON.parse(await ev("JSON.stringify((window.__bancToile||{ev:[]}).ev)"));
         R.mem = JSON.parse(await ev("localStorage.getItem('cashcarPilote')"));
+      } else if (MODE === 'deuxpic1') {
+        /* (contrôle 6e tour) libre N2 : deux pics (1,1 s à 30 %) puis UNE seule image ratée isolée (--r1 .04, 1,1 s) ; la règle « K + 3 » a-t-elle besoin de plus ? */
+        R.courses = [];
+        const recharge = async () => { await ev('window.name="banc-garde";1'); await c.send('Page.reload', {}); await dormir(1000); if (!(await pret())) return false; await dormir(1500); await voile(); return lance(); };
+        for (let i = 0; i < 2; i++) {
+          if (i) { if (!(await recharge())) { R.erreur = 'rechargement'; break; } }
+          await dormir(500); const d = await pil();
+          await ev('dbgPiloteSim({vrai:8,rates:0,gels:0});1'); await tient(6, 'm' + i, false, suivi);
+          const sec = [];
+          if (i === 0) { for (let j = 0; j < 2; j++) { await ev('dbgPiloteSim({rates:.3});1'); await dormir(1100); await ev('dbgPiloteSim({rates:0});1'); await tient(13, 'p' + j, false, suivi); }
+            const s0 = JSON.parse(await ev("JSON.stringify(dbgPilote().seg)"));
+            for (let j = 0; j < +(A.nf || 1); j++) { if (A.r1) { await ev('dbgPiloteSim({rates:' + A.r1 + '});1'); await dormir(1100); await ev('dbgPiloteSim({rates:0});1'); } else await ev('dbgPiloteSim({nr1:1});1'); /* (8e tour) UNE image ratée exacte, dans une seule seconde */ await tient(6, 'f' + j, false, suivi); sec.push(JSON.parse(await ev("JSON.stringify((function(p){return {seg:p.seg,K:p.K,vise:p.vise,zone:p.zone,r3:p.rates3,r10:p.rates10,nEchec:p.nEchec}})(dbgPilote()))"))); }
+            R.avantImage = s0; R.apresImage = sec; }
+          else await tient(25, 'x', false, suivi);
+          const f = JSON.parse(await ev("JSON.stringify(dbgPilote())")); await mort(); await dormir(1500);
+          const m = JSON.parse(await ev("localStorage.getItem('cashcarPilote')"));
+          R.courses.push({ i, depart: 'N' + d.niveau + ' K' + d.K + ' ' + d.src, fin: { n: f.niveau, K: f.K, vise: f.vise, zone: f.zone, nEchec: f.nEchec, seg: f.seg }, mem: m, jr: f.journal.filter(x => /ÉCHEC|mur|rouge|orange|K\d+→/.test(x)) });
+        }
+      } else if (MODE === 'alterne') {
+        /* (contrôle) pompage : lancements rechargés en conditions ALTERNÉES (--conds "t0+B0+E0+bat80,t0+B1+E1+bat80,…") ; --rl 1 : 15 % de ratés en libre au 1er libre */
+        R.courses = []; const CS = (A.conds || '').split(',');
+        for (let i = 0; i < CS.length; i++) {
+          const C2 = {}; for (const x of CS[i].split('+').filter(Boolean)) { const m = /^([a-zA-Z]+)(-?\d+)$/.exec(x); if (m) C2[m[1]] = +m[2]; }
+          let p2 = 'window.name="";window.__ccSimNi=' + (+(A.ni || 30)) + ';window.__ccAppareil="iPhone14,2";window.__ccThermique=' + C2.t + ';window.__ccBranche=' + (C2.B ? 2 : 1) + ';window.__ccEco=' + C2.E + ';window.__ccBatterie=' + C2.bat + ';';
+          if (i) { await c.send('Page.removeScriptToEvaluateOnNewDocument', { identifier: idScript }); idScript = (await c.send('Page.addScriptToEvaluateOnNewDocument', { source: p2 })).identifier;
+            await c.send('Page.reload', {}); await dormir(1000); if (!(await pret())) { R.erreur = 'pret ' + i; break; } await dormir(1500); await voile(); if (!(await lance())) { R.erreur = 'lance ' + i; break; } }
+          await dormir(2500); const d = await pil(); const libre = !C2.B && !C2.E && !C2.t;
+          await ev(libre && A.rl === '1' && i === 0 ? 'dbgPiloteSim({rates:.15,gels:0,vrai:8});1' : 'dbgPiloteSim({vrai:8,rates:0,gels:0});1');
+          await tient(SEC, 'a' + i, false, suivi); const f = await pil(); await mort(); await dormir(1500);
+          const m = JSON.parse(await ev("localStorage.getItem('cashcarPilote')"));
+          R.courses.push({ i, cond: CS[i], depart: 'N' + d.niveau + ' K' + d.K, src: d.src, cle: d.cle, fin: 'N' + f.niveau + ' K' + f.K + ' ' + f.zone, echec: f.nEchec, mem: m && m.K });
+        }
+        R.departs = R.courses.map(x => x.depart).join(',');
+      } else if (MODE === 'sondeT' || MODE === 'vert') {
+        /* (contrôle) libre N2 : sondeT = la sonde seule tenue (vrai --v ms, 0 raté) ; vert = UNE image ratée une seconde sur deux (rates .04 1,2 s / 0 0,8 s) pendant --s s, zone VERT attendue */
+        R.courses = [];
+        const recharge = async () => { await ev('window.name="banc-garde";1'); await c.send('Page.reload', {}); await dormir(1000); if (!(await pret())) return false; await dormir(1500); await voile(); return lance(); };
+        for (let i = 0; i < 2; i++) {
+          if (i) { if (!(await recharge())) { R.erreur = 'rechargement'; break; } }
+          await dormir(500); const d = await pil();
+          await ev('dbgPiloteSim({vrai:8,rates:0,gels:0});1'); await tient(6, 'm' + i, false, suivi); const zs = {};
+          if (i === 0) { if (MODE === 'sondeT') { await ev('dbgPiloteSim({vrai:' + (A.v || 40) + ',rates:0,gels:0});1'); for (let j = 0; j < SEC; j++) { await dormir(1000); const z = await ev('dbgPilote().zone'); zs[z] = (zs[z] | 0) + 1; } await ev('dbgPiloteSim({vrai:8});1'); }
+            else { await ev('dbgPiloteSim({motif:[1,0]});1'); /* (8e tour) UNE image ratée une seconde sur deux, à la seconde près (le motif du pilote) */ for (let j = 0; j < SEC; j++) { await dormir(1000); const z = await ev('dbgPilote().zone'); zs[z] = (zs[z] | 0) + 1; } R.fenetre = JSON.parse(await ev('JSON.stringify({seg:dbgPilote().seg,fen:dbgPilote().fenRates,r10:dbgPilote().rates10})')); await ev('dbgPiloteSim({motif:null});1'); } }
+          await tient(6, 'x' + i, false, suivi);
+          const f = JSON.parse(await ev("JSON.stringify(dbgPilote())")); await mort(); await dormir(1500);
+          const m = JSON.parse(await ev("localStorage.getItem('cashcarPilote')"));
+          R.courses.push({ i, depart: 'N' + d.niveau + ' K' + d.K + ' ' + d.src, zones: zs, fin: { n: f.niveau, K: f.K, vise: f.vise, zone: f.zone, nEchec: f.nEchec, nUrg: f.nUrg, urg: f.urgence, r10: f.rates10, seg: f.seg, retailles: f.retailles }, mem: m, jr: f.journal.filter(x => /ÉCHEC|mur|urgence|K\d+→/.test(x)) });
+        }
+      } else if (MODE === 'premiere') {
+        /* (8e tour, mineur 3) la 1re course après un chargement : --s s de marge, puis la mort ; toutes les 500 ms pendant 25 s : mortP, ce qui retient la mort (offre, machine…), la mémoire écrite */
+        await ev('dbgPiloteSim({vrai:8,rates:0,gels:0});1'); await tient(SEC, 'p', false, suivi); const f = await pil();
+        if (A.spin !== '1') await ev('dbgSpin(0);1'); await ev("dbgJuge('fin')"); const T = [];
+        for (let j = 0; j < 50; j++) { await dormir(500); const o = JSON.parse(await ev("JSON.stringify((function(p){var s=dbgState();return {mortP:p.mortP,mort:p.mort,rep:p.reprise,go:s.gameOver,st:s.started,mem:!!localStorage.getItem('cashcarPilote')}})(dbgPilote()))")); T.push((j / 2) + ' ' + JSON.stringify(o)); if (o.mem && j > 6) break; }
+        R.premiere = { avant: { K: f.K, n: f.niveau, seg: f.seg }, suivi: T, mem: JSON.parse(await ev("localStorage.getItem('cashcarPilote')")), jr: (JSON.parse(await ev("JSON.stringify(dbgPilote().journal)")) || []).filter(x => /mémoire|mort|fin/.test(x)) };
+      } else if (MODE === 'quitte') {
+        /* (7e tour, mineur 4) libre N2 : 40 s de marge, puis une mort SANS fin (un jeton de machine à sous : la mort ne paie pas), et on REJOUE tout de suite ; la fin de course doit être appelée
+           au départ (mémoire écrite) ; puis la même chose, mais la page est RECHARGÉE (pagehide) au lieu de rejouer */
+        R.courses = [];
+        const recharge = async () => { await ev('window.name="banc-garde";1'); await c.send('Page.reload', {}); await dormir(1000); if (!(await pret())) return false; await dormir(1500); await voile(); return lance(); };
+        for (let i = 0; i < 3; i++) {
+          if (i === 2) { if (!(await recharge())) { R.erreur = 'rechargement'; break; } }
+          await dormir(500); const d = await pil(); const m0 = JSON.parse(await ev("localStorage.getItem('cashcarPilote')"));
+          await ev('dbgPiloteSim({vrai:8,rates:0,gels:0});1'); await tient(+(A.s || 40), 'q' + i, false, suivi);
+          const f = JSON.parse(await ev("JSON.stringify(dbgPilote())"));
+          await ev('dbgSpin(1);1'); await ev("dbgJuge('fin')"); await dormir(2500); const mp = await ev('dbgPilote().mortP');
+          if (i === 0) { await ev('dbgJouer()'); await dormir(3000); if (!(await enCourse())) await lance(); else await ev('dbgAuto(1,0,{nit:1});1'); await dormir(1000); }
+          const m = JSON.parse(await ev("localStorage.getItem('cashcarPilote')"));
+          R.courses.push({ i, depart: 'N' + d.niveau + ' K' + d.K + ' ' + d.src, memAvant: m0, mortPayee: mp, fin: { n: f.niveau, K: f.K, vise: f.vise, seg: f.seg }, memApres: m, jr: (JSON.parse(await ev("JSON.stringify(dbgPilote().journal)")) || []).filter(x => /mémoire|départ|fin/.test(x)) });
+        }
       } else if (MODE === 'cycle') {
         /* (S1) 8 lancements dans la même condition (stockage gardé). Course N1 : marge simulée (vrai 8 ms, 0 raté, 0 gel). Course N2 : --n2 rate → ROUGE simulé (15 % de ratés) ; tient → marge. */
         R.courses = []; R.n2 = A.n2 || 'rate';
@@ -309,7 +381,7 @@ const PIL = `(function(){try{var p=dbgPilote();return JSON.stringify({on:p.on,K:
         for (let i = 0; i < +(A.n || 8); i++) {
           if (i) { if (!(await recharge())) { R.erreur = 'rechargement ' + i; break; } }
           await dormir(2500); const d = await pil(); const n2 = d.niveau >= 2;
-          await ev(n2 && R.n2 === 'rate' ? 'dbgPiloteSim({rates:.15,gels:0});1' : n2 && R.n2 === 'orange' ? 'dbgPiloteSim({rates:.033,gels:0,vrai:8});1' : 'dbgPiloteSim({vrai:8,rates:0,gels:0});1');
+          await ev(n2 && R.n2 === 'rate' ? 'dbgPiloteSim({rates:' + (A.r2 || .15) + ',gels:0});1' : n2 && R.n2 === 'orange' ? 'dbgPiloteSim({rates:.033,gels:0,vrai:8});1' : 'dbgPiloteSim({vrai:8,rates:0,gels:0});1');
           await tient(SEC, 'c' + i, false, suivi); const f = await pil(); await mort(); await dormir(1500);
           const m = JSON.parse(await ev("localStorage.getItem('cashcarPilote')")); const e = m && m.K ? m.K[Object.keys(m.K)[0]] : null;
           const murJ0 = e && e.mur2 ? +((e.mur2 - Date.now()) / 864e5).toFixed(1) : 0;
