@@ -1,0 +1,45 @@
+{
+ "carte": "ville",
+ "qs": "",
+ "charge0": "3.9",
+ "fige": {
+  "tout": {
+   "images": 24,
+   "partVol": 0.83,
+   "appels": 108.75,
+   "tri": 252175,
+   "rendu": 6.233,
+   "boucle": 12.387
+  },
+  "h1500": {
+   "images": 24,
+   "partVol": 0.83,
+   "appels": 108.17,
+   "tri": 252108,
+   "rendu": 6.308,
+   "boucle": 12.363
+  },
+  "h1000": {
+   "images": 24,
+   "partVol": 0.83,
+   "appels": 107.25,
+   "tri": 246251,
+   "rendu": 6.017,
+   "boucle": 12.362
+  }
+ },
+ "etat": {
+  "s": 1433,
+  "zone": {
+   "carte": "ville",
+   "meteo": "orage",
+   "teinte": "vert",
+   "ciel": "villeOrage_vert",
+   "pluie": 1,
+   "nuit": 0,
+   "orage": true
+  }
+ },
+ "exc": [],
+ "charge1": "5.9"
+}
