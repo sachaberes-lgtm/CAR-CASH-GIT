@@ -67,6 +67,27 @@ function aileFile(id,cb,el){const j=COSM.aile.findIndex(function(d){return d.id=
    épaule au-dessus de .82, saturation ×1,14, plafond qui garde la teinte), en moyenne quatre (la réduction de moitié, alpha pondéré comme une
    toile), retourne l'image, et la toile reçoit 720 × 440 pixels déjà prêts. Même photo (écart ≤ 2/255, mesuré) ; `?photo=ancien` = la boucle. */
 let PHOTO_DEV_JS=/[?&]photo=ancien\b/.test(location.search);
+/* LES PROGRAMMES DU STUDIO PRÉPARÉS AU MENU (2026-11-19, lot « boutiquegel », Sacha : « un petit freeze quand on charge la boutique pour la première fois ») — MESURÉ (banc ×4,
+   profil neuf) : la 1re photo de la 1re ouverture (boutique de l'accueil comme boutique 3D) liait d'un bloc les programmes de la caisse sous l'éclairage du studio (140 à 180 ms
+   de compile + getProgramInfoLog dans une image de 250 à 730 ms). Au menu au repos (chauffe finie, rien en cours, 1,5 s sans geste), en TROIS petites étapes une fois par
+   session (MESURÉ ×4 : 7 + 6 + 1 ms) : la caisse du menu passe le temps d'un appel dans le studio et ses programmes y sont LANCÉS EN DOUX (compileDoux : liaison parallèle, KHR_parallel_shader_compile,
+   le fil n'attend pas), d'abord sous les lampes du catalogue, puis avec les deux lampes de la vitrine en plus, enfin le programme de la pellicule. Rien n'est dessiné, aucune caisse bâtie : la photo, plus tard,
+   trouve ses programmes liés. Sans l'extension (rien ne se lancerait en doux) : rien. `?sans=boutiquegel` = avant. */
+const PHPRE={k:0,ms:[]};
+function photoPrechauffe(){if(PHPRE.k>=3)return;const t0=performance.now();
+  if(PHPRE.k===2){try{photoDevPrep();const D=PHOTO.dev,prt=renderer.getRenderTarget();renderer.setRenderTarget(PHOTO.rt);try{compileDoux(D.sc,D.cam);}finally{renderer.setRenderTarget(prt);}}catch(e){}PHPRE.k=3;PHPRE.ms.push(Math.round(performance.now()-t0));return;} /* le programme de la pellicule */
+  photoStudio();const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible,prt=renderer.getRenderTarget();let L=null;
+  try{PHOTO.scene.add(carGroup);carGroup.visible=true;
+    if(PHPRE.k===1){L=[new THREE.SpotLight(0xfff1d8,.75,18,.62,.6,1.4),new THREE.DirectionalLight(0xffffff,.7)];PHOTO.scene.add(L[0],L[0].target,L[1]);} /* les lampes de la vitrine (vitrinePhoto) : même nombre, même genre */
+    renderer.setRenderTarget(PHOTO.rt);compileDoux(PHOTO.scene,PHOTO.cam);}
+  catch(e){console.warn('photoPrechauffe',e);}
+  finally{renderer.setRenderTarget(prt);if(L){PHOTO.scene.remove(L[0],L[0].target,L[1]);try{L[0].dispose();L[1].dispose();}catch(e){}}
+    if(par)par.add(carGroup);else PHOTO.scene.remove(carGroup);carGroup.position.copy(pos);carGroup.rotation.copy(rot);carGroup.scale.copy(sc);carGroup.visible=vis;}
+  PHPRE.k++;PHPRE.ms.push(Math.round(performance.now()-t0));}
+setInterval(function(){try{if(PHPRE.k>=3||!BQGEL||MENU_MAX)return;lierInit();if(!LIER.X){PHPRE.pq='sansX';return;}
+  const t=performance.now(),pq=document.hidden?'cache':(started&&!gameOver)?'course':!CHAUFFE_R.fait?'chauffe':ecranWipe._on?'volet':(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))?'garage':(SHCH&&SHCH.on)||SHQ.q.length?'boutique':(PHOTO.att&&Object.keys(PHOTO.att).length)?'photo':t-HC.gT<1500?'geste':!photoCalme()?'calme':'';
+  PHPRE.pq=pq;if(pq)return;photoPrechauffe();}catch(e){PHPRE.pq=String(e);}},700);
+window.dbgPhotoPre=function(){return {etape:PHPRE.k,ms:PHPRE.ms,attend:PHPRE.pq||''};}; /* (banc) */
 function photoDevPrep(){ /* (2026-10-18) le programme de la pellicule, seul : photoDev le lance sur une photo, figFilm sur chaque image d'un film */
   if(!PHOTO.dev){const m=new THREE.ShaderMaterial({uniforms:{t:{value:null},px:{value:new THREE.Vector2()}},depthTest:false,depthWrite:false,blending:THREE.NoBlending,toneMapped:false,
       vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
@@ -94,6 +115,7 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
   if(PHOTO.cache[ck]){if(cb)cb(PHOTO.cache[ck]);return PHOTO.cache[ck];}
   if(started&&!gameOver){if(cb)cb(null);return null;}
   if(cb&&PHOTO.att&&PHOTO.att[ck]){PHOTO.att[ck].push(cb);return null;}
+  photoHorsChaine(); /* (2026-11-19, boutiquegel) voir LA BOUTIQUE SANS À-COUPS (boutique.js) */
   const T9=PHOTO.ms={i:i,t0:performance.now()};
   const W=PHOTO_W,H=PHOTO_H,SS=PHOTO_SS,RW=W*SS,RH=H*SS;
   photoStudio();
@@ -173,7 +195,7 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
   if(cb&&!asy)cb(url);
   return url;
 }
-function photoRonde(i){const o=PHOTO.ronde; /* ouvre la ronde de la caisse i : retient la caisse qu'on regardait (celle d'une ronde encore ouverte, si l'on enchaîne deux fenêtres) */
+function photoRonde(i){photoHorsChaine();const o=PHOTO.ronde; /* ouvre la ronde de la caisse i : retient la caisse qu'on regardait (celle d'une ronde encore ouverte, si l'on enchaîne deux fenêtres) */
   return PHOTO.ronde={i:i,av:o?o.av:carGroup.userData.lvl,kids:null,sale:o?o.sale:false};}
 function photoRondeFin(r){if(!r||PHOTO.ronde!==r)return; /* la ronde est finie (ou la fenêtre fermée) : la caisse d'avant revient, une seule fois */
   PHOTO.ronde=null;if(!r.sale)return;const av=r.av;try{buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);}catch(e){console.warn('photoRondeFin',e);}}
@@ -223,7 +245,7 @@ function figFilm(o,cb){const ck=o.k;
     PHOTO.rtP=new THREE.WebGLRenderTarget(PW,PH,{minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter,depthBuffer:false,stencilBuffer:false,format:THREE.RGBAFormat,type:THREE.UnsignedByteType});}
   if(!PHOTO.camF)PHOTO.camF=new THREE.PerspectiveCamera(24,W/H,.1,900);PHOTO.camF.aspect=W/H;PHOTO.camF.updateProjectionMatrix();
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
-  PHOTO.avant=carGroup.userData.lvl;const sig9=phdbSig();
+  photoHorsChaine();PHOTO.avant=carGroup.userData.lvl;const sig9=phdbSig(); /* (2026-11-19, boutiquegel) */
   const cc=new THREE.Color();renderer.getClearColor(cc);const ca=renderer.getClearAlpha(),prt=renderer.getRenderTarget(),ac=renderer.autoClear;
   let url=null,asy=false;
   try{

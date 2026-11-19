@@ -179,12 +179,44 @@ const SHQ={q:[],on:false}; // (essayé : remonter la caisse d'avant UNE fois à 
    shBoiteCle), puis, une fois sa boîte posée, sa photo de catalogue (carPhoto) : la fenêtre d'achat (shopPop) la montre dès son ouverture, comme
    avant. Une entrée de la file : `i` = la boîte de la caisse i, `'u'+i` = sa GRANDE boîte (l'offre à la une, SHB_GRAND), `'p'+i` = sa photo de catalogue. */
 function shopPhotoVeut(i){if(SHQ.q.indexOf(i)<0)SHQ.q.push(i);if(!SHQ.on){SHQ.on=true;setTimeout(shopPhotoTour,380);}}
+/* ===== LA BOUTIQUE SANS À-COUPS (2026-11-19, lot « boutiquegel », Sacha : « Il y a un petit freeze quand on charge la boutique pour la première fois. C'est pas très grave, mais à régler quand même. ») =====
+   MESURÉ (banc, iPhone 13 Pro émulé, processeur ×4, profil neuf) : la 1re ouverture de la BOUTIQUE (la page des caisses en boîtes, #mShop) enchaîne ~16 images de 70 à 350 ms
+   pendant 4 s — ce sont les PHOTOS des caisses (la boîte de vitrine, puis la photo de catalogue de chaque caisse), une par tâche. Chacune bâtissait DEUX caisses : la caisse
+   photographiée, puis la caisse du menu remise aussitôt (buildCar, le plus gros morceau).
+   Désormais, tant que la page couvre toute la scène (couvLit() === 'shop' : la scène ne se voit pas), les photos s'enchaînent SANS remettre la caisse du menu entre deux
+   (PHOTO.chaine, comme la rafale de l'atelier) : une photo par image, la caisse photographiée bâtie dans la même tâche que sa photo (la photo est celle d'une caisse neuve,
+   comme avant — ESSAYÉ puis retiré : bâtir à une image et photographier à la suivante ; la boucle du menu anime la caisse cachée entre-temps, opacités, halos, ombres
+   posées après coup : des photos différentes), cachée entre deux (carGroup.visible = false). La caisse du menu n'est remise qu'UNE fois, quand la file est vide — ou
+   tout de suite si la page part (mGo), si une autre photo est demandée hors de la chaîne (photoHorsChaine) ; si quelqu'un d'autre bâtit une caisse (buildCar), c'est sa
+   caisse qui reste. Mêmes photos, même ordre de boîtes. `?menu=max` : comme avant. `?sans=boutiquegel` = l'avant. */
+const BQGEL=!/[?&]sans=[^&]*boutiquegel/.test(location.search);
+var SHCH={on:false,av:null,vis:true,dedans:false,n:0,fins:0};
+function shopChaineFin(){if(!SHCH.on)return;SHCH.on=false;SHCH.fins++;const av=SHCH.av;
+  SHCH.dedans=true;try{buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);}catch(e){console.warn('shopChaineFin',e);}finally{SHCH.dedans=false;}carGroup.visible=SHCH.vis;}
+function photoHorsChaine(){if(SHCH&&SHCH.on&&!SHCH.dedans)shopChaineFin();} /* une photo demandée hors de la chaîne (fenêtre d'achat, garage…) : la caisse du menu d'abord, elle lit carGroup.userData.lvl */
+function shopChainePrend(f){ /* une photo dans la chaîne : la caisse du menu n'est pas remise derrière, la caisse photographiée reste, cachée sous la page */
+  if(!SHCH.on){SHCH.on=true;SHCH.av=carGroup.userData.lvl;SHCH.vis=carGroup.visible;}
+  SHCH.dedans=true;PHOTO.chaine=true;try{f();}finally{PHOTO.chaine=false;SHCH.dedans=false;}
+  if(SHCH.on)carGroup.visible=false;SHCH.n++;}
+window.dbgShopChaine=function(){return {ok:BQGEL,on:SHCH.on,baties:SHCH.n,fins:SHCH.fins,file:SHQ.q.slice()};}; /* (banc) */
 function shopPhotoTour(){
   const sc=document.getElementById('mShop');
+  if(SHCH.on&&(!SHQ.q.length||!sc||!sc.classList.contains('on')||(started&&!gameOver)||couvLit()!=='shop'))shopChaineFin(); /* la file vide ou la page partie : la caisse du menu revient */
   if(!SHQ.q.length||!sc||!sc.classList.contains('on')||(started&&!gameOver)){SHQ.on=false;return;} /* hors de la page (ou en course) : la file attend la prochaine ouverture */
   if(!MENU_MAX){const t9=performance.now(); /* (2026-11-07, Perf 3 — P5) une photo par 150 ms au moins, une par image (rAF), jamais pendant un défilement, un geste ou le voile : la boutique ne gèle plus à l'ouverture */
     if(document.hidden||t9-PHQ.defile<260||t9<(SHQ.pret||0)||ecranWipe._on||transBloque()|| /* (2026-11-13, transitions-ui) pas pendant l'entrée de la page : la 1re photo (130 ms au Mac, ×3-5 au téléphone) gelait l'écran qui arrivait */GFIG.D>0&&t9-GFIG.vu<700){setTimeout(shopPhotoTour,100);return;}
     SHQ.pret=t9+150;}
+  if(BQGEL&&!MENU_MAX&&couvLit()==='shop'){ /* LA BOUTIQUE SANS À-COUPS : une tranche par passage */
+    const j=0,e=SHQ.q[j],t=typeof e==='string'?e[0]:'',i=t?+e.slice(1):e,big=t==='u',vt=shBoiteVt(),k=shBoiteCle(i,big);
+    SHQ.q.splice(j,1);
+    if(t==='p'){if(!PHOTO.cache[i])try{shopChainePrend(function(){carPhoto(i,function(){});});}catch(_){}requestAnimationFrame(function(){setTimeout(shopPhotoTour,0);});return;}
+    const pose=function(u){if(!u)return;
+      sc.querySelectorAll((big?'#shUne':'#shGrille ')+'[data-car="'+i+'"] .shBx').forEach(function(b){let im=b.querySelector('img');if(im&&im.getAttribute('src')===u)return;
+        if(!im){im=document.createElement('img');im.className='shBxI';im.alt='';im.draggable=false;b.appendChild(im);}
+        im.onload=function(){b.classList.add('vt');};im.src=u;if(im.complete&&im.naturalWidth)b.classList.add('vt');});
+      if(vt&&!PHOTO.cache[i])shopPhotoVeut('p'+i);};
+    if(PHOTO.cache[k])pose(PHOTO.cache[k]);else try{if(vt){shopChainePrend(function(){vitrinePhoto({i:i,own:carOwned(i),w:big?SHB_GRAND:0},pose);});if(!PHOTO.cache[i]&&SHQ.q.indexOf('p'+i)<0)SHQ.q.unshift('p'+i);}else shopChainePrend(function(){carPhoto(i,pose);});}catch(_){} /* (2) la boîte ; sa photo de catalogue tout de suite derrière, sur la même caisse */
+    requestAnimationFrame(function(){setTimeout(shopPhotoTour,0);});return;}
   const e=SHQ.q.shift(),t=typeof e==='string'?e[0]:'',i=t?+e.slice(1):e;
   if(t==='p'){if(!PHOTO.cache[i])try{carPhoto(i,function(){});}catch(_){}setTimeout(shopPhotoTour,40);return;}
   const big=t==='u',vt=shBoiteVt(),k=shBoiteCle(i,big);

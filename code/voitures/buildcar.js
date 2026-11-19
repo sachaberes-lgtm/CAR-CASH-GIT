@@ -60,6 +60,7 @@ function traduisGroupe(spec,corps,tout){   // corps : le groupe dont les enfants
 function traduisLangage(spec){traduisGroupe(spec,carBody,carGroup);}
 let MOT_SPEC=null; /* (2026-11-05) la fiche de la caisse en construction : les cotes des LIVRÉES (voir economie/livrees.js) — déclarée ICI, buildCar tourne au chargement avant la boutique */
 function buildCar(spec){
+  if(SHCH&&SHCH.on&&!SHCH.dedans){SHCH.on=false;carGroup.visible=SHCH.vis;} /* (2026-11-19, boutiquegel) quelqu'un d'autre bâtit une caisse pendant la chaîne des photos de la boutique : c'est la sienne qui reste (voir LA BOUTIQUE SANS À-COUPS, boutique.js) */
   if(!carFicheOk(spec)){console.warn('CASH CAR : « '+((spec&&spec.name)||'?')+' » n\'a pas de fiche (caisse retirée) — LA HONTE à la place');spec=CARS[0];}
   MOT_SPEC=spec; // (2026-11-05) les cotes de la caisse pour les LIVRÉES (voir livrees.js)
   // ⚠ LES PIÈCES LOW-POLY SE LIBÈRENT : chaque caisse a SA géométrie (plusieurs milliers de facettes)
