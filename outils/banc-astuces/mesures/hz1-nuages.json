@@ -1,0 +1,45 @@
+{
+ "carte": "nuages",
+ "qs": "",
+ "charge0": "4.5",
+ "fige": {
+  "tout": {
+   "images": 24,
+   "partVol": 0.42,
+   "appels": 138.67,
+   "tri": 484310,
+   "rendu": 8.583,
+   "boucle": 15.879
+  },
+  "h1500": {
+   "images": 24,
+   "partVol": 0.42,
+   "appels": 137.17,
+   "tri": 479437,
+   "rendu": 8.95,
+   "boucle": 15.721
+  },
+  "h1000": {
+   "images": 24,
+   "partVol": 0.42,
+   "appels": 135.75,
+   "tri": 467470,
+   "rendu": 7.679,
+   "boucle": 14.417
+  }
+ },
+ "etat": {
+  "s": 1393,
+  "zone": {
+   "carte": "nuages",
+   "meteo": "pluie",
+   "teinte": null,
+   "ciel": "nuagesPluie",
+   "pluie": 0.75,
+   "nuit": 0,
+   "orage": false
+  }
+ },
+ "exc": [],
+ "charge1": "3.9"
+}

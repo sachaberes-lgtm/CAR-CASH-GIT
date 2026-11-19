@@ -1,0 +1,61 @@
+{
+ "carte": "jade",
+ "qs": "",
+ "charge0": "2.9",
+ "fige": {
+  "tout": {
+   "images": 30,
+   "partVol": 0.93,
+   "appels": 140.6,
+   "tri": 393063,
+   "rendu": 7.67,
+   "boucle": 14.35
+  },
+  "sansDerriere": {
+   "images": 30,
+   "partVol": 0.93,
+   "appels": 140.6,
+   "tri": 393063,
+   "rendu": 7.773,
+   "boucle": 14.463
+  },
+  "sansJumeaux": {
+   "images": 30,
+   "partVol": 0.93,
+   "appels": 142.73,
+   "tri": 409094,
+   "rendu": 7.913,
+   "boucle": 14.39
+  },
+  "sansDessinsLoin": {
+   "images": 30,
+   "partVol": 0.93,
+   "appels": 142.13,
+   "tri": 393067,
+   "rendu": 7.603,
+   "boucle": 15.083
+  },
+  "rien": {
+   "images": 30,
+   "partVol": 0.93,
+   "appels": 144.27,
+   "tri": 409098,
+   "rendu": 8.307,
+   "boucle": 14.653
+  }
+ },
+ "etat": {
+  "s": 1453,
+  "zone": {
+   "carte": "jade",
+   "meteo": "nuit",
+   "teinte": null,
+   "ciel": "jadeNuit",
+   "pluie": 0,
+   "nuit": 1,
+   "orage": false
+  }
+ },
+ "exc": [],
+ "charge1": "3.1"
+}
