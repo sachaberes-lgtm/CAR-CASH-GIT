@@ -1,0 +1,10 @@
+chrome pid 97216 ports 9741 9742
+http://127.0.0.1:9741/index.html?intro=ancien&chute=0&tel=1&appareil=iPhone14,2&carte=nuages&routeverif=1
+{"k":1,"cible":"espace","pret":true,"lieu":"espace","kmh":292}
+espace 0 {"ouv":"direct","fin":"virage","court":false,"rel":"raide","sil":"crochet","cx":"failleEnvers","joues":["fronde@118","mur@101","ceinture@-60","failleEnvers*@-41","marche@-4"],"colles":0,"gestes":9,"Tt":140.448,"a0":365.1648751062248,"lon":8937,"LEN":9121} fronde@450 mur@1944 ceinture@2736 envers-entree@4914 faille-envers@5652 envers-sortie@6156 marche@6858 plongee@7794
+{"k":2,"cible":"jade","lieu":"jade","kmh":413}
+{"k":3,"cible":"espace","pret":true,"lieu":"espace","kmh":547}
+espace 1 {"ouv":"demiS","fin":"virage","court":false,"rel":"rampe","sil":"vague","cx":"sret","joues":["esse@59","stengel@106","bosse@-7","sret*@-76"],"colles":0,"gestes":9,"Tt":190.91096639999992,"a0":496.36861252634367,"lon":10223,"LEN":10469} esse@1134 stengel@2448 bosse@4105 s-retourne@5491 plongee@8695
+  anomalie camera rotation > 240 deg/s s=8  477.1107308646167
+fin
+code 0

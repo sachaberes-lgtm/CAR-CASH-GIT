@@ -72,6 +72,7 @@ function rochesGrille(){const C=ROCHE_COL,d=C.d,CG=C.CG;C.g.clear();C.n=ROCHES.c
     for(let gx=Math.floor((C.P.x-e)/CG);gx<=Math.floor((C.P.x+e)/CG);gx++)for(let gy=Math.floor((C.P.y-e)/CG);gy<=Math.floor((C.P.y+e)/CG);gy++)for(let gz=Math.floor((C.P.z-e)/CG);gz<=Math.floor((C.P.z+e)/CG);gz++){
       const k=gx+','+gy+','+gz;let a=C.g.get(k);if(!a)C.g.set(k,a=[]);a.push(o);}}}
 function rochesHeurt(p){ /* la caisse est-elle DANS une roche de Jupiter ? (pur : aucun état de jeu touché) */
+  if(ESP_SANS_GEANTS)return ''; /* (2026-11-18, L'ESPACE SANS GÉANTS) les amas sont loin de la route, décor pur : plus rien n'est dur, ni roche ni satellite */
   /* (même jour, audit JB-02) LES SATELLITES FLOTTANTS ET PASSANTS de l'orbite terrestre aussi : une sphère au CŒUR de chaque engin (ORB.durs, posée par orbiteBuild — le corps, pas l'envergure des panneaux : on ne meurt jamais dans le vide entre deux panneaux) */
   {const D=ORB.durs;if(D&&D.length&&ORB.actif&&(SATS[0].visible||SATS[1].visible))for(let j=0;j<D.length;j+=4){const x=p.x-D[j],y=p.y-D[j+1],z=p.z-D[j+2];if(x*x+y*y+z*z<D[j+3]*D[j+3])return 'satellite';}}
   if(!ROCHES.count||!ROCHES.visible)return '';const C=ROCHE_COL;if(C.vu!==C.v||C.n!==ROCHES.count)rochesGrille();
@@ -89,6 +90,12 @@ function rochesPose(c){ /* c : {r (le flux dérivé), libre, x0…, dS} d'orbite
     ORB.Q.setFromEuler(ORB.E.set(r()*6.283,r()*6.283,r()*6.283));ORB.S.set(rad*fx,rad*fy,rad*fz);ORB.P.set(x,y,z);ORB.M.compose(ORB.P,ORB.Q,ORB.S);
     ROCHES.setMatrixAt(n,ORB.M);A.aVar.setXYZW(n,r(),r(),0,0);n++;return true;};
   const forme=function(){return .75+r()*.6;}; /* l'écrasement d'une roche : de .75 à 1,35 par axe */
+  if(c.amas){ /* (2026-11-18, L'ESPACE SANS GÉANTS) QUELQUES MÉTÉORITES, en amas à l'écart de la route (espAmasLieux) : une grosse, une moyenne une fois sur deux, trois à six petites */
+    ORB.amas=[];for(const C of espAmasLieux(r,c.libreH)){const n0=n;
+      const met=function(rad){const P=espAmasPoint(r,C,rad*1.7,c.libreH);if(P)pose(P[0],P[1],P[2],rad,forme(),forme(),forme());};
+      met(10+r()*10);if(r()<.5)met(6+r()*4);for(let j=0,m=3+((r()*4)|0);j<m;j++)met(2.5+Math.pow(r(),1.5)*4.5);
+      ORB.amas.push({s:C.s,n:n-n0});}
+    ROCHES.count=n;ROCHE_COL.v++;ROCHES.instanceMatrix.needsUpdate=true;A.aVar.needsUpdate=true;return;}
   /* 0. LA ROCHE AU CŒUR DU MUR (2026-11-11, LA TORSION EN MODULES) : là où la dalle se couche (le mur, le couloir), une grande roche tient le CENTRE du virage — la route en fait le tour (voir torsMurs) */
   for(const w of torsMurs()){const rad=Math.min(60,(w.R-ROAD_HALF-50)/1.7);if(rad>14&&libre(w.cx,w.cy,w.cz,rad*1.7+ROAD_HALF+20))pose(w.cx,w.cy,w.cz,rad,forme(),forme(),forme());}
   /* 1. LE BORD DE LA ROUTE : à 4-20 m du bord, de 6 m sous la dalle à 18 m au-dessus (repère de la route) — seules ou en PORTE (une de chaque côté) */
@@ -115,6 +122,23 @@ function rochesPose(c){ /* c : {r (le flux dérivé), libre, x0…, dS} d'orbite
     if(!libre(x,y,z,ext+ROAD_HALF+160))continue;if(pose(x,y,z,rad,forme(),forme(),forme()))k++;}
   ROCHES.count=n;ROCHE_COL.v++;ROCHES.instanceMatrix.needsUpdate=true;A.aVar.needsUpdate=true;
 }
+/* ===== LES AMAS (2026-11-18, L'ESPACE SANS GÉANTS — Sacha : « laisse juste quelques satellites et météorites à des endroits ») =====
+   Trois à six amas par route (un par tranche de route, sa place tirée dans la tranche, ni dans l'entrée ni au portail), chacun À L'ÉCART : son centre à 150-360 m de la route
+   en plan, de côté et un peu devant (on le voit venir), sept fois sur dix au-dessus d'elle (la caméra plonge). Chaque objet est tenu à ESP_AMAS.dLib m au moins (plus son
+   enveloppe) de TOUTE portion de route EN PLAN (libreH, la grille d'orbiteBuild sans la hauteur) : jamais au-dessus ni au-dessous d'une autre portion, jamais en travers
+   d'un vol. Les satellites (orbiteBuild) et les météorites (rochesPose) gardent leurs maillages, leurs matières et leurs couleurs. Rend [{x, y, z, s (l'abscisse de la route)}]. */
+const ESP_AMAS={R:55,dLib:62};
+function espAmasLieux(r,libreH){const out=[];if(!(L>1200)||NP<3)return out;
+  const n=Math.max(3,Math.min(6,Math.round(L/2000+r()-.5))),a0=650,a1=L-450;
+  for(let k=0;k<n;k++)for(let e=0;e<16;e++){const s9=a0+(a1-a0)*(k+.15+.7*r())/n;frameAt(s9,F);const hl=Math.hypot(F.t.x,F.t.z);if(hl<.3)continue;
+    const tx=F.t.x/hl,tz=F.t.z/hl,sg=r()<.5?-1:1,lat=150+r()*210,av=60+r()*220,dy=r()<.7?30+r()*170:-(50+r()*90);
+    const x=F.p.x-tz*sg*lat+tx*av,z=F.p.z+tx*sg*lat+tz*av;
+    if(!libreH(x,z,ESP_AMAS.R+ROAD_HALF+ESP_AMAS.dLib))continue;out.push({x:x,y:F.p.y+dy,z:z,s:Math.round(s9)});break;}
+  return out;}
+function espAmasPoint(r,C,ext,libreH){ /* un objet de l'amas (ext : son enveloppe), autour du centre C — null s'il n'a pas sa place */
+  for(let e=0;e<6;e++){const u=r()*2-1,a=r()*6.283,q=Math.sqrt(1-u*u),d=(.25+.75*Math.sqrt(r()))*Math.max(8,ESP_AMAS.R-ext*.5),x=C.x+q*Math.cos(a)*d,y=C.y+u*d*.7,z=C.z+q*Math.sin(a)*d;
+    if(libreH(x,z,ext+ROAD_HALF+ESP_AMAS.dLib))return [x,y,z];}
+  return null;}
 function rochesModules(r){ /* (v6, 2026-11-13 nuit) LES GÉANTS DES MODULES (MODS[k].nu, voir orbite-modules.js : la fronde, la ceinture des géants) : UN astéroïde géant au CENTRE de chaque grand virage,
    sa surface à ~45 m de la chaussée au plus près (le rayon du dessin, q.R), posé avant tout le reste et sur toutes les planètes. Plus d'anneaux ni de petites roches autour d'un module (Sacha :
    « les anneaux autour de la route avec des mini astéroïdes, n'importe quoi, c'est horrible » ; la supervision : peu d'objets mais GROS, au centre du virage). Rend le nombre posé. */

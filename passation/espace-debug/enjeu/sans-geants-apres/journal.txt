@@ -1,0 +1,9 @@
+chrome pid 91371 ports 9741 9742
+http://127.0.0.1:9741/index.html?intro=ancien&chute=0&tel=1&appareil=iPhone14,2&carte=nuages&routeverif=1&pistegraine=301
+{"k":1,"cible":"espace","pret":true,"lieu":"espace","kmh":292}
+espace 0 {"ouv":"grand","fin":"virage","court":false,"rel":"vagues","sil":"S","cx":"torsade","joues":["fronde@-23","ceinture@78","torsade*@-66"],"colles":0,"gestes":12,"Tt":140.448,"a0":365.1648751062248,"lon":8960,"LEN":9121} fronde@738 ceinture@2070 grande-torsade@4752 plongee@7849
+{"k":2,"cible":"jade","lieu":"jade","kmh":466}
+{"k":3,"cible":"espace","pret":true,"lieu":"espace","kmh":523}
+espace 1 {"ouv":"grand","fin":"virage","court":false,"rel":"vagues","sil":"S","cx":"torsade","joues":["fronde@-14","quart@104","torsade*@-61"],"colles":0,"gestes":9,"Tt":218.82500639999992,"a0":568.9451303658433,"lon":11095,"LEN":11375} fronde@1080 quart@2969 grande-torsade@4643 plongee@8962
+fin
+code 0

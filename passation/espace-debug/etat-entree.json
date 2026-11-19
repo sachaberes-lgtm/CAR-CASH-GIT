@@ -1,0 +1,517 @@
+{
+ "uniques p0": {
+  "sous19": 23,
+  "ouvs19": {
+   "direct": 8,
+   "mur": 8,
+   "plongeon": 4,
+   "bosse": 3
+  },
+  "min": 1.67,
+  "p10": 1.67,
+  "med": 3.72,
+  "sous1s": 0,
+  "sous15s": 0,
+  "dalleCoucheeAvant2s": 3,
+  "n": 60,
+  "pires": [
+   {
+    "g": 103,
+    "fig": "bosse",
+    "s1": 234,
+    "t1": 1.67,
+    "ny2s": 0.84,
+    "pente2s": -32,
+    "ouv": "direct"
+   },
+   {
+    "g": 105,
+    "fig": "mur",
+    "s1": 234,
+    "t1": 1.67,
+    "ny2s": 0.8,
+    "pente2s": -37,
+    "ouv": "mur"
+   },
+   {
+    "g": 107,
+    "fig": "spirale",
+    "s1": 234,
+    "t1": 1.67,
+    "ny2s": 0.84,
+    "pente2s": -33,
+    "ouv": "direct"
+   },
+   {
+    "g": 110,
+    "fig": "mur",
+    "s1": 234,
+    "t1": 1.67,
+    "ny2s": 0.77,
+    "pente2s": -39,
+    "ouv": "mur"
+   }
+  ]
+ },
+ "uniques p5": {
+  "sous19": 21,
+  "ouvs19": {
+   "direct": 12,
+   "mur": 6,
+   "plongeon": 2,
+   "bosse": 1
+  },
+  "min": 1.36,
+  "p10": 1.36,
+  "med": 3.03,
+  "sous1s": 0,
+  "sous15s": 21,
+  "dalleCoucheeAvant2s": 2,
+  "n": 60,
+  "pires": [
+   {
+    "g": 104,
+    "fig": "balancier",
+    "s1": 234,
+    "t1": 1.36,
+    "ny2s": 0.82,
+    "pente2s": -35,
+    "ouv": "direct"
+   },
+   {
+    "g": 105,
+    "fig": "mur",
+    "s1": 234,
+    "t1": 1.36,
+    "ny2s": 0.77,
+    "pente2s": -38,
+    "ouv": "mur"
+   },
+   {
+    "g": 107,
+    "fig": "spirale",
+    "s1": 234,
+    "t1": 1.36,
+    "ny2s": 0.83,
+    "pente2s": -34,
+    "ouv": "direct"
+   },
+   {
+    "g": 110,
+    "fig": "mur",
+    "s1": 234,
+    "t1": 1.36,
+    "ny2s": 0.79,
+    "pente2s": -38,
+    "ouv": "mur"
+   }
+  ]
+ },
+ "uniques p10": {
+  "sous19": 18,
+  "ouvs19": {
+   "plongeon": 1,
+   "bosse": 2,
+   "direct": 11,
+   "mur": 4
+  },
+  "min": 1.16,
+  "p10": 1.16,
+  "med": 3.39,
+  "sous1s": 0,
+  "sous15s": 18,
+  "dalleCoucheeAvant2s": 0,
+  "n": 60,
+  "pires": [
+   {
+    "g": 101,
+    "fig": "plongeon",
+    "s1": 270,
+    "t1": 1.16,
+    "ny2s": 0.83,
+    "pente2s": -34,
+    "ouv": "plongeon"
+   },
+   {
+    "g": 104,
+    "fig": "bosse",
+    "s1": 270,
+    "t1": 1.16,
+    "ny2s": 0.81,
+    "pente2s": -35,
+    "ouv": "bosse"
+   },
+   {
+    "g": 107,
+    "fig": "spirale",
+    "s1": 270,
+    "t1": 1.16,
+    "ny2s": 0.82,
+    "pente2s": -35,
+    "ouv": "direct"
+   },
+   {
+    "g": 111,
+    "fig": "pique",
+    "s1": 270,
+    "t1": 1.16,
+    "ny2s": 0.76,
+    "pente2s": -40,
+    "ouv": "direct"
+   }
+  ]
+ },
+ "uniques p15": {
+  "sous19": 16,
+  "ouvs19": {
+   "plongeon": 1,
+   "bosse": 2,
+   "direct": 10,
+   "mur": 3
+  },
+  "min": 1.21,
+  "p10": 1.21,
+  "med": 3.47,
+  "sous1s": 0,
+  "sous15s": 16,
+  "dalleCoucheeAvant2s": 1,
+  "n": 60,
+  "pires": [
+   {
+    "g": 101,
+    "fig": "plongeon",
+    "s1": 378,
+    "t1": 1.21,
+    "ny2s": 0.9,
+    "pente2s": -27,
+    "ouv": "plongeon"
+   },
+   {
+    "g": 104,
+    "fig": "bosse",
+    "s1": 378,
+    "t1": 1.21,
+    "ny2s": 0.9,
+    "pente2s": -26,
+    "ouv": "bosse"
+   },
+   {
+    "g": 111,
+    "fig": "ceinture",
+    "s1": 378,
+    "t1": 1.21,
+    "ny2s": 0.77,
+    "pente2s": -39,
+    "ouv": "direct"
+   },
+   {
+    "g": 119,
+    "fig": "roue-entree",
+    "s1": 378,
+    "t1": 1.21,
+    "ny2s": 0.78,
+    "pente2s": -38,
+    "ouv": "direct"
+   }
+  ]
+ },
+ "uniques p20": {
+  "sous19": 20,
+  "ouvs19": {
+   "bosse": 2,
+   "direct": 14,
+   "mur": 3,
+   "plongeon": 1
+  },
+  "min": 1.32,
+  "p10": 1.37,
+  "med": 2.91,
+  "sous1s": 0,
+  "sous15s": 20,
+  "dalleCoucheeAvant2s": 0,
+  "n": 60,
+  "pires": [
+   {
+    "g": 133,
+    "fig": "mur",
+    "s1": 522,
+    "t1": 1.32,
+    "ny2s": 0.85,
+    "pente2s": -32,
+    "ouv": "mur"
+   },
+   {
+    "g": 111,
+    "fig": "stengel",
+    "s1": 540,
+    "t1": 1.36,
+    "ny2s": 0.78,
+    "pente2s": -39,
+    "ouv": "direct"
+   },
+   {
+    "g": 123,
+    "fig": "mur",
+    "s1": 540,
+    "t1": 1.36,
+    "ny2s": 0.84,
+    "pente2s": -33,
+    "ouv": "mur"
+   },
+   {
+    "g": 134,
+    "fig": "plongeon",
+    "s1": 540,
+    "t1": 1.36,
+    "ny2s": 0.79,
+    "pente2s": -39,
+    "ouv": "direct"
+   }
+  ]
+ },
+ "?sans=uniques p0": {
+  "sous19": 0,
+  "ouvs19": {},
+  "min": 4.49,
+  "p10": 4.74,
+  "med": 5.38,
+  "sous1s": 0,
+  "sous15s": 0,
+  "dalleCoucheeAvant2s": 0,
+  "n": 60,
+  "pires": [
+   {
+    "g": 157,
+    "fig": "fronde",
+    "s1": 630,
+    "t1": 4.49,
+    "ny2s": 0.81,
+    "pente2s": -31,
+    "ouv": "(avant)"
+   },
+   {
+    "g": 112,
+    "fig": "surbaisse",
+    "s1": 648,
+    "t1": 4.61,
+    "ny2s": 0.79,
+    "pente2s": -34,
+    "ouv": "(avant)"
+   },
+   {
+    "g": 108,
+    "fig": "fronde",
+    "s1": 648,
+    "t1": 4.62,
+    "ny2s": 0.75,
+    "pente2s": -38,
+    "ouv": "(avant)"
+   },
+   {
+    "g": 111,
+    "fig": "ceinture",
+    "s1": 666,
+    "t1": 4.74,
+    "ny2s": 0.78,
+    "pente2s": -34,
+    "ouv": "(avant)"
+   }
+  ]
+ },
+ "?sans=uniques p5": {
+  "sous19": 0,
+  "ouvs19": {},
+  "min": 4.81,
+  "p10": 5.02,
+  "med": 5.64,
+  "sous1s": 0,
+  "sous15s": 0,
+  "dalleCoucheeAvant2s": 0,
+  "n": 60,
+  "pires": [
+   {
+    "g": 112,
+    "fig": "fronde",
+    "s1": 828,
+    "t1": 4.81,
+    "ny2s": 0.79,
+    "pente2s": -34,
+    "ouv": "(avant)"
+   },
+   {
+    "g": 105,
+    "fig": "surbaisse",
+    "s1": 846,
+    "t1": 4.91,
+    "ny2s": 0.81,
+    "pente2s": -33,
+    "ouv": "(avant)"
+   },
+   {
+    "g": 110,
+    "fig": "surbaisse",
+    "s1": 846,
+    "t1": 4.91,
+    "ny2s": 0.8,
+    "pente2s": -32,
+    "ouv": "(avant)"
+   },
+   {
+    "g": 129,
+    "fig": "fronde",
+    "s1": 846,
+    "t1": 4.91,
+    "ny2s": 0.86,
+    "pente2s": -29,
+    "ouv": "(avant)"
+   }
+  ]
+ },
+ "?sans=uniques p10": {
+  "sous19": 0,
+  "ouvs19": {},
+  "min": 5.08,
+  "p10": 5.16,
+  "med": 5.77,
+  "sous1s": 0,
+  "sous15s": 0,
+  "dalleCoucheeAvant2s": 0,
+  "n": 60,
+  "pires": [
+   {
+    "g": 109,
+    "fig": "faille",
+    "s1": 1188,
+    "t1": 5.08,
+    "ny2s": 0.82,
+    "pente2s": -29,
+    "ouv": "(avant)"
+   },
+   {
+    "g": 127,
+    "fig": "plongeant",
+    "s1": 1188,
+    "t1": 5.08,
+    "ny2s": 0.82,
+    "pente2s": -31,
+    "ouv": "(avant)"
+   },
+   {
+    "g": 160,
+    "fig": "plongeant",
+    "s1": 1188,
+    "t1": 5.08,
+    "ny2s": 0.78,
+    "pente2s": -32,
+    "ouv": "(avant)"
+   },
+   {
+    "g": 105,
+    "fig": "faille",
+    "s1": 1206,
+    "t1": 5.16,
+    "ny2s": 0.79,
+    "pente2s": -33,
+    "ouv": "(avant)"
+   }
+  ]
+ },
+ "?sans=uniques p15": {
+  "sous19": 0,
+  "ouvs19": {},
+  "min": 3.06,
+  "p10": 3.06,
+  "med": 3.29,
+  "sous1s": 0,
+  "sous15s": 0,
+  "dalleCoucheeAvant2s": 0,
+  "n": 60,
+  "pires": [
+   {
+    "g": 109,
+    "fig": "faille",
+    "s1": 954,
+    "t1": 3.06,
+    "ny2s": 0.68,
+    "pente2s": -29,
+    "ouv": "(avant)"
+   },
+   {
+    "g": 122,
+    "fig": "cascade",
+    "s1": 954,
+    "t1": 3.06,
+    "ny2s": 0.68,
+    "pente2s": -30,
+    "ouv": "(avant)"
+   },
+   {
+    "g": 129,
+    "fig": "faille",
+    "s1": 954,
+    "t1": 3.06,
+    "ny2s": 0.69,
+    "pente2s": -29,
+    "ouv": "(avant)"
+   },
+   {
+    "g": 135,
+    "fig": "faille",
+    "s1": 954,
+    "t1": 3.06,
+    "ny2s": 0.67,
+    "pente2s": -30,
+    "ouv": "(avant)"
+   }
+  ]
+ },
+ "?sans=uniques p20": {
+  "sous19": 0,
+  "ouvs19": {},
+  "min": 3.5,
+  "p10": 3.73,
+  "med": 3.87,
+  "sous1s": 0,
+  "sous15s": 0,
+  "dalleCoucheeAvant2s": 0,
+  "n": 60,
+  "pires": [
+   {
+    "g": 125,
+    "fig": "faille",
+    "s1": 1386,
+    "t1": 3.5,
+    "ny2s": 0.63,
+    "pente2s": -36,
+    "ouv": "(avant)"
+   },
+   {
+    "g": 113,
+    "fig": "faille",
+    "s1": 1440,
+    "t1": 3.64,
+    "ny2s": 0.65,
+    "pente2s": -30,
+    "ouv": "(avant)"
+   },
+   {
+    "g": 133,
+    "fig": "faille",
+    "s1": 1440,
+    "t1": 3.64,
+    "ny2s": 0.64,
+    "pente2s": -33,
+    "ouv": "(avant)"
+   },
+   {
+    "g": 157,
+    "fig": "faille",
+    "s1": 1440,
+    "t1": 3.64,
+    "ny2s": 0.63,
+    "pente2s": -32,
+    "ouv": "(avant)"
+   }
+  ]
+ }
+}

@@ -703,7 +703,9 @@ function bancVirage(s0,deja){ // l'entrée du prochain VIRAGE (rayon < 200 m) pr
     let m=0,n=0;for(let q=c-210;q<c-10;q+=10){m+=bancCourbe(q);n++;}
     if(m/n<1/330)return c;}
   return -1;}
-function buildClouds(rr){
+function buildClouds(rr){rythmeMene(buildCloudsG(rr));} /* (2026-11-17, lot portv) d'un trait : le même générateur mené jusqu'au bout */
+function* buildCloudsG(rr){ /* (lot portv) les nuages en tranches : une pause possible (échéance JF.lim) entre deux nuages et avant le ciel de coton — mêmes tirages `cr`, même ordre */
+  const ech9=function(){return typeof JF!=='undefined'&&performance.now()>JF.lim;};
   disposeClouds();
   nuageFondu=started?0:1; // (2026-09-26) en course (portail), les nuages de la nouvelle zone montent en fondu avec le ciel — au menu, tout de suite
   // RNG local : retoucher les nuages ne rebrasse plus la génération en aval (piège rnd séquentiel)
@@ -732,7 +734,7 @@ function buildClouds(rr){
       else if(bancCourbe(sp)>=1/300){for(let q=sp+20;q<Math.min(L-320,sp+600);q+=20)if(bancCourbe(q)<1/330){s9=q;frameAt(s9,F);break;}}} // pas de virage à cacher : au moins PAS EN virage
     BANC_LOG.push([Math.round(s9),Math.round(bancCourbe(s9)*1e4)/10,Math.round(bancCourbe(sp)*1e4)/10]); // (banc) où il est tombé, sa courbure (mrad/m) — et celle de sa place d'avant
     mkCloud(cldV1.copy(F.p).addScaledVector(F.n,mega?6+cr()*4:2.5+cr()*2).addScaledVector(F.b,dl9),
-      mega?(OR9?58+cr()*36:40+cr()*30):(OR9?30+cr()*18:18+cr()*14),{onRoad:true,dense:true},cr);
+      mega?(OR9?58+cr()*36:40+cr()*30):(OR9?30+cr()*18:18+cr()*14),{onRoad:true,dense:true},cr);if(ech9())yield;
   }
   // CHAMPS de nuages de VOL : les coussins vont par 2-3, échelonnés le long de la piste —
   // une vraie FENÊTRE de recharge d'airtime qu'on lit de loin, pas des miettes perdues
@@ -744,7 +746,7 @@ function buildClouds(rr){
       // Un coussin d'airtime doit se lire de loin pour qu'on aille le chercher.
       const r9=34+cr()*28; // (2026-09-26) décollé de la dalle d'au moins 30 m au-dessus de son ventre (il ne touche plus la route)
       mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*70)
-        .addScaledVector(Nn[i],above?r9*.55+30+cr()*44:-(r9*.55+THICK+32+cr()*60)),r9,{pousse:Nn[i].clone().multiplyScalar(above?1:-1)},cr);
+        .addScaledVector(Nn[i],above?r9*.55+30+cr()*44:-(r9*.55+THICK+32+cr()*60)),r9,{pousse:Nn[i].clone().multiplyScalar(above?1:-1)},cr);if(ech9())yield;
     }
   }
   // TOURS GÉANTES façon simulateur de vol : des montagnes de ouate — une sur quatre est
@@ -755,14 +757,14 @@ function buildClouds(rr){
     const r9=cross?Math.min(120+cr()*140,190):200+cr()*220; // les tours libres DOUBLENT de taille
     const off=cross?(cr()*2-1)*40:(r9+ROAD_HALF+60+cr()*420)*(k%2?1:-1); // ALTERNÉES gauche/droite — écartées de TOUT leur rayon (×0,68 : elles mordaient la route)
     mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],off)
-      .addScaledVector(Nn[i],cross?-r9*.25+cr()*30:-140+cr()*330),r9,{giant:true,onRoad:cross,noFog:!cross},cr);
+      .addScaledVector(Nn[i],cross?-r9*.25+cr()*30:-140+cr()*330),r9,{giant:true,onRoad:cross,noFog:!cross},cr);if(ech9())yield;
   }
   const HAUT9=nua2On()?new THREE.Vector3(0,1,0):null; /* (2026-11-12, LA GRANDE DESCENTE) sur la route qui plonge de 38°, la normale de la dalle penche d'autant vers l'avant : la mer et les voiles, posés le long d'elle, se retrouvaient DEVANT la caisse (vu à l'image sous la pluie : de grandes nappes roses en plein milieu). Aux nuages ils se posent à la verticale du monde — mêmes tirages */
   // MER DE NUAGES sous la piste : le tapis à perte de vue du vol au-dessus des nuages
   for(let k=0;k<6;k++){ // 10→6
     const i=strat(k,6);
     mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*1100)
-      .addScaledVector(HAUT9||Nn[i],-(170+cr()*220)),170+cr()*150,{sea:true,noFog:true},cr);
+      .addScaledVector(HAUT9||Nn[i],-(170+cr()*220)),170+cr()*150,{sea:true,noFog:true},cr);if(ech9())yield;
   }
   // (ciel de coton, 2026-09-28) la ouate à mi-distance, les RUES de nuages, les électrons libres, le banc haut, les MASSIFS, les TITANS,
   // les coussins de décor du niveau NUAGES et l'ARCHIPEL sont devenus le CIEL DE COTON (buildCoton, plus bas) : trois fois plus de
@@ -771,14 +773,14 @@ function buildClouds(rr){
   for(let k=0;k<4;k++){ // 7→4
     const i=strat(k,4);
     mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*1400)
-      .addScaledVector(HAUT9||Nn[i],230+cr()*220),150+cr()*120,{veil:true,noFog:true},cr);
+      .addScaledVector(HAUT9||Nn[i],230+cr()*220),150+cr()*120,{veil:true,noFog:true},cr);if(ech9())yield;
   }
   const roadY=37; // altitude moyenne du ruban (repère stable pour poser le plancher de nuages)
   // L'OCÉAN : l'undercast — un tapis PLAT à perte de vue, loin sous la piste (bande d'altitude serrée : une MER avec un niveau)
   for(let k=0;k<7;k++){ // 12→7 : l'undercast reste un tapis, en moins dense
     const i=strat(k,7),a=stratAz(k,7),d=800+cr()*1600; // l'undercast couvre tout l'horizon, sans trou ni paquet
     cldV1.set(pts[i].x+Math.cos(a)*d,(nua2On()?pts[i].y:roadY)-245+cr()*75,pts[i].z+Math.sin(a)*d); /* (2026-11-12, LA GRANDE DESCENTE) la route des nuages descend de 3,6 km : son océan descend avec elle (à altitude fixe, il restait tout en haut, au-dessus de la tête dès la 10e seconde) */
-    mkCloud(cldV1,200+cr()*180,{sea:true,noFog:true},cr);
+    mkCloud(cldV1,200+cr()*180,{sea:true,noFog:true},cr);if(ech9())yield;
   }
   /* LE NIVEAU NUAGES (2026-09-24) : la mer se referme sous la route — un second plancher, plus proche, qu'on survole au ras. Espace
      MONDE (jamais B[i]/Nn[i]), tiré sur `cr` : ça ne décale que les nuages, jamais la piste. */
@@ -786,9 +788,10 @@ function buildClouds(rr){
     for(let k=0;k<7;k++){
       const i=strat(k,7),a=stratAz(k,7),d=cr()*900;
       cldV1.set(pts[i].x+Math.cos(a)*d,pts[i].y-(130+cr()*110),pts[i].z+Math.sin(a)*d);
-      mkCloud(cldV1,170+cr()*140,{sea:true,noFog:true},cr);
+      mkCloud(cldV1,170+cr()*140,{sea:true,noFog:true},cr);if(ech9())yield;
     }
   }
+  if(ech9())yield;
   buildCoton(cr); // LE CIEL DE COTON : tout le décor de nuages, en instances (voir cotonBlobs / cotonTick)
 }
 /* (2026-10-14, sensations ; Sacha : « oui pouf, mais travaille-le très bien ») LE POUF DE LA OUATE, dans la MAIN seulement — le nuage ne
