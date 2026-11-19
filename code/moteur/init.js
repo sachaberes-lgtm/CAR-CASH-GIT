@@ -421,7 +421,7 @@ window.dbgPivot=function(v){if(v)rotaJoue();return {on:ROTA.on,paysage:ROTA.pays
 function applyDPR(){ try{ const W=innerWidth,H=innerHeight;
   renderer.getSize(DPR_V9);const neuve=DPR_V9.x!==W||DPR_V9.y!==H;
   const prNeuf=!ROT_DOUX||Math.abs(renderer.getPixelRatio()-curDPR)>1e-4; /* (LA ROTATION SANS ÉCRAN NOIR) même ratio, même taille : rien à réallouer */
-  if(prNeuf)renderer.setPixelRatio(curDPR);if(neuve)renderer.setSize(W,H);if(PT_U)PT_U.uPxMax.value=26*curDPR; // le plafond des particules suit la résolution
+  if(prNeuf||neuve)try{pilRetaille(neuve);}catch(e){} /* (2026-11-17, LE PILOTE) chaque toile refaite est notée avec son moment */if(prNeuf)renderer.setPixelRatio(curDPR);if(neuve)renderer.setSize(W,H);if(PT_U)PT_U.uPxMax.value=26*curDPR; // le plafond des particules suit la résolution
   if(composer){if(prNeuf)composer.setPixelRatio(curDPR);if(neuve)composer.setSize(W,H);}if(ROT_DOUX&&(prNeuf||neuve))applyDPR._img=1;
   /* LE PIQUÉ NATIF (2026-09-28, « plus beau sur iPhone sans coût en plus »). L'iPhone a 3 pixels par point, la 3D en calcule 1,5 (NETTE) :
      c'est le NAVIGATEUR qui agrandit l'image ×2 en bilinéaire au moment de l'afficher — un flou de plus, même au plafond, que l'ancien

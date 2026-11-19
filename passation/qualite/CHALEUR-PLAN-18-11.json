@@ -1,0 +1,600 @@
+{
+ "plan": {
+  "diagnostic": "1. PROUVÉ : toute la séance s'est jouée à l'état « serious », du début à la fin (851 s sur 851). Le téléphone était déjà chaud au départ, et la charge rapide le chauffait encore (+20 % de batterie en 25 min). À cet état, l'écran ne donne qu'un top toutes les 33 ms. Une image qui le rate coûte 66 ms.\n2. PROUVÉ : le processeur manque, pas les pixels. Le travail JS passe de 6 ms (nominal) à 11-16 ms par image. Le vrai coût est de 23 ms en médiane et 36 ms au 90e centile. 42 % des images ratent leur top.\n3. PROUVÉ (j'ai relu JeuViewController.swift:602-633) : la SondeNatif, nouvelle dans le build 121, lance CHAQUE SECONDE sur le fil principal de l'app une boucle Swift de 200 × 1024 additions. L'app est compilée en Debug (compiler.sh). Ce blocage dure 49-84 ms, et 160-300 ms en ville. 80 % des gels « hors boucle » tombent à un nombre entier de secondes l'un de l'autre, alors que le fil de la page est LIBRE. PROBABLE (il manque l'horodatage croisé) : ce battement en est la cause, puisque ce fil-là donne les tops d'image à WKWebView.\n4. Deux analyses se contredisent : l'une dit « 121 pas pire que 120 » (75 contre 77 gels/min), l'autre dit « la nature a changé ». Les deux sont vraies. La sonde a REMPLACÉ une partie des gels du 120 sans en ajouter beaucoup. Retirer la sonde ramènera donc probablement au niveau du 120 à serious (≈ 50 gels/min), ce qui reste mauvais.\n5. PROUVÉ : la vraie casse date du 16/11. 545a472 tenait 29,5 i/s à serious ; 089a868 tombe à 20-22 i/s. Il y a 250 commits entre les deux. J'y ai lu un suspect que les trois analyses n'ont pas nommé : NÉNUPHARS « figé en segments » (6696a2c3e, 15/11). Ce morceau a 30 paliers (un par moteur) en segments de 10 s. Il décode le segment suivant ET les paliers voisins en pleine course (pouce-bleu-jeu.js:187-200). D'où 7 à 16 décodages par course, à 150-400 ms une fois bridé, presque tous suivis d'un gel. PROBABLE.\n6. RÉFUTÉ : la loupe et la résolution ne causent pas les gels. Cette nuit, l'échelle s'est effondrée (QL 10, loupe retirée) et les gels ont continué (39-108/min contre 45-113). Le vrai coût n'a pas bougé. La voiture a perdu sa netteté pour rien, contre la règle de Sacha.\n7. PROUVÉ : avec Sacha en BASSE N1, le juge de chaleur et l'image lourde (gdxLourd, dkDoux) ne font rien. Seule l'échelle QL réagit, et elle baisse la voiture en même temps que la map.\n8. PROUVÉ : « 75 images d'écran par seconde au sol » est un artefact : CAD.rN n'est pas remis à zéro au départ d'une course.\n9. PROBABLE : la ville de 03:15 (7 i/s) est un effondrement du processeur de tout le téléphone (sentinelle ×5, décodages ×10, 1re image de 990 ms dont b6 vitrine/garage 552 ms). Ce n'est pas d'abord un défaut de rendu de la ville.\n10. HYPOTHÈSE : les gels « sur l'interface » viennent de la vitrine HD. Elle rend à DPR 2 (2,6 fois les pixels d'une course), avec une ombre 1024 et 30 i/s à serious, sans jamais lire l'état thermique. Le menu chauffe donc plus qu'une course. Aucune mesure des menus à chaud n'existe.",
+  "lots": [
+   {
+    "nom": "sondecalme",
+    "quoi": "La SondeNatif ne fait plus sa sentinelle Swift sur le fil principal de l'app. Par défaut, elle ne garde que la pression mémoire et le retard du battement, qui ne coûtent rien. La sentinelle passe sur une file d'arrière-plan (DispatchQueue.global(qos:.utility)) et ne repasse sur .main qu'avec un paramètre de banc. Le POULS Debug de natif.js (rAF permanent et elementFromPoint toutes les 4 s) se coupe aussi par défaut dans le build de jeu. Dans le même lot, la mesure est corrigée pour juger le vol suivant : CAD.rN remis à zéro au départ de la course (bvNeuve), horodatage page de chaque __ccSwN, étiquette par appelant des gl readPixels.",
+    "pourquoi": "C'est le seul travail ajouté dans le build 121 qui tape à 1 Hz sur le fil qui donne les tops d'image. Il colle au battement des gels hors boucle (80 % à un nombre entier de secondes), et c'est de la mesure, pas du jeu.",
+    "gain_attendu": "Jusqu'à 55-60 des 71 gels hors boucle par minute en moins. Probablement un retour au niveau du build 120 à serious, pas mieux. Le gain se juge au vol suivant.",
+    "prix_image": "Aucun.",
+    "fichiers": "app-ios/ios/App/App/JeuViewController.swift (SondeNatif, l. 578-635), app-ios/natif/natif.js (POULS l. 439-444, envoi « go »), code/moteur/cadence.js (seulement la remise à zéro de rN : une ligne, voir les conflits), code/moteur/mouchard-gels.js (étiquettes readPixels)",
+    "preuve_au_banc_mac": "Aucun banc Chrome n'est possible : c'est du code natif. La preuve est une relecture : la minuterie .main ne lance plus que la pression et le retard ; xcodebuild compile ; le crochet de banc remet l'ancien comportement. Côté JS, un test Node de la remise à zéro de rN sur des secondes simulées : la 1re seconde ne compte plus les rAF du menu.",
+    "preuve_sur_telephone": "Boîte de vol de la séance suivante, mêmes conditions (branché, économie, chaud). Colonnes : gels hors boucle par minute, battement à 1 Hz (chaleur/a7.py et a8.py, le pic de phase doit disparaître), M[25] lu depuis la file d'arrière-plan, R[0] corrigé. Contrôle direct : une course avec le crochet de banc, une sans.",
+    "risque": "Faible. On perd la sentinelle « fil de l'app » telle quelle. Si la cause est ailleurs, le gain sera nul, mais rien ne casse.",
+    "interrupteur": "?sans=sondecalme (côté natif : un paramètre lu dans la QS pour remettre la sentinelle sur .main et le pouls)",
+    "branche": "qa/sondecalme",
+    "depend_de": "rien ; à écrire en premier"
+   },
+   {
+    "nom": "musiquecalme",
+    "quoi": "Le lecteur à segments de NÉNUPHARS (joueurSegments) ne décode plus pendant la course quand le téléphone est chaud. À serious, ou sous ALLEGE + économie : 1) au départ de course (sous le volet), on décode d'avance le segment en cours et le suivant du palier de départ, ainsi que les deux paliers voisins ; 2) en course, plus aucun palier voisin : un changement de moteur ne bascule qu'au début d'un segment déjà décodé ; 3) le suivant se décode au plus une fois par segment (10 s). Les décodages sont rangés dans un étalement : jamais deux à la fois, et jamais dans la seconde qui suit une image en retard. On vérifie aussi que les 6 décodages du départ (ville de 03:15 : 6 en 0,3 s) partent avant le premier top de la course.",
+    "pourquoi": "Le lot a été introduit le 15/11, dans la fenêtre de la casse du 16/11. Cette nuit, 7 à 16 décodages par course, presque tous suivis d'un gel, à 150-400 ms une fois bridés. Les trois analyses le voient, et aucune ne l'a relié à la casse.",
+    "gain_attendu": "Une part des gels en course (sur 16 décodages, 12 suivis d'un gel ; sur 7, 7) et moins de processeur à chaud. Probable, non chiffré.",
+    "prix_image": "Aucun pixel. Le morceau reste entier. À chaud, la bascule de palier quand le moteur change arrive au prochain segment (jusqu'à 10 s) au lieu de la mesure suivante (2,5 s).",
+    "fichiers": "VERSION PRINCIPALE/assets/audio/pouce-bleu-jeu.js (joueurSegments, charge, tick), lecture de l'état thermique (MOB_S.thermo ou __ccBranche) par une petite fonction exposée côté code/son/ si besoin",
+    "preuve_au_banc_mac": "En Node ou dans le volet avec le son coupé : simuler 3 min de course avec un moteur qui change de palier toutes les 5 s, à froid et en « serious » simulé. Compter les décodages en course (attendu : au plus 1 par segment, 0 voisin), vérifier que l'enchaînement reste à l'échantillon près (PB.etat().seg : aucun trou) et que la mémoire ne dépasse pas l'ancien pic.",
+    "preuve_sur_telephone": "Boîte de vol : c.D (décodages par course, avec durée et heure) et la part des gels dans la seconde qui suit un décodage. Attendu : moins de 2 décodages par minute de course à serious, au lieu de 7-16 par course. En A/B, ?sans=musiquecalme une course sur deux.",
+    "risque": "Moyen. Un segment pas prêt fait jouer le secours (reprise à la mesure suivante, déjà prévue). Le moteur et la musique se désaccordent plus longtemps à chaud. À faire écouter à Sacha.",
+    "interrupteur": "?sans=musiquecalme",
+    "branche": "qa/musiquecalme",
+    "depend_de": "rien ; peut s'écrire en même temps que sondecalme (fichiers disjoints)"
+   },
+   {
+    "nom": "voituredabord",
+    "quoi": "À serious, l'échelle QL ne descend plus sous le cran 5. L'effondrement (QL.effondre) ne retire plus la loupe de la caisse : la loupe ne s'en va qu'à critical. Quand il faut baisser, ce sont les effets du décor qui baissent (halo, ombre, ciel 1/8, traits d'air ×0,7). Aucune réallocation de la toile en course à serious.",
+    "pourquoi": "Cette nuit, l'échelle est tombée de 5 à 10 et a retiré la loupe dès la course 6. Gain mesuré : aucun (vrai coût 24 contre 21 ms, i/s égales, gels non diminués). C'est la règle « priorité sur la voiture » de Sacha, violée sans rien gagner. On évite aussi les gels de réallocation (270-300 ms connus).",
+    "gain_attendu": "Pas de gain de fluidité attendu, à part quelques gels de réallocation en moins par course. Gain net en qualité : la voiture reste nette toute la séance.",
+    "prix_image": "Aucune perte. La caisse garde sa netteté. Le décor baisse comme aujourd'hui, mais par ses effets plutôt que par la résolution.",
+    "fichiers": "code/rendu/loupe-caisse.js (loupeChaud, l. 73-78), code/rendu/nettete-qualite.js (qlPose, qlDoux, plancher), code/moteur/boucle-1.js:120-146 (si l'effondrement y est décidé)",
+    "preuve_au_banc_mac": "Banc Chrome sous verrou, plus tard (pas cette nuit si la machine reste saturée) : téléphone ralenti simulé (?tel=1, faux état serious), course longue. Compter les réallocations de la toile (0 attendu), le cran QL (≤ 5 tenu), la loupe (quad présent), la largeur du tampon (2532 gardé). Une planche photo avant/après de la caisse.",
+    "preuve_sur_telephone": "Boîte de vol : S (cran QL ≤ 5 à serious), G[38] / M[16] (toile/fenêtre 900 % tenu), gels par minute pas pires que la séance d'avant, vrai coût R[2] comparable.",
+    "risque": "Faible à moyen. Si le téléphone part en critical, la loupe s'en va quand même (prévu). Conflit de fichiers avec origin/qa/pilote : son verrou de résolution en course fait une partie de ce lot.",
+    "interrupteur": "?sans=voituredabord",
+    "branche": "qa/voituredabord",
+    "depend_de": "rien en code. MÊMES FICHIERS que menuchaud (nettete-qualite.js) et que origin/qa/pilote (loupe-caisse.js, nettete-qualite.js) : écrire voituredabord AVANT menuchaud, et prévenir la session du pilote qu'il faudra le rebâtir dessus."
+   },
+   {
+    "nom": "flushtot",
+    "quoi": "Appeler gl.flush() juste après composer.render() dans boucle-6-hud.js, et ranger après ce flush tout ce qui ne touche pas l'image de cette passe (prebTick 0,4-1,5 ms, mesure, cadFin, bvImage). La puce reçoit ses commandes 1 à 2 ms plus tôt.",
+    "pourquoi": "Le vrai coût (23 ms en médiane, 36 au p90) enchaîne environ 11 ms de JS et environ 12 ms de puce. Gagner 1-2 ms fait repasser une partie des images du p90 sous les 33 ms du top. Zéro pixel, une ligne.",
+    "gain_attendu": "Quelques points de tops ratés en moins (le p90 passerait de 36 à environ 34 ms). Non prouvé : ANGLE ou WebKit vident peut-être déjà au fil de l'eau.",
+    "prix_image": "Aucun.",
+    "fichiers": "code/moteur/boucle-6-hud.js:307-330",
+    "preuve_au_banc_mac": "Pas de gain mesurable sur le Mac. Preuve de non-régression : l'image reste au pixel près (photo avant/après), l'ordre des tranches est inchangé, compilation des <script> d'index.html (vm.Script).",
+    "preuve_sur_telephone": "Boîte de vol en A/B une course sur deux : vrai coût R[2] (médiane et p90), part des intervalles au-delà de 34,5 ms (histogramme B), gels hors boucle par minute.",
+    "risque": "Faible.",
+    "interrupteur": "?sans=flushtot",
+    "branche": "qa/flushtot",
+    "depend_de": "rien ; fichier disjoint des autres lots (boucle-6-hud.js : vérifier que menuchaud n'y touche pas à la l. 136, sinon les écrire l'un après l'autre)"
+   },
+   {
+    "nom": "menuchaud",
+    "quoi": "À serious et au-delà, pour l'accueil, le garage et la boutique : la vitrine HD garde son DPR 2 (la voiture reste nette) mais baisse son décor. Ombre 768 au lieu de 1024, halo en ½ résolution à 2 étages (comme en course). Après 10 s sans geste, repos à 15 i/s réguliers (aujourd'hui, seulement à critical). Retour immédiat à 30 au premier toucher. La bascule se fait sous le volet (ecranWipe).",
+    "pourquoi": "Sacha voit des freezes « sur l'interface ». Au menu, la vitrine rend 1,32 Mpx (2,6 fois une course), avec une ombre 1024 et 30 i/s à serious, sans lire l'état thermique : le téléphone chauffe entre deux courses au lieu de refroidir.",
+    "gain_attendu": "Moins de chaleur et de travail entre les courses (−0,46 M texels d'ombre, halo réduit, moitié moins d'images au repos). Effet sur les freezes de l'interface : inconnu, car aucune mesure des menus à chaud n'existe.",
+    "prix_image": "Ombre et halo du menu un peu plus doux à chaud. La voiture garde sa résolution. Au repos, le mouvement des nuages du menu passe à 15 i/s réguliers (Sacha l'a déjà vu, à faire valider).",
+    "fichiers": "code/rendu/nettete-qualite.js (VHD : vhdDpr, vhdBascule, vhdOmbreTel, l. 235-249), code/moteur/cadence.js (ACC30_CHAUD, l. 424-432 ; hcSaute)",
+    "preuve_au_banc_mac": "Sous verrou, plus tard : faux état serious + ?tel=1. Compter la taille de l'ombre (768), les passes du halo, la toile de la vitrine (DPR 2 gardé) et la cadence au repos (intervalles à 66 ms réguliers après 10 s, retour à 33 au toucher). Planche photo du garage.",
+    "preuve_sur_telephone": "Il faut d'abord que la boîte de vol couvre les menus (rappels par seconde, gels au menu, avec un drapeau d'écran). Puis comparer la sentinelle Swift (M[25] depuis la file d'arrière-plan) et la chaleur au départ de la course suivante, avec ou sans le lot.",
+    "risque": "Moyen. Même fichier que voituredabord et que le pilote. Le repos à 15 i/s ne doit jamais tomber pendant qu'on fait tourner une voiture au doigt.",
+    "interrupteur": "?sans=menuchaud",
+    "branche": "qa/menuchaud",
+    "depend_de": "voituredabord (nettete-qualite.js) ; cadence.js est aussi touché par origin/qa/pilote et par la ligne rN de sondecalme : écrire sondecalme puis voituredabord puis menuchaud, dans cet ordre"
+   },
+   {
+    "nom": "portailborne",
+    "quoi": "Le portail étalé (PV:etale) arrête sa tranche dès qu'elle dépasse son budget, mesuré en temps réel entre deux sous-pas, et non plus d'après le Mac froid. À serious, il ne lance aucune tranche dans la seconde qui suit une image en retard. Un filet est gardé : si le portail approche sans être prêt, il finit en tranches courtes forcées, jamais d'un bloc à l'entrée.",
+    "pourquoi": "Une fois bridées, ses « tranches de 0,3-3 ms » durent 20-154 ms. On en compte 186 au-delà de 8 ms (≈ 4,5 s), concentrées dans les longues courses à plusieurs maps qui tombent à 20-22 i/s.",
+    "gain_attendu": "Ces ≈ 186 coups de plus de 8 ms supprimés ou coupés en morceaux.",
+    "prix_image": "Aucun. Le portail est prêt un peu plus tard.",
+    "fichiers": "le morceau du portail étalé (PORTV / PV:etale, dans code/maps/ ou code/gameplay/portail-passage.js), code/moteur/boucle-*.js (prebTick) si l'appel y vit",
+    "preuve_au_banc_mac": "En Node ou au banc, plus tard : simuler un processeur ×5 plus lent (multiplier les durées mesurées). Vérifier qu'aucune tranche ne dépasse le budget plus un sous-pas, que le portail est toujours prêt avant l'entrée (piste figée via __ev), et que la scène bâtie est identique au bit près avec ou sans le lot.",
+    "preuve_sur_telephone": "Boîte de vol : c.Q['PV:etale'] (nombre de rappels au-delà de 8 ms et pire durée), aucune reconstruction d'un bloc à l'entrée d'un portail, i/s des longues courses à plusieurs maps.",
+    "risque": "Moyen. Un portail pas prêt à temps provoque un gros gel à l'entrée. Les fichiers de maps sont aussi travaillés par la session ville-cyberpunk / finition-maps : la prévenir avant.",
+    "interrupteur": "?sans=portailborne",
+    "branche": "qa/portailborne",
+    "depend_de": "rien en fichiers communs avec les autres lots ; à écrire en dernier, après accord de la session maps"
+   }
+  ],
+  "ecartes": [
+   "« Couper la loupe ou baisser la résolution rend de la fluidité » : réfuté cette nuit. Effondrement QL 10 sans loupe : vrai coût 24 contre 21 ms, i/s égales, gels non diminués. Retirer la loupe à éco + fair (qa/gouvlent partie D) est écarté pour la même raison et parce que ça va contre « la voiture d'abord ».",
+   "« Viser 20 ou 24 i/s à chaud pour un rythme régulier » : faux sur ce téléphone. Les tops arrivent à 33 ms, donc 20 i/s donne 33/66 au hasard, plus haché que 23 i/s. Même défaut au CAD_CRIT20 actuel à critical (seuil 33,3 ms). Seuls 30 et 15 sont réguliers.",
+   "15 i/s régulières à serious : ce n'est pas un lot de cette nuit. C'est un dernier recours, sur un prototype que Sacha jugerait au pouce, seulement si 30 ne tient pas une fois la sonde et la musique réglées.",
+   "« 75 images d'écran par seconde au sol » : artefact du compteur CAD.rN (non remis à zéro). Corrigé dans sondecalme, rien à en tirer.",
+   "Le pilote de qualité comme remède aux gels : à BASSE + branché + éco + serious, ses crans valent la base. Seul son verrou de résolution sert, et voituredabord le couvre en partie.",
+   "Le juge de chaleur, gdxLourd, dkDoux : ils ne jouent qu'à partir du N2, donc rien chez Sacha (N1). Pas la peine d'y toucher pour lui.",
+   "Commander la cadence de WKWebView depuis le natif (preferredFrameRateRange, API privée), la mitigation thermique, le mode économie ou la luminosité : impossible ou refusé par l'App Store, et la luminosité est le réglage du joueur.",
+   "« Le build 121 est pire que le 120 » : non à état égal. La sonde a changé la nature des gels, pas leur nombre. La vraie casse date du 16/11 (fenêtre 545a472..089a868).",
+   "Rendu en tête de boucle (A1) : gros gain possible, mais il touche la sensation de conduite, l'ordre caméra/loupe/photos et ajoute une image de latence. Trop risqué pour une nuit : à garder pour un lot de jour après flushtot.",
+   "HUD dans la toile, traits de vitesse en WebGL, fusion des envois de la map, recyclage des géométries : de vrais chantiers, pas des lots d'une nuit, et pour la plupart dans les fichiers des maps.",
+   "Directeur de maps à chaud (tirer moins la ville) : il retire de la variété, c'est à Sacha de décider, pas un lot de nuit.",
+   "Loupe ×2 à chaud : elle joue sur la chaleur, pas sur les gels, et touche à la netteté de la voiture. C'est une question pour Sacha, pas un lot."
+  ],
+  "questions_pour_sacha": [
+   "Si le téléphone est chaud, tu acceptes que le changement de musique quand tu changes de moteur arrive jusqu'à 10 s plus tard, au lieu de 2,5 s, pour enlever les gels de la musique ?",
+   "Au menu, quand le téléphone est chaud et que tu ne touches à rien pendant 10 s, le décor peut-il tourner à 15 images par seconde régulières (la voiture reste nette, tout repart au premier toucher) ?",
+   "Pour la séance de test : tu peux débrancher le téléphone ou couper la charge rapide un moment ? Sinon on garde branché + économie comme cette nuit, c'est la règle.",
+   "Si ça ne suffit pas, tu préfères 15 images par seconde parfaitement régulières, ou 23 un peu hachées ? Tu trancheras au pouce."
+  ],
+  "message_pour_sacha": "On a trouvé deux grosses causes aux freezes. La première, c'est notre outil de mesure : chaque seconde, il bloquait l'app 50 ms, et jusqu'à 300 ms quand le téléphone est chaud.\nLa deuxième, c'est la musique du moteur : elle se charge en pleine course. Quand le téléphone est chaud, chaque chargement fait un freeze.\nBaisser l'image n'a rien changé cette nuit. Au contraire, la voiture est devenue floue pour rien. Désormais elle reste nette, et c'est le décor qui baisse.\nCette nuit : la mesure ne bloque plus l'app, la musique se prépare avant la course, la voiture reste nette, et le menu chauffe moins quand le téléphone est chaud.\nTu testeras comme d'habitude (branché, mode économie) : 15 min, tous les niveaux et le menu. La boîte noire nous dira ce qui a marché.\nJe ne te promets pas encore 30 images par seconde parfaites. Si ça hache encore, on cherche ce qui a cassé le 16/11."
+ },
+ "donnees": {
+  "constats": [
+   {
+    "constat": "La séance est à l'état « serious » de la première à la dernière seconde (851 s sur 851). L'app tournait depuis 6 min avant la 1re course. Le téléphone chargeait vite pendant le jeu : batterie de 35 % à 55 % en 25 min, avec économie oui et branché oui tout du long (code natif 2201). Il n'y a donc pas eu de montée en chaleur pendant la séance : elle a commencé chaude.",
+    "preuve": "c.th = [0,0,N,0,0] pour les 16 courses ; c.bat de [0,35,2] à [0,55,2] ; c.x0[0] = 376 s à la 1re course ; M[11] = 2201 sur toutes les secondes. Script chaleur/a2.py et la sortie bat/th.",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "Course par course, ça ne devient pas injouable d'un coup. Les cinq premières tiennent 25-26 i/s, puis on tombe à 20-22 i/s dans les longues courses à plusieurs maps (02:53 à 03:02, travail de 12 à 20 ms par image). Après 8 min de pause au menu, on remonte à 26-27 i/s. Enfin la ville de 03:15 s'effondre à 7 i/s. La sentinelle Swift (travail fixe sur le fil de l'app) sert de thermomètre du processeur : 49 ms, puis 65-67 ms de 02:54 à 03:02, retour à 49 ms, puis 160-300 ms dans la ville.",
+    "preuve": "chaleur/a1.py et la sortie par tranches de 20 s : i/s 25,8 · 25,1 · 24,7 · 22,3 · 19,9 · 20,4 · 22,0 · 24,2 · 22,1 · 26,3 · 27,4 … 7,1. M[25] q50 par course (chaleur/a9.py) : 49 540 · … · 65 696 · 67 116 · 67 178 · 49 819 · … · 243 266 µs.",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "Les gels « hors boucle » battent à 1 Hz. 80 % d'entre eux tombent à un nombre entier de secondes (±0,15 s) d'un gel précédent. L'écart le plus fréquent entre deux gels est de 1,0 s, avec des pics plus petits à 2, 3 et 4 s. Dans chaque course, ils se groupent sur une même phase de l'horloge murale (jusqu'à 96 % sur un dixième de seconde), et cette phase glisse lentement au fil de la séance. Ils durent 95 ms en médiane (82-130). La boucle d'avant n'a pris que 14 ms, le travail 15 ms, et le fil de la page est LIBRE (pouls muet 9 ms en médiane) : l'image est retenue hors de la page. Les vols du build 120 (1448, 1137) n'ont pas ce battement (phase plate, 32-42 %).",
+    "preuve": "chaleur/a6.py : écarts au dixième de s, pic 1,0-1,1 s = 226, et q50 0,6 s ; chaleur/a7.py : 53/63, 58/72, 139/171, 171/211 gels à un entier de s ; chaleur/a8.py : phase murale de 0416 piquée (79 %, 77 %, 72 %, 96 %), contre 33-42 % en 1448 et 1137.",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "La source la plus probable de ce battement est la mesure elle-même. La SondeNatif (lot MESURE-RAFALES, nouvelle dans le build 121) lance chaque seconde, sur le fil principal de l'APP, une sentinelle Swift qui prend 49 à 84 ms, et 160 à 300 ms dans la ville. L'app est compilée en Debug (compiler.sh), donc le Swift n'est pas optimisé : la même boucle prend 0,23 ms en JS. Sur iOS, c'est ce fil-là qui reçoit les envois d'image de WKWebView et qui donne le top des rAF. Pendant qu'il est pris, la page reste libre mais ne reçoit plus d'image : on obtient un trou de 2 à 3 tops de 33 ms, soit exactement la durée des gels mesurée.",
+    "preuve": "JeuViewController.swift, SondeNatif : DispatchSourceTimer 1,0 s sur .main, sentinelle de 200×1024 additions, puis evaluateJavaScript. compiler.sh : -configuration Debug. M[25] : q10/50/90 = 49 154 / 56 516 / 73 897 µs sur 829 s. Il manque l'horodatage du battement natif pour une preuve directe.",
+    "confiance": "probable"
+   },
+   {
+    "constat": "« 75,7 images d'écran par seconde au sol contre 24,6 en vol » est un artefact. CAD.rN n'est pas remis à zéro au départ d'une course : la 1re seconde de chaque course compte tous les rAF du menu (jusqu'à 12 256 après 8 min de menu), et cette seconde est toujours rangée « sol ». Sans elle, l'écran livre 24,8/s au sol et 24,6/s en vol, presque autant que d'images calculées (23,0 et 23,1). Le calage à 30 ne saute rien : c'est l'écran lui-même (rAF bridé à 30 en économie) qui livre moins de 30 tops.",
+    "preuve": "R[0] par course = [63,119,284,180,137,79,104,262,149,12256,468,529,54,298,303,651]. Sortie « sans 1re seconde » : sol 24,8/23,0, vol 24,6/23,1. chaleur/a5.py : sautées 0,0-0,1/s dans 12 courses sur 16.",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "Le build 121 n'est pas meilleur que le 120 à état égal (serious, économie, branché), et sa nature a changé. Dans le 120 (255 s), les gels étaient surtout DANS la boucle (rafales « fil entier »), à 26,5 i/s. Dans le 121 (851 s), ils sont à 92 % hors boucle et rythmés à 1 Hz, avec seulement 1,1 fil entier par minute et 22,9 i/s. Les références saines au même état sont plus anciennes : 545a472 (14-15/11) tenait 29,2-29,7 i/s avec 2-3 % de secondes au-delà de 101 ms, et les deux courses « SANS CIEL » du 17/11 tenaient 29,8 i/s avec 1-2 gels par minute. La casse date du 16/11 (089a868 : 20-22 i/s, 40-64 % de secondes au-delà de 101 ms).",
+    "preuve": "chaleur/a4.py (par course, secondes serious) et chaleur/a3.py (par version × thermique × économie × branché). Seul le 121 a Mw 27, donc la SondeNatif.",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "Entre 545a472 (sain) et 089a868 (cassé), un changement touche directement l'image à chaud : le gouverneur doux garde la LOUPE à serious. La toile reste alors à la taille de l'écran (2532×1170, 900 % de la fenêtre) et l'agrandissement est fait en plein écran à chaque image. Avant, la loupe se coupait dès serious. Dans le 121, les courses avec loupe (900 %) ont un vrai coût médian de 17-29 ms, contre 15-22 ms sans loupe (100 %). L'effet sur les i/s reste faible dans cette séance (+1 à 2 i/s sans loupe) et se mêle à la chaleur. Le 089a868 contient aussi d'autres lots (lune étalée, mouchard).",
+    "preuve": "git show <rév>:code/rendu/loupe-caisse.js : « GOUVERNEUR DOUX » absent de 9c0b976 et 545a472, présent dès 089a868. M[16] toile/fenêtre et G[39] largeur du tampon 2532 sur les 5 premières courses, puis 100 % (844). vrai R[2] par course (chaleur/a1.py).",
+    "confiance": "hypothèse"
+   },
+   {
+    "constat": "La ville de 03:15 (14 s, la dernière course) est un effondrement du processeur de tout le téléphone, pas un problème du rendu de la ville seul. Tout y est ×4 à ×10 : sentinelle Swift 160-300 ms (contre 49), décodages de musique 150-406 ms (contre 15-18), et la part de référence des tranches ×2-3 (rendu 9 ms contre 2,5, b4 6 ms contre 1,2). Le départ cumule une 1re image de 990 ms (b6 vitrine/garage 552 ms), 6 décodages de musique en 0,3 s, des tranches prebTick de 63-144 ms et 32 readPixels synchrones (104 ms). Ici le fil de la page est PRIS (34 gels hors boucle sur 58 à fil pris, silence médian 59 ms) : il y a plus de travail que de processeur.",
+    "preuve": "chaleur/a2.py 15 (seconde par seconde) et le détail LH, D, Y : D = [15,60],[16,149],[16,221],[17,313],[18,356],[18,406]… ; Y gl readPixels [32, 104 ms] ; LH t 0,0 loop 686 ms ‘b6 vitrine, garage, chat’ 552 ; prebTick 144 ms.",
+    "confiance": "probable"
+   },
+   {
+    "constat": "Pourquoi le travail fait 11 ms, l'image vraie 23 ms et l'arrivée 43 ms. Le « vrai coût » va du début de l'image jusqu'à la barrière de la puce : environ 11 ms de JS, plus environ 12 ms de puce, plus la latence du sondage (setTimeout de 2 ms, regroupé en économie). En économie, l'écran ne donne qu'un top toutes les 33 ms : une image qui finit à 34 ms attend 66 ms. Répartition des intervalles : 48,6 % entre 26 et 34,5 ms, 24,5 % entre 34,5 et 51, 18,2 % entre 51 et 101, 2,2 % au-delà. Le vrai coût p90 (36 ms) explique environ 10-15 % de retards et la sonde native environ 4 % (≈ 1 image par seconde). Il reste environ 20 % de retards invisibles au mouchard : composition par l'app et le serveur d'affichage (toile de 3 Mpx avec la loupe), et tops irréguliers (intervalle d'écran minimal médian de 21-28 ms au lieu de 33).",
+    "preuve": "Histogramme B agrégé (sortie de la vérification) ; R[2] q50 23 / p90 36 ; S[3] travail ; chaleur/a5.py rMin médian 21-28 contre 33 dans les courses SANS CIEL saines.",
+    "confiance": "probable"
+   },
+   {
+    "constat": "Le portail étalé (PV:etale) n'est pas la source des gels hors boucle, mais sur un téléphone bridé ses « tranches de 0,3-3 ms » durent bien plus. On compte 186 rappels de plus de 8 ms sur la séance (≈ 4,5 s en tout), avec un pire de 154 ms. Ils sont concentrés dans les longues courses à plusieurs maps, celles qui tombent à 20-22 i/s. Les rappels attribués dans les gels restent petits (q50 1 ms, q90 4 ms).",
+    "preuve": "c.Q['PV:etale'] par course : [44,1085,54], [43,962,30], [46,1052,59], [8,319,154]… ; « rappels attribués ms q50/q90 1 4 » (script rappels).",
+    "confiance": "prouvé"
+   }
+  ],
+  "leviers": [
+   {
+    "nom": "Rendre la sonde native gratuite",
+    "quoi": "Dans SondeNatif : la sentinelle Swift ne doit plus tourner sur le fil principal de l'app à chaque seconde. Trois façons : la passer sur une file d'arrière-plan, la réduire à quelques microsecondes, ou la couper par défaut et ne l'allumer qu'avec un paramètre de banc. Garder la pression mémoire et le retard du battement, qui ne coûtent rien.",
+    "gain_attendu": "Disparition du battement à 1 Hz : jusqu'à environ 55-60 des 71 gels hors boucle par minute (80 % sont « à un entier de seconde »). C'est le levier le plus gros et le plus sûr de cette séance.",
+    "prix_image": "aucun",
+    "risque": "On perd la sentinelle « fil de l'app » telle quelle (elle reste lisible sur une autre file). Il faut le confirmer par un vol A/B avant de conclure. Si la cause était ailleurs, le gain sera nul.",
+    "fichiers": "app-ios/ios/App/App/JeuViewController.swift (SondeNatif.bat / sentinelle), app-ios/natif/natif.js (envoi « go »)",
+    "deja_tente": "non : la sonde a été ajoutée le 17/11 (lot MESURE-RAFALES), jamais exécutée avant ce vol (mesure-rafales.md : « compilée, jamais exécutée »)"
+   },
+   {
+    "nom": "App de jeu en Release, mesure en option",
+    "quoi": "compiler.sh fabrique l'app que Sacha joue en Debug : Swift non optimisé (×200 sur la sentinelle), journaux de Capacitor, et le « POULS » de natif.js (un rAF permanent et un elementFromPoint toutes les 4 s). Proposition : construire en Release, ou au moins couper le pouls et les journaux, en gardant la boîte de vol JS.",
+    "gain_attendu": "Moins de travail sur le fil de l'app à chaque message entre la page et le natif. Gain probablement modeste hors sentinelle, à mesurer.",
+    "prix_image": "aucun",
+    "risque": "Les drapeaux #if DEBUG (chrono de lancement, CC_QS) ne seraient plus compilés. Il faudrait un drapeau de mesure à part.",
+    "fichiers": "~/cash-car/ios-ultime-mesures/compiler.sh, app-ios/natif/natif.js (POULS), JeuViewController.swift (#if DEBUG)",
+    "deja_tente": "noté dans BATTERIE-IDEES.md:141 (« une mesure de batterie doit se faire sur un build Release »), pas fait"
+   },
+   {
+    "nom": "Loupe à ×2 (pas ×3) quand serious + économie",
+    "quoi": "Au lieu de la toile plein écran (2532×1170, 9 fois les pixels de la fenêtre), poser la loupe à k=2 à chaud en économie (le réglage `?loupe=2` existe). Ou bien la couper seulement si le vrai coût dépasse environ 28 ms de façon tenue.",
+    "gain_attendu": "Moins de pixels à composer et à agrandir : 4/9 environ. Les données sont mêlées : vrai coût 17-29 ms avec la loupe contre 15-22 ms sans dans le 121, et une casse générale à serious + économie depuis que la loupe reste à serious (16/11).",
+    "prix_image": "La caisse est un peu moins nette qu'à ×3 mais plus nette que sans loupe. Le décor ne change pas.",
+    "risque": "Cela touche la règle « priorité sur la voiture ». Le gain n'est pas prouvé seul : il faut un cycle loupe ×3 / ×2 / sans dans une même course chaude avant d'y toucher.",
+    "fichiers": "code/rendu/loupe-caisse.js (loupeChaud, LOUPE.k), code/moteur/gouverneur-paliers.js",
+    "deja_tente": "le gouverneur doux (14/11) a fait l'inverse : la loupe garde ×3 à serious ; ?sans=gouvdoux rend la coupure à serious"
+   },
+   {
+    "nom": "Borner les tranches du portail étalé en temps réel",
+    "quoi": "PV:etale mesure son travail en ms, mais bridé une tranche dure 20-154 ms. Il faudrait arrêter la tranche dès qu'elle dépasse son budget (en sous-pas) et ne pas en lancer à serious quand l'image précédente a été en retard.",
+    "gain_attendu": "Supprimer environ 186 coups de plus de 8 ms (≈ 4,5 s) dans les longues courses à plusieurs maps, celles qui tombent à 20-22 i/s.",
+    "prix_image": "aucun (le portail est prêt un peu plus tard)",
+    "risque": "Un portail pas prêt à temps provoque une reconstruction d'un coup à l'entrée, donc un gros gel. Il faut garder un filet.",
+    "fichiers": "code/maps/ (portail étalé PORTV / PV:etale), code/moteur/boucle-*.js (prebTick)",
+    "deja_tente": "le lot « portail étalé » du 121 découpe déjà en tranches de 0,3-3 ms, mais mesurées sur un téléphone froid"
+   },
+   {
+    "nom": "Départ de course sans rafale",
+    "quoi": "Au départ d'une course (surtout en sortant du garage) : décaler les 6 décodages de segments de musique lancés en 0,3 s, ou les faire au menu, et étaler le b6 vitrine/garage (552 ms dans la 1re image de la ville).",
+    "gain_attendu": "Supprimer le trou d'environ 1 s au départ et les décodages de 150-400 ms qui se battent pour le processeur quand il est bridé.",
+    "prix_image": "aucun",
+    "risque": "La musique arrive un peu plus tard au départ.",
+    "fichiers": "assets/audio/pouce-bleu-jeu.js (décodages), code/interface/ (vitrine, garage), code/moteur/ (closeGarage, start)",
+    "deja_tente": "inconnu"
+   },
+   {
+    "nom": "Trouver les readPixels synchrones",
+    "quoi": "La boîte compte 16 à 64 « gl readPixels » synchrones par course dans 6 courses (jusqu'à 255 ms par course, pire 13 ms par appel). Il faut nommer qui les appelle (photo, vignette, jade-vol, sonde de repli) et les passer en lecture asynchrone ou hors course.",
+    "gain_attendu": "Quelques arrêts puce/processeur de 3 à 13 ms en moins par course.",
+    "prix_image": "aucun",
+    "risque": "faible",
+    "fichiers": "code/maps/jade-vol.js, code/interface/vignette-moteur.js, code/interface/chute-menu.js, code/rendu/nettete-qualite.js (repli readPixels)",
+    "deja_tente": "la sonde QL est déjà passée à la barrière (fenceSync) sous ALLEGE"
+   }
+  ],
+  "a_mesurer_sur_telephone": [
+   "A/B dans la même séance chaude (serious, économie, branché) : sonde native allumée puis éteinte par blocs de 60 s. Mesure clé : gels hors boucle par minute, et le pic de phase à 1 Hz (chaleur/a7.py, a8.py) doit disparaître sans la sonde.",
+   "Horodater chaque battement natif côté page : performance.now() à la réception de __ccSwN, plus la durée de la sentinelle Swift. Puis noter dans G si un battement est tombé dans le trou. C'est la preuve directe qui manque.",
+   "Instruments sur l'iPhone (xctrace, modèle « Animation Hitches » ou « Hangs », processus App, 60 s en course chaude). Ils séparent les retards d'envoi (fil de l'app) des retards de rendu (serveur d'affichage, puce). Le mouchard JS ne voit pas la composition.",
+   "Corriger le compteur d'écran : remettre CAD.rN à zéro au départ de la course (bvNeuve), sinon « écran au sol » reste faux.",
+   "Même code, même état chaud : build Debug contre build Release. Comparer i/s, gels/min et sentinelle Swift.",
+   "Cycle loupe ×3 / ×2 / sans, toutes les 6 s dans une même course chaude (comme le cycle du HUD). Mesurer vrai coût, i/s et images au-delà de 34,5 ms.",
+   "Nommer l'appelant des gl readPixels dans c.Y (une étiquette par appelant).",
+   "Noter la batterie et le débit de charge : ici +20 % en 25 min, une charge rapide qui chauffe. À croiser avec la sentinelle Swift pour séparer la chaleur de la charge de celle du jeu."
+  ]
+ },
+ "idees": {
+  "constats": [
+   {
+    "constat": "(a) LIVRÉ dans le build 121. Réglage exact du 13 Pro de Sacha (BASSE = N1) à serious, avec le gouverneur doux. Résolution : DPR 1,25 gardé (aucun plafond posé par l'état thermique). Halo : allumé, entrée en ½ résolution, 2 étages (3 à froid), donc les traînées éclairent encore la route. Ombre 512 (768 à froid). Ciel lisse 1 image sur 4. Traits d'air et traînées pleins. Loupe de la caisse gardée. Cadence calée à 30. Échelle QL libre au-dessus du cran 2 : c'est elle qui baisse la résolution si la mesure dit que l'image ne tient pas (un cran à la fois, au plus toutes les 10 s, remontée après 20 s). S'y ajoutent le régime chaud (vent ×0,7 redessiné une image sur 2, éclair NITRO redessiné toutes les 66 ms au plus, carte moteur toutes les 100 ms au plus) et la polyphonie des bruitages ×½. À critical : 80 % du plafond (DPR 1,0), halo ½ à 2 étages, ombre 512, ciel 1/8, traits ×½, loupe coupée, 20 i/s (50 ms visés).",
+    "preuve": "code/moteur/gouverneur-paliers.js:88-95 (GDX_SER, GDX_CRI, MOB_PDX), section GOUVERNEUR DOUX ; doux.md, tableau N1 ; mobh-regime-chaud.js (MOBH_R) ; cadence.js:73 (CAD_CRIT20). Rien de tout cela n'a été mesuré tel quel sur le téléphone avant cette nuit.",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "(a) Trois leviers livrés ne font RIEN sur le téléphone de Sacha : le juge de chaleur (baisse d'un cran après une course brûlante) s'arrête au N1 (« N1 : rien ») ; l'image lourde à serious (gdxLourd) ne joue qu'à partir du N2 ; la baisse des N3/N4 à serious (dkDoux) non plus. En BASSE N1, l'état thermique ne baisse que l'ombre, le halo et le ciel. Seule l'échelle QL réagit à la mesure.",
+    "preuve": "chaleur.md (1) « N1 : rien » ; gouverneur-paliers.js gdxLourdTick : `n<2` → sortie ; gdxDkDoux : `n>=3`.",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "Cette nuit, l'échelle QL est descendue seule de 5 à 10 : sous le plancher net, effondrement, loupe retirée (toile 900 % → 100 % à partir de la course de 02:56). Baisser la résolution et retirer la loupe n'a rien rendu : vrai coût médian 21 ms (QL ≤ 5, loupe posée) contre 24 ms (QL 10, sans loupe) ; 23,1 contre 23,2 i/s. Gels par minute : 47 au début (loupe posée), 88 à 02:59 (sans loupe). La chaleur qui monte au fil de la séance brouille la comparaison, mais aucun gain n'apparaît. La règle de Sacha (« la voiture reste nette ») a donc été violée pour rien.",
+    "preuve": "Recalcul sur vol-1118-0416.json, champs S (cran QL), R (vrai coût), G[38] (toile/fenêtre %) : notes dans /private/tmp/claude-501/-Users-sachaberes-cash-car-qualite/f73d43a5-a4c1-4f2f-92ad-78d3cc403908/scratchpad/chaleur/notes-deja-pense.md.",
+    "confiance": "probable"
+   },
+   {
+    "constat": "Le build 121 n'est pas pire que le build 120 à chaud : il a seulement passé TOUTE la séance à serious. Le build 120 à éco + serious faisait déjà 75 à 76 gels/min (13:36 : 75 gels en 60 s ; 13:39 : 236 gels en 185 s), contre 77/min cette nuit. À éco + nominal : 5 gels en 199 s. Le défaut tient à l'état serious, pas aux lots ajoutés cette nuit.",
+    "preuve": "vol-1117-1448.json et vol-1118-0416.json, gels (G) par course et état thermique (th).",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "(d) La plateforme, d'après les vols : à serious, la page ne reçoit plus que 20 à 29 rappels d'image par seconde (champ R) ; à éco + nominal/fair (build 120), elle en recevait 50 à 60. L'idée « le mode économie impose 30 Hz » (CHALEUR-IDEES A1) n'est donc pas ce que montre ce téléphone. C'est l'état serious qui bride, ce qui colle avec la mitigation thermique de WebKit (rAF à moitié dès `thermalState >= Serious`). Une image qui rate son tic de 33 ms en coûte 66, voire 100 : ce sont les gels « hors boucle » de 73 à 88 ms (médiane), le plus souvent « fil LIBRE » (notre JS attend, l'image est retenue hors du fil).",
+    "preuve": "Recalcul R[0] par seconde × éco × thermique sur les deux vols ; vol.txt, blocs POULS (fil LIBRE 38/63, 17/20, 100/168, 145/211…) ; sources WebKit citées dans CHALEUR-IDEES.md (AnimationFrameRate.cpp, ThermalMitigationNotifier.mm).",
+    "confiance": "probable"
+   },
+   {
+    "constat": "À serious, c'est le PROCESSEUR qui manque, pas les pixels. Le travail JS par image passe de 5,9 ms (éco, nominal) à 9-16 ms (éco, serious), et il grossit au fil de la séance (14,2 ms en QL 10). Le vrai coût passe de 17 ms (p90 24) à 21-24 ms (p90 34-37). Les 33 ms sont donc dépassées par 10 à 20 % des images. Le mode économie bride aussi le processeur (−58 % sur un cœur, d'après une source externe).",
+    "preuve": "Recalcul S[3] (travail) et R[2] (vrai coût) par état sur les deux vols ; BATTERIE-IDEES §3 (notebookcheck).",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "Branché + chaud, la charge chauffe d'elle-même : environ 3,6 W partent dans la batterie, et l'app n'y peut rien. Bilan du jeu (sans mode économie, écran au minimum) : environ 3,8 W pour tout le téléphone. Plancher 1,4 W ; image 3D ≈ 0,9 W (prouvé sur 2 essais) ; reste du jeu ≈ 1,4 W. Le HUD ≈ 0,26 W et le son ≈ 0,1 W : dans le bruit. 20 i/s ≈ −0,45 W (1 essai, non prouvé). Le temps avant serious n'a JAMAIS été mesuré, et aucune série n'a été faite AVEC le mode économie.",
+    "preuve": "banc-chaleur.md (v3, nuit du 16 au 17/11) : tableau des essais valides et bilan.",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "(d) Ce qu'une app WKWebView peut réellement commander. La cadence des rappels d'image : NON (le CADisplayLink appartient à WebKit ; preferredFrameRateRange ne commande pas une WKWebView ; une API privée serait refusée par l'App Store). La mitigation thermique et le mode économie : NON. La luminosité : possible, mais écartée (c'est le réglage du joueur). Ce que la PAGE peut faire : la taille de la toile, le nombre et le rythme des images (sauter, caler à 15), le coût de chaque image, mettre la 3D en pause hors course. Le natif peut seulement : lire l'état thermique, l'économie, la batterie et la charge (déjà fait, GardeThermique) ; garder la vue opaque (fait) ; retirer ses propres minuteries (1 s, 2 s, 5 s, 5 s avec evaluateJavaScript) ; être compilé en Release.",
+    "preuve": "JeuViewController.swift:91 (isOpaque), :306, :504, :513, :650 (minuteries), :501-503 (notifications) ; Info.plist sans CADisableMinimumFrameDurationOnPhone ; CHALEUR-IDEES §3 et BATTERIE-IDEES §3 (bug WebKit 294338).",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "Le build que Sacha joue est un build de MESURE (`&perfrec=2`, Debug). Ce qu'il fait tourner en plus : le mouchard enveloppe chaque appel WebGL et Canvas 2D (≈ 180 par image), plus une sentinelle par image calculée (0,2 ms à froid, ≈ 1,2 ms bridé) et des sous-tranches. Le pouls Debug ajoute un rAF permanent et un elementFromPoint toutes les 4 s. Le guet des gels ajoute un rAF. Résultat : 3 rappels d'image pour chaque image d'écran (« rAF par image d'écran 3 » dans le vol). Coût mesuré sur le Mac seulement : 0,36 + 0,26 ms par image ; sur le téléphone bridé, jamais mesuré.",
+    "preuve": "NUIT-18-11.md:109 (build 121 = &perfrec=2) ; mesure-rafales.md (« B coût », sentinelle 0,2 à 1,2 ms) ; natif.js:439-444 (POULS) ; vol.txt, RETOUR + PIVOT {3: …}.",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "La ville est un cas à part : 7 i/s, 38 ms de JS par image (fil PRIS 34 fois sur 58). 10 décodages de musique pendant la course (médiane 168 ms, pire 406), dont 9 suivis d'un gel. Sur les autres courses aussi, des décodages de musique tombent en course (7 à 16 par course) et la plupart sont suivis d'un gel dans la seconde.",
+    "preuve": "vol.txt : course 03:15:04 (ville), « décodages de musique » ; courses 02:53:04 (16 décodages, 12 suivis d'un gel) et 03:12:56 (7, 7).",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "Les envois vers la puce par image (cette nuit) : 63 à 115 drawElements, 35 à 133 drawArrays, 7 à 67 drawElementsInstanced, 22 à 76 bufferSubData, 8 à 15 drawImage en Canvas 2D, 4 à 12 clear. Leur temps côté JS est petit (≈ 1,4 ms par image, ×3 en moyenne). Leur coût dans le processus graphique de WebKit (traduction vers Metal, sur un processeur bridé) n'est pas mesuré. Les bufferSubData et les drawImage 2D n'ont jamais été une cible.",
+    "preuve": "vol-1118-0416.json, champ Y (comptes et ms par famille d'appels) divisé par n (images).",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "(b) Le pilote de qualité (origin/qa/pilote, 8e tour en contrôle, pas dans le build) ne réglerait presque rien dans le cas de cette nuit. Branché + éco + serious, il part au cran K5 (K6 branché + éco), ce qui vaut à peu près la base du doux. Depuis le 5e tour, les gels à chaud sont plafonnés au cran de la table, et aucun cran ne descend en course pour des gels. Son apport utile ici : la résolution verrouillée en course (aucune réallocation de la toile hors des moments cachés). Or cette nuit, l'échelle a réalloué plusieurs fois par course (QL 5 → 10).",
+    "preuve": "origin/qa/pilote:passation/qualite/PILOTE-QUALITE.md §10 (S2), §12 (pilCapGel : serious K5, K6 branché + éco), §2 (verrou) ; prouvé au banc Chrome seulement (« jamais plus lourd que ?sans=pilote » sur 16 conditions).",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "(b) Les 20 i/s régulières au chaud (qa/gouvlent, partie C) ne peuvent pas être régulières sur ce téléphone à serious. Avec 20 à 30 rappels d'image par seconde, viser 50 ms donne 33 et 66 en alternance, soit environ 16 % de ralenti (le pas de jeu est plafonné à 50 ms). C'est la correction n° 1 du contrôle. Les quatre autres : le calage réveille la retenue du gouverneur (mobReactif) ; le signe « boucles » donne de faux positifs (16 sur 31 hors économie et hors chaleur) ; il faut une fusion de fond avec le pilote (la loupe ne change que sous voile) ; il faut un plafond pour les notes `lenteur`. La partie D (loupe retirée dès éco + fair + branché, ou serious) va contre « la voiture reste nette », et la séance de cette nuit montre que retirer la loupe n'a rien rendu.",
+    "preuve": "git show origin/qa/gouvlent:passation/qualite/gouvlent.md (5 corrections) ; lenteur.md de la branche (C : 18,3 → 14,4 i/s dans les rafales simulées, gain non montrable en simulation).",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "(b) Autres pistes étudiées et non livrées. L'horloge du calage (lenteur A) : livrée ÉTEINTE (`?plus=cadhorloge`) ; elle casse la régularité à 75/100 Hz. 20 contre 30 i/s à critical : le pilote garde 50 ms par défaut, le 33 régulier vit derrière `?plus=pilcad33`, jamais mesuré sur le téléphone. AUTO = N2 à froid : seulement « en condition libre » (débranché, sans éco, froid), donc jamais dans les conditions de Sacha. La remontée MOB_R : éteinte depuis le 07/11 (gels de plus d'1 s). Restent codés et éteints, jamais mesurés sur le téléphone : l'effacement tardif (`?plus=effacetard`), `?gpupref=low-power`, `?sans=crit20`. Le DPR 1,0 / 0,75 au banc de chaleur n'a jamais été rejoué (le crochet était faux).",
+    "preuve": "lenteur.md (A) ; PILOTE-QUALITE.md (branche) §10, §11 ; gouverneur-paliers.js en-tête (MOB_R) ; triptyque-bloom.js:355-361 ; palier-appareil.js:177-179 ; banc-chaleur.md, tableau.",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "Les freezes « sur l'interface » ne sont pas dans la boîte de vol, qui ne couvre que les courses. Au menu et au garage, la vitrine dessine la scène à DPR 2 (2,56 fois les pixels de la course), avec une ombre jusqu'à 1024. Elle ne suit pas l'état thermique, seulement sa propre mesure. Il y a aussi environ 285 animations CSS infinies (gelées après 20 s au menu). Aucune mesure des menus à chaud n'existe.",
+    "preuve": "nettete-qualite.js:243-249 (VHD : vhdDpr, sa règle de montée sur la mesure) ; BATTERIE-IDEES §1.2 et A2 ; CHALEUR-IDEES A4.",
+    "confiance": "hypothèse"
+   }
+  ],
+  "leviers": [
+   {
+    "nom": "Jouer un build sans la mesure lourde",
+    "quoi": "Le build que Sacha joue ne porte plus `&perfrec=2` en entier. On garde la boîte de vol (comptes par seconde) mais on coupe ce qui pèse à chaque image : les appels enveloppés (`?sans=glenvois`), les sentinelles de début et de fin (`?sans=sendebut`), le pouls Debug (`?sans=pouls`, rAF permanent et elementFromPoint toutes les 4 s). Ou on compile en Release pour la séance de jeu, et on garde un build de mesure à part pour les bancs.",
+    "gain_attendu": "Mesuré sur le Mac : 0,6 ms par image. Sur le 13 Pro bridé ×2 à ×3 : 1 à 2 ms sur 23 ms de vrai coût, soit quelques points de tics ratés en moins. Jamais mesuré sur le téléphone.",
+    "prix_image": "Aucun.",
+    "risque": "On voit moins bien les rafales au vol suivant. Il faut garder au moins les colonnes S, R et G pour juger.",
+    "fichiers": "app-ios/preparer-www.js (--qs), code/moteur/mouchard-gels.js, app-ios/natif/natif.js:439-444",
+    "deja_tente": "Jamais pensé comme levier de chaleur. BATTERIE-IDEES B4 le signale pour les mesures de batterie."
+   },
+   {
+    "nom": "Garder la loupe et la résolution à serious (la voiture d'abord)",
+    "quoi": "À serious, l'échelle QL ne descend plus sous le cran 5 (ni réallocation de la toile, ni effondrement qui retire la loupe). Seuls les effets de décor baissent. La loupe ne s'en va qu'à critical. C'est le lot « voiture d'abord » décidé par Sacha à 03 h 55, mais nourri par la mesure de cette nuit.",
+    "gain_attendu": "Aucun gain de fluidité attendu, et c'est le point : cette nuit, QL 10 sans loupe n'a rien rendu (vrai coût 24 contre 21 ms, 23,2 contre 23,1 i/s, gels non diminués). Gain en qualité de la voiture. En plus, quelques gels de réallocation en moins par course.",
+    "prix_image": "Rien de perdu : on rend la netteté de la caisse que la séance a retirée sans contrepartie.",
+    "risque": "La comparaison de cette nuit est brouillée par la chaleur qui montait. Sans mode économie, la loupe (2,96 Mpx composés) a peut-être un coût en énergie jamais mesuré.",
+    "fichiers": "code/rendu/loupe-caisse.js (loupeChaud, QL.effondre), code/rendu/nettete-qualite.js (qlPose, qlDoux), code/moteur/boucle-1.js:82 et 120-146",
+    "deja_tente": "Le gouverneur doux garde la loupe à serious, mais l'effondrement de l'échelle la retire quand même. qa/gouvlent D faisait l'inverse (loupe retirée plus tôt). Le pilote verrouille la résolution en course."
+   },
+   {
+    "nom": "15 i/s régulières à serious quand l'écran livre ≤ 30 rappels",
+    "quoi": "Si la médiane des rappels d'image dépasse 24 ms (CAD.eM du pilote), on ne vise plus 30 (raté une image sur 5 à 10) ni 20 (33/66 en alternance), mais 66 ms réguliers : 2 tics sur 2, avec deux sous-pas de physique (le pas est plafonné à 50 ms). C'était `?pilote15=1` dans le plan du pilote, jamais codé.",
+    "gain_attendu": "Images d'écran régulières (Sacha : « un rythme régulier vaut mieux qu'un rythme plus haut mais haché »). Moitié moins d'images à calculer : environ −0,45 W par analogie avec l'essai à 20 i/s (1 essai, sans éco). Plus de tics ratés tant qu'une image coûte moins de 66 ms. Non prouvé.",
+    "prix_image": "Le mouvement est moins fluide (15 contre 23 i/s mesurées, mais irrégulières). Rien ne change dans l'image elle-même.",
+    "risque": "La sensation au pouce (latence d'entrée de 66 ms). Les sous-pas de physique touchent la conduite et les collisions. À n'allumer qu'à serious, et à faire juger par Sacha en A/B.",
+    "fichiers": "code/moteur/cadence.js (cadPer, CAD_CRIT20, cadSaute), code/moteur/boucle-1.js (dt plafonné à 50 ms)",
+    "deja_tente": "Le 20 i/s de qa/gouvlent C a été refusé sur un écran à 30 Hz (correction n° 1). Le 15 i/s est resté dans la phase 2 du pilote (§2, §6)."
+   },
+   {
+    "nom": "Moins de JS par image à chaud",
+    "quoi": "Le travail passe de 5,9 ms (nominal) à 9-16 ms (serious) et grossit au fil de la séance. Il faut lire les sous-tranches du mouchard de cette nuit (b1, b4, b6) pour trouver ce qui gonfle, puis étendre le régime chaud aux décors qui ne servent pas la conduite (pièces, pigeons, plumes, arcs-en-ciel, villeApres, cityTick), un tic de décor sur deux à serious. La physique, la voiture et le HUD restent intacts.",
+    "gain_attendu": "Si le travail redescend de 14 à 9 ms, le vrai coût p90 passe de 36 à environ 31 ms, sous les 33 du tic : la majorité des gels « hors boucle » devraient partir. Probable, non mesuré.",
+    "prix_image": "Des animations de décor à 15 Hz au lieu de 30. La voiture et la route ne bougent pas.",
+    "risque": "Des saccades visibles sur certains décors proches. Il faut une preuve photo et vidéo par décor.",
+    "fichiers": "code/moteur/mobh-regime-chaud.js, code/moteur/boucle-1.js à boucle-6-hud.js, code/maps/* (cityTick et compagnie, avec la session maps)",
+    "deja_tente": "jsimage.md (16/11) : les lectures de mise en page étaient déjà petites. Le régime chaud existe pour le vent, la nitro et la carte moteur seulement."
+   },
+   {
+    "nom": "La ville : réparer d'abord",
+    "quoi": "Une course en ville à 7 i/s, 38 ms de JS par image, fil occupé. Il faut trouver le poste (cityTick, villeApres, pré-bâti 5,4 ms) et les 10 décodages de musique de 168 ms. C'est un défaut de map, pas une affaire de qualité.",
+    "gain_attendu": "Revenir de 7 à 20-25 i/s sur cette map, comme les autres. Prouvé que la ville est hors norme (1 course de 14 s), cause non prouvée.",
+    "prix_image": "Aucun, si c'est un défaut.",
+    "risque": "La ville est en travail dans la session ville-cyberpunk (route mêlée, Crypto City de jour) : les deux sessions risquent de se marcher dessus.",
+    "fichiers": "code/maps/ (villes), code/son/musique.js",
+    "deja_tente": "Jamais isolée avant cette nuit."
+   },
+   {
+    "nom": "Plus aucun décodage de musique en course",
+    "quoi": "Décoder les morceaux au menu ou à la mort, jamais pendant la course. Cette nuit : 7 à 16 décodages par course, la plupart suivis d'un gel dans la seconde.",
+    "gain_attendu": "Une partie des gels (sur 16 décodages, 12 suivis d'un gel ; sur 7, 7). Probable, à vérifier au vol.",
+    "prix_image": "Aucun. Un peu de mémoire en plus (environ 1 à 2 Mo par course).",
+    "risque": "Mémoire si on décode tout d'avance. L'enchaînement des morceaux.",
+    "fichiers": "code/son/musique.js, code/son/console-son.js",
+    "deja_tente": "musique3.md : 10 morceaux pré-rendus, NÉNUPHARS traité. Le moment du décodage n'a jamais été pris pour une cause de gel."
+   },
+   {
+    "nom": "Moins d'envois vers la puce, côté map",
+    "quoi": "Fusionner les objets fixes d'un tronçon au pré-bâti, limiter les porteurs d'ombre au visible (CHALEUR A2). En plus, jamais visés jusqu'ici : les 22 à 76 bufferSubData par image (traînées, particules, rubans) et les 8 à 15 drawImage en Canvas 2D (flamme de la nitro, calques), chacun étant un envoi de texture.",
+    "gain_attendu": "1 à 2 ms par image à chaud dans le processus graphique de WebKit (ordre de grandeur tiré de la radio : « appels seuls » 3 à 5 ms). Probable, jamais mesuré.",
+    "prix_image": "Aucun si l'ordre de dessin est gardé.",
+    "risque": "Gros chantier, map par map, avec la session maps. Mémoire des tampons fusionnés.",
+    "fichiers": "code/moteur/piste-prebati.js, code/maps/*, code/rendu/traces-pneus.js, code/rendu/rubans-nets.js, flamme de la nitro (nxfDessine)",
+    "deja_tente": "Proposé (CHALEUR A2, POUR-LA-SESSION-MAPS) et reporté en phase 2 du pilote. jadeprebati a été livré pour Jade seulement."
+   },
+   {
+    "nom": "Le directeur de maps à chaud",
+    "quoi": "À serious, tirer plus souvent au portail les maps qui coûtent peu (canyon, grotte, espace, Jade de nuit), et moins souvent la ville et les nuages.",
+    "gain_attendu": "Il agit sur tous les postes à la fois. Cette nuit, sol : canyon 26 i/s et 17,8 % d'images > 34,5 ms, Jade 27 i/s et 18 %, contre la ville à 7 i/s. Probable.",
+    "prix_image": "Aucune perte d'image. La variété baisse à chaud.",
+    "risque": "Sacha doit valider la variété. Fichiers de maps (contrat avec la session maps).",
+    "fichiers": "code/maps/ (tirage, biomes, niveaux), état lu dans MOB_S.thermo et __ccBranche",
+    "deja_tente": "Idée CHALEUR A5 (17/11), jamais codée."
+   },
+   {
+    "nom": "Le décor baisse avant la voiture : géométrie, halo, ombre",
+    "quoi": "À serious : décimer les décors lointains au changement de map (A3). Halo une image sur deux (C2). Ombre du sol mise à jour une image sur deux (C3, `?plus=ombresol` prévu). Ciel une image sur N avec recalage par la rotation de la caméra (B1). La voiture garde sa loupe et son ombre.",
+    "gain_attendu": "Sommets 1 à 4 ms, ciel jusqu'à 9 appels une image sur deux, halo environ 6 passes sur 11 une image sur deux. Sur la radio seulement, non mesuré à chaud.",
+    "prix_image": "Le décor seul, peu visible. La voiture reste nette.",
+    "risque": "Une traîne du halo derrière les feux. Du tremblement du ciel sans recalage (déjà vu : ciel2.js:58-61).",
+    "fichiers": "code/rendu/ciel2.js, code/rendu/triptyque-bloom.js, code/rendu/nettete-qualite.js, code/rendu/palier-appareil.js (PRF)",
+    "deja_tente": "Ciel 1/N abandonné sans recalage. Les autres sont des idées (CHALEUR B1, C2, C3 ; phase 2 du pilote)."
+   },
+   {
+    "nom": "Le pilote de qualité, pour son verrou seulement",
+    "quoi": "Si le 8e tour sort FUSIONNABLE : sa résolution verrouillée en course et sa médiane des rappels (CAD.eM) qui voit enfin les 30 Hz de la mitigation. Ses crans ne baissent rien de plus que la base dans le cas de Sacha.",
+    "gain_attendu": "0 réallocation de la toile en course (des gels de 270 à 300 ms connus). Pas de gain sur les 70 gels/min de serious. Prouvé au banc Chrome seulement.",
+    "prix_image": "Aucun (jamais plus lourd ni plus léger que la base dans cette condition).",
+    "risque": "7 tours refusés. Conflits avec qa/gouvlent (cadence.js, loupe-caisse.js) et avec le lot « voiture d'abord » (mêmes fichiers).",
+    "fichiers": "code/moteur/pilote-qualite.js, gouverneur-paliers.js, cadence.js, nettete-qualite.js, loupe-caisse.js",
+    "deja_tente": "8 tours. Hors du build 121."
+   },
+   {
+    "nom": "Petits réveils en moins",
+    "quoi": "Une seule horloge de jeu par loop() au lieu de 17 setInterval. Les 4 minuteries natives (1 s, 2 s, 5 s, 5 s avec evaluateJavaScript) remplacées par les notifications qui existent déjà. Le guet des gels rangé dans loop(). Le toucher qui ne fait que ranger la position.",
+    "gain_attendu": "8 à 18 ms par seconde de rappels hors boucle (prouvé), soit 1 à 2 % du fil, plus moins de réveils. Petit.",
+    "prix_image": "Aucun.",
+    "risque": "Le guet de l'autre musique (1 s) perd de sa réactivité.",
+    "fichiers": "app-ios/ios/App/App/JeuViewController.swift:306, :504, :513, :650 ; code/page/debut-corps.html:128-130 ; code/moteur/mobile-tactile.js",
+    "deja_tente": "Idées CHALEUR B2-B4, BATTERIE B2, jamais codées."
+   },
+   {
+    "nom": "Le HUD dans la toile",
+    "quoi": "Les jauges qui bougent à chaque image dessinées dans la toile WebGL au lieu du DOM. Plus aucune boucle CSS infinie vivante en course.",
+    "gain_attendu": "fx0 (sans filtres ni animations) : 29 contre 21 i/s en vol (builds 52-55, prouvé). Banc de chaleur sans HUD : −0,26 W, dans le bruit (1 essai). Ce qui reste après hudcouches, hudcalme et ecrLeger est inconnu.",
+    "prix_image": "Aucun si le dessin est le même.",
+    "risque": "Gros travail d'interface. Il faut d'abord compter les couches restantes (inspecteur Safari).",
+    "fichiers": "code/interface/*, code/css/*, code/moteur/boucle-6-hud.js",
+    "deja_tente": "hudcouches (voile des couches à opacité 0), hudcalme, hudobs, ecrLeger : livrés. Le dessin en toile n'a jamais été tenté."
+   },
+   {
+    "nom": "Les menus à chaud",
+    "quoi": "À serious, la vitrine (accueil, garage, boutique) passe d'un DPR 2 à 1,5, ou à 2 i/s après 20 s sans geste. Option : seulement quand le téléphone est chaud.",
+    "gain_attendu": "−44 % de pixels dans les menus. Sur les freezes « de l'interface » : inconnu (aucune mesure des menus à chaud).",
+    "prix_image": "La voiture du garage moins fine, ce qui va contre « la voiture d'abord ». À trancher par Sacha.",
+    "risque": "Les nuages qui ralentissent au menu (Sacha l'a déjà vu à 15 i/s).",
+    "fichiers": "code/rendu/nettete-qualite.js (VHD, vhdDpr), code/moteur/cadence.js (hcSaute)",
+    "deja_tente": "BATTERIE C5 / carte-batterie-menus P5 : attend le oui de Sacha. Menus froids (2 i/s quand l'écran est couvert) : livré."
+   }
+  ],
+  "a_mesurer_sur_telephone": [
+   "Histogramme de TOUS les intervalles de rappel d'image (cases de 8 ms) à éco + serious, et à éco + nominal : vérifier les pics 33 / 66 / 100 et que l'état serious, et non le mode économie, bride les rappels à 30.",
+   "A/B dans la même séance chaude (branché + éco) : build de jeu sans glenvois, sendebut ni pouls, contre `&perfrec=2` complet. Travail par image, vrai coût p90, gels par minute.",
+   "A/B à serious : échelle QL bloquée au cran 5 avec la loupe gardée, contre l'échelle libre (défaut). Si les gels et le vrai coût sont égaux, la baisse de résolution est inutile à serious.",
+   "Sous-tranches du mouchard de cette nuit (LH : b1, b4, b6) : quelles tranches grossissent entre nominal (5,9 ms) et serious (14-16 ms).",
+   "La ville seule, forcée (`carte=ville`), 3 min à serious : qui prend les 38 ms (cityTick, villeApres, pré-bâti, décodage de musique).",
+   "Décodages de musique : date de chaque décodage contre les gels, avec la musique coupée en A/B.",
+   "15 i/s régulières à serious (prototype derrière un interrupteur) : régularité de l'histogramme et jugement au pouce par Sacha, contre la base à 30 visées.",
+   "Banc de chaleur AVEC le mode économie (Sacha le rallume ; iOS l'éteint au-dessus de 80 %) et une course longue (25 min, Mac tenu éveillé par caffeinate) : temps jusqu'à serious, watts.",
+   "Les menus à chaud : une boîte de vol qui couvre l'accueil, le garage et la boutique (rappels par seconde, gels), pour les freezes de l'interface.",
+   "Une fois chacun, pour fermer : `?gpupref=low-power` et `?plus=effacetard` à serious."
+  ]
+ },
+ "cout": {
+  "constats": [
+   {
+    "constat": "La chaîne d'une image de course, réglage BASSE N1, état serious, gouverneur doux (cas de toute la séance) : 1) carte d'ombre 512² (un cran sous 768), filtre PCF simple, avec un second passage sur les objets qui portent l'ombre ; 2) ciel lisse dans sa cible, 1 image sur 4 ; 3) scène dans une cible demi-flottante de 1055×488 = 0,51 Mpx (DPR 1,25), avec profondeur ; 4) halo : entrée en demi-résolution, 2 étages (222×103 puis 111×51), soit 4 passes de flou plus 1 passe qui les somme, environ 0,08 Mpx en tout ; 5) étalonnage ACES + FXAA + flou radial au boost, 0,51 Mpx ; 6) loupe allumée : l'ACES écrit dans une cible 8 bits de 1055×488, puis un quad écrit la toile entière, 2532×1170 = 2,96 Mpx (12 Mo par image), une lecture par pixel et 12 lectures dans le disque de la caisse ; 7) le compositeur d'iOS mélange ensuite la toile et les calques du HUD sur l'écran de 2,96 Mpx.",
+    "preuve": "rendu/triptyque-bloom.js:352-405 (compositeur, halo 222×103 via setSize(W·0,42·2·BLOOM_RES)) ; rendu/loupe-caisse.js:73-78 (sous gdxOn la loupe n'est coupée qu'à critical) et :90-94, :179-189 ; moteur/gouverneur-paliers.js:88 (GDX_SER : halo demi, mips −1, ombre −1, ciel 4, ql 2) ; vol : tampon 2532 aux gels des courses 0 à 5 (toile/fenêtre 900 %)",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "Les pixels de la 3D ne causent pas les gels. À partir de la course 6, l'échelle QL s'est effondrée : DPR 1,0 (844×390 = 0,33 Mpx), halo coupé, loupe coupée. Les gels par minute n'ont pas baissé (39 à 108/min contre 45 à 113/min avant). Le vrai coût médian a peu bougé (15-28 ms contre 17-29).",
+    "preuve": "vol-1118-0416 : clear par image 10,5-12,2 (halo allumé) puis 4,0-6,9 ; tampon 2532 → 844 ; « passe 1 bloom » 0,13 ms → 0,00 ; gels/min par course calculés dans scratchpad/chaleur/cout-image-n1.txt",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "Chaque image envoie 132 à 230 appels de dessin (canyon 192, nuages 230, grotte 205-215, jade 153-189, ville 157), 22 à 76 bufferSubData, 4 à 12 changements de cible (clear), 8 à 15 drawImage en 2D et 0,5 putImageData. Sur iPhone, chaque appel passe par le processus GPU de WebKit (traduction vers Metal). Ce travail ne figure pas dans nos 11 ms de JS.",
+    "preuve": "champ Y du vol (totaux de la course ÷ images de loop), par course ; architecture décrite dans rendu/soleil-planete.js:614-618 (VAO) et CHALEUR-IDEES.md A2",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "La plupart des gels se produisent hors de notre fil. 71 gels/min sur 77 sont « hors boucle ». Pendant ces gels, le fil principal est LIBRE (silence ≤ 15 ms) dans 50 à 100 % des cas, et notre travail par image reste à 8-11 ms. C'est l'image qui est retenue plus loin : processus GPU de WebKit, puce graphique bridée ou compositeur. Seule la ville fait exception (fil pris, JS 38 ms).",
+    "preuve": "vol.txt : POULS aux gels hors boucle, par exemple 145 libres sur 211, 120 sur 171, 25 sur 25 (jade) ; ville : 34 pris sur 58",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "Le vrai coût d'une image va d'environ 23 ms (médiane) à 36 ms (p90), pour une période de 33,3 ms (écran à 30 i/s en économie). Le JS en prend 11 ms. Il reste environ 12 ms de travail de la puce et du processus GPU APRÈS la fin du JS : les deux s'enchaînent au lieu de se chevaucher. Tout ce qui dépasse 33 ms attend le tic suivant.",
+    "preuve": "vol.txt « vrai coût médian 23 ms (p90 36) », « travail 11,3 ms » ; rendu/nettete-qualite.js:68-74 (la barrière mesure du début de loop à la fin de la puce) ; moteur/boucle-6-hud.js:311 (rendu en fin de loop, après b1-b5)",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "Côté PROCESSEUR, par image légère : encodage du rendu (traversée de three, uniformes, environ 160 appels) 2,0-5,3 ms ; pièces (couloir, coinFlush) 0,4-1,8 ; pré-bâti 0,4-1,5 ; flamme du nitro (putImageData) 0,2-1,2 ; HUD 0,5-1,0 ; traînées 0,1-0,9 ; musique 0,1-0,3. Le halo (0,13) et l'ACES avec la loupe (0,1) ne coûtent presque rien au processeur. Hors boucle : PV:etale (le portail étalé) fait 44 à 46 rappels de plus de 8 ms par course longue (environ 1 s, pire 154 ms).",
+    "preuve": "champ SR du vol (sous-tranches des images légères, ÷ SRn) ; table Q « PV:etale »",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "Classement des postes pour la PUCE GRAPHIQUE à N1 serious, du plus cher au moins cher. 1) Le compositeur d'iOS : la toile (2,96 Mpx lus quand la loupe est là), la racine, la toile 2D plein écran des traits de vitesse #slCv (redessinée à chaque image en vitesse), #flowGlow et #pwrFx en plein écran (11,3 Mo chacun quand ils sont actifs), les voiles déjà au tiers. 2) La scène : 0,51 Mpx avec plusieurs couches de surdessin, 157 000 à 605 000 triangles, 140 à 230 appels. 3) La loupe : 2,96 Mpx écrits (environ 65 % des pixels que NOUS écrivons, mais le shader le moins cher). 4) L'ombre 512² et son second passage. 5) L'ACES. 6) Le halo (quelques pixels, 5 changements de cible). 7) Le ciel 1/4.",
+    "preuve": "pixels tirés du code (tailles ci-dessus) ; hudcouches.md §« Ce que j'ai appris » (couches de 11,3 Mo, #slCv repeint ~31/s) ; gameplay/boost-depart.js:173,227-310 (#slCv à la taille CSS, effacé et redessiné à chaque image) ; CHALEUR-IDEES.md tableau §1 (radio : pixels 1-5 ms, appels 3-5, sommets 1-4)",
+    "confiance": "probable"
+   },
+   {
+    "constat": "Le menu chauffe plus qu'une course chaude. Au menu, au garage et à la boutique à serious, la vitrine HD rend la 3D à DPR 2 (1688×780 = 1,32 Mpx, soit 2,6 fois la course à 1,25 et 4 fois la course effondrée), avec une ombre 1024 et un halo plein, à 30 i/s (le repos à 15 i/s ne revient qu'à critical). Rien dans la vitrine ne lit l'état thermique.",
+    "preuve": "rendu/nettete-qualite.js:238-245 (vhdDpr : min(3, √(1,4e6/329 160) = 2,06, vhdDprTel 2) ; vhdOmbreTel 1024 ; qlPose(0)) ; moteur/cadence.js:424-432 (ACC30_CHAUD : 30 i/s à serious) ; boucle-6-hud.js:136",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "Quand l'échelle s'effondre, la voiture perd sa netteté en même temps que la map. QL.effondre éteint la loupe, et c'est arrivé dès la course 6. Cela contredit la règle « la voiture reste nette le plus longtemps » : la loupe n'est pourtant que le shader le moins cher par pixel.",
+    "preuve": "rendu/loupe-caisse.js:77 (`if(QL.effondre)c=true`) ; vol : loupe (quad) 0,03-0,05 ms puis 0,00 dès la course 6, tampon 844",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "En économie, WebKit ne donne que 30 rAF par seconde. Une cadence de 20 ou 24 i/s ne peut donc pas être régulière : elle alternerait des intervalles de 33 et 66 ms. Seuls 30 et 15 sont réguliers. Même défaut à critical : cadPer() = 50 ms mais CAD.tol = 16,7 ms, donc seuil = 33,3 ms. Un tic à 33 ms est sauté, un tic à 34 ms est gardé : des 33 et 66 ms au hasard.",
+    "preuve": "moteur/cadence.js:65 (CAD.tol = CAD.per·0,5 quand l'écran est à ≥ 24 ms), :66 (now−der < cadPer()−tol), :74-76 (50 ms à critical) ; CHALEUR-IDEES.md A1 (halfSpeedThrottling de WebKit)",
+    "confiance": "probable"
+   },
+   {
+    "constat": "Le nombre de géométries double pendant une course (618→733, 550→1101, 645→1390, 735→1578, 674→1534), puis repart d'environ 600 à la course suivante. Ce sont des tampons créés et envoyés pendant la course (environ 0,6 bufferData par image), donc du travail en plus pour le processus GPU.",
+    "preuve": "champs x0/x1 du vol (« séance départ → fin … géométries »)",
+    "confiance": "prouvé"
+   },
+   {
+    "constat": "Trois rappels rAF tournent par image d'écran (la boucle et deux autres : « autres rAF 42-56/s »). Le nombre d'images d'écran reçues est parfois incohérent avec le mode économie : 45 à 172 par seconde dans les courses 7 à 15, alors que l'économie est notée active. Le compteur ou la cadence réelle sont à vérifier.",
+    "preuve": "vol.txt « rAF par image d'écran {3: …} », « images de loop 21-28 · autres rAF 42-56 » ; R[0] par seconde dans le vol",
+    "confiance": "hypothèse"
+   }
+  ],
+  "leviers": [
+   {
+    "nom": "Envoyer l'image à la puce plus tôt (flush juste après le rendu)",
+    "quoi": "Appeler gl.flush() juste après composer.render(), avant le travail d'après-rendu : copies, engVigRender, prebTick (0,4-1,5 ms), bvImage, HUD calme, cadFin. ANGLE remet alors son lot de commandes Metal tout de suite, au lieu d'attendre la fin du rappel. Ranger aussi après le flush tout ce qui ne touche pas l'image (pré-bâti, mesure).",
+    "gain_attendu": "La puce démarre 1 à 2 ms plus tôt. Le vrai coût médian passerait d'environ 23 à 21-22 ms, et la part des images au-delà de 33 ms (p90 36) baisserait. Zéro pixel et zéro appel en plus.",
+    "prix_image": "Aucun.",
+    "risque": "Faible. Un flush coûte peu. Gain non prouvé : WebKit ou ANGLE vident peut-être déjà le tampon au fil de l'eau. À poser derrière un ?plus=flushtot pour mesurer.",
+    "fichiers": "code/moteur/boucle-6-hud.js:311-330 (après composer.render) ; code/rendu/nettete-qualite.js:69 (la sonde fait déjà fenceSync + flush quand elle est armée)",
+    "deja_tente": "Non. Seule la sonde fait un flush, et seulement quand elle est armée."
+   },
+   {
+    "nom": "Dessiner d'abord, simuler ensuite (le rendu en tête de loop)",
+    "quoi": "Lancer composer.render() au début de loop avec l'état de l'image d'avant, flush, puis faire b1-b5 (physique, effets, son, HUD) pendant que la puce dessine. C'est la piste A1 de CHALEUR-IDEES.",
+    "gain_attendu": "Le JS (8-11 ms) et la puce (environ 12 ms) se chevauchent au lieu de s'enchaîner. Vrai coût estimé à 14-16 ms au lieu de 23 : la majorité des images repasseraient sous un tic de 33 ms. C'est le plus gros levier sans perte d'image de cette liste, sur les gels comme sur le rythme.",
+    "prix_image": "Aucun pixel. Une image de latence en plus (33 ms) entre le doigt et l'écran, et le HUD DOM en avance d'une image sur la 3D.",
+    "risque": "Moyen. Sensation de conduite à juger au pouce. Ordre de la caméra, de la loupe (loupeDisque lit carGroup), des photos et des portails à revoir. Sous ?plus=rendutot.",
+    "fichiers": "code/moteur/boucle-1.js (tête de loop), code/moteur/boucle-6-hud.js:307-313, code/rendu/loupe-caisse.js:33-40",
+    "deja_tente": "Proposé dans CHALEUR-IDEES.md A1 [À TESTER], jamais codé."
+   },
+   {
+    "nom": "Les traits de vitesse dans WebGL au lieu d'une toile 2D plein écran",
+    "quoi": "#slCv est une toile 2D plein écran (844×390, étirée ×3 par le compositeur). En vitesse, elle est effacée et redessinée à chaque image : 8 à 15 drawImage tournés en mode additif, téléversement de la toile, puis mélange d'une couche plein écran de 2,96 Mpx. Les dessiner en quads instanciés additifs dans la passe de sortie (ACES), ou dans un petit maillage HUD de la scène. Bonus : cela débloque la piste d « voilesGl » (la vignette #speedFx dans l'ACES), jusqu'ici éteinte parce qu'elle passerait SOUS les traits.",
+    "gain_attendu": "Moins 8 à 15 appels 2D par image (processus GPU), un téléversement de 0,33 Mpx en moins, une couche plein écran de 2,96 Mpx en moins à mélanger à chaque image en vitesse. Avec voilesGl : encore une couche (#speedFx) en moins.",
+    "prix_image": "Les mêmes traits, au pixel de la toile au lieu d'une toile CSS ×1 étirée : plutôt plus nets. Le mode de fusion additif est à reproduire. À valider sur planche.",
+    "risque": "Moyen. Ordre de dessin avec la vignette et le flou radial. Régime chaud (VENT, mobhChaud) à reporter. La densité des traits suit IMG_DYN.dens.",
+    "fichiers": "code/gameplay/boost-depart.js:169-310 (drawSpeedLines, slCv), code/css/socle-1.css:79, code/rendu/triptyque-bloom.js:216 (voilesGl), code/moteur/cadence.js:256, code/moteur/boucle-6-hud.js:52,154",
+    "deja_tente": "La vignette dans l'ACES existe, mais éteinte (?plus=voilesgl), à cause de l'ordre avec les traits. Les traits eux-mêmes n'ont jamais été passés dans WebGL."
+   },
+   {
+    "nom": "La loupe à ×2 à chaud, et gardée jusqu'au bout (la voiture garde la priorité)",
+    "quoi": "À serious, faire passer LOUPE.k de 3 à 2 : la toile passe de 2532×1170 à 1688×780, et le navigateur fait le dernier ×1,5. Quand l'échelle s'effondre, ne plus éteindre la loupe (aujourd'hui QL.effondre la coupe) : la garder à ×2. La map perd sa résolution, la caisse garde ses arêtes reconstruites. Un changement de k réalloue la toile une fois (déjà géré par loupeToile).",
+    "gain_attendu": "Les pixels écrits par la loupe passent de 2,96 à 1,32 Mpx (−55 %), soit −6,6 Mo écrits et −6,6 Mo relus par le compositeur à chaque image, environ −400 Mo/s de trafic mémoire à 30 i/s : moins de chaleur. Effondré : la caisse reste nette au lieu de prendre des rampes de 3-5 px.",
+    "prix_image": "Caisse un peu moins piquée qu'à ×3 à serious : arête d'environ 1,5 px d'écran au lieu de 1. Toujours bien plus nette que sans loupe. La map n'est pas touchée.",
+    "risque": "Faible. ?loupe=2 existe déjà, mais seulement au chargement : il faut le rendre réglable à chaud. Ce levier joue sur la chaleur, pas sur les gels (prouvé : couper la loupe n'a rien changé aux gels).",
+    "fichiers": "code/rendu/loupe-caisse.js:24-27 (LOUPE.k), :73-78 (loupeChaud : QL.effondre), :90-94 (loupeToile)",
+    "deja_tente": "?loupe=2 existe mais n'a pas été mesuré sur le 13 Pro. La coupure à l'effondrement a joué cette nuit dès la course 6."
+   },
+   {
+    "nom": "La vitrine du menu suit l'état thermique, voiture d'abord",
+    "quoi": "À serious et au-delà, pour l'accueil, le garage et la boutique : vitrine à DPR 1,5 au lieu de 2 (0,74 Mpx au lieu de 1,32) et ombre 768 au lieu de 1024. Pour garder la caisse nette : autoriser la loupe dans la vitrine (aujourd'hui refusée hors course par loupeVeut) avec une scène à 1,25-1,5. La caisse est reconstruite, le décor derrière perd en résolution. La bascule se fait sous le volet (ecranWipe), comme aujourd'hui.",
+    "gain_attendu": "−0,58 Mpx de scène et −0,46 M texels d'ombre par image de menu, à 30 i/s, entre chaque course. Avec la loupe : scène à 0,51-0,74 Mpx (−45 à −61 %) plus un quad de 2,96 Mpx bon marché. Le téléphone refroidit entre deux courses au lieu de chauffer : c'est là que Sacha voit l'interface geler.",
+    "prix_image": "Décor du menu un peu plus doux à chaud. Caisse nette grâce à la loupe. Sans la loupe, la caisse perd un peu au menu : à faire trancher par Sacha sur planche.",
+    "risque": "Faible à moyen. Une réallocation par bascule, déjà sous volet. La loupe au menu doit suivre la caméra du garage et la boutique 3D (loupeDisque lit carGroup : à vérifier pour la boutique).",
+    "fichiers": "code/rendu/nettete-qualite.js:235-245 (vhdDpr, vhdBascule, PAL.B.vhdDprTel / vhdOmbreTel), code/rendu/loupe-caisse.js:86-88 (loupeVeut : started&&!garageOn&&!VHD.on), code/moteur/boucle-6-hud.js:136",
+    "deja_tente": "La vitrine est plafonnée à densité 2 et ombre 1024 sur tout téléphone depuis le 07/11, sans lien avec la chaleur. Menus froids (scène couverte, veille) faits le 15/11, mais rien sur la vitrine à serious."
+   },
+   {
+    "nom": "Moins d'envois de tampons par image (bufferSubData)",
+    "quoi": "22 à 76 bufferSubData par image, chacun traverse le processus GPU avec ses données. Pistes : updateRange sur les attributs instanciés des pièces et des billets (n'envoyer que les instances qui ont bougé), un seul tampon tournant pour les traînées, aucun envoi pour un objet invisible ou caché. D'abord, nommer les tampons dans le mouchard (la table Y ne donne que le total).",
+    "gain_attendu": "Estimé −20 à −50 envois par image sur les maps lourdes (nuages : 76 par image). Se compte en appels, pas en pixels.",
+    "prix_image": "Aucun.",
+    "risque": "Moyen. Attributs partagés entre objets, coinFlush à reprendre. Il faut d'abord une mesure par source.",
+    "fichiers": "code/moteur/boucle-4-effets.js (pièces, coinFlush, sillages, pluie d'argent), code/rendu/trainees-1.js, trainees-2.js, rubans-nets.js, code/moteur/mouchard-gels.js (compteur Y nommé)",
+    "deja_tente": "Les VAO des instanciés sont faits (soleil-planete.js:614-619) : ils évitent les vertexAttribPointer répétés, mais pas les envois de données."
+   },
+   {
+    "nom": "Le tri hors champ en course pour les objets sans culling (et leur ombre)",
+    "quoi": "Le tri du menu (menuCull) a montré au menu 94 maillages en frustumCulled=false, 704 000 triangles envoyés même hors champ. En course, faire le même tri sphère contre champ, une fois par image, pour les maillages non instanciés dont la sphère est fiable. Leur réserver aussi le passage d'ombre (castShadow seulement dans le champ de la caméra d'ombre).",
+    "gain_attendu": "Non chiffré en course : à compter par map avec dbgCullInfo. Moins d'appels et de sommets à la fois dans la scène et dans la carte d'ombre. La radio donne 1-4 ms aux sommets et 3-5 ms aux appels.",
+    "prix_image": "Aucun si les sphères sont justes. Sinon des objets qui « sautent » au bord de l'écran.",
+    "risque": "Moyen à élevé : beaucoup de ces maillages sont en frustumCulled=false justement parce que le shader les déplace (courbure de la route). Liste à faire map par map, au banc photo.",
+    "fichiers": "code/moteur/cadence.js:445-465 (menuCull, dbgCullInfo), code/moteur/boucle-6-hud.js:302-306",
+    "deja_tente": "Fait au menu seulement (P5, 07/11), et dans la boutique depuis le 15/11."
+   },
+   {
+    "nom": "Garder 30 en économie : ni 20 ni 24, et corriger le 20 du critical",
+    "quoi": "En économie (rAF à 30), ne jamais viser 20 ou 24 : une telle cadence produirait des intervalles 33/66 au hasard, plus hachés que 23 i/s. La seule cadence plus basse et régulière est 15. Le vrai remède est de faire tenir 30 (leviers flush et dessin d'abord). Corriger aussi le 20 du critical en économie : seuil par tics entiers (calculer 1 tic sur 2 = 15 réguliers, ou garder 30), au lieu de per − tol = 33,3 ms qui tranche sur la gigue de 1 ms.",
+    "gain_attendu": "Pas de nouvelle cadence hachée. À critical en économie : des intervalles réguliers au lieu d'un mélange aléatoire 33/66.",
+    "prix_image": "Aucun.",
+    "risque": "Faible. Le 15 i/s régulier serait visible à 1000 km/h : à ne proposer à Sacha qu'en dernier recours, et lui seul tranche.",
+    "fichiers": "code/moteur/cadence.js:62-76 (cadSaute, CAD.tol, cadPer, CAD_CRIT20, ?cadfps=)",
+    "deja_tente": "Le crochet ?cadfps=20|24 existe pour les watts, jamais jugé en économie. L'horloge du calage (lot lenteur) a été éteinte parce qu'elle cassait à 75/100 Hz."
+   },
+   {
+    "nom": "Recycler les géométries créées en course",
+    "quoi": "Les géométries passent d'environ 600 à 1 100-1 578 au fil d'une course (tronçons de route, pré-bâti, portails). Réutiliser les tampons d'un tronçon libéré au lieu d'en allouer un neuf (bufferSubData dans un tampon existant de même taille plutôt que bufferData).",
+    "gain_attendu": "Moins d'allocations dans le processus GPU pendant la course (environ 0,6 bufferData par image aujourd'hui) et moins de mémoire graphique. Gain sur les gels non chiffré.",
+    "prix_image": "Aucun.",
+    "risque": "Moyen : il touche le pré-bâti et le portail étalé (qa/portv, déjà fusionné : PV:etale coûte jusqu'à 154 ms par rappel).",
+    "fichiers": "code/moteur/piste-prebati.js, code/moteur/route-memoire.js, code/gameplay/portail-passage.js",
+    "deja_tente": "memLibere jette la copie JS après l'envoi (palier-appareil.js:130-137) ; aucun recyclage de tampon."
+   }
+  ],
+  "a_mesurer_sur_telephone": [
+   "Inspecteur Web de Safari branché sur l'app, onglet Couches, en course chaude : taille de la toile (2532×1170 avec la loupe, sinon 1055×488 ou 844×390), nombre et mémoire des couches plein écran visibles (#slCv, #flowGlow, #pwrFx, racine) ; noter si #slCv a sa propre couche mise à jour à chaque image.",
+   "A/B dans le même état (branché, économie, serious) : défaut, puis ?loupe=2, puis ?sans=loupe. Mesurer le vrai coût, les gels par minute et la pente de chaleur au banc de chaleur. Attendu : la loupe pèse sur la chaleur, pas sur les gels.",
+   "Crochet ?plus=flushtot (gl.flush juste après le rendu) : vrai coût médian et p90, part des images > 34,5 ms, gels hors boucle par minute.",
+   "Histogramme de TOUS les intervalles entre images (cases de 8 ms) en économie : vérifier les pics à 33, 66 et 100 ms et ce que la fraction > 34,5 ms veut dire.",
+   "Menu à serious : 2 minutes d'accueil et de garage avec la vitrine HD, puis avec ?hd=0. Mesurer l'image du menu, les gels de l'interface et la température au début de la course suivante.",
+   "Compter les bufferSubData PAR SOURCE (nommer les tampons dans la table Y) sur nuages (76 par image), jade et grotte, pour viser les plus gros.",
+   "Le 20 i/s à critical en économie : intervalles réels (on attend un mélange 33/66 à cause du seuil 33,3 ms).",
+   "Le compteur d'images d'écran (R[0]) : 45 à 172 par seconde en économie dans les courses 7 à 15. Vérifier s'il compte des rAF de rattrapage ou si l'économie était vraiment active.",
+   "Croissance des géométries dans une course (x0 → x1) : quelles fonctions les créent, et les bufferData tombent-ils juste avant les gels « hors boucle » ?"
+  ]
+ }
+}

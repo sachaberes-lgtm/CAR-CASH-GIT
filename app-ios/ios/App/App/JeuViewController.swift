@@ -575,6 +575,8 @@ final class GardeThermique {
 ///  · la sentinelle Swift : un travail fixe (200 × 1024 additions sur un tableau gardé, comme celle de la page), chronométré à la microseconde (la page n'a que le ms) ;
 ///  · le retard du battement : de combien la minuterie d'une seconde arrive en retard (le fil principal de l'app pris, ou tout le téléphone ralenti).
 /// Dit à la page : `window.__ccSw=[pression, sentinelle µs, retard ms ×10]` et `window.__ccSwN` (le compteur) ; la boîte de vol les range dans M[24-26]. Rien ne sort du téléphone.
+/// (2026-11-18, lot sondecalme) Par défaut tout cela passe sur une file d'ARRIÈRE-PLAN (voir « LA SONDE CALME » plus bas) ; l'ancien battement sur .main ne revient qu'avec
+/// `?sans=sondecalme` ou `?sondemain=1` (natif.js envoie alors « go » au lieu de « go:fond »).
 final class SondeNatif: NSObject, WKScriptMessageHandler {
     static let partage = SondeNatif()
     static let nom = "ccSonde"
@@ -589,8 +591,28 @@ final class SondeNatif: NSObject, WKScriptMessageHandler {
 
     func attache(_ v: WKWebView?) { vue = v }
 
+    /* ===== LA SONDE CALME (2026-11-18, lot qualité sondecalme — vol 1118-0416, build 121 : « injouable, beaucoup de freeze ») =====
+       La sentinelle Swift ci-dessous tournait CHAQUE SECONDE sur le fil principal de l'app (49-84 ms en Debug, 160-300 ms en ville) : le fil qui reçoit les images
+       de WKWebView et donne le top des rAF. 80 % des gels « hors boucle » battaient à un nombre entier de secondes. Désormais, par défaut (natif.js envoie « go:fond ») :
+        · la minuterie d'une seconde et la pression mémoire vivent sur une file d'ARRIÈRE-PLAN à elles (série, qos userInitiated : leur travail est de quelques µs) ;
+        · la sentinelle part sur une AUTRE file (série, qos utility), un battement sur 5 seulement, sans retenir la minuterie : elle reste un thermomètre du processeur
+          à 1/5 du prix. Comptée en TEMPS PROCESSEUR du fil (ce qu'elle a vraiment travaillé, sans les attentes d'une file basse), et aussi à l'horloge ;
+        · le fil principal ne reçoit qu'un petit bloc par seconde, chronométré : `attente` = de l'envoi depuis la file à son exécution sur .main (µs) — le nouveau
+          témoin « fil de l'app pris », presque gratuit. Ce bloc passe les valeurs à la page.
+       La page reçoit `window.__ccSw=[pression, sentinelle µs processeur (-1 : pas mesurée cette seconde), retard ms ×10, attente du fil principal µs, sentinelle µs à
+       l'horloge (-1)]`. ⚠ M[25] change donc de sens : ce n'est plus l'horloge sur .main (49 ms au vol 1118-0416) mais le temps processeur sur une file basse.
+       « go » (ancien message : `?sans=sondecalme` ou `?sondemain=1`) fait EXACTEMENT l'ancien battement, sur .main.
+       Banc Mac : outils/banc-sondecalme/banc-fil.sh (la vraie classe, -Onone, un top à 33 ms sur .main). */
+    private let file = DispatchQueue(label: "cashcar.sonde", qos: .userInitiated)
+    private let fileSentinelle = DispatchQueue(label: "cashcar.sonde.sentinelle", qos: .utility)
+    private var tour = 0
+    private var frais: (Int64, Int64) = (-1, -1) /* sur `file` : la dernière sentinelle finie (processeur µs, horloge µs), pas encore envoyée */
+    private var enCours = false /* sur `file` : une sentinelle tourne encore (jamais deux à la fois) */
+
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard message.frameInfo.isMainFrame, (message.body as? String) == "go", minuteur == nil else { return }
+        guard message.frameInfo.isMainFrame, minuteur == nil, let corps = message.body as? String else { return }
+        if corps == "go:fond" { demarreFond(); return }
+        guard corps == "go" else { return }
         let mp = DispatchSource.makeMemoryPressureSource(eventMask: [.normal, .warning, .critical], queue: .main)
         mp.setEventHandler { [weak self] in
             guard let s = self, let src = s.memoire else { return }
@@ -631,6 +653,55 @@ final class SondeNatif: NSObject, WKScriptMessageHandler {
         // un écart de plus de 2 s (le premier battement après l'arrière-plan : la minuterie était suspendue) vaut -1, inconnu, jeté par l'analyse.
         let retard = ecart > 2_000_000_000 ? Int64(-1) : max(Int64(0), min(Int64(99_999), ecart / 100_000))
         vue?.evaluateJavaScript("window.__ccSw=[\(pression),\(us),\(retard)];window.__ccSwN=\(n);", completionHandler: nil)
+    }
+
+    /// (lot sondecalme) le battement sur la file d'arrière-plan : rien de lourd ne touche plus le fil principal de l'app
+    private func demarreFond() {
+        let mp = DispatchSource.makeMemoryPressureSource(eventMask: [.normal, .warning, .critical], queue: file)
+        mp.setEventHandler { [weak self] in
+            guard let s = self, let src = s.memoire else { return }
+            let e = src.data
+            s.pression = e.contains(.critical) ? 2 : (e.contains(.warning) ? 1 : 0)
+        }
+        memoire = mp
+        let t = DispatchSource.makeTimerSource(queue: file)
+        t.schedule(deadline: .now() + 1, repeating: 1.0, leeway: .milliseconds(1))
+        t.setEventHandler { [weak self] in self?.batFond() }
+        minuteur = t
+        file.async { [weak self] in /* `dernier` n'est touché que sur la file : posé avant le premier battement (la file est en série) */
+            guard let s = self else { return }
+            s.dernier = DispatchTime.now().uptimeNanoseconds
+            mp.resume()
+            t.resume()
+        }
+    }
+
+    /// sur `file` seulement
+    private func batFond() {
+        let maintenant = DispatchTime.now().uptimeNanoseconds
+        let ecart = Int64(bitPattern: maintenant &- dernier) - 1_000_000_000
+        dernier = maintenant
+        tour += 1
+        let (us, mur) = frais
+        frais = (-1, -1)
+        if tour % 5 == 1 && !enCours { /* un battement sur 5 (le 1er, le 6e…) : la sentinelle part ailleurs, sa mesure voyage avec le battement suivant */
+            enCours = true
+            fileSentinelle.async { [weak self] in
+                guard let s = self else { return }
+                let c0 = clock_gettime_nsec_np(CLOCK_THREAD_CPUTIME_ID)
+                let m = s.sentinelle()
+                let c = clock_gettime_nsec_np(CLOCK_THREAD_CPUTIME_ID) &- c0
+                s.file.async { s.frais = (Int64(c / 1000), Int64(m / 1000)); s.enCours = false }
+            }
+        }
+        n += 1
+        let retard = ecart > 2_000_000_000 ? Int64(-1) : max(Int64(0), min(Int64(99_999), ecart / 100_000))
+        let p = pression, k = n
+        let envoi = DispatchTime.now().uptimeNanoseconds
+        DispatchQueue.main.async { [weak self] in
+            let attente = Int64((DispatchTime.now().uptimeNanoseconds &- envoi) / 1000) /* µs : le fil principal de l'app était-il pris ? */
+            self?.vue?.evaluateJavaScript("window.__ccSw=[\(p),\(us),\(retard),\(min(attente, Int64(9_999_999))),\(mur)];window.__ccSwN=\(k);", completionHandler: nil)
+        }
     }
 }
 

@@ -425,7 +425,9 @@ window.dbgPieces=function(){ /* (banc, 2026-11-09) le bilan des pièces de la pi
     petites:S.tot.filter(function(n){return n>0&&n<4;}).length,maxSerie:Math.max.apply(null,S.tot.filter(function(n){return n>0;}).concat([0])),zones:runStats.zones|0};
   const mauvais=pickups.filter(function(p){return !isFinite(p.s)||!isFinite(p.lat)||Math.abs(p.lat)>ROAD_HALF+.01||(p.mesh&&!isFinite(p.mesh.position.x));}).length;o.mauvais=mauvais;
   return o;};
-function spawnPickups(rnd){
+function spawnPickups(rnd){rythmeMene(spawnPickupsG(rnd));} /* (2026-11-17, lot portv) d'un trait : le même générateur mené jusqu'au bout */
+function* spawnPickupsG(rnd){ /* (lot portv) en tranches : rend la main à l'échéance (JF.lim) entre le plan et les pièces, toutes les 32 pièces posées et avant les pouvoirs — mêmes tirages, même ordre */
+  const ech9=function(){return typeof JF!=='undefined'&&performance.now()>JF.lim;};
   sceneRetire(pickups.map(function(p){return p.mesh;})); // (chasse aux gels) d'un seul passage : un par un, c'était ~15 ms par portail (voir sceneRetire)
   for(const p of pickups){const m9=p.mesh;if(m9&&m9.userData.pi===1&&!m9.parent)PIECES_LIBRES.push(m9);} // (chasse aux gels) nos pièces, hors scène, se recyclent
   pickups.length=0;coinN=0;coinN2=0;CVOL.n=0;if(!CALG.on)CALG.was=false; /* (2026-11-15) garde du calme : une route neuve hors calme repart à zéro (pendant le calme, ce qu'un portail pose reste caché) */{const S9=serieEtat();S9.n=0;S9.g=0;S9.tot.length=0;S9.got={};}
@@ -490,6 +492,7 @@ function spawnPickups(rnd){
      piste donne les mêmes pièces, et le reste de la fonction (pouvoirs) lit le `rnd` comme avant. Le flux d'or suit la progression
      (`rich`, voir plus haut) : ×2,2 de l'ancien au départ, ×1,8 vers la zone 2, ×1,2 en fin de partie (le plafond des motifs). Chaque
      motif est une SÉRIE (numéro posé sans toucher à `rnd`) ; le motif « libre » (3-5 pièces éparses, fruits) n'en est pas une. */
+  if(ech9())yield;
   const rc9=mulberry32((rnd()*4294967296)>>>0);
   const plan=filPlan(rc9,{L:L,HALF:HALF,STR:STR,rich:rich,fruits:!LIGNE.on,s0:200,
     bloque:(sp,lt)=>{ /* un obstacle (flaque, pic de la glace, tremplin) ou un trou : ni pièce, ni trajet de caisse entre deux pièces */
@@ -499,8 +502,9 @@ function spawnPickups(rnd){
         if(BANQ.obst)for(const o of BANQ.obst)if(Math.abs(o.s-sp)<=o.r+3.4&&Math.abs(o.lat-lt)<=o.r+2.4)return true;
         if(BANQ.kick)for(const k of BANQ.kick)if(sp>=k.s-(k.lg||8)-4&&sp<=k.s+4&&lt>=k.l0-2.5&&lt<=k.l1+2.5)return true;}
       return false;}});
-  {let g9=0,id9=0;
-   for(const c of plan){
+  if(ech9())yield;
+  {let g9=0,id9=0,n9=0;
+   for(const c of plan){if((++n9&31)===0&&ech9())yield;
      if(c.g!==g9){g9=c.g;id9=g9?++serieEtat().n:0;}
      serieEtat().g=id9;
      place(c.s,c.l,c.f,c.deux);}}
@@ -523,6 +527,7 @@ function spawnPickups(rnd){
   // POUVOIRS : orbes rares, hautes et brillantes — on les voit de loin, on les vise (miroir deux faces, intervalle doublé)
   // (pouvoirs v2) CINQ pouvoirs tirés par `pwrTire` sur le MÊME tirage (poids selon l'expérience : voir pwrPoids) ; le 1er cristal
   // d'un débutant est un AIMANT (pwrPremier) — le BOUCLIER est retiré (29/09)
+  if(ech9())yield;
   const W9=pwrPoids();let prem9=pwrPremier();
   for(let ss=380+rnd()*260;ss<L-140;ss+=860+rnd()*760){
     let kind=pwrTire(rnd(),W9);
@@ -546,6 +551,7 @@ function spawnPickups(rnd){
   const air9=/[?&]plus=[^&]*piecesair/.test(location.search);
   if(air9){try{espFilsOr();}catch(e){}try{espAstPieces();}catch(e){}} /* (v5.4) les pièces des modules des astéroïdes */ /* (2026-11-12) LES FILS D'OR DE L'ORBITE : la file de pièces du saut */
   if(air9){try{jadeFilsOr();}catch(e){}} /* (2026-11-13) LES FILS D'OR DE JADE : les raccourcis de la descente Alléluia (jade-alleluia.js) */
+  if(ech9())yield;
   try{spinPose();}catch(e){} /* (2026-10-14) LE FINAL SPIN : un jeton, rarement (voir SPIN) */
   coinFlush();
 }
@@ -583,7 +589,7 @@ function espFilsOr(){
     for(let i=a;i<b-d;i++){const p0=T[i].dot(Nr),p1=T[i+d].dot(Nr);if(p0>-.12&&p0<.06&&p1<p0-.1&&(i-der)*k>150){der=i;const arc=vol(Math.max(a,i-Math.round(10/k)),imN);if(arc)pose(arc);}}}
   return n;}
 function espAstPieces(){ /* (v6) LES PIÈCES DES GÉANTS — dans la fronde et la ceinture, entre la route et chaque géant (qui vole de ce côté les cueille) : en l'air (`air` : prises en vol, à 30 m, comme les fils d'or) */
-  if(!ESP_FILS||!MODS||!MODS.length||!(LVL.cur&&LVL.cur.id==='espace'))return 0;let n=0;
+  if(ESP_SANS_GEANTS||!ESP_FILS||!MODS||!MODS.length||!(LVL.cur&&LVL.cur.id==='espace'))return 0;let n=0; /* (2026-11-18, L'ESPACE SANS GÉANTS : plus de géant, plus de pièces des géants) */
   const piece=function(s9,lat,h){if(s9<120||s9>L-60)return;frameAt(s9,F);const m=pieceNeuve();m.position.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,h);mat4b.makeBasis(F.b,F.n,F.t);m.quaternion.setFromRotationMatrix(mat4b);m.rotateOnWorldAxis(F.n,s9*.11);m.updateMatrix();m.matrixAutoUpdate=false;
     pickups.push({s:s9,lat:lat,face:1,nitro:false,fruit:-1,mesh:m,taken:false,ax:F.n.clone(),deux:false,ci:1,air:1});n++;};
   for(const m of MODS){if(!m.nu||(m.fig!=='ceinture'&&m.fig!=='fronde'&&m.fig!=='rentree'))continue;for(const q of m.nu)if(q.t==='geant'){const ep=q.k==='epave';for(let j=-1;j<=1;j++)piece(q.s+j*26,q.s9*(ep?ROAD_HALF*.5:ROAD_HALF+14),(ep?13:9)+3*Math.abs(j));}} /* (2026-11-13) l'ÉPAVE : ses pièces DANS le hangar (à côté, elles tombaient dans la coque) */ /* (v6) et la rentrée, autour du plus gros */

@@ -351,11 +351,12 @@ function grtBouche(V){const n0=V.pool.length;let n=0;
       if(air){const c2=grtCh(V,a,b,e);V.chS[c2]=Math.min(V.chS[c2],V.chS[c]);n++;}}}
   return n;}
 function grotteVide(){
-  if(GROTTE.root){GROTTE.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});GROTTE.root=null;}
+  if(GROTTE.root){const r9=GROTTE.root;if((typeof PORTV_ON!=="undefined"&&PORTV_ON)&&PVE.dedans)pveApres(function(){return grotteJetteG(r9);}); /* (2026-11-17, lot portv) au passage étalé, la grotte qu'on quitte est libérée APRÈS (en tranches, pveApres) */else r9.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});GROTTE.root=null;}
   GROTTE.V=null;GROTTE.R=null;GROTTE.galeries=null;GROTTE.grp=[];GROTTE.file=null;GROTTE.fi=0;GROTTE.msFile=0;GROTTE.pret=false;GROTTE.col=null;GROTTE.salle=-1;GROTTE.piliers=null;
   GROTTE.petits=null;GROTTE.lotsF=null;GROTTE.puits=null;GROTTE.lac=null;GROTTE.lavLum=null;GROTTE.eau=null;GROTTE.dec=null;GROTTE.LL=null;GROTTE.heurt='';grwFin();
   GROTTE.envPret=null;} /* (2026-11-03, passe maps cohérentes) envPret (le témoin des ciels préparés, voir grotteTick) gardait la RACINE de la grotte quittée — tous ses tronçons et leurs mailles
    restaient dans le tas JavaScript jusqu'à la grotte suivante */
+function* grotteJetteG(r){const L9=[];r.traverse(function(o){L9.push(o);});let n=0;for(const o of L9){if(o.userData.jeter&&o.geometry)o.geometry.dispose();if((++n&31)===0)yield;}} /* (lot portv) les mêmes libérations que grotteVide, quelques-unes par pas */
 function buildGrotte(seed){jadeFini(buildGrotteG(seed));} // d'un trait au passage ; en tranches d'avance (prebDecorG)
 function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au pré-bâti
   grotteVide();
@@ -363,7 +364,7 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
   const t0=performance.now(),direct=jfDirect(),fr=mulberry32((seed^0x6A07E)>>>0),MOB=mapsSobres()?.75:1; /* (2026-11-08) le téléphone RÉCENT : décors pleins (voir LES MAPS PLEINES) */ /* (2026-11-03) ALLEGE, plus TEL_NATIF : le même allègement (décors ×,75) sur le vrai téléphone ET sur ?tel=1 — le banc « téléphone » mesure enfin ce que le téléphone dessine ; ?allege=0 rend tout */
   GROTTE.met=GRT_MET[LVL.cur.meteo]?LVL.cur.meteo:'matin';GROTTE.n={};
   const root=new THREE.Group();root.name='grotte décor';root.matrixAutoUpdate=false;scene.add(root);GROTTE.root=root;trackMeshes.push(root);
-  const R=grtEchantillons();GROTTE.R=R;R.galeries=grtGaleries(R,seed);GROTTE.galeries=R.galeries.length?R.galeries:null; /* (2026-11-13) LES GALERIES */GRT_U.uLacW.value.set(GROTTE.lac?GROTTE.lac.y:-1e5,GROTTE.eau?GROTTE.eau.y:-1e5); /* (2026-11-10) le niveau de la lave et de l'eau : la ligne d'eau du fragment */
+  const R=(typeof PORTV_ON!=="undefined"&&PORTV_ON)?(yield* grtEchantillonsG()):grtEchantillons();GROTTE.R=R;if((typeof PORTV_ON!=="undefined"&&PORTV_ON)&&performance.now()>JF.lim)yield; /* (lot portv) les échantillons en tranches, puis les galeries */R.galeries=grtGaleries(R,seed);GROTTE.galeries=R.galeries.length?R.galeries:null; /* (2026-11-13) LES GALERIES */GRT_U.uLacW.value.set(GROTTE.lac?GROTTE.lac.y:-1e5,GROTTE.eau?GROTTE.eau.y:-1e5); /* (2026-11-10) le niveau de la lave et de l'eau : la ligne d'eau du fragment */
   {let y1=1e9;for(let q=R.i0;q<R.n-20;q++)y1=Math.min(y1,R.Y[q]);const y0=R.Y[R.i0]; /* (LA DESCENTE SE VOIT) le haut (le départ) et le bas (le point le plus bas) de la route : la profondeur du shader */
    GRT_U.uProf.value.set(GRT_DSC.on?y0:0,GRT_DSC.on?y1:1,GRT_DSC.jour,GRT_DSC.lumiere?GRT_DSC.eteint:0);GROTTE.prof={y0:Math.round(y0),y1:Math.round(y1)};}
   let x0=1e9,y0=1e9,z0=1e9,x1=-1e9,y1=-1e9,z1=-1e9;
@@ -378,7 +379,7 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
   tm.creuse=Math.round(performance.now()-t9);tm.travailleur=!!tw;t9=performance.now();
   tm.puits=0;
   if(R.galeries.length){t9=performance.now();for(const g9 of R.galeries){const q9=g9.q,ex9=g9.mine?6:2,nz9=g9.mine?.05:Math.min(.22,R.NZ[q9]);for(const p9 of g9.P)yield* grtCreuse1(V,R,q9,{ax:0,ay:1,az:0,rh:g9.r,up:g9.r*.95,dn:g9.r*.7,ox:p9[0]-R.X[q9],oy:p9[1]-R.Y[q9],oz:p9[2]-R.Z[q9],ex:ex9,nz:nz9});}tm.galeries=Math.round(performance.now()-t9);} /* (2026-11-13) LES GALERIES : creusées après la grotte (le travailleur ou ici), avant les lacs */
-  t9=performance.now();yield* grtLacsG(V,R);if(performance.now()>JF.lim)yield;GROTTE.piliers=grtPiliers(V,R,fr);GROTTE.n.bouche=grtBouche(V);V.nzc=null;tm.lacs=Math.round(performance.now()-t9);if(performance.now()>JF.lim)yield; // (le cache du bruit ne sert plus)
+  t9=performance.now();yield* grtLacsG(V,R);if(performance.now()>JF.lim)yield;GROTTE.piliers=(typeof PORTV_ON!=="undefined"&&PORTV_ON)?(yield* grtPiliersG(V,R,fr)):grtPiliers(V,R,fr);GROTTE.n.bouche=grtBouche(V);V.nzc=null;tm.lacs=Math.round(performance.now()-t9);if(performance.now()>JF.lim)yield; // (le cache du bruit ne sert plus)
   t9=performance.now();const dec=yield* grtDecorsG(V,R,fr,MOB);yield* grtCristauxG(V,R,dec,seed);tm.decors=Math.round(performance.now()-t9);GROTTE.tm=tm; /* (2026-10-24, embellir) les cristaux à teintes : un flux de hasard à part, leurs lumières rejoignent dec.P */
   /* ===== LES LUMIÈRES SORTENT DE LA ROCHE (2026-11-14, audit.lumRoche : 1 à 14 par grotte) =====
      la lumière d'un sommet ne regarde que la distance (grtLum) : une torche ou une lumière du lieu posée DANS la roche (une salle refermée en passage exigu, un pilier, un lac)

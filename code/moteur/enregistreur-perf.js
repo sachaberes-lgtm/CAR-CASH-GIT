@@ -85,7 +85,7 @@ const BV={on:false,P:'ccBV',N:16, /* (2026-11-12) 16 courses gardées, plus 220 
    (téléphone profilé seulement : ailleurs `prf` vaut null et rien d'autre ne change). Un changement de RÉGLAGE en course (bouton IMAGE, niveau, plafond ou cadence ; pas la
    résolution qui suit l'échelle QL) est suivi : `prfN` = combien, `prfD` = le dernier état, `prfC` = [seconde, q (0 BASSE · 1 HAUTE), n, plafond ×100, fps, dpr ×100]
    (40 au plus) — outils/banc-perf/analyse-vol.py en fait la table PAR NIVEAU D'IMAGE. Une lecture par seconde, aucune allocation tant que rien ne change. */
-function bvPrf(){try{if(typeof PRF!=='undefined'&&PRF&&PRF.on)return {c:PRF.c,q:PRF.q,n:PRF.n,plaf:PRF.dpr?+(+PRF.dpr).toFixed(3):0,fps:PRF.fps,dpr:+(+curDPR).toFixed(3)};}catch(e){}return null;}
+function bvPrf(){try{if(typeof PRF!=='undefined'&&PRF&&PRF.on){const o={c:PRF.c,q:PRF.q,n:PRF.n,plaf:PRF.dpr?+(+PRF.dpr).toFixed(3):0,fps:PRF.fps,dpr:+(+curDPR).toFixed(3)};if(pilOn())o.K=PILO.K;return o;} /* (corrections) sous ?sans=pilote, pas de K : le vol est celui d'avant */}catch(e){}return null;}
 function bvPrfSuit(c){try{const l=c.prfD||c.prf;if(!l||typeof PRF==='undefined'||!PRF.on)return;const pl=PRF.dpr?+(+PRF.dpr).toFixed(3):0;
   if(PRF.q===l.q&&PRF.n===l.n&&pl===l.plaf&&PRF.fps===l.fps)return;
   c.prfD=bvPrf();c.prfN=(c.prfN|0)+1;if(!c.prfC)c.prfC=[];if(c.prfC.length<40)c.prfC.push((c.S.length/8)|0,PRF.q==='haute'?1:0,PRF.n,Math.round(pl*100),PRF.fps,Math.round(c.prfD.dpr*100));}catch(e){}}
@@ -93,6 +93,7 @@ function bvNeuve(now){let lev='base';
   try{if(!BV.sansLev){const T=MOB_P.t===0?BV.TIR:BV.TIR_DOM;lev=T[(Math.random()*T.length)|0];const L=BV.LEV[lev];if(L&&(L.cls||L.cyc)){if(!document.getElementById('bvCss')){const st=document.createElement('style');st.id='bvCss';st.textContent='body.bvFx0 *{filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;animation:none!important;transition:none!important}body.bvAir0 #airHud{display:none!important}body.bvAnim0 *{animation:none!important;transition:none!important}body.bvFiltre0 *{filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}body.bvTexte0 :is(#cashHud .chV i,#cashHud .chV span,#avVal,#avX,#avPts){filter:none!important}body.bvFig0 :is(#fh,#fh *,#slam9,#slam9 *,#verdHud,#verdHud *,#popTxt,#lvlNum,#lvlNum *){filter:none!important;text-shadow:none!important;animation:none!important}';document.head.appendChild(st);}if(L.cls)document.body.classList.add(L.cls);}else if(L)imgRegle(L);}}catch(e){lev='base';}
   BV.lev=lev;try{BV.levN=MOB_P.n;}catch(e){BV.levN=0;}
   if(MG.on){MG.sec.nL=0;MG.sec.nR=0;MG.sec.hS=0;mgRVide();} /* (contrôle du lot GELS) la 1re seconde ne compte pas le menu */
+  if(SDCALME){CAD.rN=1;CAD.rMin=99;} /* (2026-11-18, lot sondecalme) …ni les images d'ÉCRAN du menu : R[0] de la 1re seconde comptait tous les rAF depuis la course d'avant (jusqu'à 12 256 après 8 min de menu, « 75 i/s au sol »). 1 : l'image de cette loop, déjà comptée par cadSaute */
   const mgo=MG.on; /* sans mouchard, la course ne porte ni G ni M : l'analyse retombe sur la table « dans / hors boucle » */
   const o={d:new Date().toISOString(),ses:BV.ses,tl:Math.round(now/1000),lev:lev,gv:0,v:(typeof CC_VER==='string'?CC_VER:'?'),pal:(typeof PAL!=='undefined'?PAL.n:-1),
     ecr:screen.width+'x'+screen.height+'@'+(window.devicePixelRatio||1),app:String(window.__ccAppareil||''),eco:(window.__ccEco|0),cartes:[],mot:0,th:[0,0,0,0,0],prf:bvPrf(),mg:mgEtat(),G:mgo?[]:null,GN:mgo?[]:null,Q:mgo?{}:null,M:mgo?[]:null,Mw:mgo?27:undefined,LH:mgo?[]:undefined,SR:mgo?[0]:undefined,SY:mgo?[0,0,0,0,0,0,0]:undefined,x0:mgo?mgSeance():undefined,D:mgo?[]:undefined,TR:mgo?[0,0,0,0,0,0,0,0,0]:undefined,prfN:0,cadE:CAD.entrees,cadS:CAD.sorties,B:{},L:[],S:[],n:0,t0:now,der:0,fin:now,sec:null};if(!mgo){delete o.mg;delete o.G;delete o.GN;delete o.Q;delete o.M;delete o.Mw;delete o.x0;delete o.D;delete o.TR;delete o.H;delete o.SR;delete o.SY;}return o;}
@@ -105,6 +106,7 @@ function bvSec(c,e){ /* une seconde finie : la ligne, la carte, le palier du mot
   try{if(!c.R)c.R=[];if(c.R.length<2700)c.R.push(CAD.rN|0,Math.round(Math.min(99,CAD.rMin||99)*10),(QLR.vraiT&&performance.now()-QLR.vraiT<6000)?Math.round(QLR.vrai*10):-1);CAD.rN=0;CAD.rMin=99;if((c.S.length/8)%5===0&&QLR.sN<=0&&!(QLR.S&&QLR.S.pend>0))qlSondeArme();}catch(x){}
   try{if(BV.lev==='cycle'){const k=(((c.S.length/8)/BV.CYC_S)|0)%BV.CYC.length;if(!c.V)c.V=[];c.V.push(BV.cyc<0?0:BV.cyc);if(k!==BV.cyc){bvCycOte();BV.cyc=k;const L9=BV.LEV[BV.CYC[k]];if(L9&&L9.cls)document.body.classList.add(L9.cls);}}}catch(x){}
   try{const b9=window.__ccBatterie;if(b9!=null&&b9>=0){const q=c.bat||(c.bat=[]),n9=q.length,br9=window.__ccBranche|0;if(!n9||q[n9-2]!==b9||q[n9-1]!==br9)q.push((c.S.length/8)|0,b9,br9);}}catch(x){} /* (2026-11-13, LE WATTMÈTRE) bat : [seconde, batterie %, branché 1 non · 2 oui] à chaque changement */
+  try{if(!c.VD)c.VD=[];if(c.VD.length<1800)c.VD.push(VDA.d+(VDA.tient?10:0)+(LOUPE.on?100:0)+(QL.effondre?1000:0));}catch(x){} /* (2026-11-18, LA VOITURE D'ABORD) VD : par seconde, aligné sur S — cran du décor (0-2) + 10 si la résolution est tenue (serious) + 100 si la loupe de la caisse est posée + 1000 si l'échelle est effondrée */
   try{if(!c.P)c.P=[];if(c.P.length<1800)c.P.push(e[1]?Math.round((e[6]||0)/e[1]*10):0,Math.round((e[7]||0)*10));}catch(x){} /* (2026-11-13, ios-aide) P : par seconde, le pré-bâti moyen par image et sa pire tranche (×10), aligné sur S */
   if(MG.on&&c.M&&c.M.length>=27000)c.Mp=(c.Mp|0)+1; /* (contrôle MESURE-RAFALES) M plein (1000 s à 27 colonnes) : les secondes perdues */
   if(MG.on&&c.M&&c.M.length<27000){const q=MG.sec;let sv=-1;if(MG.sen)sv=Math.round(mgSentinelle()*100);mgAppat();
@@ -118,10 +120,12 @@ function bvSec(c,e){ /* une seconde finie : la ligne, la carte, le palier du mot
      [14] secondes depuis le dernier retour d'arrière-plan (-1 jamais), [15] depuis le dernier pivot (-1 jamais), [16] toile 3D / fenêtre en % des pixels (DPR 1,25 → 156 ; DPR 3 → 900). */ /* (2026-11-15, lot GELS) M : par seconde, images de loop, autres rAF, ms de rappels HORS boucle, minuteries en attente, intervalles, écouteurs, contexte audio, tas (Mo, -1 inconnu) — voir mgGel */
   /* (2026-11-16, lot SENTINELLE) M a 12 colonnes (c.Mw) : … puis la sentinelle (ms ×100, -1 coupée), passages du ramasse-miettes dans la seconde (-1 sans témoin), âge du dernier appât ramassé (ms, -1 aucun),
      l'état natif (thermique ×1000 + branché ×100 + autre musique ×10 + économie, 9 = inconnu). Voir moteur/mouchard-gels.js. */
+  try{if(pilOn()){if(!c.PL)c.PL=[];if(c.PL.length<8400){const I=renderer.info.render,F=PILO.fen[PILO.fen.length-1];c.PL.push(PILO.K,['','VERT','ORANGE','ROUGE','BLEU'].indexOf(PILO.zone),PILO.Kv-PILO.K,F&&F[0]?Math.round(F[1]/F[0]*1000):-1,Math.round(I.calls/100),Math.round(I.triangles/1e4),Math.round(PILO.per));}}}catch(x){} /* (2026-11-17, LE PILOTE DE QUALITÉ) PL : par seconde, aligné sur S — cran K, zone (0 aucune · 1 vert · 2 orange · 3 rouge · 4 bleu), dette, ratés ‰, appels/100, triangles/1e4, période visée (ms) */
   if(c.S.length<7200)c.S.push(e[0],e[1],Math.round(e[2]),e[1]?Math.round(e[3]/e[1]*10):0,e[4],Math.round(e[5]/10),QL.k,(CAD.on?1:0)+2*(th>3?0:th));}
 function bvCycOte(){try{for(const k of BV.CYC){const L9=BV.LEV[k];if(L9&&L9.cls)document.body.classList.remove(L9.cls);}}catch(x){}}
 function bvFinit(coupe){const c=BV.c;BV.c=null;if(!c)return;
   if(c.sec)bvSec(c,c.sec);
+  try{if(pilOn()){c.H=Array.from(PILO.h);c.RET=Object.assign({},PILO.nRet);}}catch(x){} /* (2026-11-17, LE PILOTE) H : l'histogramme des intervalles d'écran de la course (cases de 8 ms) ; RET : les toiles refaites par moment */
   c.dur=+((c.fin-c.t0)/1000).toFixed(1);c.cadE=CAD.entrees-c.cadE;c.cadS=CAD.sorties-c.cadS;if(coupe)c.coupe=1;if(MG.on){c.mg1=mgEtat();c.x1=mgSeance();if(c.TR)for(let i=0;i<9;i++)c.TR[i]=Math.round(c.TR[i]*10)/10;}
   if(MG.on)mgRFinit(c); /* (lot MESURE-RAFALES) les noms des sous-tranches, SR, SY, Y — voir mgRFinit */
   try{if(MOB_P.n!==BV.levN)c.gv=1;if(BV.lev==='cycle'){bvCycOte();BV.cyc=-1;}else if(BV.lev!=='base'){if(BV.LEV[BV.lev]&&BV.LEV[BV.lev].cls)document.body.classList.remove(BV.LEV[BV.lev].cls);else if(MOB_P.t===0)imgRegle('reset');else mobPalApplique(MOB_P.t);}}catch(e){}
@@ -183,7 +187,19 @@ MG.apres=function(t1){const c=BV.c;if(!c||!c.G)return;if(c.G.length>=1200){c.Gp=
      [50] ms ×10 d'appels à la puce HORS boucle depuis l'image calculée d'avant (toutes familles) */
    if(R.on)r.push(c100(R.senDAv),c100(R.senRAv),c100(R.senFAv),Math.round(R.imAv[0]*10),R.imNAv[0],Math.round(R.imAv[1]*10),R.imNAv[1],Math.round(R.imAv[2]*10),R.imNAv[2],R.hAv,Math.round(R.hors*10));
    else r.push(-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1);}
+  if(SDCALME){const g0=MG.l0-MG.dw;r.push(BVSW.t>=g0&&BVSW.t<=t1?Math.round(BVSW.t-g0):-1);} /* (lot sondecalme) [51] un battement natif est-il tombé dans ce trou ? ms depuis le début de l'image calculée d'avant jusqu'à son arrivée dans la page (jusqu'à la fin de CETTE loop), -1 aucun — voir « LES BATTEMENTS NATIFS HORODATÉS » */
   c.G.push(r);};
+/* ===== LES BATTEMENTS NATIFS HORODATÉS (2026-11-18, lot sondecalme — la preuve directe qui manquait au vol 1118-0416 : le battement natif tombe-t-il dans les gels ?) =====
+   Le natif (SondeNatif) pose chaque seconde `window.__ccSw` puis `window.__ccSwN` : un accesseur sur __ccSwN note l'instant où la page l'exécute (performance.now). Rien à changer
+   côté natif : marche aussi avec l'ancien battement (`?sondemain=1`). Par course (mouchard allumé), c.SW : 5 nombres par battement — [ms depuis le début de la course,
+   sentinelle Swift µs (-1 pas mesurée), retard du battement ms ×10, attente du fil principal de l'app µs (-1 : ancien battement, qui ne la mesure pas), sentinelle à l'horloge µs
+   (-1)] ; 1200 battements au plus (c.SWp compte les perdus). G[51] : voir MG.apres. `?sans=sondecalme` : ni accesseur, ni c.SW, ni G[51]. */
+const BVSW={t:-1,n:0};
+function bvBat(){const t=performance.now();BVSW.t=t;BVSW.n++;const c=BV.c;if(!c||!c.M)return;
+  if(!c.SW)c.SW=[];if(c.SW.length>=6000){c.SWp=(c.SWp|0)+1;return;}
+  const a=window.__ccSw,v=function(i){return a&&a.length>i?(+a[i]|0):-1;};c.SW.push(Math.round(t-c.t0),v(1),v(2),v(3),v(4));}
+if(SDCALME&&MG.on)try{let v9=window.__ccSwN;
+  Object.defineProperty(window,'__ccSwN',{configurable:true,enumerable:true,get:function(){return v9;},set:function(x){v9=x;try{bvBat();}catch(e){}}});}catch(e){}
 /* ===== LES IMAGES LOURDES DANS LA BOÎTE DE VOL (2026-11-17, lot MESURE-RAFALES — voir « LES RAFALES » dans moteur/mouchard-gels.js) =====
    c.LH : une ligne par loop de plus de 60 ms (1500 au plus : vol 1448, ≈ 1,2/s en course chaude → 15 min et plus), écrite à la fin de la loop. H PLEIN : c.LHp compte les loops lourdes
      perdues, c.LHt l'instant (s ×10) de la première perdue — analyse-vol.py se replie alors sur G après c.LHt. Une ligne :

@@ -34,7 +34,12 @@
   try{if(QS&&!location.search)history.replaceState(null,'',location.pathname+'?'+String(QS).replace(/^[?&]/,''));}catch(e){}
   /* (2026-11-17, lot qualité MESURE-RAFALES) LA SONDE NATIVE : dans l'app de mesure (`perfrec=2`) seulement, le côté natif (JeuViewController.swift, SondeNatif) bat chaque seconde —
      pression mémoire, sentinelle Swift, retard du battement — dans window.__ccSw (boîte de vol, M[24-26]). `sans=sondenatif` la laisse éteinte. Une app normale n'envoie rien. */
-  try{if(/[?&]perfrec=2\b/.test(location.search)&&!/[?&]sans=[^&]*sondenatif/.test(location.search))window.webkit.messageHandlers.ccSonde.postMessage('go');}catch(e){}
+  /* (2026-11-18, lot qualité sondecalme — vol 1118-0416, build 121) LA SONDE CALME : la sentinelle Swift ne tourne plus sur le fil principal de l'app (« go:fond », voir
+     SondeNatif « LA SONDE CALME »), et le pouls Debug (rAF permanent + elementFromPoint toutes les 4 s, en bas de ce fichier) se tait. `?sans=sondecalme` : tout comme avant
+     (« go » : l'ancien battement sur .main, le pouls). `?sondemain=1` : seulement le coût natif d'avant (battement sur .main + pouls), la mesure corrigée de la page gardée —
+     le contrôle A/B du vol. `?pouls=1` : le pouls seul. */
+  var SONDE_AVANT=/[?&]sans=[^&]*sondecalme/.test(location.search)||/[?&]sondemain=1\b/.test(location.search);
+  try{if(/[?&]perfrec=2\b/.test(location.search)&&!/[?&]sans=[^&]*sondenatif/.test(location.search))window.webkit.messageHandlers.ccSonde.postMessage(SONDE_AVANT?'go':'go:fond');}catch(e){}
   var CHAL=null;try{CHAL=(/[?&]chaleur=(\w+)/.exec(location.search)||[])[1]||null;}catch(e){}
   /* (2026-11-17, banc fiable) LE BATTEMENT : toutes les 10 s, une ligne « CCBANC … » part dans le journal du téléphone (JeuViewController.swift, BancBattement, Debug + CC_QS : NSLog,
      le côté natif y ajoute th= eco= branché= batterie= autreSon=, et écrit « CCBANC état=muet » si la page se tait 25 s : page morte). Le Mac la lit par `pymobiledevice3 syslog live`. */
@@ -436,12 +441,14 @@
     ' · localStorage cashcarSave '+(function(){try{return localStorage.cashcarSave?'présent':'absent';}catch(e){return 'illisible';}})()+
     ' · langue de l’appareil vue par la page : '+navigator.language+' ['+(navigator.languages||[]).join(',')+'] → jeu en '+document.documentElement.lang);};
   setTimeout(function(){bilan('15 s');},15000);setTimeout(function(){bilan('60 s');},60000);
-  // le pouls : images par seconde, ce qui couvre le milieu de l'écran, l'état du jeu (toutes les 4 s)
+  // le pouls : images par seconde, ce qui couvre le milieu de l'écran, l'état du jeu (toutes les 4 s). (lot sondecalme) Éteint sauf ?pouls=1, ?sondemain=1, ?sans=sondecalme
+  if(SONDE_AVANT||/[?&]pouls=1\b/.test(location.search)){
   var nIm=0;(function f(){nIm++;requestAnimationFrame(f);})();
   setInterval(function(){try{var e=document.elementFromPoint(innerWidth/2,innerHeight/2),d=window.dbgState?window.dbgState():null;
     console.log('[natif] POULS '+Math.round(nIm/4)+' i/s · centre '+(e?(e.id?'#'+e.id:e.tagName)+(e.className&&e.className.baseVal===undefined?'.'+String(e.className).split(' ').join('.'):''):'∅')+
       ' · son ['+CTX.map(function(c){return c.state+(c.__ccVeille?'(veille)':'');}).join(',')+']'+
       ' · erreur '+(window.__loopErr||'—')+' · état '+(d?JSON.stringify(d).slice(0,220):'—'));}catch(err){console.log('[natif] POULS ?',err.message);}nIm=0;},4000);
+  }
   window.ccNatif={bilan:bilan,dehors:dehors,ctx:CTX}; // console Safari (Développement › Simulateur)
   dit('colle native prête',navigator.userAgent);
 })();
