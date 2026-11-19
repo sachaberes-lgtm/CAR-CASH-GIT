@@ -135,15 +135,19 @@ const CY_FINI_R={
      leur ombre [.30,.22,.34] → [.26,.22,.40] et les mesas du fond [.42,.27,.33] → [.36,.26,.40] au mauve. Contrôle du tour 2 : la ROCHE au soleil restait de la braise.
      Tour 3 : soleil or au lieu d'orange (sunC [1,.56,.30] → [1,.68,.44]), rebond [.90,.63,.50], brume [.82,.52,.58], sol de
      l'hémisphère mauve [.31,.24,.31], nuages [1,.68,.50], et la teinte de la roche cyT [1,.95,.93] → [.94,.99,1.10] (du rouge vers l'or et le froid : le grès doré, pas la braise).
-     Mesuré en course (haut de l'image, part de pixels R>200 et B<90) : g3 53 % → 15 %, g7 56 % → 24 %, g11 74 % → 43 %. */
-  canyonSoir:{sunC:[1,.68,.44],cyL:[.90,.63,.50],cyT:[.94,.99,1.10],hemiS:[.34,.40,.66],hemiG:[.31,.24,.31],fillC:[.36,.42,.80],fog:[.82,.52,.58],fogCj:[1,.64,.44],fogIn:[.94,.80,.82],cyF:[.72,.62,.80],cyH:[1,.58,.32],
+     Mesuré en course (haut de l'image, part de pixels R>200 et B<90) : g3 53 % → 15 %, g7 56 % → 24 %, g11 74 % → 43 %.
+     Tour 4 (19/11, contrôle : « la roche se délave au lieu de dorer ») : la roche vire à l'OR au lieu du froid, cyT [.94,.99,1.10] → [.94,1.06,.92] (moins de rouge, plus de vert,
+     bleu bas), le soleil un cran plus bas et plus or [1,.68,.44] → [.97,.70,.42], l'horizon or [1,.58,.32] → [1,.64,.36]. Mesuré (outils/banc-routes/canyon-finition/mesure-couleurs.cjs,
+     haut de l'image, pixels rouge-orange vifs teinte 0-30°) : avant → tour 4, g3 course 81 % → 58 %, g7 96 % → 66 %, g11 91 % → 63 %, et des pixels OR (30-55°) 0 % → 12-26 %. */
+  canyonSoir:{sunC:[.97,.70,.42],cyL:[.90,.63,.50],cyT:[.94,1.06,.92],hemiS:[.34,.40,.66],hemiG:[.31,.24,.31],fillC:[.36,.42,.80],fog:[.82,.52,.58],fogCj:[1,.64,.44],fogIn:[.94,.80,.82],cyF:[.72,.62,.80],cyH:[1,.64,.36],
     cyZ:[.10,.12,.42],jZen:[.10,.12,.42],cyM:[.44,.30,.54],jMid:[.44,.30,.54],cyC:[1,.68,.50],cyD:[.26,.22,.40],cyR:[.36,.26,.40]},
   /* LA NUIT : la route bleu électrique est GARDÉE (rtT d'avant). Seuls l'ombre (hemiS [.28,.32,.64] → [.30,.27,.66]) et le remplissage glissent du bleu vers le bleu-violet,
      à luminance égale (le tour 1 assombrissait la nuit de 20 % : retiré). */
   canyonNuit:{hemiS:[.30,.27,.66],fillC:[.34,.28,.74]},
   /* LA PLUIE (hors tirage) : le ciel gris bleu passe au bleu canard, la brume ardoise turquoise, les nuages un cran plus froids, le rebond de la roche mouillée terre cuite.
-     Tour 3 (« plus fun ») : la route mouillée prend le bleu canard (rtT [1.05,1,.86] → [.82,1,1.14]) au lieu du gris. */
-  canyonPluie:{fog:[.34,.46,.52],fogCj:[.46,.52,.56],fogIn:[.50,.58,.62],hemiS:[.44,.56,.70],cyF:[.42,.54,.60],cyL:[.72,.46,.36],rtT:[.82,1,1.14],sat:1.12,
+     Tour 3 (« plus fun ») : la route mouillée prend le bleu (rtT [1.05,1,.86] → [.82,1,1.14]) au lieu du gris ; tour 4 : vers le CANARD, plus vert ([.76,1.04,1.10]).
+     Chroma Lab de la route (bas de l'image) : avant → tour 4, 7,8 → 24,5 en course, 10,9 → 29,3 vue figée. */
+  canyonPluie:{fog:[.34,.46,.52],fogCj:[.46,.52,.56],fogIn:[.50,.58,.62],hemiS:[.44,.56,.70],cyF:[.42,.54,.60],cyL:[.72,.46,.36],rtT:[.76,1.04,1.10],sat:1.12,
     cyZ:[.10,.24,.36],jZen:[.10,.24,.36],cyM:[.20,.36,.44],jMid:[.20,.36,.44],cyC:[.46,.52,.58],cyD:[.15,.20,.27]},
   /* L'ORAGE (hors tirage) : la nuit d'orage bleu-noir passe à l'indigo-violet, à luminance d'avant (l'ombre [.28,.36,.54] → [.30,.28,.60]), le ciel et les mesas au violet. */
   canyonOrage:{fog:[.07,.07,.17],fogCj:[.20,.16,.34],fogIn:[.22,.20,.36],hemiS:[.30,.28,.60],fillC:[.38,.32,.74],cyF:[.17,.16,.30],
