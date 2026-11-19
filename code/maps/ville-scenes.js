@@ -182,7 +182,7 @@ function vsMalusTenue(C){const t=vsTenue(C);return Math.max(0,t.t30-8.5)*12+Math
 /* (LA VILLE CALME) LES BOUCLES HORS RACCOURCI : une suite de virages du MÊME côté (un contre-virage de 15° la ferme) de plus de 220° coûte 5 + 1 par 10° de plus — le
    meilleur-de-N écarte l'essai où un grand virage s'ajoute à ses voisins. Les raccourcis (le module entier, ia-i2) ne comptent pas : leur boucle est voulue. */
 function vsMalusBoucle(C,marks){if(!VILLE_CALME)return 0;const n=C.length;if(n<4)return 0;
-  const rac=new Uint8Array(n);for(const m of marks)if(m&&(m.fig==='saut'||m.fig==='grandsaut'||m.spi))for(let i=Math.max(0,m.ia!=null?m.ia:m.i0);i<=(m.i2!=null?m.i2:m.i1)&&i<n;i++)rac[i]=1;
+  const rac=new Uint8Array(n);for(const m of marks)if(m&&(m.fig==='saut'||m.fig==='grandsaut'||m.spi||m.etage))for(let i=Math.max(0,m.ia!=null?m.ia:m.i0);i<=(m.i2!=null?m.i2:m.i1)&&i<n;i++)rac[i]=1;
   let mal=0,H=0,h0=0,ext=0,sg=0,pa=null;const clos=function(){const a=Math.abs(ext-h0)*57.2958;if(a>220)mal+=5+(a-220)/10;};
   for(let i=1;i<n;i++){const dx=C[i].x-C[i-1].x,dz=C[i].z-C[i-1].z;if(dx*dx+dz*dz<1e-6)continue;const a=Math.atan2(dx,dz);
     if(rac[i]){if(sg)clos();sg=0;pa=null;continue;}
@@ -198,7 +198,8 @@ function vsNommer(marks){for(const m of marks)if(m&&!m.nom)m.nom=VS_NOMS[m.fig]|
    morceau déjà parcouru À LA MÊME HAUTEUR. MESURÉ (banc croise.cjs, 40 graines, palier 0) : 6 routes sur 40 se recoupaient sous 46 m de hauteur libre, jusqu'à 0 m (les
    dalles se traversent). Les raccourcis le font EXPRÈS (la route sage passe sous le saut) : leurs croisements internes ne comptent pas. Rend un malus : 6 par croisement
    (deux morceaux à plus de 150 m l'un de l'autre sur la route, à moins de 60 m en plan, à moins de 50 m en hauteur), regroupé par tranches de 200 m comme le banc. */
-function vsCroise(ctrl,marks){
+function vsCroise(ctrl,marks,o){ /* o : (2026-11-19, LA ROUTE À ÉTAGES) {h, k} — la hauteur libre plancher et le prix d'un croisement (50 m et 6 ; 60 m et 20 sur la route à étages, VE_CROISE) */
+  const hC=o?o.h:50,kC=o?o.k:6,hR=o&&o.hr?o.hr:0;
   const P=[{x:ctrl[0].x,y:ctrl[0].y,z:ctrl[0].z,s:0,i:0}];let s=0;
   for(let i=1;i<ctrl.length;i++){const a=ctrl[i-1],b=ctrl[i],d=Math.hypot(b.x-a.x,b.y-a.y,b.z-a.z),n=Math.max(1,Math.ceil(d/12));for(let k=1;k<=n;k++){s+=d/n;P.push({x:a.x+(b.x-a.x)*k/n,y:a.y+(b.y-a.y)*k/n,z:a.z+(b.z-a.z)*k/n,s:s,i:i});}}
   const mod=new Int32Array(ctrl.length).fill(-1);marks.forEach(function(m,k){if(m&&(m.fig==='saut'||m.fig==='grandsaut'))for(let i=Math.max(0,m.ia!=null?m.ia:m.i0);i<=(m.i2!=null?m.i2:m.i1)&&i<ctrl.length;i++)mod[i]=k;}); /* (ia, i2 : le module entier d'un raccourci, dont i0-i1 ne sont que la lèvre et la pose) */
@@ -206,10 +207,10 @@ function vsCroise(ctrl,marks){
   const vu=new Set();let n=0,dm=1e9;
   for(let a=0;a<P.length;a++){const p=P[a],cx=Math.floor(p.x/H),cz=Math.floor(p.z/H);
     for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const l=G.get((cx+dx)*100003+cz+dz);if(!l)continue;
-      for(const b of l){if(b<=a)continue;const q=P[b];if(q.s-p.s<150||Math.abs(q.y-p.y)>=50||Math.hypot(q.x-p.x,q.z-p.z)>H)continue;
+      for(const b of l){if(b<=a)continue;const q=P[b];if(q.s-p.s<150||Math.abs(q.y-p.y)>=hC||Math.hypot(q.x-p.x,q.z-p.z)>H)continue;
         if(q.s-p.s>=200){const d3=Math.hypot(q.x-p.x,q.y-p.y,q.z-p.z);if(d3<dm)dm=d3;} /* (la charte, R10) le frôlement le plus serré */
-        if(mod[p.i]>=0&&mod[p.i]===mod[q.i])continue;const k=Math.floor(p.s/200)+'/'+Math.floor(q.s/200);if(!vu.has(k)){vu.add(k);n++;}}}}
-  return n*6+(dm<14?40:0);} /* (R10 : à moins de 14 m, l'essai est écarté) */
+        if(mod[p.i]>=0&&mod[p.i]===mod[q.i]){if(hR&&Math.abs(q.y-p.y)<hR){const k9='r'+Math.floor(p.s/200)+'/'+Math.floor(q.s/200);if(!vu.has(k9)){vu.add(k9);n++;}}continue;} /* hR : (contrôle du lot E) le raccourci qui repasse sous lui-même à moins de hR m compte aussi */const k=Math.floor(p.s/200)+'/'+Math.floor(q.s/200);if(!vu.has(k)){vu.add(k);n++;}}}}
+  return n*kC+(dm<14?40:0);} /* (R10 : à moins de 14 m, l'essai est écarté) */
 /* ===== LE DÉVERS DE LA VILLE ===== la recette des dunes (courbure du plan moyennée sur ±W, pliée par un tanh) : la dalle se couche vers l'INTÉRIEUR du virage,
    24° au plus ; les scènes en demandent plus (`dv` : [[i0, i1, rad]], rampes de 60 m) ; ZÉRO sur l'entrée, les raccourcis (un saut part dans l'axe de la normale :
    sur une dalle couchée il partirait de travers), les crêtes et les couloirs (`nul`), l'arrivée. Rend {N : une normale par point de contrôle, max : °}. */
@@ -358,7 +359,7 @@ function vsReserve(V,essai){ /* essai : (le meilleur-de-N) rien n'est gardé dan
 /* LE DÉCOR, CRITÈRE DU MEILLEUR-DE-N : MESURÉ (banc des maps, 20 villes) — une pièce sur cinq était abandonnée parce qu'une AUTRE partie de la route passait
    trop près (une passerelle et un nœud voisins, une route qui revient frôler son entrée). Les mêmes tests (vsReserve), sur la route candidate échantillonnée
    tous les 10 m : 3 de malus par pièce qui ne tiendrait pas ; le meilleur-de-N garde une route où les scènes se bâtissent. */
-function vsMalusDecor(ctrl){
+function vsMalusDecor(ctrl,kD){ /* kD : (2026-11-19, LA ROUTE À ÉTAGES) le prix d'un plan perdu — 3, VE_DECOR sur la route à étages (un étage du dessus qui passe dans l'emprise d'une scène lui ôte son décor) */
   let n9=0;for(const m9 of FILETMARK)if(m9.anc)for(const a of m9.anc)if(a.t!=='geante'&&a.t!=='pile'&&a.t!=='portes')n9++;if(!n9)return 0;
   const P=[];P.push({x:ctrl[0].x,y:ctrl[0].y,z:ctrl[0].z});
   for(let i=1;i<ctrl.length;i++){const a=ctrl[i-1],b=ctrl[i],d=Math.hypot(b.x-a.x,b.z-a.z),n=Math.max(1,Math.ceil(d/10));for(let k=1;k<=n;k++)P.push({x:a.x+(b.x-a.x)*k/n,y:a.y+(b.y-a.y)*k/n,z:a.z+(b.z-a.z)*k/n});}
@@ -366,7 +367,7 @@ function vsMalusDecor(ctrl){
   const proches=function(x,z,R9,cb){const r=Math.ceil(R9/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB);for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const l=G.get((bx+dx)*100003+(bz+dz));if(l)for(const i of l)cb(i);}};
   const AIRZ=[];for(const m9 of FILETMARK)if(m9.air)for(const a9 of m9.air)AIRZ.push(a9);
   const V={P:P,proches:proches,pasP:1,snap:function(v){const q=typeof VOX_CITY!=="undefined"?VOX_CITY:6.4;return Math.max(1,Math.round(v/q))*q;},AIRZ:AIRZ};
-  let perdus=0;for(const p of vsReserve(V,true))if(!p.ok&&p.t!=='portes')perdus++;else if(p.vcPerdus)perdus+=p.vcPerdus*.5;return perdus*3;} /* (LA VILLE CYBERPUNK) une pièce perdue d'un module route-ville : une demie */
+  let perdus=0;for(const p of vsReserve(V,true))if(!p.ok&&p.t!=='portes')perdus++;else if(p.vcPerdus)perdus+=p.vcPerdus*.5;return perdus*(kD||3);} /* (LA VILLE CYBERPUNK) une pièce perdue d'un module route-ville : une demie */
 function vsBloque(cx,cz,hd){const L=CITY.vsP;if(!L)return false;for(const p of L)if(p.ok&&p.zone){const z=p.zone;if(cx+hd>z[0]-6&&cx-hd<z[1]+6&&cz+hd>z[2]-6&&cz-hd<z[3]+6)return true;}else if(p.ok&&p.zones)for(const z of p.zones)if(cx+hd>z[0]-6&&cx-hd<z[1]+6&&cz+hd>z[2]-6&&cz-hd<z[3]+6)return true;return false;} /* (LA VILLE CYBERPUNK) zones : les emprises pièce par pièce */
 function vsZonesCrypto(){const out=[],L=CITY.vsP;if(!L)return out;for(const p of L)if(p.ok&&p.zone){const z=p.zone;out.push((z[0]+z[1])/2,(z[2]+z[3])/2,Math.hypot(z[1]-z[0],z[3]-z[2])/2+8);}return out;}
 function vsBatir(V){return rythmeMene(vsBatirG(V));} /* (2026-11-17, lot portv) d'un trait : le même générateur */

@@ -97,6 +97,7 @@ maps/nuages-pouf-gpu.js              # LE POUF AÉRIEN (2026-11-13) : la couronn
 maps/ville-entree.js                 # l'entrée dans la ville
 maps/ville-scenes.js                 # LA VILLE QUI SE VISITE : dévers, scènes de route (traversée, nœud, spirale, crête, portes, plongée), décor des scènes
 maps/ville-cyber.js                  # LA VILLE CYBERPUNK (2026-11-18) : les modules route-ville (slalom des tours, piqué, montagnes russes des toits), leur plan et leur décor ; ?sans=villecyber
+maps/ville-etages.js                 # LA ROUTE À ÉTAGES (2026-11-19) : la ville du 3/11 (motifs, respiration, parking serré, entrée) avec les scènes, les modules du lot A et les raccourcis ; ?sans=villeetages
 rendu/bitume-beton.js                # bitume v2, béton brut, lumières de la caisse v2, bitume mouillé, bords en béton
 rendu/autoroute.js                   # L'AUTOROUTE VIVANTE (2026-11-13) : la C (95 Express) de base, des paliers et des transitions douces, un caractère par map, poteaux qui plient
 rendu/autoroute-pays.js # LES AUTOROUTES DU MONDE, le moteur : un plan par pays (traits, plots, motifs, poteaux, dessins), le tirage de la piste (arpTirage), ?pays=xx, dbgPays
