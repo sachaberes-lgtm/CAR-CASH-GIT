@@ -355,7 +355,8 @@ function vsMalusDecor(ctrl){
   let perdus=0;for(const p of vsReserve(V,true))if(!p.ok&&p.t!=='portes')perdus++;return perdus*3;}
 function vsBloque(cx,cz,hd){const L=CITY.vsP;if(!L)return false;for(const p of L)if(p.ok&&p.zone){const z=p.zone;if(cx+hd>z[0]-6&&cx-hd<z[1]+6&&cz+hd>z[2]-6&&cz-hd<z[3]+6)return true;}return false;}
 function vsZonesCrypto(){const out=[],L=CITY.vsP;if(!L)return out;for(const p of L)if(p.ok&&p.zone){const z=p.zone;out.push((z[0]+z[1])/2,(z[2]+z[3])/2,Math.hypot(z[1]-z[0],z[3]-z[2])/2+8);}return out;}
-function vsBatir(V){
+function vsBatir(V){return rythmeMene(vsBatirG(V));} /* (2026-11-17, lot portv) d'un trait : le même générateur */
+function* vsBatirG(V){const ech9=function(){return typeof JF!=='undefined'&&performance.now()>JF.lim;}; /* (lot portv) une pause possible (échéance JF.lim) entre deux scènes — mêmes volumes, même ordre */
   const plans=CITY.vsP||[],hi=ROAD_HALF+14,HC=VS_HC,grp=[];let nV=0,nN=0;CITY.abris=[];CITY.couloirs=[];CITY.railN=[];
   const vol=function(x0,x1,y0,y1,z0,z1,g,sp,k){if(x1-x0<.5||y1-y0<.5||z1-z0<.5)return;V.corps.push((x0+x1)/2,(y0+y1)/2,(z0+z1)/2,x1-x0,y1-y0,z1-z0);V.genre.push(g);V.tqC.push(k[0],k[1],k[2]);
     const i=V.genre.length-1;if(sp)V.sp.push(i);k[3].push(i);nV++;};
@@ -375,7 +376,7 @@ function vsBatir(V){
     const Z=ax==='z'?[cx-hi,cx+hi,cz-demi,cz+demi]:[cx-demi,cx+demi,cz-hi,cz+hi];CITY.abris.push([Z[0],Z[1],yb-2,yc,Z[2],Z[3]]);};
   /* le sommet d'une tour de scène : la couronne (une fois sur deux), le mât et son feu */
   const sommet=function(cx,cz,dx,dz,top,k,h){if(h>.4)lum(cx-dx*.53,cx+dx*.53,top-1.4,top+1.4,cz-dz*.53,cz+dz*.53,6,k);const ha=36+h*44;vol(cx-1.2,cx+1.2,top,top+ha,cz-1.2,cz+1.2,2,true,k);lum(cx-2.25,cx+2.25,top+ha-2.25,top+ha+2.25,cz-2.25,cz+2.25,5,k);};
-  for(const p of plans){if(!p.ok)continue;const k=[p.cx,(p.b!=null?p.b:p.rue||0)+200,p.cz,[]];grp.push(k[3]);
+  for(const p of plans){if(ech9())yield;if(!p.ok)continue;const k=[p.cx,(p.b!=null?p.b:p.rue||0)+200,p.cz,[]];grp.push(k[3]);
     if(p.t==='tunnel'){const ax=p.ax,L2=p.Lt/2,cx=p.cx,cz=p.cz,yc=p.y1+HC,fl=p.y0-6.5;
       volA(ax,cx,cz,-L2,L2,-p.Hl,-hi,p.b,yc,0,false,k);volA(ax,cx,cz,-L2,L2,hi,p.Hl,p.b,yc,0,false,k); /* les deux murs, du pied au plafond (leur pied se noie avec la ville) */
       volA(ax,cx,cz,-L2,L2,-hi,hi,p.b,fl,0,false,k);                                                          /* le socle sous la route, 6,5 m sous le bitume */

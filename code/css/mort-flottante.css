@@ -116,7 +116,12 @@ html body #mob #mDead.m5 .m6M .m6Barre{background:rgba(160,200,255,.12);box-shad
 html body #mob #mDead.m5 .m6M :is(.m6Val,small){color:var(--m6Bl)}
 html body #mob #mDead.m5 .m6R .m6Barre{background:linear-gradient(180deg,#fff1b8,var(--au2) 48%,var(--orS));box-shadow:0 0 10px rgba(255,200,60,.35),inset 0 2px 0 rgba(255,255,255,.55)}
 html body #mob #mDead.m5 .m6R :is(.m6Val,small){color:var(--or)}
-
+/* (2026-11-18, qualité · hudmort, Sacha : « des petits pixels comme si c'était souligné, mais à moitié ») une valeur NULLE n'a pas de bougie
+   (elle était une barre de 3 px posée sur la ligne de base : un soulignement coupé sous le « 0 ») ; une petite valeur a une vraie bougie de 8 px
+   au moins, son chiffre au-dessus. `?sans=hudmort` = avant (html.hudMort absent). Voir moteur/mobile-tactile.js, « LES BOUGIES À ZÉRO ». */
+html.hudMort body #mob #mDead.m5 .m6Col.m6Nul .m6Barre{display:none}
+html.hudMort body #mob #mDead.m5 .m6Barre{min-height:8px}
+html.hudMort body #mob #mDead.m5 .m6Col:not(.m6Nul) .m6Val{bottom:max(calc(var(--h) * 1% + 5px),13px)}
 /* ---------- LES TOUCHES (2026-11-03, Sacha : « je préfère home, garage, réglages et c'est tout », « le ×2 comme CONTINUER ▶ PUB »,
    « les boutons sont trop petits par rapport au reste », « l'engrenage en jaune si le bouton est jaune ») ----------
    Deux groupes. CE QUI EMMÈNE AILLEURS : ⌂ · GARAGE · RÉGLAGES, une ligne à eux seuls. CE QUI RELANCE : le ×2 (une ligne, « ×2 +$ N ▶ PUB »,

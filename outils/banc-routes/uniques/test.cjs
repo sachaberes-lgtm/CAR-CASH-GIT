@@ -15,7 +15,7 @@ const cp=require('child_process'),fs=require('fs'),path=require('path'),os=requi
 const RAC=path.resolve(__dirname,'../../..'),arg=(k,d)=>{const a=process.argv.find(x=>x.startsWith(k+'='));return a?a.slice(k.length+1):d;};
 const cartes=arg('cartes','jade,espace').split(','),graines=arg('graines','7001-7200'),paliers=arg('paliers','0,10').split(',').map(Number);
 const n=(function(){const g=graines.split('-').map(Number);return g[1]-g[0]+1;})(),out=fs.mkdtempSync(path.join(os.tmpdir(),'routes-uniques-test-'));
-const S={jade:{prem:25,top:.15,formes:{0:35,10:20},pente:5,y3:170,vus:38},espace:{prem:18,top:.19,formes:{0:20,10:11},pente:6,y3:230,vus:27}};
+const S={jade:{prem:25,top:.15,formes:{0:35,10:20},pente:5,y3:170,vus:38},espace:{prem:18,top:.19,formes:{0:20,10:11},pente:6,y3:230,vus:23}}; /* (2026-11-18, L'ESPACE SANS GÉANTS) espace vus 27 → 23 : la roue, la petite lune, l'astéroïde percé et la nébuleuse sortent du sac (catalogue 30 → 26 ; MESURÉ : 26 / 25 vus aux paliers 0 / 10) */
 let ko=0;const dit=(ok,t)=>{if(!ok)ko++;console.log((ok?'  ✔ ':'  ✘ ')+t);};
 for(const c of cartes){cp.execFileSync('node',[path.join(__dirname,'mesure.cjs'),'carte='+c,'graines='+graines,'paliers='+paliers.join(','),'out='+out,'etiquette=test','nom=test'],{cwd:RAC,stdio:['ignore','ignore','inherit'],maxBuffer:1<<28});
   const J=JSON.parse(fs.readFileSync(path.join(out,c+'-test-mesure.json'),'utf8')),T=S[c];

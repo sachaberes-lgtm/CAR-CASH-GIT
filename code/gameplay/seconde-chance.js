@@ -179,7 +179,7 @@ function chancePrend(){ // la reprise est GAGNÉE (pub vue jusqu'au bout, ou bon
 function chanceRepart(bon){try{if(window.CCSON)window.CCSON.debutCourse();}catch(e){} /* (2026-11-10, refonte du son) la course CONTINUE : ses sons, rendus 4 s après la mort, sont redemandés avant la reprise */ // sous le volet : la course reprend où elle s'est arrêtée — (15/10) Pouce bleu : le même morceau repart (musicStartRun(true,true))
   if(!started||!gameOver)return;
   try{finSonsCoupe();}catch(e){}
-  mortCause='';gameOver=false;paused=false;running=true;overlay.style.display='none';nitroOn=false;nitroBlue=false;nitroHeldT=0;loop._nOn=false;loop._nBl=false;SENS_NI.on=false; /* (chasse aux bugs) mort nitro tenu : la porte de simulation tournait encore pendant l'explosion, loop._nOn / nitroHeldT / SENS_NI.on y restaient vrais ; sans cette remise à zéro (la même que resetGame), la 1re image de la reprise croyait la nitro VIENT de s'éteindre : PSSHT, langues de feu + pétarade, nez qui plonge */
+  mortCause='';gameOver=false;paused=false;running=true;try{pilMoment('reprise');}catch(e){} /* (2026-11-17, LE PILOTE) la course reprend : PILO.mort à faux, le rendu d'avant la mort */overlay.style.display='none';nitroOn=false;nitroBlue=false;nitroHeldT=0;loop._nOn=false;loop._nBl=false;SENS_NI.on=false; /* (chasse aux bugs) mort nitro tenu : la porte de simulation tournait encore pendant l'explosion, loop._nOn / nitroHeldT / SENS_NI.on y restaient vrais ; sans cette remise à zéro (la même que resetGame), la 1re image de la reprise croyait la nitro VIENT de s'éteindre : PSSHT, langues de feu + pétarade, nez qui plonge */
   try{wakeAsk();}catch(e){} /* (2026-11-13, finition · verrou d'écran) la course CONTINUE après la seconde chance : endGame avait rendu le verrou, goImmersive ne le reprend plus à l'écran de mort */
   clearBoom();RALENTI.t=0;
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;
@@ -435,6 +435,7 @@ function finSonsCoupe(){
   try{window.CCSON.annuleFutur(0);for(let i9=0;i9<FIN_SONS.length;i9++)window.CCSON.stop(FIN_SONS[i9]);}catch(e){}
 }
 function resetGame(){
+  try{pilMoment('raz');}catch(e){} /* (2026-11-17, LE PILOTE, M1) la piste que resetGame refait n'est pas un moment de paiement */
   calgRaz(); /* (2026-11-15) la garde du calme repart à zéro avec la partie (cadence.js) */
   try{photoLibere();}catch(e){} /* (2026-11-13, finition · mémoire) les pellicules du studio photo ne restent pas allouées pendant la course */
   try{if(window.CCSON)window.CCSON.debutCourse();}catch(e){} /* (2026-11-07, Perf 3 P1) les sons de la course d'avant sont redemandés d'avance, sous le volet */
@@ -500,6 +501,7 @@ function resetGame(){
   musicStartRun(true); // nouvelle partie → la playlist repart du début, en fondu, PENDANT le boost offert (LE DÉPART EN MUSIQUE)
   fireLaunchBoost();
   showMsg(pickL(GO_LINES),'#7dff9b');
+  try{pilMoment('depart');}catch(e){} /* (2026-11-17, LE PILOTE DE QUALITÉ, moteur/pilote-qualite.js) le départ : niveau et cran posés avant la première image de course */
   try{document.dispatchEvent(new Event('cc:jeu'));}catch(e){} // la course part ou s'arrête : les commandes le savent À L'INSTANT, pas au prochain tick
 }
 // Fin de run : les exploits de la partie rejoignent les compteurs À VIE. Cumuls pour ce qui se
@@ -688,5 +690,6 @@ function start(){
   paintMoney(); // la mise de départ et la bonne devise, tout de suite
   survStart(); // le mode armé au menu s'active pour cette première run
   musicStartRun(true); // la bande-son démarre avec la partie, en fondu, pendant le boost offert (LE DÉPART EN MUSIQUE)
+  try{pilMoment('depart');}catch(e){} /* (2026-11-17, LE PILOTE DE QUALITÉ, moteur/pilote-qualite.js) le départ : niveau et cran posés avant la première image de course */
   try{document.dispatchEvent(new Event('cc:jeu'));}catch(e){} // la course part ou s'arrête : les commandes le savent À L'INSTANT, pas au prochain tick
 }

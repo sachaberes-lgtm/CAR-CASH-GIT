@@ -23,7 +23,7 @@ luneVoile=function(dt9,lunOk){
 function loop(now){
   if(MG.on)mgSt('b1 entrée (chargement, cadence)'); /* (lot MESURE-RAFALES) sous-tranche, ?perfrec=2 seulement ; sur sa ligne (fusion avec qa/portv) */
   loop._raf=requestAnimationFrame(loop); /* (2026-11-07, finition) l'identifiant : dbgStep annule l'image qu'un appel manuel programme (il empilait n boucles) */
-  if(chargementTick(now)){loop._pn=now;last=now;return;} /* (2026-11-05, passe perf mobile 2, A2.a) le chargement sous la boule : une étape par image, sans dessiner — voir CHARGEMENT */
+  if(chargementTick(now)){loop._pn=now;last=now;return;} if(PVE.ph&&pveTick(now)){loop._pn=now;last=now;return;}if(PVE.lib.length||PVE.apres.length)pveLib(now); /* (2026-11-17, lot portv) LE PORTAIL ÉTALÉ : sous le voile, l'image ne fait que la construction — voir piste-prebati.js */ /* (2026-11-05, passe perf mobile 2, A2.a) le chargement sous la boule : une étape par image, sans dessiner — voir CHARGEMENT */
   if(window.__introCouvre){loop._pn=now;last=now;return;} // (2026-10-22, Léo : « ça bug ») l'INTRO DU STUDIO couvre tout l'écran : dessous, le jeu ne calcule ni ne dessine rien (il faisait saccader le film, surtout sur un Mac chargé) — voir moteur/intro-161.js
   if(lierDemarrage(now)){loop._pn=now;last=now;return;}
   if(DENSE.ok&&denseTick(now)){loop._pn=now;last=now;return;} /* (2026-11-13, demarrage-vite) LE CHARGEMENT DENSE : sous le serpent, l'image ne fait que du chargement — voir interface/vignette-moteur.js */ /* (2026-10-27) LA LIAISON EN ARRIÈRE-PLAN : les programmes de la 1re image se lient à côté, le jeu ne dessine pas encore — voir interface/vignette-moteur.js */
@@ -80,6 +80,7 @@ function loop(now){
   if(!loop._qlT||now-loop._qlT>250){loop._qlT=now;const n9=QLR.n,s9=QLR.s;for(let i=0;i<n9;i++)s9[i]=QLR.a[i];
     const v9=s9.subarray(0,n9).sort();QLR.p50=n9?v9[n9>>1]:16;QLR.p75=n9?v9[(n9*.75)|0]:16;QLR.p90=n9?v9[Math.min(n9-1,(n9*.9)|0)]:16;}
   QL.efT=(calme9&&QL.k>=qb9.kNet&&QLR.p50>24)?QL.efT+dt:0;if(QL.efT>6)QL.effondre=true;
+  if(started&&!gameOver&&!VHD.on&&!QL.force)vdaVeille(now); /* (2026-11-18, LA VOITURE D'ABORD, rendu/nettete-qualite.js) serious ⇄ autre état sans pas de l'échelle : résolution et décor suivent */
   // ÉTAGE 1 : l'ombre en vol, une image sur deux — seulement LOIN de toute dalle (radar de tryLand), jamais au sol
   {const loin9=QL.k>=1&&mode==='fall'&&(lastNearH2+(fallPos.y-lastNearY)*(fallPos.y-lastNearY))>196;
    if(loin9){renderer.shadowMap.autoUpdate=false;QL.fr^=1;renderer.shadowMap.needsUpdate=QL.fr===0;}
@@ -118,7 +119,7 @@ function loop(now){
          combien coûte VRAIMENT une image ; si, agrandie au cran du dessus (coût ∝ pixels), elle tient encore sous 14 ms, on remonte */
       else if(sonde9){VHD.sT=0;VHD.t=-10;if(vhdMonte(now,QLR.vrai))VHD.t=0;} // pas de marge : la sonde se tait ~12 s
       else if(!VHD.sT||now-VHD.sT>3000){VHD.sT=now;qlSondeArme();}}}
-  else if(!RESPIN&&dprT<=0&&now>4000&&qlAuto()){dprT=1.1;const fort9=QLR.p50>24,tire9=QLR.p75>PAL.bT('imgQlP75',24,'f')||QLR.p50>18.5; /* (2026-11-07, passe perf 3, P2 · levier f) téléphone récent : l'échelle QL réagit dès p75 > 19 ms (au lieu de 24 : « plus d'un quart des images ratées d'un tiers de période ») ; `?img=max` / `?imgsans=f` = 24 */ /* (OPTIMISATION) voir L'IMAGE EN AUTOMATIQUE */
+  else if(!RESPIN&&dprT<=0&&now>4000&&qlAuto()&&!pilOn()){ /* (2026-11-17, LE PILOTE DE QUALITÉ) sous le pilote l'échelle QL ne décide plus en course */dprT=1.1;const fort9=QLR.p50>24,tire9=QLR.p75>PAL.bT('imgQlP75',24,'f')||QLR.p50>18.5; /* (2026-11-07, passe perf 3, P2 · levier f) téléphone récent : l'échelle QL réagit dès p75 > 19 ms (au lieu de 24 : « plus d'un quart des images ratées d'un tiers de période ») ; `?img=max` / `?imgsans=f` = 24 */ /* (OPTIMISATION) voir L'IMAGE EN AUTOMATIQUE */
     /* LA NETTETÉ NE SE SACRIFIE QUE SI ÇA PAIE (tour 2) : un cran de RÉSOLUTION posé, on regarde 3 s plus tard si la médiane a
        baissé. Si non (le téléphone bute ailleurs : processeur, affichage), la résolution revient et ce cran devient un MUR — on ne
        floute pas l'image pour rien. */

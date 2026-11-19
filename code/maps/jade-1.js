@@ -403,7 +403,7 @@ const JF_RE=ALLEGE&&!/[?&]sans=reprises\b/.test(location.search)?4:0;
 function jfDirect(){return JF.lim===Infinity||JF.d>0;}
 function jadeFini(it){let r; /* un générateur mené d'un trait */
   if(!JF_RE||JF.lim!==Infinity){do{r=it.next();}while(!r.done);return r.value;}
-  JF.d++;try{do{JF.lim=performance.now()+JF_RE;r=it.next();}while(!r.done);}finally{JF.d--;JF.lim=Infinity;}
+  const l0=JF.lim;JF.d++;try{do{JF.lim=performance.now()+JF_RE;r=it.next();}while(!r.done);}finally{JF.d--;JF.lim=l0;} /* (2026-11-17, lot portv 2e tour) l'échéance d'entrée revient (Infinity ici), jamais une valeur posée en dur */
   return r.value;}
 const VOXM={P:null,N:null,M:null,A:null,I:null,pris:false};
 function voxMesh(G,inner){return jadeFini(voxMeshG(G,inner));}
