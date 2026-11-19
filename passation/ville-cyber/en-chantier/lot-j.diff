@@ -1,0 +1,112 @@
+diff --git a/code/ORDRE.txt b/code/ORDRE.txt
+index be1005f36..06f8fd486 100644
+--- a/code/ORDRE.txt
++++ b/code/ORDRE.txt
+@@ -160,6 +160,7 @@ maps/niveaux.js                      # les niveaux, le mode classique au hasard,
+ maps/continuite.js                   # continuité des maps, la planète du niveau
+ rendu/equilibre-maps.js              # l'équilibre des maps : la dernière couche d'étalonnage, map × météo, calée sur les mesures (?equilibre=0|A|B)
+ rendu/lumiere-design.js              # le plan de feu : l'échelle des clartés (route, contre-jour, liseré) par ambiance, jugée sur le chemin iPhone (?lumiere=0)
++maps/cryptocity-jour.js              # CRYPTO CITY de jour = la carte de la nuit (ville) sous trois soleils : matin, midi, soir, que la lumière (?sans=cryptojour)
+ maps/audit-placement.js              # dbgAudit : l'audit des décors posés au sol (pics flottants…)
+ maps/orbite-1.js                     # L'ORBITE : la lune, les Starlink, les variantes empilées
+ maps/orbite-lune.js                  # orbite : la lune choquée (visage de troll, regard sur la caisse), vue en frénésie seulement (?lune=0)
+diff --git a/code/maps/cryptocity-jour.js b/code/maps/cryptocity-jour.js
+new file mode 100644
+index 000000000..d02ae1872
+--- /dev/null
++++ b/code/maps/cryptocity-jour.js
+@@ -0,0 +1,74 @@
++/* ===== CRYPTO CITY DE JOUR : LA MÊME VILLE, UN AUTRE SOLEIL (2026-11-19, Sacha : « non on la met aussi dans la version mobile il faut qu'elle soit au meme
++   niveau que la map jour », puis « en fait il faut que ça soit la même map mais juste le soleil qui change ») =====
++   Avant, le jour et la nuit de Crypto City étaient DEUX cartes réunies au tirage (SF_FUSION) : la nuit `ville` (le béton, les néons, les modules route-ville,
++   les cadres de néon) et le jour `crypto` (un autre générateur de tracés — MODC 'crypto' —, d'autres tours — cryptoTour, cryptoMatTours —, ses pièces ₿, ses
++   dirigeables, ses fusées, sa couronne d'horizon). Ce n'était pas la même ville, et le jour coûtait plus cher (+10 programmes, ~+16 % de triangles).
++   Désormais le JOUR, ce sont trois MÉTÉOS de la carte de la nuit : `ville` × matin / midi / soir. Le niveau est celui de la nuit (SF_NIV.ville : même id,
++   ni `crypto` ni `vitre`), donc MÊME route (même générateur, même graine), mêmes tours, mêmes géantes de verre, mêmes décors, mêmes scènes, mêmes modules.
++   Ce qui change, et seulement ça : l'AMBIANCE (cjMatin / cjMidi / cjSoir : ciel, soleil, brume, hémisphère, étalonnage), pas de pluie ni d'orage (le temps
++   de la nuit), la teinte néon de la nuit (violet / vert / jaune) laissée à la nuit, les façades en jour (CITY.uJ, déjà là : facades-jour du 14/10), le verre
++   des géantes qui renvoie le vrai ciel (la branche de jour de villeVerreTick), la route sèche et polie qui renvoie le ciel, pas de lueur violette au pied
++   des tours. Aucun programme, aucune texture, aucune géométrie de plus : des valeurs et des uniformes déjà compilés.
++   L'ancienne carte `crypto` reste dans le code (`?carte=crypto`), hors du tirage (SF_HORS, niveaux.js), ses ambiances intactes.
++   `?sans=cryptojour` = le jeu d'avant au bit près (rien de ce morceau ne s'exécute). */
++const CJ={part:.5,fj:0}; /* la part du JOUR dans Crypto City (0 : jamais, .5 : autant que la nuit, comme l'ordinateur depuis le 25/10) */
++const CJ_BIO={matin:'cjMatin',midi:'cjMidi',soir:'cjSoir'};
++const CJ_ROUTE={cjMatin:{g:2.4,s:.5,j:.3,t:[1,1,1]},cjMidi:{g:2.4,s:.5,j:.3,t:[1,1,1]},cjSoir:{g:2.4,s:.5,j:.3,t:[.72,.76,1.08]}}; /* la dalle polie : uGlace (le ciel renvoyé en rasant), uSheen (la brillance
++   d'horizon), t (la teinte du béton, ×) · j : le JOUR DES FAÇADES (CITY.uJ) — 1 = le verre de jour pur ; plus bas, les carreaux de la nuit (verre sombre, pièces
++   allumées) reviennent en partie : les fenêtres se lisent jusqu'aux tours lointaines au lieu d'un bloc uni dans la brume (passe 2, contrôle de la reprise) */
++function cjPoids(){const V=SF_CARTES.ville.m,n=V.orage.p==null?1:V.orage.p,p=Math.max(0,Math.min(.98,CJ.part)),k=p/(1-p)*n/3.5; /* à .5 : 1 / 1,3 / 1,2, les poids du jour d'avant */
++  V.matin.p=1*k;V.midi.p=1.3*k;V.soir.p=1.2*k;}
++if(CRYPTO_JOUR){
++  /* LES TROIS AMBIANCES : copies des ambiances FINIES du jour d'avant (toutes les passes d'étalonnage faites), puis la lumière du jour de la ville. Les
++     originales (bullrun, cryptoMatin, cryptoSoir) ne bougent pas : `?carte=crypto` garde son image. */
++  const cl=function(n,o){const b=JSON.parse(JSON.stringify(BIOMES[n]));return Object.assign(b,o);};
++  /* MIDI · LE SOLEIL DUR : azur profond, verre bleu au sommet et or au pied, ombres bleues */
++  BIOMES.cjMidi=cl('bullrun',{nm:'CRYPTO CITY · MIDI',
++    jZen:[.02,.15,.68],jMid:[.20,.50,.93],jHor:[1,.84,.56],jSol:[1,.66,.26],
++    fog:[.60,.74,.94],fogN:900,fogCj:[1,.84,.58],fogIn:[.80,.88,1],
++    sunC:[1,.93,.76],sunI:1.6,hemiS:[.56,.72,1],hemiG:[.70,.50,.24],hemiI:.42,fillC:[.44,.70,.98],
++    kickC:[1,.78,.36],kickI:.18,expo:.8,con:1.34,sat:1.34,sh:[-.004,.012,.05],hi:[.02,.01,-.02],bloomS:.3,vigK:.3,vigC:[.04,.06,.16],
++    rtK:.84,rtT:[.86,.94,1.14],
++    env:[[0,'#1a5ad0'],[.3,'#4a94ea'],[.48,'#f2d8a0'],[.58,'#ffc860'],[.66,'#a8884e'],[1,'#5e4c30']]});
++  /* MATIN · LE SOLEIL BAS DORÉ : ciel bleu clair, horizon pêche et or, brume dorée (plus de lavande : refusée au 3e tour), ombres bleues */
++  BIOMES.cjMatin=cl('cryptoMatin',{nm:'CRYPTO CITY · MATIN',
++    jZen:[.12,.32,.72],jMid:[.50,.64,.92],jHor:[1,.70,.46],jSol:[1,.60,.30],
++    fog:[.78,.64,.54],fogN:1300,fogCj:[1,.72,.46],fogIn:[.92,.84,.80],
++    sunC:[1,.78,.50],sunI:1.7,hemiS:[.56,.66,1],hemiG:[.70,.46,.28],hemiI:.4,fillC:[.52,.64,1],
++    kickC:[1,.64,.36],kickI:.22,expo:.8,con:1.38,sat:1.3,sh:[0,.006,.05],hi:[.02,.008,-.012],bloomS:.32,vigK:.3,vigC:[.06,.04,.16],
++    rtK:.76,rtT:[.94,.90,1.10],
++    env:[[0,'#2c50a8'],[.3,'#8aa0d8'],[.48,'#ffd0a0'],[.58,'#ffb070'],[.66,'#a07a5c'],[1,'#544038']]});
++  /* SOIR · LE COUCHANT : zénith bleu nuit, bande orange et or, contre-jour orangé, ombres violettes */
++  BIOMES.cjSoir=cl('cryptoSoir',{nm:'CRYPTO CITY · SOIR',
++    jZen:[.08,.10,.34],jMid:[.48,.26,.46],jHor:[1,.52,.18],jSol:[1,.40,.10],
++    fog:[.50,.30,.36],fogN:1100,fogCj:[1,.50,.24],fogIn:[.80,.52,.46],
++    sunC:[1,.60,.30],sunI:1.7,hemiS:[.40,.36,.74],hemiG:[.74,.40,.18],hemiI:.4,fillC:[.50,.40,.80],
++    kickC:[1,.48,.24],kickI:.24,expo:.84,con:1.28,sat:1.1,bloomS:.34,vigK:.3,vigC:[.10,.03,.14],
++    env:[[0,'#221a62'],[.3,'#94448a'],[.48,'#ff944a'],[.58,'#ffbe60'],[.66,'#a0604a'],[1,'#4a3044']]});
++  {const v=/[?&]cjv=(\d)/.exec(location.search);if(v&&+v[1]>0)for(const n of ['cjMatin','cjMidi','cjSoir']){const b=BIOMES[n];b.fogN*=1.6;b.fogF*=1.6; /* ESSAI (banc, à retirer) */
++    if(+v[1]>1){b.fog=b.fog.map(function(x,i){return x*.5+b.jHor[i]*.5;});b.hemiI*=.7;}}}
++  /* LE TIRAGE : trois météos de plus pour la carte de la nuit — sans pluie ni orage, la route et sa brillance du jour d'avant */
++  for(const m in CJ_BIO)SF_CARTES.ville.m[m]={bio:CJ_BIO[m],pluie:0,orage:0,route:.30,sheen:.16,cj:1,p:1};
++  cjPoids();
++  /* LE LIEN `?carte=ville` sans météo garde la NUIT (comme avant) : le jour se demande par `&meteo=matin|midi|soir` */
++  const sfi0=sfImpose;sfImpose=function(prev){const f=SF.force;if(f&&f.carte==='ville'&&!f.meteo)f.meteo='orage';return sfi0(prev);};
++  /* LE NIVEAU : celui de la nuit ; ni la teinte néon de la nuit (elle repeindrait le ciel du jour), ni sa pluie. bioBase : villeRose() lit le jour */
++  const sfn0=sfNiveau;sfNiveau=function(c,m,te){const M=SF_CARTES[c]&&SF_CARTES[c].m[m];if(!M||!M.cj)return sfn0(c,m,te);
++    const o=sfn0(c,m,null);o.bio=[M.bio];o.bioBase=M.bio;delete o.teinte;return o;};
++  /* LE VERRE DES GÉANTES renvoie le vrai ciel : la branche de jour de villeVerreTick (écrite pour l'ancien jour, LVL.cur.crypto), le temps d'un appel */
++  const vvt0=villeVerreTick;villeVerreTick=function(dt){const c=LVL.cur;if(!(c&&c.cj&&!c.crypto))return vvt0(dt);c.crypto=1;try{return vvt0(dt);}finally{delete c.crypto;}};
++  /* LA ROUTE SÈCHE ET POLIE : le béton renvoie le ciel de l'heure en rasant (uGlace, uSheen : deux uniformes du béton, branche déjà compilée), la teinte
++     du béton de jour (ROUTE_JOUR, comme les autres maps de jour) ; pas de lueur violette au pied des tours (CITY.uPied : la nuit seulement) */
++  const rt0=routeTick;routeTick=function(){rt0();const c=LVL.cur,r=c&&c.cj?CJ_ROUTE[c.bio[0]]:null;
++    if(!r){if(CJ.fj){CITY.uJf=null;CJ.fj=0;}return;} /* hors du jour : les façades reprennent leur calcul (villeApres) */
++    CITY.uPied.value=0;CITY.uJf=r.j*skyU.uJour.value;CJ.fj=1;const k=(1-Math.min(1,LVL.nuit||0))*(1-Math.min(1,LVL.pluie||0));if(k<=0)return;
++    ROAD_U.uGlace.value=Math.max(ROAD_U.uGlace.value,r.g*k*GLACE.k);ROAD_U.uSheen.value=Math.max(ROAD_U.uSheen.value,r.s*k);
++    const j=k*skyU.uJour.value,t=r.t;ROAD_U.uTeinte.value.setRGB((1+(ROUTE_JOUR[0]-1)*j)*t[0],(1+(ROUTE_JOUR[1]-1)*j)*t[1],(1+(ROUTE_JOUR[2]-1)*j)*t[2]);};
++}
++window.dbgCryptoJour=function(o){ /* (banc) {part} : la part du jour · {bio:{…}} : retouche à chaud de l'ambiance courante · {route:{g,s}} */
++  if(o&&CRYPTO_JOUR){if(o.part!=null){CJ.part=+o.part;cjPoids();}if(o.route&&CJ_ROUTE[BIO.name])Object.assign(CJ_ROUTE[BIO.name],JSON.parse(JSON.stringify(o.route)));
++    if(o.bio&&BIOMES[BIO.name]){Object.assign(BIOMES[BIO.name],JSON.parse(JSON.stringify(o.bio)));bioLerp(BIOMES[BIO.name],BIOMES[BIO.name],1,BIO.cur);bioApply(BIO.cur);}
++    try{routeTick();}catch(e){}}
++  const V=SF_CARTES.ville.m,c=LVL.cur;
++  return {on:CRYPTO_JOUR,part:CJ.part,poids:Object.keys(V).map(function(k){return k+' '+(V[k].p==null?1:+(+V[k].p).toFixed(3));}).join(', '),hors:SF_HORS.crypto,
++    jour:!!(c&&c.cj),bio:BIO.name,uJ:+CITY.uJ.value.toFixed(3),pied:CITY.uPied.value,glace:+ROAD_U.uGlace.value.toFixed(3),sheen:+ROAD_U.uSheen.value.toFixed(3)};};
+diff --git a/code/maps/niveaux.js b/code/maps/niveaux.js
+index c9ff8eb45..438fe2198 100644
+--- a/code/maps/niveaux.js
++++ b/code/maps/niveaux.js
+@@ -55,7 +55,14 @@ const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau da
+    ========================================================================== */
+ const SF={on:!/[?&](classique=cycle|play=sansfin)\b/.test(location.search),pret:false,neuf:false,tirage:[],der:null,force:null,prochain:null,prochainDer:null};
+ /* (2026-10-30, Léo : « enlève la map pic de glace du jouer, elle n'est pas au niveau ») LE GLACIER (id 'banquise') quitte le JOUER : seul `?carte=banquise` le remet. */
+-const SF_HORS={vitree:VILLE_VERRE_V&&!/[?&]vitree=1\b/.test(location.search),crypto:ALLEGE&&!/[?&](carte|niveau)=crypto\b/.test(location.search),banquise:!/[?&](carte|niveau)=banquise\b/.test(location.search),dunes:!/[?&](carte|niveau)=dunes\b/.test(location.search)}; /* (2026-11-09, Sacha : « enlève la map Dune du jeu pour l'instant ») LES DUNES D'OR quittent le JOUER, les portails et les missions, comme le glacier : tout leur code reste, `?carte=dunes` (ou `?niveau=dunes`) les remet ; leur copie vit aussi sur la branche de Léo. */ /* ⚠ TEL_NATIF, PAS l'ancien drapeau mobile (2026-10-25, Sacha : « sur PC la qualité a chuté ») : `l'ancien drapeau mobile` est vrai AUSSI sur l'ordi qui joue l'édition 'mobile' (FORCE_TEL, voir EDITION) — les retraits « téléphone » du 24/10 tombaient donc sur le PC. */ /* (2026-10-24, Sacha : « enlève les maps dunes et forêt de la version mobile ») LA FORÊT n'est plus tirée sur téléphone (l'ordi la garde) · (2026-10-25, Léo : « remets la map dune dans le main, intelligible pour un iPhone 13 ») LES DUNES sont REVENUES au tirage du téléphone, allégées (DN_MOB, dunes-1.js ; `?dunesplein=1` rend l'image d'avant) ; `?carte=foret` / `?carte=dunes` les remettent */ /* (2026-10-24, Sacha : « supprime la map crypto city de téléphone ») CRYPTO CITY n'est plus tirée sur téléphone (l'ordi la garde) ; `?carte=crypto` la remet pour les essais */ /* (2026-10-25, Léo : « remets forêt sur iPhone ») LA FORÊT est REVENUE au tirage du téléphone (elle y garde son allègement : arbres ×0,8, MOB) ; l'ordi la gardait déjà */
++/* ===== CRYPTO CITY DE JOUR = LA MÊME VILLE, UN AUTRE SOLEIL (2026-11-19, Sacha : « non on la met aussi dans la version mobile il faut qu'elle soit au meme niveau
++   que la map jour », puis « en fait il faut que ça soit la même map mais juste le soleil qui change ») =====
++   Le jour de Crypto City n'est plus la carte `crypto` (ses tours d'or et de verre, ses pièces ₿, ses dirigeables : une AUTRE ville, retirée du téléphone le 24/10)
++   mais trois MÉTÉOS de la carte de la nuit, `ville` (matin, midi, soir : maps/cryptocity-jour.js) — même route, mêmes tours, mêmes décors, mêmes scènes ; seuls
++   le ciel, le soleil, la brume, les lumières, l'étalonnage et l'éclat des néons changent. Téléphone ET ordinateur. La carte `crypto` sort donc du tirage partout
++   (SF_HORS) : elle reste dans le code, `?carte=crypto` la joue. `?sans=cryptojour` = le jeu d'avant au bit près (le tirage ET le rendu). */
++const CRYPTO_JOUR=!/[?&]sans=([^&]*,)?cryptojour(,|&|$)/.test(location.search);
++const SF_HORS={vitree:VILLE_VERRE_V&&!/[?&]vitree=1\b/.test(location.search),crypto:(ALLEGE||CRYPTO_JOUR)&&!/[?&](carte|niveau)=crypto\b/.test(location.search),banquise:!/[?&](carte|niveau)=banquise\b/.test(location.search),dunes:!/[?&](carte|niveau)=dunes\b/.test(location.search)}; /* (2026-11-09, Sacha : « enlève la map Dune du jeu pour l'instant ») LES DUNES D'OR quittent le JOUER, les portails et les missions, comme le glacier : tout leur code reste, `?carte=dunes` (ou `?niveau=dunes`) les remet ; leur copie vit aussi sur la branche de Léo. */ /* ⚠ TEL_NATIF, PAS l'ancien drapeau mobile (2026-10-25, Sacha : « sur PC la qualité a chuté ») : `l'ancien drapeau mobile` est vrai AUSSI sur l'ordi qui joue l'édition 'mobile' (FORCE_TEL, voir EDITION) — les retraits « téléphone » du 24/10 tombaient donc sur le PC. */ /* (2026-10-24, Sacha : « enlève les maps dunes et forêt de la version mobile ») LA FORÊT n'est plus tirée sur téléphone (l'ordi la garde) · (2026-10-25, Léo : « remets la map dune dans le main, intelligible pour un iPhone 13 ») LES DUNES sont REVENUES au tirage du téléphone, allégées (DN_MOB, dunes-1.js ; `?dunesplein=1` rend l'image d'avant) ; `?carte=foret` / `?carte=dunes` les remettent */ /* (2026-10-24, Sacha : « supprime la map crypto city de téléphone ») CRYPTO CITY n'est plus tirée sur téléphone (l'ordi la garde) ; `?carte=crypto` la remet pour les essais */ /* (2026-10-25, Léo : « remets forêt sur iPhone ») LA FORÊT est REVENUE au tirage du téléphone (elle y garde son allègement : arbres ×0,8, MOB) ; l'ordi la gardait déjà */
+ /* (2026-10-18, Sacha : « fusionne les maps ville et ville vitrée ») les maps HORS DU TIRAGE — jouables par ?carte= et dbgClassique (voir VILLE_VERRE_V) */
+ {const q9=/[?&]carte=(\w+)/.exec(location.search)||(/[?&]niveau=crypto\b/.test(location.search)?[0,'crypto']:null),m9=/[?&]meteo=(\w+)/.exec(location.search),t9=/[?&]teinte=(\w+)/.exec(location.search);if(q9||m9)SF.force={carte:q9?q9[1]:null,meteo:m9?m9[1]:null,teinte:t9?t9[1]:null};} // (2026-10-16) + `?teinte=` (la ville : violet, vert, jaune, bleu)
+ const SF_NIV={nuages:NIVEAUX.find(function(n){return n.id==='nuages';}),orage:NIVEAUX.find(function(n){return n.id==='orage';}),
