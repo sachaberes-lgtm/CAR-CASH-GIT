@@ -36,6 +36,7 @@ function orbVoyEtat(rf,longue){
   if(!ORB_VOY)return null;
   if(ORB_PIOCHE.vo==null){const cles=Object.keys(VOY_LISTE).filter(function(k){return k!==ORB_PIOCHE.voyDer;});const c9=cles[Math.min(cles.length-1,(rf()*cles.length)|0)],cle=VOY_FORCE||c9;
     let g=VOY_LISTE[cle].g;if(!g){const a=VOY_GEANTS.slice(),x=a.splice((rf()*a.length)|0,1)[0];g=[a[(rf()*a.length)|0],x];} /* le grand tour : deux géants, le second en climax */
+    if(ESP_SANS_GEANTS)g=[]; /* (2026-11-18, L'ESPACE SANS GÉANTS) le tirage est gardé (le même hasard), le voyage n'a plus de géant : ni temps fort ni climax géant */
     const f=VOY_SILS[Math.min(VOY_SILS.length-1,(rf()*VOY_SILS.length)|0)],s=rf()<.5?-1:1,U=function(a,b){return a+(b-a)*rf();};
     const sil=f==='spirale'?{f,s,A:U(220,360)}:f==='S'?{f,s,A:U(100,150)}:f==='zigzag'?{f,s,A:U(45,70),k:U(1.5,2.5)}:f==='vague'?{f,s,A:U(60,90),k:U(1,1.5)}:{f,s,A:U(140,220),u0:U(.2,.4)};
     ORB_PIOCHE.vo={cle,g,sil};}
@@ -83,7 +84,7 @@ function orbVoyModules(M,X){
     fS(.6*Tt,p*.6*Tt,1);ev.push([iP,K.i(),s*th,OK]);fS(.3*Tt,p*.3*Tt,1);
     return {fig:'balancier',nom:ORB_NOM.balancier,calme:1,g:1,c:ev};};
   /* LE DÉVERS INVERSÉ (calme) : un virage de 72-98° où la dalle se couche VERS L'EXTÉRIEUR jusqu'à passer la verticale (110-122°) — on pend au-dessus du vide, puis elle revient */
-  M.stengel=function(){const s=cote(90),a=Math.min(98,Math.max(72,borne(s,U(74,96),60))),R=Rt(7.2,a,3.6),ang=U(1.92,2.12)*(K.ru&&K.longue/(K.el||1)<40?1.08:1),p=-.05; /* (LES ROUTES UNIQUES) plus loin au plafond sur une route courte */
+  M.stengel=function(){const s=cote(90),a=Math.min(98,Math.max(72,borne(s,U(74,96),60))),R=Rt(7.2,a,3.6),ang=U(1.92,2.12)*(K.ru&&K.longue/(K.el||1)<40?(ESP_SANS_GEANTS?ESP_KE[0]:1.08):1),p=-.05; /* (LES ROUTES UNIQUES) plus loin au plafond sur une route courte */
     const i0=K.i();fS(.4*Tt,-.03*.4*Tt,1);arc(s*a/2,R,p);const i1=K.i();arc(s*a/2,R,p);fS(.4*Tt,-.03*.4*Tt,1);const i2=K.i();
     return {fig:'stengel',nom:ORB_NOM.stengel,calme:1,g:1,c:[[i0,i1,s*ang,OK],[i1,i2,-s*ang,OK]]};};
   /* LES MARCHES (figure) : une marche raide (~17° de plus que la descente), un palier À PLAT qui tourne (relevé de 27° dans le dessin : à plat sur la route), de l'autre côté à chaque palier */
@@ -116,6 +117,7 @@ function orbVoyModules(M,X){
     pose(function(){const m=sortie();m.fig=k+'-sortie';m.nom=ORB_NOM[k]+' (sortie)';m.calme=1;m.g=1;if(cx)m.climax=1;return m;});};
   /* LA ROUE : on arrive en se couchant jusqu'à la tête en bas (~125°), on entre par une brèche du haut de la jante, on roule sur son sol intérieur (la dalle tournée vers le moyeu)
      sur 125-150° de virage en descendant — elle se relève jusqu'à ~55° — et l'on ressort par une brèche du bas */
+  if(ESP_SANS_GEANTS)return; /* (2026-11-18, L'ESPACE SANS GÉANTS) les quatre géants ne sont plus des modules : R.ok et tire ne les trouvent plus */
   M.roue=function(pose,cx){const s=balai(140),d=-s,p=-.03,a=Math.min(150,Math.max(125,borne(s,U(130,148),115))),R=Rt(7.4,a,3.8),e1=U(2.1,2.25),e2=U(.88,1.0),a0=U(40,50);
     trois(pose,cx,'roue',function(){const i0=K.i();arc(-s*a0,3.6*Tt/(a0/57.2958),p);return {c:[[i0,K.i(),d*e1,OK]]};},
       function(){const i0=K.i();arc(s*a/2,R,p);const im=K.i();arc(s*a/2,R,p);const i1=K.i();return {c:[[i0,i1,-d*(e1-e2),OK]],nu:coeur('roue',i0,im,i1)};},

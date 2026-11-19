@@ -27,7 +27,7 @@ function voyGeo(M){const g=new THREE.BufferGeometry();
   g.setAttribute('position',new THREE.Float32BufferAttribute(M.P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(M.N,3));
   g.setAttribute('aCol',new THREE.Float32BufferAttribute(M.C,3));g.setAttribute('aK',new THREE.Float32BufferAttribute(M.K,3));g.computeBoundingSphere();return g;}
 const VOY_VIDE_G=(function(){const g=new THREE.BufferGeometry();for(const k of ['position','normal','aCol','aK'])g.setAttribute(k,new THREE.Float32BufferAttribute([0,0,0,0,0,0,0,0,0],3));return g;})(); /* (VOY_OPT) la maille vide, partagée */
-const VOY_MESH=(ORB_VOY||!VOY_OPT)?[0,1].map(function(i){ /* [0] la jante de la roue · [1] la roche et le tunnel de l'astéroïde — la matière de l'épave (le même programme : rien à compiler) */
+const VOY_MESH=(!ESP_SANS_GEANTS&&(ORB_VOY||!VOY_OPT))?[0,1].map( /* (2026-11-18, L'ESPACE SANS GÉANTS) ni jante ni roche percée : aucune maille */function(i){ /* [0] la jante de la roue · [1] la roche et le tunnel de l'astéroïde — la matière de l'épave (le même programme : rien à compiler) */
   let g=VOY_VIDE_G;if(!VOY_OPT){g=new THREE.BufferGeometry();for(const k of ['position','normal','aCol','aK'])g.setAttribute(k,new THREE.Float32BufferAttribute([0,0,0,0,0,0,0,0,0],3));}
   const m=new THREE.Mesh(g,GT_EPAVE.material);m.visible=false;m.name=i?'orbite voyage : astéroïde percé':'orbite voyage : roue';scene.add(m);return m;}):[]; /* (VOY_OPT) sans le drapeau : aucune maille de plus dans la scène */
 function voyDecorVide(){VOY_D.jante=null;VOY_D.roc=null;VOY_D.neb=null;VOY_D.zonesSaut=[];VOY_D.zonesPente=[];VOY_D.info=[];VOY_D.vues=[];
@@ -49,6 +49,7 @@ function voyDecorPose(r){
   try{
     for(const m of MODS){
       if(m.fig==='bosses'||m.fig==='pique'||m.fig==='marches')VOY_D.zonesPente.push([m.s0+60,m.s1]); /* leurs crêtes : pas de saut (voir voySautRefuse) */
+      if(ESP_SANS_GEANTS)continue; /* (2026-11-18, L'ESPACE SANS GÉANTS) les pentes des tracés seulement : ni jante, ni petite lune, ni roche percée, ni nébuleuse, aucune zone de saut refusé de géant */
       if(!m.nu||!m.nu.length||m.nu[0].t!=='voy')continue;const k=m.nu[0].k,sa=m.nu[0].s,sm=m.nu[1].s,sb=m.nu[2].s;
       if(k==='roue'){voyRoue(sa,sm,sb,r);VOY_D.zonesSaut.push([sa-150,sb+60]);}
       else if(k==='lune')voyLune(sa,sm,sb,r);
@@ -122,7 +123,7 @@ const VOY_ICO={};
 function voyIco(det){let I=VOY_ICO[det];if(I)return I;const g=new THREE.IcosahedronGeometry(1,det),pos=g.attributes.position.array.slice(),n=pos.length/3,uid=new Int32Array(n),prem=[],vu=new Map();g.dispose();
   for(let q=0;q<n;q++){const k=pos[3*q]+','+pos[3*q+1]+','+pos[3*q+2];let u=vu.get(k);if(u===undefined){u=prem.length;vu.set(k,u);prem.push(q);}uid[q]=u;}
   return (VOY_ICO[det]={pos:pos,uid:uid,prem:prem,nu:prem.length});}
-if(ORB_VOY&&VOY_OPT)try{voyIco(GT_TEL?9:14);}catch(e){}
+if(ORB_VOY&&VOY_OPT&&!ESP_SANS_GEANTS)try{voyIco(GT_TEL?9:14);}catch(e){} /* (sans géants : rien à précalculer) */
 function voyAsteroide(sa,sm,sb,r){
   const F=VOY_F[0],tel=GT_TEL,M=voyMaille(),Rt9=46,Hc=20,ns=tel?12:18,st=tel?12:8,ton=VOY_TON[Math.max(0,Math.min(2,GEANTS.typ|0))];
   const roc=[ton[0]*.62,ton[1]*.62,ton[2]*.62],roc2=[ton[0]*.48,ton[1]*.48,ton[2]*.5],fen=[1,.82,.5],cri=[[.5,.95,1],[1,.45,.85],[.6,1,.55]],kI=[.5,0,.12],kL=[0,1,0];
