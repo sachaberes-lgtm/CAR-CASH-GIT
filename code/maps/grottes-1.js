@@ -1070,7 +1070,7 @@ function grtLacsBloc(A,DN,SI,R,y0,lac,eau,B,K,V){ /* l'ancien parcours d'UN bloc
   for(let o=0;o<4096;o++){if(DN[o]<=0)continue;const j=(o>>4)&15,cy=y0+(j+.5)*B,q=SI[((o&15)>>2)|((j>>2)<<2)|(((o>>8)>>2)<<4)];if(q<0)continue;const S=R.S[q];
     const L9=lac&&S>=lac.s0&&S<=lac.s1?lac:(eau&&S>=eau.s0&&S<=eau.s1?eau:null);if(!L9||cy>L9.y+2*B)continue;
     const dv=Math.max(-127,Math.round((cy-L9.y)*K));if(dv<DN[o])DN[o]=dv;if(cy<L9.y&&A[o]===1){A[o]=L9===lac?4:5;if(V)V.nAir--;}}}
-function* grtLacsG(V,R){const lac=GROTTE.lac,eau=GROTTE.eau,B=V.B,K=GRT.K;if(!lac&&!eau)return;const yMax=Math.max(lac?lac.y:-1e9,eau?eau.y:-1e9)+2*B,LQ=new Array(64),LST=GRT_NAP.on&&GRT_LACS_VITE?[]:null;
+function* grtLacsG(V,R){const lac=GROTTE.lac,eau=GROTTE.eau,B=V.B,K=GRT.K;if(!lac&&!eau)return;const yMax=Math.max(lac?lac.y:-1e9,eau?eau.y:-1e9)+2*B,LQ=new Array(64),LST=GRT_NAP.on&&GRT_LACS_VITE?{a:new Int32Array(65536),n:0}:null; /* (2026-11-19, contrôle : « un tableau JS de 839 k nombres ») LST : les cases remplies, un Int32Array qui double */
   for(let c=0;c<V.pool.length;c++){if((c&7)===7&&performance.now()>JF.lim)yield;const d=V.cle[c],cj=((d/V.CX)|0)%V.CY,y0=V.oy+cj*16*B;if(y0>yMax)continue;const A=V.pool[c],DN=V.dn[c],SI=V.si[c];
     if(!GRT_LACS_VITE){grtLacsBloc(A,DN,SI,R,y0,lac,eau,B,K,V);continue;}
     let nb=0;for(let m=0;m<64;m++){const q=SI[m];let L9=null;if(q>=0){const S=R.S[q];L9=lac&&S>=lac.s0&&S<=lac.s1?lac:(eau&&S>=eau.s0&&S<=eau.s1?eau:null);}LQ[m]=L9;if(L9)nb++;}
@@ -1078,7 +1078,7 @@ function* grtLacsG(V,R){const lac=GROTTE.lac,eau=GROTTE.eau,B=V.B,K=GRT.K;if(!la
     let A0=null,D0=null;if(GRT_LACS_VERIF){A0=A.slice();D0=DN.slice();}
     for(let m=0;m<64;m++){const L9=LQ[m];if(!L9)continue;const i0=(m&3)<<2,j0=((m>>2)&3)<<2,k0=(m>>4)<<2,lim=L9.y+2*B,cas=L9===lac?4:5;
       for(let j=j0;j<j0+4;j++){const cy=y0+(j+.5)*B;if(cy>lim)break;const dv=Math.max(-127,Math.round((cy-L9.y)*K)),noie=cy<L9.y;
-        for(let k=k0;k<k0+4;k++){const ob=(j<<4)|(k<<8);for(let i=i0;i<i0+4;i++){const o=ob|i;if(DN[o]<=0)continue;if(dv<DN[o])DN[o]=dv;if(noie&&A[o]===1){A[o]=cas;V.nAir--;if(LST)LST.push((c<<12)|o);}}}}}
+        for(let k=k0;k<k0+4;k++){const ob=(j<<4)|(k<<8);for(let i=i0;i<i0+4;i++){const o=ob|i;if(DN[o]<=0)continue;if(dv<DN[o])DN[o]=dv;if(noie&&A[o]===1){A[o]=cas;V.nAir--;if(LST){if(LST.n===LST.a.length){const a9=new Int32Array(LST.a.length*2);a9.set(LST.a);LST.a=a9;}LST.a[LST.n++]=(c<<12)|o;}}}}}}
     if(A0){grtLacsBloc(A0,D0,SI,R,y0,lac,eau,B,K,null);let e9=0;for(let o=0;o<4096;o++)if(A0[o]!==A[o]||D0[o]!==DN[o])e9++;window.__lacsEcarts=(window.__lacsEcarts|0)+e9;window.__lacsBlocs=(window.__lacsBlocs|0)+1;}}
   if(LST)yield* grtNappesG(V,R,LST,lac,eau);}
 /* ===== LES NAPPES ONT UNE LIMITE (2026-11-18, finition des maps : « la lave et l'eau sont parfois mal générées, il n'y a pas de limite ») =====
@@ -1090,15 +1090,27 @@ function* grtLacsG(V,R){const lac=GROTTE.lac,eau=GROTTE.eau,B=V.B,K=GRT.K;if(!la
    de roche au lieu d'un mur de lave, et la lave ne touche plus l'eau. Pas un sommet ni un triangle de plus : seule la matière des facettes de la rive change. Seules les cases remplies sont relues (la liste
    tenue par grtLacsG), pas un balayage. ?sans=nappes : comme avant. */
 const GRT_NAPPES=!/[?&]sans=([^&]*,)?nappes(,|&|$)/.test(location.search),GRT_NAP={on:GRT_NAPPES}; /* on : le banc Node compare avant / après sur le même champ */
-function* grtNappesG(V,R,LST,lac,eau){const B=V.B,CX=V.CX,CY=V.CY,NX=V.NX,NY=V.NY,NZ=V.NZ,rive=[];
-  for(let f=0;f<LST.length;f++){if((f&2047)===2047&&performance.now()>JF.lim)yield;const e=LST[f],c0=e>>12,cas=V.pool[c0][e&4095],L9=cas===4?lac:eau,autre=cas===4?5:4,d=V.cle[c0],o0=e&4095;
-    const i0=(d%CX)*16+(o0&15),j0=(((d/CX)|0)%CY)*16+((o0>>4)&15),k0=((d/(CX*CY))|0)*16+(o0>>8);let bord=false;
-    for(let dz=-1;dz<=1&&!bord;dz++)for(let dy=-1;dy<=1&&!bord;dy++)for(let dx=-1;dx<=1&&!bord;dx++){const i=i0+dx,j=j0+dy,k=k0+dz;if(i<0||j<0||k<0||i>=NX||j>=NY||k>=NZ)continue;
+function* grtNappesG(V,R,LST,lac,eau){const B=V.B,CX=V.CX,CY=V.CY,NX=V.NX,NY=V.NY,NZ=V.NZ,rive=[];let ms9=0,t9=performance.now(); /* (2026-11-18, contrôle tour 1) ms : le temps de calcul, pauses ôtées (dbgGrotte().nappes) */
+  const ci=function(e){return (V.cle[e>>12]%CX)*16+(e&15);},cj=function(e){return (((V.cle[e>>12]/CX)|0)%CY)*16+((e>>4)&15);},ck=function(e){return ((V.cle[e>>12]/(CX*CY))|0)*16+((e>>8)&15);};
+  /* la rive : 26 voisines ; une case loin du bord de son tronçon les lit directement dans son tableau (le cas courant, sans V.dir) */
+  for(let f=0;f<LST.n;f++){if((f&2047)===2047&&performance.now()>JF.lim){ms9+=performance.now()-t9;yield;t9=performance.now();}const e=LST.a[f],c0=e>>12,o0=e&4095,A0=V.pool[c0],cas=A0[o0],L9=cas===4?lac:eau,autre=cas===4?5:4;
+    const i0=ci(e),j0=cj(e),k0=ck(e),li=o0&15,lj=(o0>>4)&15,lk=o0>>8;let bord=false;
+    if(li>0&&li<15&&lj>0&&lj<15&&lk>0&&lk<15){const D0=V.dn[c0];for(let dz=-256;dz<=256&&!bord;dz+=256)for(let dy=-16;dy<=16&&!bord;dy+=16)for(let dx=-1;dx<=1;dx++){const o=o0+dx+dy+dz,a=A0[o];
+        if(a===autre||a===autre+2||(a===1&&D0[o]>0&&V.oy+(j0+dy/16+.5)*B<L9.y)){bord=true;break;}}}
+    else for(let dz=-1;dz<=1&&!bord;dz++)for(let dy=-1;dy<=1&&!bord;dy++)for(let dx=-1;dx<=1&&!bord;dx++){const i=i0+dx,j=j0+dy,k=k0+dz;if(i<0||j<0||k<0||i>=NX||j>=NY||k>=NZ)continue;
       const c=V.dir[(i>>4)+CX*((j>>4)+CY*(k>>4))];if(c<0)continue;const o=(i&15)|((j&15)<<4)|((k&15)<<8),a=V.pool[c][o];
       if(a===autre||a===autre+2||(a===1&&V.dn[c][o]>0&&V.oy+(j+.5)*B<L9.y))bord=true;}
     if(bord)rive.push(e);}
   for(let f=0;f<rive.length;f++){const e=rive[f],A=V.pool[e>>12];A[e&4095]+=2;}
-  GROTTE.nappes={cases:LST.length,rive:rive.length};}
+  GROTTE.nappes={cases:LST.n,rive:rive.length,ms:Math.round(ms9+performance.now()-t9)};}
+/* LA PAROI D'UNE RIVE D'EAU (2026-11-18/19, contrôle adverse : « la cuvette sous le niveau devient un TROU NOIR au milieu du plan d'eau » la nuit) : la roche sous l'eau ne rougeoie pas (seule la lave
+   éclaire sa rive, GRT_FS). MESURÉ (banc Node, graine 1 palier 20) : le creux noir est la paroi d'une fosse à plus de 60 m sous le niveau, vue D'EN HAUT à travers le plan d'eau — de l'eau, pour l'œil
+   (une lueur cuite dans aL, essayée le 19/11, la laissait noire : 4,5 % → 18,5 % de pixels noirs au bas de la vue). Donc une facette de la rive d'eau qui ne regarde PAS vers le bas garde l'eau, à toute
+   profondeur, comme avant ; seul le DESSOUS d'une nappe (l'air sous la facette : la nappe qui flotte) reste de roche. La normale géométrique (b−a)×(c−a) du mailleur pointe dans la roche (banc : 100 %
+   des facettes nettes), l'air est donc vers le bas quand ny > 0,35. Rien qu'un drapeau (2) par triangle, pas un sommet de plus. */
+function grtRiveEau(T,a,b,c){if(!GROTTE.eau||(T.F[a*4+3]!==2&&T.F[b*4+3]!==2&&T.F[c*4+3]!==2))return 0;const P=T.P;
+  const ux=P[b*3]-P[a*3],uy=P[b*3+1]-P[a*3+1],uz=P[b*3+2]-P[a*3+2],vx=P[c*3]-P[a*3],vy=P[c*3+1]-P[a*3+1],vz=P[c*3+2]-P[a*3+2];
+  const nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx,l=Math.hypot(nx,ny,nz);return l>0&&ny<.35*l?2:0;}
 /* LES PILIERS (après les lacs) : des colonnes de BASALTE qui sortent de la lave jusqu'à la voûte, des COLONNES de concrétion (en sablier) dans la
    cathédrale — loin de toutes les routes (règle d'or), dans l'air de la salle. La densité les refait roche (la physique = l'image). */
 function grtPiliers(V,R,fr){return rythmeMene(grtPiliersG(V,R,fr));} /* (2026-11-17, lot portv) d'un trait : le même générateur */
@@ -1217,7 +1229,7 @@ function* grtMailleNetsG(V,c,LL){
     let sal=0,lv=0,lvP=0;{let q9=-1;for(let q=0;q<8&&q9<0;q++){if(cv[q]<=0)continue;const ii=I0+a+(q&1),jj=J0+b+((q>>1)&1),kk=K0+cc+((q>>2)&1),ch=V.dir[(ii>>4)+V.CX*((jj>>4)+V.CY*(kk>>4))];
         if(ch>=0)q9=V.si[ch][((ii&15)>>2)|(((jj&15)>>2)<<2)|(((kk&15)>>2)<<4)];}
       if(q9>=0&&R)sal=R.SAL[q9];
-      for(let q=0;q<8&&!(lv&&lvP);q++){const p=grtLit(V,I0+a+(q&1),J0+b+((q>>1)&1),K0+cc+((q>>2)&1));if(!lv&&p>=4&&p<=7)lv=p>5?p-2:p;if(!lvP&&(p===4||p===5))lvP=p;}} /* (2026-11-18, LES NAPPES ONT UNE LIMITE) lv : une case du lac ou de sa rive (la forme, le plan, les lacs fondus — comme avant) · lvP : du lac seul (la peinture) */
+      for(let q=0;q<8&&!(lv&&lvP);q++){const p=grtLit(V,I0+a+(q&1),J0+b+((q>>1)&1),K0+cc+((q>>2)&1));if(!lv&&p>=4&&p<=7)lv=p>5?p-2:p;if(!lvP&&(p===4||p===5))lvP=p;}}if(!lvP&&lv){const Y8=lv===4?GROTTE.lac:GROTTE.eau;if(Y8&&wy>Y8.y-B*.5)lvP=lv;} /* (2026-11-18, contrôle adverse tour 1 : « la rive en roche nue fait un aplat noir la nuit ») la LÈVRE de la rive, à moins d'une demi-case sous le niveau, garde la peinture du lac : la nappe va jusqu'à son bord, seule la paroi qui descend plus bas est de roche */ /* (2026-11-18, LES NAPPES ONT UNE LIMITE) lv : une case du lac ou de sa rive (la forme, le plan, les lacs fondus — comme avant) · lvP : du lac seul (la peinture) */
     /* (2026-11-10) LE LAC EST PLAT : un sommet qui touche le lac et qui est à moins de 0,4 case de son niveau est posé EXACTEMENT dessus — l'arrondi de la densité (±0,3 m) bossuait le plan, et le pli entre le lac et une paroi ou le pied d'un pilier (un escalier de cases de 12 m) faisait des dents de 5 m le long de la ligne d'eau */
     const Y9=lv===4?GROTTE.lac:lv===5?GROTTE.eau:null,dd9=Y9?Y9.y-wy:0,dy9=Y9&&Math.abs(dd9)<B*.4&&Math.abs(dd9*gy/gl)<.9?dd9:0; /* (2026-11-10, audit JB-01) le choc lit la densité NON déplacée : sur une berge en pente douce la roche dessinée s'écartait jusqu'à 4,8 m de celle qui tue — le sommet n'est posé sur le lac que si l'écart le long de la normale reste sous 0,9 m (sur une paroi droite, là où la ligne d'eau comptait, rien ne change) */
     const p3=nv*3,p4=nv*4;T.P[p3]=lx;T.P[p3+1]=ly+dy9;T.P[p3+2]=lz;T.Fl[nv]=Y9&&Math.abs(dd9)<B*.4&&Math.abs(dd9*gy/gl)<.9?(lv===4?1:2):0;
@@ -1295,9 +1307,9 @@ function* grtMailleNetsG(V,c,LL){
   for(let t=0;t<nt;t++){if((t&2047)===2047&&performance.now()>JF.lim)yield;const a=T.I[t*3],b=T.I[t*3+1],c9=T.I[t*3+2],fu=t*3>=fA&&t*3<fB,ma=fu?T.F[a*4]:T.Fp[a*2],mb=fu?T.F[b*4]:T.Fp[b*2],mc=fu?T.F[c9*4]:T.Fp[c9*2],mt=(ma===mb||ma===mc)?ma:(mb===mc?mb:(ma||mb||mc));
     /* (2026-11-10, Sacha : « des triangles très visibles sur l'eau et la lave ») w4 = le BORD D'UN LAC (0 aucun · 1 lave · 2 eau : un coin du triangle touche une case du lac) + 4 × le TON de la facette (0-63). La matière
        lave/eau/roche ne se joue plus sur la majorité des coins (des dents de 12 m le long du rivage) : le fragment la décide à la HAUTEUR du lac (uLacW, GRT_FS) — la ligne d'eau est droite, au pixel près. */
-    const lk=fu?Math.max(T.F[a*4+3],T.F[b*4+3],T.F[c9*4+3]):Math.max(T.Fp[a*2+1],T.Fp[b*2+1],T.Fp[c9*2+1]) /* (LES NAPPES ONT UNE LIMITE) un bloc fondu garde la peinture d'avant : il est sur le plan */,w4=lk+4*grtR6(V.ox+I0*B+(T.P[a*3]+T.P[b*3]+T.P[c9*3])/3,V.oy+J0*B+(T.P[a*3+1]+T.P[b*3+1]+T.P[c9*3+1])/3,V.oz+K0*B+(T.P[a*3+2]+T.P[b*3+2]+T.P[c9*3+2])/3,T.F[a*4+1],GRT_VASTE?.11:.16);
+    const lk=fu?Math.max(T.F[a*4+3],T.F[b*4+3],T.F[c9*4+3]):Math.max(T.Fp[a*2+1],T.Fp[b*2+1],T.Fp[c9*2+1],grtRiveEau(T,a,b,c9)) /* (LES NAPPES ONT UNE LIMITE) un bloc fondu garde la peinture d'avant : il est sur le plan ; (contrôle tour 1) un sommet de la RIVE de lave (drapeau 1 dans F, pas dans Fp) prend la salle de la lave (4) : la roche sous le niveau y ROUGEOIE (LE RIVAGE ROUGEOIE, GRT_FS) au lieu d'un aplat noir la nuit — son sous-cube, hors portée, portait la salle d'à côté */,w4=lk+4*grtR6(V.ox+I0*B+(T.P[a*3]+T.P[b*3]+T.P[c9*3])/3,V.oy+J0*B+(T.P[a*3+1]+T.P[b*3+1]+T.P[c9*3+1])/3,V.oz+K0*B+(T.P[a*3+2]+T.P[b*3+2]+T.P[c9*3+2])/3,T.F[a*4+1],GRT_VASTE?.11:.16);
     for(let k=0;k<3;k++){const v=k===0?a:k===1?b:c9,o=t*3+k;P[o*3]=T.P[v*3];P[o*3+1]=T.P[v*3+1];P[o*3+2]=T.P[v*3+2];
-      F[o*4]=mt;F[o*4+1]=T.F[v*4+1];F[o*4+2]=T.F[v*4+2];F[o*4+3]=w4;Lt[o*4]=T.Lt[v*4];Lt[o*4+1]=T.Lt[v*4+1];Lt[o*4+2]=T.Lt[v*4+2];Lt[o*4+3]=T.Lt[v*4+3];}}
+      F[o*4]=mt;F[o*4+1]=!fu&&T.F[v*4+3]===1&&T.Fp[v*2+1]!==1?4:T.F[v*4+1];F[o*4+2]=T.F[v*4+2];F[o*4+3]=w4;Lt[o*4]=T.Lt[v*4];Lt[o*4+1]=T.Lt[v*4+1];Lt[o*4+2]=T.Lt[v*4+2];Lt[o*4+3]=T.Lt[v*4+3];}}
   return {P:P,F:F,L:Lt,I:null,nv:nt*3,nt:nt};}
 /* LES DÉCORS : des FORMES low-poly (prismes à n pans qui s'affinent, boîtes orientées, octaèdres), rangées par tronçon, dessinées dans la même
    matière que la roche (matière, lumière cuite à leurs coins). Les grosses entrent aussi dans les COLLISIONS (boîtes orientées, grille de 64 m). */

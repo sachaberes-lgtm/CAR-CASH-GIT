@@ -1,4 +1,4 @@
-/* LES NAPPES DE LAVE ET D'EAU (2026-11-18, finition des maps : « il n'y a pas de limite ») — node outils/banc-routes/grotte-nappes.cjs paliers(0,10,20) graines(1-200) [detail=1]
+/* LES NAPPES DE LAVE ET D'EAU (2026-11-18, finition des maps : « il n'y a pas de limite ») — node outils/banc-routes/grotte-nappes.cjs paliers(0,10,20) graines(1-200) [detail=1]   env TRAV=1 : le mailleur du travailleur comparé au bit près
    Le VRAI genGrotte + pisteTordPropre + grtEchantillons, puis le VRAI champ de la grotte (grtMonde, grtNoyau + grtCreuse1 et le bassin, les galeries, grtLacsG) et le VRAI mailleur
    (grtMailleNetsG, chaque tronçon) dans un vm Node — déterministe, sans navigateur. Ce que l'œil voit est lu dans les TRIANGLES sortis du mailleur (w4 : le drapeau « un coin touche le lac »,
    la matière du fragment = lave/eau sous le niveau + 0,9 m, voir GRT_FS) :
@@ -44,6 +44,15 @@ function __bancLacs(V0,R,seed,on){function fin(it){let r;do{r=it.next();}while(!
 function __bancMaille(V,c){let r,it=grtMailleNetsG(V,c,null);do{r=it.next();}while(!r.done);return r.value;}`, ctx);
 const tot = {}; const pires = []; const MODES = (process.env.MODES || 'avant,apres').split(',');
 function ajoute(k, v) { tot[k] = (tot[k] || 0) + v; }
+/* (2026-11-19, contrôle : « vérifier le Worker de la grotte ») TRAV=1 : chaque tronçon est aussi maillé par le CODE DU TRAVAILLEUR — la liste `fns` lue dans grotte-travailleur.js, les sources recopiées
+   et aplaties comme grwPlat, dans un vm à part avec l'en-tête et l'état de grwInit — et comparé octet par octet (P, F, L) au mailleur du fil principal. */
+let TRAV = null;
+if (process.env.TRAV) { const src = require('fs').readFileSync(require('path').resolve(__dirname, '../../code/maps/grotte-travailleur.js'), 'utf8'), liste = /const fns=\[([^\]]+)\]/.exec(src)[1].split(',');
+  const plat = s => { if (s.indexOf('function*') !== 0) return s; const t = s.replace(/^function\*\s*/, 'function ').replace(/if\([^;{}]*?performance\.now\(\)>JF\.lim\)yield;/g, ''); return /\byield\b/.test(t) ? s : t; };
+  const code = "'use strict';function grwFait(x){if(x&&typeof x.next==='function'){var r;do{r=x.next();}while(!r.done);return r.value;}return x;}\nvar GRT={B:12,K:1.6},GRV={nzK:2},GRT_VASTE=true,ROAD_HALF=28,THICK=5.2,JF={lim:Infinity},GRT_ARETES=" + JSON.stringify(vm.runInContext('GRT_ARETES', ctx)) + ",GRT_TMP={lum:[0,0,0,0],loc:null,vid:null,P:null,F:null,Lt:null,I:null},GRT_AMB=[],GROTTE={},GT={},MV=null,MLL=null;\n" + liste.map(n => plat(vm.runInContext(n + '.toString()', ctx))).join('\n');
+  TRAV = vm.createContext({ Math, performance: { now: () => 0 }, Float32Array, Int32Array, Uint8Array, Int8Array, Uint32Array, Uint16Array, Map, Array, Object, JSON }); vm.runInContext(code, TRAV);
+  TRAV.__init = vm.runInContext('(function(V,g){GT=g.GT;GRT_AMB=g.AMB;GRV={amb:g.GRV.amb,tR2:g.GRV.tR2,tF:g.GRV.tF,lavL:g.GRV.lavL,lumN:g.GRV.lumN,lumG:g.GRV.lumG,lacFus:g.GRV.lacFus,nuls:g.GRV.nuls};GROTTE={R:{SAL:g.G.R.SAL},lac:g.G.lac,eau:g.G.eau,piliers:g.G.piliers,lavLum:g.G.lavLum,galeries:g.G.galeries||null};GRT_VASTE=g.vaste;ROAD_HALF=g.rh;THICK=g.th;MV=V;})', TRAV);
+  TRAV.__maille = vm.runInContext('(function(c){return grwFait(grtMailleNetsG(MV,c,null));})', TRAV); }
 let hTout = 0;
 for (const pal of PAL) for (let g = g0; g <= g1; g++) {
   try { vm.runInContext('GRT_VUS.length=0', ctx); } catch (e) {}
@@ -68,6 +77,9 @@ for (const pal of PAL) for (let g = g0; g <= g1; g++) {
       if (process.env.MAILLE === '0') break;
       if (!proche[V.cle[c]] || V.oy + (((V.cle[c] / V.CX) | 0) % V.CY) * 16 * B > yH) continue; o.troncons = (o.troncons || 0) + 1;
       const d = V.cle[c], I0 = (d % V.CX) * 16, J0 = (((d / V.CX) | 0) % V.CY) * 16, K0 = ((d / (V.CX * V.CY)) | 0) * 16, m = ctx.__bancMaille(V, c);
+      if (TRAV) { if (o.trav === undefined) { o.trav = 0; o.travKo = 0; TRAV.__init(V, vm.runInContext('({GT:GT,AMB:GRT_AMB,GRV:GRV,G:GROTTE,vaste:GRT_VASTE,rh:ROAD_HALF,th:THICK})', ctx)); }
+        const w = TRAV.__maille(c), eg = (x, y) => { if (x.length !== y.length) return false; const a = new Uint8Array(x.buffer, x.byteOffset, x.byteLength), b = new Uint8Array(y.buffer, y.byteOffset, y.byteLength); for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false; return true; };
+        o.trav++; if (w.nt !== m.nt || !eg(w.P, m.P) || !eg(w.F, m.F) || !eg(w.L, m.L)) o.travKo++; }
       o.tri += m.nt; const P = m.P, F = m.F; { const u = new Uint32Array(P.buffer, P.byteOffset, P.length); for (let i = 0; i < u.length; i++) hP = Math.imul(hP ^ u[i], 16777619) >>> 0; for (let i = 0; i < F.length; i++) hF = Math.imul(hF ^ F[i], 16777619) >>> 0; }
       for (let t = 0; t < m.nt; t++) { const lk = F[t * 12 + 3] & 3; if (!lk) continue; o.triLac++; const L9 = lk === 1 ? lac : eau; if (!L9) continue;
         let ymin = 1e9; const Y = []; for (let k = 0; k < 3; k++) { const y = V.oy + J0 * B + P[(t * 3 + k) * 3 + 1]; Y.push(y); ymin = Math.min(ymin, y); }
@@ -95,7 +107,7 @@ for (const pal of PAL) for (let g = g0; g <= g1; g++) {
           if (t9) o.contact++; } }
       if (o.contact) o.ecart = Math.abs(Math.round(lac.y - eau.y)); }
     /* la route */
-    for (let q = R.i0; q < R.n - 20; q++) { for (const d9 of [0, 3, 8]) { const x = R.X[q] - R.NNX[q] * d9, y = R.Y[q] - R.NNY[q] * d9, z = R.Z[q] - R.NNZ[q] * d9, a = ctx.grtIci(V, x, y, z); if (a === 4 || a === 5) { o.route++; break; } }
+    for (let q = R.i0; q < R.n - 20; q++) { for (const d9 of [0, 3, 8]) { const x = R.X[q] - R.NNX[q] * d9, y = R.Y[q] - R.NNY[q] * d9, z = R.Z[q] - R.NNZ[q] * d9, a = ctx.grtIci(V, x, y, z); if (a >= 4 && a <= 7) { o.route++; break; } /* (contrôle tour 1) 6/7 = la rive : toujours la nappe */ }
       for (const L9 of [lac, eau]) if (L9 && R.S[q] >= L9.s0 && R.S[q] <= L9.s1 && R.Y[q] < L9.y + 2) { o.noyes++; break; } }
   }
   o.hP = hP.toString(16); o.hF = hF.toString(16); aj('hP', 0); tot[mode + '.hP'] = Math.imul((tot[mode + '.hP'] || 0) ^ hP, 16777619) >>> 0; tot[mode + '.hF'] = Math.imul((tot[mode + '.hF'] || 0) ^ hF, 16777619) >>> 0;
@@ -111,7 +123,8 @@ for (const pal of PAL) for (let g = g0; g <= g1; g++) {
   o.paroi = Math.round(o.paroi); o.dessous = Math.round(o.dessous);
   o.nappes = vm.runInContext('GROTTE.nappes', ctx); vm.runInContext('GROTTE.nappes=null', ctx);
   for (const k of ['paroi', 'dessous', 'cote', 'flotte', 'contact', 'route', 'noyes']) { aj(k, o[k]); if (o[k] > (k === 'paroi' || k === 'dessous' ? 20 : k === 'cote' || k === 'flotte' ? 2 : 0)) aj('graines_' + k, 1); }
-  aj('tri', o.tri); aj('triLac', o.triLac); aj('grottes', 1); if (lac) aj('avecLave', 1); if (eau) aj('avecEau', 1); if (o.nappes) { aj('rempli', o.nappes.rempli); aj('rive', o.nappes.rive); }
+  if (o.trav !== undefined) { aj('trav', o.trav); aj('travKo', o.travKo); }
+  aj('tri', o.tri); aj('triLac', o.triLac); aj('grottes', 1); if (lac) aj('avecLave', 1); if (eau) aj('avecEau', 1); if (o.nappes) { aj('cases', o.nappes.cases); aj('rive', o.nappes.rive); aj('cuvettes', o.nappes.cuvettes || 0); aj('comblees', o.nappes.comblees || 0); aj('msNappes', o.nappes.ms || 0); }
   pires.push(o); if (detail) console.log(JSON.stringify(o)); }
 }
 const poids = o => o.paroi + o.dessous + 144 * (o.cote + o.flotte); pires.sort((a, b) => poids(b) - poids(a));
