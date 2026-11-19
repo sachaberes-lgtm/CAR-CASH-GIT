@@ -11,11 +11,12 @@
      5  ombre un cran plus bas (cartes préchauffées)                 [C]
      6  ciel 1/4, traits et traînées ×0,75, vent et émission ×0,75   [C]
      7  halo d'entrée en demi-résolution (cibles du halo refaites)    [P] au portail ou sous voile
-     8  ombre 512, halo 2 étages, ciel 1/8, traits ×½ (= GDX_CRI)    [P] (la loupe de la caisse, qui retaille la toile visible : coupée sous voile seulement)
+     8  ombre 512, halo 2 étages, ciel 1/8, traits ×½ (= GDX_CRI)    [P] (jusqu'au 19/11 la loupe de la caisse tombait ici ; elle est désormais le cran 13, voir LA VOITURE EN DERNIER)
      9  niveau − 1 (N2 → N1)                                         [V] sous voile : départ, mort, pause, menu
     10  plafond de résolution × 0,9                                  [V]
     11  plafond de résolution × 0,8                                  [V]
     12  SURVIE : halo coupé (QUAL_LOW)                               [V]
+    13  LA CAISSE : la loupe retirée (la toile visible reprend la taille de la scène)   [V] (2026-11-19, lot pilotevoiture : voir LA VOITURE EN DERNIER plus bas)
    LE NIVEAU : le réglage du joueur devient un PLAFOND. Jamais choisi = AUTO = le niveau HAUTE de la classe (N2 sur le 13 Pro, au lieu de N1) ; BASSE choisie = le niveau BASSE ; HAUTE choisie = HAUTE.
      ⚠ À VALIDER PAR SACHA. `?sans=pilauto` = un téléphone jamais choisi reste au niveau BASSE, comme avant.
    LE DÉPART (avant la première image de course, et au chargement), lu sur les conditions (`pilCond` : thermique d'iOS, branché, économie, batterie) — `pilTableC` :
@@ -54,9 +55,28 @@
    `?sans=pilauto` · `?sans=pilanticipe` · `?sans=pilgels` (tout tic raté = charge, comme avant) · `?sans=pilurgence` · `?sans=pilhyst` · `?plus=pilcad33` (33 régulier au critique ; défaut = 50 visés, la base) · `?sans=pilborne` (sans la borne S3) · `?sans=pilsonde` · `?pilcible=0.7` (le budget) · `dbgPilote()` · `dbgPiloteSim({t,B,E,bat,vrai,rates,eM,K,Kv})` (simule les capteurs ; eM = la médiane des images d'écran, ms ; K = un cran posé en course, Kv = le visé). */
 const PIL_Q=location.search,PIL_ON=!/[?&]sans=[^&]*\bpilote\b/.test(PIL_Q),PIL_AUTO=!/[?&]sans=[^&]*\bpilauto\b/.test(PIL_Q),PIL_ANT=!/[?&]sans=[^&]*\bpilanticipe\b/.test(PIL_Q),PIL_SONDE=!/[?&]sans=[^&]*\bpilsonde\b/.test(PIL_Q);
 const PIL_F=(function(){const m=/[?&]pilote=([a-z0-9]+)/i.exec(PIL_Q);return m?m[1].toLowerCase():'';})();
-const PIL_NF=/^n[1-4]$/.test(PIL_F)?+PIL_F[1]:0,PIL_KF=/^k(\d|1[0-2])$/.test(PIL_F)?+PIL_F.slice(1):PIL_F==='ultime'||PIL_NF?0:PIL_F==='survie'?12:-1,PIL_FIGE=PIL_F==='fige',PIL_GEL=PIL_F==='gel';
+const PIL_NF=/^n[1-4]$/.test(PIL_F)?+PIL_F[1]:0,PIL_KF=/^k(\d|1[0-3])$/.test(PIL_F)?Math.min(/^k13$/.test(PIL_F)&&!/[?&]sans=[^&]*\b(pilotevoiture|voituredabord)\b/.test(PIL_Q)?13:12,+PIL_F.slice(1)):PIL_F==='ultime'||PIL_NF?0:PIL_F==='survie'?12:-1,PIL_FIGE=PIL_F==='fige',PIL_GEL=PIL_F==='gel';
 const PIL_B=(function(){const m=/[?&]pilcible=([\d.]+)/.exec(PIL_Q);return m?Math.max(.4,Math.min(.95,+m[1])):0;})();
-const PIL_NOM=['ULTIME','ombre en vol ½','ciel ½','polyphonie ½','halo −1 étage','ombre −1','ciel ¼ · traits ¾','halo ½','recette critique','niveau −1','résolution ×0,9','résolution ×0,8','SURVIE'];
+const PIL_NOM=['ULTIME','ombre en vol ½','ciel ½','polyphonie ½','halo −1 étage','ombre −1','ciel ¼ · traits ¾','halo ½','recette critique','niveau −1','résolution ×0,9','résolution ×0,8','SURVIE','caisse : loupe retirée'];
+/* ===== LA VOITURE EN DERNIER (2026-11-19, lot pilotevoiture, Sacha le 18/11 : « c'est pas grave si ça baisse en qualité, mais je préférais que ça soit la map qui baisse en qualité en priorité et que
+   la voiture soit toujours le plus nette […] d'abord que ça soit les textures qui baissent, mais que la voiture reste la plus nette qui soit et que ensuite on baisse la voiture ») =====
+   CONSTAT (contrôle de l'ensemble du 19/11) : sous le pilote, la loupe de la caisse (rendu/loupe-caisse.js, ce qui garde la voiture nette) tombait au cran 8 (`PILO.lpOff=K>=8`), en même temps
+   que la recette critique du décor, AVANT le niveau, la résolution et le halo coupé ; à serious avec des ratés elle tombait à la mort et la course suivante repartait sans elle ; l'urgence ROUGE
+   la retirait EN COURSE (toile visible 2532×1170 → 949×438). « La voiture d'abord » (VDA, nettete-qualite.js) n'y pouvait rien : loupeChaud rend PILO.lpOff avant sa règle.
+   DÉSORMAIS (`PIV_ON`) :
+   · la loupe est le DERNIER cran de l'échelle : K13, après le halo coupé (K12). Elle ne tombe qu'à K13 ou à CRITICAL (comme la voiture d'abord, et comme ?sans=pilote : la base ne garde
+     pas la loupe à critical, la borne S3 non plus) ;
+   · elle ne change qu'à un moment SOUS VOILE (départ, mort, pause, menu, reprise) — jamais en course, jamais à l'urgence ; et à chaque moment sous voile elle est REPOSÉE dès que l'état
+     le permet (pilPaie le regarde, même si le cran ne bouge pas) ;
+   · K13 ne s'apprend pas et ne sert jamais de départ (pilDepartCalc borne à 12) : une course repart toujours AVEC la loupe, sauf à critical ; il n'est atteint que par la dette d'une course
+     déjà à K12 (ROUGE ou ORANGE tenus), payée à la mort ou à la pause ;
+   · L'URGENCE retire d'abord le DÉCOR : 1re urgence (crans [C] dépensés, ROUGE tenu 8 s, ou vrais ratés tenus 5 s au critical) = K7-K8 (halo ½, recette critique) posés comme au portail
+     (cibles du halo refaites, résolution tenue) ; la résolution (niveau − 1 ou × 0,9) ne se paie en course qu'à la 2e, si le ROUGE tient encore 8 s (5 s au critical). Avec la loupe
+     posée, la toile VISIBLE ne change plus de taille : seules les cibles de la scène sont refaites.
+   `?sans=pilotevoiture` (ou `?sans=voituredabord`) = l'ordre d'avant au bit près : loupe retirée dès K8, à l'urgence aussi, échelle 0-12, urgence d'un seul coup. */
+const PIV_ON=!/[?&]sans=[^&]*\b(pilotevoiture|voituredabord)\b/.test(PIL_Q);
+function pilLoupeOff(K,c){if(!PIV_ON)return K>=8;return K>=13||!!(c&&c.t>=3);} /* la loupe retirée : cran 13 ou critical (l'ordre d'avant : dès le cran 8) */
+function pilKPlaf(K){return PIV_ON&&K>=12?13:12;} /* le cran le plus lourd qu'une dette peut viser : 13 (la caisse) seulement une fois la SURVIE (K12) posée */
 const PILO={K:0,Kv:0,N0:0,capN:0,src:'',cle:'',c:null,tPrev:-9,mom:'',depT:-1e9,portT:-1e9,tk:0,pauseT:0,menu:false,mort:false,mortP:false,avMort:null,fait:false,
   h:new Uint16Array(16),per:1000/30,lastImg:0,nI:0,nR:0,nT:0,wDer:0,gels:0,gelsC:0,gelMax:0,gelNT:0,fen:[],vrai:0,vraiT:0,vT:0,sondeT:0,rougeT:-1e9,rgT0:0,cT:-1e9,oT:-1e9,bleuS:0,bleuT:-9,zone:'',monte:null,mur:{},sess:{},seg:{},
   urg:null,urgFait:false,bleuC:{},bleuK:'',nEchec:0,jetonT:0,nUrg:0,cand:'',candT:0,nPort:0,portIgn:0,nDep:0,depIgn:0,jeton:false,raz:false,razIgn:0,consT:-1e9,nCons:0,consC:0,consMax:0,gS:0,geleux:false,glS:0,orT0:0,mortT:0,spinVu:false,nBorne:0,borne:null,
@@ -174,7 +194,7 @@ function pilAppliquer(K,mom,raison,nForce){ /* LE SEUL ÉCRIVAIN : pose le cran 
     PILO.K=K;if(MOB_POLY)window.__ccPoly.on=V.poly&&pilEnCourse();
     window.imgRegle(V.o);
     if(voile&&(PILO.dDpr||PILO.dBloom)){PILO.dDpr=PILO.dBloom=0;qlPose(QL.k);}
-    if(voile){pilPrechauffe();PILO.lpOff=K>=8;}
+    if(voile){pilPrechauffe();if(!PIV_ON||mom!=='urgence')PILO.lpOff=pilLoupeOff(K,cB);} /* (LA VOITURE EN DERNIER) cran 13 ou critical ; jamais à l'urgence (la toile visible ne change pas en course) */
   }catch(e){try{window.__ccNote('pilote','erreur '+String(e&&e.message).slice(0,120));}catch(x){}}
   PILO.mom='';
   if(K!==K0||PRF.n!==n0){PILO.chg++;const c=PILO.c||pilCond(),v=PILO.vraiT&&performance.now()-PILO.vraiT<15000?' · vrai '+PILO.vrai.toFixed(1).replace('.',',')+' ms':'',r=pilRates(10);
@@ -198,7 +218,7 @@ function pilMoment(m){ /* les moments invisibles : 'depart' (resetGame, start), 
     {let vu=false;for(const k9 in PILO.seg){vu=true;break;} /* (7e tour, mineur 4 du contrôle) une course quittée SANS fin (la mort n'a pas payé : offre de seconde chance ou machine encore ouvertes, puis on rejoue) : sa fin de course d'abord — l'échec, le cumul des courses courtes, la mémoire — puis la séance garde le cran tenu */
       if(vu){pilFinCourse('départ sans fin de course');if(PILO.cle&&!PIL_FIGE&&PIL_KF<0)PILO.sess[PILO.cle]={k:PILO.Kv,cap:PILO.capN};}}
     PILO.nDep++;PILO.depT=now;PILO.h.fill(0);PILO.fen.length=0;PILO.rw=[];PILO.rgSuite=0;PILO.nI=PILO.nR=PILO.nT=0;PILO.bleuS=0;PILO.bleuK='';PILO.monte=null;PILO.rgT0=0;PILO.mort=false;PILO.mortP=false;PILO.avMort=null;PILO.seg={};
-    PILO.urg=null;PILO.urgFait=false;PILO.gels=PILO.gelsC=PILO.gelMax=0;
+    PILO.urg=null;PILO.urgFait=false;PILO.urgD=false;PILO.gels=PILO.gelsC=PILO.gelMax=0;
     PILO.vraiT=PILO.vraiPT=0;if(PILO.sim)PILO.sim.vsT=0; /* (6e tour, mineur 4) la sonde confirmée n'apparie que des échantillons de CETTE course */
     if(PIL_FIGE&&PILO.fait)return;const c0=pilCond(),c=pilCondDep(c0);PILO.c=c0;if(c===c0){PILO.cle=c.cle;PILO.cand='';}PILO.tPrev=c0.t;
     const k=pilDepartK(c),n0=PRF.n;PILO.Kv=k;PILO.fait=true;pilAppliquer(k,'depart','départ');
@@ -223,6 +243,8 @@ function pilRepriseQui(){const q=[];try{if(CHANCE.offre)q.push('offre');if(CHANC
 function pilUrgVoit(now){ /* (URGENCE) à chaque image calculée : le moment le moins visible — en l'air, nitro ; sinon au bout de 3 s */
   const U=PILO.urg;if(!U)return;if(!pilEnCourse()){if(!started||gameOver)PILO.urg=null;return;}let o='';
   try{if(mode!=='drive')o='en l\'air';else if(nitroOn)o='nitro';}catch(e){}if(!o&&now-U.t>=3000)o='tout de suite (3 s)';if(!o)return;
+  if(U.deco){PILO.urg=null;PILO.urgD=true;PILO.nUrgD=(PILO.nUrgD|0)+1;PILO.rgT0=now;PILO.orT0=now;PILO.Kv=Math.max(PILO.Kv,8); /* (LA VOITURE EN DERNIER) 1re urgence : le DÉCOR (K7-K8) posé comme au portail, résolution et loupe tenues ; la résolution attend la 2e */
+    pilAppliquer(8,'portail','urgence décor · '+U.pq+' · '+o);return;}
   PILO.urg=null;PILO.urgFait=true;PILO.nUrg++;try{const g9=PILO.seg[(PILO.c||pilCond()).cle];if(g9)g9.urg=1;}catch(e){}const eff=pilPlafEff(),dsc=pilDescend();
   const k=Math.min(12,dsc?Math.max(PILO.Kv,Math.min(PILO.K,8)):Math.max(PILO.Kv,PILO.K+1,eff>1?9:10));PILO.Kv=Math.max(PILO.Kv,k);
   pilAppliquer(k,'urgence','urgence · '+U.pq+' · '+o);}
@@ -233,7 +255,8 @@ function pilPaie(m){ /* paie la dette au moment m (ou la rend) */
   if(m==='menu')k=PILO.Kv;
   if(k<K&&PILO.geleux){const cg=Math.min(K,pilCapGel(PILO.c||pilCond()));if(k<cg){k=cg;if(!PILO.glNote){PILO.glNote=1;pilNote('remontée '+(cg<K?'bornée au cran de table K'+cg:'refusée')+' · gels hors boucle sur la fenêtre');}}} /* (S2) les gels ne sont pas une marge : pas de remontée SOUS le cran de table ; (5e tour) jusqu'à lui, oui */
   const nv=pilNivCible(k,PILO.c||pilCond()),voile=m!=='portail';
-  if(k!==K||(voile&&nv!==PRF.n)||(voile&&(PILO.dDpr||PILO.dBloom))){const monte=k<K;pilAppliquer(k,m,(monte?'mieux':'dette')+' payée au '+m+(PILO.zone?' · '+PILO.zone:''));
+  let lp9=false;if(PIV_ON&&voile)try{lp9=pilLoupeOff(k,PILO.c||pilCond())!==PILO.lpOff;}catch(e){} /* (LA VOITURE EN DERNIER) la loupe reposée (ou retirée) au moment sous voile, même si le cran ne bouge pas */
+  if(k!==K||(voile&&nv!==PRF.n)||(voile&&(PILO.dDpr||PILO.dBloom))||lp9){const monte=k<K;pilAppliquer(k,m,(monte?'mieux':'dette')+' payée au '+m+(PILO.zone?' · '+PILO.zone:''));
     if(monte&&m!=='menu')PILO.monte={k:k,t:performance.now(),s:0};}
   try{PILO.sess[PILO.cle||(PILO.c||pilCond()).cle]={k:PILO.Kv,cap:PILO.capN};}catch(e){}}
 function pilTick(now,enC){ /* une fois par seconde (mobPalTick) : LE PILOTE */
@@ -297,13 +320,13 @@ function pilTick(now,enC){ /* une fois par seconde (mobPalTick) : LE PILOTE */
   /* (corrections, URGENCE) ROUGE tenu 8 s, crans [C] dépensés ; ou critical en course avec une dette de résolution (niveau ou cran ≥ 9 dû) : la résolution se paie EN COURSE, une fois */
   if(rouge&&PILO.K>=6){if(!PILO.rgT0)PILO.rgT0=now;}else PILO.rgT0=0; /* le ROUGE compté depuis que les crans [C] sont dépensés */
   if(PIL_URG&&!PILO.urg&&!PILO.urgFait&&PILO.K<12){const r8=rouge&&PILO.K>=6&&PILO.rgT0&&now-PILO.rgT0>=8000,cr=c.t>=3&&PILO.K<9&&(PILO.Kv>=9||pilDescend()||PILO.dDpr)&&PILO.orT0&&now-PILO.orT0>=5000; /* (M3) au critical, l'urgence exige ORANGE (ou ROUGE) tenu 5 s : sans ratés, la dette attend le portail ou la mort */
-    if(r8||cr){PILO.urg={t:now,pq:r8?'ROUGE tenu '+Math.round((now-PILO.rgT0)/1000)+' s à K'+PILO.K+' (crans [C] dépensés)':'critical en course, dette de résolution (visé K'+PILO.Kv+(pilDescend()?', niveau dû':'')+')'};pilNote('urgence armée · '+PILO.urg.pq);}}
+    if(r8||cr){PILO.urg={t:now,deco:PIV_ON&&PILO.K<8&&!PILO.urgD,pq:r8?'ROUGE tenu '+Math.round((now-PILO.rgT0)/1000)+' s à K'+PILO.K+' (crans [C] dépensés)':'critical en course, dette de résolution (visé K'+PILO.Kv+(pilDescend()?', niveau dû':'')+')'};pilNote('urgence armée'+(PILO.urg.deco?' (décor d\'abord)':'')+' · '+PILO.urg.pq);}}
   if(PILO.monte&&now-PILO.monte.t<30000&&(rouge||orange)){const M=PILO.mur[c.cle],d=M&&now<M.fin+600000?Math.min(960000,M.d*2):120000;
     PILO.mur[c.cle]={k:PILO.monte.k,fin:now+d,d:d};PILO.Kv=Math.max(PILO.Kv,PILO.monte.k+1);pilNote('mur · K'+PILO.monte.k+' rate dans les 30 s ('+PILO.zone+') · '+Math.round(d/60000)+' min · '+c.cle);PILO.monte=null;}
   if(rouge){PILO.rougeT=now;PILO.bleuS=0;PILO.bleuC[PILO.bleuK]=0;
     if(PILO.K<6){if(now-PILO.cT>=3000){PILO.cT=now;PILO.Kv=Math.max(PILO.Kv,PILO.K+1);pilAppliquer(PILO.K+1,'course','rouge');}}
-    else if(now-PILO.oT>=10000&&PILO.Kv<Math.min(12,PILO.K+3)){PILO.oT=now;PILO.Kv=Math.max(PILO.Kv,PILO.K)+1;pilNote('dette · rouge, crans [C] épuisés · visé K'+PILO.Kv);}}
-  else if(orange){PILO.bleuS=0;PILO.bleuC[PILO.bleuK]=0;if(now-PILO.oT>=10000&&PILO.Kv<Math.min(12,PILO.K+3)){PILO.oT=now;PILO.Kv=Math.max(PILO.Kv,PILO.K)+1;pilNote('dette · orange'+(chaudGel?' (gels au chaud : '+PILO.glS+' s, th '+c.t+')':'')+' · visé K'+PILO.Kv+(r10?' · ratés '+(r10.r*100).toFixed(1).replace('.',',')+' %':'')+(v!=null?' · vrai '+v.toFixed(1).replace('.',','):'')+' / '+T.toFixed(1).replace('.',','));}}
+    else if(now-PILO.oT>=10000&&PILO.Kv<Math.min(pilKPlaf(PILO.K),PILO.K+3)){PILO.oT=now;PILO.Kv=Math.max(PILO.Kv,PILO.K)+1;pilNote('dette · rouge, crans [C] épuisés · visé K'+PILO.Kv);}}
+  else if(orange){PILO.bleuS=0;PILO.bleuC[PILO.bleuK]=0;if(now-PILO.oT>=10000&&PILO.Kv<Math.min(pilKPlaf(PILO.K),PILO.K+3)){PILO.oT=now;PILO.Kv=Math.max(PILO.Kv,PILO.K)+1;pilNote('dette · orange'+(chaudGel?' (gels au chaud : '+PILO.glS+' s, th '+c.t+')':'')+' · visé K'+PILO.Kv+(r10?' · ratés '+(r10.r*100).toFixed(1).replace('.',',')+' %':'')+(v!=null?' · vrai '+v.toFixed(1).replace('.',','):'')+' / '+T.toFixed(1).replace('.',','));}}
   else if(bleu){if(PILO.bleuT<0||c.t<PILO.bleuT)PILO.bleuT=c.t;if(c.t>PILO.bleuT){PILO.bleuS=0;PILO.bleuT=c.t;}PILO.bleuS++;PILO.bleuC[PILO.bleuK]=PILO.bleuS;
     if(PILO.bleuS>=60&&now-PILO.rougeT>120000&&PILO.Kv>=PILO.K&&PILO.K>0&&pilMurPlancher(c.cle)<PILO.K&&!pilDescend()){
       const k=PILO.K-1,d0=pilVoulu(PILO.K).o.dpr,d1=pilVoulu(k).o.dpr,p=vB*Math.pow(d1/Math.max(.1,d0),2)*(k===8&&PILO.K===9?1.6:1);
@@ -324,7 +347,7 @@ function pilNoteGels(now,fin){ /* (GELS ≠ CHARGE) les trous hors boucle, au jo
   pilNote('gel · '+PILO.gelsC+' trou'+(PILO.gelsC>1?'s':'')+' hors boucle (max '+Math.round(PILO.gelMax)+' ms, boucle '+PILO.wDer.toFixed(1).replace('.',',')+' ms) · K'+PILO.K+' inchangé · '+PILO.gels+' dans la course');PILO.gelsC=0;}
 function pilDeCle(cle){const m=/^B(\d)E(\d)T(-?\d)$/.exec(cle||'');return m?{B:m[1]==='1',E:m[2]==='1',t:+m[3]}:{};}
 window.dbgPilote=function(o){if(o==='oubli'){try{pilOubli();}catch(e){}}
-  const c=pilCond();return {on:pilOn(),force:PIL_F||null,gel:PIL_GEL,K:PILO.K,nom:PIL_NOM[PILO.K],vise:PILO.Kv,dette:PILO.Kv-PILO.K,niveau:PRF.n,plafond:(function(){try{return pilPlafEff();}catch(e){return null;}})(),plafondJoueur:(function(){try{return pilPlafond();}catch(e){return null;}})(), /* (M5) l'ordinateur n'a pas de classe : dbgPilote ne lève plus */auto:PIL_AUTO&&!pilChoisi(),src:PILO.src,cond:c,cle:(PRF.modele||'?')+'|'+c.cle,
+  const c=pilCond();return {on:pilOn(),pv:PIV_ON,lpOff:PILO.lpOff,loupe:(function(){try{return {on:LOUPE.on,toile:LOUPE.on?[LOUPE.bw,LOUPE.bh]:[renderer.domElement.width,renderer.domElement.height]};}catch(e){return null;}})(),nUrgD:PILO.nUrgD|0,force:PIL_F||null,gel:PIL_GEL,K:PILO.K,nom:PIL_NOM[PILO.K],vise:PILO.Kv,dette:PILO.Kv-PILO.K,niveau:PRF.n,plafond:(function(){try{return pilPlafEff();}catch(e){return null;}})(),plafondJoueur:(function(){try{return pilPlafond();}catch(e){return null;}})(), /* (M5) l'ordinateur n'a pas de classe : dbgPilote ne lève plus */auto:PIL_AUTO&&!pilChoisi(),src:PILO.src,cond:c,cle:(PRF.modele||'?')+'|'+c.cle,
     table:pilTable(c),tableBornee:(function(){try{return pilTableK(c);}catch(e){return null;}})(),tic:+pilTic().toFixed(1),per:+PILO.per.toFixed(1),eM:CAD.eM||0,zone:PILO.zone,rates3:pilRates(3),rates10:pilRates(10),vrai:PILO.vraiT?+PILO.vrai.toFixed(1):null,bleu:PILO.bleuS,
     mur:PILO.mur,seance:PILO.sess,retailles:PILO.nRet,halo:PILO.nBloom,ombresNeuves:PILO.nOmb,dettes:{dpr:PILO.dDpr,halo:PILO.dBloom},capN:PILO.capN,descend:pilDescend(),gels:PILO.gels,trous:PILO.nT,geleux:PILO.geleux,glS:PILO.glS,constructions:PILO.nCons,borne:PILO.borne,nBorne:PILO.nBorne,jeton:PILO.jeton,razIgnores:PILO.razIgn,wDer:+PILO.wDer.toFixed(1),urgence:PILO.urg?PILO.urg.pq:PILO.urgFait?'payée':null,nUrg:PILO.nUrg,nEchec:PILO.nEchec|0,rgSuite:PILO.rgSuite|0,consEn:!!PILO.consEn,capGel:(function(){try{return pilCapGel(c);}catch(e){return null;}})(),court:PILO.court||{},nVrai:PILO.nVrai|0,vraiP:PILO.vraiPT?+PILO.vraiP.toFixed(1):null,seg:(function(){const o={};for(const k in PILO.seg){const g=PILO.seg[k];o[k]={s:g.s,rS:g.rS|0,ep:g.ep|0,rsMax:g.rsMax|0,rgMax:g.rgMax|0,ro:g.ro,kv:g.kv,k0:g.k0};}return o;})(),jetonExp:PILO.jetonExp|0,bleuCumul:PILO.bleuC,portails:{payes:PILO.nPort,ignores:PILO.portIgn,raz:PILO.razIgn},departs:{notes:PILO.nDep,ignores:PILO.depIgn},cand:PILO.cand||null,mort:PILO.mort,mortP:PILO.mortP,reprise:(function(){try{return pilRepriseQui();}catch(e){return '?';}})(),fenRates:(PILO.rw||[]).slice(),histo:Array.from(PILO.h),changements:PILO.chg,journal:PILO.jr.slice(-15),
     img:window.imgRegle(),qlMin:PAL.b('qlMin',0),poly:MOB_POLY?window.__ccPoly.on:null,cadPer:(function(){try{return +cadPer().toFixed(1);}catch(e){return null;}})(),memoire:(function(){try{return pilMemLit();}catch(e){return null;}})()};};
@@ -337,7 +360,7 @@ window.dbgPiloteSim=function(o){ /* (banc) simule les capteurs : t (thermique iO
   if(o===null){PILO.sim=null;return null;}o=o||{};
   if(o.t!=null)try{mobThermo(+o.t);}catch(e){}
   if(o.B!=null)window.__ccBranche=o.B?2:1;if(o.E!=null)window.__ccEco=o.E?1:0;if(o.bat!=null)window.__ccBatterie=+o.bat;
-  if(o.K!=null)pilAppliquer(Math.max(0,Math.min(8,+o.K)),'course','banc : K posé');if(o.Kv!=null)PILO.Kv=Math.max(0,Math.min(12,+o.Kv)); /* (banc) un cran posé en course, un cran visé */
+  if(o.K!=null)pilAppliquer(Math.max(0,Math.min(8,+o.K)),'course','banc : K posé');if(o.Kv!=null)PILO.Kv=Math.max(0,Math.min(PIV_ON?13:12,+o.Kv)); /* (banc) un cran posé en course, un cran visé */
   const S=PILO.sim||(PILO.sim={});if('vrai' in o){S.vrai=o.vrai;S.vN=1;}if(o.vrai1!=null)S.vrai1=+o.vrai1;if(o.constr!=null){pilConstr(1);setTimeout(function(){pilConstr(0);},+o.constr);} /* (6e tour) vrai1 : un échantillon isolé ; constr : une construction de constr ms */if('eM' in o)S.eM=o.eM;if(S.eM==null)delete S.eM;if('rates' in o)S.rates=o.rates;if('ni' in o)S.ni=o.ni;if('motif' in o){S.motif=o.motif;S.mi=0;if(S.motif==null)delete S.motif;}if(o.nr1!=null)S.nr1=+o.nr1; /* (8e tour) motif : ratés par seconde, en boucle ; nr1 : n ratés dans la seconde qui vient, une fois */if('gels' in o)S.gels=o.gels;if(S.gels==null)delete S.gels;if(S.vrai==null)delete S.vrai;if(S.rates==null)delete S.rates;return Object.assign({},S);};
 function pilPrechauffe(){ /* (étape 2) LES CARTES D'OMBRE PRÉCHAUFFÉES : les tailles que les crans [C] et [P] peuvent poser sur ce niveau (un cran plus bas, 512) sont allouées SOUS VOILE ; en course, un cran d'ombre
      ne fait plus que changer de carte (QL.ombres, rendu/nettete-qualite.js qlPose). Coût : ~10 Mo de mémoire graphique au N2 (1024 + 512). Comme three le ferait (WebGLShadowMap : RGBA, filtres au plus proche). */
