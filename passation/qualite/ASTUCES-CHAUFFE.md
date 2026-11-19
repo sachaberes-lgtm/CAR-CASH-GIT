@@ -3,6 +3,8 @@
 Demande de Sacha (19/11) : « des techniques pour alléger le jeu, des techniques de triche, par exemple supprimer les décors qui sont derrière le joueur. […]
 Si ça peut alléger le jeu, on le fait. Trouve plein de petites techniques comme ça, pour la chauffe, surtout. »
 
+**État (19/11, soir)** : `qa/derriere`, `qa/jumeaux` et `qa/dessinsloin` sont FUSIONNÉES dans `qualite-appareil` (oui de Sacha). `qa/horizon` attend son avis.
+
 ## En bref (pour Sacha)
 
 - **Le décor derrière toi est déjà presque gratuit.** Le moteur 3D ne dessine déjà pas ce qui est hors de l'écran. Le décor que tu as vu en te retournant
