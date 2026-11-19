@@ -49,9 +49,9 @@ function ajoute(k, v) { tot[k] = (tot[k] || 0) + v; }
 let TRAV = null;
 if (process.env.TRAV) { const src = require('fs').readFileSync(require('path').resolve(__dirname, '../../code/maps/grotte-travailleur.js'), 'utf8'), liste = /const fns=\[([^\]]+)\]/.exec(src)[1].split(',');
   const plat = s => { if (s.indexOf('function*') !== 0) return s; const t = s.replace(/^function\*\s*/, 'function ').replace(/if\([^;{}]*?performance\.now\(\)>JF\.lim\)yield;/g, ''); return /\byield\b/.test(t) ? s : t; };
-  const code = "'use strict';function grwFait(x){if(x&&typeof x.next==='function'){var r;do{r=x.next();}while(!r.done);return r.value;}return x;}\nvar GRT={B:12,K:1.6},GRV={nzK:2},GRT_VASTE=true,ROAD_HALF=28,THICK=5.2,JF={lim:Infinity},GRT_ARETES=" + JSON.stringify(vm.runInContext('GRT_ARETES', ctx)) + ",GRT_TMP={lum:[0,0,0,0],loc:null,vid:null,P:null,F:null,Lt:null,I:null},GRT_AMB=[],GROTTE={},GT={},MV=null,MLL=null;\n" + liste.map(n => plat(vm.runInContext(n + '.toString()', ctx))).join('\n');
+  const code = "'use strict';function grwFait(x){if(x&&typeof x.next==='function'){var r;do{r=x.next();}while(!r.done);return r.value;}return x;}\nvar GRT={B:12,K:1.6},GRT_NAP={on:" + (process.env.SANS ? 'false' : 'true') + "},GRV={nzK:2},GRT_VASTE=true,ROAD_HALF=28,THICK=5.2,JF={lim:Infinity},GRT_ARETES=" + JSON.stringify(vm.runInContext('GRT_ARETES', ctx)) + ",GRT_TMP={lum:[0,0,0,0],loc:null,vid:null,P:null,F:null,Lt:null,I:null},GRT_AMB=[],GROTTE={},GT={},MV=null,MLL=null;\n" + liste.map(n => plat(vm.runInContext(n + '.toString()', ctx))).join('\n');
   TRAV = vm.createContext({ Math, performance: { now: () => 0 }, Float32Array, Int32Array, Uint8Array, Int8Array, Uint32Array, Uint16Array, Map, Array, Object, JSON }); vm.runInContext(code, TRAV);
-  TRAV.__init = vm.runInContext('(function(V,g){GT=g.GT;GRT_AMB=g.AMB;GRV={amb:g.GRV.amb,tR2:g.GRV.tR2,tF:g.GRV.tF,lavL:g.GRV.lavL,lumN:g.GRV.lumN,lumG:g.GRV.lumG,lacFus:g.GRV.lacFus,nuls:g.GRV.nuls};GROTTE={R:{SAL:g.G.R.SAL},lac:g.G.lac,eau:g.G.eau,piliers:g.G.piliers,lavLum:g.G.lavLum,galeries:g.G.galeries||null};GRT_VASTE=g.vaste;ROAD_HALF=g.rh;THICK=g.th;MV=V;})', TRAV);
+  TRAV.__init = vm.runInContext('(function(V,g){GRT_NAP.on=g.nap;GT=g.GT;GRT_AMB=g.AMB;GRV={amb:g.GRV.amb,tR2:g.GRV.tR2,tF:g.GRV.tF,lavL:g.GRV.lavL,lumN:g.GRV.lumN,lumG:g.GRV.lumG,lacFus:g.GRV.lacFus,nuls:g.GRV.nuls};GROTTE={R:{SAL:g.G.R.SAL},lac:g.G.lac,eau:g.G.eau,piliers:g.G.piliers,lavLum:g.G.lavLum,galeries:g.G.galeries||null};GRT_VASTE=g.vaste;ROAD_HALF=g.rh;THICK=g.th;MV=V;})', TRAV);
   TRAV.__maille = vm.runInContext('(function(c){return grwFait(grtMailleNetsG(MV,c,null));})', TRAV); }
 let hTout = 0;
 for (const pal of PAL) for (let g = g0; g <= g1; g++) {
@@ -77,7 +77,7 @@ for (const pal of PAL) for (let g = g0; g <= g1; g++) {
       if (process.env.MAILLE === '0') break;
       if (!proche[V.cle[c]] || V.oy + (((V.cle[c] / V.CX) | 0) % V.CY) * 16 * B > yH) continue; o.troncons = (o.troncons || 0) + 1;
       const d = V.cle[c], I0 = (d % V.CX) * 16, J0 = (((d / V.CX) | 0) % V.CY) * 16, K0 = ((d / (V.CX * V.CY)) | 0) * 16, m = ctx.__bancMaille(V, c);
-      if (TRAV) { if (o.trav === undefined) { o.trav = 0; o.travKo = 0; TRAV.__init(V, vm.runInContext('({GT:GT,AMB:GRT_AMB,GRV:GRV,G:GROTTE,vaste:GRT_VASTE,rh:ROAD_HALF,th:THICK})', ctx)); }
+      if (TRAV) { if (o.trav === undefined) { o.trav = 0; o.travKo = 0; TRAV.__init(V, vm.runInContext('({nap:GRT_NAP.on,GT:GT,AMB:GRT_AMB,GRV:GRV,G:GROTTE,vaste:GRT_VASTE,rh:ROAD_HALF,th:THICK})', ctx)); }
         const w = TRAV.__maille(c), eg = (x, y) => { if (x.length !== y.length) return false; const a = new Uint8Array(x.buffer, x.byteOffset, x.byteLength), b = new Uint8Array(y.buffer, y.byteOffset, y.byteLength); for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false; return true; };
         o.trav++; if (w.nt !== m.nt || !eg(w.P, m.P) || !eg(w.F, m.F) || !eg(w.L, m.L)) o.travKo++; }
       o.tri += m.nt; const P = m.P, F = m.F; { const u = new Uint32Array(P.buffer, P.byteOffset, P.length); for (let i = 0; i < u.length; i++) hP = Math.imul(hP ^ u[i], 16777619) >>> 0; for (let i = 0; i < F.length; i++) hF = Math.imul(hF ^ F[i], 16777619) >>> 0; }
@@ -89,7 +89,7 @@ for (const pal of PAL) for (let g = g0; g <= g1; g++) {
         const part = Y.filter(y => y < L9.y + .9).length / 3, s = ar * part;
         if (process.env.DUMP && (globalThis.__nd = (globalThis.__nd || 0) + 1) % (+process.env.DUMPK || 97) === 0 && globalThis.__nd < 4000) { const x = V.ox + I0 * B + a[0][0], y = Y[0], z = V.oz + K0 * B + a[0][2], i = Math.floor((x - V.ox) / B), j = Math.floor((y - V.oy) / B), k = Math.floor((z - V.oz) / B); let s9 = ''; for (let dy = -1; dy <= 1; dy++) { for (let dx = -1; dx <= 1; dx++) s9 += ctx.grtLit(V, i + dx, j + dy, k) + '/' + ctx.grtD(V, i + dx, j + dy, k) + ' '; s9 += '| '; } console.log('lk', lk, 'y', Y.map(Math.round), 'niv', Math.round(L9.y), 'aire', Math.round(ar), s9); }
         /* tourné vers le bas (vers l'air) : la normale du mailleur est vers l'air ; on prend l'orientation géométrique (le fragment la retourne vers la caméra) — un triangle horizontal sous le niveau = dessous */
-        if (Math.abs(ny) / (2 * ar) > .7) o.dessous += s; else o.paroi += s;
+        if (Math.abs(ny) / (2 * ar) > .7) { o.dessous += s; if (ny > 0) o.dessousBas = (o.dessousBas || 0) + s; else o.fond = (o.fond || 0) + s; } else o.paroi += s; /* (2026-11-19) la normale géométrique pointe dans la roche : ny > 0 = l'air dessous (une nappe vue d'en dessous) ; ny < 0 = un FOND vu d'en haut */
         if (mode === 'avant' && s > (o._vs || 0) && ymin < L9.y - 12) { o._vs = s; o._v = { x: V.ox + I0 * B + (a[0][0] + a[1][0] + a[2][0]) / 3, y: (Y[0] + Y[1] + Y[2]) / 3, z: V.oz + K0 * B + (a[0][2] + a[1][2] + a[2][2]) / 3, n: [nx / (2 * ar), ny / (2 * ar), nz / (2 * ar)], k: lk === 1 ? 'lave' : 'eau' }; } }
     }
     /* LES CASES (sans mailleur, rapide : le passage 200 graines × 3 paliers) — une case de nappe PEINTE (4 lave, 5 eau ; 6/7 = la rive, peinte en roche) dont une voisine par une FACE est de l'air sous le niveau :
@@ -120,11 +120,11 @@ for (const pal of PAL) for (let g = g0; g <= g1; g++) {
       if (ok) { vue = { p: p.map(Math.round), c: [v.x, v.y, v.z].map(Math.round), k: v.k }; break cherche; } }
     o.vue = vue; }
   delete o._v; delete o._vs;
-  o.paroi = Math.round(o.paroi); o.dessous = Math.round(o.dessous);
+  o.paroi = Math.round(o.paroi); o.dessous = Math.round(o.dessous); o.dessousBas = Math.round(o.dessousBas || 0); o.fond = Math.round(o.fond || 0);
   o.nappes = vm.runInContext('GROTTE.nappes', ctx); vm.runInContext('GROTTE.nappes=null', ctx);
   for (const k of ['paroi', 'dessous', 'cote', 'flotte', 'contact', 'route', 'noyes']) { aj(k, o[k]); if (o[k] > (k === 'paroi' || k === 'dessous' ? 20 : k === 'cote' || k === 'flotte' ? 2 : 0)) aj('graines_' + k, 1); }
   if (o.trav !== undefined) { aj('trav', o.trav); aj('travKo', o.travKo); }
-  aj('tri', o.tri); aj('triLac', o.triLac); aj('grottes', 1); if (lac) aj('avecLave', 1); if (eau) aj('avecEau', 1); if (o.nappes) { aj('cases', o.nappes.cases); aj('rive', o.nappes.rive); aj('cuvettes', o.nappes.cuvettes || 0); aj('comblees', o.nappes.comblees || 0); aj('msNappes', o.nappes.ms || 0); }
+  aj('tri', o.tri); aj('triLac', o.triLac); aj('grottes', 1); if (lac) aj('avecLave', 1); if (eau) aj('avecEau', 1); if (o.nappes) { aj('cases', o.nappes.cases); aj('rive', o.nappes.rive); aj('cuvettes', o.nappes.cuvettes || 0); aj('comblees', o.nappes.comblees || 0); aj('trous', o.nappes.trous || 0); aj('msNappes', o.nappes.ms || 0); }
   pires.push(o); if (detail) console.log(JSON.stringify(o)); }
 }
 const poids = o => o.paroi + o.dessous + 144 * (o.cote + o.flotte); pires.sort((a, b) => poids(b) - poids(a));
