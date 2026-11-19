@@ -76,6 +76,7 @@ class CDP:
         return None if 'exceptionDetails' in r else r.get('result', {}).get('value')
 
 
+AMAS = False
 FORMATS = {'paysage': (844, 390), 'portrait': (390, 844)}
 
 def preparer(avant, racine, serve):
@@ -132,7 +133,23 @@ def scenario(c, port_http, version, meteo, graine, fmt, etapes, sortie):
         open(os.path.join(sortie, f), 'wb').write(base64.b64decode(r['data']))
         c.ev("document.getElementById('cc-nu').textContent=''")
         res['prises'].append({'fichier': f, 'mesure': json.loads(m) if m else None, 'etat': etat})
-    res['erreurs'] = c.ev("JSON.stringify({errs:window.__errs,warns:(window.__warns||[]).slice(0,8),loop:String(window.__loopErr||'')})")
+    if AMAS:   # (2026-11-19) LES AMAS : la caisse est posée à 300 m puis 120 m avant le 1er amas de la route (ORB.amas, à l'écart), une prise à chaque fois
+        am = c.ev("__ev('JSON.stringify(ORB.amas||[])')")
+        am = json.loads(am) if am else []
+        res['amas'] = am
+        for k, rec in enumerate((300, 120)):
+            if not am: break
+            cible = am[0]['s'] - rec
+            # dbgStep n'avance presque pas la caisse au départ (≈ 1 m pour 600 images) : on la POSE à l'abscisse voulue (banc seulement), puis trois images pour la caméra
+            c.ev("__ev('s=%d')" % cible); c.ev("dbgStep(3,40)"); time.sleep(1.5)
+            c.ev(CACHE); time.sleep(.4)
+            m = c.ev(MESURE)
+            r = c.send('Page.captureScreenshot', {'format': 'png'})
+            f = '%s-a%d.png' % (nom, k)
+            open(os.path.join(sortie, f), 'wb').write(base64.b64decode(r['data']))
+            c.ev("document.getElementById('cc-nu').textContent=''")
+            res['prises'].append({'fichier': f, 'mesure': json.loads(m) if m else None, 'etat': json.dumps({'s': c.ev("__ev('s')"), 'amas_s': am[0]['s']})})
+    res['erreurs'] = c.ev("JSON.stringify({errs:window.__errs,warns:(window.__warns||[]).slice(0,8),loop:String(window.__loopErr||''),rate:(function(){try{return __ev('OBEAU.rate.join(\\'|\\')');}catch(e){return '?';}})()})")
     print('  %s ok %s' % (nom, json.dumps([p['mesure'] for p in res['prises']])), flush=True)
     return res
 
@@ -141,8 +158,9 @@ def main():
     ap.add_argument('--avant', required=True); ap.add_argument('--racine', required=True); ap.add_argument('--sortie', required=True)
     ap.add_argument('--ports', nargs=2, type=int, required=True); ap.add_argument('scenarios', nargs='+')
     ap.add_argument('--versions', default='avant,apres,sans'); ap.add_argument('--formats', default='paysage,portrait')
-    ap.add_argument('--etapes', default='240,600')
+    ap.add_argument('--etapes', default='240,600'); ap.add_argument('--amas', action='store_true')
     a = ap.parse_args()
+    global AMAS; AMAS = a.amas
     http_p, cdp_p = a.ports
     os.makedirs(a.sortie, exist_ok=True)
     serve = os.path.join(a.sortie, '_serve')

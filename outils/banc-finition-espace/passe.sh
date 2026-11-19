@@ -6,7 +6,9 @@ SORTIE="$1"; shift; mkdir -p "$SORTIE"
 "$V" prendre "finition-espace" || exit 1
 nettoie(){ if [ -f "$SORTIE/_pids" ]; then for p in $(cat "$SORTIE/_pids"); do kill -9 -- -"$p" 2>/dev/null; done; rm -f "$SORTIE/_pids"; fi
   [ -n "$BP" ] && kill -9 -- -"$BP" 2>/dev/null
+  rm -rf "$SORTIE/_profil" "$SORTIE/_serve"
   if grep -q "finition-espace" "$Q" 2>/dev/null; then "$V" rendre; fi; sleep 40; }
+export TMPDIR="$SORTIE/_profil"; mkdir -p "$TMPDIR"
 trap nettoie EXIT
 echo "=== banc pris à $(date +%H:%M:%S)"
 set -m
