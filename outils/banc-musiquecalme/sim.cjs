@@ -5,7 +5,7 @@
    Rien n'est décodé ni joué : on compte et on vérifie l'enchaînement à l'échantillon près (heures de départ exactes, une seule voix audible par mesure, le bon fichier).
    · chaud simulé : décodage 150-400 ms ; chaque fin de décodage bloque le fil 100-250 ms (le gel vu dans la boîte de vol) ; en plus des gels au hasard (50/min, 90-200 ms).
    · froid : décodage 18 ms, pas de gel.
-   usage : node outils/banc-musiquecalme/sim.cjs [--duree 180] [--pas 5] [--graine 7] [--json] [--source fichier.js] [--qs '?sans=musiquecalme' (ajouté à chaque régime)]
+   usage : [FAILT=60000 FAILN=2] node outils/banc-musiquecalme/sim.cjs [--duree 180] [--pas 5] [--graine 7] [--json] [--source fichier.js] [--qs '?sans=musiquecalme' (ajouté à chaque régime)]
    Trois régimes comparés : FROID (lecteur d'avant, au frais), CHAUD-AVANT (?sans=musiquecalme, chaud), CHAUD-CALME (le lot, chaud). Scénarios : moteur +1 toutes les `pas` s
    (dents de scie 1→30→1), et « boosts » (sauts de 1 à 4 paliers à intervalles irréguliers). */
 'use strict';
@@ -32,7 +32,10 @@ async function essai(nom, qs, env, chaud, scen, flux) {
   ctx.setInterval = (f, d) => pose(now + d, f, d); ctx.clearInterval = o => { if (o) o.mort = true; };
   ctx.localStorage = { getItem: () => null, setItem() {} };
   ctx.document = { createElement: () => ({}), head: { appendChild() {} }, body: { appendChild() {} } };
-  ctx.fetch = u => new Promise(ok => pose(now + 2, () => ok({ ok: true, arrayBuffer: () => Promise.resolve({ byteLength: 126000, __f: u }) }), 0));
+  /* (lot MUSIQUESECOURS) l'injection d'échec : FAILT=<ms d'horloge virtuelle> FAILN=<n> — le premier fichier demandé après FAILT échoue ses FAILN premiers chargements (réponse pas ok) */
+  const FAILT = process.env.FAILT != null ? +process.env.FAILT : Infinity; let failN = +(process.env.FAILN || 0), failF = null;
+  ctx.fetch = u => new Promise(ok => pose(now + 2, () => { if (now >= FAILT && failN > 0 && (failF == null || failF === u)) { failF = u; failN--; return ok({ ok: false }); }
+    ok({ ok: true, arrayBuffer: () => Promise.resolve({ byteLength: 126000, __f: u }) }); }, 0));
   Object.assign(ctx, env);
   vm.createContext(ctx); vm.runInContext(SRC, ctx);
   const PB = ctx.POUCE_JEU;
