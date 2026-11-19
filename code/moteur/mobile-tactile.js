@@ -145,9 +145,15 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(Math.abs(k-skDk)>.02||(k===0&&skDk!==0)){skDk=k;stk.style.setProperty('--dk',k.toFixed(3));}
     if(Math.abs(sl-skDc)>.5){skDc=sl;stk.style.setProperty('--dc',sl.toFixed(1)+'px');} };
   TCTL.turbo=function(lv){ if(!skC)return; stk.classList.remove('dTu1','dTu2','dTu3'); requestAnimationFrame(function(){stk.classList.add('dTu'+lv);}); clearTimeout(skTu); /* (pas de lecture de mise en page pour relancer l'animation : une image d'écart suffit) */ skTu=setTimeout(function(){stk.classList.remove('dTu1','dTu2','dTu3');},520); };
+  const stM={t:null,sl:null,sr:null,su:null,sd:null}; /* (2026-11-16, lot jsimage) les dernières valeurs écrites par stSet — seul stSet écrit ces cinq-là ; ?sans=jsimage = tout réécrire comme avant */
   function stSet(h,v,kx,ky){ skMaj(); if(GAU)h=-h; TCTL.st=h; TCTL.sv=v; // kx/ky : la place du POUCE en pixels depuis la base
+    if(!JSI.ok){
     if(knb)knb.style.transform='translate('+(GAU?-(kx||0):(kx||0))+'px,'+(ky||0)+'px)';
-    if(stk){stk.style.setProperty('--sl',Math.max(0,h).toFixed(3));stk.style.setProperty('--sr',Math.max(0,-h).toFixed(3));stk.style.setProperty('--su',Math.max(0,v).toFixed(3));stk.style.setProperty('--sd',Math.max(0,-v).toFixed(3));} } // (2026-10-28) la glissière remplit son trait du côté où l'on braque // (2026-09-30) le bouton est dessiné SOUS le pouce (×1) : à ×0,62 de la course (×0,5 en vertical, sur la valeur COURBÉE) il traînait derrière le doigt et mentait sur la butée
+    if(stk){stk.style.setProperty('--sl',Math.max(0,h).toFixed(3));stk.style.setProperty('--sr',Math.max(0,-h).toFixed(3));stk.style.setProperty('--su',Math.max(0,v).toFixed(3));stk.style.setProperty('--sd',Math.max(0,-v).toFixed(3));} return; }
+    if(knb){const t='translate('+(GAU?-(kx||0):(kx||0))+'px,'+(ky||0)+'px)';if(t!==stM.t){stM.t=t;knb.style.transform=t;}}
+    if(stk){const a=Math.max(0,h).toFixed(3),b=Math.max(0,-h).toFixed(3),c=Math.max(0,v).toFixed(3),d=Math.max(0,-v).toFixed(3);
+      if(a!==stM.sl){stM.sl=a;stk.style.setProperty('--sl',a);}if(b!==stM.sr){stM.sr=b;stk.style.setProperty('--sr',b);}
+      if(c!==stM.su){stM.su=c;stk.style.setProperty('--su',c);}if(d!==stM.sd){stM.sd=d;stk.style.setProperty('--sd',d);}} } // (2026-10-28) la glissière remplit son trait du côté où l'on braque // (2026-09-30) le bouton est dessiné SOUS le pouce (×1) : à ×0,62 de la course (×0,5 en vertical, sur la valeur COURBÉE) il traînait derrière le doigt et mentait sur la butée
   if(sz){
     /* ⚠ TROIS GESTES NOMMÉS, DEUX ENTRÉES (2026-09-24) : le doigt ET la souris passent par les mêmes
        `stDown/stMove/stUp`. Sans le repli souris, le volant était le seul contrôle du téléphone
@@ -459,6 +465,20 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       const r=gear.getBoundingClientRect(); if(t.clientX<r.left-12||t.clientX>r.right+12||t.clientY<r.top-12||t.clientY>r.bottom+12)return; // le doigt a glissé hors du bouton : rien
       gearTt=performance.now(); gearOpenHandler(e); },{passive:false}); }
   if(gear)gear.addEventListener('click',function(e){ if(performance.now()-gearTt<700){e.stopPropagation();return;} gearOpenHandler(e); }); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
+  /* ===== LA PAUSE SÛRE (2026-11-17, Sacha, build 119 : « Le bouton pause quand on est en jeu ne marche plus systématiquement ») =====
+     En course, le ⏸ attendait le LEVER du doigt : le `click` (doigt seul) ou le `touchend` (un autre doigt encore posé). Deux trous :
+     1. (PROUVÉ au banc outils/banc-pause/pause.cjs) le pouce du volant se lève AVANT le doigt du ⏸ : au lever, plus aucun autre doigt (« le click suit »)
+     — mais le navigateur ne fabrique pas de click pour un toucher né à deux doigts : rien, 0 pause sur 50. 2. (non reproduit dans Chrome) le click d'un
+     doigt seul, que WebKit peut annuler (doigt qui roule, appui long, contenu qui change sous le doigt), ou que le verrou du double-tap (uiGarde) avale.
+     Désormais, EN COURSE, le ⏸ agit AU CONTACT :
+     touchstart du doigt qui se pose sur le bouton, quel que soit le nombre de doigts déjà posés ; preventDefault = pas de click derrière, gearTt = ni
+     touchend ni click ne rejouent. Un pouce qui GLISSE sur le bouton depuis le volant ne fait pas de touchstart ici : jamais de pause fantôme.
+     La zone tactile déborde vers les bords de l'écran seulement (html.pauseSure, css/hud-da.css), jamais vers les commandes voisines.
+     Au menu (engrenage), rien ne change. `?sans=pausesure` = comme avant. */
+  const PAUSE_SURE=!/[?&]sans=[^&]*pausesure/.test(location.search);
+  if(gear&&PAUSE_SURE){ document.documentElement.classList.add('pauseSure');
+    gear.addEventListener('touchstart',function(e){ if(!started||gameOver)return;
+      if(e.cancelable)e.preventDefault(); e.stopPropagation(); gearId=null; gearTt=performance.now(); gearOpenHandler(e); },{passive:false}); }
   /* (2026-11-13) LE MOUCHARD DU ⏸ : tout toucher relâché sur le bouton en pleine course, qui ne laisse PAS la partie figée 250 ms plus tard, s'écrit dans la boîte noire (genre « pause ») avec
      ce qu'il faut pour comprendre — le chemin (clic ou second doigt), la cible exacte, le mode, l'explosion, l'état de la feuille et du compte de reprise. Rien à l'écran, rien d'autre. */
   if(gear){const moucheP=function(e){if(!started||gameOver||paused)return;const c9=e.target&&e.target.closest?e.target.closest('#tSet'):null;if(!c9)return;
@@ -621,7 +641,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
      la plaque, iOS pouvait laisser la page remontée après la fermeture du clavier — on la recale, seulement si elle a bougé. */
   try{ const mc9=$t('modC'); if(mc9)mc9.addEventListener('blur',function(){setTimeout(function(){try{if(scrollX||scrollY)scrollTo(0,0);}catch(e){}},60);}); }catch(e){}
   // ---- BASCULE D'ORIENTATION : iOS annonce des dimensions PÉRIMÉES — on recadre après le pivot ----
-  const reflow=function(){ clearTimeout(reflow._t); reflow._t=setTimeout(function(){ // (2026-09-29) une seule fois par rafale (clavier, barre d'adresse) : applyDPR réalloue toutes les cibles de rendu
+  const reflow=function(){ clearTimeout(reflow._t); reflow._t=setTimeout(RETAILLE1?retailleDemande:function(){ /* (2026-11-17, qualité · hudobs) vrai téléphone : le même rAF que resize, qui ne retaille qu'à taille nouvelle (palier-appareil.js, UNE SEULE RETAILLE PAR PIVOT) */ // (2026-09-29) une seule fois par rafale (clavier, barre d'adresse) : applyDPR réalloue toutes les cibles de rendu
     if(innerWidth<1||innerHeight<1)return; /* (2026-11-05, DEBUG-TOTAL) même garde que le resize : une taille nulle ne recadre rien */ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); fovFit(); applyDPR._img=0; applyDPR(); if(applyDPR._img){applyDPR._img=0;retailleImage();} /* (2026-11-13, LA ROTATION SANS ÉCRAN NOIR) si quelque chose a été réalloué, l'image est redessinée tout de suite */ },280); };
   addEventListener('orientationchange',reflow);
   if(window.visualViewport)visualViewport.addEventListener('resize',reflow);
@@ -698,6 +718,15 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
      · 1,0 s →        les MISSIONS entrent une à une, leurs barres et leurs comptes montent ensemble (objRenderV2), les coches claquent.
      Une seule fois par mort ; REDUCED_MOTION : tout est posé d'un coup. Les mouvements sont dans css/mort-flottante.css (« LE FIL »). */
   const M6_CPT=2000;
+  /* ===== LES BOUGIES À ZÉRO NE SONT PLUS DES SOULIGNÉS (2026-11-18, qualité · hudmort, Sacha : « quand on meurt, il y a des petits pixels comme
+     si c'était souligné, mais à moitié ») =====
+     La carte AURA de l'écran de mort : une partie à 0 d'aura (ou une moyenne, un record à 0) gardait une bougie de 3 px (min-height:3px, --h ≥ 3 %)
+     posée sur la ligne de base : un trait clair de 28 px sous le « 0 », comme un soulignement coupé. Et sans aucun record, le pointillé d'or du
+     record (.m6Ligne) se couchait lui aussi sur la ligne de base. Maintenant : une valeur nulle n'a PAS de bougie (.m6Nul), le pointillé ne se
+     trace que s'il y a un record ; une valeur petite mais non nulle garde une vraie bougie, assez haute pour se lire comme une bougie (8 px,
+     css/mort-flottante.css). `?sans=hudmort` = les bougies d'avant. */
+  const HUDMORT=!/[?&]sans=[^&]*hudmort/.test(location.search);
+  if(HUDMORT)document.documentElement.classList.add('hudMort');
   function m6Fil(el,D,f,fin){const t0=performance.now();(function p(){if(!el.isConnected)return;const k=Math.min(1,(performance.now()-t0)/D);f(k);if(k<1)requestAnimationFrame(p);else if(fin)fin();})();} /* D ms, k de 0 à 1 à chaque image */
   /* LE COMPTEUR À ROULEAUX (2026-11-05, Sacha : « on voit tous les chiffres s'ajouter les uns les autres, avec un compteur ») : le montant s'écrit
      en TOUS ses chiffres (« $ 7 210 », plus « 7,2 k »), une case par signe, réservée dès le départ à la largeur finale — les zéros d'avant le
@@ -850,7 +879,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
                 recV=Math.max(commitExploits._recAvant||0,SAVE.d.auraMax||0,au),M9=Math.max(1,au,moyV,recV),
                 hP=function(v){return Math.max(3,Math.round(v/M9*100));},
                 lb9=LANG==='en'?['RUN','AVG','BEST']:['PARTIE','MOY.','RECORD'],
-                bg9=function(k,v,l){return '<div class="m6Col m6'+k+(k==='P'&&au>0&&au>=recV&&!tq9?' rec':'')+'" style="--h:'+hP(v)+'"><span class="m6Val">'+fA(v)+'</span><i class="m6Barre"></i><small>'+l+'</small></div>';},
+                bg9=function(k,v,l){return '<div class="m6Col m6'+k+(k==='P'&&au>0&&au>=recV&&!tq9?' rec':'')+(HUDMORT&&!(v>0)?' m6Nul':'')/* (hudmort) pas de bougie à zéro */+'" style="--h:'+hP(v)+'"><span class="m6Val">'+fA(v)+'</span><i class="m6Barre"></i><small>'+l+'</small></div>';},
                 pas9=function(c,t){return '<em class="m6Badge '+c+'">'+t+'</em>';};
           let vd9='';
           if(!tq9&&au>0&&(commitExploits._recAvant||0)>0&&(recA||au>commitExploits._recAvant))vd9=pas9('rec',pxi('etoile')+'<span>'+TR('RECORD')+'</span>');
@@ -863,7 +892,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
             +'<div class="m6Carte m6Aura">'
             +'<div class="m6Tete"><span class="m6Lb">'+pxi('aile')+'<span>'+TR('AURA')+'</span></span>'+vd9+'</div>'
             +'<div class="m6Big"><b id="mAuraV" style="--n:'+fA(au).length+'">0</b></div>'
-            +'<div class="m6Graphe"><i class="m6Ligne" style="--h:'+hP(recV)+'"></i>'+bg9('P',au,lb9[0])+bg9('M',moyV,lb9[1])+bg9('R',recV,lb9[2])+'</div></div>';
+            +'<div class="m6Graphe">'+(HUDMORT&&!(recV>0)?'':'<i class="m6Ligne" style="--h:'+hP(recV)+'"></i>')/* (hudmort) pas de pointillé du record sans record */+''+bg9('P',au,lb9[0])+bg9('M',moyV,lb9[1])+bg9('R',recV,lb9[2])+'</div></div>';
         }
         else if(h){h.className='mHero';h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV" style="--n:'+fA(au).length+'">0</b>'
             +(recA&&!tq9&&au>0?'<em>'+TR('RECORD !')+'</em><div class="hNx hNxC6">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>':'<div class="hNx">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>')+'</div>' /* (2026-10-14, charte 6) cartes JUMELLES : la sous-ligne MEILLEUR est toujours là (.hNxC6 = celle que seule la charte 6 montre, quand le badge RECORD ! se tait) */

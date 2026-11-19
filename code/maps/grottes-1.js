@@ -318,13 +318,15 @@ function* genGrotte(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
   CAMPM.length=0;MODMARK.length=0;
   const LV=typeof lvPiste==='function'?lvPiste():1,gr=mulberry32((rnd()*4294967296)>>>0);let best=null;
   const cib9=rythmeCible('grotte'),vP9=typeof vPalier==='function'?vPalier():78,rP9=typeof rayonPalier==='function'?rayonPalier():63,notes9=[]; /* (2026-11-05, LE DIRECTEUR DE RYTHME) l'essai gardé : sans conflit ET le mieux noté (route-rythme.js) */
-  for(let e=0;e<6;e++){if(e)yield;const r=grtTrace(gr,LV);r.fiche=rythmeMesure(r.ctrl,{vP:vP9,rP:rP9,marks:r.mods});r.note=rythmeNote(r.fiche,cib9)+r.conflits*20;notes9.push(+r.note.toFixed(1));if(!best||r.note<best.note)best=r;if(!r.conflits&&r.note<=1)break;}
+  for(let e=0;e<6;e++){if(e)yield;const r=(typeof PORTV_ON!=="undefined"&&PORTV_ON)?(yield* grtTraceG(gr,LV)):grtTrace(gr,LV);if((typeof PORTV_ON!=="undefined"&&PORTV_ON)&&performance.now()>JF.lim)yield; /* (2026-11-17, lot portv) l'essai en deux tranches : le tracé, puis sa mesure */r.fiche=rythmeMesure(r.ctrl,{vP:vP9,rP:rP9,marks:r.mods});r.note=rythmeNote(r.fiche,cib9)+r.conflits*20;notes9.push(+r.note.toFixed(1));if(!best||r.note<best.note)best=r;if(!r.conflits&&r.note<=1)break;}
   RYTHME.der={carte:'grotte',note:best.note,notes:notes9,fiche:best.fiche};
   for(const k of ['Q','salles','sTot','conflits','croise','geants','boyaux','vides','seuils','formes','noms','libres','stalag','ouvertures','helices'])GROTTE[k]=best[k];
   if(GRT_VERTIGE&&best.noms){GRT_VUS.push(best.noms.slice());while(GRT_VUS.length>2)GRT_VUS.shift();} /* (LE VERTIGE) la mémoire des deux dernières grottes */
   for(const m of best.mods||[])MODMARK.push(m);for(const m of best.exigus||[])MODMARK.push(m); /* (LES PASSAGES EXIGUS) leurs noms, APRÈS le choix de l'essai : la note de rythme ne les voit pas */
   return best.ctrl;}
-function grtTrace(rnd,LV){
+function grtTrace(rnd,LV){return rythmeMene(grtTraceG(rnd,LV));} /* (2026-11-17, lot portv) d'un trait : le même générateur */
+function* grtTraceG(rnd,LV){ /* (lot portv) le tracé en tranches : une pause possible (échéance JF.lim) entre le plan des salles, les conflits, les boyaux et les passages exigus — mêmes tirages, même ordre */
+  const ech9=function(){return (typeof PORTV_ON!=="undefined"&&PORTV_ON)&&typeof JF!=='undefined'&&performance.now()>JF.lim;};
   const vw=70+100*(LV-1),rM=40+.3*vw,KV=Math.sqrt(Math.max(1,vw/78)),ctrl=[],RH=(typeof ROAD_HALF==='number'&&ROAD_HALF>0)?ROAD_HALF:28,DN=[];
   const H9=GRT_HASARD,rh=H9?mulberry32((rnd()*4294967296)>>>0):null; // (LES PROFONDEURS AU HASARD) son flux
   const Rs=()=>rM*(1.30+rnd()*.2),Rn=()=>{const a=rM*1.55,b=Math.max(a+25,200);return a+rnd()*(b-a);},Rl=()=>Math.max(rM*1.6,175)+rnd()*95;
@@ -780,6 +782,7 @@ function grtTrace(rnd,LV){
     HZ={axe:axe0,coude:0,ordre:['mine'].concat(ORD,['abysse']),humeurs:HU,parts:Object.keys(PART).map(function(k){return k+':'+Math.round(PART[k]*100);}).join(' ')};}
   droite(90*KV);ici('fin');SL.push({k:'fin',p:P.clone(),s:s});droite(150*KV); // la salle du portail
   // LE CONTRÔLE DES CROISEMENTS (celui du volcan) : un passage à moins de 2·RH+14 m d'un autre tronçon ; avec moins de 32 m d'air = un CONFLIT
+  if(ech9())yield;
   let conflits=0,croise=0;{const G=new Map(),n=DN.length/4,cle=(x,z)=>Math.floor(x/40)+','+Math.floor(z/40),vu=new Set();
     for(let i=0;i<n;i++){const k=cle(DN[i*4],DN[i*4+2]);let a=G.get(k);if(!a)G.set(k,a=[]);a.push(i);}
     for(let i=0;i<n;i+=2){const x=DN[i*4],yy=DN[i*4+1],z=DN[i*4+2],si=DN[i*4+3],bx=Math.floor(x/40),bz=Math.floor(z/40);
@@ -797,9 +800,11 @@ function grtTrace(rnd,LV){
   /* ===== LA RESPIRATION (2026-11-14, vérificateur : « graine 11, un passage serré de 9,5 s ») =====
      deux tubes tirés l'un derrière l'autre (le colimaçon puis un couloir) : moins de 2 s d'air entre eux et plus de `respire` s d'un tenant, le second recule de 2 s après la fin du premier ;
      s'il lui reste moins d'1 s, il disparaît (la route est la même, seules ses parois s'ouvrent). Avant les passages exigus : ceux-ci comptent les tubes restants. ?sans=respire : comme avant */
+  if(ech9())yield;
   if(GRT_LIB.on&&GRT_LIB.respire&&BOY.length>1){const T9=BOY.slice().sort((u,v)=>u.s0-v.s0),OUT=new Set();let p=T9[0];
     for(let i=1;i<T9.length;i++){const q=T9[i];if(q.s0-p.s1<sec(2)&&q.s1-p.s0>sec(GRT_LIB.respire)){q.s0=Math.max(q.s0,p.s1+sec(2));if(q.s1-q.s0<sec(1)){OUT.add(q);continue;}}if(q.s1>p.s1)p=q;}
     if(OUT.size)for(let i=BOY.length-1;i>=0;i--)if(OUT.has(BOY[i]))BOY.splice(i,1);}
+  if(ech9())yield;
   const EXM=[];
   if(GRT_LIB.on&&GRT_LIB.exigu&&ctrl.length>4){const X9=GRT_LIB.exigu,nC=ctrl.length,SC=new Float64Array(nC);for(let i=1;i<nC;i++)SC[i]=SC[i-1]+Math.hypot(ctrl[i].x-ctrl[i-1].x,ctrl[i].z-ctrl[i-1].z);
     const kSC=SC[nC-1]>0?s/SC[nC-1]:1,sI=i=>SC[Math.max(0,Math.min(nC-1,i))]*kSC,iS=v=>{let lo=0,hi=nC-1;while(lo<hi){const m=(lo+hi)>>1;if(sI(m)<v)lo=m+1;else hi=m;}return lo;};
@@ -863,7 +868,9 @@ function grtSalAt(V,R,x,y,z){const i=Math.floor((x-V.ox)/V.B),j=Math.floor((y-V.
 function grtR6(x,y,z,sal,k){return Math.min(63,Math.floor(grtH3(Math.floor(x*k),Math.floor(y*k),Math.floor(z*k),sal*7)*64));}
 /* LES ÉCHANTILLONS DE ROUTE (tous les ~6 m) : position, tangente, abscisse, salle, forme fondue (90 m de part et d'autre d'une frontière),
    plus 20 échantillons prolongés avant le départ (la caméra du portail d'arrivée) et après l'arrivée (le portail). */
-function grtEchantillons(){
+function grtEchantillons(){return rythmeMene(grtEchantillonsG());} /* (2026-11-17, lot portv) d'un trait : le même générateur */
+function* grtEchantillonsG(){ /* (lot portv) une pause possible (échéance JF.lim) entre ses grandes étapes — mêmes calculs, même ordre */
+  const ech9=function(){return (typeof PORTV_ON!=="undefined"&&PORTV_ON)&&typeof JF!=='undefined'&&performance.now()>JF.lim;};
   const ds=L/(NP-1),st=Math.max(1,Math.round(6/ds)),SL=GROTTE.salles||[],kS=L/Math.max(1,GROTTE.sTot||L); /* (SUR LES PAROIS) l'abscisse de la génération (à plat) → celle de la route enroulée : mêmes pas, la longueur est conservée */
   /* (2026-11-11, Sacha : « la ligne droite de lancement est dans un couloir ») la galerie étroite ne commence QU'APRÈS la bande de départ (mine0) : la droite de lancement roule dans l'entrée large, le rétrécissement (fondu 180 m) s'amorce à sa fin */const F=[{k:'entree',s:-1e9}];for(const b of SL)F.push({k:b.k,s:b.k==='mine'?(GROTTE.Q&&GROTTE.Q.mine0?GROTTE.Q.mine0.s*kS+250:180):b.s*kS});
   const SI={entree:0,mine:0,luxe:1,boyau:2,stal:3,lave:4,abysse:5,fin:5},bornes={};for(let j=1;j<F.length;j++)bornes[F[j].k]=F[j].s;
@@ -887,6 +894,7 @@ function grtEchantillons(){
   /* LES GÉANTS (2026-11-05, voir GRT_GEANT) : le vrai virage relu dans la route finale (le cap à l'entrée et à la sortie → le rayon, le centre : pisteTord a pu la déplacer un peu), le rayon du géant,
      et la salle OUVERTE autour de lui — le creux (RH) s'élargit jusqu'à l'envers du géant + sa marge, la voûte (UP) monte, le décalage latéral (LAT) s'efface — ~40 m avant le virage jusqu'à ~40 m après, fondu sur ~180 m. */
   R.geants=[];R.TUN=new Uint8Array(n);R.TUF=new Float32Array(n); /* TUF : (LE VERTIGE) de combien l'échantillon est dans un TUBE (0-1) — le bassin du lac ne se creuse pas dessous : le tube reste fermé, on ne voit la lave qu'en en sortant */ /* TUN : 1 dans le boyau rapide (les torches s'y serrent) */
+  if(ech9())yield;
   if(GRT_GEANT.on&&GROTTE.geants&&GROTTE.geants.length){const G9=GRT_GEANT,wA=function(a){while(a>Math.PI)a-=6.2832;while(a<-Math.PI)a+=6.2832;return a;},
       qAt=function(s9){let lo=R.i0,hi=R.n-21;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=s9)lo=m;else hi=m-1;}return lo;};
     for(const g of GROTTE.geants){const q0=qAt(g.s0*kS),q1=qAt(g.s1*kS);if(q1-q0<4)continue;const qm=(q0+q1)>>1,
@@ -897,6 +905,7 @@ function grtEchantillons(){
       for(let q=R.i0;q<R.n-20;q++){const dd=Math.max(0,sa-R.S[q],R.S[q]-sb),f=1-sm(dd,40,220);if(f<=0)continue;
         R.RH[q]=Math.max(R.RH[q],R.RH[q]+(need-R.RH[q])*f);R.UP[q]=Math.max(R.UP[q],R.UP[q]+(G9.up-R.UP[q])*f);R.LAT[q]*=1-f;}}}
   /* LE BOYAU RAPIDE (2026-11-05, voir GRT_FLOW) : le creux se resserre autour de la route — demi-largeur, voûte et fond du couloir (GRT_FLOW.boyau), parois plus nettes — sur toute la longueur du module, fondu sur ~90 m aux deux bouts : on s'y engouffre. */
+  if(ech9())yield;
   if(GRT_FLOW.on&&GROTTE.boyaux&&GROTTE.boyaux.length){
     for(const b of GROTTE.boyaux){const sa=b.s0*kS,sb=b.s1*kS,B9=b.f?Object.assign({},GRT_FLOW.boyau,b.f):GRT_FLOW.boyau; /* (LE VERTIGE) b.f : un tube à SA forme (le toboggan, le tube où la route se retourne, la faille) */
       for(let q=R.i0;q<R.n-20;q++){const dd=Math.max(0,sa-R.S[q],R.S[q]-sb),f=1-sm(dd,0,90);
@@ -925,6 +934,7 @@ function grtEchantillons(){
   R.gagnes=[]; /* (2026-11-15, LES SALLES GAGNÉES S'ALLUMENT) les morceaux de route qu'un tube fermait avant « moins de tunnels » (échantillons) */
   if(GRT_LIB.on&&GROTTE.boyaux)for(const b of GROTTE.boyaux){if(!b.gagne)continue;for(const g of b.gagne){const q0=qL9(g[0]*kS),q1=qL9(g[1]*kS);if(q1-q0>=6&&q0>=R.i0&&q1<R.n-21)R.gagnes.push([q0,q1]);}}
   R.stalag=[];
+  if(ech9())yield;
   if(GRT_LIB.stalag&&GROTTE.stalag&&GROTTE.stalag.length){const E9=GRT_LIB,fs=mulberry32(0x57A1A61E),wA=function(a){while(a>Math.PI)a-=6.2832;while(a<-Math.PI)a+=6.2832;return a;};
     const ouvre9=function(qa,qb,need){for(let q=Math.max(R.i0,qa-40);q<=Math.min(n-21,qb+40);q++){const dd=Math.max(0,R.S[qa]-R.S[q],R.S[q]-R.S[qb]),f=1-sm(dd,30,200);if(f<=0)continue;
         R.RH[q]=Math.max(R.RH[q],R.RH[q]+(need-R.RH[q])*f);R.UP[q]=Math.max(R.UP[q],R.UP[q]+(110-R.UP[q])*f);R.LAT[q]*=1-f;}};
@@ -939,7 +949,9 @@ function grtEchantillons(){
      jusqu'à ce que la paroi soit à `g` m SOUS la dalle : la route est posée contre le sol, un mur ou la voûte d'une salle qui, elle, garde son endroit (les lacs, les strates, les stalactites).
      CAX/CAY/CAZ : l'axe du creux · OFX/OFY/OFZ : le décalage de son centre (m) — partout ailleurs, la normale de la dalle et le décalage latéral d'avant (LAT) : rien ne change. Fondu sur 150 m ; jamais dans un tube. */
   R.CAX=new Float32Array(n);R.CAY=new Float32Array(n);R.CAZ=new Float32Array(n);R.OFX=new Float32Array(n);R.OFY=new Float32Array(n);R.OFZ=new Float32Array(n);
+  if(ech9())yield;
   for(let q=0;q<n;q++){R.CAX[q]=R.NNX[q];R.CAY[q]=R.NNY[q];R.CAZ[q]=R.NNZ[q];const lt=R.LAT[q];R.OFX[q]=R.BX[q]*lt;R.OFY[q]=R.BY[q]*lt;R.OFZ[q]=R.BZ[q]*lt;}
+  if(ech9())yield;
   if(GRT_LIB.assiette&&GROTTE.libres&&GROTTE.libres.length){const W9=new Float32Array(n),g9=GRT_LIB.g;R.W9=W9; /* (gardé pour les lacs : pas de bassin sous une route libre) */
     for(const v of GROTTE.libres){const sa=v.s0*kS,sb=v.s1*kS;for(let q=Math.max(R.i0,qL9(sa-150));q<n-20&&R.S[q]<=sb+150;q++){const dd=Math.max(0,sa-R.S[q],R.S[q]-sb),f=1-sm(dd,0,150);if(f>W9[q])W9[q]=f;}}
     for(let q=0;q<n;q++){const w=W9[q];if(w<=0||R.TUF[q]>.05)continue;const nx=R.NNX[q],ny=R.NNY[q],nz=R.NNZ[q];
@@ -975,6 +987,7 @@ function grtEchantillons(){
     for(let q=0;q<n;q++)if(R.S[q]>=GROTTE.lac.s0&&R.S[q]<=GROTTE.lac.s1){const dd=R.Y[q]-GROTTE.lac.y+14;if(GRT_ROULE){if(dd<340)R.BAS[q]=dd*(1-R.TUF[q])*(R.W9?Math.max(0,1-1.5*R.W9[q]):1);} /* (2026-11-13, LA CHARTE — DA) sous une route LIBRE (couchée sur la paroi) le bassin vertical de la lave mangeait la paroi qui la porte : le mur de la mort ne se lisait plus comme un mur */else R.DN[q]=Math.max(R.DN[q],dd);}}
   if(bornes.luxe!=null&&apres.luxe!=null){const y9=yMinDe(bornes.luxe,apres.luxe);GROTTE.eau={y:y9-(GRT_LIB.on?GRT_LIB.eauL:GRV.eauL),s0:bornes.luxe,s1:apres.luxe+(voisin.luxe[1]==='lave'?0:120)};rogne(GROTTE.eau,bornes.luxe,apres.luxe);}
   // la grille des échantillons (48 m) : les questions « suis-je sur la route ? » des décors
+  if(ech9())yield;
   const G=new Map();for(let q=0;q<n;q++){const k=Math.floor(R.X[q]/48)+','+Math.floor(R.Z[q]/48);let a=G.get(k);if(!a)G.set(k,a=[]);a.push(q);}R.G=G;
   return R;}
 /* un décor (colonne verticale de x,z, de y0 à y1, de rayon r) est-il LIBRE de la route ? — (SUR LES PAROIS) lu dans le repère de la dalle de chaque échantillon proche : en dehors de
@@ -1069,7 +1082,8 @@ function* grtLacsG(V,R){const lac=GROTTE.lac,eau=GROTTE.eau,B=V.B,K=GRT.K;if(!la
     if(A0){grtLacsBloc(A0,D0,SI,R,y0,lac,eau,B,K,null);let e9=0;for(let o=0;o<4096;o++)if(A0[o]!==A[o]||D0[o]!==DN[o])e9++;window.__lacsEcarts=(window.__lacsEcarts|0)+e9;window.__lacsBlocs=(window.__lacsBlocs|0)+1;}}}
 /* LES PILIERS (après les lacs) : des colonnes de BASALTE qui sortent de la lave jusqu'à la voûte, des COLONNES de concrétion (en sablier) dans la
    cathédrale — loin de toutes les routes (règle d'or), dans l'air de la salle. La densité les refait roche (la physique = l'image). */
-function grtPiliers(V,R,fr){const L9=[],B=V.B,K=GRT.K,b=R.bornes,VZ=GRT_VASTE,H9=VZ?560:260; // (GROTTE VASTE : plus nombreux, plus gros, dans toute la largeur des salles)
+function grtPiliers(V,R,fr){return rythmeMene(grtPiliersG(V,R,fr));} /* (2026-11-17, lot portv) d'un trait : le même générateur */
+function* grtPiliersG(V,R,fr){const L9=[],B=V.B,K=GRT.K,b=R.bornes,VZ=GRT_VASTE,H9=VZ?560:260; // (GROTTE VASTE : plus nombreux, plus gros, dans toute la largeur des salles)
   const ap=R.apres||{}; // (AU HASARD) la fin de la salle = le début de la suivante, quelle qu'elle soit
   for(const [k,s0,s1,nb,ra,rb] of VZ?[['stal',b.stal,ap.stal,11,14,14],['lave',b.lave,ap.lave,16,18,16]]:[['stal',b.stal,ap.stal,6,9,9],['lave',b.lave,ap.lave,9,12,11]]){if(s0==null||s1==null)continue;
     let n=0;for(let e=0;e<nb*12&&n<nb;e++){const q=R.i0+((fr()*(R.n-R.i0-20))|0);if(R.S[q]<s0+60||R.S[q]>s1-60)continue;
@@ -1082,7 +1096,7 @@ function grtPiliers(V,R,fr){const L9=[],B=V.B,K=GRT.K,b=R.bornes,VZ=GRT_VASTE,H9
         for(let kk=k0;kk<=k1;kk++)for(let i=i0;i<=i1;i++){const cx=V.ox+(i+.5)*B,cz=V.oz+(kk+.5)*B,dd=Math.hypot(cx-x,cz-z);if(dd>rr+2*B)continue;
           const c=V.dir[(i>>4)+V.CX*((j>>4)+V.CY*(kk>>4))];if(c<0)continue;const o=(i&15)|((j&15)<<4)|((kk&15)<<8),dv=Math.round((dd-rr)*K);
           if(dv<V.dn[c][o])V.dn[c][o]=Math.max(-127,dv);if(dd<rr&&V.pool[c][o]===1){V.pool[c][o]=0;V.nAir--;}}}
-      L9.push({x:x,z:z,r:r*1.3+B,yb:yb,yt:yt,k:k});n++;}}
+      L9.push({x:x,z:z,r:r*1.3+B,yb:yb,yt:yt,k:k});n++;if((typeof PORTV_ON!=="undefined"&&PORTV_ON)&&performance.now()>JF.lim)yield; /* (lot portv) une pause possible entre deux piliers */}}
   return L9;}
 /* ---------------- LA LUMIÈRE CUITE ----------------
    Canal 1 (aL.x) : les TORCHES (rayon 45 m). Canal 2 (aL.yzw, ×2 dans le shader) : la LUMIÈRE DU LIEU — l'air de la salle (GRT_AMB), la lave

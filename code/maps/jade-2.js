@@ -309,10 +309,19 @@ function jadeEtatLit(){const m={J:{},F:{},N:{},C:{}};for(const k of JADE_CH)m.J[
 function jadeEtatEcrit(m){for(const k of JADE_CH)JADE[k]=m.J[k];for(const k of FIN_CH)FIN[k]=m.F[k];for(const k of NUVOX_CH)NUVOX[k]=m.N[k];for(const k of JCH_CH)JCH[k]=m.C[k];}
 function jadeEtatVide(){ // plus de carte en place (les valeurs que buildJade posait avant de bâtir)
   NUVOX.L=null;NUVOX.ims=[];JADE.fam=[];FIN.fam=[];FIN.near.length=0;FIN.sig=0;FIN.mats=new Map();FIN.dans=new Set();JADE.col=null;JADE.porte=null;JADE.pont=null;JADE.brume=null;JADE.sig=0;JADE.root=null;JADE.monu=[];JADE.cle=null;JADE.quart=null;JADE.dz=null;JADE.deco=null;JADE.av=null;JCH.L=[];JCH.splash=null;JCH.sp=[];}
+function* jadeJetteG(m){ /* (2026-11-17, lot portv) jadeJette en tranches (au passage étalé, la jade qu'on quitte est libérée APRÈS, quelques ms par image : pveApres) — les mêmes libérations */
+  for(const o of m.J.monu||[])if(o.loIt){try{o.loIt.return();}catch(e){}o.loIt=null;}
+  let n9=0;for(const F of m.J.fam.concat(m.F.fam.filter(Boolean))){F.im.dispose();if(F.im2&&F.im2!==F.im){F.im2.dispose();F.im3.dispose();}const g9=F.im.geometry;for(const k in g9.attributes)if(k!=='aJ')g9.deleteAttribute(k);g9.setIndex(null);g9.dispose();if((++n9&3)===0)yield;}
+  if(m.J.root){const L9=[];m.J.root.traverse(function(o){L9.push(o);});n9=0;
+    for(const o of L9){if(o.userData.jeter&&o.geometry)o.geometry.dispose();
+      else if(o.userData.vue&&o.geometry){const g9=o.geometry;for(const k in g9.attributes)if(k!=='aJ')g9.deleteAttribute(k);g9.setIndex(null);g9.dispose();}
+      if(o.isInstancedMesh)o.dispose();if((++n9&31)===0)yield;}}}
 function jadeJette(m){ // libère une carte : ses familles (tampons d'instances, sans toucher aux gabarits partagés), ses maillages à elle, les tampons de ses instances
   for(const o of m.J.monu||[])if(o.loIt){try{o.loIt.return();}catch(e){}o.loIt=null;} // (2026-10-14, passe perf mobile) le monument de loin en cours : la file fermée (VOXM rendu), rien n'est ajouté à la carte jetée
   for(const F of m.J.fam.concat(m.F.fam.filter(Boolean))){F.im.dispose();if(F.im2&&F.im2!==F.im){F.im2.dispose();F.im3.dispose();}const g9=F.im.geometry;for(const k in g9.attributes)if(k!=='aJ')g9.deleteAttribute(k);g9.setIndex(null);g9.dispose();}
-  if(m.J.root)m.J.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();if(o.isInstancedMesh)o.dispose();});}
+  if(m.J.root)m.J.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();
+    else if(o.userData.vue&&o.geometry){const g9=o.geometry;for(const k in g9.attributes)if(k!=='aJ')g9.deleteAttribute(k);g9.setIndex(null);g9.dispose();} /* (2026-11-17) une vue sur un gabarit (les pierres des verbes) : son aJ seul, comme les familles */
+    if(o.isInstancedMesh)o.dispose();});}
 function jadeRendGPU(m){m.J.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();if(o.isInstancedMesh)o.dispose();});} // (ses tableaux restent : three les renverra)
 function jadeRange(){ // la carte en place quitte la scène, rangée telle quelle — l'ancienne carte rangée est libérée
   const m=jadeEtatLit();if(JADE.root.parent)JADE.root.parent.remove(JADE.root);
@@ -322,9 +331,29 @@ function jadeOublie(){if(JADE_GARDE.m){jadeJette(JADE_GARDE.m);JADE_GARDE.m=null
 function jadeCle(seed){ // l'identité d'une vallée : la graine et le ruban tel que buildTrack l'a posé (au bit près), la largeur, les réglages qui changent la carte
   const f=new Float64Array(1),u=new Uint32Array(f.buffer);let h=0x811c9dc5;const mx=x=>{f[0]=x;h=Math.imul(h^u[0],16777619);h=Math.imul(h^u[1],16777619);};
   mx(seed);mx(NP);mx(L);mx(ROAD_HALF);mx(VX);mx(VXG);mx(FIN.on?1:0);mx(0);mx(JADE_NUVOX?1:0);mx(TEL_NATIF?1:0);
-  for(let i=0;i<NP;i++){const p=pts[i],t=T[i],b=B[i],n=Nn[i];mx(p.x);mx(p.y);mx(p.z);mx(t.x);mx(t.y);mx(t.z);mx(b.x);mx(b.y);mx(b.z);mx(n.x);mx(n.y);mx(n.z);}
+  if(JADE_PBT){const F9=new Float64Array(12),U9=new Uint32Array(F9.buffer); /* (lot JADEPREBATI) les douze nombres d'un point posés d'un coup, puis leurs 24 mots dans le même ordre que mx (mot bas, mot haut) : la même empreinte, sans un appel par nombre (froid, ×1,6 plus vite) */
+    for(let i=0;i<NP;i++){const p=pts[i],t=T[i],b=B[i],n=Nn[i];F9[0]=p.x;F9[1]=p.y;F9[2]=p.z;F9[3]=t.x;F9[4]=t.y;F9[5]=t.z;F9[6]=b.x;F9[7]=b.y;F9[8]=b.z;F9[9]=n.x;F9[10]=n.y;F9[11]=n.z;
+      for(let k=0;k<24;k++)h=Math.imul(h^U9[k],16777619);}}
+  else for(let i=0;i<NP;i++){const p=pts[i],t=T[i],b=B[i],n=Nn[i];mx(p.x);mx(p.y);mx(p.z);mx(t.x);mx(t.y);mx(t.z);mx(b.x);mx(b.y);mx(b.z);mx(n.x);mx(n.y);mx(n.z);}
   const Q=JADE.Q||{};for(const k of Object.keys(Q).sort()){mx(k.length);mx(Q[k].p.x);mx(Q[k].p.y);mx(Q[k].p.z);mx(Q[k].phi);}
   return seed+':'+NP+':'+(h>>>0).toString(36);}
+/* (2026-11-17, lot portv) LA CLÉ EN TRANCHES : jadeCle, le même hachage au mot près (mêmes nombres, même ordre), qui rend la main tous les 256 points quand l'échéance de la
+   tranche (JF.lim) est passée — prebJade la mène par yield* (au banc ×10 : 44-56 ms d'un bloc avant). jadeClePre la calcule juste avant buildJade, au passage étalé,
+   sur l'état même que buildJade va lire (rien ne bouge entre les deux : la boucle est gelée) ; buildJade la prend (JADE_CLEP) au lieu de la recalculer d'un bloc. */
+const JADE_CLEP={seed:null,cle:null};
+function* jadeCleG(seed){
+  const f=new Float64Array(1),u=new Uint32Array(f.buffer);let h=0x811c9dc5;const mx=x=>{f[0]=x;h=Math.imul(h^u[0],16777619);h=Math.imul(h^u[1],16777619);};
+  mx(seed);mx(NP);mx(L);mx(ROAD_HALF);mx(VX);mx(VXG);mx(FIN.on?1:0);mx(0);mx(JADE_NUVOX?1:0);mx(TEL_NATIF?1:0);
+  if(JADE_PBT){const F9=new Float64Array(12),U9=new Uint32Array(F9.buffer);
+    for(let i=0;i<NP;i++){if((i&255)===255&&performance.now()>JF.lim)yield;const p=pts[i],t=T[i],b=B[i],n=Nn[i];F9[0]=p.x;F9[1]=p.y;F9[2]=p.z;F9[3]=t.x;F9[4]=t.y;F9[5]=t.z;F9[6]=b.x;F9[7]=b.y;F9[8]=b.z;F9[9]=n.x;F9[10]=n.y;F9[11]=n.z;
+      for(let k=0;k<24;k++)h=Math.imul(h^U9[k],16777619);}}
+  else for(let i=0;i<NP;i++){if((i&255)===255&&performance.now()>JF.lim)yield;const p=pts[i],t=T[i],b=B[i],n=Nn[i];mx(p.x);mx(p.y);mx(p.z);mx(t.x);mx(t.y);mx(t.z);mx(b.x);mx(b.y);mx(b.z);mx(n.x);mx(n.y);mx(n.z);}
+  const Q=JADE.Q||{};for(const k of Object.keys(Q).sort()){mx(k.length);mx(Q[k].p.x);mx(Q[k].p.y);mx(Q[k].p.z);mx(Q[k].phi);}
+  return seed+':'+NP+':'+(h>>>0).toString(36);}
+function* jadeClePre(seed){JADE_CLEP.cle=null;if(PARK.on||!LVL.cur||LVL.cur.piste!=='jade'||!(NP>1))return; /* les conditions où buildJade calcule sa clé */
+  const c=yield* jadeCleG(seed);JADE_CLEP.seed=seed;JADE_CLEP.cle=c;}
+function jadeClePrise(seed){const c=JADE_CLEP.cle,ok=c&&JADE_CLEP.seed===seed;JADE_CLEP.cle=null;return ok?c:null;}
+window.dbgJadeCleG=function(sd){sd=sd==null?7:sd;const a=jadeCle(sd);const l0=JF.lim;JF.lim=-1;let n=0,r;try{const g=jadeCleG(sd);while(!(r=g.next()).done)n++;}finally{JF.lim=l0;}return {cle:a,cleG:r.value,egales:a===r.value,pauses:n};}; /* (banc) la clé d'un trait et en tranches (une pause tous les 256 points) */
 function jadePose(ok){ // la carte bâtie entre dans la scène (avant : dès le début de buildJade — l'ordre n'y change rien), l'eau à son niveau, le style de la route
   scene.add(JADE.root);trackMeshes.push(JADE.root);JADE_U.uMerY.value=JADE.eauY;skyU.uJMerY.value=JADE.eauY;
   {const Z=JADE.dz;JADE_U.uRocT.value.fromArray(Z?Z.roc:[1,1,1]);JADE_U.uVerT.value.fromArray(Z?Z.ver:[1,1,1]);} /* (2026-10-20, LE DÉCOR AU HASARD) la teinte de CETTE vallée — posée à l'entrée en scène (bâtie d'avance, elle ne déteint pas sur celle d'en place) */
@@ -346,11 +375,12 @@ function jadeReprend(){const t0=performance.now(),m=JADE_GARDE.m;JADE_GARDE.m=nu
 function buildJade(seed){
   JADE.t0=0;JADE.fini=false; // (2026-10-12, passe qualité) le chrono d'ARRIVÉE repart à chaque piste (après REJOUER il comptait les essais d'avant, menus compris)
   try{JADE_ESPRITS.visible=false;}catch(e){} // …et les lucioles s'éteignent : jadeTick ne tourne plus hors de la map, elles restaient figées dans le niveau suivant
-  if(JADE.root)jadeRange(); // (2026-10-13) la carte en place n'est plus jetée : rangée (voir LA CARTE GARDÉE)
+  const part9=(typeof PORTV_ON!=="undefined"&&PORTV_ON)&&PVE.dedans&&started&&!gameOver&&(PARK.on||!LVL.cur||LVL.cur.piste!=='jade'||!(NP>1)); /* (lot portv) on QUITTE la jade au passage étalé : elle sortira de la scène tout de suite, mais sera libérée après le passage (rangée puis jetée aussitôt, comme avant : ici, jetée plus tard) */
+  if(JADE.root){if(part9){const m9=jadeEtatLit(),g9=JADE_GARDE.m;if(JADE.root.parent)JADE.root.parent.remove(JADE.root);JADE_GARDE.m=null;if(g9)pveApres(function(){return jadeJetteG(g9);});pveApres(function(){return jadeJetteG(m9);});}else jadeRange();} // (2026-10-13) la carte en place n'est plus jetée : rangée (voir LA CARTE GARDÉE)
   jadeEtatVide();
   try{coinSymbole((JADE_JEU||(LVL.cur&&LVL.cur.sansFin))&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on?'Y':LVL.cur&&LVL.cur.crypto&&!PARK.on?'B':'E');}catch(e){} // (2026-10-12) les pièces du SOLEIL DE JADE frappées du ¥
-  if(PARK.on||!LVL.cur||LVL.cur.piste!=='jade'||!(NP>1)){if(started&&!gameOver)jadeOublie();return;} // une course sur un autre niveau : la carte rangée est libérée (au menu, elle attend le prochain JOUER)
-  const cle=jadeCle(seed);
+  if(PARK.on||!LVL.cur||LVL.cur.piste!=='jade'||!(NP>1)){if(started&&!gameOver){if(part9){const g9=JADE_GARDE.m;JADE_GARDE.m=null;if(g9)pveApres(function(){return jadeJetteG(g9);});}else jadeOublie();}return;} // une course sur un autre niveau : la carte rangée est libérée (au menu, elle attend le prochain JOUER)
+  const cle=jadeClePrise(seed)||jadeCle(seed); /* (lot portv) la clé calculée en tranches juste avant (jadeClePre), sinon d'un trait */
   if(JADE_GARDE.m&&JADE_GARDE.m.J.cle===cle){jadeReprend();return;} // LA MÊME VALLÉE : reprise telle quelle
   jadeOublie(); // une autre vallée : l'ancienne carte est libérée avant de bâtir
   let ok=false;

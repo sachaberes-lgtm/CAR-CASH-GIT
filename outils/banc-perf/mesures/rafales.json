@@ -1,0 +1,1109 @@
+{
+ "cpu": 12.0,
+ "T": 25.0,
+ "cpu2": 6.0,
+ "fil": 14.0,
+ "charge0": 5.4,
+ "A_avant": {
+  "getError": false,
+  "drawElements": false,
+  "getParameter1": false,
+  "putImageData": true,
+  "drawImage": true,
+  "MG": "undefined"
+ },
+ "A": {
+  "natif": {
+   "getError": true,
+   "drawElements": true,
+   "getParameter1": true,
+   "putImageData": true,
+   "drawImage": true,
+   "MG": "undefined"
+  },
+  "rafales": {
+   "on": false,
+   "senDebut": false,
+   "senDebutN": 0,
+   "senDebutMs": 0,
+   "senRenduN": 0,
+   "senRenduMs": 0,
+   "appelsN": 0,
+   "appelsMs": 0,
+   "loops": 0,
+   "nomsPerdus": 0,
+   "dwM": 16.7,
+   "sousTranches": [],
+   "image": [],
+   "appelsCourse": {},
+   "passes": -1,
+   "reposes": 0,
+   "sw": null
+  },
+  "mouchard": {
+   "on": false,
+   "minuteries": 0,
+   "intervalles": 0,
+   "ecouteurs": 0,
+   "boucles": 0,
+   "imageMs": 0,
+   "horsMs": 0,
+   "tranches": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "retourS": null,
+   "pivotS": null,
+   "ac": 2,
+   "tas": 210,
+   "sentinelle": null,
+   "temoin": false,
+   "gcSec": 0,
+   "natif": 9999
+  },
+  "pannes": [],
+  "loopErr": null
+ },
+ "B_sans_rafales": {
+  "images": 845,
+  "travail_moy_ms": 3.17,
+  "i_s": 29.9,
+  "charge": 4.6,
+  "pannes": [],
+  "compteurs": {
+   "sentinelles_debut": 0,
+   "ms_sentinelles_debut_par_image": 0.0,
+   "sentinelles_rendu": 0,
+   "ms_sentinelles_rendu_par_image": 0.0,
+   "appels_enveloppes_par_image": 0.0,
+   "ms_dans_appels_par_image": 0.0,
+   "images": 845,
+   "dwM": 16.7
+  }
+ },
+ "B_avec_rafales": {
+  "images": 845,
+  "travail_moy_ms": 3.14,
+  "i_s": 29.9,
+  "charge": 6.4,
+  "pannes": [],
+  "compteurs": {
+   "sentinelles_debut": 844,
+   "ms_sentinelles_debut_par_image": 0.356,
+   "sentinelles_rendu": 1,
+   "ms_sentinelles_rendu_par_image": 0.0,
+   "appels_enveloppes_par_image": 184.3,
+   "ms_dans_appels_par_image": 0.26,
+   "images": 845,
+   "dwM": 33.3
+  }
+ },
+ "J": {
+  "etapes": [
+   {
+    "etape": "menu (6 s)",
+    "senDebutN": 0,
+    "senRenduN": 0,
+    "loops": 252,
+    "appelsN": 12034,
+    "etat": {
+     "started": false,
+     "running": false,
+     "paused": false,
+     "gameOver": false,
+     "mode": "drive"
+    },
+    "pannes": [],
+    "loopErr": null,
+    "sentinelles_debut_au_menu": 0
+   },
+   {
+    "etape": "départ",
+    "senDebutN": 34,
+    "senRenduN": 1,
+    "loops": 1325,
+    "appelsN": 5226,
+    "etat": {
+     "started": true,
+     "running": true,
+     "paused": false,
+     "gameOver": false,
+     "mode": "drive"
+    },
+    "pannes": [],
+    "loopErr": null
+   },
+   {
+    "etape": "course 8 s",
+    "senDebutN": 334,
+    "senRenduN": 1,
+    "loops": 1625,
+    "appelsN": 54072,
+    "etat": {
+     "started": true,
+     "running": true,
+     "paused": false,
+     "gameOver": false,
+     "mode": "fall"
+    },
+    "pannes": [],
+    "loopErr": null
+   },
+   {
+    "etape": "12 loops lourdes provoquées (b4)",
+    "senDebutN": 491,
+    "senRenduN": 13,
+    "loops": 1783,
+    "appelsN": 83745,
+    "etat": {
+     "started": true,
+     "running": true,
+     "paused": false,
+     "gameOver": false,
+     "mode": "drive"
+    },
+    "pannes": [],
+    "loopErr": null
+   },
+   {
+    "etape": "processeur bridé ×12, 8 s",
+    "senDebutN": 716,
+    "senRenduN": 15,
+    "loops": 2028,
+    "appelsN": 133147,
+    "etat": {
+     "started": true,
+     "running": true,
+     "paused": false,
+     "gameOver": false,
+     "mode": "fall"
+    },
+    "pannes": [],
+    "loopErr": null
+   },
+   {
+    "etape": "RAFALE fil entier (bridé ×6 + 14 ms × 6 bornes, 1 image sur 3)",
+    "senDebutN": 931,
+    "senRenduN": 65,
+    "loops": 2267,
+    "appelsN": 175293,
+    "etat": {
+     "started": true,
+     "running": true,
+     "paused": false,
+     "gameOver": false,
+     "mode": "fall"
+    },
+    "pannes": [],
+    "loopErr": null,
+    "fenetre_s": [
+     27.1,
+     36.1
+    ]
+   },
+   {
+    "etape": "portail → nuages",
+    "senDebutN": 1291,
+    "senRenduN": 65,
+    "loops": 2627,
+    "appelsN": 249061,
+    "etat": {
+     "started": true,
+     "running": true,
+     "paused": false,
+     "gameOver": false,
+     "mode": "fall"
+    },
+    "pannes": [],
+    "loopErr": null
+   },
+   {
+    "etape": "pause 5 s (panneau)",
+    "senDebutN": 1292,
+    "senRenduN": 65,
+    "loops": 2823,
+    "appelsN": 254374,
+    "etat": {
+     "started": true,
+     "running": true,
+     "paused": true,
+     "gameOver": false,
+     "mode": "fall"
+    },
+    "pannes": [],
+    "loopErr": null,
+    "sentinelles_debut_en_pause": 0
+   },
+   {
+    "etape": "reprise (3-2-1) + 3 s",
+    "senDebutN": 1503,
+    "senRenduN": 65,
+    "loops": 3063,
+    "appelsN": 304046,
+    "etat": {
+     "started": true,
+     "running": true,
+     "paused": false,
+     "gameOver": false,
+     "mode": "fall"
+    },
+    "pannes": [],
+    "loopErr": null,
+    "sentinelles_debut_reprise": 90
+   },
+   {
+    "etape": "mort (gameOver) + 4 s",
+    "senDebutN": 1557,
+    "senRenduN": 65,
+    "loops": 3303,
+    "appelsN": 321557,
+    "etat": {
+     "started": true,
+     "running": true,
+     "paused": false,
+     "gameOver": true,
+     "mode": "boom"
+    },
+    "pannes": [],
+    "loopErr": null
+   },
+   {
+    "etape": "retour au menu 6 s",
+    "senDebutN": 1557,
+    "senRenduN": 65,
+    "loops": 3626,
+    "appelsN": 348111,
+    "etat": {
+     "started": true,
+     "running": true,
+     "paused": false,
+     "gameOver": true,
+     "mode": "drive"
+    },
+    "pannes": [],
+    "loopErr": null,
+    "accueil_affiche": true,
+    "sentinelles_debut_au_menu": 0,
+    "sentinelles_rendu_au_menu": 0
+   },
+   {
+    "etape": "2e course 10 s",
+    "senDebutN": 1952,
+    "senRenduN": 66,
+    "loops": 4111,
+    "appelsN": 81131,
+    "etat": {
+     "started": true,
+     "running": true,
+     "paused": false,
+     "gameOver": false,
+     "mode": "fall"
+    },
+    "pannes": [],
+    "loopErr": null
+   }
+  ],
+  "natif": {
+   "getError": false,
+   "drawElements": false,
+   "getParameter1": false,
+   "putImageData": false,
+   "drawImage": false,
+   "MG": "object"
+  },
+  "lourd": "les 12 prochaines loop pleines : +90 ms dans b4 (sous-tranche « banc · lourd exprès »)",
+  "fil": "les 400 prochaines loop pleines, une sur 3 : +14 ms à CHAQUE borne b2…rendu (sous-tranche « banc · fil entier exprès »)",
+  "fil_stop": "fil entier arrêté",
+  "portail": {
+   "L": 6506,
+   "s": 3906,
+   "R": 55
+  },
+  "mort": [
+   "{\"variante\":\"FEU\",\"rings\":3,\"volutes\":18,\"dards\":12}"
+  ],
+  "mort_ok": true,
+  "course1_fermee": {
+   "courses_avant": 0,
+   "courses_apres": 1,
+   "onglet_cache": false
+  },
+  "course2": {
+   "loops": 360,
+   "sentinelles_debut": 360,
+   "etat": {
+    "started": true,
+    "running": true,
+    "paused": false,
+    "gameOver": false,
+    "mode": "fall"
+   }
+  },
+  "fin": {
+   "on": true,
+   "senDebut": true,
+   "senDebutN": 1952,
+   "senDebutMs": 1509.1,
+   "senRenduN": 66,
+   "senRenduMs": 128.7,
+   "appelsN": 81131,
+   "appelsMs": 64.6,
+   "loops": 4111,
+   "nomsPerdus": 0,
+   "dwM": 33.3,
+   "sousTranches": [
+    "b1 entrée (chargement, cadence)",
+    "b1 échelle QL",
+    "lvlStep",
+    "routeTick",
+    "ailvTick",
+    "blingTick",
+    "bioStep",
+    "nuFondTick",
+    "cityTick",
+    "portesTick",
+    "b1 son du vide, ambiance garage",
+    "b1 sim (pouvoirs, nitro, volant)",
+    "b6 vitrine, garage, chat",
+    "b6 ciel, effets ACES",
+    "b6 planète, orbite, pluie, soleil",
+    "b6 ombre, liseré, roues",
+    "b6 caisse (ailes, comète, montage)",
+    "juiceScreenTick, fxTick",
+    "musicTick",
+    "villeApres, mortSaute",
+    "updateBoomArt",
+    "jadeTick, jsgTick",
+    "grotteTick",
+    "banqTick, gabarits",
+    "crypto, vitre, pluie d'argent",
+    "canyon, dunes, grues",
+    "lumTick",
+    "b6 boutique fermée, menuCull",
+    "rendu composer",
+    "passe 0 scène",
+    "passe 1 bloom",
+    "passe 2 ACES (+ loupe)",
+    "après : copies (intro, fenêtre, ciel du menu)",
+    "matSursisTick, chauffes",
+    "engVigRender",
+    "prebTick",
+    "mesure (bvImage)",
+    "HUD calme, endormi, couches",
+    "cadFin, fin",
+    "dont loupe (quad)",
+    "b4 pièces (couloir, coinFlush)",
+    "updateMoneyRain",
+    "updatePigeons",
+    "updateClouds",
+    "pluieCaisseTick, crânes",
+    "b4 lumières (caisse, phares)",
+    "nfxTick, lumière nitro",
+    "b4 plumes des pots (JETS)",
+    "nfeuPas",
+    "b4 sillages (traînées)",
+    "b4 arc-en-ciel",
+    "trxStep",
+    "b4 wow, hélices, fin",
+    "drawSpeedLines, nfxFiles",
+    "b6 HUD (missions, aura, compteurs)",
+    "nx3Tick",
+    "dont nxfDessine (flamme + putImageData)",
+    "ajTick",
+    "b6 HUD suite (pouvoirs, jauges, survie)",
+    "qlSonde",
+    "qlSondeDebut",
+    "banc · lourd exprès",
+    "banc · fil entier exprès"
+   ],
+   "image": [
+    0,
+    0,
+    0,
+    0.1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.1,
+    0,
+    0,
+    1.6,
+    1.4,
+    0.1,
+    0.1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.1,
+    0.2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.1,
+    0,
+    0,
+    0,
+    0,
+    0.1,
+    0.1,
+    0.4,
+    0.4,
+    0,
+    0.1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "appelsCourse": {
+    "envoi bufferData": [
+     613,
+     3.8
+    ],
+    "envoi bufferSubData": [
+     5187,
+     8.5
+    ],
+    "envoi generateMipmap": [
+     321,
+     0.3
+    ],
+    "gl getParameter": [
+     15,
+     0
+    ],
+    "envoi texImage2D": [
+     7,
+     3.6
+    ],
+    "envoi clear": [
+     4905,
+     2.9
+    ],
+    "envoi drawArrays": [
+     22442,
+     6.5
+    ],
+    "envoi drawElements": [
+     28430,
+     8.9
+    ],
+    "envoi drawArraysInstanced": [
+     796,
+     0.9
+    ],
+    "envoi drawElementsInstanced": [
+     3582,
+     1.1
+    ],
+    "gl getQueryParameter": [
+     38,
+     0
+    ],
+    "2d drawImage": [
+     14599,
+     15.4
+    ],
+    "2d putImageData": [
+     196,
+     12.7
+    ]
+   },
+   "passes": 3,
+   "reposes": 1,
+   "sw": [
+    0,
+    27,
+    3
+   ]
+  },
+  "vol": {
+   "Mw": 27,
+   "M_secondes": 63,
+   "M_multiple": true,
+   "G_lignes": 64,
+   "G_largeurs": [
+    51
+   ],
+   "LH_lignes": 65,
+   "LH_loop_ms": [
+    68.8,
+    80.4,
+    92.5,
+    93.0,
+    92.8,
+    92.9,
+    92.8,
+    92.8,
+    93.9,
+    92.5,
+    92.7,
+    92.3,
+    92.4,
+    94.2,
+    60.3,
+    91.4,
+    89.7,
+    92.9,
+    90.2,
+    89.1,
+    99.3,
+    89.4,
+    91.0,
+    90.8,
+    94.1,
+    94.0,
+    89.3,
+    89.6,
+    86.3,
+    91.4
+   ],
+   "LH_avec_banc_lourd": 12,
+   "LH_avec_fil_entier": 50,
+   "H_du_pilote": [
+    "NoneType",
+    0
+   ],
+   "HN": [
+    "",
+    "b1 entrée (chargement, cadence)",
+    "b1 échelle QL",
+    "lvlStep",
+    "routeTick",
+    "ailvTick",
+    "blingTick",
+    "bioStep",
+    "nuFondTick",
+    "cityTick",
+    "portesTick",
+    "b1 son du vide, ambiance garage",
+    "b1 sim (pouvoirs, nitro, volant)",
+    "b6 vitrine, garage, chat",
+    "b6 ciel, effets ACES",
+    "b6 planète, orbite, pluie, soleil",
+    "b6 ombre, liseré, roues",
+    "b6 caisse (ailes, comète, montage)",
+    "juiceScreenTick, fxTick",
+    "musicTick",
+    "villeApres, mortSaute",
+    "updateBoomArt",
+    "jadeTick, jsgTick",
+    "grotteTick",
+    "banqTick, gabarits",
+    "crypto, vitre, pluie d'argent",
+    "canyon, dunes, grues",
+    "lumTick",
+    "b6 boutique fermée, menuCull",
+    "rendu composer",
+    "passe 0 scène",
+    "passe 1 bloom",
+    "passe 2 ACES (+ loupe)",
+    "après : copies (intro, fenêtre, ciel du menu)",
+    "matSursisTick, chauffes",
+    "engVigRender",
+    "prebTick",
+    "mesure (bvImage)",
+    "HUD calme, endormi, couches",
+    "cadFin, fin",
+    "dont loupe (quad)",
+    "b4 pièces (couloir, coinFlush)",
+    "updateMoneyRain",
+    "updatePigeons",
+    "updateClouds",
+    "pluieCaisseTick, crânes",
+    "b4 lumières (caisse, phares)",
+    "nfxTick, lumière nitro",
+    "b4 plumes des pots (JETS)",
+    "nfeuPas",
+    "b4 sillages (traînées)",
+    "b4 arc-en-ciel",
+    "trxStep",
+    "b4 wow, hélices, fin",
+    "drawSpeedLines, nfxFiles",
+    "b6 HUD (missions, aura, compteurs)",
+    "nx3Tick",
+    "dont nxfDessine (flamme + putImageData)",
+    "ajTick",
+    "b6 HUD suite (pouvoirs, jauges, survie)",
+    "qlSonde",
+    "qlSondeDebut",
+    "banc · lourd exprès",
+    "banc · fil entier exprès"
+   ],
+   "passes": [
+    "passe 0 scène",
+    "passe 1 bloom",
+    "passe 2 ACES (+ loupe)",
+    "dont loupe (quad)",
+    "dont nxfDessine (flamme + putImageData)"
+   ],
+   "SRn": 1375,
+   "SY": [
+    3,
+    313,
+    1498,
+    61910,
+    1579,
+    199159,
+    62823
+   ],
+   "LHp": null,
+   "Gp": null,
+   "LHNp": null,
+   "Y_top": [
+    [
+     "2d drawImage",
+     [
+      72800,
+      2090,
+      66
+     ]
+    ],
+    [
+     "envoi drawElements",
+     [
+      90460,
+      1175,
+      27
+     ]
+    ],
+    [
+     "envoi bufferSubData",
+     [
+      24524,
+      1103,
+      27
+     ]
+    ],
+    [
+     "2d putImageData",
+     [
+      825,
+      957,
+      15
+     ]
+    ],
+    [
+     "envoi drawArrays",
+     [
+      73203,
+      941,
+      26
+     ]
+    ],
+    [
+     "gl readPixels",
+     [
+      32,
+      841,
+      242
+     ]
+    ],
+    [
+     "envoi bufferData",
+     [
+      1140,
+      612,
+      26
+     ]
+    ],
+    [
+     "envoi clear",
+     [
+      20473,
+      442,
+      28
+     ]
+    ],
+    [
+     "envoi drawElementsInstanced",
+     [
+      24024,
+      304,
+      25
+     ]
+    ],
+    [
+     "envoi texImage2D",
+     [
+      49,
+      94,
+      46
+     ]
+    ]
+   ],
+   "M_natif_24_26": [
+    [
+     -1,
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1,
+     -1
+    ],
+    [
+     0,
+     25,
+     3
+    ],
+    [
+     0,
+     26,
+     3
+    ],
+    [
+     0,
+     25,
+     3
+    ],
+    [
+     0,
+     25,
+     3
+    ]
+   ],
+   "G_40_50": [
+    [
+     30,
+     -1,
+     30,
+     0,
+     36,
+     0,
+     1,
+     595,
+     1364,
+     1,
+     0
+    ],
+    [
+     40,
+     40,
+     40,
+     0,
+     0,
+     1,
+     54,
+     1,
+     133,
+     2,
+     0
+    ],
+    [
+     40,
+     30,
+     30,
+     0,
+     0,
+     0,
+     53,
+     2,
+     146,
+     3,
+     0
+    ],
+    [
+     40,
+     30,
+     30,
+     0,
+     0,
+     0,
+     55,
+     2,
+     133,
+     4,
+     0
+    ],
+    [
+     40,
+     30,
+     30,
+     0,
+     0,
+     2,
+     49,
+     2,
+     146,
+     5,
+     0
+    ],
+    [
+     40,
+     40,
+     40,
+     0,
+     0,
+     1,
+     46,
+     1,
+     133,
+     6,
+     0
+    ],
+    [
+     30,
+     40,
+     30,
+     0,
+     0,
+     1,
+     52,
+     1,
+     132,
+     7,
+     0
+    ],
+    [
+     30,
+     40,
+     30,
+     0,
+     0,
+     2,
+     55,
+     1,
+     119,
+     8,
+     0
+    ]
+   ],
+   "LH_exemples": [
+    [
+     0,
+     688,
+     0,
+     -1,
+     30,
+     30,
+     4,
+     96,
+     556,
+     1,
+     2,
+     19,
+     252,
+     409,
+     0,
+     0,
+     0,
+     0,
+     0,
+     270,
+     9,
+     7,
+     13,
+     389,
+     16,
+     16,
+     29,
+     269,
+     30,
+     62,
+     32,
+     206,
+     37,
+     8,
+     40,
+     96
+    ],
+    [
+     1,
+     804,
+     1,
+     30,
+     -1,
+     30,
+     0,
+     0,
+     36,
+     0,
+     1,
+     595,
+     1364,
+     2,
+     1,
+     1,
+     5,
+     1,
+     16,
+     14,
+     764,
+     6,
+     29,
+     14,
+     30,
+     12,
+     34,
+     762,
+     41,
+     3,
+     56,
+     14,
+     57,
+     14
+    ]
+   ],
+   "YR_reposes": 1,
+   "envois_par_seconde": [
+    4283,
+    3252,
+    3414,
+    4064,
+    4259,
+    3982,
+    4141,
+    4063,
+    2892,
+    3118,
+    4287,
+    2034,
+    3335,
+    3995,
+    3475,
+    4120,
+    4455,
+    3318,
+    2813,
+    2514,
+    2800,
+    2910,
+    1554,
+    2523,
+    3002,
+    3914,
+    4242,
+    5476,
+    3062,
+    1827,
+    1968,
+    2235,
+    2209,
+    2130,
+    1981,
+    2302,
+    2143,
+    3614,
+    4591,
+    4896,
+    4422,
+    4710,
+    4721,
+    4235,
+    4732,
+    4732,
+    4801,
+    4908,
+    4667,
+    4430,
+    4125,
+    4025,
+    7589,
+    820,
+    3975,
+    4571,
+    5718,
+    7223,
+    6437,
+    4690,
+    4046,
+    4479,
+    2452
+   ],
+   "secondes_sans_envoi": 0,
+   "appels_par_image": 170.7,
+   "ms_appels_par_image": 0.48,
+   "sentinelle_debut_moy_ms": 1.151
+  }
+ },
+ "N_base": {
+  "pret": {
+   "getError": false,
+   "drawElements": false,
+   "getParameter1": false,
+   "putImageData": true,
+   "drawImage": true,
+   "MG": "undefined"
+  },
+  "course": {
+   "getError": true,
+   "drawElements": true,
+   "getParameter1": true,
+   "putImageData": true,
+   "drawImage": true,
+   "MG": "undefined"
+  },
+  "raf_i_s": 30.0,
+  "mouchard_on": false,
+  "rafales": [
+   false,
+   null,
+   null,
+   null
+  ],
+  "pannes": [],
+  "loopErr": null
+ },
+ "N_tete": {
+  "pret": {
+   "getError": false,
+   "drawElements": false,
+   "getParameter1": false,
+   "putImageData": true,
+   "drawImage": true,
+   "MG": "undefined"
+  },
+  "course": {
+   "getError": true,
+   "drawElements": true,
+   "getParameter1": true,
+   "putImageData": true,
+   "drawImage": true,
+   "MG": "undefined"
+  },
+  "raf_i_s": 30.0,
+  "mouchard_on": false,
+  "rafales": [
+   false,
+   0,
+   0,
+   0
+  ],
+  "pannes": [],
+  "loopErr": null
+ }
+}

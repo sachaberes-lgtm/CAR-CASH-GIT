@@ -1,0 +1,111 @@
+
+======== JADE palier 0
+[3a] 50 premiers lancements : 1res routes — suites distinctes 50/50 · 1er module ile 5, tours 4, porte 4, bosse 3, passe 3 · distincts 25
+     plan.cap (1res routes) : zigzag 13, serpent 13, crochet 8, derive 8, libre 8
+     plan.relief (1res routes) : vagues 13, gradins 12, mixte 10, falaise 9, plateaux 6
+     plan.ouv (1res routes) : calme 10, virage 10, bosse 7, esse 7, direct 7, plonge 6, balcon 3
+     plan.itin (1res routes) : 4 12, 3 11, 5 10, 0 8, 2 7, 1 2
+     RMS 3 km (miroir) entre 1res routes : méd 807 m, min 169 m, paires < 100 m : 0/1225
+     250 routes (50 × 5) : suites distinctes 250 · même ouverture deux routes de suite : 0 / 200 transitions
+[3b] séance de 1000 routes : redites 0 (dont 0 à moins de 400 routes d'écart) · écarts des redites : — · refaites 0 (reprises max 0) · ms moy 99, pire 1661
+     localStorage cashcarRU : 4436 octets (dont jade 4427)
+     présence par tranche de 100 routes (% des routes) :
+       ange           12  14  14  11  14  10  12   8  14  13
+       arche          40  44  39  43  39  39  38  38  36  39
+       balcon         17  17  19  17  15  16  17  14  15  18
+       belvedere      18  14  13  18  15  13  18  15  14  11
+       bosse          40  38  39  36  42  36  40  39  41  40
+       cascade         9   8   8  13   8  10  12   9  10  10
+       ceinture       11  10   8   8  10   7   7  11   9  12
+       chas           10   9   7   9   9   7  12  10  10   9
+       cirque         14  10  11  13  11  14  15  10  11  13
+       colimacon       6   4   3   5   9   6   5   6   6   7
+       corniche       10  12  13   7  10  13  12  13  13  10
+       couloir        12  11  14  10  10  12   8  12  11  12
+       defile         10   9  11   7  11  10  10  14   7   9
+       envers         11   8   9  10  10  13  12  11  10  11
+       epingle        36  40  42  37  39  38  37  39  36  43
+       escalier       11   9   7  11  10  11  10   8  11  10
+       essaim         10   8   8  10   8   8  10   7  11   9
+       galerie        10   5   9  10  11  11  11   9  10  13
+       gorge          41  43  40  40  39  37  32  40  36  40
+       gouffre        20  17  15  16  13  15  17  13  14  14
+       gue            12  14  11  13  10  11   8   9  13   7
+       ile            43  40  36  36  41  38  36  44  37  36
+       ilots           9  10   9   8  10  11  11  12  10   9
+       mouton         12   8  11  10  11  11  10  10  11  12
+       mur            11   9   8   8  10   8   7   6  13   9
+       passe          10  13  13  11  15  12   7  12  11  11
+       passerelles    38  38  43  39  45  39  36  41  42  37
+       pierres        10  12  10   9  12  11  10   9  10   5
+       plongee        17  13  13  16  14  19  16  16  11  15
+       pont           10   9  10  10   7   6  10  15  10  13
+       porte          39  40  38  39  42  37  33  39  39  40
+       puits           4   4   7   8   8   7   8   4   4   6
+       remontee       37  41  39  37  42  37  37  42  38  44
+       russes         12  12   9  12   8  12   8   9  10   9
+       spirale         5   6   7   6   4   5   7   5   6   6
+       stade           6   4   8   6   5   9   6   8   3   8
+       toboggan       33  41  37  40  37  37  37  40  39  42
+       tours          11  11   9  11   7   9  11  10  11   9
+       viaduc         11  12  11   7   9   8  11   7   9  10
+       voute          11  10   7   8   9  11  10   8  13  12
+[3c] ?pistegraine : même graine dans un vm neuf et après 40 autres routes : 12 / 12 identiques
+     graines voisines n / n+1 : RMS 3 km méd 925 m (min 547) · graines au hasard : méd 1160 m · même suite n/n+1 : 0/16
+[3d] même graine deux fois de suite : 10 / 10 identiques · A, B, A : 10 / 10 · A puis 13 autres puis A : DIFFÉRENTE
+
+======== JADE palier 27
+[3a] 50 premiers lancements : 1res routes — suites distinctes 50/50 · 1er module bosse 4, arche 4, gorge 4, envers 4, toboggan 3 · distincts 26
+     plan.cap (1res routes) : zigzag 13, serpent 10, derive 10, crochet 9, libre 8
+     plan.relief (1res routes) : mixte 15, vagues 12, gradins 9, plateaux 8, falaise 6
+     plan.ouv (1res routes) : balcon 11, esse 9, direct 8, calme 7, plonge 7, virage 7, bosse 1
+     plan.itin (1res routes) : 1 11, 3 10, 2 8, 4 8, 5 8, 0 5
+     RMS 3 km (miroir) entre 1res routes : méd 603 m, min 112 m, paires < 100 m : 0/1225
+     250 routes (50 × 5) : suites distinctes 244 · même ouverture deux routes de suite : 0 / 200 transitions
+[3b] séance de 1000 routes : redites 44 (dont 0 à moins de 400 routes d'écart) · écarts des redites : min 412, méd 639 · refaites 94 (reprises max 3) · ms moy 152, pire 1524
+     localStorage cashcarRU : 4435 octets (dont jade 4426)
+     présence par tranche de 100 routes (% des routes) :
+       ange            6   6   3   5   2   5   6   3   6   3
+       arche          15  15  17  16  11  16  13  18  17  19
+       balcon          7  11   6   8   8   6   7   5   6   6
+       belvedere       8   9   8   7   7   8   6   6   5   8
+       bosse          14  17  21  16  20  17  22  20  15  18
+       cascade         3   2   2   4   3   5   2   4   6   4
+       ceinture        1   3   3   0   5   3   6   4   3   2
+       chas            4   3   2   3   7   2   3   4   1   3
+       cirque          8   6   3   5   8   1   4   8   5   6
+       colimacon       3   1   3   5   4   1   4   3   2   2
+       corniche        5   6   4   7   5   7   7   5   3   6
+       couloir         5   3   2   2   0   5   3   4   5   5
+       defile          5   1   4   1   4   5   4   3   3   2
+       envers          7   2   2   4   0   6   6   3   5   2
+       epingle        16  17  15  16  18  15  13  16  17  15
+       escalier        5   4   3   3   5   1   1   5   4   2
+       essaim          0   2   5   4   2   2   2   4   1   7
+       galerie         3   1   6   3   5   3   2   5   1   1
+       gorge          14  17  16  16  16  20  19  19  16  15
+       gouffre        10   8   8   6   9   7   8   9   8   8
+       gue             3   5   3   3   2   0   2   2   5   1
+       ile            13  17  13  16  15  14  11  17  13  14
+       ilots           0   1   3   3   3   4   3   6   2   3
+       lacets          1   8   5   6   6   5   7   3   8   7
+       mouton          3   0   4   1   4   2   3   4   4   2
+       mur             2   1   1   3   3   0   3   1   3   3
+       passe           7   9   6   7   3   6   9   6   6   8
+       passerelles    14  19  13  13  11  17  14  15  13  22
+       pierres         3   4   3   4   4   5   4   1   6   4
+       plongee        11  11   7   8  12  10   9  10   8  10
+       pont            2   3   5   2   7   4   2   3   6   2
+       porte          14  14  18  16  21  18  18  12  21  18
+       puits           2   1   6   3   2   2   3   3   2   2
+       remontee       16  13  15  15  16  18  20  17  17  18
+       russes          2   2   4   3   3   1   1   1   5   1
+       spirale         1   1   4   4   2   4   3   2   2   2
+       stade           5   1   4   6   2   3   1   2   2   1
+       toboggan       17  15  15  12  17  15  13  18  16  19
+       tours           2   4   4   6   4   4   2   1   2   2
+       viaduc          4   3   5   2   2   5   2   3   0   3
+       voute           5   2   3   4   1   4   4   3   3   4
+[3c] ?pistegraine : même graine dans un vm neuf et après 40 autres routes : 12 / 12 identiques
+     graines voisines n / n+1 : RMS 3 km méd 553 m (min 159) · graines au hasard : méd 680 m · même suite n/n+1 : 0/16
+[3d] même graine deux fois de suite : 10 / 10 identiques · A, B, A : 10 / 10 · A puis 13 autres puis A : DIFFÉRENTE

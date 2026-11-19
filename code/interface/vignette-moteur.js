@@ -67,8 +67,34 @@ const ENG_MORT={cv:null,ctx:null}; // (2026-09-26) le <canvas> du moteur 3D de l
    téléphone chaud (mobhChaud) : la cadence du régime chaud, comme avant.
    Les programmes du second contexte se compilent au MENU, un moteur gardé par image, une fois la chauffe finie (engViveChauffe) : la mort ne compile rien.
    Repli automatique sur l'ancienne recopie si le contexte ne naît pas ou se perd. `?sans=moteurvif` = comme avant. `dbgMoteurVif()`. */
-const ENG_VIVE={ok:!/[?&]sans=[^&]*moteurvif/.test(location.search),r:null,cv:null,ko:false,hote:null,t:0,n:0,ch:0,ms:0,cache:false,pompe:false,dans:false,pris:false,der:0,
-  gen:0,vu:0,pq:'',err:'',relance:0,dRaf:0,tours:0}; /* (2026-11-16, le moteur figé) gen : la génération de la pompe · vu : son dernier passage · pq : où engVigRender s'est arrêté · err : la dernière exception · relance : pompes mortes reprises par la boucle */
+const ENG_VIVE={ok:!/[?&]sans=[^&]*moteurvif(?!2)/.test(location.search),r:null,cv:null,ko:false,hote:null,t:0,n:0,ch:0,ms:0,cache:false,pompe:false,dans:false,pris:false,der:0,
+  gen:0,vu:0,pq:'',err:'',relance:0,dRaf:0,tours:0, /* (2026-11-16, le moteur figé) gen : la génération de la pompe · vu : son dernier passage · pq : où engVigRender s'est arrêté · err : la dernière exception · relance : pompes mortes reprises par la boucle */
+  up:false,envois:0,filet:0,chkM:null,chkOk:true,libre:false,file:new Set(),croises:0,rtV:null}; /* (2026-11-16, MOTEURVIF2) up : un dessin du second contexte est en cours · envois : tampons envoyés par lui · filet : morts passées par l'ancien chemin */
+/* ===== LES DEUX RENDERERS ET LES MOTEURS LÉGERS (2026-11-16, qualite/moteurvif — relevé sur l'iPhone, build 118 : « moteurvif | rendu : null is not an object (evaluating 'r.BYTES_PER_ELEMENT') » après une mort) =====
+   Les moteurs gardés jettent leur copie JavaScript au PREMIER envoi à la puce (engLeger → memLibere). Or la toile vive dessine avec un SECOND renderer, qui doit
+   envoyer ses propres tampons : le moteur déjà dessiné par le renderer principal (carte NOUVEAU MOTEUR, premières fois du menu) n'avait plus de tableau → exception
+   → repli sur l'ancienne recopie saccadée pour TOUTE la session. Téléphone seulement (ALLEGE). Désormais :
+   · la copie n'est jetée que quand LES DEUX renderers l'ont envoyée (`up` marque les dessins du second : engLibereCb) — même gain de mémoire à la fin ;
+   · LA FILE CROISÉE : un moteur envoyé par UN seul renderer entre dans une file ; au menu et à l'écran de mort (jamais en course), un moteur par image, l'AUTRE
+     renderer le dessine hors écran (second contexte : tampon 1×1 ; principal : engRT, comme les premières fois) — ses tampons y sont, la copie est jetée.
+     (Pas les 30 d'office : MESURÉ au banc, la file pleine envoyait 1528 attributs sur 1528 au second contexte et n'en jetait AUCUN tant que la carte de course
+     ne sort pas (HUD calme) — 40 Mo de plus à la puce pour rien. Seuls les moteurs déjà dessinés, comme la copie qu'ils jetaient avant.) ;
+   · filet : un moteur dont un tableau manque sans être passé par la toile vive → CETTE mort prend l'ancien chemin, la session garde le moteur vif ;
+   · second contexte en panne : il est rendu (dispose + perte forcée) et les copies déjà envoyées au principal sont jetées.
+   `?sans=moteurvif2` = exactement comme avant. `dbgMoteurVif()` : envois, filet, mem (attributs jetés / gardés). */
+const MV2=!/[?&]sans=[^&]*moteurvif2/.test(location.search);
+function engVifAttend(){return ENG_VIVE.ok&&!ENG_VIVE.ko;}
+function engLibereCb(){if(ENG_VIVE.up){this.__v=1;ENG_VIVE.envois++;}else this.__p=1;if(this.__p&&(this.__v||!engVifAttend()))this.array=null;else if(this.__g9)ENG_VIVE.file.add(this.__g9);} /* __g9 : la pièce entière, pour la file croisée */
+function engAttrs(root,f){root.traverse(function(o){const q=o.isMesh&&o.geometry;if(!q||!q.attributes)return;for(const k in q.attributes){const a=q.attributes[k];if(a)f(a);}if(q.index)f(q.index);});}
+function engVifSain(root){let ok=true;if(root)engAttrs(root,function(a){if(a.array===null&&!a.__v)ok=false;});return ok;} /* vrai si le second renderer peut dessiner `root` (chaque tableau jeté y a été envoyé) */
+function engVifPeut(){ /* (filet) le moteur de la carte de mort, jugé une fois par pièce */
+  if(!MV2)return true;if(ENG_VIVE.chkM===engVigMesh)return ENG_VIVE.chkOk;
+  ENG_VIVE.chkM=engVigMesh;ENG_VIVE.chkOk=engVifSain(engVigMesh);
+  if(!ENG_VIVE.chkOk){ENG_VIVE.filet++;try{window.__ccNote('moteurvif','filet : tableau jeté sans envoi vif, cette mort par l\'ancien chemin');}catch(e){}
+    const cv=ENG_VIVE.cv,h=ENG_VIVE.hote;if(cv&&h&&cv.isConnected){h.className=cv.className;if(cv.id){h.id=cv.id;cv.removeAttribute('id');}cv.replaceWith(h);if(ENG_MORT.cv===cv)ENG_MORT.cv=h;}}
+  return ENG_VIVE.chkOk;}
+function engVifBalaie(){ /* le second contexte est perdu : ce que le principal a déjà envoyé n'a plus à attendre */
+  for(const g of ENG_PRET){if(g)engAttrs(g,function(a){if(a.onUploadCallback===engLibereCb&&a.__p&&a.array)a.array=null;});}}
 function engViveCree(){
   if(ENG_VIVE.r)return true;if(!ENG_VIVE.ok||ENG_VIVE.ko)return false;
   try{
@@ -83,6 +109,8 @@ function engViveCree(){
 function engViveRend(){ /* contexte perdu : la vieille toile 2D reprend sa place, l'ancienne recopie reprend la main */
   ENG_VIVE.ko=true;const cv=ENG_VIVE.cv,h=ENG_VIVE.hote;
   if(cv&&h&&cv.isConnected){h.className=cv.className;if(cv.id){h.id=cv.id;}cv.replaceWith(h);if(ENG_MORT.cv===cv)ENG_MORT.cv=h;}
+  if(MV2&&!ENG_VIVE.libre&&ENG_VIVE.r){ENG_VIVE.libre=true;const r=ENG_VIVE.r;ENG_VIVE.r=null; /* (MOTEURVIF2) le second contexte en panne est rendu : sa mémoire à la puce, et les copies JS qui l'attendaient */
+    try{r.dispose();}catch(e){}try{r.forceContextLoss();}catch(e){}try{engVifBalaie();}catch(e){}}
 }
 function engViveSur(hote){ /* la toile vive À LA PLACE de `hote` (une toile 2D de la carte) — vrai si elle y est */
   if(!hote||!engViveCree())return false;
@@ -97,8 +125,9 @@ function engViveDessine(){
   /* (2026-11-16, Sacha : « sur vercel le moteur dans l'écran de fin ne tourne plus » — figé, bien visible, sur Chrome PC, Chrome Mac et iPhone ; `?sans=moteurvif` le fait tourner)
      un dessin qui lève une exception ne touche plus la toile : l'image d'avant reste, FIGÉE, à chaque essai. Au premier échec la toile vive rend sa place
      à la toile 2D (engViveRend) et l'ancienne recopie, qui tourne, reprend la main pour toute la session. */
-  try{ENG_VIVE.r.render(engVigScene,engVigCam);}
-  catch(e){ENG_VIVE.err='rendu : '+((e&&e.message)||e);try{window.__ccNote('moteurvif',ENG_VIVE.err);}catch(e2){}engViveRend();return;}
+  ENG_VIVE.up=MV2;
+  try{ENG_VIVE.r.render(engVigScene,engVigCam);ENG_VIVE.up=false;}
+  catch(e){ENG_VIVE.up=false;ENG_VIVE.err='rendu : '+((e&&e.message)||e);try{window.__ccNote('moteurvif',ENG_VIVE.err);}catch(e2){}engViveRend();return;}
   if(engVigVieux){try{jeteEngin(engVigVieux);}catch(e){}engVigVieux=null;}
   ENG_VIVE.n++;ENG_VIVE.ms+=performance.now()-t9;
 }
@@ -140,6 +169,7 @@ function engDiag(mort){
     +(ENG_VIVE.err?'\n'+ENG_VIVE.err.slice(0,120):'');
 }
 function engViveChauffe(){ /* au menu (et à l'écran de mort), une fois la chauffe finie : les programmes du second contexte, UN moteur gardé par image */
+  if(MV2&&ENG_VIVE.ch<0&&ENG_VIVE.file.size&&ENG_VIVE.ok&&!ENG_VIVE.ko&&ENG_VIVE.r){engViveFile();return;} /* (MOTEURVIF2) puis la file croisée, un moteur par image */
   if(!ENG_VIVE.ok||ENG_VIVE.ko||ENG_VIVE.ch<0||!CHAUFFE_R.fait||SANS_CHAUFFE)return;
   if(!engViveCree())return;
   const i=ENG_VIVE.ch,N=ENGINE_TIERS.length;
@@ -149,13 +179,34 @@ function engViveChauffe(){ /* au menu (et à l'écran de mort), une fois la chau
     if(!g)return;
     if(g.parent){ENG_VIVE.r.compile(engVigScene,engVigCam);return;} /* il est déjà dans la scène (le moteur de la vignette) : la scène entière */
     engVigScene.add(g);ENG_VIVE.r.compile(engVigScene,engVigCam);engVigScene.remove(g);
-  }catch(e){ENG_VIVE.ch=-1;}
+  }catch(e){ENG_VIVE.up=false;ENG_VIVE.ch=-1;}
+}
+function engHorsChamp(g,f){ /* `f` avec la pièce dans la scène du moteur, sans élagage (hors du champ, three n'enverrait rien), puis tout remis */
+  const dedans=!!g.parent,fc=[];g.traverse(function(o){if(o.isMesh){fc.push(o,o.frustumCulled);o.frustumCulled=false;}});
+  if(!dedans)engVigScene.add(g);
+  try{f();}finally{if(!dedans)engVigScene.remove(g);for(let k=0;k<fc.length;k+=2)fc[k].frustumCulled=fc[k+1];}
+}
+function engViveEnvoie(g){ /* (MOTEURVIF2) la pièce dessinée par le SECOND renderer dans un tampon 1×1 : ses tampons y sont, la toile vive n'est pas touchée */
+  if(!engVifSain(g))return; /* un tableau déjà jeté sans envoi vif : on n'y touche pas (le filet le prendra à la mort) */
+  const r=ENG_VIVE.r;if(!ENG_VIVE.rtV)ENG_VIVE.rtV=new THREE.WebGLRenderTarget(1,1,{depthBuffer:true});
+  const t0=r.getRenderTarget();
+  engHorsChamp(g,function(){ENG_VIVE.up=true;try{r.setRenderTarget(ENG_VIVE.rtV);r.render(engVigScene,engVigCam);}finally{ENG_VIVE.up=false;r.setRenderTarget(t0);}});
+}
+function engViveFile(){
+  const it=ENG_VIVE.file.values().next();if(it.done)return;const g=it.value;ENG_VIVE.file.delete(g);
+  let aV=false,aP=false;engAttrs(g,function(a){if(a.onUploadCallback!==engLibereCb||!a.array)return;if(a.__p&&!a.__v)aV=true;if(a.__v&&!a.__p)aP=true;});
+  try{if(aV)engViveEnvoie(g);else if(aP)engHorsChamp(g,function(){engVigRendRT(engRT);}); /* le principal : comme les premières fois du menu (premMoteurUn) */
+    ENG_VIVE.croises++;}catch(e){ENG_VIVE.err='file : '+((e&&e.message)||e);}
+  if(aV&&aP)ENG_VIVE.file.add(g); /* les deux sens : l'autre à l'image suivante */
 }
 window.dbgMoteurVif=function(panne){ /* (banc) 'tue' : la chaîne de la pompe s'éteint SANS repasser `pompe` à faux (le moteur figé) · 'casse' : le prochain dessin lève une exception */
   if(panne==='tue')ENG_VIVE.gen++;
   if(panne==='casse'&&ENG_VIVE.r){const r=ENG_VIVE.r,r0=r.render;r.render=function(){r.render=r0;throw new Error('panne simulée');};}
   return {ok:ENG_VIVE.ok,ko:ENG_VIVE.ko,contexte:!!ENG_VIVE.r,posee:!!(ENG_VIVE.cv&&ENG_VIVE.cv.isConnected),images:ENG_VIVE.n,msMoy:ENG_VIVE.n?+(ENG_VIVE.ms/ENG_VIVE.n).toFixed(2):0,pompe:ENG_VIVE.pompe,chauffe:ENG_VIVE.ch,programmes:ENG_VIVE.r?(ENG_VIVE.r.info.programs||[]).length:0,
-    tours:ENG_VIVE.tours,relance:ENG_VIVE.relance,arret:ENG_VIVE.pq,err:ENG_VIVE.err,dRaf:ENG_VIVE.dRaf,rot:engVigMesh?+engVigMesh.rotation.y.toFixed(3):null};};
+    tours:ENG_VIVE.tours,relance:ENG_VIVE.relance,arret:ENG_VIVE.pq,err:ENG_VIVE.err,dRaf:ENG_VIVE.dRaf,rot:engVigMesh?+engVigMesh.rotation.y.toFixed(3):null,
+    mv2:MV2,envois:ENG_VIVE.envois,filet:ENG_VIVE.filet,libre:ENG_VIVE.libre,file:ENG_VIVE.file.size,croises:ENG_VIVE.croises,mem:(function(){const m={moteurs:0,attributs:0,jetes:0,envoisVif:0,envoisPrinc:0};try{for(const g of ENG_PRET){if(!g)continue;m.moteurs++;
+      g.traverse(function(o){const q=o.isMesh&&o.geometry;if(!q||!q.userData||!q.userData.fin9)return;const L=[];for(const k in q.attributes)L.push(q.attributes[k]);if(q.index)L.push(q.index);
+        L.forEach(function(a){m.attributs++;if(a.array===null)m.jetes++;if(a.__v)m.envoisVif++;if(a.__p)m.envoisPrinc++;});});}}catch(e){}return m;})()};};
 const engVigScene=new THREE.Scene();
 const engVigCam=new THREE.PerspectiveCamera(34,1.5,.1,80);
 // ⚠ POSÉE ICI, PAS DANS LA BOUCLE : elle ne bouge jamais, et le cadrage automatique (engVigBuild) lit
@@ -229,6 +280,11 @@ const engNoirMat=engHaloMat.clone();engNoirMat.color.setHex(0x000000);
 const engNoir=new THREE.Mesh(engVigQuad.geometry,engNoirMat);engNoir.frustumCulled=false;engNoir.renderOrder=0;engNoir.visible=false;
 engVigQuadScene.add(engHalo);engVigQuadScene.add(engNoir);engVigQuadScene.add(engCarteQuad);
 function engVigRendRT(rt){ // le moteur dans SON tampon — fond NOIR transparent (le recollage prémultiplié l'exige), état du renderer restauré
+  if(MV2){renderer.getClearColor(ENG_CC);const ca=renderer.getClearAlpha(); /* (MOTEURVIF2) une exception au dessin ne laisse plus le renderer principal sur le tampon du moteur, fond noir */
+    try{renderer.setClearColor(0x000000,0);renderer.setRenderTarget(rt);renderer.clear();renderer.render(engVigScene,engVigCam);
+      if(engVigVieux){jeteEngin(engVigVieux);engVigVieux=null;}}
+    finally{renderer.setRenderTarget(null);renderer.setClearColor(ENG_CC,ca);}
+    return;}
   renderer.getClearColor(ENG_CC);const ca=renderer.getClearAlpha();
   renderer.setClearColor(0x000000,0);renderer.setRenderTarget(rt);renderer.clear();renderer.render(engVigScene,engVigCam);
   if(engVigVieux){jeteEngin(engVigVieux);engVigVieux=null;} // (perf) le nouveau moteur est rendu : ses programmes sont pris, l'ancien peut partir
@@ -298,7 +354,9 @@ const ENG_BB=[];
    carte « NOUVEAU MOTEUR »). Leurs géométries FUSIONNÉES (fin9 : propres à la pièce, jamais partagées ni relues) jettent leur copie JavaScript à l'envoi
    (memLibere : boîtes calculées avant, ENG_BB les lit). Une pièce jamais dessinée garde la sienne. Téléphone (ALLEGE). `?sans=moteursleger` = comme avant. */
 function engLeger(g){if(!ALLEGE||/[?&]sans=moteursleger\b/.test(location.search))return g;
-  g.traverse(function(o){const q=o.isMesh&&o.geometry;if(q&&q.userData&&q.userData.fin9&&!q.userData.partage)memLibere(q);});return g;}
+  g.traverse(function(o){const q=o.isMesh&&o.geometry;if(q&&q.userData&&q.userData.fin9&&!q.userData.partage){memLibere(q);
+    if(MV2){for(const k in q.attributes){const a=q.attributes[k];if(a&&a.onUploadCallback===memLibereCb){a.onUploadCallback=engLibereCb;a.__g9=g;}}if(q.index&&q.index.onUploadCallback===memLibereCb){q.index.onUploadCallback=engLibereCb;q.index.__g9=g;}}}}); /* (MOTEURVIF2) jetée quand LES DEUX renderers l'ont envoyée */
+  return g;}
 function engPret(i){
   if(!ENG_GARDER)return mkEngine(i);
   let g=ENG_PRET[i];
@@ -444,10 +502,28 @@ function lierPret(){
     LIER.lies++;p.__ccAtt=0;
     try{if(g.getProgramParameter(p.program,g.LINK_STATUS)===false){LIER.rates++;console.error('LIER : programme non lié',p.name,g.getProgramInfoLog(p.program));}}catch(e){}}
   LIER.att=R;return !R.length;}
+/* (2026-11-15, lot programmes2 : LES PROGRAMMES EN DOUBLE, voir rendu/soleil-planete.js) LES MATIÈRES DU HALO QUE PERSONNE NE DESSINE. lierPasses préparait TOUTES les matières des passes ; sur le chemin fusionné et plié
+   (rendu/triptyque-bloom.js, le rendu d'UnrealBloomPass) neuf d'entre elles ne passent jamais par fsQuad : le seuil, le composite, la copie et le `basic` d'origine ; le 1er flou d'origine (remplacé par _p0 et _pv[0]) ;
+   les flous 2D _p2 (seulement sous `?bloom=plie2d`) ; et, sous profil, les étages au-delà du plus haut niveau que la classe peut atteindre. Rend l'ensemble à écarter (null : rien), relu à chaque appel : un réglage
+   changé à chaud (étages, plie2d, fuse) y remet la matière, qui est alors lancée en doux comme avant. Une matière écartée qui serait quand même dessinée se compile à son 1er dessin : aucune image ne change.
+   Les DEUX fonctions filtrent pareil (sinon lierPassesPretes verrait du « neuf » à chaque image). Téléphone seulement (PROG_DOUBLE) ; `?sans=progdouble` = tout préparer, comme avant. */
+const LPI={s:-1,E:null,n1:0}; /* l'ensemble gardé tant que les réglages du halo ne bougent pas (lierPassesPretes passe à chaque image du menu) */
+function lierPassesInutiles(){
+  if(!PROG_DOUBLE)return null;const b=bloomPass;
+  if(!b||!b.fuse||b.renderToScreen||b.plie===false||b.nMips!==5||!b._p0||!b._cMat)return null;
+  const sg=(b._nM|0)+8*(b.plie2d===false?1:0)+16*(b._pv?1:0)+32*(PRF.on?PRF.nMax:0);if(sg===LPI.s)return LPI.E;
+  if(!LPI.n1)LPI.n1=ALLEGE&&!/[?&]post=ancien\b/.test(location.search)?4:5; /* N1 : 4 étages au plus sous ALLEGE (bloomNM) */
+  const E=new Set(),S=b.separableBlurMaterials||[],V=b._pv||null;
+  E.add(b.materialHighPassFilter);E.add(b.compositeMaterial);E.add(b.materialCopy);E.add(b.basic);
+  if(V)E.add(S[0]);
+  if(b.plie2d===false&&b._p2)for(const m of b._p2)if(m)E.add(m);
+  if(PRF.on){let n=Math.max(b._nM||5,LPI.n1);for(let k=2;k<=PRF.nMax;k++)n=Math.max(n,PRF.T.n[k].mips||5); /* le plus d'étages que la classe peut demander : N1, la table des N2+, et ce qui tourne maintenant */
+    for(let i=Math.max(1,n);i<5;i++){E.add(S[i]);if(V)E.add(V[i]);}}
+  E.delete(undefined);E.delete(null);LPI.s=sg;LPI.E=E;return E;}
 function lierPasses(){ /* les matières des passes de l'image (bloom, ACES…), chacune sur un carré : leurs programmes lancés avec la scène */
   try{if(bloomPass&&bloomPass._plieMat)bloomPass._plieMat();}catch(e){}
-  const sc=new THREE.Scene(),geo=new THREE.PlaneGeometry(2,2),vu=new Set();
-  const prend=function(m){if(m&&m.isMaterial&&!vu.has(m)){vu.add(m);sc.add(new THREE.Mesh(geo,m));}};
+  const sc=new THREE.Scene(),geo=new THREE.PlaneGeometry(2,2),vu=new Set(),ex=lierPassesInutiles();
+  const prend=function(m){if(m&&m.isMaterial&&!vu.has(m)&&!(ex&&ex.has(m))){vu.add(m);sc.add(new THREE.Mesh(geo,m));}};
   for(const p of (composer&&composer.passes)||[])for(const k in p){const x=p[k];if(Array.isArray(x))x.forEach(prend);else prend(x);if(x&&x.material)prend(x.material);}
   if(sc.children.length)compileDoux(sc,camera);
   geo.dispose();}
@@ -472,7 +548,7 @@ function lierScene(sc){ /* (renderer.render d'une SCÈNE, HORS COURSE) un objet 
 function lierPassesPretes(){ /* (avant composer.render, HORS COURSE) les passes de l'image (bloom, ACES…) : une matière neuve est lancée en doux ; tant qu'une passe se lie, l'image n'est pas redessinée (l'écran garde la précédente, le fil reste libre) */
   if(!LIER.X||LIER.dem!==2||!POST_ON||!composer)return true;
   try{if(bloomPass&&bloomPass._plieMat)bloomPass._plieMat();}catch(e){}
-  const M=[],prend=function(m){if(m&&m.isMaterial&&M.indexOf(m)<0)M.push(m);};
+  const ex=lierPassesInutiles(),M=[],prend=function(m){if(m&&m.isMaterial&&M.indexOf(m)<0&&!(ex&&ex.has(m)))M.push(m);};
   for(const p of composer.passes||[])for(const k in p){const x=p[k];if(Array.isArray(x))x.forEach(prend);else prend(x);if(x&&x.material)prend(x.material);}
   let neuf=false;for(const m of M)if(!renderer.properties.get(m).currentProgram){neuf=true;break;}
   if(neuf)lierPasses();
@@ -523,6 +599,7 @@ function engChauffe(){ /* (LA LIAISON EN ARRIÈRE-PLAN) l'étape d'avant se lie 
    Mêmes pas, mêmes objets, même ordre de ce qui s'affiche : seul le moment change. Le film et le menu ne bougent pas. `?sans=dense` : comme avant. `dbgDense()`. */
 const DENSE={ok:!!INTRO_APRES&&(TEL_NATIF||ALLEGE)&&!/[?&]sans=[^&]*dense/.test(location.search),rendu:0,img:0,pas:0,toles:0,ms:0,t0:0,tFin:0,prebFin:0};
 const DENSE_MS=28,DENSE_RENDU=1000;
+const FILM_TR={fin:0}; /* (2026-11-15, qualité · lot lancement2) l'échéance de la tranche de chargement en cours pendant le film d'intro (0 : hors du film) — voir filmTranche, moteur/intro-161.js */
 function denseActif(){return DENSE.ok&&!started&&!SANS_CHAUFFE&&!window.__introCouvre&&!window.__ccFilmPart&&!CHAUFFE_R.tMenu&&!!document.getElementById('splash');} /* filets : le menu révélé (cc:revele) ou le voile retiré — une intro sautée, plantée ou l'ancienne (?intro=ancien) ne laisse jamais le menu à une image par seconde */
 function denseMoteur(){return denseActif()&&!!GAR.chaud&&engChaudI>=0&&engChaudI<=ENGINE_TIERS.length&&!ENG_BB.length;} /* un palier de moteur (ou la flamme) : compilé, pas dessiné — il n'attend pas la liaison du précédent */
 function denseCle(){return engChaudI+'|'+CHAUFFE_R.div+'|'+(CHAUFFE_R.fait?1:0)+'|'+CHAUFFE_R.ap+'|'+(GAR.chaud?1:0)+'|'+(GAR.root?1:0)+'|'+ENG_BB.length+'|'+CHAUFFE_R.refait+'|'+CHAUFFE_R.rejoue+'|'+(atelierChauffe.rejoue|0);}

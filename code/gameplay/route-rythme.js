@@ -158,15 +158,21 @@ function rythmeNote(f,c){
 /* LE MEILLEUR-DE-N : `gen(rnd9)` dessine une route avec le flux qu'on lui donne ; on en tire `n` sur des flux dérivés d'UN seul tirage de `rnd`, on garde la mieux notée.
    `apres(ctrl)` (facultatif) rend la fiche à noter (par défaut rythmeMesure sur ctrl) ; `garde()` / `restaure(etat)` (facultatif) sauvent et remettent les effets de bord
    du générateur (Q, marques…) entre deux essais, et la route gardée est REJOUÉE en dernier (ses effets de bord sont ceux qui restent). Rend {ctrl, fiche, note, essai, n}. */
-function rythmeMeilleur(rnd,n,carte,gen,o){
+/* (2026-11-17, lot portv) LE MEILLEUR-DE-N EN TRANCHES : rythmeMeilleurG est le même tri, qui rend la main entre deux essais et, dans un essai, entre le dessin, la mesure et le
+   malus, quand l'échéance de la tranche (JF.lim, posée par le pré-bâti) est passée — au banc ×10 la ville faisait des tranches d'un essai entier (~61 ms). Mêmes appels, même ordre :
+   la même route au bit près. rythmeMeilleur le mène d'un trait (aucune pause n'y change rien). */
+function* rythmeMeilleurG(rnd,n,carte,gen,o){
   o=o||{};const g0=(rnd()*4294967296)>>>0,c=rythmeCible(carte),vP=typeof vPalier==='function'?vPalier():78,rP=typeof rayonPalier==='function'?rayonPalier():40+.3*vP;
+  const ech=function(){return typeof JF!=='undefined'&&performance.now()>JF.lim;};
   let best=null;const notes=[];
-  for(let e=0;e<n;e++){const r9=mulberry32((g0^Math.imul(e+1,0x9E3779B1))>>>0);
-    if(o.avant)o.avant();const ctrl=gen(r9,e);const f=o.fiche?o.fiche(ctrl):rythmeMesure(ctrl,{vP:vP,rP:rP,marks:MODMARK,spirMax:c.spirMax,cretesFig:c.cretesFig}),nt=rythmeNote(f,c)+(o.malus?o.malus(ctrl,f):0);
+  for(let e=0;e<n;e++){if(e&&ech())yield;const r9=mulberry32((g0^Math.imul(e+1,0x9E3779B1))>>>0);
+    if(o.avant)o.avant();const ctrl=gen(r9,e);if(ech())yield;const f=o.fiche?o.fiche(ctrl):rythmeMesure(ctrl,{vP:vP,rP:rP,marks:MODMARK,spirMax:c.spirMax,cretesFig:c.cretesFig});if((o.malus||o.malusG)&&ech())yield;const nt=rythmeNote(f,c)+(o.malusG?(yield* o.malusG(ctrl,f)):o.malus?o.malus(ctrl,f):0); /* malusG : le malus en tranches (genCtrl, la ville) */
     notes.push(nt);if(!best||nt<best.note)best={ctrl:ctrl,fiche:f,note:nt,essai:e};
     if(nt<=(o.assez!=null?o.assez:.5))break;}
-  if(best.essai!==notes.length-1&&!o.sansRejeu){const r9=mulberry32((g0^Math.imul(best.essai+1,0x9E3779B1))>>>0);if(o.avant)o.avant();best.ctrl=gen(r9,best.essai);} /* rejouée : ses effets de bord sont les bons */
+  if(best.essai!==notes.length-1&&!o.sansRejeu){if(ech())yield;const r9=mulberry32((g0^Math.imul(best.essai+1,0x9E3779B1))>>>0);if(o.avant)o.avant();best.ctrl=gen(r9,best.essai);} /* rejouée : ses effets de bord sont les bons */
   best.n=notes.length;best.notes=notes;RYTHME.der={carte:carte,note:best.note,essai:best.essai,n:notes.length,notes:notes,fiche:best.fiche};return best;}
+function rythmeMene(g){let r=g.next();while(!r.done)r=g.next();return r.value;}
+function rythmeMeilleur(rnd,n,carte,gen,o){return rythmeMene(rythmeMeilleurG(rnd,n,carte,gen,o));}
 const RYTHME={der:null,N:typeof location!=='undefined'&&/[?&]rythme=0\b/.test(location.search)?1:6}; /* `?rythme=0` : un seul essai (la route d'avant, au tirage près) */
 window.dbgRythme=function(){return RYTHME.der;}; /* le dernier choix du directeur de rythme : la note de chaque essai, la fiche de la route gardée */
 /* ===== LA COURBE VITE (2026-11-14, optimisation de la ville — Sacha : « aussi peu lourd que ce qu'on a actuellement ») =====

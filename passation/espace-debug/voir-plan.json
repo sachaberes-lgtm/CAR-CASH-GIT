@@ -1,0 +1,548 @@
+{
+ "p0": [
+  [
+   40,
+   [
+    "pique:234:1278",
+    "asteroide-entree:2142:2520",
+    "asteroide:2520:3366",
+    "asteroide-sortie:3366:4050",
+    "esse:4230:4932",
+    "spirale:5508:6317",
+    "stengel:6497:7469"
+   ]
+  ],
+  [
+   14,
+   [
+    "mur:234:846",
+    "surbaisse:972:2196",
+    "plongeant:2394:3222",
+    "bosse:3384:3906",
+    "grande-torsade:4428:6012"
+   ]
+  ],
+  [
+   25,
+   [
+    "ceinture:576:2231",
+    "envers-entree:2411:3149",
+    "faille-envers:3149:3617",
+    "envers-sortie:3617:4193",
+    "chicane:4732:5344",
+    "plongeon:5902:6460",
+    "cascade:7036:8043"
+   ]
+  ],
+  [
+   46,
+   [
+    "grande-torsade:612:2448",
+    "mur:2718:3330",
+    "bosses:3510:5346",
+    "balancier:5760:7938"
+   ]
+  ],
+  [
+   73,
+   [
+    "bobsleigh:576:3005",
+    "fronde:3239:4248",
+    "s-retourne:4805:6443",
+    "marche:6965:7451",
+    "plongee:7991:8962"
+   ]
+  ],
+  [
+   3,
+   [
+    "esse:774:1440",
+    "marches:1998:4158",
+    "envers-entree:4500:5490",
+    "faille-envers:5490:5975",
+    "envers-sortie:5975:6551"
+   ]
+  ]
+ ],
+ "manque0": [],
+ "p10": [
+  [
+   37,
+   [
+    "spirale:918:2088",
+    "grande-torsade:2429:4985",
+    "bosse:5254:6028",
+    "chicane:6856:7684",
+    "plongee:9285:11247"
+   ]
+  ],
+  [
+   126,
+   [
+    "lune-entree:918:1674",
+    "lune:1674:3132",
+    "lune-sortie:3132:4176",
+    "esse:4374:5526",
+    "stengel:5670:7290",
+    "pique:7596:9324"
+   ]
+  ],
+  [
+   139,
+   [
+    "quart:270:1440",
+    "lune-entree:1656:2395",
+    "lune:2395:3870",
+    "lune-sortie:3870:4897",
+    "plongeant:5707:7075",
+    "surbaisse:7651:9415"
+   ]
+  ],
+  [
+   2,
+   [
+    "bosses:720:3671",
+    "nebuleuse-entree:4355:4968",
+    "nebuleuse:4968:6408",
+    "nebuleuse-sortie:6408:7578",
+    "plongee:9216:11268"
+   ]
+  ],
+  [
+   20,
+   [
+    "balancier:270:3689",
+    "grande-torsade:4103:6695",
+    "quart:7324:8530",
+    "plongee:9286:11230"
+   ]
+  ],
+  [
+   49,
+   [
+    "fronde:828:2502",
+    "plongeon:3042:3906",
+    "roue-entree:4680:5526",
+    "roue:5526:7002",
+    "roue-sortie:7002:7650"
+   ]
+  ],
+  [
+   50,
+   [
+    "mur:270:1278",
+    "ceinture:1710:4302",
+    "s-retourne:4842:7218",
+    "plongeon:8100:8946"
+   ]
+  ],
+  [
+   66,
+   [
+    "mur:270:1260",
+    "marches:1656:4121",
+    "s-retourne:4733:7109",
+    "marche:7901:8710",
+    "plongee:9178:11302"
+   ]
+  ],
+  [
+   67,
+   [
+    "cascade:810:2753",
+    "grande-torsade:3526:6388",
+    "mur:6586:7629",
+    "plongee:8727:11229"
+   ]
+  ],
+  [
+   142,
+   [
+    "bobsleigh:846:4283",
+    "grande-torsade:4823:7414",
+    "marche:7882:8674"
+   ]
+  ]
+ ],
+ "manque10": [],
+ "cx": {
+  "roue": {
+   "p0": [
+    [
+     301,
+     "fronde:828-1907 ceinture:2213-4031 roue-entree:4660-5164 roue:5164-6046 roue-sortie:6046-6442 chicane:6910-7504 plongee:7504-8745"
+    ],
+    [
+     302,
+     "marches:234-2394 roue-entree:2843-3348 roue:3348-4230 roue-sortie:4230-4626 mur:5184-5778 surbaisse:6012-6948 marche:7055-7541"
+    ],
+    [
+     303,
+     "ceinture:521-2195 fronde:2411-3419 bosse:3653-4228 roue-entree:4750-5254 roue:5254-6136 roue-sortie:6136-6532 quart:6730-7413"
+    ],
+    [
+     304,
+     "plongeon:486-1116 bosse:1602-2160 fronde:2646-3636 roue-entree:3798-4302 roue:4302-5184 roue-sortie:5184-5580 esse:5922-6624 plongee:7884-8892"
+    ],
+    [
+     305,
+     "bobsleigh:234-2429 roue-entree:2573-3077 roue:3077-3958 roue-sortie:3958-4354 chicane:4714-5308 surbaisse:5794-6711 plongee:7575-8744"
+    ],
+    [
+     306,
+     "bobsleigh:630-3024 roue-entree:3600-4105 roue:4105-4987 roue-sortie:4987-5383 marche:5869-6337"
+    ]
+   ],
+   "p10": [
+    [
+     301,
+     "fronde:1188-2843 mur:3401-4463 roue-entree:5003-5849 roue:5849-7325 roue-sortie:7325-7973 plongee:9304-11230"
+    ],
+    [
+     302,
+     "marches:270-2735 roue-entree:3365-4211 roue:4211-5668 roue-sortie:5668-6334 surbaisse:7198-8728"
+    ],
+    [
+     303,
+     "ceinture:792-3456 stengel:3816-5436 roue-entree:5976-6804 roue:6804-8280 roue-sortie:8280-8946"
+    ],
+    [
+     304,
+     "fronde:756-2430 plongeon:2970-3996 roue-entree:4698-5544 roue:5544-7002 roue-sortie:7002-7668 plongee:9126-11232"
+    ],
+    [
+     305,
+     "nebuleuse-entree:270-882 nebuleuse:882-2340 nebuleuse-sortie:2340-3510 roue-entree:3780-4609 roue:4609-6085 roue-sortie:6085-6751 chicane:7219-8119 plongee:8911-11233"
+    ],
+    [
+     306,
+     "fronde:792-2466 roue-entree:2933-3780 roue:3780-5255 roue-sortie:5255-5904 marche:6065-6875"
+    ]
+   ]
+  },
+  "lune": {
+   "p0": [
+    [
+     301,
+     "fronde:828-1907 nebuleuse-entree:2213-2591 nebuleuse:2591-3455 nebuleuse-sortie:3455-4157 lune-entree:4732-5182 lune:5182-6064 lune-sortie:6064-6676 plongee:7701-8852"
+    ],
+    [
+     302,
+     "marches:234-2393 lune-entree:2861-3310 lune:3310-4192 lune-sortie:4192-4822 mur:5415-6045 surbaisse:6207-7125 marche:7359-7826"
+    ],
+    [
+     303,
+     "ceinture:521-2195 fronde:2411-3419 surbaisse:3653-4876 lune-entree:4984-5434 lune:5434-6316 lune-sortie:6316-6946 bosse:7072-7648"
+    ],
+    [
+     304,
+     "plongeon:486-1115 bosse:1601-2159 fronde:2645-3652 lune-entree:3796-4246 lune:4246-5128 lune-sortie:5128-5758 esse:6100-6801 plongee:7557-8762"
+    ],
+    [
+     305,
+     "bobsleigh:234-2429 lune-entree:2573-3023 lune:3023-3905 lune-sortie:3905-4517 surbaisse:4876-5794 chicane:5920-6514 marche:6766-7233 plongee:7665-8835"
+    ],
+    [
+     306,
+     "bobsleigh:396-2861 lune-entree:3401-3851 lune:3851-4733 lune-sortie:4733-5363 marche:5615-6100"
+    ]
+   ],
+   "p10": [
+    [
+     301,
+     "fronde:1188-2844 mur:3402-4464 lune-entree:5003-5759 lune:5759-7217 lune-sortie:7217-8261 plongee:9287-11231"
+    ],
+    [
+     302,
+     "marches:270-2736 lune-entree:3456-4212 lune:4212-5688 lune-sortie:5688-6714 surbaisse:7560-9090"
+    ],
+    [
+     303,
+     "ceinture:774-3294 stengel:3618-5238 lune-entree:6102-6841 lune:6841-8317 lune-sortie:8317-9343"
+    ],
+    [
+     304,
+     "fronde:756-2430 plongeon:2970-3996 lune-entree:4698-5454 lune:5454-6911 lune-sortie:6911-7955 plongee:9323-11231"
+    ],
+    [
+     305,
+     "asteroide-entree:270-882 asteroide:882-2286 asteroide-sortie:2286-3456 lune-entree:3743-4481 lune:4481-5956 lune-sortie:5956-6983 chicane:7144-7954 plongee:9501-11229"
+    ],
+    [
+     306,
+     "fronde:792-2465 lune-entree:2933-3689 lune:3689-5165 lune-sortie:5165-6190 marche:6388-7180"
+    ]
+   ]
+  },
+  "asteroide": {
+   "p0": [
+    [
+     301,
+     "fronde:828-1908 ceinture:2214-4033 asteroide-entree:4645-5023 asteroide:5023-5851 asteroide-sortie:5851-6553 plongee:7615-8785"
+    ],
+    [
+     302,
+     "marches:234-2394 asteroide-entree:2862-3222 asteroide:3222-4068 asteroide-sortie:4068-4770 mur:5112-5706 roue-entree:5958-6462 roue:6462-7345 roue-sortie:7345-7741"
+    ],
+    [
+     303,
+     "ceinture:521-2195 fronde:2429-3419 bosse:3653-4228 asteroide-entree:4750-5110 asteroide:5110-5956 asteroide-sortie:5956-6658 quart:6855-7593"
+    ],
+    [
+     304,
+     "plongeon:486-1116 bosse:1602-2160 fronde:2645-3653 asteroide-entree:3797-4157 asteroide:4157-5003 asteroide-sortie:5003-5705 esse:5867-6551 plongee:7829-8800"
+    ],
+    [
+     305,
+     "bobsleigh:234-2393 asteroide-entree:2519-2897 asteroide:2897-3743 asteroide-sortie:3743-4444 surbaisse:4876-5956 chicane:6424-7053 plongee:7755-8798"
+    ],
+    [
+     306,
+     "bobsleigh:630-3024 asteroide-entree:3600-3960 asteroide:3960-4806 asteroide-sortie:4806-5508 marche:6066-6552"
+    ]
+   ],
+   "p10": [
+    [
+     301,
+     "fronde:1188-2844 mur:3401-4463 asteroide-entree:5003-5615 asteroide:5615-7019 asteroide-sortie:7019-8189 plongee:9233-11230"
+    ],
+    [
+     302,
+     "marches:270-2735 asteroide-entree:3455-4067 asteroide:4067-5471 asteroide-sortie:5471-6641 mur:7181-8153 marche:8746-9538"
+    ],
+    [
+     303,
+     "ceinture:792-3456 bosse:3816-4626 asteroide-entree:5454-6048 asteroide:6048-7452 asteroide-sortie:7452-8622"
+    ],
+    [
+     304,
+     "plongeon:756-1782 bosse:2538-3473 asteroide-entree:4121-4733 asteroide:4733-6137 asteroide-sortie:6137-7289 plongee:8513-11267"
+    ],
+    [
+     305,
+     "bobsleigh:270-3708 asteroide-entree:4140-4752 asteroide:4752-6138 asteroide-sortie:6138-7308 marche:8154-8946 plongee:9702-11232"
+    ],
+    [
+     306,
+     "marche:792-1583 chicane:2393-3221 asteroide-entree:3491-4085 asteroide:4085-5489 asteroide-sortie:5489-6658 bosse:7162-7936"
+    ]
+   ]
+  },
+  "nebuleuse": {
+   "p0": [
+    [
+     301,
+     "fronde:828-1908 ceinture:2214-4032 nebuleuse-entree:4644-5022 nebuleuse:5022-5886 nebuleuse-sortie:5886-6588 plongee:7650-8801"
+    ],
+    [
+     302,
+     "marches:234-2394 nebuleuse-entree:2862-3222 nebuleuse:3222-4104 nebuleuse-sortie:4104-4807 mur:5131-5743 surbaisse:5995-6913 marche:7183-7669"
+    ],
+    [
+     303,
+     "ceinture:521-2195 fronde:2429-3419 bosse:3653-4228 nebuleuse-entree:4750-5110 nebuleuse:5110-5992 nebuleuse-sortie:5992-6694 quart:6873-7611"
+    ],
+    [
+     304,
+     "plongeon:486-1116 bosse:1602-2160 fronde:2646-3636 nebuleuse-entree:3798-4158 nebuleuse:4158-5040 nebuleuse-sortie:5040-5743 esse:5905-6571 plongee:7651-8820"
+    ],
+    [
+     305,
+     "bobsleigh:234-2393 nebuleuse-entree:2519-2897 nebuleuse:2897-3761 nebuleuse-sortie:3761-4463 surbaisse:4732-5974 chicane:6496-7107 plongee:7539-8745"
+    ],
+    [
+     306,
+     "bobsleigh:630-3024 nebuleuse-entree:3600-3960 nebuleuse:3960-4824 nebuleuse-sortie:4824-5526 marche:6102-6570"
+    ]
+   ],
+   "p10": [
+    [
+     301,
+     "fronde:1188-2844 mur:3401-4463 nebuleuse-entree:5003-5615 nebuleuse:5615-7055 nebuleuse-sortie:7055-8225 plongee:9268-11230"
+    ],
+    [
+     302,
+     "marches:270-2735 nebuleuse-entree:3455-4067 nebuleuse:4067-5525 nebuleuse-sortie:5525-6695 mur:7235-8207 marche:8782-9592"
+    ],
+    [
+     303,
+     "ceinture:774-3295 bosse:3619-4681 nebuleuse-entree:5365-5959 nebuleuse:5959-7417 nebuleuse-sortie:7417-8588"
+    ],
+    [
+     304,
+     "plongeon:756-1782 bosse:2538-3474 nebuleuse-entree:4122-4717 nebuleuse:4717-6175 nebuleuse-sortie:6175-7346 marche:8173-8983 plongee:9379-11269"
+    ],
+    [
+     305,
+     "bobsleigh:270-3708 nebuleuse-entree:4140-4752 nebuleuse:4752-6192 nebuleuse-sortie:6192-7362 marche:8208-9000 plongee:9755-11231"
+    ],
+    [
+     306,
+     "marche:792-1584 chicane:2394-3222 nebuleuse-entree:3492-4086 nebuleuse:4086-5544 nebuleuse-sortie:5544-6714 bosse:7200-7956"
+    ]
+   ]
+  },
+  "torsade": {
+   "p0": [
+    [
+     301,
+     "fronde:828-1907 ceinture:2213-4030 grande-torsade:4660-6387 mur:6549-7143 plongee:7592-8744"
+    ],
+    [
+     302,
+     "marches:234-2394 grande-torsade:2862-4464 mur:4842-5436 bobsleigh:5688-8316"
+    ],
+    [
+     303,
+     "ceinture:521-2195 fronde:2429-3419 bosse:3653-4228 grande-torsade:4750-6316 quart:6568-7287"
+    ],
+    [
+     304,
+     "plongeon:486-1116 bosse:1602-2160 fronde:2646-3637 grande-torsade:3798-5365 esse:5527-6211 quart:6391-7129 plongee:7597-8767"
+    ],
+    [
+     305,
+     "bobsleigh:234-2429 grande-torsade:2573-4157 chicane:4679-5254 mur:5470-6100 faille:6658-7234 plongee:7503-8745"
+    ],
+    [
+     306,
+     "bobsleigh:396-2862 grande-torsade:3402-5149 marche:5689-6175"
+    ]
+   ],
+   "p10": [
+    [
+     301,
+     "mur:1188-2178 quart:2466-3690 grande-torsade:4014-6661 plongeon:6804-7866 plongee:9018-11233"
+    ],
+    [
+     302,
+     "marches:270-2735 grande-torsade:3365-5957 mur:6586-7594 marche:7990-8782"
+    ],
+    [
+     303,
+     "ceinture:791-3456 bosse:3816-4626 grande-torsade:5436-8623"
+    ],
+    [
+     304,
+     "plongeon:756-1782 bosse:2537-3473 grande-torsade:4121-6713 esse:7180-8314 plongee:9358-11248"
+    ],
+    [
+     305,
+     "chicane:270-1098 mur:1296-2340 grande-torsade:2825-5399 marche:5885-6676 quart:7379-8530 plongee:9052-11230"
+    ],
+    [
+     306,
+     "marche:792-1583 chicane:2393-3221 grande-torsade:3491-6065 bosse:6262-7216"
+    ]
+   ]
+  },
+  "sret": {
+   "p0": [
+    [
+     301,
+     "fronde:828-1908 ceinture:2214-4032 s-retourne:4644-6282 mur:6732-7326 plongee:7776-8820"
+    ],
+    [
+     302,
+     "marches:234-2394 s-retourne:2844-4500 mur:5076-5652 roue-entree:6030-6534 roue:6534-7416 roue-sortie:7416-7812"
+    ],
+    [
+     303,
+     "ceinture:504-2141 fronde:2375-3383 bosse:3635-4192 s-retourne:4750-6280 quart:6478-7162 marche:7359-7845"
+    ],
+    [
+     304,
+     "plongeon:486-1116 bosse:1601-2159 fronde:2645-3653 s-retourne:3797-5326 esse:5866-6550 plongee:7611-8763"
+    ],
+    [
+     305,
+     "bobsleigh:234-2393 s-retourne:2519-4049 chicane:4570-5128 surbaisse:5326-6604 plongee:7719-8817"
+    ],
+    [
+     306,
+     "bobsleigh:396-2862 s-retourne:3402-5058 surbaisse:5616-6714"
+    ]
+   ],
+   "p10": [
+    [
+     301,
+     "fronde:1188-2844 mur:3402-4464 s-retourne:5004-7362 marche:7902-8712 plongee:9378-11233"
+    ],
+    [
+     302,
+     "marches:270-2735 s-retourne:3365-5722 mur:6262-7324 marche:8026-8817"
+    ],
+    [
+     303,
+     "ceinture:774-3295 bosse:3619-4681 s-retourne:5365-7724 quart:8012-9200"
+    ],
+    [
+     304,
+     "plongeon:756-1782 bosse:2538-3474 marche:4121-4913 s-retourne:5633-8009 plongee:9287-11267"
+    ],
+    [
+     305,
+     "bobsleigh:270-3708 s-retourne:4140-6498 chicane:6984-7866 plongee:8964-11233"
+    ],
+    [
+     306,
+     "marche:792-1584 chicane:2394-3222 s-retourne:3492-5851 bosse:6355-7327"
+    ]
+   ]
+  },
+  "failleEnvers": {
+   "p0": [
+    [
+     301,
+     "fronde:828-1907 ceinture:2213-4030 envers-entree:4660-5380 faille-envers:5380-5847 envers-sortie:5847-6423 chicane:6549-7160 plongee:7610-8761"
+    ],
+    [
+     302,
+     "marches:234-2394 envers-entree:2844-3564 faille-envers:3564-4068 envers-sortie:4068-4644 mur:5238-5850 marche:6048-6534 cascade:6966-7992"
+    ],
+    [
+     303,
+     "ceinture:521-2195 fronde:2429-3419 envers-entree:3653-4373 faille-envers:4373-4858 envers-sortie:4858-5434 bosse:5542-6172 quart:6694-7360"
+    ],
+    [
+     304,
+     "plongeon:486-1116 bosse:1602-2160 fronde:2646-3654 envers-entree:3798-4536 faille-envers:4536-5021 envers-sortie:5021-5597 esse:5795-6461 marche:6587-7055 plongee:7793-8837"
+    ],
+    [
+     305,
+     "bobsleigh:234-2429 envers-entree:2573-3293 faille-envers:3293-3815 envers-sortie:3815-4445 chicane:4570-5128 mur:5308-5920 stengel:6118-7090 plongee:7468-8745"
+    ],
+    [
+     306,
+     "bobsleigh:630-3024 envers-entree:3600-4320 faille-envers:4320-4823 envers-sortie:4823-5399 marche:5579-6065"
+    ]
+   ],
+   "p10": [
+    [
+     301,
+     "fronde:1188-2844 mur:3401-4463 nebuleuse-entree:5003-5615 nebuleuse:5615-7055 nebuleuse-sortie:7055-8225 plongee:9268-11230"
+    ],
+    [
+     302,
+     "marches:270-2735 grande-torsade:3365-5957 mur:6586-7594 marche:7990-8782"
+    ],
+    [
+     303,
+     "ceinture:774-3295 bosse:3619-4681 nebuleuse-entree:5365-5959 nebuleuse:5959-7417 nebuleuse-sortie:7417-8588"
+    ],
+    [
+     304,
+     "plongeon:756-1782 bosse:2537-3473 grande-torsade:4121-6713 esse:7180-8314 plongee:9358-11248"
+    ],
+    [
+     305,
+     "bobsleigh:270-3708 asteroide-entree:4140-4752 asteroide:4752-6138 asteroide-sortie:6138-7308 marche:8154-8946 plongee:9702-11232"
+    ],
+    [
+     306,
+     "fronde:792-2466 roue-entree:2933-3780 roue:3780-5255 roue-sortie:5255-5904 marche:6065-6875"
+    ]
+   ]
+  }
+ }
+}

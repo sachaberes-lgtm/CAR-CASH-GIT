@@ -204,8 +204,8 @@ if(!/[?&]clear0=0\b/.test(location.search))try{const t9c=performance.now();rende
 function ccMemLigne(){let r='';try{const m=renderer.info&&renderer.info.memory||{},pm=window.performance&&performance.memory,pr=renderer.info&&renderer.info.programs,k=+sessionStorage.ccParties||0;
   r=(Math.round(performance.now()/100)/10)+' s · '+(document.body&&document.body.className||'').slice(0,60)+' · tas '+(pm&&pm.usedJSHeapSize?Math.round(pm.usedJSHeapSize/1048576)+' Mo':'-')+' · textures '+m.textures+' géométries '+m.geometries+' programmes '+(pr?pr.length:'-')+' · partie n°'+k+(window.Capacitor?' · map '+(function(){try{return BIO.name;}catch(e){return '?';}})()+' · DPR '+(typeof curDPR==='number'?Math.round(curDPR*100)/100:'?'):'');}catch(err){r='? '+(err&&err.message);}return r;}
 function ccMemNote(genre,pre){if(/[?&]sonde=0\b/.test(location.search))return;try{window.__ccNote(genre,(pre||'')+ccMemLigne());}catch(err){}}
-renderer.domElement.addEventListener('webglcontextlost',function(e){e.preventDefault();ccMemNote('contexte','perdu ');try{const t9=Date.now();if(t9-(+sessionStorage.ccCtxT||0)>120000)sessionStorage.ccCtxPerdu=0;sessionStorage.ccCtxT=t9;sessionStorage.ccCtxPerdu=(+sessionStorage.ccCtxPerdu||0)+1;}catch(err){} /* (2026-11-10, debug gameplay IOS-02) le compteur ne garde que les pertes RAPPROCHÉES (moins de 2 min) : une app restée des jours en mémoire affichait « a calé » à la 4e perte isolée, puis à chacune */try{enCoursPose();SAVE.flush();}catch(err){}},false); // (compteur de session : `sessionStorage.ccCtxPerdu` dit combien de fois c'est arrivé)
-renderer.domElement.addEventListener('webglcontextrestored',function(){try{enCoursPose();SAVE.flush();}catch(e){}ctxRecharge();},false); /* (2026-11-05, DEBUG-TOTAL) par ctxRecharge : ce chemin rechargeait SANS lire le compteur — contexte perdu puis rendu à chaque relance (mémoire graphique saturée) = rechargement en boucle, le filet des 5 s n'y passant jamais */
+renderer.domElement.addEventListener('webglcontextlost',function(e){e.preventDefault();ccMemNote('contexte','perdu ');mgNoteToile('webglcontextlost'); /* (lot RETOURPIVOT, ?perfrec=2) les tailles au moment de la perte */try{const t9=Date.now();if(t9-(+sessionStorage.ccCtxT||0)>120000)sessionStorage.ccCtxPerdu=0;sessionStorage.ccCtxT=t9;sessionStorage.ccCtxPerdu=(+sessionStorage.ccCtxPerdu||0)+1;}catch(err){} /* (2026-11-10, debug gameplay IOS-02) le compteur ne garde que les pertes RAPPROCHÉES (moins de 2 min) : une app restée des jours en mémoire affichait « a calé » à la 4e perte isolée, puis à chacune */try{enCoursPose();SAVE.flush();}catch(err){}},false); // (compteur de session : `sessionStorage.ccCtxPerdu` dit combien de fois c'est arrivé)
+renderer.domElement.addEventListener('webglcontextrestored',function(){mgNoteToile('webglcontextrestored');try{enCoursPose();SAVE.flush();}catch(e){}ctxRecharge();},false); /* (2026-11-05, DEBUG-TOTAL) par ctxRecharge : ce chemin rechargeait SANS lire le compteur — contexte perdu puis rendu à chaque relance (mémoire graphique saturée) = rechargement en boucle, le filet des 5 s n'y passant jamais */
 /* ===== LE CONTEXTE PERDU AU PREMIER PLAN (24/10, débogage sortie iOS : « zéro écran bloqué ») =====
    Les deux chemins du dessus attendent un événement : le contexte RENDU (webglcontextrestored) ou le RETOUR d'arrière-plan (visibilitychange).
    Perdu alors que l'appli reste à l'écran (pression mémoire de la carte graphique, processus GPU de WebKit relancé) et jamais rendu : rien ne
@@ -320,7 +320,7 @@ renderer.setPixelRatio(curDPR);
 let composer=null,bloomPass=null,acesPass=null,POST_ON=false,SHADOW_ON=true; // POST-PROCESSING (assigné juste après)
 PAL.B.imgBloomRes=[1,1,.5];/* (2026-11-07, passe perf 3, P2 · levier a) le halo entre en DEMI-résolution sur un téléphone récent (colonnes ancien/moyen non lues) ; `?img=max` / `?imgsans=a` = comme avant */
 let BLOOM_BASE=PAL.bT('imgBloomRes',1,'a');
-const IMG_DYN={dens:null,vmin:200,ciel:0}; /* (2026-11-07, P2) l'état de la couche dynamique `imgRegle` (voir nettete-qualite.js) : densité imposée des traits d'air et traînées, au-delà de `vmin` km/h */
+const IMG_DYN={dens:null,vmin:200,ciel:0,vdaCiel:0,vdaMips:0}; /* (2026-11-18, LA VOITURE D'ABORD, rendu/nettete-qualite.js) vdaCiel / vdaMips : les crans du décor à serious */ /* (2026-11-07, P2) l'état de la couche dynamique `imgRegle` (voir nettete-qualite.js) : densité imposée des traits d'air et traînées, au-delà de `vmin` km/h */
 let BLOOM_RES=BLOOM_BASE; // (2026-09-27, passe perf iPhone) part de la résolution du bloom — un cran de l'échelle de qualité (QL) la baisse à ¾
 /* (perf, lot 4) LA TAILLE DE L'ÉCRAN, LUE UNE FOIS PAR REDIMENSIONNEMENT. MESURÉ (profil, téléphone émulé) : sur Chrome mobile, lire
    `innerWidth`/`innerHeight` FORCE une mise en page complète (la page à « viewport » se remet en page pour répondre) — et comme le HUD
@@ -328,6 +328,21 @@ let BLOOM_RES=BLOOM_BASE; // (2026-09-27, passe perf iPhone) part de la résolut
    lit désormais `VP`, tenu à jour ici (écouteur posé AVANT tous les autres : ils le trouvent déjà à jour). */
 const VP={w:innerWidth,h:innerHeight};
 addEventListener('resize',()=>{VP.w=innerWidth;VP.h=innerHeight;});
+/* ===== LA VUE RELUE (2026-11-17, qualité · compteur — Sacha : le compteur d'argent « tout petit », durablement) =====
+   VP n'était tenu à jour QUE par `resize`. Or WKWebView livre ce resize en retard, ou avec l'ancienne taille (pivot, retour d'arrière-plan) : VP restait couché sur un
+   écran debout, et tout ce qui le lit se trompait jusqu'au resize suivant (MESURÉ au banc compteur.cjs : 55 555 € à 7 px, et il y reste). On RELIT donc la taille
+   au retour visible, après `orientationchange` (+60 ms, puis +400 ms) et 400 ms après chaque resize ; si elle a changé, on rejoue le MÊME chemin que resize
+   (un resize envoyé à la fenêtre : VP, caméra, toiles, HUD, menus). Rien n'a changé : rien n'est fait. `?sans=vpfrais` = comme avant. */
+const VPFRAIS=!/[?&]sans=[^&]*vpfrais/.test(location.search);
+let VPFR_T=0;
+function vpFrais(){if(!VPFRAIS||innerWidth<1||innerHeight<1)return false;if(innerWidth===VP.w&&innerHeight===VP.h)return false;
+  try{dispatchEvent(new Event('resize'));}catch(e){VP.w=innerWidth;VP.h=innerHeight;}return true;}
+if(VPFRAIS){const deux=function(){setTimeout(vpFrais,60);setTimeout(vpFrais,400);};
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){vpFrais();deux();}});
+  addEventListener('orientationchange',deux);
+  addEventListener('resize',function(){clearTimeout(VPFR_T);VPFR_T=setTimeout(vpFrais,400);});
+  try{matchMedia('(orientation: landscape)').addEventListener('change',deux);}catch(e){}}
+window.dbgVp=function(w,h){if(w)VP.w=w;if(h)VP.h=h;return {vp:[VP.w,VP.h],vue:[innerWidth,innerHeight],frais:VPFRAIS};}; /* (banc compteur.cjs) pose une VP périmée */
 /* (2026-11-07, chasse PC-N02) LA DENSITÉ QUI CHANGE APRÈS LE CHARGEMENT (ordi) : la page-cadre dispatche un resize dans l'iframe quand son zoom change
    (tete.html, 2026-11-06), mais DPR_CAP n'était lu qu'une fois : fenêtre agrandie, F11 ou autre écran = 3D étirée et floue jusqu'au rechargement. Le téléphone
    garde son plafond (ALLEGE / TEL_NATIF). Anti-rebond de 150 ms : qlReprise réalloue la toile et les cibles. */
@@ -338,7 +353,28 @@ addEventListener('resize',function(){if(ALLEGE||TEL_NATIF||Math.abs(devicePixelR
    lance des dizaines de `resize` par seconde : chacun réallouait les cibles du bloom (composer.setSize) et EFFAÇAIT les toiles 2D en réécrivant leur
    largeur. Désormais UNE retaille par image (rAF), et une toile n'est retaillée que si sa taille change. */
 let retailleRaf=0;
-addEventListener('resize',()=>{cancelAnimationFrame(retailleRaf);retailleRaf=requestAnimationFrame(()=>{retailleRaf=0;if(innerWidth<1||innerHeight<1)return; /* (2026-11-05, DEBUG-TOTAL) une fenêtre à 0 px (iframe du cadre cachée, rotation de WebView) : aspect infini, matrice NaN et toiles à 0 jusqu'au resize suivant — on attend une vraie taille */camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();fovFit();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);if(slCv.width!==innerWidth||slCv.height!==innerHeight){slCv.width=innerWidth;slCv.height=innerHeight;}if(juiceCv&&(juiceCv.width!==innerWidth||juiceCv.height!==innerHeight)){juiceCv.width=innerWidth;juiceCv.height=innerHeight;}try{retailleImage();}catch(e){} /* (2026-11-13, LA ROTATION SANS ÉCRAN NOIR) la toile vient d'être effacée par la retaille : une image tout de suite (vrai téléphone seulement) */});});
+/* ===== UNE SEULE RETAILLE PAR PIVOT (2026-11-17, qualité · hudobs) =====
+   MESURÉ dans la boîte de vol du build 120 (pivot en course, téléphone à l'état critique) : ce rappel a coûté 3 fois plus de 8 ms (125 ms, pire 59), et le recadrage
+   de `reflow` (mobile-tactile.js, 280 ms après orientationchange) 67 ms. Un pivot envoie plusieurs `resize` (WKWebView les livre en retard, parfois à l'ancienne
+   taille ; la vue relue vpFrais en renvoie un si la taille a bougé ensuite) ; chacun réallouait la toile et les cibles du bloom (setSize de three.js et du composer
+   réallouent MÊME à taille égale) puis rejouait une image entière (retailleImage). Désormais (vrai téléphone) : tous les chemins (resize, reflow, vue relue) passent
+   par CE rAF, et il ne retaille que si la taille appliquée change (sinon : la caméra seule, rien de réalloué, pas d'image rejouée). `?sans=retaille1` = comme avant. */
+const RETAILLE1=TEL_NATIF&&!/[?&]sans=[^&]*retaille1/.test(location.search);
+const RTL={w:0,h:0,faites:0,sautees:0,demandes:0,images:0,rs:0,rp:0,cs:0,cp:0,espion:false};
+function retailleDemande(){RTL.demandes++;if(!retailleRaf)applyDPR._img=0; /* un drapeau d'avant (une bascule de QL déjà redessinée par la boucle) ne compte pas : seul ce qui sera réalloué d'ici le rAF */cancelAnimationFrame(retailleRaf);retailleRaf=requestAnimationFrame(retailleFait);}
+function retailleFait(){retailleRaf=0;if(innerWidth<1||innerHeight<1)return;const W=innerWidth,H=innerHeight;
+  camera.aspect=W/H;camera.updateProjectionMatrix();fovFit();
+  renderer.getSize(DPR_V9);const pr=Math.abs(renderer.getPixelRatio()-curDPR)>1e-4&&curDPR>0;
+  if(DPR_V9.x===W&&DPR_V9.y===H&&!pr&&!applyDPR._img){RTL.sautees++;RTL.w=W;RTL.h=H;return;} /* déjà à cette taille : rien à réallouer, rien à redessiner */
+  RTL.faites++;RTL.w=W;RTL.h=H;applyDPR._img=0;applyDPR(); /* ne réalloue que ce qui change (taille, ratio), et retaille les toiles 2D */
+  applyDPR._img=0;try{retailleImage();RTL.images++;}catch(e){}}
+window.dbgRetaille=function(espion){if(espion&&!RTL.espion){RTL.espion=true; /* (banc) compte les vraies réallocations */
+    const e=function(o,f,k){if(!o||!o[f])return;const g=o[f];o[f]=function(){RTL[k]++;return g.apply(this,arguments);};};
+    e(renderer,'setSize','rs');e(renderer,'setPixelRatio','rp');e(composer,'setSize','cs');e(composer,'setPixelRatio','cp');}
+  if(espion===2){RTL.faites=RTL.sautees=RTL.demandes=RTL.images=RTL.rs=RTL.rp=RTL.cs=RTL.cp=0;}
+  return {on:RETAILLE1,faites:RTL.faites,sautees:RTL.sautees,demandes:RTL.demandes,images:RTL.images,rendererSetSize:RTL.rs,rendererSetPixelRatio:RTL.rp,composerSetSize:RTL.cs,composerSetPixelRatio:RTL.cp,taille:[RTL.w,RTL.h]};};
+if(RETAILLE1)addEventListener('resize',retailleDemande);
+else addEventListener('resize',()=>{cancelAnimationFrame(retailleRaf);retailleRaf=requestAnimationFrame(()=>{retailleRaf=0;if(innerWidth<1||innerHeight<1)return;RTL.faites++;RTL.images++; /* (2026-11-05, DEBUG-TOTAL) une fenêtre à 0 px (iframe du cadre cachée, rotation de WebView) : aspect infini, matrice NaN et toiles à 0 jusqu'au resize suivant — on attend une vraie taille */camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();fovFit();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);if(slCv.width!==innerWidth||slCv.height!==innerHeight){slCv.width=innerWidth;slCv.height=innerHeight;}if(juiceCv&&(juiceCv.width!==innerWidth||juiceCv.height!==innerHeight)){juiceCv.width=innerWidth;juiceCv.height=innerHeight;}try{retailleImage();}catch(e){} /* (2026-11-13, LA ROTATION SANS ÉCRAN NOIR) la toile vient d'être effacée par la retaille : une image tout de suite (vrai téléphone seulement) */});});
 const hemi=new THREE.HemisphereLight(0xba86b6,0x18162e,0.40);scene.add(hemi); // ambiance VICE CITY NUIT (assombrie) : ciel rose-mauve baissé, sol indigo — la pénombre gagne, les lumières de la caisse vivent (nommée : les BIOMES la pilotent)
 const sun=new THREE.DirectionalLight(0xff6a3c,1.45);sun.position.copy(SUN_DIR).multiplyScalar(3800);scene.add(sun); // BRAISE ROUGE-CORAIL : la lumière rasante peint le bitume en rouge sombre — golden hour devenue red hour
 const fill=new THREE.DirectionalLight(0x4f74e8,.24);fill.position.set(-200,-400,-100);scene.add(fill); // fill BLEU NÉON par en dessous : les ventres de caisse prennent la ville

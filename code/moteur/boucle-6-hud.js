@@ -1,4 +1,4 @@
-if(MG.on)MG.ts[6]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 6 — voir moteur/mouchard-gels.js */
+if(MG.on)mgTs(6); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 6 — voir moteur/mouchard-gels.js */
     // HUD
     // FILÉS DE VITESSE — RÉTABLIS (2026-09-05) : ce commentaire prétendait qu'« un warp du shader »
     // avait pris leur place, mais ce warp n'a JAMAIS existé dans ce fichier (0 occurrence de `warp`
@@ -7,9 +7,9 @@ if(MG.on)MG.ts[6]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
     // qu'elle avait disparu : « remets un peu de zoom ou de flou… puis encore plus au boost » décrit
     // EXACTEMENT ce que fait déjà `drawSpeedLines` (filés radiaux, cyan et deux fois plus denses sous
     // `nitroOn`) — il ne manquait qu'un appelant.
-    if(!REDUCED_MOTION){drawSpeedLines(speedKmh,nitroOn,dt);nfxFiles(dt);} // reduced-motion : speed lines coupées (la garde avait sauté au rétablissement du 2026-09-05) — (vague 3) + la gerbe de l'allumage
+    if(MG.on)mgSt('drawSpeedLines, nfxFiles');if(!REDUCED_MOTION){drawSpeedLines(speedKmh,nitroOn,dt);nfxFiles(dt);} // reduced-motion : speed lines coupées (la garde avait sauté au rétablissement du 2026-09-05) — (vague 3) + la gerbe de l'allumage
     if(speedKmh>runStats.vmax)runStats.vmax=speedKmh;
-    secTick(dt,speedKmh);m2Tick(dt,speedKmh); /* (2026-10-16) LES MISSIONS v2 */ // (2026-10-14) LES DÉFIS SECRETS : vitesse, bords, distances, maps traversées
+    if(MG.on)mgSt('b6 HUD (missions, aura, compteurs)');secTick(dt,speedKmh);m2Tick(dt,speedKmh); /* (2026-10-16) LES MISSIONS v2 */ // (2026-10-14) LES DÉFIS SECRETS : vitesse, bords, distances, maps traversées
     // ⚠ EN VOL, LA VITESSE NE SE « TIENT » PAS : on subit une parabole, il n'y a aucun mérite à
     // afficher 900 km/h en tombant. L'aura de vitesse ne compte donc qu'au sol, manette en main.
     auraComboTick(dt); // la fenêtre du combo de figures se referme toute seule
@@ -49,6 +49,7 @@ if(MG.on)MG.ts[6]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
      if(loop._spT!==tr9){loop._spT=tr9;elSpeed.style.transform=tr9;}if(loop._spC!==co9){loop._spC=co9;elSpeed.style.color=co9;}}
     }
     if(!REDUCED_MOTION){const o9=Math.max(0,Math.min(.6,(speedKmh-280)/560)).toFixed(2);if(loop._sfO!==o9){loop._sfO=o9;speedFx.style.opacity=o9;}} // reduced-motion : vignette vitesse coupée
+    if(VOILES_GL){const g9=!!(POST_ON&&acesPass);if(loop._vgl!==g9){loop._vgl=g9;document.documentElement.classList.toggle('voilesGl',g9);}} /* (qualité · voiles, piste d) #speedFx caché seulement si la sortie WebGL la dessine */
     // panneaux HUD MASQUÉS (#carInfo/#cpInfo/#record en display:none) : on ne reconstruit leur texte (fmtC/fmt alloue) QUE quand la valeur change
     paintCarHud();
     if(TCTL.on)cashHudTick(dt); // (2026-09-29) le compteur d'argent du téléphone (#cashHud) · (2026-09-30) la colonne de droite s'empile
@@ -77,10 +78,10 @@ if(MG.on)MG.ts[6]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
      // L'ANNEAU DU BOUTON NITRO : la même réserve, en arc autour du pouce
      const qN9=PAL.b('hudNitroQ',100),r9=Math.round(Math.min(1,nR8/mx8)*qN9)/qN9,x9=Math.round(Math.min(1,nX8/2)*qN9)/qN9; // (2026-10-24, passe perf) par crans de 1/qN9 (voir hudNitroQ)
      if(elNB&&(loop._nbr!==r9||loop._nbx!==x9)){loop._nbr=r9;loop._nbx=x9;elNB.style.setProperty('--nr',r9);elNB.style.setProperty('--nx',x9);}}
-    try{nx3Tick(dt,speedKmh);}catch(e){loopWarn(256,'nitro',e);}
-    try{ajTick(dt);}catch(e){loopWarn(512,'jauge aura',e);} // (2026-10-12, Léo) LA JAUGE D'AURA (le flow passe en petit dessous) // (2026-10-12, Léo) LE BOUTON NITRO v3 : l'éclair en pixels qui s'enfonce, la vitesse à droite de la barre de boost
+    if(MG.on)mgSt('nx3Tick');try{nx3Tick(dt,speedKmh);}catch(e){loopWarn(256,'nitro',e);}
+    if(MG.on)mgSt('ajTick');try{ajTick(dt);}catch(e){loopWarn(512,'jauge aura',e);} // (2026-10-12, Léo) LA JAUGE D'AURA (le flow passe en petit dessous) // (2026-10-12, Léo) LE BOUTON NITRO v3 : l'éclair en pixels qui s'enfonce, la vitesse à droite de la barre de boost
     // chip des POUVOIRS actifs : compte à rebours coloré au-dessus de la jauge nitro
-    let pch='';
+    if(MG.on)mgSt('b6 HUD suite (pouvoirs, jauges, survie)');let pch='';
     // (2026-09-26, user : « le power-up affiché EN GROS avec un timer en temps réel ») : une plaque par pouvoir — bâtie quand la liste change,
     // puis mise à jour à CHAQUE image (le minuteur au dixième, la jauge en continu, le clignotement de la fin)
     // (pouvoirs v2) les plaques naissent de la fiche (PWR_DEFS : px, plq) dans l'ordre fixe PWR_ORDRE — (2026-09-28) pendant l'auto-école,
@@ -131,14 +132,14 @@ if(MG.on)MG.ts[6]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
     }}catch(e2){console.error('loop secours',e2);}}
     /* (2026-11-08, GP-11) la PAUSE ne laisse pas la caisse éteinte : le clignotement du bouclier de la seconde chance (chanceTick, dans la porte de simulation) se figeait sur une image sans caisse */
     if(paused&&started&&!gameOver&&mode!=='boom'&&CHANCE.inv>0&&!RESU.actif&&!carGroup.visible)carGroup.visible=true;
-  // ciel : dôme, soleil « 1.61 », lueur d'horizon et rayons crépusculaires suivent la caméra
+  if(MG.on)mgSt('b6 vitrine, garage, chat');// ciel : dôme, soleil « 1.61 », lueur d'horizon et rayons crépusculaires suivent la caméra
   try{vhdBascule((!garageOn||(!!gEl&&!gEl.classList.contains('quiet')&&!GAR.go))&&(!started||(gameOver&&!!PAL.b('vhdMort',1)&&!PCM_ON)||MENUV.retour)&&!(typeof stallOn!=='undefined'&&stallOn));}catch(e){loopWarnN('vitrine HD',e);} // (2026-09-28) l'ACCUEIL en haute définition — tant que la vitrine tourne (voir VHD) — (2026-10-10, Léo : « assure-toi que la voiture soit de bonne qualité dans le menu ciel et tout ») depuis le 30/09 l'accueil EST le garage (mode menu, le ciel) : `!garageOn` éteignait la HD sur tout l'accueil et le garage — mesuré : DPR 1, ombre 1024, aniso 4, la qualité de course. Allumée désormais au menu et à l'atelier, hors course (ni le garage « quiet » du départ rapide, ni l'envol GAR.go)
   if(garageOn)try{garageRender(dt);}catch(e){loopWarnN('garage',e);}
   else if(!started||MENUV.retour)try{menuVitrine(dt);}catch(e){loopWarnN('vitrine du menu',e);} else if(MENUV.bio)try{menuVitrineFin();}catch(e){loopWarnN('fin de vitrine',e);} // L'ACCUEIL (au couchant — rendu au niveau dès qu'on le quitte) : la caisse en vitrine sur la route de la ville // GARAGE : place la caisse + oriente la caméra AVANT que le ciel suive
   else if(stallOn)try{stallRender(dt);}catch(e){loopWarnN('étal',e);} // ÉTAL : même showroom, mais c'est un fruit qui tourne
   try{nyanTick(dt);}catch(e){loopWarn(32,'chat pop-tart',e);}
   try{atchTick(dt);}catch(e){loopWarn(4096,'atchoum',e);} // (2026-10-06) ATCHOUM crache et éternue (voir atchTick) // (2026-10-06) le pas du GIF et l'arc-en-ciel du chat (voir nyanTick)
-  try{ // (audit p5) le ciel, le soleil, les planètes : un plantage de décor ne doit jamais empêcher le rendu
+  if(MG.on)mgSt('b6 ciel, effets ACES');try{ // (audit p5) le ciel, le soleil, les planètes : un plantage de décor ne doit jamais empêcher le rendu
   skyDome.position.copy(camera.position);
   skyU.uTime.value=t;
   skyU.uVille.value=LVL.ville;skyU.uPluie.value=Math.max(LVL.pluie,LVL.brume);skyU.uFogCol.value.copy(scene.fog.color);skyU.uCam.value.copy(camera.position); // LE CIEL DE LA VILLE
@@ -150,11 +151,12 @@ if(MG.on)MG.ts[6]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
     const volK9=mode==='fall'?.5:mode==='boom'?0:1; // (2026-09-29, passe « jeu pro » — deux critiques : la moitié de l'image étalée en vol, la lune en copies à la mort) : EN VOL on VISE la réception, à la MORT on regarde
     const sfxT=(running&&!gameOver&&!REDUCED_MOTION&&FLOU_OK)?Math.max(ORBFX.warp*.95,Math.min(1,(nitroOn?0.72:0)+Math.min(1,boost)*0.6+(CAM_HEROS.on&&mode==='drive'?CAM_HEROS.flou*THREE.MathUtils.clamp((speedKmh/Math.max(1,vCroisiere())-.7)/.8,0,1):0))*volK9):0; /* (CAM_HEROS) un voile de flou sur les BORDS en croisière rapide : la vitesse se lit sans ouvrir le champ */ // (2026-09-28) + le TUNNEL de l'orbite // rouler normalement = image nette ; booster = ça FUSE
     loop._sfx=(loop._sfx||0)+(sfxT-(loop._sfx||0))*Math.min(1,dt*(sfxT>(loop._sfx||0)?7:mode==='boom'?9:3)); // montée franche, retombée douce (sèche à l'explosion)
+    if(VOILES_GL)acesPass.uniforms.uSfx.value=(started&&!garageOn&&!gameOver&&mode!=='boom'&&!REDUCED_MOTION&&!document.body.classList.contains('hudCalme'))?+(loop._sfO||0):0; /* HUD calme : #speedFx s'efface avec le HUD (ici d'un coup, pas en 0,45 s) */ /* (qualité · voiles, piste d, ?plus=voilesgl) la vignette de vitesse dessinée dans la sortie */
     acesPass.uniforms.uSpeed.value=loop._sfx;acesPass.uniforms.uJit.value=(acesPass.uniforms.uJit.value+.618034)%1;acesPass.uniforms.uTL.value.x=(acesPass.uniforms.uTL.value.x+dt)%300;
     if(loop._sfx>.004)postCaisse(acesPass.uniforms); /* LA CAISSE RESTE NETTE : le centre et le disque net du flou suivent la caisse à l'écran */
     renderer.getDrawingBufferSize(acesPass.uniforms.uRes.value);acesPass.uniforms.uRes.value.set(1/Math.max(1,acesPass.uniforms.uRes.value.x),1/Math.max(1,acesPass.uniforms.uRes.value.y)); // la taille d'un texel pour le FXAA (suit la résolution adaptative)
   }
-  lvlPlanete(dt); // la planète tient sa place dans le ciel — et en ORBITE elle passe sous la route (voir NIVEAUX)
+  if(MG.on)mgSt('b6 planète, orbite, pluie, soleil');lvlPlanete(dt); // la planète tient sa place dans le ciel — et en ORBITE elle passe sous la route (voir NIVEAUX)
   try{canyonSoleil();}catch(e){loopWarn(131072,'canyon soleil',e);} // (2026-10-14) LE CANYON : le soleil de l'heure (SUN_DIR0 partout ailleurs, au bit près)
   try{orbiteTick(t);}catch(e){window.__orbErr=e;} // (vague 3) …la lune, les Starlink et la lumière de l'orbite (invisibles ailleurs)
   pluieTick(t);   // la pluie de la VILLE tombe autour de la caméra (invisible ailleurs)
@@ -169,7 +171,7 @@ if(MG.on)MG.ts[6]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
   }
   if(!sunSprite.parent){scene.add(sunSprite);scene.add(horizonGlow);for(const r9 of RAYS)scene.add(r9);}
   }catch(e){loopWarnN('ciel',e);}
-  try{ // (audit p5) fenêtre d'ombre + liseré
+  if(MG.on)mgSt('b6 ombre, liseré, roues');try{ // (audit p5) fenêtre d'ombre + liseré
   // fenêtre d'ombre : le soleil suit la caisse, snappé au texel dans le plan lumière (zéro scintillement en roulant)
   const ts9=68/sun.shadow.mapSize.x;
   L_PERP.crossVectors(L_DIR,ORB.haut).normalize();L_UP.crossVectors(L_PERP,L_DIR).normalize(); // (2026-09-27) la fenêtre d'ombre suit LA lumière du niveau : le couchant (L_DIR = SUN_DIR, au bit près) ou le soleil de l'ORBITE (posé par orbiteLumiere)
@@ -195,7 +197,7 @@ if(MG.on)MG.ts[6]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
   // MUSIQUE + CRÉATURES : hors du try/catch gameplay → protégés à part pour ne jamais casser le rendu
   // mouvement 0..1 : le filtre suit la VITESSE en parallèle — on ralentit, le son se referme progressivement (plein vers ~65 % vmax)
   const musMvt=(running&&!gameOver)?Math.max(0,Math.min(1,(speedKmh/Math.max(1,vmaxShow()))/0.65)):0;
-  try{ // (audit p5) ailes, comète, montage du moteur : décor de la caisse
+  if(MG.on)mgSt('b6 caisse (ailes, comète, montage)');try{ // (audit p5) ailes, comète, montage du moteur : décor de la caisse
   // MINI-AILES : déployées en vol, repliées au sol (lissé)
   if(carWingL){const tgt=((mode==='fall'&&!garageOn)||(garageOn&&(SHOP.tab==='aile'||(INV&&INV.on&&INV.cat==='aile')))||!!(AILV.force&&AILV.force.ouvre))?1:0; /* (banc) dbgAilesForce({ouvre:1}) : dépliées en roulant */ // boutique, onglet AILES : on les montre ouvertes
     wingT+=(tgt-wingT)*Math.min(1,dt*6);
@@ -263,12 +265,12 @@ if(MG.on)MG.ts[6]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
     }
   }else if(swapRing.visible){swapRing.visible=false;swapLight.intensity=0;}
   }catch(e){loopWarnN('caisse (ailes, comète, montage)',e);}
-  try{juiceScreenTick(dt);}catch(e){loopWarnN('jus',e);} // les taches de jus s'effacent, meme en pause
+  if(MG.on)mgSt('juiceScreenTick, fxTick');try{juiceScreenTick(dt);}catch(e){loopWarnN('jus',e);} // les taches de jus s'effacent, meme en pause
   try{fxTick(dt);}catch(e){loopWarnN('fx',e);} // ⚠ hors du gate de sim : un refractaire fige en pause rejoue le son au retour
   /* (2026-09-30) UN try PAR APPEL : dans un seul bloc, une exception de musicTick ou de villeApres sautait les suivants — le banc de
      dauphins, le serpent et la BOULE DE FEU restaient figés en l'air. Chacun son filet, chacun son avertissement (une fois : loopWarn) */
-  try{musicTick(dt,musMvt);}catch(e){loopWarn(1,'musique',e);}
-  try{villeApres();}catch(e){loopWarn(2,'ville',e);}
+  if(MG.on)mgSt('musicTick');try{musicTick(dt,musMvt);}catch(e){loopWarn(1,'musique',e);}
+  if(MG.on)mgSt('villeApres, mortSaute');try{villeApres();}catch(e){loopWarn(2,'ville',e);}
   const mortS9=mortSaute(dt); // (2026-10-14, passe perf mobile) écran de mort, paliers ANCIEN et MOYEN : la scène n'est redessinée qu'une image sur N (voir mortSaute)
   /* (2026-10-14, passe perf mobile) …et sur une image SAUTÉE, l'AMBIANCE ne tourne pas non plus : dauphins, Paris, jade (lumières, eau, mer,
      monuments), grues ne font que de l'affichage — remplir des tampons et des uniformes pour une image qui n'est pas dessinée, c'est du
@@ -277,18 +279,18 @@ if(MG.on)MG.ts[6]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
      mortSaute est remontée ici depuis le rendu (rien entre les deux ne touche ce qu'elle lit : écran, toile, dprT, sonde). Palier RÉCENT :
      mortS9 toujours faux, dtA9 = dt — rien ne change. */
   let dtA9=dt;if(mortS9)MORT_IMG.dt=Math.min(.1,MORT_IMG.dt+dt);else if(MORT_IMG.dt>0){dtA9=Math.min(.1,MORT_IMG.dt+dt);MORT_IMG.dt=0;}
-  try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
-  if(JADE.root&&!mortS9){try{jadeTick(dtA9);}catch(e){loopWarnN('jade',e);}} // (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
+  if(MG.on)mgSt('updateBoomArt');try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
+  if(MG.on)mgSt('jadeTick, jsgTick');if(JADE.root&&!mortS9){try{jadeTick(dtA9);}catch(e){loopWarnN('jade',e);}} // (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
   try{jsgTick(dt);}catch(e){loopWarn(64,'singes de jade',e);}
-  if(!mortS9)try{grotteTick(dtA9);}catch(e){window.__grotteErr=e;loopWarn(1<<26,'grotte',e);} // (2026-10-18) LES PROFONDEURS : les tranches, la lumière, la salle (son ambiance), les poussières
-  if(!mortS9)try{banqTick(dtA9);}catch(e){window.__banqErr=e;loopWarn(524288,'banquise',e);} // (2026-10-14) LA BANQUISE : lumière, météo, traces, gerbes, flocons, aurores, le vent
+  if(MG.on)mgSt('grotteTick');if(!mortS9)try{grotteTick(dtA9);}catch(e){window.__grotteErr=e;loopWarn(1<<26,'grotte',e);} // (2026-10-18) LES PROFONDEURS : les tranches, la lumière, la salle (son ambiance), les poussières
+  if(MG.on)mgSt('banqTick, gabarits');if(!mortS9)try{banqTick(dtA9);}catch(e){window.__banqErr=e;loopWarn(524288,'banquise',e);} // (2026-10-14) LA BANQUISE : lumière, météo, traces, gerbes, flocons, aurores, le vent
   if(!JADE.geos)try{jadeGabFond();}catch(e){loopWarn(131072,'gabarits',e);} // (2026-10-14, OPTIMISATION) les gabarits de la jade, taillés au menu (voir LES GABARITS TAILLÉS AU MENU)
-  try{cryptoTick(dt,running&&!paused&&!gameOver&&!BANC_FIGE);}catch(e){loopWarn(32768,'crypto',e);}
+  if(MG.on)mgSt('crypto, vitre, pluie d\'argent');try{cryptoTick(dt,running&&!paused&&!gameOver&&!BANC_FIGE);}catch(e){loopWarn(32768,'crypto',e);}
   try{vitreTick(dt,running&&!paused&&!gameOver&&!BANC_FIGE);}catch(e){loopWarn(8388608,'vitre',e);} // (2026-10-17) LA VILLE VITRÉE : les nuages et leur reflet, l'éclat du soleil, les bureaux la nuit // (2026-10-13) CRYPTO CITY : la lune ₿, les pièces, les fusées, les feux, l'ATH
   try{plaTick(dt,running&&!paused&&!BANC_FIGE);}catch(e){loopWarn(65536,'pluie d argent',e);} // (2026-10-13) LA PLUIE D'ARGENT v2
-  try{canyonTick(dt);cyVautours(dt);}catch(e){loopWarn(262144,'canyon',e);}try{dunesTick(dt);}catch(e){loopWarn(33554432,'dunes',e);} /* (2026-10-18) LES DUNES D'OR : après canyonTick (l'ombre des crêtes sur la caisse) */ // (2026-10-14) LE CANYON DES GÉANTS : les lumières du relief, l'ombre des parois sur la caisse
+  if(MG.on)mgSt('canyon, dunes, grues');try{canyonTick(dt);cyVautours(dt);}catch(e){loopWarn(262144,'canyon',e);}try{dunesTick(dt);}catch(e){loopWarn(33554432,'dunes',e);} /* (2026-10-18) LES DUNES D'OR : après canyonTick (l'ombre des crêtes sur la caisse) */ // (2026-10-14) LE CANYON DES GÉANTS : les lumières du relief, l'ombre des parois sur la caisse
   if((GRUE.L.length||JADE.root)&&!mortS9)try{grueTick(dtA9);}catch(e){loopWarnN('grues',e);} // …et les vols de grues // (Paris) le scintillement et le phare
-  try{lumTick(dt,speedKmh);}catch(e){loopWarn(1<<23,'lumières',e);} // (2026-10-17) LES LUMIÈRES DE LA CAISSE v2 : phares, feux, nitro, traînées (voir LUM_GLSL)
+  if(MG.on)mgSt('lumTick');try{lumTick(dt,speedKmh);}catch(e){loopWarn(1<<23,'lumières',e);} // (2026-10-17) LES LUMIÈRES DE LA CAISSE v2 : phares, feux, nitro, traînées (voir LUM_GLSL)
   /* ===== LA BOUTIQUE FERMÉE SUR ELLE-MÊME (2026-11-15, boutique iOS — audit du travail par image, MESURÉ au banc 390 × 844 : la boutique ouverte APRÈS une course dessinait
      144 appels / 229 k triangles au repos, contre 121 / 149 k avant la 1re course) la salle blanche est une sphère opaque de 60 m qui écrit la profondeur, et la caméra reste
      à moins de ~45 m de son centre : rien au-delà de ~110 m ne peut se voir. Or (1) le plan lointain restait à 9 800 m : le niveau, 1,5 km plus bas, entrait dans le champ et
@@ -297,37 +299,39 @@ if(MG.on)MG.ts[6]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
      que rien n'y reçoit d'ombre (sol et fond en MeshBasic, la caisse porte son ombre sans en recevoir, le sol de l'atelier — seul receveur — est caché ; l'ombre visible est
      le disque GBQ.omb). Tant que la salle est à l'écran : plan lointain à 200 m, tri du menu, ombre gelée (boucle-1.js la rallume à l'image qui suit la sortie) ; tout
      revient dès qu'elle s'éteint (sortie, JOUER, GAR.go). Rien ne change à l'écran. `?sans=bqferme` = comme avant. */
-  {if(MC.bqOff===undefined)MC.bqOff=/[?&]sans=[^&]*bqferme/.test(location.search);
+  if(MG.on)mgSt('b6 boutique fermée, menuCull');{if(MC.bqOff===undefined)MC.bqOff=/[?&]sans=[^&]*bqferme/.test(location.search);
    const bq9=!MC.bqOff&&garageOn&&!GAR.go&&typeof GBQ!=='undefined'&&GBQ.on&&!!GBQ.grp&&GBQ.grp.visible;
    if(bq9){if(MC.far0==null){MC.far0=camera.far;camera.far=200;camera.updateProjectionMatrix();}renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=false;}
    else if(MC.far0!=null){camera.far=MC.far0;MC.far0=null;camera.updateProjectionMatrix();}
    menuCull(garageOn&&(!started||bq9));} /* (2026-11-07, Perf 3 — P5) au menu, les maillages hors champ ne partent plus au GPU — voir MENU CULL (cadence.js) — et (2026-11-15) dans la boutique, même après une course */
-  if(MG.on)MG.ts[7]=performance.now(); /* (lot GELS) avant le rendu */
+  if(MG.on){mgTs(7);mgPasses();} /* (lot GELS) avant le rendu */
   if(mortS9){}else
   if(PCV.fen&&PORTV.att&&!PCV.copie){}else // (2026-10-17, 3e tour) l'image d'attente du passage : l'écran est COUVERT par la fenêtre recopiée — on ne dessine pas l'ancien monde pour rien
   if((started&&!gameOver)||lierPassesPretes()){ /* (2026-10-27) LA LIAISON EN ARRIÈRE-PLAN : hors course, tant qu'une passe de l'image se lie, l'image d'avant reste (voir interface/vignette-moteur.js) */
-  if(POST_ON&&composer)try{composer.render();}catch(e){loopWarnN('rendu',e);} // ACES + bloom
-  else try{renderer.render(scene,camera);}catch(e){loopWarnN('rendu (repli)',e);}
+  if(POST_ON&&composer)try{if(MG.on)mgSt('rendu composer');composer.render();}catch(e){loopWarnN('rendu',e);} // ACES + bloom
+  else try{if(MG.on)mgSt('rendu direct');renderer.render(scene,camera);}catch(e){loopWarnN('rendu (repli)',e);}
+  flushTot(); /* (2026-11-18, lot flushtot) l'image part à la puce tout de suite, pas à la fin du rappel — voir moteur/flushtot.js ; ?sans=flushtot = comme avant */
   window.__imagesJeu=(window.__imagesJeu|0)+1;} /* (2026-11-05, Sacha : « des fois ce bug visuel sur Vercel » : le menu sur un écran NOIR) les images 3D vraiment dessinées : le voile de l'intro attend qu'il y en ait (voir `ouvreQuandPret`, moteur/intro-161.js) */     // repli si le post n'a pas pu se charger
-  if(MG.on)MG.ts[8]=performance.now(); /* (lot GELS) après le rendu */
-  if(window.__introPrise){const f9=window.__introPrise;window.__introPrise=null;try{f9(renderer.domElement);}catch(e){}} // (2026-10-22) l'intro du studio demande une photo de la scène 3D, prise ici, juste après son rendu (le tampon est encore plein) : les éclats de l'écran en font des loupes — voir moteur/intro-161.js
+  if(MG.on)mgApresRendu(); /* (lot GELS) après le rendu */
+  if(MG.on)mgSt('après : copies (intro, fenêtre, ciel du menu)');if(window.__introPrise){const f9=window.__introPrise;window.__introPrise=null;try{f9(renderer.domElement);}catch(e){}} // (2026-10-22) l'intro du studio demande une photo de la scène 3D, prise ici, juste après son rendu (le tampon est encore plein) : les éclats de l'écran en font des loupes — voir moteur/intro-161.js
   if(PCV.copie&&!mortS9)pcCopie(); // (2026-10-17) LE PASSAGE PAR LA FENÊTRE : l'image qu'on traverse, recopiée APRÈS ce rendu (pas de rendu en plus)
   try{if(!mortS9)homeCielPrise(now);}catch(e){} // (2026-10-11) le CIEL DU MENU, recopié en vignette pour le HOME du garage (voir homeCielPrise)
-  matSursisTick(); // (perf) les matières de la piste d'avant partent une fois la neuve rendue
+  if(MG.on)mgSt('matSursisTick, chauffes');matSursisTick(); // (perf) les matières de la piste d'avant partent une fois la neuve rendue
   if(CHAUFFE_R.t&&now>CHAUFFE_R.t){CHAUFFE_R.t=0;jadeChauffeNiveau();chauffeRendu();ccConstr('chauffe');} // (tour 2) niveau neuf : la puce le voit une fois en entier, hors écran
-  if(!started||gameOver){engChauffe();engViveChauffe();} // (perf) au menu et à l'écran de mort : les shaders des moteurs se préparent, un palier par image — (2026-11-16) et ceux de la toile du moteur vif (ENG_VIVE), un moteur par image une fois la chauffe finie
+  if(!started||gameOver){if(entreeTour('eng'))engChauffe();if(entreeTour('vif'))engViveChauffe();} // (perf) au menu et à l'écran de mort : les shaders des moteurs se préparent, un palier par image — (2026-11-16) et ceux de la toile du moteur vif (ENG_VIVE), un moteur par image une fois la chauffe finie
   // VIGNETTE MOTEUR — RÉACTIVÉE (2026-08-02) : elle passe désormais par un RenderTarget dédié puis un
   // quad ortho recollé par-dessus. Elle ne touche plus au viewport de la passe finale — c'était ça,
   // la déformation de l'image. ⚠ APRÈS le composer, jamais avant : il écrase le framebuffer.
-  try{engVigRender(dt);}catch(e){if(!loop._vigWarn){console.warn('vignette moteur',e);loop._vigWarn=1;}}
-  if(PREB.on){if(BV.on){const t9=performance.now();prebTick(now);PREB.imgMs=performance.now()-t9;}else prebTick(now);} // (2026-10-17) LE PRÉ-BÂTI : la piste d'en face, quelques ms par image (voir PREB) · (2026-11-13) sa part de l'image, pour la boîte de vol
-  if(BV.on)bvImage(now,speedKmh); /* (2026-11-12, ios-ultime) LA BOÎTE DE VOL : chaque image calculée de course, par phase et par vitesse — voir BV (enregistreur-perf.js) ; éteinte : ce test, rien d'autre */
-  hudCalmeTick(now); /* (2026-11-12, Sacha) le HUD contemplatif et l'écriture allégée — voir cadence.js */
+  if(MG.on)mgSt('engVigRender');try{engVigRender(dt);}catch(e){if(!loop._vigWarn){console.warn('vignette moteur',e);loop._vigWarn=1;}}
+  if(MG.on)mgSt('prebTick');if(PREB.on){if(BV.on){const t9=performance.now();prebTick(now);PREB.imgMs=performance.now()-t9;}else prebTick(now);} // (2026-10-17) LE PRÉ-BÂTI : la piste d'en face, quelques ms par image (voir PREB) · (2026-11-13) sa part de l'image, pour la boîte de vol
+  if(MG.on)mgSt('mesure (bvImage)');if(BV.on)bvImage(now,speedKmh); /* (2026-11-12, ios-ultime) LA BOÎTE DE VOL : chaque image calculée de course, par phase et par vitesse — voir BV (enregistreur-perf.js) ; éteinte : ce test, rien d'autre */
+  if(MG.on)mgSt('HUD calme, endormi, couches');hudCalmeTick(now); /* (2026-11-12, Sacha) le HUD contemplatif et l'écriture allégée — voir cadence.js */
   hudDortTick(now); /* (2026-11-12, interface-opti) LE HUD ENDORMI : ses boucles CSS gelées tant qu'il est invisible — voir cadence.js */
-  if(CAD.ok)cadFin(now); // (2026-10-14, passe perf mobile) LA CADENCE STABLE : le travail de l'image et la décision 30/60 — voir CAD
+  hccTick(now); /* (2026-11-17, qualité · hudcouches) LE VOILE DES COUCHES : un élément du HUD à opacité 0 ne garde ni couche ni peinture — voir cadence.js */
+  if(MG.on)mgSt('cadFin, fin');if(CAD.ok)cadFin(now); // (2026-10-14, passe perf mobile) LA CADENCE STABLE : le travail de l'image et la décision 30/60 — voir CAD
   if(COUT.on)coutFin(); // (banc perf-iphone7)
   if(BANC_CB)window.__bancSync(); // (banc ?banc=1) la puce finit l'image, on relève le chrono
-  else if(QLR.sN>0)qlSonde(); // (tour 2) la règle de qualité veut le VRAI coût d'une image avant de baisser quoi que ce soit
+  else if(QLR.sN>0){if(MG.on)mgSt('qlSonde');qlSonde();} // (tour 2) la règle de qualité veut le VRAI coût d'une image avant de baisser quoi que ce soit
   if(TEST_PAL.on)try{testPalierPose();}catch(e){} /* (2026-11-13) le code « test » : moteur 15 dès le départ */
   if(RADP.ok)try{radpPas(now);}catch(e){} /* (2026-11-13) LA RADIO EN PAUSE : build de mesure seulement, pendant une pause ou l'écran de mort — voir moteur/desktop-banc.js */
 }

@@ -1,18 +1,47 @@
 /* ===== L'ORBITE DES VOYAGES : LE DÉCOR (2026-11-16) — voir orbite-voyages.js (la logique, chargée aussi par le banc Node des routes) ===== */
 /* ===== LE DÉCOR DES GÉANTS, AJUSTÉ À LA ROUTE BÂTIE (geantsPose, avant les autres géants : la lune glacée et le gaz sont réservés d'abord) ===== */
+/* (2026-11-17, lot espaceopt — l'optimisation iPhone des voyages) VOY_OPT : le MÊME décor au bit près (banc : dbgVoyage('banc')), bâti moins cher et rendu propre :
+   · sans ?espace=voyages, les deux mailles du décor ne sont plus créées (rien de plus dans la scène que l'orbite publiée) ;
+   · la maille s'écrit dans des tableaux typés (plus de tableaux de nombres ni de tableau par triangle : moins de déchets pour le ramasse-miettes) ;
+   · la jante : « à plus de ~70 m d'une autre portion de route » se demande à une grille de la route (voyPres) au lieu de tous ses points, trois fois par pas ;
+   · la roche percée : « ce triangle est-il dans le tunnel ? » se demande à une grille des centres du tunnel ;
+   · la géométrie du décor est rendue (dispose) quand la route change (en quittant l'orbite, elle restait en mémoire) ; voyTick n'alloue plus rien.
+   `?sans=espaceopt` : tout comme avant. */
+let VOY_OPT=!(typeof location!=='undefined'&&/[?&]sans=[^&]*espaceopt/.test(location.search));
 const VOY_D={jante:null,roc:null,neb:null,zonesSaut:[],zonesPente:[],ms:0,err:null,info:[],vues:[]};
 const VOY_F=[0,1,2,3].map(function(){return {p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};});
-function voyMaille(){return {P:[],N:[],C:[],K:[],a:new THREE.Vector3(),b:new THREE.Vector3(),n:new THREE.Vector3()};}
+function voyMaille(){const M={P:[],N:[],C:[],K:[],a:new THREE.Vector3(),b:new THREE.Vector3(),n:new THREE.Vector3(),f:null,nb:0};
+  if(VOY_OPT){M.f=[new Float32Array(9*2048),new Float32Array(9*2048),new Float32Array(9*2048),new Float32Array(9*2048)];M.P=M.N=M.C=M.K=null;}return M;}
+function voyGrandit(M){const n=M.f[0].length*2;for(let q=0;q<4;q++){const A=new Float32Array(n);A.set(M.f[q]);M.f[q]=A;}}
 function voyTri(M,a,b,c,col,k){M.a.subVectors(b,a);M.b.subVectors(c,a);M.n.crossVectors(M.a,M.b);const l=M.n.length()||1;M.n.multiplyScalar(1/l);
+  if(M.f){if(M.nb+9>M.f[0].length)voyGrandit(M);const P=M.f[0],N=M.f[1],C=M.f[2],K=M.f[3],nx=M.n.x,ny=M.n.y,nz=M.n.z;let o=M.nb; /* (VOY_OPT) les mêmes valeurs, écrites dans le même ordre (Float32 : l'arrondi de Float32BufferAttribute) */
+    P[o]=a.x;P[o+1]=a.y;P[o+2]=a.z;P[o+3]=b.x;P[o+4]=b.y;P[o+5]=b.z;P[o+6]=c.x;P[o+7]=c.y;P[o+8]=c.z;
+    for(let j=0;j<9;j+=3){N[o+j]=nx;N[o+j+1]=ny;N[o+j+2]=nz;C[o+j]=col[0];C[o+j+1]=col[1];C[o+j+2]=col[2];K[o+j]=k[0];K[o+j+1]=k[1];K[o+j+2]=k[2];}
+    M.nb=o+9;return;}
   for(const v of [a,b,c]){M.P.push(v.x,v.y,v.z);M.N.push(M.n.x,M.n.y,M.n.z);M.C.push(col[0],col[1],col[2]);M.K.push(k[0],k[1],k[2]);}}
 function voyQuad(M,a,b,c,d,col,k){voyTri(M,a,b,c,col,k);voyTri(M,a,c,d,col,k);}
-function voyGeo(M){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(M.P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(M.N,3));
+function voyNbTri(M){return M.f?M.nb/9:M.P.length/9;}
+function voyGeo(M){const g=new THREE.BufferGeometry();
+  if(M.f){const n=M.nb;g.setAttribute('position',new THREE.BufferAttribute(M.f[0].slice(0,n),3));g.setAttribute('normal',new THREE.BufferAttribute(M.f[1].slice(0,n),3));
+    g.setAttribute('aCol',new THREE.BufferAttribute(M.f[2].slice(0,n),3));g.setAttribute('aK',new THREE.BufferAttribute(M.f[3].slice(0,n),3));g.computeBoundingSphere();return g;}
+  g.setAttribute('position',new THREE.Float32BufferAttribute(M.P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(M.N,3));
   g.setAttribute('aCol',new THREE.Float32BufferAttribute(M.C,3));g.setAttribute('aK',new THREE.Float32BufferAttribute(M.K,3));g.computeBoundingSphere();return g;}
-const VOY_MESH=[0,1].map(function(i){ /* [0] la jante de la roue · [1] la roche et le tunnel de l'astéroïde — la matière de l'épave (le même programme : rien à compiler) */
-  const g=new THREE.BufferGeometry();for(const k of ['position','normal','aCol','aK'])g.setAttribute(k,new THREE.Float32BufferAttribute([0,0,0,0,0,0,0,0,0],3));
-  const m=new THREE.Mesh(g,GT_EPAVE.material);m.visible=false;m.name=i?'orbite voyage : astéroïde percé':'orbite voyage : roue';scene.add(m);return m;});
-function voyDecorVide(){VOY_D.jante=null;VOY_D.roc=null;VOY_D.neb=null;VOY_D.zonesSaut=[];VOY_D.zonesPente=[];VOY_D.info=[];VOY_D.vues=[];for(const m of VOY_MESH)m.visible=false;}
-function voyPoseGeo(i,M){const m=VOY_MESH[i],old=m.geometry;m.geometry=voyGeo(M);if(old)old.dispose();}
+const VOY_VIDE_G=(function(){const g=new THREE.BufferGeometry();for(const k of ['position','normal','aCol','aK'])g.setAttribute(k,new THREE.Float32BufferAttribute([0,0,0,0,0,0,0,0,0],3));return g;})(); /* (VOY_OPT) la maille vide, partagée */
+const VOY_MESH=(!ESP_SANS_GEANTS&&(ORB_VOY||!VOY_OPT))?[0,1].map( /* (2026-11-18, L'ESPACE SANS GÉANTS) ni jante ni roche percée : aucune maille */function(i){ /* [0] la jante de la roue · [1] la roche et le tunnel de l'astéroïde — la matière de l'épave (le même programme : rien à compiler) */
+  let g=VOY_VIDE_G;if(!VOY_OPT){g=new THREE.BufferGeometry();for(const k of ['position','normal','aCol','aK'])g.setAttribute(k,new THREE.Float32BufferAttribute([0,0,0,0,0,0,0,0,0],3));}
+  const m=new THREE.Mesh(g,GT_EPAVE.material);m.visible=false;m.name=i?'orbite voyage : astéroïde percé':'orbite voyage : roue';scene.add(m);return m;}):[]; /* (VOY_OPT) sans le drapeau : aucune maille de plus dans la scène */
+function voyDecorVide(){VOY_D.jante=null;VOY_D.roc=null;VOY_D.neb=null;VOY_D.zonesSaut=[];VOY_D.zonesPente=[];VOY_D.info=[];VOY_D.vues=[];
+  for(const m of VOY_MESH){m.visible=false;if(VOY_OPT&&m.geometry!==VOY_VIDE_G){const o=m.geometry;m.geometry=VOY_VIDE_G;o.dispose();}}} /* (VOY_OPT) la géométrie de la route d'avant est rendue : en quittant l'orbite, elle restait en mémoire (et au GPU) */
+function voyPoseGeo(i,M){const m=VOY_MESH[i],old=m.geometry;m.geometry=voyGeo(M);if(old&&old!==VOY_VIDE_G)old.dispose();}
+/* (VOY_OPT) « P est-il à plus de D de la route hors de ]x0, x1[ ? » = gtDistRoute(P,x0,x1)>D AU BIT PRÈS : les mêmes points (le même pas), rangés dans une grille de cases de D+1 m ;
+   un point hors des 27 cases autour de P est à plus de D+1 : il ne peut pas changer la réponse */
+function voyPres(x0,x1,D){
+  const dS=L/(NP-1),st=gtPas(),c=D+1,G=new Map(),cle=function(x,y,z){return ((x+4096)*8192+(y+4096))*8192+(z+4096);};
+  for(let i=0;i<NP;i+=st){const s9=i*dS;if(s9>x0&&s9<x1)continue;const q=pts[i],k=cle(Math.floor(q.x/c),Math.floor(q.y/c),Math.floor(q.z/c));let a=G.get(k);if(!a)G.set(k,a=[]);a.push(q);}
+  return function(P){const bx=Math.floor(P.x/c),by=Math.floor(P.y/c),bz=Math.floor(P.z/c);let d2=1e18;
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(let dz=-1;dz<=1;dz++){const a=G.get(cle(bx+dx,by+dy,bz+dz));if(!a)continue;
+      for(let j=0;j<a.length;j++){const q=a[j],ex=q.x-P.x,ey=q.y-P.y,ez=q.z-P.z,e=ex*ex+ey*ey+ez*ez;if(e<d2)d2=e;}}
+    return Math.sqrt(d2)>D;};}
 const VOY_TON=[[.46,.42,.39],[.58,.34,.22],[.66,.60,.50]]; /* la roche : Terre, Mars, Saturne (MESURÉ en photo : plus clair, elle tournait au crème lisse) */
 const voyBruit=function(x,y,z){return Math.sin(x*.021+Math.sin(z*.013)*2)*Math.sin(y*.017-x*.009)*.5+Math.sin(z*.031+y*.007)*.3+Math.sin(x*.057-z*.041)*.2;}; /* -1..1 : les taches de la roche */
 function voyDecorPose(r){
@@ -20,6 +49,7 @@ function voyDecorPose(r){
   try{
     for(const m of MODS){
       if(m.fig==='bosses'||m.fig==='pique'||m.fig==='marches')VOY_D.zonesPente.push([m.s0+60,m.s1]); /* leurs crêtes : pas de saut (voir voySautRefuse) */
+      if(ESP_SANS_GEANTS)continue; /* (2026-11-18, L'ESPACE SANS GÉANTS) les pentes des tracés seulement : ni jante, ni petite lune, ni roche percée, ni nébuleuse, aucune zone de saut refusé de géant */
       if(!m.nu||!m.nu.length||m.nu[0].t!=='voy')continue;const k=m.nu[0].k,sa=m.nu[0].s,sm=m.nu[1].s,sb=m.nu[2].s;
       if(k==='roue'){voyRoue(sa,sm,sb,r);VOY_D.zonesSaut.push([sa-150,sb+60]);}
       else if(k==='lune')voyLune(sa,sm,sb,r);
@@ -52,7 +82,7 @@ function voyRoue(sa,sm,sb,r){
   if(cer&&cer.R>150&&cer.R<1400&&nB.dot(new THREE.Vector3().subVectors(cer.C,B).normalize())>.45){
     const C=cer.C,ax=cer.ax,e1=new THREE.Vector3().subVectors(A,C).normalize(),e2=new THREE.Vector3().crossVectors(ax,e1);
     let tb=Math.atan2(new THREE.Vector3().subVectors(Cc,C).dot(e2),new THREE.Vector3().subVectors(Cc,C).dot(e1));if(tb<0){e2.negate();tb=-tb;}
-    const R=cer.R,dth=st/R,gap=Math.max(.16,90/R),ok=function(P){return gtDistRoute(P,sa-120,sb+120)>ROAD_HALF+70;};prev=null;
+    const R=cer.R,dth=st/R,gap=Math.max(.16,90/R),pres=VOY_OPT?voyPres(sa-120,sb+120,ROAD_HALF+70):null,ok=pres||function(P){return gtDistRoute(P,sa-120,sb+120)>ROAD_HALF+70;};prev=null;
     for(let th=tb+gap;th<=2*Math.PI-gap;th+=dth){const rd=e1.clone().multiplyScalar(Math.cos(th)).addScaledVector(e2,Math.sin(th)),P=C.clone().addScaledVector(rd,R),n=rd.clone().negate();
       if(!ok(P)||!ok(P.clone().addScaledVector(ax,W2))||!ok(P.clone().addScaledVector(ax,-W2))){prev=null;continue;}
       const c=coupe(P,n,ax.clone());if(prev){tranche(prev,c,j++);ferme++;}prev=c;}
@@ -64,7 +94,7 @@ function voyRoue(sa,sm,sb,r){
       for(const f of [.25,.5,.75]){const th=tb+gap+(2*Math.PI-2*gap-tb)*f,rd=e1.clone().multiplyScalar(Math.cos(th)).addScaledVector(e2,Math.sin(th)),P=C.clone().addScaledVector(rd,96);if(ok(C.clone().addScaledVector(rd,R*.6)))cyl(P,rd,11,R-OFF-96-E,6,gris);}
       for(const f of [.3,.7]){const th=tb*f,rd=e1.clone().multiplyScalar(Math.cos(th)).addScaledVector(e2,Math.sin(th));cyl(C.clone().addScaledVector(rd,96),rd,10,(R-96)*(.3+.2*r()),6,gris);}}
   }
-  voyPoseGeo(0,M);VOY_D.jante={sa:sa,sb:sb,ferme:ferme,moyeu:!!moyeu,R:cer?Math.round(cer.R):0,tri:M.P.length/9};VOY_D.info.push('roue');
+  voyPoseGeo(0,M);VOY_D.jante={sa:sa,sb:sb,ferme:ferme,moyeu:!!moyeu,R:cer?Math.round(cer.R):0,tri:voyNbTri(M)};VOY_D.info.push('roue');
   if(cer){const Q9=cer.C.clone().addScaledVector(cer.ax,cer.R*1.5).addScaledVector(new THREE.Vector3().subVectors(cer.C,B).normalize(),cer.R*1.3);VOY_D.vues.push(['roue',Q9,cer.C.clone()]);}
 }
 /* LA PETITE LUNE : son centre, là où les normales de la dalle se croisent (sous les roues) ; son rayon, au ras de la dalle (12 m) et loin des autres portions de route */
@@ -81,6 +111,19 @@ function voyLune(sa,sm,sb,r){
 }
 /* L'ASTÉROÏDE PERCÉ : le tunnel suit la route (un tube de 46 m de rayon, 20 m au-dessus de la dalle, des anneaux de lampes, des cristaux) ; la roche, centrée sur le tunnel, est
    percée là où il passe — sa taille bornée par les autres portions de route */
+/* (VOY_OPT) les centres du tunnel rangés par cases de D m (D : un mètre de plus que le rayon du trou) : un centre à moins de D d'un point est dans les 27 cases autour de lui (la même réponse que le tour de tous les centres) */
+function voyGrilleTunnel(CT,D){const G=new Map(),cle=function(x,y,z){return ((x+4096)*8192+(y+4096))*8192+(z+4096);};
+  for(const t of CT){const k=cle(Math.floor(t.x/D),Math.floor(t.y/D),Math.floor(t.z/D));let a=G.get(k);if(!a)G.set(k,a=[]);a.push(t);}return {G:G,D:D,cle:cle};}
+function voyDansTunnel(GC,p,R2){const D=GC.D,bx=Math.floor(p.x/D),by=Math.floor(p.y/D),bz=Math.floor(p.z/D);
+  for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(let dz=-1;dz<=1;dz++){const a=GC.G.get(GC.cle(bx+dx,by+dy,bz+dz));if(!a)continue;for(let j=0;j<a.length;j++)if(a[j].distanceToSquared(p)<R2)return true;}
+  return false;}
+/* (VOY_OPT) LA SPHÈRE UNITÉ DE LA ROCHE (IcosahedronGeometry : ~15 ms à la bâtir sur l'ordi, la moitié de la roche) gardée une fois pour toutes par finesse : ses sommets tels quels (Float32),
+   et pour chacun le numéro de son sommet distinct (uid) — bâtie au chargement quand le drapeau est là, sinon à la 1re roche */
+const VOY_ICO={};
+function voyIco(det){let I=VOY_ICO[det];if(I)return I;const g=new THREE.IcosahedronGeometry(1,det),pos=g.attributes.position.array.slice(),n=pos.length/3,uid=new Int32Array(n),prem=[],vu=new Map();g.dispose();
+  for(let q=0;q<n;q++){const k=pos[3*q]+','+pos[3*q+1]+','+pos[3*q+2];let u=vu.get(k);if(u===undefined){u=prem.length;vu.set(k,u);prem.push(q);}uid[q]=u;}
+  return (VOY_ICO[det]={pos:pos,uid:uid,prem:prem,nu:prem.length});}
+if(ORB_VOY&&VOY_OPT&&!ESP_SANS_GEANTS)try{voyIco(GT_TEL?9:14);}catch(e){} /* (sans géants : rien à précalculer) */
 function voyAsteroide(sa,sm,sb,r){
   const F=VOY_F[0],tel=GT_TEL,M=voyMaille(),Rt9=46,Hc=20,ns=tel?12:18,st=tel?12:8,ton=VOY_TON[Math.max(0,Math.min(2,GEANTS.typ|0))];
   const roc=[ton[0]*.62,ton[1]*.62,ton[2]*.62],roc2=[ton[0]*.48,ton[1]*.48,ton[2]*.5],fen=[1,.82,.5],cri=[[.5,.95,1],[1,.45,.85],[.6,1,.55]],kI=[.5,0,.12],kL=[0,1,0];
@@ -93,15 +136,19 @@ function voyAsteroide(sa,sm,sb,r){
     prev=ring;}
   frameAt(sm,F);const C=F.p.clone().addScaledVector(F.n,Hc);let Ra=.5*CT[0].distanceTo(CT[CT.length-1])-30;Ra=Math.min(Ra,gtDistRoute(C,sa-260,sb+260)-ROAD_HALF-40);
   if(Ra>=110){
-    const geo=new THREE.IcosahedronGeometry(1,tel?9:14),pa=geo.attributes.position,d=new THREE.Vector3(),B=[];for(let q=0;q<22;q++){const z=r()*2-1,a=r()*6.283,w=Math.sqrt(1-z*z);B.push([new THREE.Vector3(Math.cos(a)*w,z,Math.sin(a)*w),(r()-.45)*(q<8?.42:.18),q<8?.15+r()*.3:.02+r()*.06]);} /* de grandes bosses, puis des petites (le relief d'un astéroïde, pas une boule) */
+    const geo=VOY_OPT?null:new THREE.IcosahedronGeometry(1,tel?9:14),d=new THREE.Vector3(),B=[];let pa=geo?geo.attributes.position:null;for(let q=0;q<22;q++){const z=r()*2-1,a=r()*6.283,w=Math.sqrt(1-z*z);B.push([new THREE.Vector3(Math.cos(a)*w,z,Math.sin(a)*w),(r()-.45)*(q<8?.42:.18),q<8?.15+r()*.3:.02+r()*.06]);} /* de grandes bosses, puis des petites (le relief d'un astéroïde, pas une boule) */
     const rel=function(v){let f=1;for(const b of B)f+=b[1]*Math.exp(-(1-v.dot(b[0]))/b[2]*2);return f;};
-    for(let q=0;q<pa.count;q++){d.fromBufferAttribute(pa,q).normalize();const f=rel(d)*Ra;pa.setXYZ(q,C.x+d.x*f,C.y+d.y*f,C.z+d.z*f);}
-    const a=new THREE.Vector3(),b=new THREE.Vector3(),c9=new THREE.Vector3(),g9=new THREE.Vector3(),R2=(Rt9+22)*(Rt9+22);
+    if(VOY_OPT){const I9=voyIco(tel?9:14),P9=I9.pos,W=new Float32Array(P9.length),fu=new Float64Array(I9.nu); /* (VOY_OPT) la sphère unité gardée d'une route à l'autre ; le relief calculé une fois par sommet DISTINCT (ils sont six fois en double, au bit près) */
+      for(let u=0;u<I9.nu;u++){const q3=3*I9.prem[u];d.set(P9[q3],P9[q3+1],P9[q3+2]).normalize();fu[u]=rel(d);}
+      for(let q=0,q3=0;q3<P9.length;q++,q3+=3){d.set(P9[q3],P9[q3+1],P9[q3+2]).normalize();const f=fu[I9.uid[q]]*Ra;W[q3]=C.x+d.x*f;W[q3+1]=C.y+d.y*f;W[q3+2]=C.z+d.z*f;}
+      pa=new THREE.BufferAttribute(W,3);}
+    else for(let q=0;q<pa.count;q++){d.fromBufferAttribute(pa,q).normalize();const f=rel(d)*Ra;pa.setXYZ(q,C.x+d.x*f,C.y+d.y*f,C.z+d.z*f);}
+    const a=new THREE.Vector3(),b=new THREE.Vector3(),c9=new THREE.Vector3(),g9=new THREE.Vector3(),R2=(Rt9+22)*(Rt9+22),GC=VOY_OPT?voyGrilleTunnel(CT,Rt9+23):null;
     for(let q=0;q<pa.count;q+=3){a.fromBufferAttribute(pa,q);b.fromBufferAttribute(pa,q+1);c9.fromBufferAttribute(pa,q+2);g9.copy(a).add(b).add(c9).multiplyScalar(1/3);
-      let trou=false;for(const t of CT)if(t.distanceToSquared(g9)<R2){trou=true;break;}if(trou)continue;
+      let trou=false;if(GC)trou=voyDansTunnel(GC,g9,R2);else for(const t of CT)if(t.distanceToSquared(g9)<R2){trou=true;break;}if(trou)continue;
       const dn=g9.clone().sub(C).normalize(),creux=Math.max(0,1-rel(dn)),k=(.74+.24*voyBruit(g9.x,g9.y,g9.z)-creux*1.4)*(1+(r()-.5)*.12);voyTri(M,a,b,c9,[ton[0]*k,ton[1]*k,ton[2]*k],[1,0,.12]);} /* les creux plus sombres, les taches */
-    geo.dispose();}
-  voyPoseGeo(1,M);VOY_D.roc={sa:sa,sb:sb,Ra:Math.round(Ra),tri:M.P.length/9};VOY_D.info.push('astéroïde Ra'+Math.round(Ra));
+    if(geo)geo.dispose();}
+  voyPoseGeo(1,M);VOY_D.roc={sa:sa,sb:sb,Ra:Math.round(Ra),tri:voyNbTri(M)};VOY_D.info.push('astéroïde Ra'+Math.round(Ra));
   {frameAt(sm,F);const Ra9=Math.max(150,Ra);VOY_D.vues.push(['asteroide',C.clone().addScaledVector(F.b,Ra9*2.6).addScaledVector(F.n,Ra9*.9).addScaledVector(F.t,Ra9*.8),C.clone()]);}
 }
 /* LA NÉBULEUSE : une boule de gaz (le gaz de la comète : sa 3e coque, celle de la poussière de Mars) centrée sur le demi-tonneau ; dedans, l'image prend sa couleur (le voile) */
@@ -113,9 +160,11 @@ function voyNebuleuse(sa,sm,sb,r){
   VOY_D.vues.push(['nebuleuse',C.clone().addScaledVector(F.b,sg*3.2).addScaledVector(F.n,sg*.8).addScaledVector(F.t,-sg*1.2),C.clone()]);
 }
 /* CHAQUE IMAGE (geantsTick) : la visibilité ; le voile dans la nébuleuse (rend [r, g, b] à ajouter) */
+const VOY_V9=[0,0,0]; /* (VOY_OPT) le voile rendu par voyTick : le même tableau à chaque image */
 function voyTick(on){
-  VOY_MESH[0].visible=on&&!!VOY_D.jante;VOY_MESH[1].visible=on&&!!VOY_D.roc;
-  const N9=VOY_D.neb;if(!on||!N9)return null;const d2=camera.position.distanceToSquared(N9.C),k=Math.exp(-d2/(N9.sg*N9.sg))*.16;return [k*N9.col[0],k*N9.col[1],k*N9.col[2]];}
+  if(VOY_MESH.length){VOY_MESH[0].visible=on&&!!VOY_D.jante;VOY_MESH[1].visible=on&&!!VOY_D.roc;}
+  const N9=VOY_D.neb;if(!on||!N9)return null;const d2=camera.position.distanceToSquared(N9.C),k=Math.exp(-d2/(N9.sg*N9.sg))*.16;
+  if(VOY_OPT){VOY_V9[0]=k*N9.col[0];VOY_V9[1]=k*N9.col[1];VOY_V9[2]=k*N9.col[2];return VOY_V9;}return [k*N9.col[0],k*N9.col[1],k*N9.col[2]];}
 /* LE SAUT REFUSÉ (vol-equilibre.js, comme espSautRefuse) : dans la jante et le tunnel ; et dans les bosses, le piqué et les marches dès que la route plonge plus fort devant
    (12° de plus dans les ~2,7 s qui viennent) : un saut lancé d'une crête survolerait la descente jusqu'à la jauge vide — dans un creux, devant une remontée, il reste permis */
 function voySautRefuse(){
@@ -124,7 +173,21 @@ function voySautRefuse(){
   for(const z of VOY_D.zonesPente)if(s>z[0]-200&&s<z[1]){const dS=L/(NP-1),i=Math.max(0,Math.min(NP-1,Math.round(s/dS))),n=Math.round(380/dS),p0=Math.asin(Math.max(-1,Math.min(1,T[i].y*driveDir)));
     let mn=p0;for(let j=i;j<=Math.min(NP-1,i+n);j++){const pj=Math.asin(Math.max(-1,Math.min(1,T[j].y*driveDir)));if(pj<mn)mn=pj;}if(mn<p0-.21)return true;}
   return false;}
-window.dbgVoyage=function(){ /* (banc) le voyage de la route en cours : sa clé, sa silhouette, ses modules, son décor */
+/* (banc, lot espaceopt) dbgVoyage('banc', n) : la jante et la roche de la route en cours rebâties n fois AVANT (VOY_OPT faux) puis APRÈS, au même hasard :
+   les ms de chacune et l'empreinte de leurs sommets (position, normale, couleur, aK) — elles doivent être égales au bit près. Le décor de la course est remis ensuite. */
+function voyEmpreinte(g){let h=2166136261>>>0;for(const k of ['position','normal','aCol','aK']){const u=new Uint8Array(g.attributes[k].array.buffer,g.attributes[k].array.byteOffset,g.attributes[k].array.byteLength);
+  for(let i=0;i<u.length;i++){h^=u[i];h=Math.imul(h,16777619)>>>0;}}return h.toString(16)+'/'+g.attributes.position.count;}
+function voyBanc(n){n=Math.max(1,n|0||5);const o={},sauve=VOY_OPT,G0=VOY_MESH.map(function(m){return m.geometry;}),D0={jante:VOY_D.jante,roc:VOY_D.roc,info:VOY_D.info.slice(),vues:VOY_D.vues.slice()};
+  if(!VOY_MESH.length)return 'pas de mailles (sans ?espace=voyages)';
+  try{for(const opt of [false,true,false,true]){VOY_OPT=opt;
+    for(const m of (MODS||[])){if(!m.nu||!m.nu.length||m.nu[0].t!=='voy')continue;const kk=m.nu[0].k;if(kk!=='roue'&&kk!=='asteroide')continue;const i9=kk==='roue'?0:1,T=[];
+      for(let j=0;j<n;j++){const r=mulberry32(0x5EED),t0=performance.now();(kk==='roue'?voyRoue:voyAsteroide)(m.nu[0].s,m.nu[1].s,m.nu[2].s,r);T.push(performance.now()-t0);}
+      T.sort(function(x,y){return x-y;});const c=kk+(opt?' après':' avant'),e=voyEmpreinte(VOY_MESH[i9].geometry),p=o[c];
+      o[c]={med:+T[T.length>>1].toFixed(2),min:+T[0].toFixed(2),max:+T[T.length-1].toFixed(2),empreinte:e,memeEmpreinte:p?p.empreinte===e:null,tri:VOY_MESH[i9].geometry.attributes.position.count/3};}}}
+  finally{VOY_OPT=sauve;VOY_MESH.forEach(function(m,i){if(m.geometry!==G0[i]){if(m.geometry!==VOY_VIDE_G)m.geometry.dispose();m.geometry=G0[i];}});VOY_D.jante=D0.jante;VOY_D.roc=D0.roc;VOY_D.info=D0.info;VOY_D.vues=D0.vues;}
+  return o;}
+window.dbgVoyage=function(k,a){ /* (banc) le voyage de la route en cours : sa clé, sa silhouette, ses modules, son décor · 'banc', n : voir voyBanc */
+  if(k==='banc')return voyBanc(a);
   return {on:ORB_VOY,vo:ORB_PIOCHE.vo,der:ORB_PIOCHE.voyDer||null,voy:VOY?{cle:VOY.cle,cxG:VOY.cxG,fortG:VOY.fortG,fortFait:VOY.fortFait}:null,
     mods:(typeof MODS!=='undefined'&&MODS||[]).map(function(m){return (m.fig||'?')+':'+Math.round(m.s0+60)+'-'+Math.round(m.s1);}),
     decor:{jante:VOY_D.jante,roc:VOY_D.roc,neb:VOY_D.neb?{sg:Math.round(VOY_D.neb.sg)}:null,info:VOY_D.info,zonesSaut:VOY_D.zonesSaut.map(function(z){return z.map(Math.round);}),zonesPente:VOY_D.zonesPente.length,ms:VOY_D.ms,err:VOY_D.err},

@@ -87,8 +87,10 @@ maps/nuages-embellie.js              # nuages : l'embellissement (poussières de
 gameplay/route-sans-haut.js          # la route sans haut ni bas, vitesse réelle
 gameplay/route-rythme.js             # LE DIRECTEUR DE RYTHME : la fiche d'une route (virages, droites, spirales, coudes), la note, le meilleur-de-N
 gameplay/route-briques.js            # LES BRIQUES PROPRES : recadrage sans douille (dette de cap), souffle (droite franche ou balayage), la phrase de rythme et ses genres
+gameplay/route-uniques.js            # LES ROUTES UNIQUES (2026-11-17) : le sac de modules à mémoire (une route ne rejoue pas ce que la précédente a joué), le plan par graine, ?sans=uniques
 maps/orbite-modules.js               # L'ORBITE V5, LE RUBAN (2026-11-13) : les modules (torsade, virage surbaissé, plafond, bobsleigh, plongeant, faille à l'envers, croisement), l'humeur de chaque route, le climax
 maps/orbite-voyages.js               # orbite : LES VOYAGES (?espace=voyages) — un voyage par route (poids, géant, silhouette), les tracés (bosses, piqué, balancier, dévers inversé, marches, spirale) et les géants (roue, petite lune, astéroïde percé, nébuleuse) ajustés à la route bâtie
+maps/orbite-uniques.js               # orbite : LA ROUTE UNIQUE (2026-11-17) — le plan par graine (le sac, six ouvertures, sept silhouettes, cinq reliefs, quatre fins), les petits modules, le pilote ; ?sans=uniques
 maps/nuages-modules.js               # LES MODULES DES NUAGES (2026-11-12) : vingt petits modules (courbes, portes, relief, torsades) tirés par deux ou trois, et LEURS nuages posés au ras de la route (cotonModules)
 maps/nuages-parcours.js              # LE PARCOURS CARTE POSTALE (2026-11-13) : la route des nuages en tableaux (rideau, spirale, pont, voltige, grand huit, lacets, looping…) et leur dramaturgie
 maps/nuages-pouf-gpu.js              # LE POUF AÉRIEN (2026-11-13) : la couronne de petits cubes quand on traverse un nuage, animée par la carte graphique (zéro calcul par image)
@@ -99,6 +101,7 @@ rendu/autoroute.js                   # L'AUTOROUTE VIVANTE (2026-11-13) : la C (
 rendu/autoroute-pays.js # LES AUTOROUTES DU MONDE, le moteur : un plan par pays (traits, plots, motifs, poteaux, dessins), le tirage de la piste (arpTirage), ?pays=xx, dbgPays
 rendu/autoroute-monde.js # LES AUTOROUTES DU MONDE, les dix plans du jeu (recollés par outils/banc-autoroute/monde.cjs)
 maps/ville-nuit.js                   # la ville toujours la nuit (teintes)
+moteur/route-memoire.js              # (lot portv) LA MÉMOIRE DES ROUTES : photo et remise (un pré-bâti annulé ne laisse pas de grotte fantôme), ?sans=portvmem
 moteur/piste-prebati.js              # la piste en tranches, le pré-bâti
 moteur/depart-avance.js              # le départ d'avance
 maps/bruit-partage.js                # le bruit GLSL (FG_BRUIT) et le palier PAL_B9, partagés par le glacier et les grottes
@@ -137,6 +140,7 @@ maps/murs-parois.js                  # le coup d'épaule des parois (murCote, MU
 maps/jade-1.js                       # LES PICS DE JADE : route, maillage glouton, montagnes en cubes
 maps/jade-alleluia.js                # jade : LA DESCENTE ALLÉLUIA — la route en scènes (spirale, tours, looping, envers…), ses tours, ses îles, ses cascades
 maps/jade-avatar.js                  # jade : LES VERBES (?jade=avatar) — six ITINÉRAIRES (une vallée = un voyage, sept trames), les GRANDS SAUTS sans boucle (cirque, passe, corniche, lacets, fleuve), vingt scènes (gué, pont de lianes, gouffre, galerie, viaduc, nuée, défilé…) ; lianes, rivières, pierres
+maps/jade-uniques.js                 # jade : LA ROUTE UNIQUE, le plan (l'ordre des 32 modules tiré du sac, sept ouvertures, cinq tempéraments de cap, cinq reliefs)
 maps/jade-formes.js                  # jade : LES FORMES DES ÎLOTS — le moule à plusieurs corps (voxFormeG), les familles, le catalogue, la palette et le choix par vallée, les tampons en entiers
 maps/jade-2.js                       # jade : la matière des cubes, construction
 maps/jade-3.js                       # jade : la construction en générateur, surface de la physique
@@ -327,8 +331,10 @@ moteur/cadence.js                    # la cadence stable (CAD)
 moteur/poste-juge.js                 # le juge du régime de l'ordinateur (POSTE) : baisse / remonte d'une visite à l'autre, dbgPoste
 moteur/gouverneur-thermique.js        # le gouverneur thermique MOB_G : dose de chaleur sans capteur, état iOS (cc:thermique), calage sur 30
 moteur/gouverneur-paliers.js           # le gouverneur pilote le coût GPU par paliers de dose (résolution, halo, ombre, ciel lisse, vent, émission)
+moteur/pilote-qualite.js               # LE PILOTE DE QUALITÉ (17/11) : un seul décideur, le cran K 0-12, départ lu sur les conditions, pose aux moments invisibles, dbgPilote
 moteur/mobh-regime-chaud.js            # MOBH_ : le régime chaud (?mobh_chaud=1), effets décoratifs allégés quand mobChaud()
 moteur/profil-juge.js                  # LE JUGE DU PROFIL de l'iPhone : la classe tenue en course (deux courses lentes → un cran plus bas, mur 1-2-4-8 j), le témoin en vol, dbgJuge
+moteur/flushtot.js                   # l'image envoyée tôt à la puce (gl.flush juste après le rendu, ?sans=flushtot) — FLUSHT, dbgFlushtot
 moteur/boucle-1.js                   # loop() : LA BOUCLE DE JEU — début, overdrive, pouvoirs, turbo, pilote auto
 moteur/boucle-2-conduite.js          # loop() — en course : anti-idle, momentum, drift, bord, portail, flaques
 moteur/boucle-3-physique.js          # loop() — en course : la conduite (physique au sol et en vol)
@@ -336,7 +342,10 @@ moteur/boucle-4-effets.js            # loop() — LOD, phares, reflets, plume du
 moteur/boucle-5-sons.js              # loop() — sons continus
 moteur/boucle-6-hud.js               # loop() — HUD, jauge de progression, fin de la boucle
 moteur/init.js                       # init, intro du studio 1.61
+moteur/natif-lancement.js            # le chrono du lancement de l'app (lot natif) : window.ccNatifLancement(), la fin de la ligne « chargement » — vide hors de l'app
+moteur/film-worker.js                # (prototype, ?plus=filmworker, éteint par défaut) le film d'intro dessiné par un Worker dans une toile à part (OffscreenCanvas) : FILMW, repli automatique
 moteur/intro-161.js                  # l'intro du studio 1.61, version console : blips, noir, gros logo qui casse l'écran
+moteur/sonde-oc.js                   # (?sondeoc=1, éteinte par défaut) la sonde du coin : un Worker dessine pendant que le fil principal se bloque 3 × 1 s — boîte noire « sondeoc »
 moteur/mobile-tactile.js             # mobile, tactile, pause, PWA
 moteur/pc-clavier.js                 # LA VRAIE VERSION PC (2026-11-16) : les touches à l'écran (◄ ▼ ► et ESPACE = NITRO) à la place du pouce et du volant au doigt
 moteur/enregistreur-perf.js          # l'enregistreur de parties (?perfrec=1) : chaque image de course notée par phase (sol, vol, figure), relue par dbgPerfRec()

@@ -83,6 +83,20 @@
   const sonLent = () => { try { const v = +localStorage.getItem('cc_son_lent') || 0; return v > 0 && Date.now() - v < 7 * 864e5; } catch (e) { return false; } };   /* (lu au CHARGEMENT de la liste, pas à celui du fichier : le jeu pose __ccAllege plus tard) */
   const note = (m) => { try { if (W.__ccNote) W.__ccNote('musique', m); } catch (e) {} };
   const PB = { avance: null, liste: null, E: null, J: null, ch: null, ac: null, phase: 'repos', err: null, tIntro: 0, n: 0, dernier: null };
+  /* (2026-11-18, lot MUSIQUECALME ; Sacha au build 121, branché + économie + chaud : « injouable, beaucoup de freeze ») LA MUSIQUE EN SEGMENTS SE TAIT DU PROCESSEUR À CHAUD.
+     La boîte de vol de cette nuit : 7 à 16 décodages de segments de NÉNUPHARS par course, 150-400 ms chacun une fois le téléphone bridé, presque tous suivis d'un gel.
+     Le lecteur en segments décodait le suivant ET les deux paliers voisins (pour la mesure qui vient et la suivante) : ~3 décodages par segment de 10 s, plus 1 ou 2 à
+     chaque changement de moteur. À CHAUD (iOS en « serious » ou pire : `__ccThermique` ≥ 2, posé par l'app ; ou téléphone `__ccAllege` en économie d'énergie `__ccEco`) :
+     · au départ (PB.depart, PB.transforme : sous le piqué) : le segment en cours et le suivant du palier visé et de ses deux voisins, un décodage à la fois ;
+     · ensuite UN décodage par segment au plus : le segment suivant du palier visé à cet instant, lancé dans les 5 dernières secondes du segment, jamais dans la seconde
+       qui suit un gel (intervalle > 80 ms entre deux appels de PB.niveau, une fois par image), et de toute façon avant les 2,25 dernières secondes ;
+     · un changement de moteur ne bascule donc qu'au début d'un segment déjà décodé (jusqu'à ~15 s plus tard au lieu de la mesure suivante) ; secours inchangé.
+     `?sans=musiquecalme` = exactement le lecteur d'avant ; `?musiquecalme=1` = le régime chaud même au frais (banc). État : POUCE_JEU.etat().seg.calme. */
+  const SANS_CALME = /[?&]sans=[^&#]*\bmusiquecalme\b/.test(location.search), FORCE_CALME = /[?&]musiquecalme=1\b/.test(location.search);
+  const calme = () => { if (SANS_CALME) return false; if (FORCE_CALME) return true; try { return (W.__ccThermique | 0) >= 2 || (!!W.__ccAllege && (W.__ccEco | 0) === 1); } catch (e) { return false; } };
+  const CALME = { gel: -1e9, tn: 0, GEL: 80, APRES: 1000 };   /* le dernier gel vu (performance.now) */
+  const calmeImage = () => { const t = performance.now(); if (CALME.tn && t - CALME.tn > CALME.GEL) CALME.gel = t; CALME.tn = t; };
+  const calmeOk = () => { const t = performance.now(); return t - CALME.gel > CALME.APRES && !(CALME.tn && t - CALME.tn > CALME.GEL); };   /* (et pas d'image depuis plus de 80 ms : un gel en cours, pas encore vu par PB.niveau) */
 
   PB.charge = async function () {   // la liste de Pouce bleu (une fois)
     if (PB.liste) return PB.liste;
@@ -109,7 +123,8 @@
     if (figeOn()) {
       if (!W.PALIERS_COURSE) try { await script(D + 'course/index.js'); } catch (e) { note('figée absente (' + (e && e.message || e) + ') : le direct'); }
       const PC = W.PALIERS_COURSE || {};
-      L.forEach((E, i) => { const f = PC[E.id]; if (!f || !f.fichiers || !f.fichiers.length || E.type !== 'html') return;   /* seuls les morceaux EN DIRECT (pages) sont remplacés : l'entrée d'origine reste en `live`, le repli */
+      const SANS3 = /[?&]sans=[^&#]*\bmusique3\b/.test(location.search);   /* (2026-11-15, lot MUSIQUE3) `?sans=musique3` = NÉNUPHARS VELOURS reste en direct, comme avant son rendu figé (A/B) */
+      L.forEach((E, i) => { const f = PC[E.id]; if (!f || !f.fichiers || !f.fichiers.length || E.type !== 'html' || (SANS3 && E.id === 'bleu-9551')) return;   /* seuls les morceaux EN DIRECT (pages) sont remplacés : l'entrée d'origine reste en `live`, le repli */
         L[i] = { id: E.id, type: 'paliers', figee: true, titre: E.titre, fiche: f, live: E, avant: E.avant }; });
     }
     /* (2026-11-09, branche musique-favoris ; Léo : « crée une nouvelle branche de musique avec toutes les musiques favorites sélectionnées, et ramène les sons à trompette ») LA LISTE DE CETTE BRANCHE.
@@ -155,8 +170,13 @@
     const F = E.fiche, n = F.fichiers.length, L = W.PalLecteur(ac, dest), enCours = {}, deb = W.palDecoupe(n, F.moteurs), FIG = !!E.figee; L.nb = F.mesures || 8;
     const lit = f => fetch(f).then(r => { if (!r.ok) throw new Error(f); return r.arrayBuffer(); }).then(a => ac.decodeAudioData(a));
     /* LA MUSIQUE FIGÉE : le fichier décodé doit avoir EXACTEMENT la longueur de la boucle (`N`, marqueur iTunSMPB) — sinon la boucle dérive d'une mesure à l'autre : trop long (≥ N) → on coupe, trop court → refusé (repli) */
-    const juste = b => { if (!FIG || !F.N || b.length === F.N) return b; if (b.length < F.N) throw new Error('boucle trop courte ' + b.length + '/' + F.N);
-      const c = ac.createBuffer(b.numberOfChannels, F.N, b.sampleRate); for (let k = 0; k < b.numberOfChannels; k++) c.getChannelData(k).set(b.getChannelData(k).subarray(0, F.N)); return c; };
+    /* (2026-11-15, MUSIQUE3 tour 2) LA LONGUEUR SE COMPTE À LA CADENCE DU CONTEXTE. Le jeu ouvre son contexte à 48 000 Hz (graphe-audio.js) et decodeAudioData rééchantillonne : une boucle de N = 882 000 échantillons
+       à 44 100 Hz en fait 960 000. Comparée à N tel quel, elle était « trop longue » et COUPÉE à 882 000 = 18,4 s sur 20 : la fin de la dernière mesure sautait à chaque tour (prouvé au banc : outils/banc-son/segments.mjs, essai « cadence »).
+       La longueur attendue est donc N × cadence du contexte / cadence du fichier ; à cadence égale rien ne change. */
+    const NA = F.N ? (/[?&]sans=[^&#]*\bcadence\b/.test(location.search) ? F.N : Math.round(F.N * ac.sampleRate / (F.sr || 44100))) : 0;   /* `?sans=cadence` = la coupe d'avant (A/B) */
+    /* rééchantillonnée, la longueur dépend du navigateur à quelques échantillons près (Chrome : pile ; WebKit : non vérifié) : jusqu'à 1 % de moins elle est jouée telle quelle, plutôt que de retomber sur le direct (la chaleur) */
+    const juste = b => { if (!FIG || !NA || b.length === NA) return b; if (b.length < NA - (ac.sampleRate === (F.sr || 44100) ? 0 : Math.ceil(NA * .01))) throw new Error('boucle trop courte ' + b.length + '/' + NA); if (b.length < NA) return b;
+      const c = ac.createBuffer(b.numberOfChannels, NA, b.sampleRate); for (let k = 0; k < b.numberOfChannels; k++) c.getChannelData(k).set(b.getChannelData(k).subarray(0, NA)); return c; };
     const gainDe = i => (FIG && F.gains && F.gains[i] != null) ? F.gains[i] : 1;
     const charge = i => { if (i < 0 || i >= n || L.buf[i] || enCours[i]) return; enCours[i] = lit(F.fichiers[i]).then(b => { L.buf[i] = juste(b); L.gain[i] = gainDe(i); }, e => { if (FIG) note('figée ' + E.id + ' p' + (i + 1) + ' : ' + (e && e.message || e)); }).then(() => { delete enCours[i]; }); };
     /* la garde mémoire : le palier joué et ses voisins ; en FIGÉ (téléphone) une fenêtre plus étroite (p−1 … p+1, soit 3 boucles décodées ≈ 15 Mo ; l'AURA, boucle de 31 s : p … p+1) */
@@ -172,9 +192,101 @@
     const proche = m => { let k = 0; for (let i = 1; i < n; i++) if (Math.abs(F.paliers[i] - m) < Math.abs(F.paliers[k] - m)) k = i; return k; }, PAL_OK = FIG && Array.isArray(F.paliers) && F.paliers.length === n;
     return { regle(m) { const p = PAL_OK ? proche(m) : W.palPalierDe(deb, m - 1); L.promeut(); garde(p); if (L.vers() !== p) L.vise(p); if (SUR) SUR.regle(m); }, stop() { try { L.stop(.3); } catch (e) {} if (SUR) SUR.stop(); }, bpm: () => F.bpm || 120, figee: FIG };
   }
+  /* (2026-11-15, MUSIQUE3 tour 2, Sacha : « fige le ») LE MORCEAU FIGÉ EN SEGMENTS. NÉNUPHARS VELOURS tourne sur 32 mesures (4 phrases : le saxo joue A, B, A orné, B à l'octave ; la basse, l'arpège et
+     les congas changent aussi par phrase) : 80 s. Décodé d'un bloc, un palier pèserait ~31 Mo de mémoire, et il en faut deux ou trois d'avance. Chaque palier est donc rendu en `F.segments` fichiers de
+     `F.segMesures` mesures (8 × 10 s), coupés dans UN rendu continu (les queues d'écho et de salle passent d'un fichier au suivant, et du dernier au premier), à la cadence du contexte du jeu.
+     · L'ENCHAÎNEMENT À L'ÉCHANTILLON PRÈS : chaque segment est une source à part, posée sur l'horloge audio à T0 + k × mesure. T0 est pris sur une grille de 1/4 s et la mesure dure 2,5 s : ces heures et
+       leurs produits par la cadence sont des nombres exacts (aucun arrondi), donc chaque source part pile sur l'échantillon où la précédente finit, quelle que soit la façon d'arrondir du navigateur.
+     · LE CHANGEMENT DE MOTEUR : comme le lecteur à paliers, sur la MESURE SUIVANTE, à la même place dans le cycle, fondu de 8 ms. Le palier demandé joue exactement (30 paliers, un par moteur).
+     · LA MÉMOIRE : restent décodés le segment joué, le suivant, et ceux des deux paliers voisins pour la mesure qui vient et la suivante : 4 segments (~15 Mo) en régime, 6 ou 7 pendant les deux dernières
+       mesures d'un segment. Le suivant se décode dès qu'un segment commence (10 s d'avance), les voisins dès qu'ils deviennent voisins : jamais au dernier moment.
+     · SECOURS : un segment pas prêt à temps (jamais vu au banc) → la musique reprend à la mesure suivante, noté dans la boîte noire. `PB.etat().seg` : l'état (palier, segment, mémoire, pic, décodages). */
+  async function joueurSegments(ac, dest, E, t0) {
+    const F = E.fiche, NP = F.seg.length, NS = F.segments, MS = F.segMesures, sr = ac.sampleRate, mes = 240 / F.bpm, FONDU = .008;
+    const LEN = Math.round(F.segN * sr / F.sr), g = ac.createGain(); g.connect(dest);
+    const T = new Map(), EC = new Map(), RATE = {};   /* les tampons décodés (par n° de fichier), les décodages en cours, les échecs */
+    const S = { cur: 0, pend: null, cible: 0, T0: 0, V: [], pic: 0, trous: 0, dec: [], arret: false, tTick: 0, exact: true, iv: 0,
+      calme: false, prepFin: -1, prepN: 0, prepV: true, lanceJ: -1, secJ: -1, suiv: null, C: { prep: 0, suivant: 0, force: 0, secours: 0, journal: [] } };   /* (lot MUSIQUECALME) le régime chaud : voir plus haut */
+    const fic = (p, j) => F.seg[p][((j % NS) + NS) % NS], gainDe = p => (F.gains && F.gains[p] != null) ? F.gains[p] : 1;
+    const juste = b => { if (b.length === LEN) return b; if (b.length < LEN - (sr === F.sr ? 0 : Math.ceil(LEN * .01))) throw new Error('segment trop court ' + b.length + '/' + LEN);   /* (contexte à une autre cadence que les fichiers : rééchantillonné, à 1 % près, complété de silence) */
+      const c = ac.createBuffer(b.numberOfChannels, LEN, b.sampleRate); for (let k = 0; k < b.numberOfChannels; k++) c.getChannelData(k).set(b.getChannelData(k).subarray(0, Math.min(LEN, b.length))); return c; };
+    const memoire = () => { const vus = new Set(); let o = 0; const compte = b => { if (b && !vus.has(b)) { vus.add(b); o += b.length * b.numberOfChannels * 4; } }; T.forEach(compte); S.V.forEach(v => { if (!v.mort) compte(v.b); }); if (o > S.pic) S.pic = o; return o; };
+    const charge = f => { if (T.has(f) || S.arret) return Promise.resolve(); if (EC.has(f)) return EC.get(f); const r = RATE[f]; if (r && (r.n >= 3 || performance.now() - r.t < 1000)) return Promise.resolve();
+      const pr = fetch(F.fichiers[f]).then(x => { if (!x.ok) throw new Error(F.fichiers[f]); return x.arrayBuffer(); }).then(a => { const t = performance.now(); const ko = a.byteLength >> 10; return ac.decodeAudioData(a).then(b => { S.dec.push(Math.round(performance.now() - t)); if (S.dec.length > 60) S.dec.shift(); if (window.__ccDecode) try { window.__ccDecode(performance.now() - t, ko); } catch (e) {} return juste(b); }); }) /* (2026-11-16, lot SENTINELLE) __ccDecode : posé par la boîte de vol en build de mesure seulement (?perfrec=2) — la fin de chaque décodage, rangée dans la course (c.D) */
+        .then(b => { if (!S.arret) { T.set(f, b); memoire(); } }, e => { const x = RATE[f] || (RATE[f] = { n: 0, t: 0 }); x.n++; x.t = performance.now(); note('figée ' + E.id + ' fichier ' + f + ' : ' + (e && e.message || e)); }).then(() => { EC.delete(f); });
+      EC.set(f, pr); return pr; };
+    /* une voix : le palier p à partir de la mesure k (du cycle sans fin), jusqu'à la fin de son segment */
+    const pose = (p, k) => { const j = Math.floor(k / MS), b = T.get(fic(p, j)); if (!b) return null;
+      const s = ac.createBufferSource(), gv = ac.createGain(), t = S.T0 + k * mes; s.buffer = b; gv.gain.value = gainDe(p); s.connect(gv); gv.connect(g); s.start(t, (k - j * MS) * mes);
+      const v = { s, g: gv, p, j, k, t, fin: S.T0 + (j + 1) * MS * mes, b, mort: false }; S.V.push(v);
+      s.onended = () => { v.mort = true; const i = S.V.indexOf(v); if (i >= 0) S.V.splice(i, 1); try { gv.disconnect(); } catch (e) {} }; return v; };
+    const couvre = (p, k) => S.V.some(v => v.p === p && !v.mort && v.k <= k && k < (v.j + 1) * MS);
+    const palA = k => (S.pend && k >= S.pend.k) ? S.pend.p : S.cur;
+    const annule = now => { const P = S.pend; if (!P) return; S.pend = null;
+      S.V.forEach(v => { if (v.p === P.p && v.k >= P.k) { v.mort = true; try { v.s.stop(); } catch (e) {} } else if (v.p === S.cur) { try { v.g.gain.cancelScheduledValues(0); v.g.gain.setValueAtTime(gainDe(v.p), now); } catch (e) {} } }); };
+    /* (lot MUSIQUECALME) LE RÉGIME CHAUD. calmeCible : le palier vers lequel on peut aller à la mesure kN — le visé si son segment est décodé ; au milieu d'un segment, sinon, on
+       ne bouge pas ; au début d'un segment, le palier décodé le plus proche du visé (rien de décodé : on ne bouge pas, le secours s'en charge). */
+    const calmeCible = (pf, kN) => { const c = S.cible, jN = Math.floor(kN / MS); if (T.has(fic(c, jN))) return c; if (kN % MS) return pf;
+      let k = T.has(fic(pf, jN)) ? pf : -1; for (let p = 0; p < NP; p++) if (T.has(fic(p, jN)) && (k < 0 || Math.abs(p - c) < Math.abs(k - c))) k = p; return k < 0 ? pf : k; };
+    const lance = (f, r) => { if (T.has(f) || EC.has(f)) return false; charge(f); if (!EC.has(f)) return false; S.C[r]++; if (S.C.journal.length < 200) S.C.journal.push([+ac.currentTime.toFixed(2), r, f]); return true; };
+    /* la garde à chaud : ce qui joue, et pour le segment en cours et le suivant, le palier visé, ses deux voisins, ce qui joue et la suite déjà choisie ; puis AU PLUS UN décodage */
+    const gardeCalme = (now, k0, kN) => {
+      const j0 = Math.floor(k0 / MS), jn = j0 + 1, pa = S.pend ? S.pend.p : S.cur, c = S.cible, garde = new Set([fic(S.cur, j0), fic(pa, j0)]);
+      const P = [c, c + 1, c - 1, S.cur, pa]; if (S.suiv && S.suiv.j === jn) P.push(S.suiv.p);
+      for (const p of P) if (p >= 0 && p < NP) { garde.add(fic(p, j0)); garde.add(fic(p, jn)); }
+      T.forEach((b, f) => { if (!garde.has(f)) T.delete(f); }); memoire();
+      if (EC.size) return;   /* jamais deux décodages à la fois */
+      const reste = S.T0 + jn * MS * mes - now, pret = p => T.has(fic(p, jn));
+      /* 1) le départ (prepare) : le segment en cours et le suivant du palier visé, puis de ses deux voisins (sous le piqué ; au départ de la course, PB.course, le visé seul) */
+      if (now < S.prepFin && S.prepN < 8) { const js = kN >= jn * MS ? [jn] : [j0, jn];
+        for (const p of S.prepV ? [c, c + 1, c - 1] : [c]) if (p >= 0 && p < NP) for (const j of js) if (!T.has(fic(p, j)) && lance(fic(p, j), 'prep')) { S.prepN++; return; } }
+      /* 2) le suivant du palier visé : une fois par segment, dans ses 5 dernières secondes, hors de la seconde qui suit un gel, au plus tard à 2,25 s du bord */
+      if (pret(c)) { if (!S.suiv || S.suiv.j !== jn) S.suiv = { j: jn, p: c }; }
+      else if (S.lanceJ !== jn && reste <= 5 && (reste <= 2.25 || calmeOk())) { S.lanceJ = jn; S.suiv = { j: jn, p: c }; lance(fic(c, jn), reste <= 2.25 ? 'force' : 'suivant'); return; }
+      /* 3) le secours : à 1 s du bord, aucun palier prêt pour le segment qui vient (un décodage raté) */
+      if (reste < 1 && S.secJ !== jn) { let ok = false; for (let p = 0; p < NP && !ok; p++) ok = pret(p); if (!ok) { S.secJ = jn; lance(fic(c, jn), 'secours'); } } };
+    const tick = force => { if (S.arret) return; const now = ac.currentTime; if (!force && now - S.tTick < .05) return; S.tTick = now;
+      if (S.pend && now >= S.T0 + S.pend.k * mes) { const tb = S.T0 + S.pend.k * mes; S.cur = S.pend.p; S.pend = null; S.V.forEach(v => { if (v.p !== S.cur && !v.mort) { v.mort = true; try { v.s.stop(tb + FONDU + .05); } catch (e) {} } }); }
+      S.V = S.V.filter(v => v.fin > now - .5);
+      const k0 = Math.max(0, Math.floor((now - S.T0) / mes)); let kN = k0 + 1; if (S.T0 + kN * mes - now < .03) kN++;
+      /* le palier voulu : sur la mesure qui vient, quand son segment est décodé */
+      const C = calme(); S.calme = C;
+      const pf = S.pend ? S.pend.p : S.cur, q = C ? calmeCible(pf, kN) : S.cible;   /* (lot MUSIQUECALME) à chaud : seulement vers un segment déjà décodé */
+      if (q !== pf) { if (q === S.cur) annule(now);
+        else if (T.has(fic(q, Math.floor(kN / MS)))) { annule(now); const t = S.T0 + kN * mes, v = pose(q, kN), G = gainDe(q);
+          v.g.gain.setValueAtTime(0, t); v.g.gain.linearRampToValueAtTime(G, t + FONDU);
+          /* l'ancien palier sort en 8 ms à partir de la mesure : la voix en cours, ET celle de son segment suivant quand la bascule tombe pile sur un bord de segment (sinon l'ancien était coupé net à ce bord) ; ses voix d'après restent muettes */
+          S.V.forEach(o => { if (o === v || o.p !== S.cur || o.mort) return; try { if (o.k > kN) { o.g.gain.cancelScheduledValues(0); o.g.gain.setValueAtTime(0, now); } else { o.g.gain.cancelScheduledValues(0); o.g.gain.setValueAtTime(gainDe(o.p), o.k === kN ? t : now); o.g.gain.setValueAtTime(gainDe(o.p), t); o.g.gain.linearRampToValueAtTime(0, t + FONDU); } } catch (e) {} });
+          /* (lot MUSIQUECALME) à chaud, la bascule sur un bord de segment sans la suite de l'ancien palier (pas décodée) : l'ancien finit au bord, son fichier s'arrête net ; il sort donc en
+             8 ms AVANT le bord (le nouveau entre en 8 ms après) : un creux de 16 ms au lieu d'une marche */
+          if (C && !(kN % MS) && !couvre(S.cur, kN)) S.V.forEach(o => { if (o === v || o.p !== S.cur || o.mort || (o.j + 1) * MS !== kN) return; try { const G0 = gainDe(o.p); o.g.gain.cancelScheduledValues(0); o.g.gain.setValueAtTime(G0, now); o.g.gain.setValueAtTime(G0, Math.max(now, t - FONDU)); o.g.gain.linearRampToValueAtTime(0, t); } catch (e) {} });
+          S.pend = { p: q, k: kN }; } }
+      /* la suite : le début du segment suivant, posé dès que son fichier est décodé ; en secours, la mesure qui vient */
+      const jn = Math.floor(k0 / MS) + 1, kk = jn * MS, pn = palA(kk);
+      if (!couvre(pn, kk) && S.T0 + kk * mes - now > .03) pose(pn, kk);
+      const pm = palA(kN); if (!couvre(pm, kN) && pose(pm, kN)) { S.trous++; note('figée ' + E.id + ' : reprise à la mesure ' + kN + ' (segment pas prêt à temps)'); }
+      if (C) { gardeCalme(now, k0, kN); return; }
+      /* la garde mémoire : ce qui joue, ce qui suit, les paliers voisins pour la mesure qui vient et la suivante ; le reste est rendu */
+      const W = new Set(), j0 = Math.floor(k0 / MS), pa = S.pend ? S.pend.p : S.cur; W.add(fic(S.cur, j0)); W.add(fic(pa, j0)); W.add(fic(pa, j0 + 1));
+      for (const p of [q, q - 1, q + 1]) if (p >= 0 && p < NP) { W.add(fic(p, Math.floor((k0 + 1) / MS))); W.add(fic(p, Math.floor((k0 + 2) / MS))); }
+      T.forEach((b, f) => { if (!W.has(f)) T.delete(f); }); W.forEach(charge); memoire(); };
+    await charge(fic(0, 0)); if (!T.has(fic(0, 0))) throw new Error('premier segment illisible');
+    /* T0 sur la grille de 1/4 s : T0, T0 + k × mesure et leurs produits par la cadence sont exacts */
+    S.T0 = Math.ceil((ac.currentTime + .06) * 4) / 4; S.exact = Number.isInteger(S.T0 * sr) && Number.isInteger(mes * 4) && Number.isInteger(mes * sr) && sr === F.sr;
+    if (!S.exact) note('figée ' + E.id + ' : grille inexacte (cadence ' + sr + ' Hz, fichiers ' + F.sr + ' Hz)');
+    pose(0, 0); tick(true); S.iv = setInterval(tick, 250);
+    const proche = m => { let k = 0; for (let i = 1; i < NP; i++) if (Math.abs(F.paliers[i] - m) < Math.abs(F.paliers[k] - m)) k = i; return k; };
+    return { regle(m) { const p = proche(m), ch = p !== S.cible; S.cible = p; tick(ch); }, stop() { S.arret = true; clearInterval(S.iv); try { g.gain.setTargetAtTime(0, ac.currentTime, .075); } catch (e) {}
+        const V = S.V.slice(); setTimeout(() => { V.forEach(v => { try { v.s.stop(); } catch (e) {} }); try { g.disconnect(); } catch (e) {} }, 400); T.clear(); },
+      bpm: () => F.bpm || 120, figee: true, tick, repos: () => Promise.all([...EC.values()]),
+      prepare(voisins) { if (!calme()) return; S.prepFin = ac.currentTime + 4; S.prepN = 0; S.prepV = voisins !== false; tick(true); },   /* (lot MUSIQUECALME) le départ, à chaud : voir gardeCalme */
+      etat() { const now = ac.currentTime, k = Math.floor((now - S.T0) / mes); return { palier: S.cur + 1, cible: S.cible + 1, vers: S.pend ? S.pend.p + 1 : null, mesure: ((k % F.mesures) + F.mesures) % F.mesures, segment: Math.floor((((k % F.mesures) + F.mesures) % F.mesures) / MS) + 1, phrase: Math.floor((((k % F.mesures) + F.mesures) % F.mesures) / 8) + 1, tours: Math.floor(k / F.mesures),
+        T0: S.T0, exact: S.exact, voix: S.V.filter(v => !v.mort).length, tampons: T.size, enCours: EC.size, memoireMo: +(memoire() / 1048576).toFixed(1), picMo: +(S.pic / 1048576).toFixed(1), decodagesMs: S.dec.slice(), trous: S.trous,
+        calme: { on: S.calme, prep: S.C.prep, suivant: S.C.suivant, force: S.C.force, secours: S.C.secours, journal: S.C.journal.slice() } }; } };
+  }
   /* la musique figée avec son repli : n'importe quelle panne (fiche, fichier, décodage) → la page en direct du même morceau, comme avant */
   async function joueurFige(ac, dest, E, t0) {
-    try { const J = await joueurPaliers(ac, dest, E, t0); note('figée ' + E.id); return J; }
+    try { const J = await (E.fiche && E.fiche.seg ? joueurSegments : joueurPaliers)(ac, dest, E, t0); note('figée ' + E.id); return J; }
     catch (e) { note('live (repli : ' + (e && e.message || e) + ') ' + E.id); if (!E.live) throw e; return joueurHtml(ac, dest, E.live, t0); }
   }
   const joueurDe = E => E.type === 'genv' ? joueurGen : E.type === 'paliers' ? (E.figee ? joueurFige : joueurPaliers) : joueurHtml;
@@ -235,6 +347,7 @@
       const J = await joueurDe(Ej)(ac, ch.entree, Ej);
       if (jeton !== PB.n) { J.stop(); try { ch.e.disconnect(); } catch (e) {} return null; }
       PB.E = E; PB.J = J; PB.ch = ch; PB.phase = 'intro';
+      if (J.prepare) try { J.prepare(); } catch (e) {}   /* (lot MUSIQUECALME) à chaud : le départ décode d'avance, sous le piqué */
       const mes = 240 / (J.bpm() || 120), T = (opt.doux && opt.doux[E.id]) ? 6 : Math.max(2, Math.min(4, 2 * mes)), t = ac.currentTime; PB.tIntro = t + T;   // (2/11) un départ ADOUCI pour les morceaux déjà chargés au premier élément : le filtre s'ouvre en 6 s
       ch.f.frequency.cancelScheduledValues(t); ch.f.frequency.setValueAtTime(320, t); ch.f.frequency.exponentialRampToValueAtTime(18000, t + T);
       if (opt.vite || PB.viteDes) PB.course();
@@ -305,6 +418,7 @@
     boumDe(ch, ac, t, opt);
     if (ch.bus) { try { ch.bus.brut(!!opt.brut); ch.bus.piste('jeu:' + E.id); ch.bus.course(true); } catch (e) {} }
     try { PB.J.regle(typeof W.pbjTier === 'function' ? W.pbjTier(1, E.id) : 6); } catch (e) {}   // le palier du lobby monte au palier de départ de la course, au même instant que le filtre et le coup : « boum, ça démarre comme la musique »
+    if (PB.J && PB.J.prepare) try { PB.J.prepare(); } catch (e) {}   /* (lot MUSIQUECALME) à chaud : le départ décode d'avance, sous le piqué */
     PB.tier0 = 0; PB.tIntro = t + T; PB.phase = 'course'; PB.enCourse = E;
     return E;
   };
@@ -313,9 +427,10 @@
     const ch = PB.ch, ac = PB.ac; if (!ch || !ac) return;
     const t = ac.currentTime; if (PB.tIntro > t + .5) { ch.f.frequency.cancelScheduledValues(t); ch.f.frequency.setValueAtTime(Math.max(320, ch.f.frequency.value), t); ch.f.frequency.exponentialRampToValueAtTime(18000, t + .5); PB.tIntro = t + .5; }
     PB.phase = 'course'; PB.enCourse = PB.E;   /* le morceau de CETTE course : la seconde chance le reprend (PB.depart, opt.meme) */
+    if (PB.J && PB.J.prepare) try { PB.J.prepare(false); } catch (e) {}   /* (lot MUSIQUECALME) à chaud : le palier de départ de la course (le cran choisi au garage, connu maintenant seulement) se décode d'avance, sans voisins */
   };
   PB.moteur = function (m) { if (PB.J) try { PB.J.regle(Math.max(1, Math.min(30, m | 0))); } catch (e) {} };
-  PB.niveau = function (v) { if (PB.ch && PB.ac) { if (PB.phase === 'lobby' && PB.tLobby != null) { const k = Math.min(1, Math.max(0, (PB.ac.currentTime - PB.tLobby) / 4)); v *= k * k * (3 - 2 * k); }   // le fondu d'entrée du lobby (4 s)
+  PB.niveau = function (v) { if (!SANS_CALME) calmeImage(); if (PB.ch && PB.ac) { if (PB.phase === 'lobby' && PB.tLobby != null) { const k = Math.min(1, Math.max(0, (PB.ac.currentTime - PB.tLobby) / 4)); v *= k * k * (3 - 2 * k); }   // le fondu d'entrée du lobby (4 s)
     const g = PB.ch.g.gain; if (Math.abs((g._v9 == null ? -1 : g._v9) - v) > .003) { g._v9 = v; t9(g, Math.max(0, v), PB.ac.currentTime, .08); }
     if (PB.ch.bus && PB.ch.bus.tick) PB.ch.bus.tick(PB.J && PB.J.groupe ? PB.J.groupe() : null, Math.max(0, v)); } };   // (20/10) le dompteur de grosse caisse du bus (musique-bus.js) écoute à chaque image, avec le niveau
   PB.recul = function () { if (PB.ch && PB.ch.bus) PB.ch.bus.recul(-3, .4); };
@@ -336,6 +451,7 @@
   };
   PB.etat = () => ({ phase: PB.phase, avance: PB.avance, montee: PB.montee || null, titre: PB.E && PB.E.titre, id: PB.E && PB.E.id, type: PB.E && PB.E.type, figee: !!(PB.E && PB.E.figee && PB.J && PB.J.figee), liste: PB.liste ? PB.liste.length : null, err: PB.err,
     filtre: PB.ch ? Math.round(PB.ch.f.frequency.value) : null, niveau: PB.ch ? +PB.ch.g.gain.value.toFixed(3) : null, bus: PB.ch && PB.ch.bus ? PB.ch.bus.etat() : null,
-    moteur: PB.J && PB.J.inst ? PB.J.inst.tier : null });
+    moteur: PB.J && PB.J.inst ? PB.J.inst.tier : null, seg: PB.J && PB.J.etat ? PB.J.etat() : null });
+  PB._joueurSegments = joueurSegments;   /* (banc : outils/banc-son/segments.mjs mène le lecteur en segments seul, sans la chaîne de la course) */
   W.POUCE_JEU = PB;
 })(window);

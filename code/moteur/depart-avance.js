@@ -33,7 +33,16 @@ function prebDepCible(){ // la 1re piste du prochain départ, quand on sait la b
   if(!SF.prochain){SF.prochain=SF.force?sfImpose(SF.der):sfTire(SF.der);SF.prochainDer=SF.der;} // tiré D'AVANCE, par la règle du départ
   const t=SF.prochain;if(!SF_CARTES[t.carte])return null;
   return {t:t,z:0,zn:0,dep:true,st:!!started,eng:0};} // (LA VITESSE DE DÉPART) sous9 comme resetGame posent le palier du cran choisi avant de bâtir
+/* ===== LA VITESSE D'UNE PARTIE FINIE NE SERT PAS À LA SUIVANTE (2026-11-17, lot JADEPREBATI — Sacha : « quelques freezes sur la map jade ») =====
+   MESURÉ (boîte de vol, build 120, 13 Pro critical, course 10:33 nuages → jade, juste après une course finie à 1 400 km/h) : le pré-bâti de la jade d'en face
+   tournait DÈS LA 1re SECONDE de la course, 45 ms par image (un essai de route entier par image), 1,36 s de calcul dans les 9 premières secondes, pendant que la caisse
+   démarre et que l'écran pivote (images de 547, 736, 309 ms). La cause : PREB.v, la vitesse lissée qui décide QUAND la map d'en face commence (« à 20 s du portail »,
+   ×1 à ×3 au-delà de 90 m/s), n'était jamais remise à zéro : la nouvelle course héritait des ~390 m/s de la fin de la précédente (×3 : 60 s × 390 m/s = 23 km, toute
+   la piste), et le lissage ne la rattrape qu'en ~15 images — 4 seulement pendant un pivot. Hors course, elle repart de rien : la course neuve la mesure dès sa 1re
+   image (sans mesure : 60 m/s, comme au 1er départ d'une session). Rien d'autre ne change. `?sans=jadeprebati` = comme avant. */
+const JADE_PB=!/[?&]sans=([^&]*,)?jadeprebati(,|&|$)/.test(location.search);
 function prebDepTick(now){ // (prebTick, hors course) commencer, vérifier, travailler
+  if(JADE_PB){PREB.v=0;PREB.sT=0;} /* (lot JADEPREBATI) voir plus haut */
   if(PREB.W&&!PREB.dep){prebAnnule('fin');return;} // la piste d'en face d'une partie finie
   if(started&&gameOver){if(!PREB.fin0)PREB.fin0=now;}else PREB.fin0=0;
   const c=prebDepCible();
@@ -51,6 +60,7 @@ function prebDepTick(now){ // (prebTick, hors course) commencer, vérifier, trav
      continue à 3 ms pendant que l'écran de fin s'installe (il ne s'arrête plus), puis prend jusqu'à 8 ms par image pendant l'explosion et 10 ms à
      l'écran de fin (rien ne s'y joue) ; au menu, rien ne change (3-6 ms). */
   const bud9=(GAR.go&&GAR.go.attend)||(CHUTE.go&&CHUTE.go.attend)?10:ins9?3:mode==='boom'&&!gameOver?Math.max(3,Math.min(8,16-tr)):started&&gameOver?((MORT_FL&&MORT_IMG.t>0&&MORT_IMG.t<3)?3:Math.max(4,Math.min(10,20-tr))):Math.max(3,Math.min(6,14-tr)); /* (2026-11-13, LA MORT FLUIDE) 3 ms tant que les compteurs de l'écran de mort défilent */
+  if(FILM_TR.fin){prebTravaille(FILM_TR.fin);return;} /* (2026-11-15, qualité · lot lancement2) pendant le film d'intro : l'échéance est celle de la tranche du film, rien de plus (voir filmTranche, moteur/intro-161.js) */
   prebTravaille(performance.now()+(DENSE.prebFin?Math.max(bud9,DENSE.prebFin-performance.now()):bud9));} /* (2026-11-13) LE CHARGEMENT DENSE : sous le serpent, toute la tranche qui reste */
 /* (2026-10-31, Léo : « l'image ne doit plus couper quand je joue sur téléphone ») LE REJOUER FINIT SON DÉPART SOUS LE VOLET. MESURÉ (banc iPhone ×4) : mort, REJOUER
    tapé tout de suite, la grotte tirée pour le départ suivant — sa préparation (la plus lourde, ~16-22 s de tranches) n'en était qu'au début : resetGame
@@ -88,13 +98,17 @@ window.dbgRoulis=function(){ /* le bilan du roulis de la dernière piste bâtie 
     return {roulisDegM:+(Math.sqrt(r2/n)*57.2958).toFixed(3),jerkRMS:+Math.sqrt(j2/n).toExponential(2),jerkMax:+jm.toFixed(4),pics:pics,inversions:inv};};
   let em=0,e2=0;for(let i=0;i<ROULIS.brut.length;i++){const e=Math.abs(ROULIS.lisse[i]-ROULIS.brut[i]);if(e>em)em=e;e2+=e*e;}
   return {sigmaM:+ROULIS.sigma.toFixed(1),L:Math.round(ROULIS.ds*(ROULIS.brut.length-1)),avant:bil(ROULIS.brut),apres:bil(ROULIS.lisse),ecartMaxDeg:+(em*57.2958).toFixed(1),ecartRMSDeg:+(Math.sqrt(e2/ROULIS.brut.length)*57.2958).toFixed(2)};};
+/* (lot JADEPREBATI, 2026-11-17) LA ROUTE RENDS AUSSI LA MAIN À L'ÉCHÉANCE. Ses boucles ne rendaient la main qu'à un compte fixe de points (512 à 2 048) : au banc (processeur ×10)
+   des pas de 49-68 ms d'un bloc pendant le pré-bâti de la jade. Elles regardent maintenant aussi l'échéance de la tranche (JF.lim, posée par le pré-bâti) tous les 64 points.
+   Mêmes calculs, dans le même ordre : seule la place des pauses change. D'un trait (JF.lim infinie : pisteDirecte, le chargement), rien ne change. `?sans=jadeprebati` : comme avant. */
+function jpbEch(){return JADE_PB&&performance.now()>JF.lim;}
 function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tranches — sur l'état de travail W (voir prebEchange), jamais sur la scène
   trackMeshes.length=0;PISTE_LOD.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];PADL=[];PAD_MATS.length=0;OILS=[];
   const rnd=mulberry32(seed);VILLE_BANK.graine=seed|0;VILLE_ENTREE=null; /* (2026-11-13, LA CHARTE R5) la ville fait tourner ses scènes avec la graine */MODMARK.length=0;TROUMARK.length=0;TROUS=[];TROU=null;
   THICK=THICK_ROUTE;if(LVL.cur&&LVL.cur.piste==='dunes'&&!PARK.on)THICK=DN_EPAIS; /* (2026-11-07, DUNES : la route imbriquée dans le sable, voir DN_EPAIS) */ /* (2026-10-13) la route normale reprend ses 2,6 m — 3,9 depuis le 2026-10-15, 5,2 le soir (THICK_ROUTE) */const JADE9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!JADE_JEU&&!LVL.cur.sansFin); /* (2026-10-13) au mode classique aussi, la jade est un vrai niveau */const BANQ9=!!(LVL.cur&&LVL.cur.piste==='banquise'&&!PARK.on); /* (2026-10-15, Sacha : « pas besoin de mettre les mêmes modules que dans les nuages ») LE GLACIER : une route nue, comme la jade — ses pièges à lui sont le VERGLAS (bkVerglas) */ // (2026-10-09) LES PICS DE JADE : une route nue (ni pad, ni flaque, ni plot)
   // (l'entrée surélevée n'existe que si genCtrl la pose : niveau VILLE généré) · (les modules aussi : le parc, l'école et la campagne n'en ont pas)
-  let ctrl=(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='jade')?genJade(rnd,seed):(LVL.cur&&LVL.cur.piste==='canyon')?(yield* genCanyon(rnd)):(LVL.cur&&LVL.cur.piste==='dunes')?(yield* genDunes(rnd)):(LVL.cur&&LVL.cur.piste==='banquise')?genBanq(rnd):(LVL.cur&&LVL.cur.piste==='grotte')?(yield* genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
-  TORD.on=false;TORD.N=null;TORD.pente=false;TORD.murs=false;const GRT9=grtTordOn();if(hautOn()||espTordOn()||GRT9){TORD.ctrl0=ctrl;TORD.seed=seed|0;const h9=pisteTordPropre(ctrl,seed|0,GRT9?grtTordOpts():undefined); /* (2026-10-25, LA GROTTE SUR LES PAROIS) la grotte aussi se roule : la route sur le sol, les murs, le plafond */ ctrl=h9.ctrl;TORD.N=h9.N;TORD.on=true;}else if(LVL.cur&&LVL.cur.piste==='dunes'&&DN.bankN&&!PARK.on)TORD.N=DN.bankN; /* (2026-10-23, DUNES) la route penchée dans les virages : les normales de genDunes, sans TORD.on */else if(LVL.cur&&LVL.cur.piste==='canyon'&&CY.murN&&!PARK.on&&CY_MUR.on){TORD.N=CY.murN;TORD.on=true;TORD.pente=true;TORD.murs=true;} /* (2026-11-05, LE CANYON SUR LES MURS) la dalle couchée à 86° le long d'une falaise : TORD roule (caméra, vol, bord) mais la pente du canyon pousse toujours (voir CY_MUR) */else if(LVL.cur&&LVL.cur.piste==='jade'&&JADE.bankN&&!PARK.on){TORD.N=JADE.bankN;if(JADE.deco3){TORD.on=true;TORD.pente=true;}} /* (2026-11-13, LA DESCENTE ALLÉLUIA) Jade roule comme les maps roulées : la caméra, le vol (VOLR_FIGE : il retombe vers la dalle quittée) et le bord suivent la dalle — la pente pousse toujours (TORD.pente) */ /* (2026-11-05, JADE) idem : le dévers doux des Pics de jade (voir JADE_BANK) */else if(VILLE_AME&&LVL.cur&&LVL.cur.id==='ville'&&!LVL.cur.vitre&&!PARK.on&&VILLE_BANK.N&&VILLE_BANK.N.length===ctrl.length){TORD.N=VILLE_BANK.N;TORD.on=true;TORD.pente=true;TORD.murs=true;} /* (R13) la ville se ride par ses façades : comme au canyon, la caméra, le vol et le bord suivent la dalle couchée ; la pente pousse toujours */ /* (2026-11-13, LA VILLE QUI SE VISITE) le dévers de la ville : les normales de genCtrl1 (vsDevers), sans TORD.on */ // (2026-10-15) LA ROUTE SANS HAUT NI BAS : la piste des NUAGES ré-enroulée dans l'espace (voir pisteTord) — (2026-10-22) et celle de l'ORBITE (voir ROUTE_LIBRE)
+  let ctrl=(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='jade')?(JADE_OPT?(yield* genJadeG(rnd,seed)):genJade(rnd,seed)) /* (2026-11-17) en tranches entre deux essais (genJadeG) ; `?sans=jadeopt` : d'un trait */:(LVL.cur&&LVL.cur.piste==='canyon')?(yield* genCanyon(rnd)):(LVL.cur&&LVL.cur.piste==='dunes')?(yield* genDunes(rnd)):(LVL.cur&&LVL.cur.piste==='banquise')?genBanq(rnd):(LVL.cur&&LVL.cur.piste==='grotte')?(yield* genGrotte(rnd)):PORTV_ON?(yield* genCtrlG(rnd,new THREE.Vector3(0,0,0),0)):genCtrl(rnd,new THREE.Vector3(0,0,0),0); /* (lot portv) genCtrlG : le meilleur-de-N en tranches */ // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
+  TORD.on=false;TORD.N=null;TORD.pente=false;TORD.murs=false;const GRT9=grtTordOn();if(hautOn()||espTordOn()||GRT9){TORD.ctrl0=ctrl;TORD.seed=seed|0;const h9=PORTV_ON?(yield* pisteTordPropreG(ctrl,seed|0,GRT9?grtTordOpts():undefined)):pisteTordPropre(ctrl,seed|0,GRT9?grtTordOpts():undefined); /* (lot portv) en tranches */ /* (2026-10-25, LA GROTTE SUR LES PAROIS) la grotte aussi se roule : la route sur le sol, les murs, le plafond */ ctrl=h9.ctrl;TORD.N=h9.N;TORD.on=true;}else if(LVL.cur&&LVL.cur.piste==='dunes'&&DN.bankN&&!PARK.on)TORD.N=DN.bankN; /* (2026-10-23, DUNES) la route penchée dans les virages : les normales de genDunes, sans TORD.on */else if(LVL.cur&&LVL.cur.piste==='canyon'&&CY.murN&&!PARK.on&&CY_MUR.on){TORD.N=CY.murN;TORD.on=true;TORD.pente=true;TORD.murs=true;} /* (2026-11-05, LE CANYON SUR LES MURS) la dalle couchée à 86° le long d'une falaise : TORD roule (caméra, vol, bord) mais la pente du canyon pousse toujours (voir CY_MUR) */else if(LVL.cur&&LVL.cur.piste==='jade'&&JADE.bankN&&!PARK.on){TORD.N=JADE.bankN;if(JADE.deco3){TORD.on=true;TORD.pente=true;}} /* (2026-11-13, LA DESCENTE ALLÉLUIA) Jade roule comme les maps roulées : la caméra, le vol (VOLR_FIGE : il retombe vers la dalle quittée) et le bord suivent la dalle — la pente pousse toujours (TORD.pente) */ /* (2026-11-05, JADE) idem : le dévers doux des Pics de jade (voir JADE_BANK) */else if(VILLE_AME&&LVL.cur&&LVL.cur.id==='ville'&&!LVL.cur.vitre&&!PARK.on&&VILLE_BANK.N&&VILLE_BANK.N.length===ctrl.length){TORD.N=VILLE_BANK.N;TORD.on=true;TORD.pente=true;TORD.murs=true;} /* (R13) la ville se ride par ses façades : comme au canyon, la caméra, le vol et le bord suivent la dalle couchée ; la pente pousse toujours */ /* (2026-11-13, LA VILLE QUI SE VISITE) le dévers de la ville : les normales de genCtrl1 (vsDevers), sans TORD.on */ // (2026-10-15) LA ROUTE SANS HAUT NI BAS : la piste des NUAGES ré-enroulée dans l'espace (voir pisteTord) — (2026-10-22) et celle de l'ORBITE (voir ROUTE_LIBRE)
   const curve=courbeCR(ctrl); /* (2026-11-14) la courbe vite : la même, au bit près (voir courbeCR, route-rythme.js) */ // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
   /* (2026-09-30, revue PISTE) LE PAS DE LA PISTE. Tout le jeu suppose `pts` ÉQUIDISTANTS (frameAt : f = s/L·(NP−1) ; s avance en mètres).
      Or three r128 ne mesure la longueur qu'en 200 tronçons (`arcLengthDivisions`) pour les 450-550 points de contrôle de genCtrl : entre
@@ -106,7 +120,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   curve.arcLengthDivisions=Math.max(200,ctrl.length*16);
   yield;L=curve.getLength();yield;
   const N=Math.min(PARK.on?11000:9000,Math.max(3000,Math.round(L))); // parc : plus long → plus de points pour garder les loops lisses
-  pts=[];for(let d9=0;d9<=N;d9++){pts.push(curve.getPointAt(d9/N));if((d9&1023)===1023)yield;}NP=pts.length; // (LE PRÉ-BÂTI) getSpacedPoints en tranches : three r128 fait exactement cette boucle
+  pts=[];for(let d9=0;d9<=N;d9++){pts.push(curve.getPointAt(d9/N));if((d9&1023)===1023||((d9&63)===63&&jpbEch()))yield;}NP=pts.length; // (LE PRÉ-BÂTI) getSpacedPoints en tranches : three r128 fait exactement cette boucle
   let sEnt=0; // (2026-09-29) L'ENTRÉE DANS LA VILLE : la droite surélevée est NUE (ni plot, ni flaque, ni dos d'âne) — le temps de s'adapter ; les tirages restent consommés
   if(VILLE_ENTREE){let dA=1e18,iA=0;const lim=Math.min(NP,Math.ceil(NP*.45));for(let i=0;i<lim;i++){const a=pts[i].distanceToSquared(VILLE_ENTREE.pA);if(a<dA){dA=a;iA=i;}}sEnt=iA*L/(NP-1)+80;VILLE_ENTREE.sA=sEnt;} // (+80 m : pas de plot caché juste derrière la bascule de la rampe)
   /* (2026-09-30, revue PISTE) LE SAS DU PORTAIL. On repart en s = 0 À PLEINE VITESSE, pendant le fondu sombre (BIO.dip, 1,2 s) et la
@@ -132,7 +146,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   T=[];Nn=[];B=[];
   for(let i=0;i<NP;i++){
     const j=Math.min(i+1,NP-1),k=Math.max(i-1,0);
-    T.push(new THREE.Vector3().subVectors(pts[j],pts[k]).normalize());if((i&2047)===2047)yield;
+    T.push(new THREE.Vector3().subVectors(pts[j],pts[k]).normalize());if((i&2047)===2047||((i&63)===63&&jpbEch()))yield;
   }
   let n=new THREE.Vector3(0,1,0);
   n.addScaledVector(T[0],-n.dot(T[0])).normalize();
@@ -146,10 +160,10 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   /* (2026-10-15) LA ROUTE SANS HAUT NI BAS : la dalle ne se redresse plus vers le ciel — sa normale est celle que pisteTord a roulée, reprise
      point de contrôle par point de contrôle (même paramètre que getSpacedPoints) puis remise d'équerre sur la tangente. */
   if(TORD.N){const HN=TORD.N,nc=HN.length-1;
-    for(let i=0;i<NP;i++){if((i&1023)===1023)yield;const f=curve.getUtoTmapping(i/(NP-1))*nc,k=Math.min(nc-1,Math.floor(f)),w=f-k;
+    for(let i=0;i<NP;i++){if((i&1023)===1023||((i&63)===63&&jpbEch()))yield;const f=curve.getUtoTmapping(i/(NP-1))*nc,k=Math.min(nc-1,Math.floor(f)),w=f-k;
       n.copy(HN[k]).multiplyScalar(1-w).addScaledVector(HN[k+1],w);n.addScaledVector(T[i],-n.dot(T[i]));if(n.lengthSq()<1e-10)n.copy(Nn[i-1]||HN[0]);n.normalize();
       Nn.push(n.clone());B.push(new THREE.Vector3().crossVectors(n,T[i]));}}
-  else for(let i=0;i<NP;i++){if((i&1023)===1023)yield;
+  else for(let i=0;i<NP;i++){if((i&1023)===1023||((i&63)===63&&jpbEch()))yield;
     Nn.push(n.clone());
     B.push(new THREE.Vector3().crossVectors(n,T[i]));
     if(i<NP-1){
@@ -167,7 +181,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     const ds9=L/(NP-1),sg9=(GEN_V2?THREE.MathUtils.clamp(.3*vC9,20,80):THREE.MathUtils.clamp(.12*vC9,12,30))/ds9 /* (2026-11-07, LA GÉNÉRATION PROPRE) le roulis lissé sur 0,3 s de croisière (12-30 m avant) : plus de cassure de roulis d'un point de contrôle à l'autre */,R9=Math.ceil(sg9*3),nr9=new Float64Array(3*NP),psi9=new Float64Array(NP),lis9=new Float64Array(NP),gw9=new Float64Array(R9+1);
     const m9=new THREE.Vector3(),c9=new THREE.Vector3(),TWO9=2*Math.PI;let sw9=0;
     m9.copy(Nn[0]); /* repère transporté sans torsion (RMF) : n9[i], et le roulis psi9[i] = l'angle qui l'amène à la dalle Nn[i] */
-    for(let i=0;i<NP;i++){if((i&1023)===1023)yield;
+    for(let i=0;i<NP;i++){if((i&1023)===1023||((i&63)===63&&jpbEch()))yield;
       nr9[3*i]=m9.x;nr9[3*i+1]=m9.y;nr9[3*i+2]=m9.z;
       let a9=Math.atan2(c9.crossVectors(m9,Nn[i]).dot(T[i]),m9.dot(Nn[i]));
       if(i>0)a9+=TWO9*Math.round((psi9[i-1]-a9)/TWO9); /* continu : un looping tourne la dalle de plus d'un tour sans saut */
@@ -183,7 +197,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
        psiAt9 (la symétrie impaire). Téléphone (ALLEGE) ; `?sans=lissevite` = comme avant. */
     const LV9=ALLEGE&&!/[?&]sans=lissevite\b/.test(location.search),W9=LV9?new Float64Array(2*R9+1):null;
     if(LV9)for(let k=-R9;k<=R9;k++)W9[k+R9]=gw9[Math.abs(k)];
-    for(let i=0;i<NP;i++){if((i&1023)===1023)yield;
+    for(let i=0;i<NP;i++){if((i&1023)===1023||((i&63)===63&&jpbEch()))yield;
       let s9=0;if(LV9&&i>=R9&&i+R9<NP){for(let j=0,b=i-R9,e=2*R9;j<=e;j++)s9+=W9[j]*psi9[b+j];}
       else for(let k=-R9;k<=R9;k++)s9+=gw9[Math.abs(k)]*psiAt9(i+k);
       lis9[i]=s9/sw9;
@@ -210,7 +224,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   // ROUTE ÉPAISSE : grain LONGITUDINAL — stries dans le sens de la route (effet vitesse)
   const sideL_=new Float32Array(NP*6),sideR_=new Float32Array(NP*6),sideU_=new Float32Array(NP*4);let accT9=0; // sideU_ : (haut 0 / bas 1, mètres le long de la piste) — le liseré des tranches (voir trancheMat)
   const nz=i=>{const x=Math.sin(i*12.9898)*43758.5453;return x-Math.floor(x);};
-  yield;for(let i=0;i<NP;i++){if((i&2047)===2047)yield;
+  yield;for(let i=0;i<NP;i++){if((i&2047)===2047||((i&63)===63&&jpbEch()))yield;
     const p=pts[i],b=B[i],nn=Nn[i];if(i>0)accT9+=p.distanceTo(pts[i-1]);const u4=i*4;sideU_[u4]=0;sideU_[u4+1]=accT9;sideU_[u4+2]=1;sideU_[u4+3]=accT9;
     const tl0=p.x-b.x*ROAD_HALF,tl1=p.y-b.y*ROAD_HALF,tl2=p.z-b.z*ROAD_HALF;
     const tr0=p.x+b.x*ROAD_HALF,tr1=p.y+b.y*ROAD_HALF,tr2=p.z+b.z*ROAD_HALF,k6=i*6;
@@ -223,12 +237,12 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
      produits vectoriels arrondie en float32 à chaque triangle, lue puis écrite dans le même ordre, puis normalisation `x*(1/(long||1))`) :
      mêmes octets, 3 à 4 fois plus vite (plus de Vector3, plus de getX/setXYZ). */
   const normales9=function*(P9,I9){const N9=new Float32Array(P9.length);
-    for(let t=0,n=I9.length;t<n;t+=3){if(t%60000===0&&t)yield;const a=I9[t]*3,b=I9[t+1]*3,c=I9[t+2]*3;
+    for(let t=0,n=I9.length;t<n;t+=3){if((t%60000===0&&t)||(t%768===0&&jpbEch()))yield;const a=I9[t]*3,b=I9[t+1]*3,c=I9[t+2]*3;
       const pBx=P9[b],pBy=P9[b+1],pBz=P9[b+2],cbx=P9[c]-pBx,cby=P9[c+1]-pBy,cbz=P9[c+2]-pBz,abx=P9[a]-pBx,aby=P9[a+1]-pBy,abz=P9[a+2]-pBz;
       const nx=cby*abz-cbz*aby,ny=cbz*abx-cbx*abz,nw=cbx*aby-cby*abx;
       const ax=N9[a]+nx,ay=N9[a+1]+ny,az=N9[a+2]+nw,bx=N9[b]+nx,by=N9[b+1]+ny,bz=N9[b+2]+nw,cx=N9[c]+nx,cy=N9[c+1]+ny,cz=N9[c+2]+nw; // lus TOUS avant d'écrire (comme three)
       N9[a]=ax;N9[a+1]=ay;N9[a+2]=az;N9[b]=bx;N9[b+1]=by;N9[b+2]=bz;N9[c]=cx;N9[c+1]=cy;N9[c+2]=cz;}
-    for(let k=0,n=N9.length;k<n;k+=3){if(k%90000===0&&k)yield;const x=N9[k],y=N9[k+1],z=N9[k+2],s=1/(Math.sqrt(x*x+y*y+z*z)||1);N9[k]=x*s;N9[k+1]=y*s;N9[k+2]=z*s;}
+    for(let k=0,n=N9.length;k<n;k+=3){if((k%90000===0&&k)||(k%768===0&&jpbEch()))yield;const x=N9[k],y=N9[k+1],z=N9[k+2],s=1/(Math.sqrt(x*x+y*y+z*z)||1);N9[k]=x*s;N9[k+1]=y*s;N9[k+2]=z*s;}
     return N9;};
   const strip=function*(arrs,mat){ // (passe perf) les deux flancs d'un coup : un maillage, une matière, découpé en tranches
     const na=arrs.length,P9=new Float32Array(na*NP*6),UV9=new Float32Array(na*NP*4),I9=new Uint32Array(na*(NP-1)*6);let w=0;
@@ -250,7 +264,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     const JA9=(NP>>5)+1,JB9=(NP>>1)+1,nzA=new Float64Array(COLS*JA9),nzB=new Float64Array(COLS*JB9); // les deux premiers sinus ne dépendent que de i>>5 et i>>1
     for(let c9=0;c9<COLS;c9++){for(let j=0;j<JA9;j++)nzA[c9*JA9+j]=nz(c9*131.7+j*7.77);for(let j=0;j<JB9;j++)nzB[c9*JB9+j]=nz(c9*53.1+j*3.3);}
     const a9=new Float32Array(NP*COLS*3),dim=1;if(TEINTE9.c)a9.set(TEINTE9.c);
-    for(let i=TEINTE9.n;i<NP;i++){if((i&511)===511)yield;for(let c9=0;c9<COLS;c9++){const sh=(laneShade[c9]+nzA[c9*JA9+(i>>5)]*.05+nzB[c9*JB9+(i>>1)]*.05+nz(i*7.71+c9*13.7)*.03-.08)*dim,k3=(i*COLS+c9)*3;
+    for(let i=TEINTE9.n;i<NP;i++){if((i&511)===511||((i&63)===63&&jpbEch()))yield;for(let c9=0;c9<COLS;c9++){const sh=(laneShade[c9]+nzA[c9*JA9+(i>>5)]*.05+nzB[c9*JB9+(i>>1)]*.05+nz(i*7.71+c9*13.7)*.03-.08)*dim,k3=(i*COLS+c9)*3;
       a9[k3]=sh;a9[k3+1]=sh;a9[k3+2]=sh+.04;}}
     TEINTE9.c=a9;TEINTE9.n=NP;}
   {const nF=NP*COLS,P9=new Float32Array(2*nF*3),C9=new Float32Array(2*nF*3),UV9=new Float32Array(2*nF*2),I9=new Uint32Array(2*(NP-1)*(COLS-1)*6); // (passe perf) les DEUX faces dans un seul maillage (sommets disjoints : mêmes normales qu'en deux), découpé en tranches
@@ -259,7 +273,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   let w=0,f9=0;
   for(const fy of [0,-THICK]){
     let acc9=0;const vb=f9*nF; // (bitume v2) UV en MÈTRES/4 : le grain garde la même taille quelle que soit la largeur de route
-    for(let i=0;i<NP;i++){if((i&511)===511)yield;
+    for(let i=0;i<NP;i++){if((i&511)===511||((i&63)===63&&jpbEch()))yield;
       const p=pts[i],b=B[i],nn=Nn[i];
       if(f9===0&&i>0)acc9+=p.distanceTo(pts[i-1]);
       for(let c9=0;c9<COLS;c9++){
@@ -269,7 +283,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
       }
     }
     if(f9===1)UV9.copyWithin(nF*2,0,nF*2); // la face du dessous : les MÊMES UV que le dessus (mêmes calculs, déjà faits)
-    for(let i=0;i<NP-1;i++){if((i&1023)===1023)yield;
+    for(let i=0;i<NP-1;i++){if((i&1023)===1023||((i&63)===63&&jpbEch()))yield;
       for(let c9=0;c9<COLS-1;c9++){
         const a2=vb+i*COLS+c9,b2=a2+1,c2=a2+COLS,d2=c2+1;
         I9[w++]=a2;I9[w++]=c2;I9[w++]=b2;I9[w++]=b2;I9[w++]=c2;I9[w++]=d2;
@@ -288,7 +302,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     // d'abord comme avant, sur le maillage entier), triangles en sens inverse (`inv`, posé par pisteTranches/pisteMaigre). C9 est une
     // COPIE des teintes de la session (TEINTE9) : la nier ne touche pas au cache.
     const N9=yield* normales9(P9,I9),inv9=BITUME.face?[false,true]:null;
-    if(inv9)for(let q=nF*3;q<2*nF*3;q++){if((q&131071)===0)yield;N9[q]=-N9[q];C9[q]=-C9[q];}
+    if(inv9)for(let q=nF*3;q<2*nF*3;q++){if((q&131071)===0||((q&4095)===0&&jpbEch()))yield;N9[q]=-N9[q];C9[q]=-C9[q];}
     yield* pisteTranches({position:[P9,3],normal:[N9,3],color:[C9,3],uv:[UV9,2]},
       {blocs:2,pr:COLS,np:NP,pas:1,inv:inv9},roadMat(),{ombre:true,nom:'piste bitume',loin:{blocs:2,pr:COLS,cols:[0,COLS-1],inv:inv9}}); // le bitume reçoit les OMBRES LONGUES
   }
@@ -308,7 +322,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   // BANDES NÉON (dessus + dessous) : les rails de Vice City — couleur d'accent de la zone
   {const ep=new Float32Array(4*NP*6),el=new Float32Array(4*NP*6),es9=new Float32Array(4*NP*2),dS9=L/Math.max(1,NP-1);let q=0; // (passe perf) les QUATRE rails dans un seul maillage, une seule matière (le caméléon les peignait tous pareil), découpé en tranches — (chasse aux gels) écrits en place
   for(const fy of [0,-THICK]) for(const sd of [-1,1]){ // el : `aLat`, du milieu du rail vers chaque bord (voir traitMat)
-    for(let i=0;i<NP;i++,q+=6){if((i&2047)===2047)yield;
+    for(let i=0;i<NP;i++,q+=6){if((i&2047)===2047||((i&63)===63&&jpbEch()))yield;
       const p=pts[i],b=B[i],nn=Nn[i],o=sd*(ROAD_HALF+.05),h=fy+(fy===0?.06:-.06);
       ep[q]=p.x+b.x*(o-sd*.6)+nn.x*h;ep[q+1]=p.y+b.y*(o-sd*.6)+nn.y*h;ep[q+2]=p.z+b.z*(o-sd*.6)+nn.z*h;
       ep[q+3]=p.x+b.x*o+nn.x*h;ep[q+4]=p.y+b.y*o+nn.y*h;ep[q+5]=p.z+b.z*o+nn.z*h;
@@ -327,7 +341,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   for(const fy of [0,-THICK]){
     const mo9=LVL.cur&&LVL.cur.pluie?1:0,lg9=1.15+2.2*mo9,ka9=(.48+.14*mo9); // (2026-09-26) sous la PLUIE le bitume mouillé renvoie le rail : la nappe s'élargit (1,15 → 3,35 m) et chauffe un peu
     for(const sd of [-1,1]){
-      for(let i=0;i<NP;i++,q+=6){if((i&2047)===2047)yield;
+      for(let i=0;i<NP;i++,q+=6){if((i&2047)===2047||((i&63)===63&&jpbEch()))yield;
         const p=pts[i],b=B[i],nn=Nn[i],h=fy+(fy===0?.045:-.045);
         const oI=sd*(ROAD_HALF+.10-lg9),oO=sd*(ROAD_HALF+.10);
         gp[q]=p.x+b.x*oI+nn.x*h;gp[q+1]=p.y+b.y*oI+nn.y*h;gp[q+2]=p.z+b.z*oI+nn.z*h;
@@ -435,10 +449,10 @@ function* buildTrackG(seed){ // (2026-11-07, OPTI ULTIME) rend la main entre la 
      flaques — sort du générateur `pisteRoute` : bâtie d'avance en roulant vers le portail, ou ici d'un trait (même code, mêmes tirages
      rnd, dans le même ordre). `pisteInstalle` l'échange avec l'ancienne ; le décor qui suit se bâtit ici sur la route installée. */
   const W=prebPrend(seed)||(yield* pisteDirecteG(seed));
-  pisteInstalle(W);
+  pvMq('route');pisteInstalle(W);pvMq('installe');
   const rnd=W.rnd,gen9=W.gen9,vC9=W.vC9,accC=W.accC;
   // NUAGES : on roule DANS le ciel — grappes volumétriques traversables + couche lointaine diaphane
-  buildClouds(rnd);yield;
+  if(PORTV_ON)yield* buildCloudsG(rnd);else buildClouds(rnd);pvMq('nuages');yield; /* (lot portv) les nuages en tranches */
   /* (2026-09-30, revue GAMEPLAY) les 14 NUAGES D'HORIZON (sprites roses, fog:false) sont RETIRÉS : ils restaient en VILLE (où aucun nuage
      n'a sa place), perçaient la brume de l'ORAGE (650-1850 m contre une brume à 70/660) et la moitié tombait sous l'horizon dans l'abîme
      des NUAGES. Aucun tirage `rnd` n'avait lieu après eux dans buildTrack : la piste ne bouge pas. Le ciel lointain, c'est COTON. */
@@ -470,11 +484,12 @@ function* buildTrackG(seed){ // (2026-11-07, OPTI ULTIME) rend la main entre la 
   scene.add(plight);trackMeshes.push(plight);PORTAL.lum=plight;
   if(PCUBE.on){pcubeDest();plight.intensity=1.1;} // les couleurs et la vue de la map d'en face (tirée d'avance) · une lumière un peu plus douce que l'ovule (de près, elle blanchissait le bitume)
   if(portalMesh)portailVisible(true); // le portail de la piste neuve se montre
-  yield;buildVoxCity(seed,accC); // LA VILLE SOUS LES NUAGES : le fond de scène, en briques (no-op au parc)
-  yield;try{buildJade(seed);}catch(e){window.__jadeErr=e;console.warn('Jade',e);} // (2026-10-09) LES PICS DE JADE : les piliers, les pins, la brume, la Porte et le Pont du ciel (no-op ailleurs) // (2026-09-28) PARIS LA NUIT : les toits et la Dame de fer (no-op hors Paris)
-  yield;try{buildCanyon(seed);}catch(e){window.__cyErr=e;console.warn('Canyon',e);} // (2026-10-14) LE CANYON DES GÉANTS : le relief, la rivière, l'ombre de l'heure (no-op ailleurs)
+  pvMq('portail');yield;if(PORTV_ON)yield* buildVoxCityG(seed,accC);else buildVoxCity(seed,accC);pvMq('ville'); /* (lot portv) la ville en tranches */ // LA VILLE SOUS LES NUAGES : le fond de scène, en briques (no-op au parc)
+  yield;if(PVE.dedans)yield* jadeClePre(seed); /* (lot portv) au passage étalé, la clé de la vallée en tranches avant buildJade */
+  try{buildJade(seed);}catch(e){window.__jadeErr=e;console.warn('Jade',e);}finally{JADE_CLEP.cle=null;}pvMq('jade'); // (2026-10-09) LES PICS DE JADE : les piliers, les pins, la brume, la Porte et le Pont du ciel (no-op ailleurs) // (2026-09-28) PARIS LA NUIT : les toits et la Dame de fer (no-op hors Paris)
+  yield;try{buildCanyon(seed);}catch(e){window.__cyErr=e;console.warn('Canyon',e);}pvMq('canyon'); // (2026-10-14) LE CANYON DES GÉANTS : le relief, la rivière, l'ombre de l'heure (no-op ailleurs)
   yield;try{buildDunes(seed,W.dunes);}catch(e){window.__dnErr=e;console.warn('Dunes',e);try{window.__ccNote('panne','dunes · '+(e&&e.message||e));}catch(_){}} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, l'ombre de l'heure, les décors (no-op ailleurs)
-  try{if(!prebDecor(W,'grotte'))buildGrotte(seed);}catch(e){window.__grotteErr=e;console.warn('Grotte',e);try{window.__ccNote('panne','grotte · '+(e&&e.message||e));}catch(_){}} // (2026-10-18) LES PROFONDEURS : la grotte en blocs, ses décors, ses lumières (no-op ailleurs)
-  try{if(!prebDecor(W,'banquise'))buildBanq(seed);}catch(e){window.__banqErr=e;console.warn('Banquise',e);} // (2026-10-14) LA BANQUISE : la neige sous la route, les lacs gelés, les pics de glace, les stalactites (no-op ailleurs)
-  try{orbiteBuild(seed);}catch(e){window.__orbErr=e;} // (vague 3) L'ORBITE : les Starlink et les débris autour de la piste (no-op hors orbite)
+  pvMq('dunes');try{if(!prebDecor(W,'grotte')){if(PVE.dedans)yield* buildGrotteG(seed);else buildGrotte(seed);}} /* (lot portv, 2e tour) au passage étalé, la grotte non bâtie d'avance se bâtit EN TRANCHES (son travailleur compris) — d'un trait (jadeFini) sous une échéance finie, le creusement attendait le travailleur sans fin */catch(e){window.__grotteErr=e;console.warn('Grotte',e);try{window.__ccNote('panne','grotte · '+(e&&e.message||e));}catch(_){}} // (2026-10-18) LES PROFONDEURS : la grotte en blocs, ses décors, ses lumières (no-op ailleurs)
+  pvMq('grotte');try{if(!prebDecor(W,'banquise')){if(PVE.dedans)yield* buildBanqG(seed);else buildBanq(seed);}} /* (lot portv, 2e tour) en tranches au passage étalé */catch(e){window.__banqErr=e;console.warn('Banquise',e);} // (2026-10-14) LA BANQUISE : la neige sous la route, les lacs gelés, les pics de glace, les stalactites (no-op ailleurs)
+  pvMq('glacier');try{orbiteBuild(seed);}catch(e){window.__orbErr=e;}pvMq('orbite'); // (vague 3) L'ORBITE : les Starlink et les débris autour de la piste (no-op hors orbite)
 }

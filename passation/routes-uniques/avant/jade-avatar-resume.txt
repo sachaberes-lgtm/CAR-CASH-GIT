@@ -1,0 +1,73 @@
+== ROUTES UNIQUES · jade · avatar (?jade=avatar) · avant · graines 1-200 · commit 88a648892
+
+-- palier 0 · 200 routes (0 exceptions) · 168 ms/route · 33.8 s · longueur 8700 m [7287-10845] · longueur/cible 1.62 · note moy 4.59
+  abscisse |  cap moy ± et  [p5 ; p95]  |cap| méd |   x moy ± et  (faisceau p5-p95) |   y moy ± et  [p5 ; p95] |  z moy ± et | dir. du point moy ± et
+    300 m |    3.6 ± 37.3  [-62.7 ; 72.6]  |    26 |     3.4 ± 83.9  (296 m) |   -27.5 ± 21.6  [-64.7 ; -12.3] |  272.4 ± 25.1 | 0.8° ± 18.1° (n 200)
+    500 m |    2.3 ± 41.5  [-64.7 ; 69]  |  21.9 |     14 ± 172.5  (619 m) |   -78.9 ± 46.1  [-162.9 ; -27] |  423.2 ± 71.2 | 2° ± 24.6° (n 200)
+   1000 m |    2.5 ± 63.6  [-98.8 ; 108.9]  |  41.7 |   13.9 ± 346.6  (1228 m) |   -217.5 ± 113  [-433.2 ; -92.9] | 740.2 ± 176.9 | 1° ± 28.2° (n 200)
+   2000 m |  -8.7 ± 114.3  [-186.7 ; 165]  |  93.9 |   20.7 ± 660.8  (2005 m) |   -478.3 ± 194  [-821.3 ; -220.7] | 1060.8 ± 481.1 | 0.3° ± 39.2° (n 200)
+   3000 m |   -14.5 ± 148  [-228.8 ; 240.8]  | 110.4 |    8.8 ± 936.3  (2834 m) | -785.8 ± 202.1  [-1162.6 ; -502.2] | 1011.5 ± 769.6 | -0.2° ± 60.3° (n 200)
+  ressemblance (1,5 km, 19900 paires) : RMS 3D méd 416 m [p5 165 ; p95 928] · avec miroir méd 315 m · écart/abscisse moy 0.43 (miroir 0.33) · paires sous 100 m : 2 %, 200 m : 8 %, 300 m : 27 %
+  formes distinctes (1,5 km, chef de file) : < 100 m : 90 (miroir 65, 3 plus grosses = 23 %) · < 200 m : 34 (miroir 21, 3 plus grosses = 49 %) · < 300 m : 14 (miroir 8, 3 plus grosses = 83 %)
+  1er module : defile 13 %, passe 12 %, pont 11 %, cirque 11 %, mouton 10 %, gue 8 %, corniche 7 %, essaim 7 %, ange 7 %, plongee 5 %, viaduc 5 %, escalier 5 %, galerie 3 % · commence à 337 ± 89 m
+  3 premiers (136 têtes distinctes / 200) : « mouton > pierres > ange » 2 % · « defile > cirque > couloir » 2 % · « passe > envers > defile » 2 % · « ange > pierres > mouton » 2 % · « plongee > cirque > couloir » 2 % · « corniche > pierres > gue » 2 %
+    rang 1 : defile 13 %, passe 12 %, pont 11 %, cirque 11 %, mouton 10 %, gue 8 %
+    rang 2 : pierres 23 %, cirque 13 %, envers 12 %, corniche 11 %, passe 7 %, ange 7 %
+    rang 3 : pierres 17 %, cirque 13 %, couloir 12 %, envers 11 %, ange 7 %, passe 6 %
+    rang 4 : gouffre 28 %, belvedere 21 %, balcon 14 %, pierres 14 %, envers 8 %, couloir 3 %
+    rang 5 : cirque 30 %, passe 17 %, ange 15 %, corniche 13 %, gouffre 13 %, belvedere 7 %
+  suites complètes distinctes : 182 / 200 · la plus fréquente « mouton > pierres > ange > belvedere > cirque » 2 %
+  modules par route : 5.3 [5-6] · distincts 5.3 [5-6] · catalogue 27 / 32 vus · jamais : spirale, stade, colimacon, puits, lacets · < 2 % : ilots, mur, cascade, russes, voute
+  présence (part des routes) : cirque 73 %, pierres 53 %, passe 51 %, gouffre 45 %, ange 40 %, corniche 38 %, belvedere 32 %, envers 30 %, balcon 24 %, defile 22 %, couloir 18 %, pont 17 %, mouton 16 %, gue 14 %, essaim 13 %, plongee 10 %, galerie 9 %, viaduc 8 %, escalier 7 %, chas 3 %, ceinture 3 %, tours 2 %, russes 2 %, mur 1 %, ilots 1 %, voute 1 %, cascade 1 %
+  ouverture (0-600 m) : s | cap moy (|cap| moy) ± et | pente moy ± et | y moy ± et
+       0 |     -0.1 (1.7) ± 2.8 |         0 ± 0 | 0 ± 0
+      50 |      0.1 (1.8) ± 2.9 |    -0.1 ± 0.1 | 0 ± 0
+     100 |     0.4 (6.6) ± 10.9 |    -0.2 ± 0.3 | -0.1 ± 0.2
+     150 |      0.6 (12) ± 19.1 |    -0.9 ± 0.7 | -0.4 ± 0.5
+     200 |    0.4 (20.8) ± 28.6 |   -8.5 ± 10.6 | -4 ± 4.1
+     250 |      1.5 (28.5) ± 34 |    -15 ± 13.2 | -14.3 ± 15.5
+     300 |    3.6 (30.8) ± 37.3 |   -16.8 ± 8.7 | -27.5 ± 21.6
+     350 |    4.5 (31.3) ± 38.9 |   -16.7 ± 9.7 | -42.1 ± 25.6
+     400 |    4.2 (29.3) ± 37.2 |  -12.4 ± 12.3 | -53.9 ± 32.9
+     450 |    3.6 (29.5) ± 37.7 |  -16.1 ± 13.1 | -66.4 ± 38.7
+     500 |    2.3 (31.2) ± 41.5 |  -14.4 ± 12.8 | -78.9 ± 46.1
+     550 |    0.7 (36.5) ± 48.1 |  -13.5 ± 13.1 | -90.5 ± 54.3
+     600 |   -1.3 (39.5) ± 53.2 |    -14.2 ± 13 | -102.1 ± 62.6
+  direction : fin vue du départ 7.3° ± 76.7° (|.| méd 52.9°) · cap final déroulé 12.1 ± 310.9° [p5 -524 ; p95 519.1] (+ 109 / − 91) · amplitude du cap méd 467.9°
+  familles [["fam1",100],["fam0",100]] · 1er par famille {"fam0":[["passe",16],["defile",12],["cirque",10],["ange",10],["essaim",9],["mouton",8],["pont",7],["corniche",7],["viaduc",6],["gue",5],["escalier",5],["plongee",4],["galerie",1]],"fam1":[["pont",14],["defile",14],["mouton",12],["cirque",11],["gue",10],["corniche",7],["passe",7],["plongee",6],["galerie",5],["escalier",4],["essaim",4],["viaduc",3],["ange",3]]} · itinéraires [["LA GRANDE CHUTE",34],["LES MURS DE JADE",34],["LA NUÉE",34],["LES PILIERS DU CIEL",33],["LA FORÊT SUSPENDUE",33],["LA VALLÉE DES CASCADES",32]] · essai gagnant [["2",26],["0",23],["4",23],["1",20],["7",19],["8",19],["9",19],["5",18],["6",18],["3",15]]
+
+-- palier 10 · 200 routes (0 exceptions) · 209 ms/route · 41.8 s · longueur 11702 m [10585-13207] · longueur/cible 1.68 · note moy 5.36
+  abscisse |  cap moy ± et  [p5 ; p95]  |cap| méd |   x moy ± et  (faisceau p5-p95) |   y moy ± et  [p5 ; p95] |  z moy ± et | dir. du point moy ± et
+    300 m |    -0.2 ± 1.9  [-3 ; 3]  |   1.5 |     -0.4 ± 4.3  (14 m) |          0 ± 0  [0 ; 0] |       300 ± 0 | -0.1° ± 0.8° (n 200)
+    500 m |    2.5 ± 26.1  [-31.9 ; 31.9]  |  25.9 |     3.5 ± 43.4  (116 m) |      -25.1 ± 0  [-25.1 ; -25.1] |   490.5 ± 2.5 | 0.4° ± 5.1° (n 200)
+   1000 m |    1.6 ± 76.7  [-126.2 ; 122]  |  57.6 |   20.3 ± 267.5  (777 m) |  -113.8 ± 52.1  [-235.3 ; -50.8] |  864.3 ± 77.8 | 1.2° ± 18° (n 200)
+   2000 m |    1.4 ± 36.5  [-47.7 ; 54.9]  |  28.1 |   43.6 ± 532.4  (1390 m) | -237.3 ± 182.1  [-675.9 ; -108.9] |  1525.9 ± 140 | 1.4° ± 19.7° (n 200)
+   3000 m |  -5.6 ± 103.1  [-159.5 ; 161.8]  |  90.8 |   36.6 ± 895.8  (2554 m) | -307.1 ± 340.8  [-1115.6 ; -31.7] | 2113.1 ± 273.6 | 0.8° ± 23.8° (n 200)
+  ressemblance (1,5 km, 19900 paires) : RMS 3D méd 299 m [p5 64 ; p95 667] · avec miroir méd 196 m · écart/abscisse moy 0.22 (miroir 0.12) · paires sous 100 m : 8 %, 200 m : 29 %, 300 m : 50 %
+  formes distinctes (1,5 km, chef de file) : < 100 m : 23 (miroir 14, 3 plus grosses = 61 %) · < 200 m : 7 (miroir 4, 3 plus grosses = 94 %) · < 300 m : 3 (miroir 2, 3 plus grosses = 100 %)
+  1er module : cirque 22 %, passe 19 %, corniche 18 %, ange 14 %, lacets 13 %, pierres 10 %, couloir 3 %, envers 3 % · commence à 694 ± 151 m
+  3 premiers (71 têtes distinctes / 200) : « cirque > pierres > belvedere » 7 % · « lacets > pierres > belvedere » 4 % · « passe > couloir > gouffre » 4 % · « lacets > couloir > gouffre » 4 % · « cirque > couloir > gouffre » 4 % · « corniche > envers > belvedere » 3 %
+    rang 1 : cirque 22 %, passe 19 %, corniche 18 %, ange 14 %, lacets 13 %, pierres 10 %
+    rang 2 : pierres 35 %, envers 21 %, couloir 13 %, gouffre 8 %, belvedere 6 %, cirque 6 %
+    rang 3 : gouffre 33 %, belvedere 31 %, balcon 20 %, pierres 8 %, envers 5 %, couloir 4 %
+    rang 4 : cirque 30 %, ange 20 %, passe 19 %, corniche 18 %, lacets 15 %
+    rang 5 : — 100 %
+  suites complètes distinctes : 111 / 200 · la plus fréquente « corniche > pierres > gouffre > passe » 3 %
+  modules par route : 4 [4-4] · distincts 4 [4-4] · catalogue 11 / 32 vus · jamais : plongee, ilots, chas, mur, spirale, stade, tours, cascade, russes, voute, colimacon, puits, gue, pont, galerie, escalier, mouton, ceinture, viaduc, essaim, defile · < 2 % : —
+  présence (part des routes) : cirque 57 %, pierres 52 %, passe 40 %, gouffre 40 %, corniche 38 %, belvedere 37 %, ange 36 %, lacets 30 %, envers 28 %, balcon 24 %, couloir 20 %
+  ouverture (0-600 m) : s | cap moy (|cap| moy) ± et | pente moy ± et | y moy ± et
+       0 |        0 (0.1) ± 0.1 |         0 ± 0 | 0 ± 0
+      50 |        0 (0.2) ± 0.2 |         0 ± 0 | 0 ± 0
+     100 |        0 (0.4) ± 0.5 |         0 ± 0 | 0 ± 0
+     150 |     -0.1 (0.7) ± 0.8 |         0 ± 0 | 0 ± 0
+     200 |       -0.1 (1) ± 1.2 |         0 ± 0 | 0 ± 0
+     250 |     -0.1 (1.3) ± 1.6 |         0 ± 0 | 0 ± 0
+     300 |     -0.2 (1.6) ± 1.9 |         0 ± 0 | 0 ± 0
+     350 |        0.3 (4.5) ± 5 |      -1.4 ± 0 | -0.3 ± 0
+     400 |    1.3 (13.5) ± 13.8 |      -7.8 ± 0 | -3.8 ± 0
+     450 |    1.9 (19.3) ± 19.6 |     -12.5 ± 0 | -12.5 ± 0
+     500 |    2.5 (25.8) ± 26.1 |   -15.4 ± 0.2 | -25.1 ± 0
+     550 |    2.5 (27.4) ± 27.9 |     -10.6 ± 4 | -37 ± 1.2
+     600 |      2.4 (27.3) ± 28 |    -5.7 ± 7.9 | -43.6 ± 6.4
+  direction : fin vue du départ -3.7° ± 70.5° (|.| méd 43.1°) · cap final déroulé -42.3 ± 316.9° [p5 -578 ; p95 469.7] (+ 85 / − 115) · amplitude du cap méd 444°
+  familles [["fam1",100],["fam0",100]] · 1er par famille {"fam0":[["corniche",22],["cirque",20],["ange",16],["lacets",16],["passe",13],["pierres",7],["couloir",4],["envers",2]],"fam1":[["passe",24],["cirque",24],["corniche",14],["pierres",12],["ange",11],["lacets",9],["envers",4],["couloir",2]]} · itinéraires [["LA GRANDE CHUTE",34],["LES MURS DE JADE",34],["LA NUÉE",34],["LES PILIERS DU CIEL",33],["LA FORÊT SUSPENDUE",33],["LA VALLÉE DES CASCADES",32]] · essai gagnant [["4",30],["5",27],["0",23],["3",21],["9",21],["1",17],["6",17],["8",17],["7",14],["2",13]]

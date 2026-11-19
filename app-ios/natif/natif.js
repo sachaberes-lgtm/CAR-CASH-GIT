@@ -32,7 +32,25 @@
      et sans son (le contexte audio ne démarre jamais) sauf `chalson=1`. Une app normale n'a ni la variable ni rien de tout cela. */
   try{if(window.__ccQSsup)QS=(QS||'')+String(window.__ccQSsup);}catch(e){}
   try{if(QS&&!location.search)history.replaceState(null,'',location.pathname+'?'+String(QS).replace(/^[?&]/,''));}catch(e){}
+  /* (2026-11-17, lot qualité MESURE-RAFALES) LA SONDE NATIVE : dans l'app de mesure (`perfrec=2`) seulement, le côté natif (JeuViewController.swift, SondeNatif) bat chaque seconde —
+     pression mémoire, sentinelle Swift, retard du battement — dans window.__ccSw (boîte de vol, M[24-26]). `sans=sondenatif` la laisse éteinte. Une app normale n'envoie rien. */
+  /* (2026-11-18, lot qualité sondecalme — vol 1118-0416, build 121) LA SONDE CALME : la sentinelle Swift ne tourne plus sur le fil principal de l'app (« go:fond », voir
+     SondeNatif « LA SONDE CALME »), et le pouls Debug (rAF permanent + elementFromPoint toutes les 4 s, en bas de ce fichier) se tait. `?sans=sondecalme` : tout comme avant
+     (« go » : l'ancien battement sur .main, le pouls). `?sondemain=1` : seulement le coût natif d'avant (battement sur .main + pouls), la mesure corrigée de la page gardée —
+     le contrôle A/B du vol. `?pouls=1` : le pouls seul. */
+  var SONDE_AVANT=/[?&]sans=[^&]*sondecalme/.test(location.search)||/[?&]sondemain=1\b/.test(location.search);
+  try{if(/[?&]perfrec=2\b/.test(location.search)&&!/[?&]sans=[^&]*sondenatif/.test(location.search))window.webkit.messageHandlers.ccSonde.postMessage(SONDE_AVANT?'go':'go:fond');}catch(e){}
   var CHAL=null;try{CHAL=(/[?&]chaleur=(\w+)/.exec(location.search)||[])[1]||null;}catch(e){}
+  /* (2026-11-17, banc fiable) LE BATTEMENT : toutes les 10 s, une ligne « CCBANC … » part dans le journal du téléphone (JeuViewController.swift, BancBattement, Debug + CC_QS : NSLog,
+     le côté natif y ajoute th= eco= branché= batterie= autreSon=, et écrit « CCBANC état=muet » si la page se tait 25 s : page morte). Le Mac la lit par `pymobiledevice3 syslog live`. */
+  var bat=function(o){var t='';for(var k in o)t+=k+'='+String(o[k]).replace(/\s+/g,'_')+' ';try{window.webkit.messageHandlers.ccBanc.postMessage(t);}catch(e){}};
+  if(CHAL)setInterval(function(){try{
+    if(CHAL==='vide'){bat({'état':'vide'});return;}
+    var e=typeof window.dbgBancEtat==='function'?window.dbgBancEtat():null;if(!e){bat({'état':'charge'});return;}
+    var fr0=bat.fr==null?e.fr:bat.fr,t0=bat.t||Date.now();bat.fr=e.fr;bat.t=Date.now();
+    var ips=Math.round((e.fr-fr0)*1000/Math.max(1,Date.now()-t0)*10)/10;
+    bat({'état':e.etat,mode:e.mode,carte:e.carte,'météo':e.meteo,moteur:e.moteur,'km/h':e.kmh,ips:ips,ms:e.ms,rendu_ms:Math.round(e.rendu_ms/Math.max(1,(e.fr-fr0))*10)/10,QL:e.ql,DPR:e.dpr,cad:e.cad,zones:e.zones});
+  }catch(x){bat({'état':'erreur',x:String(x&&x.message||x).slice(0,60)});}},10000);
   if(CHAL==='vide'){try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}
     try{document.write('<body style="margin:0;background:#000"><plaintext style="display:none">');}catch(e){} /* tout ce qui suit dans la page devient du texte : aucun script du jeu ne tourne */
     setInterval(function(){try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}},2000);return;}
@@ -45,12 +63,14 @@
       var sp=document.getElementById('splash');if(sp)sp.remove();
       try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}
       /* les réglages d'essai : chaldpr=0.5 (plafond de résolution forcé, repris si le gouverneur le change) · chalrendu=0 (plus aucun dessin 3D : il reste le script) */
-      try{var mD=/[?&]chaldpr=([\d.]+)/.exec(location.search);if(mD&&typeof window.imgRegle==='function'&&Math.abs(curDPR-(+mD[1]))>.02)window.imgRegle({dpr:+mD[1]});}catch(e){}
-      try{if(/[?&]chalrendu=0/.test(location.search)&&!window.__chR){window.__chR=1;try{renderer.render=function(){};}catch(e){}try{composer.render=function(){};}catch(e){}}}catch(e){}
+      try{var mD=/[?&]chaldpr=([\d.]+)/.exec(location.search);if(mD&&typeof window.dbgBancDpr==='function')window.dbgBancDpr(+mD[1]);}catch(e){} /* (17/11) par crochet : curDPR n'est pas visible d'ici. Reposé à chaque tour (une seule fois, build 1195, le plafond se perdait au départ de la course) ; le crochet ne touche à rien si le plafond est déjà le bon */
+      try{if(/[?&]chalrendu=0/.test(location.search)&&!window.__chR&&typeof window.dbgBancSansRendu==='function'){window.__chR=1;window.dbgBancSansRendu();}}catch(e){}
+      try{if(/[?&]chalhud=0/.test(location.search)&&typeof window.dbgBancSansHud==='function')window.dbgBancSansHud(true);}catch(e){}
+      try{var mC=/[?&]carte=(\w+)/.exec(location.search),mM=/[?&]meteo=(\w+)/.exec(location.search);if(mC&&typeof window.dbgBancCarte==='function')window.dbgBancCarte(mC[1],mM?mM[1]:null);}catch(e){} /* (17/11) la même carte et la même météo à chaque portail */
       if(CHAL==='accueil')return;
       try{window.dbgTuto('permis');}catch(e){}
       try{window.dbgImmortel(true);}catch(e){}
-      try{if(/[?&]chalpal=1/.test(location.search))TEST_PAL.on=true;}catch(e){}
+      try{if(/[?&]chalpal=1/.test(location.search)&&typeof window.dbgBancPal==='function')window.dbgBancPal(true);}catch(e){}
       var st=window.dbgState();
       if(!st.started||st.gameOver){chT0=0;chP=0;window.dbgJouer();return;}
       if(!chT0)chT0=Date.now();
@@ -421,12 +441,14 @@
     ' · localStorage cashcarSave '+(function(){try{return localStorage.cashcarSave?'présent':'absent';}catch(e){return 'illisible';}})()+
     ' · langue de l’appareil vue par la page : '+navigator.language+' ['+(navigator.languages||[]).join(',')+'] → jeu en '+document.documentElement.lang);};
   setTimeout(function(){bilan('15 s');},15000);setTimeout(function(){bilan('60 s');},60000);
-  // le pouls : images par seconde, ce qui couvre le milieu de l'écran, l'état du jeu (toutes les 4 s)
+  // le pouls : images par seconde, ce qui couvre le milieu de l'écran, l'état du jeu (toutes les 4 s). (lot sondecalme) Éteint sauf ?pouls=1, ?sondemain=1, ?sans=sondecalme
+  if(SONDE_AVANT||/[?&]pouls=1\b/.test(location.search)){
   var nIm=0;(function f(){nIm++;requestAnimationFrame(f);})();
   setInterval(function(){try{var e=document.elementFromPoint(innerWidth/2,innerHeight/2),d=window.dbgState?window.dbgState():null;
     console.log('[natif] POULS '+Math.round(nIm/4)+' i/s · centre '+(e?(e.id?'#'+e.id:e.tagName)+(e.className&&e.className.baseVal===undefined?'.'+String(e.className).split(' ').join('.'):''):'∅')+
       ' · son ['+CTX.map(function(c){return c.state+(c.__ccVeille?'(veille)':'');}).join(',')+']'+
       ' · erreur '+(window.__loopErr||'—')+' · état '+(d?JSON.stringify(d).slice(0,220):'—'));}catch(err){console.log('[natif] POULS ?',err.message);}nIm=0;},4000);
+  }
   window.ccNatif={bilan:bilan,dehors:dehors,ctx:CTX}; // console Safari (Développement › Simulateur)
   dit('colle native prête',navigator.userAgent);
 })();

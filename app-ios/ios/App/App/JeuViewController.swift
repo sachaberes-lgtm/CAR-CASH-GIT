@@ -2,6 +2,7 @@ import UIKit
 import WebKit
 import Capacitor
 import AVFoundation
+import os
 
 /// CASH CAR — le contrôleur de l'app (posé par SceneDelegate à la place de CAPBridgeViewController).
 /// Le jeu web occupe tout l'écran : barre d'état cachée (Info.plist UIStatusBarHidden + les plugins StatusBar et SystemBars),
@@ -13,6 +14,7 @@ class JeuViewController: CAPBridgeViewController {
     /// qualité, que le jeu calcule au tout début de son script. Un script posé AU DÉBUT DU DOCUMENT donne le modèle exact (« iPhone14,2 ») et l'état d'économie d'énergie avant la première ligne du jeu.
     /// Rien ne sort du téléphone.
     override func webViewConfiguration(for instanceConfiguration: InstanceConfiguration) -> WKWebViewConfiguration {
+        ChronoLancement.note(&ChronoLancement.web) // la vue web va être créée (CAPBridgeViewController.loadView)
         return super.webViewConfiguration(for: instanceConfiguration)
     }
 
@@ -28,10 +30,26 @@ class JeuViewController: CAPBridgeViewController {
         if let q = ProcessInfo.processInfo.environment["CC_QS"], !q.isEmpty, q.range(of: "^[&A-Za-z0-9=._,-]+$", options: .regularExpression) != nil {
             banc = "window.__ccQSsup='\(q)';"
             UIApplication.shared.isIdleTimerDisabled = true
+            if let c = bridge?.webView?.configuration.userContentController { // (17/11) le battement du banc (voir BancBattement)
+                c.removeScriptMessageHandler(forName: BancBattement.nom)
+                c.add(BancBattement.partage, name: BancBattement.nom)
+                BancBattement.partage.demarre(q)
+            }
         }
         #endif
-        let source = "window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);window.__ccAutreSon=\(GardeThermique.autreSon ? 1 : 0);window.__ccAutreSonLu='\(GardeThermique.lancement)';" + banc
+        ChronoLancement.note(&ChronoLancement.prete) // la vue web existe, la page n'a pas encore commencé
+        ChronoLancement.compte(bridge?.webView?.configuration.userContentController) // le numéro de la page dans ce processus (rien en Release)
+        let source = ChronoLancement.source() + "window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);window.__ccAutreSon=\(GardeThermique.autreSon ? 1 : 0);window.__ccAutreSonLu='\(GardeThermique.lancement)';" + banc
         bridge?.webView?.configuration.userContentController.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        // (2026-11-16, qualité · haptique) le pont du TAPTIC PRÉPARÉ (voir HaptiqueNatif), sur le même contrôleur de contenu, pour la vie de la vue
+        if let c = bridge?.webView?.configuration.userContentController {
+            c.removeScriptMessageHandler(forName: HaptiqueNatif.nom) // jamais deux fois le même nom (WebKit lève une exception)
+            c.add(HaptiqueNatif.partage, name: HaptiqueNatif.nom)
+            // (2026-11-17, lot qualité MESURE-RAFALES) la sonde native des rafales : posée toujours, elle ne fait RIEN tant que natif.js ne dit pas « go » (app de mesure `perfrec=2`)
+            c.removeScriptMessageHandler(forName: SondeNatif.nom)
+            c.add(SondeNatif.partage, name: SondeNatif.nom)
+            SondeNatif.partage.attache(bridge?.webView)
+        }
     }
 
     override func capacitorDidLoad() {
@@ -165,8 +183,48 @@ class JeuViewController: CAPBridgeViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         SerpentVue.partage.montre(sur: view.window) // dès que l'écran existe : le serpent tourne pendant que la page lit son script
+        // (2026-11-15, lot natif) l'instant où le serpent natif est à l'écran. Le script du début est déjà posé (capacitorDidLoad passe avant) : l'instant part
+        // donc par deux chemins — un 2e script de début (si le document n'a pas commencé, et pour les rechargements) et une évaluation (s'il a commencé).
+        #if DEBUG // build de mesure seulement (voir ChronoLancement)
+        if ChronoLancement.vue == 0 {
+            ChronoLancement.note(&ChronoLancement.vue)
+            let js = "try{(window.__ccNatifT=window.__ccNatifT||{}).vue=\(Int64(ChronoLancement.vue));}catch(e){}"
+            bridge?.webView?.configuration.userContentController.addUserScript(WKUserScript(source: js, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+            bridge?.webView?.evaluateJavaScript(js, completionHandler: nil)
+        }
+        #endif
     }
     override var preferredScreenEdgesDeferringSystemGestures: UIRectEdge { .all }
+}
+
+/// LE TAPTIC PRÉPARÉ (2026-11-16, qualité · haptique, Sacha : « quand on vient de lancer la boutique et qu'on défile les voitures il n'y a pas les vibrations du scroll au début »).
+/// Le plugin Haptics de Capacitor crée un `UIImpactFeedbackGenerator` NEUF à chaque impact, sans `prepare()`, et le relâche aussitôt : le moteur Taptic part froid à chaque
+/// tic, et les premiers tics d'un défilement se perdent. Ici trois générateurs (léger, moyen, lourd) vivent autant que l'app ; chaque impact est suivi de `prepare()` (le moteur
+/// reste prêt quelques secondes). La page (code/son/curseurs.js, `hap` et `hapPrepare`) envoie par `window.webkit.messageHandlers.ccHaptique.postMessage` :
+/// 'l' / 'm' / 'h' = un impact léger / moyen / lourd (les mêmes forces qu'avec le plugin) ; 'p' = préparer les trois (ouverture de la boutique, doigt posé, puis chaque seconde).
+/// Le fil principal seulement (WebKit y livre les messages). Rien ne sort du téléphone. `?sans=happrepare` (la page) repasse par le plugin, comme avant.
+final class HaptiqueNatif: NSObject, WKScriptMessageHandler {
+    static let partage = HaptiqueNatif()
+    static let nom = "ccHaptique"
+    private lazy var leger = UIImpactFeedbackGenerator(style: .light)
+    private lazy var moyen = UIImpactFeedbackGenerator(style: .medium)
+    private lazy var lourd = UIImpactFeedbackGenerator(style: .heavy)
+
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard message.frameInfo.isMainFrame, let m = message.body as? String else { return }
+        switch m {
+        case "l": frappe(leger)
+        case "m": frappe(moyen)
+        case "h": frappe(lourd)
+        case "p": leger.prepare(); moyen.prepare(); lourd.prepare()
+        default: break
+        }
+    }
+
+    private func frappe(_ g: UIImpactFeedbackGenerator) {
+        g.impactOccurred()
+        g.prepare() // le prochain tic trouve le moteur prêt
+    }
 }
 
 /// La garde de navigation : toute page qui n'est pas celle de l'app (http, https, mailto, tel, App Store…)
@@ -261,6 +319,55 @@ final class GardeHautParleur {
         }
     }
 }
+
+/// LE CHRONO DU LANCEMENT (2026-11-15, lot natif) : la tranche jamais écrite « toucher l'icône → début de la page ». Cinq instants en millisecondes
+/// d'horloge murale (la même horloge que `performance.timeOrigin` de la page) : le début du PROCESSUS (lu au noyau, sysctl sur notre propre pid : ce
+/// qu'on a de plus près du toucher de l'icône), `didFinishLaunching` (AppDelegate), la vue web (juste avant sa création, puis prête) et `viewDidAppear`
+/// (le serpent natif est à l'écran). Ils partent dans la page par le script du début (`window.__ccNatifT`) ; le jeu les écrit sur sa ligne `natif` de la
+/// boîte noire (code/moteur/natif-lancement.js, `?sans=natiflancement` = pas de ligne). Lecture seule : rien ne change dans le lancement, rien ne sort du téléphone.
+/// `prechauffe` : iOS peut créer le processus à l'avance, bien avant le toucher (variable ActivePrewarm) ; processus→vue ne veut alors rien dire, et la
+/// ligne le signale.
+/// `charge` : le numéro de la page dans ce processus, COMPTÉ ICI (CompteChargements : chaque document le demande à son début). 2 et plus = une page
+/// rechargée ou relancée (GardeVue fait `v.load`, que la page voit comme une navigation ordinaire) : les instants ne sont plus ceux de cette page.
+/// BUILD DE MESURE SEULEMENT (contrôle du 15/11) : tout est sous `#if DEBUG`. Le build de mesure (ios-ultime-mesures/compiler.sh) compile en
+/// `-configuration Debug` ; une archive App Store est en Release : ni sysctl, ni injection, ni compteur — il n'en reste que des fonctions vides.
+/// C'est la même borne que CC_QS (le banc de chaleur), ci-dessus.
+#if DEBUG
+enum ChronoLancement {
+    static var lance: Double = 0, web: Double = 0, prete: Double = 0, vue: Double = 0
+    static var chargements = 0
+    static func note(_ t: inout Double) { if t == 0 { t = (Date().timeIntervalSince1970 * 1000).rounded() } }
+    static let processus: Double = {
+        var kp = kinfo_proc()
+        var taille = MemoryLayout<kinfo_proc>.stride
+        var mib: [Int32] = [CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()]
+        guard sysctl(&mib, UInt32(mib.count), &kp, &taille, nil, 0) == 0, taille > 0 else { return 0 }
+        let d = kp.kp_proc.p_un.__p_starttime
+        return (Double(d.tv_sec) * 1000 + Double(d.tv_usec) / 1000).rounded()
+    }()
+    static func source() -> String {
+        let pre = ProcessInfo.processInfo.environment["ActivePrewarm"] == "1" ? 1 : 0
+        return "window.__ccNatifT={proc:\(Int64(processus)),lance:\(Int64(lance)),web:\(Int64(web)),prete:\(Int64(prete)),vue:\(Int64(vue)),prechauffe:\(pre)};"
+            + "try{window.webkit.messageHandlers.ccChargements.postMessage(0).then(function(n){(window.__ccNatifT=window.__ccNatifT||{}).charge=n;});}catch(e){}"
+    }
+    /// Le compteur de pages : à poser sur le contrôleur de contenu que la vue web utilise vraiment (voir poseScriptDebut).
+    static func compte(_ c: WKUserContentController?) { c?.addScriptMessageHandler(CompteChargements(), contentWorld: .page, name: "ccChargements") }
+}
+final class CompteChargements: NSObject, WKScriptMessageHandlerWithReply {
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage, replyHandler: @escaping (Any?, String?) -> Void) {
+        guard message.frameInfo.isMainFrame else { replyHandler(nil, nil); return }
+        ChronoLancement.chargements += 1
+        replyHandler(ChronoLancement.chargements, nil)
+    }
+}
+#else
+enum ChronoLancement {
+    static var lance: Double = 0, web: Double = 0, prete: Double = 0
+    static func note(_ t: inout Double) {}
+    static func source() -> String { "" }
+    static func compte(_ c: WKUserContentController?) {}
+}
+#endif
 
 /// LE SERPENT DE CHARGEMENT, DESSINÉ PAR iOS (2026-11-06, Sacha : « enlève la latence du temps de chargement, le serpent doit toujours être super fluide »).
 /// MESURÉ dans le simulateur iOS (WebKit/Metal, page de test, fil principal bloqué 6 s) : l'animation CSS `steps(48)` du serpent web se FIGE pendant que
@@ -461,6 +568,143 @@ final class GardeThermique {
     }
 }
 
+/// LA SONDE NATIVE DES RAFALES (2026-11-17, lot qualité MESURE-RAFALES — vol 1448, build 120 : en économie d'énergie + téléphone chaud, des rafales où une image sur 3-4
+/// pèse ~115 ms ; le processeur de la PAGE est-il seul ralenti, ou tout le téléphone ?). App de MESURE seulement : natif.js n'envoie « go » que si l'app est construite avec
+/// `perfrec=2` ; sinon rien ne démarre. Une fois par seconde, sur le fil principal de l'APP (pas celui de la page : WebKit tourne dans un autre processus) :
+///  · la pression mémoire du système (DispatchSource : 0 normale · 1 avertissement · 2 critique) ;
+///  · la sentinelle Swift : un travail fixe (200 × 1024 additions sur un tableau gardé, comme celle de la page), chronométré à la microseconde (la page n'a que le ms) ;
+///  · le retard du battement : de combien la minuterie d'une seconde arrive en retard (le fil principal de l'app pris, ou tout le téléphone ralenti).
+/// Dit à la page : `window.__ccSw=[pression, sentinelle µs, retard ms ×10]` et `window.__ccSwN` (le compteur) ; la boîte de vol les range dans M[24-26]. Rien ne sort du téléphone.
+/// (2026-11-18, lot sondecalme) Par défaut tout cela passe sur une file d'ARRIÈRE-PLAN (voir « LA SONDE CALME » plus bas) ; l'ancien battement sur .main ne revient qu'avec
+/// `?sans=sondecalme` ou `?sondemain=1` (natif.js envoie alors « go » au lieu de « go:fond »).
+final class SondeNatif: NSObject, WKScriptMessageHandler {
+    static let partage = SondeNatif()
+    static let nom = "ccSonde"
+    private weak var vue: WKWebView?
+    private var minuteur: DispatchSourceTimer?
+    private var memoire: DispatchSourceMemoryPressure?
+    private var pression = 0
+    private var dernier: UInt64 = 0
+    private var n = 0
+    private var tas = [Int32](repeating: 1, count: 1024)
+    private var puits: Int32 = 0
+
+    func attache(_ v: WKWebView?) { vue = v }
+
+    /* ===== LA SONDE CALME (2026-11-18, lot qualité sondecalme — vol 1118-0416, build 121 : « injouable, beaucoup de freeze ») =====
+       La sentinelle Swift ci-dessous tournait CHAQUE SECONDE sur le fil principal de l'app (49-84 ms en Debug, 160-300 ms en ville) : le fil qui reçoit les images
+       de WKWebView et donne le top des rAF. 80 % des gels « hors boucle » battaient à un nombre entier de secondes. Désormais, par défaut (natif.js envoie « go:fond ») :
+        · la minuterie d'une seconde et la pression mémoire vivent sur une file d'ARRIÈRE-PLAN à elles (série, qos userInitiated : leur travail est de quelques µs) ;
+        · la sentinelle part sur une AUTRE file (série, qos utility), un battement sur 5 seulement, sans retenir la minuterie : elle reste un thermomètre du processeur
+          à 1/5 du prix. Comptée en TEMPS PROCESSEUR du fil (ce qu'elle a vraiment travaillé, sans les attentes d'une file basse), et aussi à l'horloge ;
+        · le fil principal ne reçoit qu'un petit bloc par seconde, chronométré : `attente` = de l'envoi depuis la file à son exécution sur .main (µs) — le nouveau
+          témoin « fil de l'app pris », presque gratuit. Ce bloc passe les valeurs à la page.
+       La page reçoit `window.__ccSw=[pression, sentinelle µs processeur (-1 : pas mesurée cette seconde), retard ms ×10, attente du fil principal µs, sentinelle µs à
+       l'horloge (-1)]`. ⚠ M[25] change donc de sens : ce n'est plus l'horloge sur .main (49 ms au vol 1118-0416) mais le temps processeur sur une file basse.
+       « go » (ancien message : `?sans=sondecalme` ou `?sondemain=1`) fait EXACTEMENT l'ancien battement, sur .main.
+       Banc Mac : outils/banc-sondecalme/banc-fil.sh (la vraie classe, -Onone, un top à 33 ms sur .main). */
+    private let file = DispatchQueue(label: "cashcar.sonde", qos: .userInitiated)
+    private let fileSentinelle = DispatchQueue(label: "cashcar.sonde.sentinelle", qos: .utility)
+    private var tour = 0
+    private var frais: (Int64, Int64) = (-1, -1) /* sur `file` : la dernière sentinelle finie (processeur µs, horloge µs), pas encore envoyée */
+    private var enCours = false /* sur `file` : une sentinelle tourne encore (jamais deux à la fois) */
+
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard message.frameInfo.isMainFrame, minuteur == nil, let corps = message.body as? String else { return }
+        if corps == "go:fond" { demarreFond(); return }
+        guard corps == "go" else { return }
+        let mp = DispatchSource.makeMemoryPressureSource(eventMask: [.normal, .warning, .critical], queue: .main)
+        mp.setEventHandler { [weak self] in
+            guard let s = self, let src = s.memoire else { return }
+            let e = src.data
+            s.pression = e.contains(.critical) ? 2 : (e.contains(.warning) ? 1 : 0)
+        }
+        mp.resume()
+        memoire = mp
+        let t = DispatchSource.makeTimerSource(queue: .main)
+        t.schedule(deadline: .now() + 1, repeating: 1.0, leeway: .milliseconds(1))
+        dernier = DispatchTime.now().uptimeNanoseconds
+        t.setEventHandler { [weak self] in self?.bat() }
+        t.resume()
+        minuteur = t
+    }
+
+    /// le travail fixe : aucune allocation, le résultat gardé (sinon le compilateur l'efface)
+    private func sentinelle() -> UInt64 {
+        let t0 = DispatchTime.now().uptimeNanoseconds
+        var s: Int32 = puits
+        tas.withUnsafeMutableBufferPointer { b in
+            for k in 0..<200 {
+                for i in 0..<1024 { s = s &+ b[i] &+ Int32(i) }
+                b[k & 1023] = s & 1
+            }
+        }
+        puits = s
+        return DispatchTime.now().uptimeNanoseconds - t0
+    }
+
+    private func bat() {
+        let maintenant = DispatchTime.now().uptimeNanoseconds
+        let ecart = Int64(bitPattern: maintenant &- dernier) - 1_000_000_000 // ns de retard sur la seconde attendue
+        dernier = maintenant
+        let us = sentinelle() / 1000
+        n += 1
+        // ms ×10. (contrôle du lot) Un battement EN AVANCE vaut 0 (pas de retard), plus -1 qui l'aurait jeté et biaisé la moyenne vers le haut ;
+        // un écart de plus de 2 s (le premier battement après l'arrière-plan : la minuterie était suspendue) vaut -1, inconnu, jeté par l'analyse.
+        let retard = ecart > 2_000_000_000 ? Int64(-1) : max(Int64(0), min(Int64(99_999), ecart / 100_000))
+        vue?.evaluateJavaScript("window.__ccSw=[\(pression),\(us),\(retard)];window.__ccSwN=\(n);", completionHandler: nil)
+    }
+
+    /// (lot sondecalme) le battement sur la file d'arrière-plan : rien de lourd ne touche plus le fil principal de l'app
+    private func demarreFond() {
+        let mp = DispatchSource.makeMemoryPressureSource(eventMask: [.normal, .warning, .critical], queue: file)
+        mp.setEventHandler { [weak self] in
+            guard let s = self, let src = s.memoire else { return }
+            let e = src.data
+            s.pression = e.contains(.critical) ? 2 : (e.contains(.warning) ? 1 : 0)
+        }
+        memoire = mp
+        let t = DispatchSource.makeTimerSource(queue: file)
+        t.schedule(deadline: .now() + 1, repeating: 1.0, leeway: .milliseconds(1))
+        t.setEventHandler { [weak self] in self?.batFond() }
+        minuteur = t
+        file.async { [weak self] in /* `dernier` n'est touché que sur la file : posé avant le premier battement (la file est en série) */
+            guard let s = self else { return }
+            s.dernier = DispatchTime.now().uptimeNanoseconds
+            mp.resume()
+            t.resume()
+        }
+    }
+
+    /// sur `file` seulement
+    private func batFond() {
+        let maintenant = DispatchTime.now().uptimeNanoseconds
+        let ecart = Int64(bitPattern: maintenant &- dernier) - 1_000_000_000
+        dernier = maintenant
+        tour += 1
+        let (us, mur) = frais
+        frais = (-1, -1)
+        if tour % 5 == 1 && !enCours { /* un battement sur 5 (le 1er, le 6e…) : la sentinelle part ailleurs, sa mesure voyage avec le battement suivant */
+            enCours = true
+            fileSentinelle.async { [weak self] in
+                guard let s = self else { return }
+                let c0 = clock_gettime_nsec_np(CLOCK_THREAD_CPUTIME_ID)
+                let m = s.sentinelle()
+                let c = clock_gettime_nsec_np(CLOCK_THREAD_CPUTIME_ID) &- c0
+                s.file.async { s.frais = (Int64(c / 1000), Int64(m / 1000)); s.enCours = false }
+            }
+        }
+        n += 1
+        let retard = ecart > 2_000_000_000 ? Int64(-1) : max(Int64(0), min(Int64(99_999), ecart / 100_000))
+        let p = pression, k = n
+        let envoi = DispatchTime.now().uptimeNanoseconds
+        DispatchQueue.main.async { [weak self] in
+            let attente = Int64((DispatchTime.now().uptimeNanoseconds &- envoi) / 1000) /* µs : le fil principal de l'app était-il pris ? */
+            self?.vue?.evaluateJavaScript("window.__ccSw=[\(p),\(us),\(retard),\(min(attente, Int64(9_999_999))),\(mur)];window.__ccSwN=\(k);", completionHandler: nil)
+        }
+    }
+}
+
 /// LA VUE WEB MORTE (2026-11-12, ios-ultime : filet natif). Quand iOS tue le processus web (mémoire), Capacitor appelle `webView.reload()` tout de suite
 /// (WebViewDelegationHandler.swift:164) ; si ce rechargement n'aboutit pas (la mort a frappé pendant le premier chargement : `webView.url` est nil, `reload()` ne fait rien),
 /// l'écran reste noir pour toujours : aucun JS n'existe plus pour le dire. Toutes les 5 s, app au premier plan, on pose une question triviale à la page ; deux échecs de suite
@@ -493,3 +737,45 @@ final class GardeVue {
         }
     }
 }
+
+#if DEBUG
+/// LE BATTEMENT DU BANC DE CHALEUR (2026-11-17, banc fiable) — build Debug lancé avec CC_QS SEULEMENT (rien dans une app normale ni dans l'App Store).
+/// La page (natif.js) envoie toutes les 10 s « état=course carte=… ips=… QL=… » par `window.webkit.messageHandlers.ccBanc` ; on y ajoute ce que seul iOS sait
+/// (état thermique 0-3, économie d'énergie, branché, batterie %, autre son) et on l'écrit par os_log (public) : le Mac le lit dans `pymobiledevice3 syslog live` (grep CCBANC).
+/// Si la page se tait 25 s (processus de la page mort, page figée), « CCBANC état=muet » part quand même, du côté natif.
+final class BancBattement: NSObject, WKScriptMessageHandler {
+    static let partage = BancBattement()
+    static let nom = "ccBanc"
+    private var dernier = Date()
+    private var minuteur: Timer?
+    private var qs = ""
+
+    func demarre(_ q: String) {
+        qs = q
+        UIDevice.current.isBatteryMonitoringEnabled = true
+        ecrit("CCBANC état=lancement qs=\(q) \(natif())")
+        minuteur?.invalidate()
+        minuteur = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
+            guard let s = self else { return }
+            let age = Date().timeIntervalSince(s.dernier)
+            if age > 25 { s.ecrit("CCBANC état=muet silence_s=\(Int(age)) \(s.natif())") }
+        }
+    }
+
+    /// os_log PUBLIC : NSLog sort en « <private> » dans le journal lu par le câble (essai du 17/11, build 1192)
+    private func ecrit(_ t: String) { os_log("%{public}@", log: .default, type: .default, t) }
+
+    private func natif() -> String {
+        let p = ProcessInfo.processInfo, d = UIDevice.current
+        let br = d.batteryState == .charging || d.batteryState == .full ? 1 : 0
+        let bt = d.batteryLevel < 0 ? -1 : Int((d.batteryLevel * 100).rounded())
+        return "th=\(p.thermalState.rawValue) eco=\(p.isLowPowerModeEnabled ? 1 : 0) branché=\(br) batterie=\(bt) autreSon=\(AVAudioSession.sharedInstance().isOtherAudioPlaying ? 1 : 0) lum=\(Int((UIScreen.main.brightness * 100).rounded()))"
+    }
+
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard message.frameInfo.isMainFrame, let m = message.body as? String else { return }
+        dernier = Date()
+        ecrit("CCBANC \(String(m.prefix(400)))\(natif())")
+    }
+}
+#endif

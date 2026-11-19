@@ -63,7 +63,7 @@ function* jadeBatit(seed,cle){
     if(hi>-1e9&&yt>lo-45&&yt-Hs<hi+70){const tU=Math.floor((lo-45)/VX)*VX,tA=Math.ceil((hi+70+Hs)/VX)*VX,okU=tU-Hs>=mer,okA=tA<hi+760;
       if(okU&&(!okA||yt-tU<=tA-yt))return tU;if(okA)return tA;return null;}
     return yt;};
-  const CVOL=JADE.deco3?jadeCouloirVol():null; /* (2026-11-13) LE COULOIR DU VOL des raccourcis : rien ne s'y pose */
+  const CVOL=JADE.deco3?(JADE_PBT?(yield* jadeCouloirVolG()):jadeCouloirVol()):null; /* (2026-11-13) LE COULOIR DU VOL des raccourcis : rien ne s'y pose */
   const tente=(cx,cz,r,yt,vert,dR,libre,inv,yRef,forme,tF)=>{ /* tF (2026-11-14) : le gabarit déjà choisi */ /* forme (2026-11-13) : 1 une île, 2 un massif (JADE_ILE) */ /* inv : la chance qu'une montagne qui flotte TOUT ENTIÈRE au-dessus de yRef + 30 m soit posée RENVERSÉE */
     const t=tF!=null?tF:FC?FC.choix(r,forme===2?'massif':forme?'ile':'rang',cx,cz):forme?jadeIleDe(r,forme===2):jadeTplDe(r);if(t<0)return false;const sc=FC?FC.echelle(t,cx,cz):1,T9=G.p[t],rm=T9.rmax*VX*sc,Hs=T9.yTop*VX*sc;cx=snap(cx);cz=snap(cz); /* sc (2026-11-14, optimiseur) : une petite île dont la jumelle est à moins de 260 m change d'échelle (jade-formes.js, echelle) */
     if(!libre)for(const z of zonesNu)if(Math.hypot(cx-z[0],cz-z[1])<z[2]+rm)return false;
@@ -131,7 +131,7 @@ function* jadeBatit(seed,cle){
    for(let i=0;i<NP;i+=pasC){if(performance.now()>JF.lim)yield;const cx0=Math.round(pts[i].x/S),cz0=Math.round(pts[i].z/S),rr=Math.ceil(Rmax/S);
      for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const gx=(cx0+dx)*S,gz=(cz0+dz)*S,d=Math.hypot(gx-pts[i].x,gz-pts[i].z);if(d>Rmax)continue;
        const k=(cx0+dx)+','+(cz0+dz),o=m.get(k);if(!o||d<o[0])m.set(k,[d,i,gx,gz]);}}
-   for(const v of m.values()){if(v[0]<700||jr()>.55*MOB*(DZ?DZ.loin:1))continue;
+   for(const v of m.values()){if(JADE_PBT&&performance.now()>JF.lim)yield; /* (lot JADEPREBATI) le lointain aussi rend la main à l'échéance : il tenait 54 ms d'un bloc au banc ×10 (touffe → choix des formes) */if(v[0]<700||jr()>.55*MOB*(DZ?DZ.loin:1))continue;
      const fo9=JADE.deco3?(jr()<.12?2:jr()<.42?1:0):0; /* (Alléluia) au loin : un massif sur huit, une île sur trois — la taille change */
      touffe(v[2]+(jr()-.5)*S*.7,v[3]+(jr()-.5)*S*.7,fo9===2?64+jr()*24:20+jr()*36,pts[v[1]].y-leve(v[1]),-380,720, /* (sans mer) le lointain s'étage plus haut et plus bas : des îles au-dessus de l'horizon, d'autres loin dessous */fo9===2?1:1+((jr()*4)|0),.85,v[0],.5,fo9); /* (L'ENVERS) la moitié de celles d'en haut, renversées */}}
   const ARB=[];
@@ -252,11 +252,12 @@ function* jadeBatit(seed,cle){
   if(FIN.on)for(let t=0;t<G.p.length;t++)if(G.p[t]&&G.p[t].fin)finFamille(t);
   FIN.stamp=new Int32Array(PIL.length);FIN.was=new Uint8Array(PIL.length);FIN.gen=0;
   {const enArb=function(a){const o=qDe(a.x,a.z);ext(o,a.x,a.y-80,a.y+25,a.z,20);return {q:o,m:Mt.makeTranslation(a.x,a.y,a.z).toArray(),j:a.j,pq:a.pq};};
-   famille(G.arbreQ,M9.arb,ARB.map(enArb),0,2);
-   famille(G.arbreQ,M9.arb,CRI.map(enArb),0,3);} /* (2026-11-05) les cristaux : leur propre famille, dessinée jusqu'à la bande 3 (1 300 m) et fondue en trame dans le shader (900 → 1 250 m) — ils apparaissaient d'un coup à 900 m, 25 m de haut, « de nulle part » */
+   if(JADE_PBT){if(performance.now()>JF.lim)yield;const a9=ARB.map(enArb);if(performance.now()>JF.lim)yield;famille(G.arbreQ,M9.arb,a9,0,2);if(performance.now()>JF.lim)yield;const c9=CRI.map(enArb);if(performance.now()>JF.lim)yield;famille(G.arbreQ,M9.arb,c9,0,3);} /* (lot JADEPREBATI) les arbres et les cristaux : 59 ms d'un bloc au banc ×10 — mêmes appels, dans le même ordre, l'échéance entre deux */
+   else{famille(G.arbreQ,M9.arb,ARB.map(enArb),0,2);
+   famille(G.arbreQ,M9.arb,CRI.map(enArb),0,3);}} /* (2026-11-05) les cristaux : leur propre famille, dessinée jusqu'à la bande 3 (1 300 m) et fondue en trame dans le shader (900 → 1 250 m) — ils apparaissaient d'un coup à 900 m, 25 m de haut, « de nulle part » */
   // (v16, « évite les clichés en mode Chine ») plus de pagodes ni de pavillons sur les cimes
   JADE.quart=[];for(const o of quart.values())JADE.quart[o.k]={c:new THREE.Vector3((o.x0+o.x1)/2,(o.y0+o.y1)/2,(o.z0+o.z1)/2),r:Math.hypot(o.x1-o.x0,o.y1-o.y0,o.z1-o.z0)/2+10,b:[o.x0,o.x1,o.y0,o.y1,o.z0,o.z1]};
-  if(JADE.av)jadeAvBatit(root,G,M9,FC); /* (2026-11-16, JADE, LES VERBES) les lianes, les rivières, les pierres qui passent */
+  if(JADE.av){if(JADE_OPT&&performance.now()>JF.lim)yield; /* (2026-11-17) l'échéance de la tranche avant les maillages des verbes */jadeAvBatit(root,G,M9,FC);} /* (2026-11-16, JADE, LES VERBES) les lianes, les rivières, les pierres qui passent */
   if(CHU.length){const m=new THREE.Mesh(jadeChutes(CHU),JADE_CHUTE_M);m.userData.jeter=true;m.frustumCulled=false;m.renderOrder=5;root.add(m);}
   {const RY=[],pasY=Math.max(1,Math.round(170/(L/(NP-1))));for(let i=0;i<NP;i+=pasY){if(JADE_SOBRE||jr()>.55*(DZ?DZ.ray:1))continue;const t9=T[i],hl=Math.hypot(t9.x,t9.z)||1,px=-t9.z/hl,pz=t9.x/hl,sg=jr()<.5?-1:1,lat=60+Math.pow(jr(),1.3)*650;
      RY.push([pts[i].x+px*sg*lat,pts[i].y+40+jr()*160,pts[i].z+pz*sg*lat,22+jr()*55,650+jr()*600,jr(),.03+jr()*.05]);}
@@ -368,3 +369,13 @@ function jadeChuteOrig(c){c.orig=[];
    dauphins sont retirés du code. JEAU reste, NEUTRE : le vol, la caméra, le son, les missions et les portails le lisent — la caisse n'est jamais dans l'eau. */
 const JEAU={dans:false,wB:0,k:0,f:0,t:0,prof:0,n:0,rico:0,vRef:0,cd:0,syF:NaN,y0:0,sorti:9,cap:new THREE.Vector3(0,0,1)};
 function jadeVide(y){return y<trackMinY-120;} // le plongeon fatal : 120 m sous le point le plus BAS de la piste (au-dessus de l'abîme, comme ailleurs)
+/* (banc, 2026-11-17, lot JADEPREBATI) dbgJadeEmpreinte() : l'empreinte de la vallée BÂTIE (jadeBatit), au bit près — les familles (matrices, teintes, quartiers), les quartiers,
+   et les sommets / index de chaque maillage de la carte (lianes, eau, chutes, rayons, nuages…). Deux vallées de même graine, bâties en tranches fines ou d'un trait : même empreinte. */
+window.dbgJadeEmpreinte=function(){if(!JADE.root)return null;let h=0x811c9dc5,n=0;
+  const mv=function(A){if(!A)return;const u=new Uint32Array(A.buffer,A.byteOffset,A.byteLength>>2);for(let i=0;i<u.length;i++)h=Math.imul(h^u[i],16777619);n+=u.length;};
+  const mi=function(x){h=Math.imul(h^(x|0),16777619);};
+  for(const F of JADE.fam){mi(F.n);mi(F.b0);mi(F.b1);mi(F.tri);mv(F.M);mv(F.J);if(F.rK){mv(F.rK);mv(F.rA);mv(F.rB);}}
+  for(const q of JADE.quart||[])if(q)mv(new Float64Array(q.b));
+  mi(JADE.posees);mi(JADE.rase);mi(JADE.root.children.length);
+  JADE.root.traverse(function(o){if(!o.geometry||o.isInstancedMesh)return;const g=o.geometry;mv(g.attributes.position&&g.attributes.position.array);if(g.index)mv(g.index.array);});
+  return {h:(h>>>0).toString(16),mots:n,familles:JADE.fam.length,enfants:JADE.root.children.length,cle:JADE.cle,nVol:JADE.nVol};};

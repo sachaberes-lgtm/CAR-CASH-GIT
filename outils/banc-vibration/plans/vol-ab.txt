@@ -1,0 +1,7 @@
+vol.cjs --carte nuages --v 480 --imp 45 --saut 1.5 --nit 1 --dt r60,r30,tph,alt --n 480 --tag long-avant --q sans=camvolpas,posemontee,champpas
+vol.cjs --carte nuages --v 480 --imp 45 --saut 1.5 --nit 1 --dt r60,r30,tph,alt --n 480 --tag long-apres
+vol.cjs --carte nuages --dt r60,r30,tph --n 480 --tag court-avant --q sans=camvolpas,posemontee,champpas
+vol.cjs --carte nuages --dt r60,r30,tph --n 480 --tag court-apres
+vol.cjs --carte jade --fmt debout --dt r60,tph --n 480 --nit 2 --tag jade-avant --q sans=camvolpas,posemontee,champpas
+vol.cjs --carte jade --fmt debout --dt r60,tph --n 480 --nit 2 --tag jade-apres
+vol.cjs --carte nuages --dt r30,tph --n 480 --tag court-douce --q plus=posedouce

@@ -11,7 +11,7 @@ function satPassage(s9){
 }
 function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débris autour de la piste d'orbite (et les retire partout ailleurs)
   const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;LVL.az=planeteCap();soleilPose();try{nuagesTerre();}catch(e){}} /* (2026-11-11) la planète est posée ICI, une fois : elle ne bouge plus du niveau (orbite-saturne.js) */ // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
-  for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;ROCHES.count=0;ROCHES.visible=false;ROCHE_COL.v++;if(ORB.durs)ORB.durs.length=0;else ORB.durs=[];geantsVide(); /* (2026-11-13) les géants de la route d'avant (orbite-geants.js) */
+  for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;ROCHES.count=0;ROCHES.visible=false;ROCHE_COL.v++;if(ORB.durs)ORB.durs.length=0;else ORB.durs=[];ORB.amas=null;geantsVide(); /* (2026-11-13) les géants de la route d'avant (orbite-geants.js) */
   if(!ORB.actif)return;
   const t00=performance.now();
   const r=mulberry32(seed^0x0A57E401); // flux DÉRIVÉ : la piste en aval ne bouge pas
@@ -24,6 +24,10 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
   const libre=(x,y,z,Rl)=>{const rr=Math.ceil(Rl/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB),R2=Rl*Rl;
     for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const a=grille.get(cle(bx+dx,bz+dz));if(!a)continue;
       for(let j=0;j<a.length;j++){const p=pts[a[j]],ex=p.x-x,ey=p.y-y,ez=p.z-z;if(ex*ex+ey*ey+ez*ez<R2)return false;}}
+    return true;};
+  const libreH=(x,z,Rl)=>{const rr=Math.ceil(Rl/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB),R2=Rl*Rl; /* (2026-11-18, L'ESPACE SANS GÉANTS) libre EN PLAN : à Rl de toute portion de route, à n'importe quelle hauteur (les amas) */
+    for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const a=grille.get(cle(bx+dx,bz+dz));if(!a)continue;
+      for(let j=0;j<a.length;j++){const p=pts[a[j]],ex=p.x-x,ez=p.z-z;if(ex*ex+ez*ez<R2)return false;}}
     return true;};
   const cnt=[0,0,0];
   const pose=(k,x,y,z,rad,spd,vr,q)=>{const im=SATS[k],i=cnt[k];if(i>=SAT_MAX[k])return -1;cnt[k]++;
@@ -38,7 +42,20 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
   /* (2026-11-10, Sacha : « mars rien. jupiter des roches spatiales immobiles ») CE QUI PEUPLE L'ORBITE dépend de la planète du niveau (`astre.peuple`, voir PLANETES) :
      'satellites' (la Terre : tout ce qui suit, inchangé) · 'vide' (Mars : rien du tout) · 'roches' (Jupiter : des roches immobiles, voir orbite-roches.js). */
   {const peuple=(c.astre&&c.astre.peuple)||'satellites';ORB.peuple=peuple;
-   geantsPose(seed,libre);const nM=geantsRoches(rochesModules(r)); /* (2026-11-13, LES GÉANTS) le genre de chaque géant d'abord (lune, épave, comète, anneaux…), puis les astéroïdes, puis le noyau de la comète et les rochers de Mars */ /* (v5.4) les roches des modules des astéroïdes, sur toutes les planètes */if(peuple!=='satellites'){if(peuple==='roches')rochesPose({r:r,libre:libre,dS:dS,n0:nM});ORB.ms=Math.round(performance.now()-t00);return;}}
+   geantsPose(seed,libre);
+   if(ESP_SANS_GEANTS){ /* (2026-11-18, L'ESPACE SANS GÉANTS : voir ESP_SANS_GEANTS, orbite-modules.js) ni astéroïde géant ni rocher de géant ; la Terre : des amas de satellites (plus bas),
+     Mars et Saturne : des amas de météorites (rochesPose, c.amas) — Mars n'est plus vide : sans ses géants, il ne lui restait rien */
+     if(peuple!=='satellites'){rochesPose({r:r,libre:libre,libreH:libreH,dS:dS,n0:0,amas:1});ORB.ms=Math.round(performance.now()-t00);return;}}
+   else{const nM=geantsRoches(rochesModules(r)); /* (2026-11-13, LES GÉANTS) le genre de chaque géant d'abord (lune, épave, comète, anneaux…), puis les astéroïdes, puis le noyau de la comète et les rochers de Mars */ /* (v5.4) les roches des modules des astéroïdes, sur toutes les planètes */if(peuple!=='satellites'){if(peuple==='roches')rochesPose({r:r,libre:libre,dS:dS,n0:nM});ORB.ms=Math.round(performance.now()-t00);return;}}}
+  if(ESP_SANS_GEANTS){ /* (2026-11-18, L'ESPACE SANS GÉANTS) LA TERRE : QUELQUES AMAS DE SATELLITES (espAmasLieux, orbite-roches.js) à la place de l'épave du mur, des engins du bord et des
+     portes, des passants, du champ, des trains et des anneaux de débris — un Starlink (deux, quatre fois sur dix), deux ou trois gros débris, quatre à sept éclats ; rien n'est dur */
+    ORB.amas=[];for(const C of espAmasLieux(r,libreH)){let m=0;
+      const met=function(k,rad,ext,spd,vr){const P=espAmasPoint(r,C,ext,libreH);if(P&&pose(k,P[0],P[1],P[2],rad,spd,vr)>=0)m++;};
+      {const rad=11+r()*7;met(0,rad,rad*1.3,.02+r()*.06,r()<.5?0:1);}if(r()<.4){const rad=8+r()*5;met(0,rad,rad*1.3,.03+r()*.08,r()<.5?0:1);}
+      for(let j=0,nj=2+((r()*2)|0);j<nj;j++){const rad=4+r()*4;met(1,rad,rad*1.3,.06+r()*.2,tire(DEB_P));}
+      for(let j=0,nj=4+((r()*4)|0);j<nj;j++){const rad=1.2+r()*2;met(2,rad,rad*2.5,.25+r()*.8,tire(ECL_P));}
+      ORB.amas.push({s:C.s,n:m});}}
+  else{
   /* 0. L'ÉPAVE AU CŒUR DU MUR (2026-11-11, LA TORSION EN MODULES : « une raison dans le décor ») : là où la dalle se couche (le mur, le couloir de lancement), un grand satellite mort dérive au CENTRE du virage,
      dans son nuage de débris — la route en fait le tour, on le garde au-dessus de la tête. `libre` le tient loin de toute autre portion de piste. */
   for(const w of torsMurs()){if(w.R<ROAD_HALF+70||!libre(w.cx,w.cy,w.cz,ROAD_HALF+46))continue;
@@ -120,6 +137,7 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
      const x=cx+e1.x*cs*rr+e2.x*sn*rr+nz.x*hh,y=cy+e1.y*cs*rr+e2.y*sn*rr+nz.y*hh,z=cz+e1.z*cs*rr+e2.z*sn*rr+nz.z*hh;
      if(!libre(x,y,z,rad*1.3+ROAD_HALF+90))continue;
      pose(2,x,y,z,rad,.12+r()*.8,tire(ECL_P));}}
+  } /* (fin de la population d'avant : `?plus=geants`) */
   for(let k=0;k<SATS.length;k++){const im=SATS[k],A=im.geometry.attributes;im.count=cnt[k];
     im.instanceMatrix.needsUpdate=true;A.aRot.needsUpdate=true;A.aVar.needsUpdate=true;A.aMov.needsUpdate=true;A.aTr.needsUpdate=true;}
   GLINT.count=cnt[0];

@@ -1,0 +1,5 @@
+vol.cjs --carte nuages --v 480 --imp 45 --saut 1.5 --nit 1 --immortel 1 --dt tph,alt,r30 --n 480 --tag long2-avant --q sans=camvolpas,posemontee,champpas
+vol.cjs --carte nuages --v 480 --imp 45 --saut 1.5 --nit 1 --immortel 1 --dt tph,alt,r30 --n 480 --tag long2-apres
+vol.cjs --carte jade --fmt debout --immortel 1 --dt tph,r60 --n 480 --nit 2 --tag jade2-avant --q sans=camvolpas,posemontee,champpas
+vol.cjs --carte jade --fmt debout --immortel 1 --dt tph,r60 --n 480 --nit 2 --tag jade2-apres
+vol.cjs --carte nuages --immortel 1 --dt r30,tph --n 480 --tag court2-apres

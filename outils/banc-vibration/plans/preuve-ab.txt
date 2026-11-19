@@ -1,0 +1,4 @@
+nuages-avant --carte nuages --prog r30:600,r60:600,tel:600 --moteur 10 --saut 4 --imp 16 --q sans=hoquetpas,capimage
+nuages-apres --carte nuages --prog r30:600,r60:600,tel:600 --moteur 10 --saut 4 --imp 16
+jade-avant --carte jade --prog r30:600,r60:600,tel:600 --moteur 10 --saut 4 --imp 16 --q sans=hoquetpas,capimage
+jade-apres --carte jade --prog r30:600,r60:600,tel:600 --moteur 10 --saut 4 --imp 16

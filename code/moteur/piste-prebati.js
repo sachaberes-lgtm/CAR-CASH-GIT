@@ -305,19 +305,20 @@ function prebEchange(W,entrees){ // l'état de la piste vivante ⇄ celui du tra
 function prebObj(O,S){const ks=new Set(Object.keys(O).concat(Object.keys(S)));for(const k of ks){const a=k in O,b=k in S,x=O[k];if(b)O[k]=S[k];else delete O[k];if(a)S[k]=x;else delete S[k];}} // deux états d'un module ⇄ (toutes ses clés)
 function prebAvec(W,fn){prebEchange(W,true);try{return fn();}finally{prebEchange(W,true);}} // une tranche : le travail sur l'état de W, puis la piste vivante revient
 let PISTE_TRANCHE=Infinity; // (2026-11-07) ms par tranche quand le chargement bâtit la 1re piste sous le serpent (chargeTranches) ; Infinity : la route d'un trait, partout ailleurs
-function* pisteDirecteG(seed){const W=pisteTravail(null),g=pisteRoute(seed,W);let fini=false; // la même route que pisteDirecte, rendue en tranches de PISTE_TRANCHE ms : la piste vivante revient entre deux tranches (prebAvec)
+function* pisteDirecteG(seed){const W=pisteTravail(null);if(RV.on&&started&&!gameOver)rvRef(null,W,seed,'direct');const g=pisteRoute(seed,W);let fini=false; // la même route que pisteDirecte, rendue en tranches de PISTE_TRANCHE ms : la piste vivante revient entre deux tranches (prebAvec) · (lot portv) RV : la même d'un trait, pour comparer
   while(!fini){prebAvec(W,function(){const t9=performance.now();do{fini=g.next().done;}while(!fini&&performance.now()-t9<PISTE_TRANCHE);});if(!fini)yield;}
   return W;}
 function pisteDirecte(seed){const W=pisteTravail(null),g=pisteRoute(seed,W);prebAvec(W,function(){while(!g.next().done);});return W;} // la route d'un trait (tout newTrack qui n'a rien de bâti d'avance)
 function pisteInstalle(W){ // la route bâtie (d'un trait ou d'avance) devient LA route : l'ancienne sort de la scène, la neuve y entre dans l'ordre où elle a été bâtie
   sceneRetire(trackMeshes); // (chasse aux gels) d'un seul passage (voir sceneRetire)
-  for(const m of trackMeshes){if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)MAT_SURSIS.add(m.material);} // (perf) matières en sursis : voir MAT_SURSIS
+  for(const m of trackMeshes){if(m.geometry){if(PVE.dedans)PVE.lib.push(m.geometry);else m.geometry.dispose();}if(m.material&&m.material.dispose)MAT_SURSIS.add(m.material);} // (perf) matières en sursis : voir MAT_SURSIS · (lot portv) au passage étalé, les géométries d'avant sont rendues APRÈS (pveLib)
   matSursisN=3;trackMeshes.length=0;
   prebEchange(W,false);
   for(let i=0;i<trackMeshes.length;i++)scene.add(trackMeshes[i]);
   ROAD_U.uAcc.value.copy(W.accC); // le bitume mouillé reflète l'accent de la zone
   if(W.bords)bordsTick(); // (bords-route) la 1re image du rail est déjà à la bonne couleur
   ligneRaz(); // LA LIGNE PARFAITE : ses pads et ses fruits se posent EN COURSE (ligneTick)
+  if(W.rv)rvInstalle(W); /* (lot portv) RV : la route installée = la même d'un trait ? */
   PREB.tNeuf=performance.now();}
 function prebCible(){ // la piste d'en face, quand on sait la bâtir d'avance : le mode classique en course (la map que le portail a tirée d'avance)
   if(!SF.on||PARK.on||TUTO.on||BALADE||JADE_JEU)return null;
@@ -331,7 +332,7 @@ function* prebJade(seed,W){ // LA JADE d'avance (voir buildJade, LA CARTE GARDÉ
   if(!JADE.geos){if(!GAB_FOND.it)GAB_FOND.it=jadeGabaritsG(); // les GABARITS de la session, s'ils ne sont pas encore taillés (voir LES GABARITS TAILLÉS AU MENU) : là où ils en sont
     for(;;){const t9=performance.now(),r=GAB_FOND.it.next();GAB_FOND.ms+=performance.now()-t9;GAB_FOND.n++;if(r.done){GAB_FOND.it=null;GAB_FOND.fini=true;r.value.ms=Math.round(GAB_FOND.ms);JADE.geos=r.value;break;}yield;}}
   const vivant=jadeEtatLit();jadeEtatVide();W.jade=vivant; // l'état de la carte : vide, comme buildJade le pose avant de bâtir — l'état vivant attend dans W
-  const cle=jadeCle(seed),it=jadeBatit(seed,cle);yield;
+  const cle=PORTV_ON?(yield* jadeCleG(seed)):jadeCle(seed),it=jadeBatit(seed,cle);yield; /* (lot portv) la clé en tranches (jadeCleG : le même hachage) */
   for(;;){const r=it.next();if(r.done)break;yield;} // jadeBatit rend la main à l'échéance JF.lim (celle de la tranche)
   W.jadeFait=true;}
 function* prebDecorG(W,nom,O,gen){ // UN DÉCOR d'avance : gen (son build, en générateur) sur la route fantôme — son module O échangé EN ENTIER le temps d'une
@@ -380,19 +381,20 @@ function prebPart(c){ // on commence la piste d'en face
   PREB.dep=!!c.dep;PREB.ctx=c.dep?c.st:null;
   {const g9=+((/[?&]pistegraine=(\d+)/.exec(location.search)||[])[1])||0;if(g9)PREB.sd=g9;} /* (banc) ?pistegraine=n : la 1re piste aussi (comme newTrack0) — (2026-11-05, passe perf mobile 2, T0) ET toutes les pistes d'avance des portails (avant : seule la 1re ; les suivantes tiraient un hasard, donc des compteurs non reproductibles). Sans le paramètre : inchangé. */
   PREB.fait=false;PREB.prend=false;PREB.t0=performance.now();PREB.tFin=0;PREB.cpu=0;PREB.img=0;PREB.jadeM=null;
-  PREB.g=prebJob(PREB.sd,W);}
+  PREB.g=prebJob(PREB.sd,W);PREB.mem=rmPrend(); /* (lot portv, 2e tour) la mémoire des routes avant ce travail : remise s'il est annulé (route-memoire.js) */if(RV.on)rvRef(c,W,PREB.sd,'avance');} /* (lot portv) RV : la même route d'un trait, aux mêmes entrées (mémoire des grottes comprise), pour la comparer à celle bâtie en tranches */
 function prebTravaille(lim){ // une tranche de travail, jusqu'à l'échéance lim (Infinity : jusqu'au bout)
   const W=PREB.W,g=PREB.g,t0=performance.now();let r=null;
   try{prebAvec(W,function(){const l0=JF.lim;JF.lim=lim;try{if(GV_HORL){let t9=performance.now();do{r=g.next();const t1=performance.now(),d9=t1-t9;t9=t1;if(d9>20&&lim!==Infinity){const P9=PREB.pas||(PREB.pas=[]);P9.push([Math.round(d9),PREB.carte,PREB.img]);if(P9.length>12)P9.shift();}}while(!r.done&&r.value!=='attente'&&t9<lim);} /* (2026-11-12, grande vitesse) UNE horloge par pas au lieu de trois (`?sans=gvhorloge` : trois) — la boucle et ses performance.now() faisaient ~1/3 du pré-bâti de la grotte au profil */
       else do{const t9=performance.now();r=g.next();const d9=performance.now()-t9;if(d9>20&&lim!==Infinity){const P9=PREB.pas||(PREB.pas=[]);P9.push([Math.round(d9),PREB.carte,PREB.img]);if(P9.length>12)P9.shift();}}while(!r.done&&r.value!=='attente'&&performance.now()<lim);}finally{JF.lim=l0;} /* PREB.pas (banc) : les pas de plus de 20 ms */});}
   catch(e){console.warn('pré-bâti',e);window.__prebErr=e;try{window.__ccNote('panne','pré-bâti · '+(e&&e.message||e));}catch(_){}PREB.echecs++;prebAnnule('erreur');return;}
   PREB.cpu+=performance.now()-t0;PREB.img++;
-  if(r&&r.done){PREB.fait=true;PREB.tFin=performance.now();
+  if(r&&r.done){PREB.fait=true;PREB.tFin=performance.now();if(W.rv)W.rv.fait=rvHache(W.pts,W.T,W.Nn,W.B,W.L,W.NP,W.tab.MODMARK);
     if(W.jade&&W.jadeFait){if(JADE_GARDE.m)jadeJette(JADE_GARDE.m);JADE_GARDE.m=W.jade;PREB.jadeM=W.jade;W.jade=null;}}} // la jade bâtie rejoint la CARTE GARDÉE : buildJade la reprendra
 function prebAnnule(r){ // le travail en cours est jeté (la map d'en face a changé, un newTrack d'ailleurs, la fin de la partie, une erreur)
   if(!PREB.W)return;
   const W=PREB.W,g=PREB.g;PREB.W=null;PREB.g=null;PREB.fait=false;PREB.prend=false;PREB.dep=false;PREB.annules++;PREB.der=r||'';
   try{if(g)prebAvec(W,function(){g.return();});}catch(e){} // (les finally des générateurs : les tampons partagés des cubes de jade rendus)
+  {const S9=PREB.mem;PREB.mem=null;if(S9)try{const e9=rmEcart(rmSig(S9),rmSig());if(e9.length){RV.fant.push({carte:PREB.carte,r:r||'',quoi:e9.join(','),remis:RM_ON,t:Math.round(performance.now())});if(RV.fant.length>40)RV.fant.shift();if(RM_ON)rmRemet(S9);}}catch(e){console.warn('mémoire des routes',e);}} /* (lot portv, 2e tour) LA GROTTE FANTÔME : ce que ce travail annulé avait écrit dans la mémoire des routes est remis (route-memoire.js) ; ?sans=portvmem : gardé, comme avant */
   try{for(let i=AR.plans.length-1;i>=0;i--){const p9=AR.plans[i];if(Math.abs(p9.L-W.L)<.5&&Math.abs(p9.L-L)>=.5)AR.plans.splice(i,1);}}catch(e){} /* (2026-11-15) le plan d'autoroute de la piste jetée : sinon deux annulations font sortir celui de la piste EN COURS (arTick perd ses poteaux) */
   for(const m of W.tab.trackMeshes||[])if(m.geometry)m.geometry.dispose(); // jamais dessinées ; leurs matières non plus (et certaines sont partagées : on n'y touche pas)
   if(W.jade&&W.jade.J)try{jadeJette(W.jade);}catch(e){}
@@ -467,13 +469,13 @@ function prebRetient(tok,suite,vol){ /* le passage du portail : le travail d'ava
   if(!PREBFIN||!PREB.W||PREB.fait||PREB.dep||PREB.echecs>=3)return false;
   if(GV_PORT){const zn9=Math.max(0,(runStats.zones|0)-(LVL.tutoZ|0));if(SF.tirage[zn9]!==PREB.t||PREB.z!==(runStats.zones|0))return false;} /* (2026-11-12) on n'attend que le travail que CE portail va prendre — la règle de prebGraine (le portail a déjà compté sa zone) ; un tirage changé en route serait jeté au passage */
   const t0=performance.now();PREB.tenu=(PREB.tenu|0)+1;let ser=false;const carte=PREB.carte;
-  const fin=function(){PREB.tenuMs=Math.round(performance.now()-t0);if(ser){PORTV.ser=false;voileSerpent(false);}
+  const fin=function(){PREB.tenuMs=Math.round(performance.now()-t0);PVE.attT0=t0;PVE.attFin=performance.now(); /* (lot portv) la construction étalée qui suit compte son voile depuis t0 (une seule borne : voir pveMax) */if(ser){PORTV.ser=false;voileSerpent(false);PVE.serT=performance.now();} /* (lot portv) serT : la construction qui suit garde le serpent */
     if(GV_PORT&&TEL_NATIF&&PREB.tenuMs>300)try{window.__ccNote('portail','attente '+PREB.tenuMs+' ms sous le voile',(vol?'vol':'sol')+' · '+carte+(PREB.fait?'':' · pas fini'));}catch(e){}};
   const pas=function(){ if(PORTV.att!==tok){if(ser&&PORTV.ser){PORTV.ser=false;voileSerpent(false);}return;} /* un passage abandonné (mort, seconde chance…) */
     if(!PREB.W){fin();suite();return;}
     const dt9=performance.now()-t0;
     if(GV_PORT&&!ser&&dt9>PREBF.serpent*1000){ser=true;PORTV.ser=true;try{voileSerpent(true);}catch(e){}}
-    const tw9=performance.now();prebTravaille(tw9+(ser?PREBF.voileGros:PREBF.voile));const dw9=performance.now()-tw9;
+    const tw9=performance.now();prebTravaille(tw9+(PORTV_ON?PVE.tr:ser?PREBF.voileGros:PREBF.voile)); /* (lot portv) sous le voile, des tranches de PVE.tr ms (22) comme la construction : aucune image de plus de ~30 ms au banc ×10 */const dw9=performance.now()-tw9;
     const max9=(GV_PORT&&prebAttendTravailleur()?PREBF.voileTrav:PREBF.voileMax)*1000;
     if(!PREB.W||PREB.fait||performance.now()-t0>max9){fin();suite();return;}
     if(ser&&GV_VITE){PREB.tachesVoile=(PREB.tachesVoile|0)+1;setTimeout(pas,dw9<2?8:0);} /* (rien à faire : le travailleur calcule — on repasse dans 8 ms sans tourner à vide) */else requestAnimationFrame(pas);}; /* sous le serpent, rien ne se dessine : la tâche suivante part tout de suite (les messages du travailleur passent entre deux) au lieu d'attendre l'image suivante — `?sans=gvvite` */
@@ -526,8 +528,10 @@ function prebLie(c){ // (prebTick) vrai : ce pas a travaillé, le pré-bâti att
     PLIE.log.push([Math.round(now),Math.round(d9*10)/10,p9,LIER.att.length]);if(PLIE.log.length>16)PLIE.log.shift();}
   return w;}
 window.dbgPrelie=function(){return {lourd:PLIE.lourd,sansCible:PLIE.sansCible,on:PLIE.on,err:PLIE.err,pas:PLIE.n,ms:Math.round(PLIE.ms),max:Math.round(PLIE.max),lots:PLIE.lots,jade:JADE_CHP.fait,objets:PLIE.objets,reste:PLIE.Q?PLIE.Q.length-PLIE.i:0,fait:PLIE.fait,enCours:LIER.att.length,log:PLIE.log};};
-function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier, travailler
+function prebTick(now){const t9=performance.now();try{prebTick0(now);}finally{const d9=performance.now()-t9;if(started&&!gameOver){if(d9>PVM.trMx)PVM.trMx=d9;if(d9>30&&PVM.trL.length<40)PVM.trL.push([Math.round(t9),Math.round(d9),PREB.carte,PREB.W?(PREB.fait?'pret':'cours'):'']);}}} /* (lot portv) la plus longue tranche de pré-bâti d'une image, en course (dbgPortv) */
+function prebTick0(now){ // à chaque image (fin de loop) : commencer, vérifier, travailler
   PREB.cam=false; // (voir sous9 : resetGame l'a lu dans cette image, ou rien ne l'a lu)
+  pvCourse(now);
   if(!started||gameOver){prebDepTick(now);return;}
   if(mode==='boom'){prebDepTick(now);return;} // (2026-10-24, passe perf) la caisse explose : la partie est finie, le départ suivant se bâtit DÈS MAINTENANT (1,8 s avant l'écran de fin — voir prebDepTick) // (LE DÉPART D'AVANCE) au menu et à l'écran de fin
   PREB.fin0=0;
@@ -540,6 +544,7 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
   if(mode!=='drive'&&mode!=='fall')return;
   if(now-PREB.tNeuf<700)return; // le monde neuf vient d'entrer : il s'installe d'abord
   const c=prebCible();if(!c)PLIE.sansCible++;
+  if(PORTV_ON&&c&&pvAttendDepart(c))return; /* (lot portv) rien de la map d'en face (ni liaison, ni bâti) dans les premières secondes de la course, sauf si le budget ne suffirait plus */
   if(c&&prebLie(c))return; /* (2026-11-09) les programmes de la map d'en face se lient d'avance (voir PLIE) */
   if(!PREB.W){if(c&&c.t!==PREB.non&&PREB.echecs<3&&(L-s)/Math.max(20,PREB.v||60)<(PREB_AVANCE_LOURD[c.t.carte]||PREB_AVANCE)*prebAvanceK())prebPart(c);return;} // (l'image suivante travaille) · (2026-11-07) prebAvanceK : plus tôt à grande vitesse
   if(!c||c.t!==PREB.t||c.z!==PREB.z){prebAnnule(!c?'cible':c.t!==PREB.t?'map':'zone');return;} // (un palier gagné en route ne change rien : la piste garde celui du départ)
@@ -557,8 +562,190 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
      sa route bâtie ; tant qu'il n'est pas parti, la tranche monte à `PREBF.grtRoute` ms (dans ce que l'image laisse) — le travailleur creuse ensuite EN PARALLÈLE des tranches
      ordinaires. À grande vitesse la grotte part ainsi plusieurs secondes plus tôt vers son travailleur. `?sans=gvgrotte` : comme avant. */
   if(PREBFIN&&GV_GRT&&PREB.W.piste==='grotte'&&!PREB.W.trav){let a9=false;try{a9=GRW.on&&!GRW.cur;if(GRW.cur)PREB.W.trav=true;}catch(e){}
-    if(a9){prebTravaille(performance.now()+Math.max(prebTranche(tr,r9),Math.min(PREBF.grtRoute,24-tr)));if(PREB.fait&&!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;return;}}
+    if(a9){prebTravaille(performance.now()+(PORTV_ON&&pvLent()?prebTranche(tr,r9):Math.max(prebTranche(tr,r9),Math.min(PREBF.grtRoute,24-tr)))); /* (lot portv) à 20 i/s ou moins, la route de la grotte suit la tranche plafonnée (elle grandit seule si le reste l'exige) */if(PREB.fait&&!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;return;}}
   if(PREBFIN){prebTravaille(performance.now()+prebTranche(tr,r9));if(PREB.fait&&!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;return;} /* (2026-11-07) LA TRANCHE PLAFONNÉE — voir LE PRÉ-BÂTI LISSÉ */
   prebTravaille(performance.now()+Math.max(u9,3,Math.min(6,14-tr)));
   if(PREB.fait&&!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;}
 const PREB_CPU={},PREB_CPU_DEF={grotte:8000,jade:2500}; /* (ms de calcul) la dernière préparation d'avance de chaque map, en tranches — et une estimation large avant la 1re */
+/* ===== LE PORTAIL ÉTALÉ (2026-11-17, lot portv — vol du 13 Pro build 120 : le rappel du portail jusqu'à 1 463 ms d'un bloc, état thermique critical) =====
+   LA MESURE (toujours allumée, quelques performance.now() par construction) : chaque newTrack note le temps ACTIF de chacune de ses étapes (pvMq : la graine et la fin du
+   pré-bâti, la route, l'installation, les nuages, le portail, la ville, la jade, le canyon, les dunes, la grotte, le glacier, l'orbite, les plaques, le ciel, la mini-carte, les pièces, la fin).
+   `dbgPortv()` : les 8 dernières constructions ; `dbgPortv(1)` remet les compteurs du banc (pire tranche de pré-bâti PVM.trMx). */
+const PORTV_ON=!/[?&]sans=[^&]*\bportv\b/.test(location.search);
+const PVM={cur:null,der:null,tA:0,l:[],trMx:0,trL:[]};
+/* ===== LA ROUTE EN COURSE = LA ROUTE D'UN TRAIT (2026-11-17, lot portv, 2e tour — contrôle adverse : « la route de la grotte bâtie en course diffère ») =====
+   `?routeverif=1` (banc ; rien d'autre ne change sans lui) : à CHAQUE construction de route en course — bâtie d'avance (prebPart) ou au passage (pisteDirecteG) —, la même
+   route est bâtie d'abord D'UN TRAIT (JF.lim infinie), aux mêmes entrées : la même graine, le même état de travail (map, palier, zone, largeur), la même mémoire des grottes
+   (GRT_VUS remise après), le registre des autoroutes remis. Son empreinte (pts, T, Nn, B, L, NP au bit près ; les marques des modules à part) est comparée à celle de la route
+   bâtie pour de vrai, en tranches avec le jeu vivant entre deux : à la fin du travail (`fait`) et une fois installée (`inst`). `dbgRouteVerif()` : les 40 dernières. */
+const RV={on:/[?&]routeverif=1\b/.test(location.search),l:[],p:[],err:'',n:0,ko:0,fant:[]}; /* fant : les pré-bâtis annulés qui avaient écrit dans la mémoire des routes (toujours relevés, avec ou sans ?routeverif) */
+function rvHache(P,T9,N9,B9,L9,NP9,MK){const h0=0x811c9dc5,f=new Float64Array(3),u=new Uint32Array(f.buffer);let h=h0;
+  const m=function(a){for(let i=0;i<a.length;i++)h=Math.imul(h^a[i],16777619);};f[0]=L9;f[1]=NP9;f[2]=0;m(u);
+  for(const A of [P,T9,N9,B9])for(const v of A){f[0]=v.x;f[1]=v.y;f[2]=v.z;m(u);}
+  const g=h>>>0;h=h0;const mk=JSON.stringify((MK||[]).map(function(x){return [x.i0,x.i1,x.fig||null];}));for(let i=0;i<mk.length;i++)h=Math.imul(h^mk.charCodeAt(i),16777619);
+  return g.toString(36)+'/'+(h>>>0).toString(36);}
+function rvRef(c,W,sd,k){try{const t0=performance.now();
+  const mem0=rmPrend(),vus=(typeof GRT_VUS!=='undefined')?GRT_VUS.map(function(a){return a.slice();}):null,ar0=(typeof AR!=='undefined'&&AR.plans)?AR.plans.slice():null;
+  const W2=pisteTravail(c),g=pisteRoute(sd,W2),l0=JF.lim,d0=JF.d;
+  try{prebAvec(W2,function(){JF.lim=Infinity;JF.d=0;try{while(!g.next().done);}finally{JF.lim=l0;JF.d=d0;}});}
+  finally{for(const m of W2.tab.trackMeshes||[])if(m.geometry)m.geometry.dispose();
+    rmRemet(mem0); /* (2e tour) TOUTE la mémoire des routes (la personnalité de la grotte d'avant, la pioche de l'orbite, le sac…) — avant : GRT_VUS seule, la référence changeait la route vérifiée */if(ar0){AR.plans.length=0;for(const p9 of ar0)AR.plans.push(p9);}}
+  const cu=W.cur||{};W.rv={k:k,carte:(cu.carte||cu.id||'')+'-'+(cu.meteo||''),sd:sd,eng:W.eng,z:W.zones,vus:vus?vus.map(function(a){return a.join('.');}).join('|'):'',
+    ref:rvHache(W2.pts,W2.T,W2.Nn,W2.B,W2.L,W2.NP,W2.tab.MODMARK),fait:null,ms:Math.round(performance.now()-t0)};
+  RV.p.push({k:k,carte:W.rv.carte,sd:sd,eng:W.eng,vus:W.rv.vus,ref:W.rv.ref,t:Math.round(t0)});if(RV.p.length>60)RV.p.shift();}
+  catch(e){RV.err=String(e&&e.stack||e).slice(0,300);}}
+function rvInstalle(W){const r=W.rv;W.rv=null;r.inst=rvHache(pts,T,Nn,B,L,NP,MODMARK);if(r.fait==null)r.fait=r.inst;
+  r.egal=r.ref.split('/')[0]===r.inst.split('/')[0]&&r.fait.split('/')[0]===r.inst.split('/')[0];r.egalMk=r.ref===r.inst;r.etale=!!PVE.dedans;RV.n++;if(!r.egal)RV.ko++;RV.l.push(r);if(RV.l.length>40)RV.l.shift();}
+window.dbgRouteVerif=function(raz){if(raz){RV.l.length=0;RV.n=0;RV.ko=0;}return {on:RV.on,n:RV.n,ko:RV.ko,err:RV.err,l:RV.l.slice(),parts:RV.p.slice(),fantomes:RV.fant.slice(),memoire:RM_ON,sig:rmSig().map(function(x){return x.slice(0,120);})};};
+function pvDebut(){const t=performance.now();PVM.cur={t0:t,m:{},o:[],z:runStats.zones|0,st:!!started,etale:!!(PVE.ph&&PVE.dedans),pas:0,pasMx:0};PVM.tA=t;}
+function pvMq(nom){const c=PVM.cur;if(!c)return;const t=performance.now(),d=t-PVM.tA;PVM.tA=t;if(!(nom in c.m)){c.m[nom]=0;c.o.push(nom);}c.m[nom]+=d;}
+function pvFin(){const c=PVM.cur;if(!c)return;pvMq('fin');PVM.cur=null;let a=0;const m={};for(const k of c.o){m[k]=Math.round(c.m[k]*10)/10;a+=c.m[k];}
+  const o={carte:LVL.cur?(LVL.cur.carte||LVL.cur.id)+'-'+(LVL.cur.meteo||''):'',z:c.z,st:c.st,actif:Math.round(a),duree:Math.round(performance.now()-c.t0),etale:c.etale,pas:c.pas,pasMx:Math.round(c.pasMx),m:m};
+  PVM.der=o;PVM.l.push(o);if(PVM.l.length>8)PVM.l.shift();}
+window.dbgPortv=function(r){if(r){PVM.trMx=0;PVM.trL.length=0;PVM.l.length=0;}return {on:PORTV_ON,trMx:Math.round(PVM.trMx*10)/10,trL:PVM.trL.slice(),l:PVM.l.slice()};};
+/* L'ÉTALEMENT (allumé ; `?sans=portv` : le passage d'un bloc, comme avant). Au passage, newTrack (déjà un générateur, newTrackG) n'est plus mené d'un trait dans le rappel du portail :
+   le voile posé, la caisse tenue (PORTV.att reste posé), la BOUCLE EST GELÉE (pveTick, en tête de loop : ni physique, ni dessin, ni HUD — comme le chargement sous la boule)
+   et la construction avance par tranches de PVE.tr ms, une par image d'écran, jusqu'au bout ; puis le voile s'ouvre comme avant (la même fonction : `so`).
+   Le monde est le même : mêmes générateurs, mêmes tirages, dans le même ordre ; seule la place des pauses change. Un newTrack venu d'ailleurs pendant l'étalement
+   (rejouer, banc) finit d'abord celui en cours d'un trait (pveFinit). Une attente qui dure montre le voile du serpent, comme l'attente du pré-bâti (prebRetient). */
+const PVE={ph:0,apres:[],g:null,tok:0,so:null,t0:0,tr:22,n:0,mx:0,act:0,ser:false,serT:0,prem:false,lib:[],libT:0,libN:0,dedans:false,ms:[],Q:null,i:0,chN:0,chMs:0,
+  ann:[],annJette:false,mort:false,v0:0,attT0:0,attFin:0,tz:0,sus:0,susMs:0,regles:[],
+  chauffe:!/[?&]sans=[^&]*\bportvchauffe\b/.test(location.search)};
+function portvPorte(tok,so){PVE.pb=0;PVE.tok=tok;PVE.so=so;PVE.mort=false;PVE.ann.length=0;PVE.annJette=false;PVE.tz=0;PVE.g=newTrackG();PVE.ph=1;PVE.t0=performance.now();
+  PVE.v0=(PVE.attFin&&PVE.t0-PVE.attFin<80)?PVE.attT0:PVE.t0; /* le voile est posé depuis l'attente du pré-bâti, s'il y en a eu une juste avant */PVE.n=0;PVE.mx=0;PVE.act=0;PVE.prem=true;PVE.chN=0;PVE.chMs=0;
+  PVE.ser=false;if(GV_PORT&&PVE.serT&&PVE.t0-PVE.serT<80){PVE.ser=true;PORTV.ser=true;try{voileSerpent(true);}catch(e){}} /* l'attente du pré-bâti avait le serpent : il reste (pas de clignement) */
+}
+function pvePas(lim){ /* une tranche de la construction jusqu'à l'échéance lim ; vrai : finie */
+  const g=PVE.g;let r=null;const pr=PVE.prem;PVE.prem=false;const l0=JF.lim;PVE.dedans=true;
+  if(pr)PREB.porte=true; /* (prebPorte) c'est le portail qui construit : la 1re tranche va de prebGraine à prebPrend sans rendre la main (aucun yield entre les deux) */
+  try{JF.lim=lim;PISTE_TRANCHE=Math.max(1,lim-performance.now());PVM.tA=performance.now();
+    do{r=g.next();}while(!r.done&&r.value!=='attente'&&performance.now()<lim);} /* 'attente' : le travailleur de la grotte calcule (la grotte non bâtie d'avance, menée ici en tranches) — la tranche rend la main au lieu de tourner à vide */
+  catch(e){console.warn('portail étalé',e);try{window.__ccNote('panne','portail étalé · '+(e&&e.message||e));}catch(_){}r={done:true};}
+  finally{PISTE_TRANCHE=Infinity;JF.lim=l0;PVE.dedans=false;if(pr){PREB.porte=false;PREB.prend=false;}}
+  if(r.done)PVE.g=null;
+  return r.done;}
+/* LA CHAUFFE SOUS LE VOILE (`?sans=portvchauffe` : comme avant, la chauffe à la 1re image du monde neuf). La construction finie, le monde neuf est dessiné hors écran
+   (chauffeRendu : une cible de 8 × 8, un dessin par couple matière-géométrie, sans tri par le champ) PAR MORCEAUX — un enfant de la scène à la fois, sous ses lumières —
+   tant que le voile est posé : ses géométries et ses textures montent au GPU, ses programmes se lient, avant que la 1re vraie image ne les demande toutes ensemble.
+   Ce que chauffeRendu ferait d'un coup à la 1re image (CHAUFFE_R.t) reste fait : il ne trouve plus rien à monter. */
+function pveMax(){return (GV_PORT&&prebAttendTravailleur()?PREBF.voileTrav:PREBF.voileMax)*1000;} /* (2e tour) UNE borne pour tout le voile (attente du pré-bâti + son reste ici) : 25 s, 60 s tant que le travailleur de la grotte creuse — pauses exclues */
+function pvePrebReste(){if(!PREBFIN||!PREB.W||PREB.fait||PREB.dep||PREB.echecs>=3||performance.now()-PVE.v0>pveMax())return false; /* au-delà : d'un trait dans prebGraine, comme avant */
+  const zn9=Math.max(0,(runStats.zones|0)-(LVL.tutoZ|0));return SF.tirage[zn9]===PREB.t&&PREB.z===(runStats.zones|0);} /* seulement le travail que CE portail va prendre (la règle de prebGraine) */
+function pveDessinables(o){let n=0;o.traverse(function(x){if(x.isMesh||x.isPoints||x.isLine||x.isSprite)n++;});return n;}
+function pveChauffePrep(){PVE.Q=[];PVE.i=0; /* les morceaux : un enfant de la scène, ou (un groupe lourd) quelques-uns de ses enfants à la fois — sur deux niveaux */
+  const ajoute=function(ch,o,nv){const n=pveDessinables(o);if(!n)return;
+    if(nv<2&&o.children.length>=4&&n>12){const K=o.children;for(let a=0;a<K.length;a+=6){const sub=K.slice(a,a+6);if(sub.length===1)ajoute(ch.concat([o]),sub[0],nv+1);else PVE.Q.push({ch:ch.concat([o]),sub:sub});}return;}
+    PVE.Q.push({ch:ch,o:o});};
+  for(const o of scene.children){if(o.isLight||(typeof GAR!=='undefined'&&o===GAR.root))continue;ajoute([],o,0);}
+  PVE.jcn=false;}
+function pveChauffeUn(m){ /* un morceau : la chaîne de ses parents réduite à lui seule le temps du dessin (les tableaux d'enfants sont rendus tels quels, même ordre) */
+  const C=m.ch,sv=[];try{
+    if(m.o){if(!C.length){chauffeRendu([m.o]);return;}for(let k=0;k<C.length;k++){sv.push(C[k].children);C[k].children=[k<C.length-1?C[k+1]:m.o];}}
+    else{for(let k=0;k<C.length;k++){sv.push(C[k].children);C[k].children=k<C.length-1?[C[k+1]]:m.sub;}}
+    chauffeRendu([C[0]]);}
+  finally{for(let k=0;k<sv.length;k++)C[k].children=sv[k];}}
+function pveChauffe(lim){ /* vrai : finie */
+  const t0=performance.now();
+  while(PVE.i<PVE.Q.length){const m=PVE.Q[PVE.i++];const o0=m.ch.length?m.ch[0]:m.o;if(!o0||o0.parent!==scene)continue;CHAUFFE_R.saute=0;pveChauffeUn(m);PVE.chN++;if(performance.now()>lim)break;}
+  PVE.chMs+=performance.now()-t0;
+  return PVE.i>=PVE.Q.length;}
+function pveFinit(){if(!PVE.ph)return;PVE.chOk=false;PVE.annJette=true;if(PVE.ph===1)while(!pvePas(Infinity));pveSort();} /* (un autre newTrack arrive : ses annonces à lui, pas celles-ci) */ /* d'un trait (un autre newTrack arrive) : la chauffe restante se fera à la 1re image, comme avant */
+function pveSort(){const tok=PVE.tok,so=PVE.so;PVE.g=null;PVE.so=null;PVE.ph=0;PVE.Q=null;
+  PVE.ms.push([Math.round(performance.now()-PVE.t0),Math.round(PVE.act),PVE.n,Math.round(PVE.mx),PVE.chN,Math.round(PVE.chMs)]);if(PVE.ms.length>12)PVE.ms.shift();
+  if(PVM.der&&PVM.der.etale){PVM.der.pas=PVE.n;PVM.der.pasMx=Math.round(PVE.mx);PVM.der.sousVoile=Math.round(performance.now()-PVE.t0);PVM.der.chauffe=Math.round(PVE.chMs);}
+  loop._rebuildT=performance.now(); /* la construction vient de finir : la qualité auto ne lit pas les images qui suivent comme une faiblesse (comme à la fin d'un newTrack d'un trait) */
+  if(PVE.ser){PVE.ser=false;if(PORTV.ser){PORTV.ser=false;try{voileSerpent(false);}catch(e){}}}
+  try{const d=performance.now()-PVE.t0;if(TEL_NATIF&&d>300)window.__ccNote('portail','construction étalée '+Math.round(d)+' ms sous le voile',PVE.n+' tranches, pire '+Math.round(PVE.mx)+' ms');}catch(e){}
+  PVE.libT=performance.now()+800;
+  const chOk=PVE.chOk;PVE.chOk=false;
+  if(PORTV.att===tok){PORTV.att=0;PORTV.vol=false;if(so)so();}
+  {const A=PVE.ann.splice(0),ok=!PVE.annJette&&!PVE.mort&&started&&!gameOver&&mode!=='boom';PVE.annJette=false; /* LES ANNONCES DU NIVEAU (bannière, musique, porte de l'orbite) : retenues pendant l'étalement, elles partent à l'ouverture du voile — jamais sur une partie finie */
+   if(ok)for(const f of A){try{f();}catch(e){console.warn('annonce',e);}}PVE.regles.push([PVE.mort?'mort':'ok',A.length,ok?1:0]);if(PVE.regles.length>12)PVE.regles.shift();}
+  if(chOk){CHAUFFE_R.t=0;ccConstr('chauffe');}} /* la chauffe du monde neuf est FAITE (sous le voile, par morceaux) : la passe entière de la 1re image (CHAUFFE_R.t) n'aurait plus rien à monter */
+/* (2e tour) LA RÈGLE DE L'ÉTALEMENT (contrôle adverse : « elle roulait après sa mort ») :
+   · PAUSE ou ARRIÈRE-PLAN (document caché) : l'étalement SE SUSPEND (rien ne se bâtit, le voile reste) et reprend où il en était ; le temps suspendu ne compte pas dans la borne du voile ;
+   · MORT (la caisse explose : mode 'boom'), FIN DE PARTIE (endGame : QUITTER, écran de fin) ou retour au menu : l'étalement SE FINIT en tranches sous le voile, en mode « partie finie »
+     (PVE.mort) : la fin de newTrack0G pose la caisse au départ de la piste neuve (le monde reste cohérent pour l'écran de fin et la réanimation) mais ne touche plus à l'état de la
+     partie — ni mode='drive', ni vitesse, ni sons de course, ni campDebut — et les annonces du niveau sont jetées ;
+   · NOUVELLE COURSE (resetGame, REJOUER, RECOMMENCER) ou tout autre newTrack : celui en cours se finit d'abord d'un trait (pveFinit), ses annonces jetées, puis la piste neuve se bâtit (état propre). */
+function pveTick(now){ /* (loop) vrai : cette image est celle de la construction */
+  if(!PVE.ph)return false;
+  const t00=performance.now(),mort=!started||gameOver||mode==='boom';if(mort)PVE.mort=true;
+  if(!mort&&(paused||document.hidden)){if(!PVE.tz)PVE.tz=t00;return true;} /* suspendu */
+  if(PVE.tz){const d9=t00-PVE.tz;PVE.tz=0;PVE.t0+=d9;PVE.v0+=d9;PVE.sus++;PVE.susMs+=d9;}
+  const pr9=PVE.ph===1&&PVE.prem&&pvePrebReste(),t0=performance.now(),lim=t0+(pr9&&PVE.ser?PREBF.voileGros:PVE.tr); /* le reste du pré-bâti sous le serpent (rien ne se dessine) : des tranches de 45 ms, comme l'attente d'avant (prebRetient) */
+  if(GV_PORT&&!PVE.ser&&t0-PVE.t0>PREBF.serpent*1000){PVE.ser=true;PORTV.ser=true;try{voileSerpent(true);}catch(e){}}
+  let fini=false;
+  if(pr9){prebTravaille(lim);PVE.pb=(PVE.pb||0)+1;} /* le pré-bâti pas fini (attente coupée, passage en vol…) : son reste en tranches ICI, jamais d'un trait dans prebGraine */
+  else if(PVE.ph===1){if(pvePas(lim)){if(PVE.chauffe&&PORTV.att===PVE.tok){PVE.ph=2;pveChauffePrep();}else fini=true;}}
+  else if(PVE.ph===2){if(!PVE.jcn){PVE.jcn=true;try{jadeChauffeNiveau();}catch(e){}} /* la chauffe propre à la jade (monuments de loin, grue) : sa propre image */
+    else if(pveChauffe(lim)){PVE.chOk=true;PVE.ph=3;}}
+  else if(PVE.ph===3){if(pveVide(lim))fini=true;} /* sous le voile encore : les tâches remises pendant la construction (la carte postale du portail suivant, la jade qu'on quitte) et la route d'avant */
+  const d=performance.now()-t0;PVE.n++;PVE.act+=d;if(d>PVE.mx)PVE.mx=d;
+  try{if(d>8&&MG.lent)MG.lent('PV:etale',d);}catch(e){} /* la boîte de vol : les tranches sous le voile (Q « PV:etale » : nombre, total, pire) */
+  if(fini)pveSort();
+  return true;}
+/* LES LIBÉRATIONS DIFFÉRÉES : la route d'avant (géométries) n'est plus rendue au GPU dans l'image du passage — elle l'est après, quelques-unes par image (PVE.lib, pveLib). */
+function pveLib(now){if(PVE.ph||now-PVE.libT<0)return;
+  if(PVE.apres.length){const lim=performance.now()+2;let f=PVE.apres[0]; /* les tâches remises (pveApres), ~2 ms par image ; une tâche qui rend un générateur est menée en tranches */
+    try{while(f&&performance.now()<lim){if(f.it){if(f.it.next().done){PVE.apres.shift();f=PVE.apres[0];}}else{PVE.apres.shift();const r=f();if(r&&typeof r.next==='function'){PVE.apres.unshift({it:r});}f=PVE.apres[0];}}}
+    catch(e){PVE.apres.shift();console.warn('pveApres',e);}
+    return;}
+  if(!PVE.lib.length)return;const lim=performance.now()+1.5;
+  while(PVE.lib.length&&performance.now()<lim){const g=PVE.lib.pop();try{g.dispose();}catch(e){}PVE.libN++;}}
+function pveVide(lim){ /* vrai : plus rien à faire (tâches remises, géométries d'avant) */
+  while(performance.now()<lim){
+    if(PVE.apres.length){const f=PVE.apres[0];try{if(f.it){if(f.it.next().done)PVE.apres.shift();}else{PVE.apres.shift();const r=f();if(r&&typeof r.next==='function')PVE.apres.unshift({it:r});}}catch(e){PVE.apres.shift();console.warn('pveApres',e);}continue;}
+    if(PVE.lib.length){const g=PVE.lib.pop();try{g.dispose();}catch(e){}PVE.libN++;continue;}
+    return true;}
+  return !PVE.apres.length&&!PVE.lib.length;}
+function pveApres(fn){if(!PVE.ph&&performance.now()>PVE.libT&&!PVE.apres.length){const r=fn();if(r&&typeof r.next==='function')PVE.apres.push({it:r});return;}PVE.apres.push(fn);} /* hors d'un passage (et 0,8 s après) : tout de suite ; sinon, une par image après lui */
+function pvAnn(f){if(PORTV_ON&&PVE.ph&&PVE.dedans){PVE.ann.push(f);return;}f();} /* (newTrack0G) une annonce du niveau : retenue jusqu'à l'ouverture du voile pendant l'étalement, tout de suite sinon */
+function pvFinPartie(){return PORTV_ON&&PVE.dedans&&PVE.mort;} /* (newTrack0G) l'étalement se finit sur une partie finie : ne pas toucher à son état */
+window.dbgPortvCas=function(k){ /* (banc, 2e tour) l'état de la partie et de l'étalement ; ('sansprebati') : plus de pré-bâti dans cette partie (la map d'en face se bâtit au passage) */
+  if(k==='sansprebati'){PREB.echecs=3;prebAnnule('banc');}if(k==='prebati'){PREB.echecs=0;}if(k==='pause')togglePause(); /* (la touche ⏸) */
+  const mi=renderer.info,me=mi.memory;
+  return {ph:PVE.ph,mort:PVE.mort,suspendu:!!PVE.tz,started:started,gameOver:gameOver,paused:paused,mode:mode,s:Math.round(s),L:Math.round(L),att:PORTV.att,vol:PORTV.vol,lieu:LVL.cur?(LVL.cur.carte||LVL.cur.id):null,
+    jf:JF.lim===Infinity?'inf':'fini',pvd:{tC:Math.round(PVD.tC),att:PVD.att,urg:PVD.urg,lache:PVD.lache},prebEtat:PREB.W?(PREB.fait?'pret':'cours'):'',echecs:PREB.echecs,apres:PVE.apres.length,lib:PVE.lib.length,geo:me.geometries,tex:me.textures,progs:(mi.programs||[]).length,kmh:Math.round(vKmh())};};
+window.dbgPortvEtale=function(){return {mort:PVE.mort,suspendu:!!PVE.tz,suspensions:PVE.sus,annRetenues:PVE.ann.length,regles:PVE.regles.slice(),voileDepuis:PVE.ph?Math.round(performance.now()-PVE.v0):0,on:PORTV_ON,enCours:PVE.ph,tr:PVE.tr,chauffe:PVE.chauffe,derniers:PVE.ms.slice(),aLiberer:PVE.lib.length,liberees:PVE.libN};};
+/* LE DÉPART SANS LA MAP D'EN FACE (lot portv ; jadeprebati.md « hors des fichiers permis ») : la liaison des programmes de la map d'en face (prebLie) et son pré-bâti
+   partaient dès la 1re image de la course (au départ, l'écran pivote, le téléphone chauffe, la caisse s'élance). Désormais rien avant PVD.s (7) secondes de COURSE
+   (pause exclue), SAUF si le budget ne suffirait plus : on attend seulement si, après l'attente, le reste estimé du travail (PREB_CPU de cette map, ×1,15) tient
+   encore en tranches plafonnées (PREBF.tr, 4 ms) aux images par seconde mesurées, avec 1,5 s de marge, avant le portail. Le calcul est dans pvAttendDepart. */
+const PVD={s:7,tC:0,tP:0,att:0,urg:0,lache:false};
+function pvCourse(now){if(!started||gameOver){PVD.tC=0;PVD.tP=0;PVD.lache=false;return;}const d=PVD.tP?now-PVD.tP:0;PVD.tP=now;if(running&&!paused&&d>0&&d<250)PVD.tC+=d;}
+function pvLent(){return (PREB.ips||60)<=20.5;} /* la cadence réelle : 20 i/s ou moins (téléphone critical) */
+function pvAttendDepart(c){if(PVD.tC>=PVD.s*1000||PVD.lache)return false; /* (2e tour) L'HYSTÉRÉSIS : une fois lâchée (budget trop court), l'attente ne reprend plus de la course — elle ne bascule plus d'une image à l'autre */
+  const ips=Math.max(8,Math.min(60,PREB.ips||25)),v=Math.max(20,PREB.v||60),r9=(L-s)/v,att=PVD.s-PVD.tC/1000;
+  const ref=PREB_CPU[c.t.carte]||(c.t.carte==='grotte'&&GRW.on?4500:PREB_CPU_DEF[c.t.carte])||1500,re=Math.max(0,ref*1.15-(PREB.W&&PREB.t===c.t?PREB.cpu:0));
+  const besoin=re/(PREBF.tr*ips); /* s de course pour finir à 4 ms par image */
+  if(r9-att-1.5<besoin){PVD.urg++;PVD.lache=true;return false;} /* le budget ne suffirait plus : on n'attend pas */
+  PVD.att++;return true;}
+/* (banc, lot portv) L'EMPREINTE DE LA SCÈNE : chaque objet dessinable, dans l'ordre de la scène — sa géométrie au mot près (tous ses attributs et son index), son nombre
+   d'instances, le type et la couleur de sa matière, sa matrice s'il est figé (matrixAutoUpdate faux) ; `geo` = les géométries seules, `tout` = avec instances et matrices.
+   Sert à prouver qu'un passage étalé bâtit le même monde qu'un passage d'un bloc. */
+window.dbgPortvScene=function(){const h0=0x811c9dc5,vus=new Map();
+  const fnv=function(h,a){if(!a||!a.buffer)return h;const u=new Uint32Array(a.buffer,a.byteOffset,a.byteLength>>2);for(let i=0;i<u.length;i++)h=Math.imul(h^u[i],16777619);return h>>>0;};
+  const fnvS=function(h,t){t=String(t);for(let i=0;i<t.length;i++)h=Math.imul(h^t.charCodeAt(i),16777619);return h>>>0;};
+  const geoH=function(g){if(vus.has(g.id))return vus.get(g.id);let h=h0;for(const k of Object.keys(g.attributes).sort()){h=fnvS(h,k);h=fnv(h,g.attributes[k].array);}if(g.index)h=fnv(h,g.index.array);vus.set(g.id,h);return h;};
+  let hg=h0,ht=h0,n=0;const l=[];
+  scene.traverse(function(o){if(!o.geometry||!(o.isMesh||o.isPoints||o.isLine||o.isSprite))return;n++;const g=geoH(o.geometry),m=Array.isArray(o.material)?o.material[0]:o.material;
+    let t=fnvS(h0,o.type+'|'+(o.name||'')+'|'+(m?m.type+(m.color?m.color.getHexString():''):''));
+    if(o.isInstancedMesh){t=fnvS(t,o.count);t=fnv(t,o.instanceMatrix.array);}
+    if(!o.matrixAutoUpdate)t=fnv(t,new Float32Array(o.matrixWorld.elements));
+    hg=Math.imul(hg^g,16777619)>>>0;ht=Math.imul(Math.imul(ht^g,16777619)^t,16777619)>>>0;l.push((o.name||o.type).slice(0,24)+':'+g.toString(36)+':'+t.toString(36));});
+  const f=new Float64Array(3);let hr=fnv(h0,Float64Array.of(L,NP));for(const A of [pts,T,Nn,B])for(const v of A){f[0]=v.x;f[1]=v.y;f[2]=v.z;hr=fnv(hr,f);} /* la route : pts, T, Nn, B au bit près */
+  return {objets:n,route:hr.toString(36),geo:hg.toString(36),tout:ht.toString(36),l:l};};
+/* (banc, lot portv) LA ROUTE BÂTIE D'AVANCE EN TRANCHES = LA ROUTE D'UN TRAIT ? dbgPortvRouteAB(carte, météo, graine) : la route de la map d'en face (pisteRoute, comme le pré-bâti :
+   état de travail W, échange avec la piste vivante à CHAQUE tranche — prebAvec) menée une pause à chaque occasion (JF.lim = −1), puis la même d'un trait (JF.lim infinie) ;
+   la mémoire des grottes (GRT_VUS) est remise entre les deux. Rend les deux empreintes (pts, T, Nn, B, L, les marques des modules) et le nombre de tranches. */
+window.dbgPortvRouteAB=function(carte,meteo,graine){const zn=Math.max(0,(runStats.zones|0)-(LVL.tutoZ|0));const c={t:{carte:carte,meteo:meteo,teinte:null},z:(runStats.zones|0)+1,zn:zn};
+  const vus0=(typeof GRT_VUS!=='undefined')?GRT_VUS.map(function(a){return a.slice();}):null,remet=function(){if(vus0){GRT_VUS.length=0;for(const a of vus0)GRT_VUS.push(a.slice());}};
+  const h0=0x811c9dc5,fnv=function(h,a){const u=new Uint32Array(a.buffer,a.byteOffset,a.byteLength>>2);for(let i=0;i<u.length;i++)h=Math.imul(h^u[i],16777619);return h>>>0;};
+  const hache=function(W){const f=new Float64Array(3);let h=fnv(h0,Float64Array.of(W.L,W.NP));for(const A of [W.pts,W.T,W.Nn,W.B])for(const v of A){f[0]=v.x;f[1]=v.y;f[2]=v.z;h=fnv(h,f);}
+    const mk=JSON.stringify((W.tab.MODMARK||[]).map(function(m){return [m.i0,m.i1,m.fig||null];}));for(let i=0;i<mk.length;i++)h=Math.imul(h^mk.charCodeAt(i),16777619)>>>0;return h.toString(36);};
+  const mene=function(lim){const W=pisteTravail(c),g=pisteRoute(graine,W);let n=0,fini=false;const l0=JF.lim;
+    try{while(!fini){prebAvec(W,function(){JF.lim=lim;try{fini=g.next().done;}finally{JF.lim=l0;}});n++;}}finally{JF.lim=l0;}
+    for(const m of W.tab.trackMeshes||[])if(m.geometry)m.geometry.dispose();return {h:hache(W),n:n,L:Math.round(W.L)};};
+  remet();const a=mene(-1);remet();const b=mene(Infinity);remet();
+  return {carte:carte,meteo:meteo,graine:graine,tranches:a,dunTrait:b,egales:a.h===b.h};};

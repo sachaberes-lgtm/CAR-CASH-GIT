@@ -1,0 +1,177 @@
+<!doctype html><meta charset="utf-8"><title>cout musique</title>
+<script>
+/* LE COÛT D'UNE MUSIQUE DE COURSE (2026-11-15, lot MUSIQUE3) — servie à la racine du jeu par cout-musique.mjs, dans un Chrome sans fenêtre et MUET.
+   Tout est rendu HORS LIGNE (OfflineAudioContext) : rien ne sort jamais du haut-parleur. Pour chaque façon de jouer un morceau
+   (fichier figé en boucle, page « tout » en direct, générateur en direct), on rend S secondes au même palier et on mesure :
+   · ms de RENDU AUDIO (le fil audio : ce qui chauffe), ms de JS d'ordonnancement (le fil principal), noeuds créés, sources vivantes (pic, moyenne) ;
+   · une empreinte et le signal lui-même (pour comparer deux variantes à l'échantillon près).
+   Le hasard est à GRAINE FIXE (Math.random remplacé AVANT tout chargement) : deux rendus du même générateur sont donc comparables. */
+(function () {
+  let s = 1; const mb = () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  Math.random = mb; window.__graine = g => { s = g | 0; };
+  /* l'horloge du générateur (setInterval(horloge, 50)) est CAPTURÉE et menée par le rendu, au lieu du temps réel */
+  const SI = window.setInterval; window.__horloges = [];
+  window.setInterval = function (f, d) { if (d === 50 && f && f.name === 'horloge') { window.__horloges.push(f); return 900000 + window.__horloges.length; } return SI.apply(this, arguments); };
+})();
+</script>
+<script src="/musique-paliers.js"></script>
+<script src="/assets/audio/music/course/index.js"></script>
+<script src="/assets/audio/music/ameliorees/rythmique.js"></script>
+<script src="/assets/audio/musique-bus.js"></script>
+<script src="/assets/audio/pouce-bleu-jeu.js"></script>
+<script>
+(function () {
+  const SR = 44100;
+  const KINDS = ['BufferSource', 'Oscillator', 'Gain', 'BiquadFilter', 'Convolver', 'DynamicsCompressor', 'WaveShaper', 'Delay', 'StereoPanner', 'ChannelMerger', 'ChannelSplitter', 'ConstantSource', 'Panner', 'IIRFilter', 'Analyser'];
+  /* instrumente UN contexte : noeuds créés par type, sources démarrées / finies */
+  function sonde(ctx) {
+    const S = { crees: {}, srcs: [], echant: [] };
+    for (const k of KINDS) { const f = ctx['create' + k]; if (typeof f !== 'function') continue;
+      ctx['create' + k] = function () { const n = f.apply(ctx, arguments); S.crees[k] = (S.crees[k] || 0) + 1;
+        if (k === 'BufferSource' || k === 'Oscillator' || k === 'ConstantSource') { const r = { t0: Infinity, t1: Infinity }; S.srcs.push(r); const st = n.start, sp = n.stop;
+          n.start = function (w) { r.t0 = Math.max(ctx.currentTime, +w || 0); if (k === 'BufferSource' && !n.loop && n.buffer) { const off = +arguments[1] || 0, dur = arguments[2] != null ? +arguments[2] : (n.buffer.duration - off) / Math.max(1e-3, n.playbackRate.value); r.t1 = Math.min(r.t1, r.t0 + dur); } return st.apply(n, arguments); };
+          n.stop = function (w) { r.t1 = Math.min(r.t1, Math.max(ctx.currentTime, +w || 0)); return sp.apply(n, arguments); };
+          n.addEventListener('ended', () => { r.t1 = Math.min(r.t1, ctx.currentTime); }); }
+        return n; }; }
+    S.vivantes = t => { let k = 0; for (const r of S.srcs) if (r.t0 <= t && r.t1 > t) k++; return k; };
+    return S;
+  }
+  const hache = b => { let h = 2166136261 >>> 0; for (let c = 0; c < b.numberOfChannels; c++) { const d = new Int32Array(b.getChannelData(c).buffer); for (let i = 0; i < d.length; i++) { h ^= d[i]; h = Math.imul(h, 16777619) >>> 0; } } return h.toString(16); };
+  const rms = b => { let e = 0, n = 0, pk = 0; for (let c = 0; c < b.numberOfChannels; c++) { const d = b.getChannelData(c); for (let i = 0; i < d.length; i++) { e += d[i] * d[i]; if (Math.abs(d[i]) > pk) pk = Math.abs(d[i]); } n += d.length; } return { rmsDb: +(10 * Math.log10(e / n + 1e-20)).toFixed(2), pic: +pk.toFixed(4) }; };
+  window.__rendus = {};
+  /* le rendu piloté : toutes les `pas` secondes le rendu s'arrête, `tic(t)` (l'horloge du morceau) pose la suite, on relève les sources vivantes */
+  async function rendPilote(ctx, S, secondes, tic, pas) {
+    pas = pas || .25; let js = 0, audio = 0, tA = 0, nV = 0, sV = 0, pV = 0;
+    for (let t = pas; t < secondes; t += pas) ctx.suspend(+t.toFixed(4)).then(() => { audio += performance.now() - tA; const a = performance.now(); try { tic(ctx.currentTime); } catch (e) { console.error(e); } js += performance.now() - a;
+      const v = S.vivantes(ctx.currentTime); nV++; sV += v; if (v > pV) pV = v; tA = performance.now(); ctx.resume(); });
+    const a0 = performance.now(); try { tic(0); } catch (e) { console.error(e); } js += performance.now() - a0;
+    tA = performance.now(); const b = await ctx.startRendering(); audio += performance.now() - tA;
+    return { b, audioMs: Math.round(audio), jsMs: Math.round(js), vivantesPic: pV, vivantesMoy: +(sV / Math.max(1, nV)).toFixed(1) };
+  }
+  function resume(nom, R, S, extra) {
+    const b = R.b, o = Object.assign({ nom, secondes: +(b.length / SR).toFixed(2), audioMs: R.audioMs, jsMs: R.jsMs, msParSecondeAudio: +(R.audioMs / (b.length / SR)).toFixed(2), vivantesPic: R.vivantesPic, vivantesMoy: R.vivantesMoy,
+      crees: S.crees, creesTotal: Object.values(S.crees).reduce((x, y) => x + y, 0), hash: hache(b) }, rms(b), extra || {});
+    window.__rendus[nom] = b; return o;
+  }
+  /* 1) LE FIGÉ : un fichier de palier en boucle (ce que fait PalLecteur, sans ses fondus) */
+  window.coutFige = async function (id, k, secondes) {
+    const ctx = new OfflineAudioContext(2, Math.round(secondes * SR), SR), S = sonde(ctx);
+    const ab = await (await fetch('/assets/audio/music/course/' + id + '/p' + k + '.m4a')).arrayBuffer(), buf = await ctx.decodeAudioData(ab);
+    const R = await rendPilote(ctx, S, secondes, t => { if (t === 0) { const s = ctx.createBufferSource(), g = ctx.createGain(); s.buffer = buf; s.loop = true; s.connect(g); if (window.__avecBus && window.MUSBUS) { const B = MUSBUS.cree(ctx); g.connect(B.entree); B.sortie.connect(ctx.destination); } else g.connect(ctx.destination); s.start(0); }   /* __avecBus : derrière le bus des basses du jeu, comme en course */ });
+    return resume('fige:' + id + ':p' + k, R, S);
+  };
+  /* 2) LA PAGE « TOUT » EN DIRECT, comme son horloge la mène dans le jeu (une mesure à la fois, 0,4 s d'avance, son hasard LCG) */
+  window.coutPage = async function (fichier, palier, secondes, graine) {
+    const url = (window.RYTHMIQUE && RYTHMIQUE.on) ? await RYTHMIQUE.urlPage(fichier) : fichier, M = await palLitMorceau(url);
+    const ctx = new OfflineAudioContext(2, Math.round(secondes * SR), SR), S = sonde(ctx);
+    let g = graine || 95510; const alea = () => { g = (g * 1664525 + 1013904223) >>> 0; return g / 4294967296; };
+    const kit = M.preparer(ctx, ctx.destination, alea), mes = 240 / M.bpm; let m = 0, tN = 0.1;
+    const R = await rendPilote(ctx, S, secondes, t => { if (window.__sansNotes) return; while (tN < t + 0.4 + 0.25) { M.jouer(ctx, kit, palier, tN, m++, 1, alea); tN += mes; } });
+    return resume('page:' + fichier.split('/').pop() + ':' + palier, R, S, { titre: M.titre, bpm: M.bpm });
+  };
+  /* 3) LE GÉNÉRATEUR EN DIRECT, par le VRAI lecteur du jeu (POUCE_JEU : liste, retouches, horloge à 1 s, montée douce), dans le contexte hors ligne */
+  window.coutGen = async function (id, palier, secondes, graine, avant) {
+    window.__graine(graine || 1); window.__horloges.length = 0;
+    const P = window.POUCE_JEU; P.fin(false); history.replaceState(null, '', location.pathname + '?pouce=' + encodeURIComponent(id) + (window.__qs || ''));
+    const ctx = new OfflineAudioContext(2, Math.round(secondes * SR), SR), S = sonde(ctx);
+    const t0 = performance.now(); const E = await P.depart(ctx, ctx.destination, {}); if (!E || E.id !== id || !P.J) throw new Error('départ raté : ' + id + ' ' + (P.err || ''));
+    const J = P.J; J.regle(palier);   /* avant que la banque soit prête : le générateur démarre DIRECTEMENT à ce palier (demarre : tier = cible) */
+    const ch = P.ch; ch.f.frequency.cancelScheduledValues(0); ch.f.frequency.value = 18000; ch.g.gain.cancelScheduledValues(0); ch.g.gain.value = 1;   /* la chaîne du jeu grande ouverte (le niveau est sinon posé par musicTick) */
+    for (let i = 0; i < 400 && !window.__horloges.length; i++) await new Promise(r => setTimeout(r, 25));   // la banque de sons se fabrique (hors ligne, avant la 1re note)
+    const prep = Math.round(performance.now() - t0), h = window.__horloges[0]; if (!h) throw new Error('horloge jamais posée');
+    if (avant) avant(J, ctx);
+    if (window.__sansSalle) try { J.inst._chaine.revOut.disconnect(); } catch (e) {}   /* ATTRIBUTION SEULEMENT : la salle (réverbe à convolution) n'est plus tirée par la sortie, donc plus calculée */
+    const R = await rendPilote(ctx, S, secondes, window.__sansNotes ? () => {} : () => h());   /* __sansNotes : le graphe fixe seul (salle, échos, bus), sans aucune note : sa part du coût */
+    let banque = null; try { banque = { ms: J.inst.banqueMs, toutMs: J.inst.banqueToutMs }; } catch (e) {}
+    try { J.stop(); } catch (e) {}
+    return resume('gen:' + id + ':' + palier, R, S, { preparationMs: prep, banque, voix: (() => { try { const v = J.inst._voix; return { pic: v.pic, sautes: v.sautes, erreurs: v.erreurs, derniere: v.derniere }; } catch (e) { return null; } })() });
+  };
+  /* deux rendus gardés : sont-ils identiques à l'échantillon près ? (sinon : l'écart, en dB sous le signal) */
+  window.compare = function (a, b) { const A = window.__rendus[a], B = window.__rendus[b]; if (!A || !B) return { erreur: 'rendu absent' };
+    let e = 0, x = 0, mx = 0, diff = 0; const n = Math.min(A.length, B.length);
+    for (let c = 0; c < 2; c++) { const p = A.getChannelData(c), q = B.getChannelData(c); for (let i = 0; i < n; i++) { const d = p[i] - q[i]; if (d !== 0) diff++; e += d * d; x += p[i] * p[i]; if (Math.abs(d) > mx) mx = Math.abs(d); } }
+    return { identiques: diff === 0, echantillonsDifferents: diff, ecartMax: mx, snrDb: diff ? +(10 * Math.log10(x / (e + 1e-30))).toFixed(1) : Infinity }; };
+  /* le prix d'UN noeud, seul, traversé par un bruit stéréo (pour attribuer le coût du graphe fixe du générateur) */
+  window.coutNoeud = async function (quoi, _p, secondes) {
+    const ctx = new OfflineAudioContext(2, Math.round(secondes * SR), SR), n = SR * 2, b = ctx.createBuffer(2, n, SR); for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < n; i++) d[i] = Math.random() * .5 - .25; }
+    const s = ctx.createBufferSource(); s.buffer = b; s.loop = true; let x = s;
+    const met = f => { const y = f(); x.connect(y); x = y; };
+    const ir = sec => { const m = Math.floor(SR * sec), B = ctx.createBuffer(2, m, SR); for (let c = 0; c < 2; c++) { const d = B.getChannelData(c); for (let i = 0; i < m; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-6.9 * i / m); } return B; };
+    for (const q of quoi.split('+')) {
+      if (q === 'rien') {}
+      else if (q === 'conv26') met(() => { const v = ctx.createConvolver(); v.buffer = ir(2.6); return v; });
+      else if (q === 'conv1') met(() => { const v = ctx.createConvolver(); v.buffer = ir(1); return v; });
+      else if (q === 'comp') met(() => ctx.createDynamicsCompressor());
+      else if (q === 'sat2x') met(() => { const w = ctx.createWaveShaper(); const c = new Float32Array(1024); for (let i = 0; i < 1024; i++) c[i] = Math.tanh((i / 511.5 - 1) * 1.25); w.curve = c; w.oversample = '2x'; return w; });
+      else if (q === 'sat') met(() => { const w = ctx.createWaveShaper(); const c = new Float32Array(1024); for (let i = 0; i < 1024; i++) c[i] = Math.tanh((i / 511.5 - 1) * 1.25); w.curve = c; return w; });
+      else if (q === 'bq10') for (let k = 0; k < 10; k++) met(() => ctx.createBiquadFilter());
+      else if (q === 'gain10') for (let k = 0; k < 10; k++) met(() => ctx.createGain());
+      else if (q === 'delayfb') met(() => { const d = ctx.createDelay(2), g = ctx.createGain(); d.delayTime.value = .37; g.gain.value = .34; d.connect(g); g.connect(d); return d; });
+      else if (q === 'pan10') for (let k = 0; k < 10; k++) met(() => ctx.createStereoPanner());
+    }
+    x.connect(ctx.destination); s.start(0);
+    const t = performance.now(); await ctx.startRendering(); const ms = performance.now() - t;
+    return { nom: 'noeud:' + quoi, msParSecondeAudio: +(ms / secondes).toFixed(2) };
+  };
+  /* L'IDENTITÉ DU RENDU FIGÉ : la boucle que rend l'outil (palRendPalier, toutes les mesures posées d'un coup) contre la MÊME page menée comme en direct
+     (son horloge : une mesure à la fois, rendu piloté), avec le même hasard. Hors les 256 derniers échantillons (la couture de la boucle), elles doivent être égales. */
+  window.identitePage = async function (fichier, p) {   /* le rendu « comme le direct » de l'outil (toutes les mesures posées d'un coup) contre la page menée par SON horloge (pas à pas, rendu piloté) : même hasard LCG, même départ */
+    const url = (window.RYTHMIQUE && RYTHMIQUE.on) ? await RYTHMIQUE.urlPage(fichier) : fichier, gr = +(/let graine = (\d+);/.exec(await (await fetch('/' + fichier)).text()) || [])[1];
+    const mes0 = 240 / (await palLitMorceau(url)).bpm;
+    const lit = async () => { if (!window.__patch) return palLitMorceau(url); let h = await (await fetch(url)).text(); for (const [x, y] of window.__patch) h = h.split(x).join(y); return palLitMorceau(new Blob([h])); };   /* __patch : [[texte, remplacement]…] (diagnostic seulement) */
+    const un = async (pilote) => { const M = await lit(), mes = 240 / M.bpm, n = M.mesures, W = Math.max(2, Math.ceil(4.5 / mes)), m1 = n * Math.ceil(W / n), T0 = 0.7, total = T0 + (m1 + n) * mes;
+      const ctx = new OfflineAudioContext(2, Math.ceil((total + 0.05) * SR), SR), S = sonde(ctx); let g = gr >>> 0; const alea = () => { g = (g * 1664525 + 1013904223) >>> 0; return g / 4294967296; };
+      const kit = M.preparer(ctx, ctx.destination, alea); let b;
+      if (!pilote) { for (let m = 0; m < m1 + n; m++) M.jouer(ctx, kit, p, T0 + m * mes, m, 1, alea); b = await ctx.startRendering(); }
+      else { let m = 0, tN = T0; b = (await rendPilote(ctx, S, total, t => { while (tN < t + (window.__avance || 1.0) && m < m1 + n)   /* 1,0 s : l'avance réelle d'une page dans le jeu (contexte prêté +0,6 s, page +0,4 s) */ { M.jouer(ctx, kit, p, tN, m++, 1, alea); tN += mes; } }, 0.06)).b; }
+      return { b, a: Math.round((T0 + m1 * mes) * SR), N: Math.round(n * mes * SR) }; };
+    const MO = window.__modeId || 'AB', A = await un(MO[0] === 'B'), B = await un(MO[1] === 'B'), K = 256;   /* AB = d'un coup contre pas à pas ; AA / BB = deux fois la même façon (le rendu de Chrome est-il stable ?) */ let diff = 0, mx = 0, e = 0, x = 0;
+    for (let c = 0; c < 2; c++) { const P = A.b.getChannelData(c), Q = B.b.getChannelData(c); for (let i = A.a; i < A.a + A.N - K; i++) { const d = P[i] - Q[i]; if (d !== 0) diff++; if (Math.abs(d) > mx) mx = Math.abs(d); e += d * d; x += P[i] * P[i]; } }
+    return { nom: 'identite:' + (window.__modeId || 'AB') + ':' + fichier.split('/').pop() + ':p' + p, graine: gr, compares: 2 * (A.N - K), echantillonsDifferents: diff, ecartMax: mx, snrDb: diff ? +(10 * Math.log10(x / (e + 1e-30))).toFixed(1) : 'infini (identiques)' };
+  };
+  function fft(re, im) { const n = re.length; for (let i = 1, j = 0; i < n; i++) { let b = n >> 1; for (; j & b; b >>= 1) j ^= b; j ^= b; if (i < j) { let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; } }
+    for (let l = 2; l <= n; l <<= 1) { const a = -2 * Math.PI / l, wr = Math.cos(a), wi = Math.sin(a); for (let i = 0; i < n; i += l) { let cr = 1, ci = 0; for (let j = 0; j < l / 2; j++) { const u = i + j, v = i + j + l / 2, xr = re[v] * cr - im[v] * ci, xi = re[v] * ci + im[v] * cr; re[v] = re[u] - xr; im[v] = im[u] - xi; re[u] += xr; im[u] += xi; const t = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = t; } } } }
+  const BORDS = [60, 120, 240, 480, 960, 1920, 3840, 7680, 15360];
+  function bandes(L, R, d, len) { /* l'énergie (dB) par octave d'une fenêtre de 2^15 échantillons prise à d (mono) */
+    const n = 32768, re = new Float64Array(n), im = new Float64Array(n); for (let i = 0; i < n; i++) { const k = d + i; if (k >= len) break; re[i] = 0.5 * (L[k] + R[k]) * (0.5 - 0.5 * Math.cos(2 * Math.PI * i / n)); } fft(re, im);
+    const out = []; for (let b = 0; b < BORDS.length - 1; b++) { let e = 0; for (let k = Math.ceil(BORDS[b] * n / SR); k < Math.floor(BORDS[b + 1] * n / SR); k++) e += re[k] * re[k] + im[k] * im[k]; out.push(10 * Math.log10(e + 1e-12)); } return out; }
+  const ecartBandes = (A, B) => { let s = 0; for (let i = 0; i < A.length; i++) s += Math.abs(A[i] - B[i]); return s / A.length; };
+  /* L'ÉQUIVALENCE DU FIGÉ (le hasard du direct n'est jamais le même que celui du rendu : on compare donc l'énergie par octave, mesure par mesure).
+     Le direct (page FRAÎCHE, son horloge, son hasard LCG 95510, comme dans le jeu) joue 2 tours de la boucle après son élan ; le fichier figé décodé est comparé au 1er tour.
+     Verdict : l'écart figé ↔ direct doit rester dans l'écart que le direct a AVEC LUI-MÊME d'un tour à l'autre. */
+  window.equivalence = async function (fichier, p, _s, id) {
+    const url = (window.RYTHMIQUE && RYTHMIQUE.on) ? await RYTHMIQUE.urlPage(fichier) : fichier, M = await palLitMorceau(url);
+    const mes = 240 / M.bpm, n = M.mesures, W = Math.max(2, Math.ceil(4.5 / mes)), total = 0.7 + (n * Math.ceil(W / n) + 3 * n) * mes;
+    const ctx = new OfflineAudioContext(2, Math.ceil((total + 0.05) * SR), SR), S = sonde(ctx);
+    let g = 95510; const alea = () => { g = (g * 1664525 + 1013904223) >>> 0; return g / 4294967296; };
+    const kit = M.preparer(ctx, ctx.destination, alea); let m = 0, k = 0;
+    const R = await rendPilote(ctx, S, total, t => { while (k < n * Math.ceil(W / n) + 3 * n && 0.7 + k * mes < t + 0.65) { M.jouer(ctx, kit, p, 0.7 + k * mes, m++, 1, alea); k++; } });
+    const F = (window.PALIERS_COURSE || {})[id]; let fi = F ? F.paliers.indexOf(p) : -1; if (fi < 0) fi = p - 1;
+    const ab = await (await fetch('/assets/audio/music/course/' + id + '/p' + (fi + 1) + '.m4a')).arrayBuffer(), B = await ctx.decodeAudioData(ab);
+    const L = R.b.getChannelData(0), Rr = R.b.getChannelData(1), N = B.length, mb = Math.round(mes * SR), a = Math.round(W * mes * SR) - (Math.round(W * mes * SR) % mb === 0 ? 0 : 0);
+    /* le direct joue la mesure m (m = 0 au départ) ; la boucle figée commence à la mesure 0 de la phrase : on aligne le 1er tour sur la phrase (m multiple de n) */
+    const m1 = n * Math.ceil(W / n), d1 = Math.round((0.7 + m1 * mes) * SR), d2 = d1 + N;   /* la 1re mesure à +0,7 s, comme dans le jeu (voir rendDirect, outils/musique/rendu.html) */
+    const fL = B.getChannelData(0), fR = B.getChannelData(1), e12 = [], e1f = [];
+    for (let q = 0; q < n; q++) { const o = Math.round(q * mes * SR);
+      if (d2 + o + 32768 > L.length) break;
+      const b1 = bandes(L, Rr, d1 + o, L.length), b2 = bandes(L, Rr, d2 + o, L.length), bf = bandes(fL, fR, o, N);
+      e12.push(ecartBandes(b1, b2)); e1f.push(ecartBandes(b1, bf)); }
+    const moy = x => +(x.reduce((u, v) => u + v, 0) / Math.max(1, x.length)).toFixed(2);
+    return { nom: 'equivalence:' + M.titre + ':p' + p, mesuresComparees: e12.length, directContreDirect_dB: moy(e12), directContreFige_dB: moy(e1f), max12: +Math.max(...e12).toFixed(2), max1f: +Math.max(...e1f).toFixed(2), parMesure12: e12.map(x => +x.toFixed(1)), parMesure1f: e1f.map(x => +x.toFixed(1)), rmsDirect: rms(R.b).rmsDb, rmsFige: rms(B).rmsDb };
+  };
+  /* L'INTÉGRATION DANS LE VRAI LECTEUR (POUCE_JEU, sans le reste du jeu) : en téléphone (__ccAllege), quel lecteur joue le morceau, ce que note la boîte noire,
+     et combien d'oscillateurs / sources il fait tourner sur 20 s (hors ligne, muet). `qs` = la fin d'adresse (ex. « &sans=musique3 »). */
+  window.integration = async function (id, palier, secondes, qs) {
+    window.__ccAllege = 1; window.__notes = []; window.__ccNote = (k, m) => window.__notes.push(k + ' | ' + m);
+    const P = window.POUCE_JEU; P.fin(false); P.liste = null; history.replaceState(null, '', location.pathname + '?pouce=' + encodeURIComponent(id) + (qs || ''));
+    await P.charge(); const E = P.liste.find(x => x.id === id);
+    const ctx = new OfflineAudioContext(2, Math.round(secondes * SR), SR), S = sonde(ctx);
+    const r = await P.depart(ctx, ctx.destination, {}); if (!r) throw new Error('départ raté ' + (P.err || ''));
+    if (P.J && P.J.regle) P.J.regle(palier);
+    const R = await rendPilote(ctx, S, secondes, () => { try { if (P.J && P.J.regle) P.J.regle(palier); } catch (e) {} });
+    const o = { nom: 'integration:' + id + (qs || ''), type: E && E.type, figee: !!(E && E.figee), lecteurFige: !!(P.J && P.J.figee), notes: window.__notes.slice(), crees: S.crees, msParSecondeAudio: +(R.audioMs / secondes).toFixed(2), vivantesMoy: R.vivantesMoy, rmsDb: rms(R.b).rmsDb };
+    P.fin(false); return o;
+  };
+  window.pret = true;
+})();
+</script>

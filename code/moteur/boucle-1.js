@@ -1,10 +1,33 @@
+/* L'ENTRÉE DU MENU APRÈS LE FILM (2026-11-16, lot lancement2, 2e passe). MESURÉ (banc film.cjs, ×4, grotte, 3 + 3 lancements) : avec « le film charge le reste », la 1re image du jeu
+   découvert (celle où le voile s'ouvre, les éclats de l'explosion volent encore par-dessus) faisait 83 à 117 ms (avant : 33 au plus) — sous le serpent, l'ancien chemin laissait au menu
+   caché ~3 s d'images qui avançaient la chauffe du menu (le pinceau de la lune : une étape jusqu'à 58 ms ×4, le moteur vif : un moteur compilé par image, les liaisons en cours) ;
+   le film parti plus tôt, tout ça tombait dans la même image, avec le 1er rendu. Désormais, pendant `__ccEntree.dur` ms après l'ouverture : la 1re image ne chauffe rien, puis
+   UNE seule de ces chauffes par image, à tour de rôle (lune, moteurs, moteur vif). Rien ne se perd : la chauffe reprend son pas une fraction de seconde plus tard.
+   Posé par l'intro (reveler) seulement sur le chemin « film charge » (téléphone) ; `?sans=filmentree` : comme avant.
+   (3e passe) La durée se compte en TEMPS (`E.dur` ms depuis la 1re image), plus en images : à 30 i/s (hcSaute) 40 images duraient 1,3 s au lieu de 0,67.
+   La lune passe par une enveloppe posée ICI (pas de retouche dans maps/) : luneVoile bloque luneAvance quand ce n'est pas son tour. */
+/* (3e passe) Une image = un appel de loop à plus de 12 ms du précédent : le loop que retailleImage appelle de lui-même (MESURÉ au profil : à l'ouverture du menu, juste après
+   l'image du jeu) compte dans la MÊME image, et une image ne donne qu'une chauffe (E.ok) — avant, il passait pour l'image suivante et sa chauffe s'ajoutait à celle de l'image. */
+function entreeTour(k){const E=window.__ccEntree;if(!E)return true;
+  const t=(typeof QLR!=='undefined'&&QLR.t0)||performance.now();if(t-E.t>=12){E.t=t;E.n++;if(!E.t1)E.t1=t;}
+  if(t-E.t1>E.dur){window.__ccEntree=null;return true;}
+  if(E.n<2||E.K[E.n%E.K.length]!==k||E.ok===E.n)return false;
+  E.ok=E.n;return true;}
+/* L'enveloppe de la lune (maps/orbite-lune.js n'est pas touché) : pendant l'entrée étalée, au menu, le pas du pinceau n'avance qu'à son tour. Hors de l'entrée (__ccEntree nul) : la fonction d'origine, à l'identique. */
+const LUNE_ENT={bloque:false,avance:luneAvance,voile:luneVoile};
+luneAvance=function(){if(LUNE_ENT.bloque)return;LUNE_ENT.avance();};
+luneVoile=function(dt9,lunOk){
+  if(!window.__ccEntree)return LUNE_ENT.voile(dt9,lunOk);
+  LUNE_ENT.bloque=!!(LUNE_ON&&!ORB.peinte&&ORB.pinceau&&(!started||gameOver)&&!(ORB.actif&&lunOk)&&!entreeTour('lune'));
+  try{return LUNE_ENT.voile(dt9,lunOk);}finally{LUNE_ENT.bloque=false;}};
 function loop(now){
+  if(MG.on)mgSt('b1 entrée (chargement, cadence)'); /* (lot MESURE-RAFALES) sous-tranche, ?perfrec=2 seulement ; sur sa ligne (fusion avec qa/portv) */
   loop._raf=requestAnimationFrame(loop); /* (2026-11-07, finition) l'identifiant : dbgStep annule l'image qu'un appel manuel programme (il empilait n boucles) */
-  if(chargementTick(now)){loop._pn=now;last=now;return;} /* (2026-11-05, passe perf mobile 2, A2.a) le chargement sous la boule : une étape par image, sans dessiner — voir CHARGEMENT */
+  if(chargementTick(now)){loop._pn=now;last=now;return;} if(PVE.ph&&pveTick(now)){loop._pn=now;last=now;return;}if(PVE.lib.length||PVE.apres.length)pveLib(now); /* (2026-11-17, lot portv) LE PORTAIL ÉTALÉ : sous le voile, l'image ne fait que la construction — voir piste-prebati.js */ /* (2026-11-05, passe perf mobile 2, A2.a) le chargement sous la boule : une étape par image, sans dessiner — voir CHARGEMENT */
   if(window.__introCouvre){loop._pn=now;last=now;return;} // (2026-10-22, Léo : « ça bug ») l'INTRO DU STUDIO couvre tout l'écran : dessous, le jeu ne calcule ni ne dessine rien (il faisait saccader le film, surtout sur un Mac chargé) — voir moteur/intro-161.js
   if(lierDemarrage(now)){loop._pn=now;last=now;return;}
   if(DENSE.ok&&denseTick(now)){loop._pn=now;last=now;return;} /* (2026-11-13, demarrage-vite) LE CHARGEMENT DENSE : sous le serpent, l'image ne fait que du chargement — voir interface/vignette-moteur.js */ /* (2026-10-27) LA LIAISON EN ARRIÈRE-PLAN : les programmes de la 1re image se lient à côté, le jeu ne dessine pas encore — voir interface/vignette-moteur.js */
-  if(CAD.ok&&cadSaute(now))return; // (2026-10-14, passe perf mobile) LA CADENCE STABLE : cette image d'écran se saute, sans RIEN toucher — voir CAD
+  if(CAD.ok&&cadSauteH(now))return; // (2026-10-14, passe perf mobile) LA CADENCE STABLE : cette image d'écran se saute, sans RIEN toucher — voir CAD — (2026-11-17, lot lenteur) par l'horloge du calage (cadSauteH, cadence.js)
   if((CAD.ok||PFR_ON)&&hcSaute(now))return; /* (2026-10-24) le téléphone au frais aussi (voir PFR_ON) */ /* (2026-10-23, audit mobile) hors course (accueil, garage) : 30 i/s sur les vieux paliers — voir HC */
   /* (2026-10-20, Sacha : « Chrome à 94-96 % de CPU ») PLAFOND À 60 i/s : rAF suit la fréquence de l'écran — 120/144/240 Hz = 2 à 4× plus d'images
      calculées (physique, particules, bloom) pour rien. On saute l'image d'écran trop proche de l'échéance (horloge cumulée : pas de dérive,
@@ -12,9 +35,9 @@ function loop(now){
      écran 60 Hz (ou 30 Hz imposé) rien ne se saute. Coupé quand CAD cale déjà à 30 (même horloge, pas de double saut). `?fps=0` = sans plafond.
      (2026-10-20, même jour) une image d'écran sur n, n ENTIER — voir fpsSaute : l'horloge à 1000/60 hachait les écrans 75/90/100/144 Hz. */
   if(FPS_CAP&&!CAD.on&&!HC.on&&fpsSaute(now))return;
-  if(BANC_ON)BANC_T0=performance.now(); // (banc ?banc=1) début de l'image chronométrée
+  if(MG.on)mgSt('b1 échelle QL');if(BANC_ON)BANC_T0=performance.now(); // (banc ?banc=1) début de l'image chronométrée
   QLR.t0=performance.now(); // (tour 2) début de l'image, pour la sonde de la règle de qualité
-  if(QLR.sN>0)qlSondeDebut(); // (2026-10-08) sonde armée : la puce chronomètre l'image (voir qlSonde)
+  if(QLR.sN>0){if(MG.on)mgSt('qlSondeDebut');qlSondeDebut();if(MG.on)mgSt('b1 échelle QL');} // (2026-10-08) sonde armée : la puce chronomètre l'image (voir qlSonde)
   if(COUT.on)coutDebut(); // (2026-10-13, banc perf-iphone7) le coût de l'image entière — voir COUT
   // ⚠ dt JAMAIS NÉGATIF (2026-09-25) : l'horodatage de rAF est celui du DÉBUT de l'image, et `last` peut avoir été posé
   // par `performance.now()` un peu plus tard (reprise d'onglet, pas-à-pas) — un dt < 0 rendait négatif le rayon
@@ -57,6 +80,7 @@ function loop(now){
   if(!loop._qlT||now-loop._qlT>250){loop._qlT=now;const n9=QLR.n,s9=QLR.s;for(let i=0;i<n9;i++)s9[i]=QLR.a[i];
     const v9=s9.subarray(0,n9).sort();QLR.p50=n9?v9[n9>>1]:16;QLR.p75=n9?v9[(n9*.75)|0]:16;QLR.p90=n9?v9[Math.min(n9-1,(n9*.9)|0)]:16;}
   QL.efT=(calme9&&QL.k>=qb9.kNet&&QLR.p50>24)?QL.efT+dt:0;if(QL.efT>6)QL.effondre=true;
+  if(started&&!gameOver&&!VHD.on&&!QL.force)vdaVeille(now); /* (2026-11-18, LA VOITURE D'ABORD, rendu/nettete-qualite.js) serious ⇄ autre état sans pas de l'échelle : résolution et décor suivent */
   // ÉTAGE 1 : l'ombre en vol, une image sur deux — seulement LOIN de toute dalle (radar de tryLand), jamais au sol
   {const loin9=QL.k>=1&&mode==='fall'&&(lastNearH2+(fallPos.y-lastNearY)*(fallPos.y-lastNearY))>196;
    if(loin9){renderer.shadowMap.autoUpdate=false;QL.fr^=1;renderer.shadowMap.needsUpdate=QL.fr===0;}
@@ -95,7 +119,7 @@ function loop(now){
          combien coûte VRAIMENT une image ; si, agrandie au cran du dessus (coût ∝ pixels), elle tient encore sous 14 ms, on remonte */
       else if(sonde9){VHD.sT=0;VHD.t=-10;if(vhdMonte(now,QLR.vrai))VHD.t=0;} // pas de marge : la sonde se tait ~12 s
       else if(!VHD.sT||now-VHD.sT>3000){VHD.sT=now;qlSondeArme();}}}
-  else if(!RESPIN&&dprT<=0&&now>4000&&qlAuto()){dprT=1.1;const fort9=QLR.p50>24,tire9=QLR.p75>PAL.bT('imgQlP75',24,'f')||QLR.p50>18.5; /* (2026-11-07, passe perf 3, P2 · levier f) téléphone récent : l'échelle QL réagit dès p75 > 19 ms (au lieu de 24 : « plus d'un quart des images ratées d'un tiers de période ») ; `?img=max` / `?imgsans=f` = 24 */ /* (OPTIMISATION) voir L'IMAGE EN AUTOMATIQUE */
+  else if(!RESPIN&&dprT<=0&&now>4000&&qlAuto()&&!pilOn()){ /* (2026-11-17, LE PILOTE DE QUALITÉ) sous le pilote l'échelle QL ne décide plus en course */dprT=1.1;const fort9=QLR.p50>24,tire9=QLR.p75>PAL.bT('imgQlP75',24,'f')||QLR.p50>18.5; /* (2026-11-07, passe perf 3, P2 · levier f) téléphone récent : l'échelle QL réagit dès p75 > 19 ms (au lieu de 24 : « plus d'un quart des images ratées d'un tiers de période ») ; `?img=max` / `?imgsans=f` = 24 */ /* (OPTIMISATION) voir L'IMAGE EN AUTOMATIQUE */
     /* LA NETTETÉ NE SE SACRIFIE QUE SI ÇA PAIE (tour 2) : un cran de RÉSOLUTION posé, on regarde 3 s plus tard si la médiane a
        baissé. Si non (le téléphone bute ailleurs : processeur, affichage), la résolution revient et ce cran devient un MUR — on ne
        floute pas l'image pour rien. */
@@ -124,15 +148,15 @@ function loop(now){
     else QL.up=0;
   }
   if(PERF_MON)perfMonTick(now,rawMs);
-  try{lvlStep(dt);}catch(e){loopWarnN('niveaux',e);}try{routeTick();}catch(e){loopWarnN('route',e);} // NIVEAUX : le noir de l'orbite, la planète et la pluie suivent le même fondu — AVANT bioStep, qui lit LVL.espace
-  try{ailvTick(dt);}catch(e){loopWarnN('ailes vivantes',e);} // (2026-10-16) LES AILES VIVANTES : le boost, le virage, la montée, la vitrine du garage — avant blingTick, qui les anime
-  try{blingTick(dt);}catch(e){loopWarnN('éclats',e);} // (2026-10-10) L'ICEBERG : les éclats de givre scintillent (menu, garage, course)
-  try{bioStep(dt);}catch(e){loopWarnN('biomes',e);} // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
-  try{nuFondTick(dt);}catch(e){} // (2026-10-18) le fond peint de la mer de nuages
+  if(MG.on)mgSt('lvlStep');try{lvlStep(dt);}catch(e){loopWarnN('niveaux',e);}if(MG.on)mgSt('routeTick');try{routeTick();}catch(e){loopWarnN('route',e);} // NIVEAUX : le noir de l'orbite, la planète et la pluie suivent le même fondu — AVANT bioStep, qui lit LVL.espace
+  if(MG.on)mgSt('ailvTick');try{ailvTick(dt);}catch(e){loopWarnN('ailes vivantes',e);} // (2026-10-16) LES AILES VIVANTES : le boost, le virage, la montée, la vitrine du garage — avant blingTick, qui les anime
+  if(MG.on)mgSt('blingTick');try{blingTick(dt);}catch(e){loopWarnN('éclats',e);} // (2026-10-10) L'ICEBERG : les éclats de givre scintillent (menu, garage, course)
+  if(MG.on)mgSt('bioStep');try{bioStep(dt);}catch(e){loopWarnN('biomes',e);} // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
+  if(MG.on)mgSt('nuFondTick');try{nuFondTick(dt);}catch(e){} // (2026-10-18) le fond peint de la mer de nuages
   if(mode!=='drive'||!running||gameOver)LIGNE_U.uFile.value*=Math.max(0,1-dt*6); /* (LES TIRETS FILENT) hors de la route, le filé retombe : pas de tirets flous au menu */
-  try{cityTick(dt,camera.position.y);}catch(e){loopWarnN('ville',e);} // LA VILLE : son altitude court après la caméra (hors gate de sim — le décor vit au menu, comme le ciel)
-  try{portesTick();}catch(e){} // (optimisation) les chaînes muettes se débranchent, les chaînes appelées se rebranchent
-  if(SONV2){ // (console de son) LE VIDE : en orbite, un bourdon qui respire remplace le vent (windG/whG se taisent, voir la boucle audio)
+  if(MG.on)mgSt('cityTick');try{cityTick(dt,camera.position.y);}catch(e){loopWarnN('ville',e);} // LA VILLE : son altitude court après la caméra (hors gate de sim — le décor vit au menu, comme le ciel)
+  if(MG.on)mgSt('portesTick');try{portesTick();}catch(e){} // (optimisation) les chaînes muettes se débranchent, les chaînes appelées se rebranchent
+  if(MG.on)mgSt('b1 son du vide, ambiance garage');if(SONV2){ // (console de son) LE VIDE : en orbite, un bourdon qui respire remplace le vent (windG/whG se taisent, voir la boucle audio)
     const v9=LVL.espace>.5&&started&&running&&!paused&&!gameOver&&!garageOn&&mode!=='boom';
     if(v9&&!loop._vide&&now>(loop._videT||0)){loop._videT=now+500;loop._vide=sfx('espace.ambiance',{loop:true,vol:-24});if(loop._vide)loop._vide.gain(0,.8);}
     else if(!v9&&loop._vide){loop._vide.stop(.5);loop._vide=null;}
@@ -145,7 +169,7 @@ function loop(now){
   slowT=0;hitT=0;
   dt=ralentiDt(dt); // (2026-09-29) …SAUF le ralenti de la FRÉNÉSIE, demandé par Sacha (voir RALENTI) — le dt RÉEL reste celui des mesures de perf ci-dessus
   const t=now/1000;
-  let speedKmh=0;
+  let speedKmh=0;if(MG.on)mgSt('b1 sim (pouvoirs, nitro, volant)');
   try{ if(running&&!paused&&!gameOver&&!BANC_FIGE){loop._fr=(loop._fr|0)+1; // (banc ?banc=1) BANC_FIGE : la simulation s'arrête, le rendu continue
     // OVERDRIVE : passé le niveau 6, le jeu passe la surmultipliée — +8 %/niveau, jusqu'à +50 %
     // ⚠ JEU DE PROGRESSION : la VITESSE vient du MOTEUR, pas de la caisse équipée — sinon équiper une

@@ -211,7 +211,7 @@ function burnCoupe(){ // l'atelier se ferme : silence, plus rien à l'écran
   for(const F of [BURN.fum,BURN.feu,BURN.pix])if(F){F.age.fill(1e9);burnPas(F,0,0);F.o.visible=false;}
   if(BURN.gr)for(const im of BURN.gr.M){im.count=0;im.visible=false;}
   if(BURN.corps){carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);BURN.corps=false;}
-  if(AC&&BURN.son){const T=AC.currentTime;stt(gainN.gain,0,T,.06);stt(engLfoG.gain,0,T,.06);if(skidG)stt(skidG.gain,0,T,.05);BURN.son=false;}
+  if(AC&&BURN.son){const T=AC.currentTime;stt(gainN&&gainN.gain,0,T,.06);stt(engLfoG&&engLfoG.gain,0,T,.06);if(skidG)stt(skidG.gain,0,T,.05);BURN.son=false;}
 }
 const BURN_DOIGT=false; // (2026-10-08, Léo : « ce n'est plus le doigt qui agit sur la fumée, mais bien la voiture elle-même ») le GLISSÉ ne la pousse plus (`true` le rend) — voir LA CAISSE DANS LA FUMÉE
 const BURN_SOUFFLE={on:true,vieillit:.45}; // (même soir, Léo : « quand on tapote avec le doigt, ça disperse la fumée ») le TAP revient seul : il souffle la fumée sous le doigt (elle s'écarte du point touché, file un peu vers le fond, monte) et la DISPERSE — chaque bouffée touchée avance vers la fin de sa vie de `vieillit` × ce qui lui reste (× la force du coup) : elle s'éclaircit et s'émiette au lieu de seulement bouger

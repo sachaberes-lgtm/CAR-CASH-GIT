@@ -36,4 +36,31 @@ html.gvFixe #gvMis{animation:none!important;opacity:1!important}
 /* 5. LA VEILLE DES BOUCLES (2026-11-15, qualité · menus froids ; posée par veilleTick, moteur/cadence.js ; ?sans=veille) : au menu, après 20 s sans geste, les éléments dont toutes
       les animations sont des boucles infinies s'arrêtent là où ils sont (eux et leurs ::before/::after) ; le premier toucher les rend. Seulement `animation-play-state` (comme §1). */
 html .ccVeilleP,html .ccVeilleP::before,html .ccVeilleP::after{animation-play-state:paused!important}
+/* 6. LE VOILE DES COUCHES (2026-11-17, qualité · hudcouches ; posé par hccTick, moteur/cadence.js ; ?sans=hudcouches) : un élément du HUD dont l'opacité est 0, sans transition
+      ni animation d'opacité en cours et qui ne prend aucun toucher, passe en `visibility:hidden` — invisible avant, invisible après, mais WebKit ne le peint plus et retire
+      sa couche. Il revient avant l'image où son opacité repart. Rien sur `animation` (les boucles continuent, rien ne rejoue). */
+/*    Le reflet du logo du lancement sur sa couche (§2, html.ifReflets) n'a de sens que logo allumé : éteint (#launchLogo à opacité 0 toute la partie, son reflet déjà en
+      pause, ux-nitro-aura.css), ses deux couches restaient en course. Il les reprend dans la même image que `.on`. */
+html.hudCouches.ifReflets #launchLogo:not(.on) .lg::after{will-change:auto}
+html.hudCouches .hcVeil,html.hudCouches .hcVeil *,html.hudCouches .hcVeil::before,html.hudCouches .hcVeil::after,html.hudCouches .hcVeil *::before,html.hudCouches .hcVeil *::after{visibility:hidden!important}
+/* 7. LES VOILES AU TIERS (2026-11-17, qualité · voiles ; html.voiles, posé par cadence.js sur un vrai téléphone ; ?sans=voiles). En course, WebKit garde des couches
+      PLEIN ÉCRAN visibles qui ne contiennent qu'un dégradé doux : la vignette de vitesse #speedFx (toujours là en course, opacité 0,2-0,6), le voile d'encre du haut
+      #hud::before, le coup de couleur de l'annonce #flash9, le voile du nuage #cloudFx. Sur l'iPhone, chacune est peinte à l'échelle de l'écran (×3 : 1170×2532,
+      11,3 Mo), et le compositeur relit toute cette image à chaque image. Ici, chaque voile est posé dans une boîte au TIERS de sa taille, agrandie ×3 par
+      `transform` : WebKit peint la couche à la taille AVANT la transformation (MESURÉ dans WebKit, inspecteur : 11,3 → 1,26 Mo, neuf fois moins de pixels), le GPU
+      l'agrandit en filtrage linéaire. Un dégradé linéaire ou radial agrandi reste le même dégradé : MESURÉ dans WebKit ×3 (outils/banc-hud/voiles-ident.cjs, debout
+      et couché, opacité maximale du jeu) : écart max 1/255. ×3,001 et pas ×3 : 844/3 n'est pas un compte rond de pixels, la dernière ligne d'écran restait à
+      moitié couverte (écart 4 au bord ; couché, la dernière colonne sous le voile du haut : écart 3) ; 0,03 % de dégradé en plus ne se voit pas (écart 1). L'opacité, les animations, les transitions restent sur l'élément : rien
+      ne change dans le temps. Aucun autre transform sur ces éléments (vérifié) ; ils n'ont pas d'enfants (rien de fixe n'est capturé). */
+html.voiles #speedFx,html.voiles #cloudFx{inset:0 auto auto 0;width:calc(100% / 3);height:calc(100% / 3);transform-origin:0 0;transform:scale(3.001)}
+html.voiles #flash9{inset:0 auto auto 0;width:calc(100% / 3);height:calc(100% / 3);transform-origin:0 0;transform:scale(3.001)}
+html.voiles body.touch.play #hud::before{right:auto;width:calc(100% / 3);height:calc((var(--ccT,env(safe-area-inset-top,0px)) + var(--hudY0) + (214px - var(--hudY0)) * var(--hudK)) / 3);transform-origin:0 0;transform:scale(3.001)}
+/*    LES LUEURS EN OMBRE INTERNE (html.voilesOmbres ; ÉTEINT par défaut, ?plus=voilesombres, décision de Sacha) : la lueur du flow #flowGlow et les bords des pouvoirs
+      #pwrFx sont des `box-shadow: inset` floues. Au tiers (flous et étalements ÷ 3), WebKit ne floute pas exactement pareil : MESURÉ jusqu'à 8-9/255 d'écart à
+      pleine opacité sur la bande floue (6/255 pour #pwrFx), ni ×2 ni un flou corrigé ne font mieux. Gain : 2 × 11,3 Mo → 2 × 1,26 Mo quand le flow et un pouvoir
+      sont là. */
+html.voilesOmbres #flowGlow,html.voilesOmbres #pwrFx{inset:0 auto auto 0;width:calc(100% / 3);height:calc(100% / 3);transform-origin:0 0;transform:scale(3.001)}
+html.voilesOmbres #flowGlow{box-shadow:inset 0 0 20px color-mix(in srgb,var(--fc) 55%,transparent),inset 0 0 6px color-mix(in srgb,var(--fc) 40%,transparent)}
+html.voilesGl #speedFx{visibility:hidden!important} /* piste d (?plus=voilesgl) : la vignette de vitesse est dessinée par la passe de sortie WebGL (posé seulement si elle tourne) */
+html.voilesOmbres #pwrFx{box-shadow:inset 0 0 calc(50px / 3) calc(8px / 3) var(--pf),inset 0 0 50px calc(28px / 3) var(--pf2)}
 </style>

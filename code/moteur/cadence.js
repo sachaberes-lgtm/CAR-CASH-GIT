@@ -61,10 +61,10 @@ function fpsSaute(now){ // en tête de loop : rend true si cette image d'écran 
 const HUD_SOBRE=/[?&]hudsobre=1\b/.test(location.search); /* (2026-11-12) LE HUD SOBRE EST ÉTEINT (banc : ?hudsobre=1) : poser puis retirer `animation:none` relançait les animations restées `.on` (« CHAÎNE PERDUE » rejouée à chaque pause ou refroidissement). Ce qu'il gagnait venait des filtres : l'écriture allégée (html.ecrLeger, hudCalmeTick) les retire désormais en permanence, sans toucher aux animations. */const CAD_E30=!/[?&]cad_e30=0\b/.test(location.search);const CAD_ECO_F=/[?&]eco=1\b/.test(location.search); /* (2026-11-12, ios-ultime vague 2, Sacha : « ça doit marcher même en économie d'énergie ») CAD.eco : l'app dit que l'iPhone est en économie d'énergie (window.__ccEco, GardeThermique) ET l'écran n'envoie bien que ~30 images par seconde. Alors une image de 33 ms est une image À L'HEURE : la règle de qualité la lit ramenée à une image d'écran (ms9 dans loop, comme une course calée) — elle ne descend plus au cran 10 pour rien et ne cale plus pour rien ; une image vraiment ratée (66 ms) compte toujours. `?eco=1` = le dire à la main (banc). */const MOB_ECRAN=!/[?&]mob_ecran=0\b/.test(location.search);const MOB_EA=new Float32Array(90);let MOB_EN=0;
 function cadSaute(now){ // en tête de loop : rend true si cette image d'écran se saute
   if(MOB_GOUV)mobGouvTick(now); /* (2026-10-25) la dose de chaleur suit l'horloge — voir moteur/gouverneur-thermique.js */
-  const d=now-CAD.rp;CAD.rp=now;CAD.rN=(CAD.rN|0)+1;if(d>3&&!(d>=CAD.rMin))CAD.rMin=d; /* (2026-11-12, ios-ultime vague 2) la boîte de vol compte les images d'ÉCRAN reçues (avant tout saut) : dit si l'écran lui-même est bridé à 30 */if(MOB_ECRAN){if(d>3&&d<100)MOB_EA[MOB_EN++]=d;}else if(d>3&&d<CAD.eMin)CAD.eMin=d;
-  if(MOB_ECRAN?MOB_EN>=90:++CAD.eN>=90){const m=MOB_ECRAN?(MOB_EA.sort(),MOB_EN=0,MOB_EA[45]):CAD.eMin;CAD.eN=0;CAD.eMin=99;CAD.ecran=m<7.7?1000/144:m<9.7?1000/120:m<12.6?1000/90:m<15?1000/75:1000/60;CAD.tol=(CAD_E30&&m>=24)?CAD.per*.5:CAD.ecran*.5;CAD.eco=CAD_E30&&m>=24&&(window.__ccEco===1||CAD_ECO_F);if(CAD.eco&&CAD.gel&&!(MOB_GOUV&&mobChaud()))CAD.gel=false;} /* (2026-11-12, ios-ultime vague 2, MESURÉ sur le 13 Pro, build 52) L'ÉCRAN DÉJÀ À 30 : le téléphone n'envoie que ~32 images d'écran par seconde (chaud ou en économie d'énergie), à intervalles irréguliers (22 à 33 ms). Avec la tolérance d'un écran 60 Hz (8,3 ms), une image arrivée 22-24 ms après la précédente était SAUTÉE et la suivante partait à ~55 ms : 22 i/s en vol au lieu de 30 (au sol 29). Quand la médiane des images d'écran dépasse 24 ms, la tolérance devient une demi-période de 30 (16,7 ms) : plus rien ne se saute, il n'y a rien à sauter. `?cad_e30=0` = comme avant. */ // 30 Hz imposé (m ≈ 33) : on garde 60, rien ne se saute de toute façon
+  const d=now-CAD.rp;CAD.rp=now;CAD.rN=(CAD.rN|0)+1;if(PIL_ON)pilRaf(d); /* (2026-11-17, LE PILOTE) l'histogramme des images d'écran */if(d>3&&!(d>=CAD.rMin))CAD.rMin=d; /* (2026-11-12, ios-ultime vague 2) la boîte de vol compte les images d'ÉCRAN reçues (avant tout saut) : dit si l'écran lui-même est bridé à 30 */if(MOB_ECRAN){if(d>3&&d<100)MOB_EA[MOB_EN++]=d;}else if(d>3&&d<CAD.eMin)CAD.eMin=d;
+  if(MOB_ECRAN?MOB_EN>=90:++CAD.eN>=90){const m=MOB_ECRAN?(MOB_EA.sort(),MOB_EN=0,MOB_EA[45]):CAD.eMin;CAD.eM=m; /* (2026-11-17, LE PILOTE) la médiane brute : un rAF à 30 imposé par la chaleur sans économie, que CAD.ecran ne voit pas */CAD.eN=0;CAD.eMin=99;CAD.ecran=m<7.7?1000/144:m<9.7?1000/120:m<12.6?1000/90:m<15?1000/75:1000/60;CAD.tol=(CAD_E30&&m>=24)?CAD.per*.5:CAD.ecran*.5;CAD.eco=CAD_E30&&m>=24&&(window.__ccEco===1||CAD_ECO_F);if(CAD.eco&&CAD.gel&&!(MOB_GOUV&&mobChaud()))CAD.gel=false;} /* (2026-11-12, ios-ultime vague 2, MESURÉ sur le 13 Pro, build 52) L'ÉCRAN DÉJÀ À 30 : le téléphone n'envoie que ~32 images d'écran par seconde (chaud ou en économie d'énergie), à intervalles irréguliers (22 à 33 ms). Avec la tolérance d'un écran 60 Hz (8,3 ms), une image arrivée 22-24 ms après la précédente était SAUTÉE et la suivante partait à ~55 ms : 22 i/s en vol au lieu de 30 (au sol 29). Quand la médiane des images d'écran dépasse 24 ms, la tolérance devient une demi-période de 30 (16,7 ms) : plus rien ne se saute, il n'y a rien à sauter. `?cad_e30=0` = comme avant. */ // 30 Hz imposé (m ≈ 33) : on garde 60, rien ne se saute de toute façon
   if(CAD.on&&now-CAD.der<cadPer()-CAD.tol)return true;
-  CAD.der=now;return false;}
+  CAD.der=now;if(PIL_ON)pilImg(now);return false;}
 /* ===== LA CADENCE DE SURCHAUFFE (2026-11-13, ios-ultime — Sacha : « j'ai eu des gros freeze au palier 1 », puis « oui fais-le et surtout trouve des leviers pour baisser la chaleur ») =====
    LU dans le vol du build 102 : téléphone à l'état CRITICAL (en charge à 50 %), iOS bride le processeur ~×10 — 13,6 i/s en dents de scie, 40 à 63 ms de script par image. À critical la course
    est désormais calée sur 20 i/s (une image toutes les 50 ms : exactement le pas de temps maximal du jeu, donc ni ralenti ni rattrapage) : un tiers de travail en moins par seconde, pour
@@ -72,7 +72,7 @@ function cadSaute(now){ // en tête de loop : rend true si cette image d'écran 
    `?sans=crit20` = 30 i/s visées comme avant. ESSAI à une variable pour les watts : `?cadfps=20` (ou 24) impose cette cadence à TOUT état — rien sans le paramètre. */
 const CAD_CRIT20=TEL_NATIF&&!/[?&]sans=[^&]*crit20/.test(location.search),CAD_FPS_ESSAI=+((/[?&]cadfps=(\d+)\b/.exec(location.search)||[])[1])||0;
 function cadPer(){if(CAD_FPS_ESSAI>=10&&CAD_FPS_ESSAI<30)return 1000/CAD_FPS_ESSAI;
-  if(CAD_CRIT20){try{if(MOB_S.capteur&&MOB_S.thermo>=3)return 50;}catch(e){}}
+  if(CAD_CRIT20){try{if(MOB_S.capteur&&MOB_S.thermo>=3&&(!pilOn()||!PIL_CAD||pilTic()<20))return 50;}catch(e){}} /* (2026-11-17, LE PILOTE DE QUALITÉ, étape 2) 50 ms = 3 tics réguliers d'un écran à 60 ; sur un écran à 30 (économie, mitigation thermique de WebKit : CAD.eM ≥ 24) 50 ms donnait 33 / 66 en alternance : on garde 33, régulier. `?sans=crit20` garde son sens ; (3e tour, S3) la mesure sur téléphone n'est pas faite : le DÉFAUT redevient celui de la base (50 visés) ; le 33 régulier ne vit plus que derrière `?plus=pilcad33` */
   return CAD.per;}
 function cadPose(v,now,pq){if(v===CAD.on)return;CAD.on=v;if(v)CAD.pq=pq||'?'; /* (2026-11-14, LE JUGE DU PROFIL) pourquoi on est calé : 'chaud' (gouverneur), 'reactif' (60 ne tenait pas), 'depart', 'force' — voir moteur/profil-juge.js */if(v&&MOB_GOUV)mobReactif();CAD.gel=v&&((!PAL.b('cadenceMonte',1)&&!CAD.eco)||(MOB_GOUV&&mobChaud()));/* (2026-11-12, ios-ultime) en économie d'énergie (CAD.eco) être calé ne veut rien dire — l'écran est à 30 de toute façon : l'échelle de qualité reste libre de remonter, sauf téléphone chaud */CAD.der=now;CAD.lT=0;CAD.calT=now;
   QLR.i=0;QLR.n=0; // l'anneau repart : les centiles ne mélangent pas des durées vraies et des durées ramenées
@@ -87,7 +87,7 @@ window.dbgGouvLent=function(ms){GDX_G.lent=Math.max(0,Math.min(200,+ms||0));GDX_
 function gdxGel(now){let s=19;try{s=PAL.bT('imgQlP75',24,'f');}catch(e){}if(QLR.p75>s)GDX_G.malT=now;
   return now-Math.max(GDX_G.malT,QL.kT||0)<QL_DOUX.tenu;} /* vrai : l'échelle reste gelée (pas encore 20 s tenues) */
 function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : le travail de l'image, puis la décision
-  const w=performance.now()-QLR.t0;CAD.w=CAD.w*.9+w*.1;CAD.wh=CAD.wh*.97+(w>CAD.wMax?1:0); // wh : compteur fuyant, ≥ 3 ≈ plus d'une image sur dix au-dessus de wMax
+  const w=performance.now()-QLR.t0;if(PIL_ON)pilCout(w); /* (2026-11-17, LE PILOTE, GELS ≠ CHARGE) le coût vrai de cette image : un tic raté derrière une image légère est un gel hors boucle, pas une charge */CAD.w=CAD.w*.9+w*.1;CAD.wh=CAD.wh*.97+(w>CAD.wMax?1:0); // wh : compteur fuyant, ≥ 3 ≈ plus d'une image sur dix au-dessus de wMax
   const d=Math.min(100,now-CAD.vu);CAD.vu=now; if(HUD_SOBRE&&now-(CAD.hsT||0)>500){CAD.hsT=now;let h=false;try{h=TEL_NATIF&&started&&running&&!gameOver&&!paused&&!garageOn&&mobChaud()&&!(BV.on&&BV.lev!=='base');}catch(e){}if(h!==!!CAD.hs){CAD.hs=h;document.body.classList.toggle('hudSobre',h);try{if(h&&BV.c)BV.c.hs=1;}catch(e){}}} /* LE HUD SOBRE : téléphone chaud, en course — voir css/hud-da.css ; dans un build de mesure, une course à levier garde son levier */
   if(POSTE.auto)posteJuge(now); /* (2026-11-10) le juge du régime de l'ordinateur — moteur/poste-juge.js */
   if(PJG.on)prfJuge(now); /* (2026-11-14) le juge du profil de l'iPhone — moteur/profil-juge.js */
@@ -109,9 +109,52 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
     else if(CAD.essT>0&&!ess9){CAD.essT=0;CAD.murD=30000;}} // l'essai a tenu 10 s : 60 est acquis, le mur repart de zéro
   else if(CAD.wh>=3||(CAD.murT>0&&now-CAD.murT<CAD.murD)||(QLR.vraiT&&now-QLR.vraiT<20000&&QLR.vrai>13)||(MOB_GOUV&&mobChaud()))CAD.calT=now; /* (2026-10-25) chaud : la sortie réactive ne joue pas */
   else if(now-CAD.calT>5000){cadPose(false,now);CAD.essT=now;}}
+/* ===== L'HORLOGE DU CALAGE (2026-11-17, qualité · lot lenteur, 2e tour — analyse du vol du build 120 : « la fuite du calage ») — appelée par loop À LA PLACE de cadSaute =====
+   PROUVÉ dans le vol : une image d'écran n'est sautée que si elle arrive moins de `per − tol` après la dernière image CALCULÉE (cadSaute) ; quand les images d'écran arrivent de
+   travers, chaque image calculée à 26-30 ms repousse l'échéance d'autant : 81 secondes sur 864 calculaient 34 à 44 images par seconde au lieu de 30.
+   1er tour : une horloge cumulée sautait ces images partout. Le contrôle a prouvé qu'elle AJOUTAIT des trous > 50 ms là où l'écran livre 34-44 images/s (68 des 81 secondes de
+   fuite) et des intervalles de 60-76 ms à 20 i/s — or le jeu plafonne dt à 50 ms (boucle-1.js) : chaque trou au-delà est du temps de jeu perdu, un ralenti.
+   RÈGLE DU 2e TOUR : l'horloge ne saute une image (que cadSaute aurait calculée) QUE si les trois conditions tiennent :
+   · l'écran livre RÉGULIÈREMENT au moins 50 images/s : sur ses 60 derniers intervalles, médiane ≤ 20 ms, 9e décile ≤ 1,5 × médiane ET plus long ≤ 2 × médiane (`CADH.reg`) ;
+   · l'horloge est en avance : moins de `per − tol` depuis l'échéance idéale de la dernière image calculée (`CADH.clk`, avance d'une période, jamais plus d'une période en retard) ;
+   · le saut ne peut pas produire d'intervalle calculé > 1,5 période ni > 50 ms : (temps depuis la dernière image calculée) + (le PLUS LONG intervalle d'écran récent)
+     ≤ min(1,5 × per, 50 ms) − 2 ms — le plus long des intervalles d'écran des ~5 dernières secondes (16 relevés de 60 intervalles), car la gigue a une queue.
+   Sinon c'est cadSaute, au bit près. Une image sautée passe quand même par cadSaute (la dose de chaleur, le compte des images d'écran) avec l'échéance posée à l'instant, puis
+   l'échéance vraie est rendue : ce qui compte les images calculées ne voit que les images calculées. L'horloge repart à chaque calage (CAD.der changé par cadPose) et au
+   changement de cadence (30 ⇄ 20). Banc déterministe (sans navigateur) : outils/banc-lenteur/horloge.cjs.
+   RÉSULTAT DU BANC (41 graines, 14 écrans × 30 et 20 i/s, dont les 81 secondes de fuite du vol rejouées) : cette règle tient l'exigence (jamais un trou > 50 ms de plus,
+   jamais sous 30/20 i/s) et n'y saute aucune image : la fuite n'existe que sur les écrans qui livrent moins de 50 images/s ou de travers, et là tout saut fait un trou.
+   (3e tour, contrôle) FAUX AILLEURS : à 100 Hz elle saute (680 en 70 s, σ 0 → 4,7 ms), à 75 Hz aussi (40), et après une bascule 100 Hz → 34-44 Hz irréguliers elle CASSE
+   l'exigence (plus de trous > 50 ms, plus de temps perdu, 4 graines sur 8) : `reg` et `max` ne sont remesurés que toutes les 15 images, la règle agit sur une mesure périmée.
+   Sur un écran régulier à 60 ou 120 Hz, cadSaute tient déjà 30,0 i/s. Donc ÉTEINTE PAR DÉFAUT : `?plus=cadhorloge` l'allume (pour une mesure seulement) ;
+   sans le paramètre, loop appelle cadSaute tel quel (un appel de fonction de plus). */
+const CAD_HORLOGE=/[?&]plus=[^&]*cadhorloge/.test(location.search)&&!/[?&]sans=[^&]*cadhorloge/.test(location.search);
+const CADH={a:new Float32Array(60),b:new Float32Array(60),mx:new Float32Array(16).fill(99),j:0,i:0,n:0,k:0,med:0,p90:0,max:0,reg:false,clk:0,der:-1,per:0,sauts:0,refus:0};
+function cadSauteH(now){
+  if(!CAD_HORLOGE)return cadSaute(now);
+  const H=CADH,d=now-CAD.rp;
+  if(d>3&&d<100){H.a[H.i]=d;H.i=(H.i+1)%60;if(H.n<60)H.n++;}else if(d>=100){H.n=0;H.reg=false;H.mx.fill(99);} /* un trou (pause, arrière-plan, gel) : la régularité se remesure */
+  if(++H.k>=15&&H.n>=60){H.k=0;H.b.set(H.a);H.b.sort();H.med=H.b[30];H.p90=H.b[54];H.mx[H.j]=H.b[59];H.j=(H.j+1)%16;H.max=0;for(let q=0;q<16;q++)if(H.mx[q]>H.max)H.max=H.mx[q]; /* le plus long intervalle des ~5 dernières secondes (16 relevés) : la queue de la gigue, pas seulement la dernière seconde */H.reg=H.med<=20&&H.p90<=H.med*1.5&&H.max<=H.med*2;}
+  const per=cadPer();
+  if(CAD.der!==H.der||per!==H.per){H.clk=CAD.der;H.per=per;} /* calage, cadence changée : l'horloge repart de la dernière image calculée */
+  if(CAD.on&&H.reg){const e=now-CAD.der,t=per-CAD.tol;
+    if(e>=t&&now-H.clk<t){ /* cadSaute la calculerait, l'horloge est en avance */
+      if(e+H.max+2<=Math.min(per*1.5,50)){const d0=CAD.der;CAD.der=now;cadSaute(now);CAD.der=d0;H.sauts++;return true;}
+      H.refus++;}}
+  const r=cadSaute(now);
+  if(!r){H.clk=CAD.on?Math.max(H.clk+per,now-per):now;H.der=CAD.der;}
+  return r;}
+window.dbgHorloge=function(){const H=CADH;return {ok:CAD_HORLOGE,reg:H.reg,med:+H.med.toFixed(1),p90:+H.p90.toFixed(1),max:+H.max.toFixed(1),sauts:H.sauts,refus:H.refus};};
 /* ===== LE HUD CONTEMPLATIF + L'ÉCRITURE ALLÉGÉE (2026-11-12, Sacha) — voir css/hud-da.css. hudCalmeTick est appelé à chaque image de loop. Vrai téléphone seulement (TEL_NATIF, donc aussi ?tel=1 au banc).
    Le HUD s'efface quand le nitro est relâché depuis 0,9 s, en course, hors leçon d'auto-école ; il revient au nitro, en pause, à la mort, et quand le chrono de vol passe à l'urgence (on ne meurt pas sans l'avoir vu). */
 const HUD_CALME={ok:!/[?&]sans=[^&]*hudcalme/.test(location.search),leger:!/[?&]sans=[^&]*ecrleger/.test(location.search),on:false,t:0,pose:false,air:null};
+/* ===== LE JS PAR IMAGE (2026-11-16, lot jsimage — Sacha : « beaucoup de lag » sur le build 118 ; téléphone chaud, TOUT le fil ralentit ×8 : chaque ms de JS par image en coûte huit) =====
+   Rien ne change à l'écran : le même résultat, moins de calcul. `?sans=jsimage` = exactement l'avant. Banc : outils/banc-jsimage ; journal : passation/qualite/jsimage.md.
+   · LA FLAMME DU POUCE NITRO (nxfDessine, interface/boost-icones.js — le plus gros poste du HUD : ≈ 1,5 ms par image au processeur ×6) : chaque case de la boîte essayait les
+     huit langues ; désormais seulement celles dont la boîte touche sa ligne, et la ligne n'est parcourue que sur leur largeur. La calotte ne calcule plus atan2 + deux sinus
+     là où elle ne peut pas peindre. Mêmes octets dans la toile : prouvé par dbgNxfDouble (les deux versions sur le même état, comparées à chaque dessin).
+   · LE VOLANT (stSet, à chaque touchmove — moteur/mobile-tactile.js) : la transformation du bouton et --sl/--sr/--su/--sd ne s'écrivent que si elles changent. */
+const JSI={ok:!/[?&]sans=[^&]*jsimage/.test(location.search)};
 /* (2026-11-15, Sacha : « en HUD calme les fruits ARRÊTENT D'APPARAÎTRE, mais ceux qui sont déjà là, tu les ramasses ») LA GARDE DU CALME (?sans=calmegarde = comme avant : tout s'efface).
    Concerne les objets que le calme cachait : les FRUITS de nitro (p.nitro, file de la ligne parfaite comprise), les POUVOIRS (p.pow) et les JETONS du final spin (p.spin) ; les pièces n'ont jamais été cachées.
    · à l'entrée du calme, ce qui est déjà dans le couloir de vue (boucle-4-effets.js) est photographié (p.cok = CALG.id) : cela RESTE et se ramasse normalement ;
@@ -191,6 +234,141 @@ function hudDortTick(now){if(!TEL_NATIF||!HUD_DORT.ok)return;
   if(ios9&&!/[?&]sans=[^&]*reflets/.test(q9))document.documentElement.classList.add('ifReflets');
   if(ios9&&!/[?&]sans=[^&]*trame/.test(q9))document.documentElement.classList.add('ifTrame');}
 window.dbgHudDort=function(){return {ok:HUD_DORT.ok,cle:HUD_DORT.cle,geles:HUD_DORT.l.length,total:HUD_DORT.n,elements:HUD_DORT.l.map(function(e){return e.id||e.className;})};};
+/* ===== LES COUCHES DU HUD (2026-11-17, qualité · hudcouches — piste A4 de passation/qualite/CHALEUR-IDEES.md ; Sacha : « le téléphone affiche toujours le maximum de ce qu'il peut afficher ») =====
+   Le HUD est du DOM posé sur la toile : WebKit en fait des COUCHES que le système mélange à chaque image. MESURÉ dans WebKit (inspecteur, domaine LayerTree ;
+   banc outils/banc-hud/couches-webkit.cjs) : en course 36 à 50 couches, dont 17 à 22 d'éléments À OPACITÉ 0 (le logo du lancement et ses reflets, les voiles plein
+   écran #cloudFx #gFade #flash #flash9 #flowGlow #ajVols, #toast, #lvlBan…), certaines avec leur mémoire d'image (jusqu'à 16 Mo à l'annonce) ; au HUD calme, tout
+   le HUD à opacité 0 garde ses couches.
+   LE VOILE : un élément de la liste dont l'opacité calculée est 0, sans transition ni animation d'opacité en cours, et que rien ne touche (pointer-events: none, lui et
+   tout ce qu'il contient), reçoit `.hcVeil` (visibility:hidden, css/interface-opti.css §6). Invisible avant, invisible après : pas un pixel ne change ; WebKit ne le
+   peint plus, rend sa mémoire et retire la plupart de ces couches (course 36-50 → 26-29). Rien ne touche aux animations (visibility ne les arrête pas : jamais
+   `animation:none`, rien ne rejoue).
+   LE RÉVEIL, avant l'image suivante : un observateur (microtâche, donc à la fin de la tranche de JS qui a écrit) regarde l'élément lui-même (classe, style, data-*),
+   ses ancêtres, #hud, <body> et <html> ; au moindre changement, chaque élément voilé concerné est relu : opacité plus nulle, ou transition/animation d'opacité qui
+   démarre (elle part de 0 : sa première image est la même), le voile tombe. Les éléments nés en course (#flowGlow, #slam9…) sont cherchés toutes les 2 s.
+   Hors course (garage, menus) : rien n'est voilé. Vrai téléphone seulement (TEL_NATIF). ?sans=hudcouches */
+const HCC={ok:TEL_NATIF&&!/[?&]sans=[^&]*hudcouches/.test(location.search),el:null,vu:null,scan:0,cherche:0,obs:null,hud:null,poses:0,reveils:0,lus:0,rap:0,gcs:0};
+const HCC_IDS=['launchLogo','launchGlow','cloudFx','gFade','flash','flash9','flowGlow','ajVols','speedFx','lvlBan','toast','campChip','misBan','popTxt','slam9','verdHud','engBig','figGl','tFig','m2Combo','pwrFx','pwrChip','flowHud'];
+if(HCC.ok)try{document.documentElement.classList.add('hudCouches');}catch(e){}
+/* LES VOILES AU TIERS (2026-11-17, qualité · voiles) : les voiles plein écran en dégradé (vignette de vitesse, voile du haut, annonce, nuage) peints au tiers et agrandis ×3 (css/interface-opti.css §7). Vrai téléphone ; ?sans=voiles */
+if(TEL_NATIF&&!/[?&]sans=[^&]*voiles/.test(location.search))try{document.documentElement.classList.add('voiles');}catch(e){}
+if(TEL_NATIF&&/[?&]plus=[^&]*voilesombres/.test(location.search))try{document.documentElement.classList.add('voilesOmbres');}catch(e){} /* les lueurs en ombre interne au tiers : écart 6-9/255 sur leur flou, éteint (?plus=voilesombres) */
+const VOILES_GL=TEL_NATIF&&/[?&]plus=[^&]*voilesgl/.test(location.search); /* piste d : la vignette de vitesse dans la passe de sortie WebGL (boucle-6-hud.js, triptyque-bloom.js) ; ÉTEINT : elle passe sous les traits de vitesse */
+/* peut-on voiler e ? (pt : contrôler aussi qu'il ne prend aucun toucher — seulement à la pose : pointer-events ne change pas l'image) */
+function hccPourquoi(e,pt){HCC.gcs++;const c=getComputedStyle(e);if(c.display==='none')return 'display';if(+c.opacity!==0)return 'visible';HCC.lus++;
+  if(/\b(all|visibility)\b/.test(c.transitionProperty)&&/[1-9]/.test(c.transitionDuration))return 'transition:'+c.transitionProperty;
+  const an=e.getAnimations?e.getAnimations():[];
+  for(let i=0;i<an.length;i++){const a=an[i];if(a.playState==='finished'||a.playState==='idle')continue;if(!a.animationName)return 'transition en cours'; /* une transition en cours (de l'opacité ou d'autre chose) : on attend */
+    let k=[];try{k=a.effect.getKeyframes();}catch(x){return 'images-clés';}for(let j=0;j<k.length;j++)if('opacity' in k[j])return 'animation d\'opacité '+a.animationName;}
+  if(pt){if(c.pointerEvents!=='none')return 'toucher';const d=e.getElementsByTagName('*');for(let i=0;i<d.length;i++){HCC.gcs++;if(getComputedStyle(d[i]).pointerEvents!=='none')return 'toucher dedans';}}
+  return '';}
+function hccVoilable(e,pt){return hccPourquoi(e,pt)==='';}
+function hccLeve(e){if(e.classList.contains('hcVeil')){e.classList.remove('hcVeil');HCC.reveils++;}}
+function hccLeveTout(){if(HCC.el)for(let i=0;i<HCC.el.length;i++)hccLeve(HCC.el[i]);}
+/* l'observateur : relit seulement les éléments voilés que le changement peut concerner */
+function hccObs(recs){HCC.rap++;let tous=false;const vus=new Set();
+  for(let i=0;i<recs.length;i++){const r=recs[i],t=r.target;
+    if(r.type==='attributes'&&r.attributeName==='class'&&t.classList&&HCC.el.indexOf(t)>=0&&String(r.oldValue||'').replace(/\bhcVeil\b/,'').trim().split(/\s+/).sort().join(' ')===String(t.className).replace(/\bhcVeil\b/,'').trim().split(/\s+/).sort().join(' '))continue; /* notre propre voile */
+    if(t===document.body||t===document.documentElement||t===HCC.hud)tous=true;else vus.add(t.nodeType===1?t:t.parentNode);}
+  for(let i=0;i<HCC.el.length;i++){const e=HCC.el[i];if(!e.classList.contains('hcVeil'))continue;
+    let c9=tous||vus.has(e);if(!c9)for(const v of vus)if(v&&v!==e&&(v.contains(e)||(e.id==='toast'&&e.contains(v)))){c9=true;break;} /* lui, un de ses ancêtres, ou (le toast) son contenu */
+    if(c9&&!hccVoilable(e,false))hccLeve(e);}}
+function hccSuit(n,o){if(n&&HCC.obs&&!HCC.vu.has(n)){HCC.vu.add(n);HCC.obs.observe(n,o||{attributes:true,attributeOldValue:true});}}
+function hccAjoute(e){if(!e||HCC.el.indexOf(e)>=0)return;HCC.el.push(e);hccSuit(e,e.id==='toast'?{attributes:true,attributeOldValue:true,childList:true,subtree:true}:null);for(let a=e.parentElement;a&&a!==document.body;a=a.parentElement)hccSuit(a);}
+/* beaucoup d'éléments du HUD naissent en course (#flowGlow, #slam9, #flash9, #pwrFx…) : on recherche les absents toutes les 2 s */
+function hccCherche(){for(let i=0;i<HCC_IDS.length;i++)hccAjoute(document.getElementById(HCC_IDS[i]));
+  if(HCC.hud)for(let i=0;i<HCC.hud.children.length;i++){const e=HCC.hud.children[i];if(!/^(triade|cashHud|money|feverGlow)$/.test(e.id))hccAjoute(e);} /* le reste de #hud (au HUD calme) ; l'argent est à un autre lot */}
+function hccInit(){HCC.el=[];HCC.vu=new Set();HCC.hud=document.getElementById('hud');
+  if(window.MutationObserver){HCC.obs=new MutationObserver(hccObs);hccSuit(document.documentElement);hccSuit(document.body);hccSuit(HCC.hud);}
+  hccCherche();HCC.cherche=performance.now();}
+function hccTick(now){if(!HCC.ok)return;if(!HCC.el)hccInit();
+  if(!started||garageOn){if(HCC.poses)hccLeveTout();return;}
+  if(now-HCC.scan<300)return;HCC.scan=now;
+  if(now-HCC.cherche>2000){HCC.cherche=now;hccCherche();}
+  if(HCC.obs)hccObs(HCC.obs.takeRecords()); /* ce que la page a écrit depuis la dernière microtâche passe d'abord (sinon un réveil serait jeté avec nos propres écritures) */
+  for(let i=0;i<HCC.el.length;i++){const e=HCC.el[i];if(!e.classList.contains('hcVeil')&&hccVoilable(e,true)){e.classList.add('hcVeil');HCC.poses++;}}
+  if(HCC.obs)HCC.obs.takeRecords();} /* nos seules écritures : rien à relire */
+/* ===== L'OBSERVATEUR SANS LECTURE (2026-11-17, qualité · hudobs — Sacha : « j'ai eu quelques freezes sur la map jade ») =====
+   MESURÉ dans la boîte de vol du build 120 (téléphone à l'état critique, 20 i/s) : le rappel de l'observateur `hccObs` dépassait 8 ms 23 fois en 449 s (pire 26 ms)
+   et 20 fois en 110 s (pire 27 ms). Cause : au moindre changement de <html>, <body> ou #hud, il relisait getComputedStyle + getAnimations de CHAQUE élément voilé,
+   et levait les voiles un par un entre deux lectures (lire, écrire, lire… : un recalcul de style forcé par élément). Et la pose relisait tous les éléments à la fois.
+   Désormais : (1) LE RÉVEIL NE LIT AUCUN STYLE. Une mutation qui peut changer l'opacité d'un élément voilé lève son voile, sans rien vérifier : lever un voile sur
+   un élément à opacité 0 ne change aucun pixel, et il tombe avant l'image (microtâche). Qui est concerné est connu d'avance (table ancêtre → éléments voilables),
+   donc rien n'est parcouru. (2) FILTRE : une mutation de `style` qui ne touche qu'à la géométrie (largeur de la jauge, position, transform) est ignorée, comme nos
+   propres écritures de `hcVeil` ; seuls class, style et data-* sont regardés. (3) LA POSE est étalée : quelques éléments par passage (toutes les lectures d'abord,
+   puis les écritures : un seul recalcul), jamais quand l'image en cours a déjà pris plus de 10 ms ni après une image longue (au plus 4 passages sautés de suite). `?sans=hudobs` = l'observateur d'avant. */
+const HCO={ok:HCC.ok&&!/[?&]sans=[^&]*hudobs/.test(location.search),anc:null,rap:0,rec:0,ign:0,lev:0,passes:0,sautes:0,i:0,der:0,K:6,hist:null,file:new Set(),tok:null,tokT:null,nf:0,suite:0};
+/* les propriétés de style sans effet sur l'opacité (ni sur display, visibility, animation, transition) : la géométrie seule */
+const HCO_GEO=/^(width|height|min-width|min-height|max-width|max-height|left|top|right|bottom|inset|transform|translate|scale|rotate|transform-origin|margin(-[a-z]+)?|padding(-[a-z]+)?|background-position(-[xy])?|--(w|h|x|y|tx|ty|nw|cw|cx|cy|lw))$/;
+function hcoDecl(s){const o={};if(!s)return o;const p=String(s).split(';');for(let i=0;i<p.length;i++){const k=p[i].indexOf(':');if(k>0)o[p[i].slice(0,k).trim().toLowerCase()]=p[i].slice(k+1).trim();}return o;}
+/* une mutation de style : 0 = sans effet ; 1 = peut changer l'opacité de l'élément lui-même ; 2 = aussi celle de ce qu'il contient (une variable --x, héritée).
+   L'opacité d'un ancêtre, son animation, sa transition ne changent pas l'opacité CALCULÉE d'un enfant : pour lui, seules les variables comptent.
+   Une opacité posée à 0 (écrite à chaque image sur un élément éteint) ne réveille pas. */
+function hcoStyleEffet(a,b){const A=hcoDecl(a),B=hcoDecl(b);let n=0;
+  for(const k in B)if(A[k]!==B[k]&&!HCO_GEO.test(k)){if(k.charCodeAt(0)===45&&k.charCodeAt(1)===45)return 2;if(k==='opacity'&&parseFloat(B[k])===0)continue;n=1;}
+  for(const k in A)if(!(k in B)&&!HCO_GEO.test(k)){if(k.charCodeAt(0)===45&&k.charCodeAt(1)===45)return 2;n=1;}
+  return n;}
+/* LES CLASSES QUI COMPTENT : une seule fois (par tranches de 2 ms, aux passages de la pose), toutes les règles CSS qui posent une opacité, une animation, une transition,
+   display ou une variable (--x : les opacités en var()) ; leurs classes forment HCO.tok. Une classe qui change sur un ancêtre (<body>, #hud…) ou sur l'élément, et qui
+   n'apparaît dans AUCUNE de ces règles, ne peut pas changer une opacité : ignorée. Tant que la table n'est pas finie, tout changement de classe réveille. */
+const HCO_PROP=/^(opacity|animation|transition|display|visibility|all|--)/;
+function hcoTokTranche(t0){const T=HCO.tokT;if(!T)return;
+  while(T.pile.length){if(performance.now()-t0>2)return;const f=T.pile[T.pile.length-1];if(f.i>=f.l.length){T.pile.pop();continue;}const ru=f.l[f.i++];
+    if(ru.cssRules&&ru.cssRules.length&&!ru.selectorText){T.pile.push({l:ru.cssRules,i:0});continue;} /* @media, @supports */
+    if(!ru.selectorText||!ru.style)continue;let ok=false;for(let k=0;k<ru.style.length;k++)if(HCO_PROP.test(ru.style[k])){ok=true;break;}if(!ok)continue;
+    const m=ru.selectorText.match(/\.-?[_a-zA-Z][\w-]*/g);if(m)for(let k=0;k<m.length;k++)T.tok.add(m[k].slice(1));}
+  HCO.tok=T.tok;HCO.tokT=null;}
+function hcoTokLance(){const p=[];for(let i=0;i<document.styleSheets.length;i++){try{const l=document.styleSheets[i].cssRules;if(l)p.push({l:l,i:0});}catch(e){}}
+  HCO.tokT={pile:p,tok:new Set()};HCO.nf=document.styleSheets.length;}
+function hcoClasseSansEffet(a,b){const A=String(a||'').split(/\s+/),B=String(b||'').split(/\s+/);let ch=0;
+  for(let i=0;i<A.length;i++){const k=A[i];if(!k||k==='hcVeil'||B.indexOf(k)>=0)continue;ch++;if(!HCO.tok||HCO.tok.has(k))return false;}
+  for(let i=0;i<B.length;i++){const k=B[i];if(!k||k==='hcVeil'||A.indexOf(k)>=0)continue;ch++;if(!HCO.tok||HCO.tok.has(k))return false;}
+  return true;} /* rien n'a changé (notre voile), ou seulement des classes sans effet sur une opacité */
+function hcoLie(n,e){if(!n)return;let l=HCO.anc.get(n);if(!l)HCO.anc.set(n,l=[]);if(l.indexOf(e)<0)l.push(e);}
+/* le rappel : aucune lecture de style ; une liste connue d'avance par nœud muté */
+function hcoObs(recs){HCO.rap++;
+  for(let i=0;i<recs.length;i++){const r=recs[i];let t=r.target;HCO.rec++;
+    if(t&&t.nodeType!==1)t=t.parentNode;if(!t){HCO.ign++;continue;}
+    if(r.type==='attributes'){const a=r.attributeName;
+      if(a==='class'){if(hcoClasseSansEffet(r.oldValue,t.getAttribute('class'))){HCO.ign++;continue;}} /* notre propre voile, ou des classes sans effet */
+      else if(a==='style'){const f=hcoStyleEffet(r.oldValue,t.getAttribute('style'));if(!f){HCO.ign++;continue;} /* la géométrie seule */
+        if(f===1){if(HCO.hist){const k=(t.id||t.nodeName)+' style';HCO.hist[k]=(HCO.hist[k]|0)+1;}if(t.classList.contains('hcVeil')&&HCO.anc.has(t)){t.classList.remove('hcVeil');HCC.reveils++;HCO.lev++;HCO.file.add(t);}continue;}} /* lui seul */
+      else if(a.slice(0,5)!=='data-'){HCO.ign++;continue;}}
+    if(HCO.hist){const k=(t.id||t.nodeName)+' '+(r.attributeName||r.type);HCO.hist[k]=(HCO.hist[k]|0)+1;}
+    let l=HCO.anc.get(t);
+    if(!l&&t.closest){const ts=t.closest('#toast');if(ts)l=HCO.anc.get(ts);} /* le contenu du toast */
+    if(l)for(let j=0;j<l.length;j++){const e=l[j];if(e.classList.contains('hcVeil')){e.classList.remove('hcVeil');HCC.reveils++;HCO.lev++;HCO.file.add(e);}}}} /* relu en premier aux passages suivants */
+function hcoInit(){HCC.el=[];HCC.vu=new Set();HCO.anc=new Map();HCC.hud=document.getElementById('hud');
+  if(window.MutationObserver){HCC.obs=new MutationObserver(hcoObs);hcoSuit(document.documentElement);hcoSuit(document.body);hcoSuit(HCC.hud);}
+  hcoCherche();HCC.cherche=performance.now();hcoTokLance();}
+function hcoSuit(n,o){if(n&&HCC.obs&&!HCC.vu.has(n)){HCC.vu.add(n);HCC.obs.observe(n,o||{attributes:true,attributeOldValue:true});}}
+function hcoAjoute(e){if(!e||HCC.el.indexOf(e)>=0)return;HCC.el.push(e);hcoLie(e,e);
+  hcoSuit(e,e.id==='toast'?{attributes:true,attributeOldValue:true,childList:true,subtree:true,characterData:true}:null);
+  for(let a=e.parentElement;a;a=a.parentElement){hcoLie(a,e);if(a!==document.body&&a!==document.documentElement)hcoSuit(a);}}
+function hcoCherche(){for(let i=0;i<HCC_IDS.length;i++){const e=document.getElementById(HCC_IDS[i]);if(e&&HCC.el.indexOf(e)<0)hcoAjoute(e);}
+  if(HCC.hud)for(let i=0;i<HCC.hud.children.length;i++){const e=HCC.hud.children[i];if(!/^(triade|cashHud|money|feverGlow)$/.test(e.id)&&HCC.el.indexOf(e)<0)hcoAjoute(e);}}
+/* la pose étalée : K éléments par passage, au tour par tour ; toutes les lectures d'abord, puis les écritures */
+const HCO_POSE=[];
+function hcoTick(now){if(!HCC.el)hcoInit();
+  if(!started||garageOn){if(HCC.poses)hccLeveTout();HCO.der=now;return;}
+  const dt=now-HCO.der;HCO.der=now;
+  if(now-HCC.scan<(HCO.file.size?100:300))return; /* des voiles viennent de tomber : on les relit plus tôt */
+  if((dt>70||performance.now()-now>10)&&HCO.suite<4){HCO.sautes++;HCO.suite++;return;} /* image longue (ou déjà chargée) : on repasse à la suivante — au plus 4 fois de suite */
+  HCO.suite=0;
+  HCC.scan=now;HCO.passes++;
+  if(now-HCC.cherche>2000){HCC.cherche=now;hcoCherche();if(HCO.nf!==document.styleSheets.length)hcoTokLance();} /* une feuille ajoutée : la table est refaite */
+  if(HCO.tokT)hcoTokTranche(performance.now());
+  if(HCC.obs){const r=HCC.obs.takeRecords();if(r.length)hcoObs(r);} /* ce que la page a écrit avant nous passe d'abord */
+  const n=HCC.el.length;if(!n)return;HCO_POSE.length=0;let lus=0;
+  const t0=performance.now();
+  for(const e of HCO.file){if(lus>=4*HCO.K||lus>=HCO.K&&performance.now()-t0>1.5)break;HCO.file.delete(e);if(e.classList.contains('hcVeil')||!e.isConnected)continue;lus++;if(hccVoilable(e,true))HCO_POSE.push(e);} /* ceux qu'un réveil vient de libérer (jusqu'à 4K, 1,5 ms au plus au-delà de K) */
+  for(let k=0;k<n&&lus<HCO.K;k++){const e=HCC.el[HCO.i%n];HCO.i=(HCO.i+1)%n;if(e.classList.contains('hcVeil')||!e.isConnected||HCO_POSE.indexOf(e)>=0)continue;lus++;if(hccVoilable(e,true))HCO_POSE.push(e);}
+  for(let k=0;k<HCO_POSE.length;k++){HCO_POSE[k].classList.add('hcVeil');HCC.poses++;}
+  HCO_POSE.length=0;if(HCC.obs)HCC.obs.takeRecords();} /* nos seules écritures : rien à relire */
+if(HCO.ok){hccTick=function(now){if(HCC.ok)hcoTick(now);};}
+window.dbgHudObs=function(h){if(h===1)HCO.hist={};const o={ok:HCO.ok,rappels:HCO.rap,enregistrements:HCO.rec,ignores:HCO.ign,leves:HCO.lev,lectures:HCC.gcs,passes:HCO.passes,sautes:HCO.sautes,classesQuiComptent:HCO.tok?HCO.tok.size:-1,elements:(HCC.el||[]).length,rappelsAvant:HCC.rap};if(h===2)o.hist=HCO.hist;return o;};
+window.__hcTick=function(){if(!HCC.el)return 0;if(document.documentElement.classList.contains('hudCouches')){HCC.ok=true;HCC.scan=0;if(HCO.ok){const K=HCO.K,t=performance.now();HCO.K=999;HCO.der=t;hccTick(t);HCO.K=K;}else hccTick(performance.now());}else{HCC.ok=false;hccLeveTout();}return HCC.el.filter(function(e){return e.classList.contains('hcVeil');}).length;}; /* (banc) A/B dans la même page */
+window.dbgHudCouches=function(){return {ok:HCC.ok,poses:HCC.poses,reveils:HCC.reveils,lus:HCC.lus,voiles:(HCC.el||[]).filter(function(e){return e.classList.contains('hcVeil');}).map(function(e){return e.id;}),libres:(HCC.el||[]).filter(function(e){return !e.classList.contains('hcVeil');}).map(function(e){return (e.id||e.className)+' : '+hccPourquoi(e,true);})};};
 window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC||POSTE.auto)?1:0;if(CAD.force)cadPose(f===30,n,'force');else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
   const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)
 /* ====================== HORS COURSE À 30 i/s — HC (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») ======================
@@ -250,7 +428,7 @@ const ACC30=TEL_NATIF&&!/[?&]sans=[^&]*acc30/.test(location.search);
 const ACC30_CHAUD=!/[?&]sans=[^&]*acc30chaud/.test(location.search);
 function accFrais(){try{return MOB_S.capteur&&MOB_S.thermo<(ACC30_CHAUD?3:2);}catch(e){return false;}}
 function hcRepos(now){if(MENU_MAX||HC_REPOS_OFF||!TEL_NATIF)return 0; /* (2026-11-10) le repos à 15 i/s est une affaire de chaleur de téléphone : un ordi aux régimes LÉGER / MINIMUM garde ses menus à 30 */const d=now-HC.gT;
-  if(ACC30&&d<=60000&&accFrais())return 0; /* L'ACCUEIL FLUIDE : 30 i/s (CAD.per) tant que le téléphone est frais et qu'on l'a touché depuis moins d'une minute */
+  if(ACC30&&d<=60000&&accFrais()&&!(d>MCH.repos&&mchVoulu()))return 0; /* L'ACCUEIL FLUIDE : 30 i/s (CAD.per) tant que le téléphone est frais et qu'on l'a touché depuis moins d'une minute */ /* (2026-11-18, LE MENU AU CHAUD, nettete-qualite.js) à SERIOUS, après 10 s sans geste : 15 i/s réguliers (reposLongMs) ; le premier toucher rend les 60 puis les 30 */
   return d>8000?PAL.b('reposLongMs',0):d>3000?PAL.b('reposMs',0):0;}
 /* ===== LA FENÊTRE DE TRANSITION (2026-11-13, transitions-ui — Sacha : « soigner les transitions dans l'interface, animation, plus de fluidité ») =====
    Un changement d'écran (mGo, le volet ecranWipe, garMode/gModeVa du garage, le voile du départ) joue son entrée en 0,4 à 1,5 s, mais la cadence des menus

@@ -227,7 +227,8 @@ function engCurve(k){ // courbe de saturation tanh — le grain qui devient harg
 // le moteur » — et un nom qui ment finit toujours par faire recâbler quelqu'un à la mauvaise
 // source. `lv` est maintenant un index de `ENG_SND`, c'est-à-dire `engTier` lui-même.
 function engSetTier(lv){ // changement de palier → nouveau timbre (onde harmonique + grain + sub), à chaud
-  if(!AC||!osc)return;
+  if(!AC)return;
+  if(!osc){engLvl=lv;engGear=1;engShiftT=0;return;} /* (2026-11-17, LE MOTEUR SE TAIT) pas de voix : seulement l'état de la boîte virtuelle (le pouce et le coup de champ des rapports en dépendent) */
   const e=(MB.ok?MB.fiche(lv):ENG_SND[lv])||ENG_SND[0];engLvl=lv;engGear=1;engShiftT=0; /* (2026-11-10) le MOTEUR MODERNE : la fiche bûche du palier */
   const w=engWave9(AC,e);                       // l'onde du palier — fabriquée par le bloc balisé
   osc.setPeriodicWave(w);osc2.setPeriodicWave(w);osc2.detune.value=7;

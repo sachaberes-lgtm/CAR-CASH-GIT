@@ -49,12 +49,45 @@ let JAV_LIA=null; /* (2026-11-16, LES ITINÉRAIRES, jade-avatar.js) l'allure des
 const JADE_ILE=[[8,16,4],[13,25,4],[21,40,4],[31,58,4],[64,128,5],[88,166,5]];
 const JADE_ILE0=JADE_NTPL+3;
 function jadeIleDe(r,massif){let bi=-1,bd=1e9;for(let k=0;k<JADE_ILE.length;k++){if(!!massif!==(JADE_ILE[k][2]===5))continue;const d=Math.abs(JADE_ILE[k][0]-r);if(d<bd){bd=d;bi=k;}}return JADE_ILE0+Math.max(0,bi);}
-function genJadeA(rnd,graine){const g0=(rnd()*4294967296)>>>0,gr=(graine==null?g0:graine)|0,fam=gr&1,rot=(gr>>>1)%JA_FAM[gr&1].autres.length,t0=performance.now();let best=null;const notes=[];
+function genJadeA(rnd,graine){if(!JADE_OPT)return genJadeA0(rnd,graine);const it=genJadeAG(rnd,graine);let x=it.next();while(!x.done)x=it.next();return x.value;} /* (dbgGenRoute, dbgGenBilan, piste-prebati : d'un trait) */
+function genJadeA0(rnd,graine){const g0=(rnd()*4294967296)>>>0,gr=(graine==null?g0:graine)|0,fam=gr&1,rot=(gr>>>1)%JA_FAM[gr&1].autres.length,t0=performance.now();let best=null;const notes=[];
   for(let e=0;e<JADE_A.essais;e++){const r9=jadeAGen(mulberry32((g0^Math.imul(e+1,0x9E3779B1))>>>0),fam,rot,gr);r9.essai=e;notes.push(+r9.note.toFixed(2));if(!best||r9.note<best.note)best=r9;if(r9.note<=.6)break;}
   best.notes=notes;best.fam=fam;best.ms=Math.round(performance.now()-t0);jadeAApplique(best);return best.ctrl;}
-function jadeAGen(r,fam,rot,gr9){
+/* ===== L'OPTIMISATION iPHONE (2026-11-17, session d'optimisation finale ; `?sans=jadeopt` = tout comme avant) =====
+   LA ROUTE EN TRANCHES : genJadeA menait ses dix essais d'un trait (120-600 ms de suite au pré-bâti, en pleine course de la map d'avant). genJadeAG est
+   la MÊME boucle, qui rend la main entre deux essais (pisteRoute la mène par `yield*`, voir genJadeG) : un essai est une fonction ordinaire (JSC l'optimise),
+   le générateur n'enveloppe que la boucle. JAV_LIA (global) est posé au début de CHAQUE essai (jadeAGen) et ne sert qu'à l'intérieur : rien ne passe d'un
+   essai à l'autre. Même route au bit près (empreinte : outils/banc-jade/opt-empreinte.cjs).
+   L'ESSAI GAGNANT RETENU : la même vallée (graine, palier, largeur, allure, longueur visée) ne rejoue que son essai gagnant (JADE_AMEMO) — même route. */
+const JADE_OPT=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadeopt(,|&|$)/.test(location.search);
+const JADE_AMEMO={m:new Map(),hits:0};
+const JADE_RU=typeof ROUTES_U!=='undefined'&&ROUTES_U&&JADE_V3; /* (2026-11-17, LES ROUTES UNIQUES : gameplay/route-uniques.js, maps/jade-uniques.js ; `?sans=uniques` = le paquet d'avant) */
+/* ===== LES ESSAIS EN TRANCHES (2026-11-17, lot JADEPREBATI — Sacha : « quelques freezes sur la map jade » ; `?sans=jadeprebati` = un essai par tranche, comme avant) =====
+   MESURÉ (boîte de vol, build 120, 13 Pro critical) : le pré-bâti de la jade tenait des tranches de 45 ms, image après image — UN ESSAI ENTIER par tranche (genJadeAG ne rendait
+   la main qu'entre deux essais), jusqu'à 179 ms ; au banc (Chrome, processeur ×10) 67-99 ms par essai. Un essai rend maintenant la main À L'ÉCHÉANCE DE LA TRANCHE (JF.lim, posée
+   par le pré-bâti) entre ses étapes : chaque scène, les deux lissages de la courbure, les normales (tous les 64 points), le rééchantillonnage, les tenues de cap, les croisements,
+   chaque raccourci essayé au tir, chaque décor contrôlé. Les étapes sont les MÊMES, dans le même ordre, sur les mêmes nombres : même route au bit près (opt-empreinte.cjs).
+   JAV_LIA (global, posé au début de l'essai) est remis à chaque reprise : une autre vallée générée entre deux tranches ne le change pas pour celle-ci. Mené d'un trait
+   (jadeAMene : sans échéance, ou jadeFini — sur téléphone, il reprend toutes les 4 ms : JSC n'optimise un générateur qu'à son entrée suivante), rien ne change. */
+const JADE_PBT=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadeprebati(,|&|$)/.test(location.search);
+function jadeAPasT(){return JADE_PBT&&typeof JF!=='undefined'&&performance.now()>JF.lim;} /* l'échéance de la tranche est passée */
+function* jadeAPas(){if(!jadeAPasT())return;const l9=JAV_LIA;yield;JAV_LIA=l9;}
+function jadeADirect(){return typeof jfDirect==='function'&&jfDirect();} /* d'un trait (JF.lim infinie, ou jadeFini) : l'essai se mène comme une fonction */
+function jadeAMene(it){if(typeof jadeFini==='function')return jadeFini(it);let x=it.next();while(!x.done)x=it.next();return x.value;}
+function* genJadeAG(rnd,graine){const g0=(rnd()*4294967296)>>>0,gr=(graine==null?g0:graine)|0,fam=gr&1,rot=(gr>>>1)%JA_FAM[gr&1].autres.length;let best=null,ms=0,t9=performance.now();const notes=[];
+  const vP=typeof vPalier==='function'?vPalier():78,rP=typeof rayonPalier==='function'?rayonPalier():63,LC=(typeof longueurCible==='function'&&longueurCible())||0,
+    cleDe=function(){return [g0,gr,engTier|0,vP,rP,ROAD_HALF||26,LC,JADE_AV?1:0,JADE_A.force||'',JADE_RU?jadeUPlan(gr,vP/rP).sig:''].join(':');};let cle=cleDe();const mem=JADE_AMEMO.m.get(cle);
+  if(mem){best=JADE_PBT&&!jadeADirect()?(yield* jadeAGenG(mulberry32((g0^Math.imul(mem.e+1,0x9E3779B1))>>>0),fam,rot,gr)):jadeAGen(mulberry32((g0^Math.imul(mem.e+1,0x9E3779B1))>>>0),fam,rot,gr);best.essai=mem.e;for(const x of mem.notes)notes.push(x);JADE_AMEMO.hits++;}
+  else{for(let t7=0;;t7++){best=null;notes.length=0; /* (LES ROUTES UNIQUES) t7 : une route dont la suite de modules a déjà été jouée (ruDeja) est refaite sur une variante de son plan, trois fois au plus */
+    for(let e=0;e<JADE_A.essais;e++){if(e>0||t7>0){ms+=performance.now()-t9;yield;t9=performance.now();}
+      const r9=JADE_PBT&&!jadeADirect()?(yield* jadeAGenG(mulberry32((g0^Math.imul(e+1,0x9E3779B1))>>>0),fam,rot,gr)):jadeAGen(mulberry32((g0^Math.imul(e+1,0x9E3779B1))>>>0),fam,rot,gr);r9.essai=e;notes.push(+r9.note.toFixed(2));if(!best||r9.note<best.note)best=r9;if(r9.note<=.6)break;}
+    if(JADE_RU&&best.u&&t7<3&&(ruDeja('jade',best.MK,gr)||ruFormeProche('jade',ruForme(best.ctrl),gr,70))){ /* …ou dont les 3 premiers km sont à moins de 70 m (RMS) d'une route déjà faite */ruRefait('jade',jadeUCle(gr,vP/rP));cle=cleDe();continue;}break;}
+    JADE_AMEMO.m.set(cle,{e:best.essai,notes:notes.slice()});if(JADE_AMEMO.m.size>8)JADE_AMEMO.m.delete(JADE_AMEMO.m.keys().next().value);}
+  ms+=performance.now()-t9;best.notes=notes;best.fam=fam;best.ms=Math.round(ms);jadeAApplique(best);return best.ctrl;}
+function jadeAGen(r,fam,rot,gr9){return jadeAMene(jadeAGenG(r,fam,rot,gr9));} /* (lot JADEPREBATI) d'un trait : le même essai, mené jusqu'au bout */
+function* jadeAGenG(r,fam,rot,gr9){ /* (lot JADEPREBATI) l'essai, qui rend la main à l'échéance de la tranche (jadeAPas) — voir LES ESSAIS EN TRANCHES */
   const vP=typeof vPalier==='function'?vPalier():78,rP=typeof rayonPalier==='function'?rayonPalier():63,vT=vP*(DUREE_ELAN[0]+(DUREE_ELAN[1]-DUREE_ELAN[0])*Math.min(1,Math.max(0,engTier|0)/DUREE.t1)), /* vT : LA VITESSE RESSENTIE (1,8 × la croisière au palier 0, la croisière au palier 25 : la durée des maps et le juge comptent avec elle) */RH=ROAD_HALF||26,rd=Math.PI/180,PI=Math.PI;
-  const LC=Math.max(3400,(typeof longueurCible==='function'&&longueurCible())||6400);
+  const LC=Math.max(3400,(typeof longueurCible==='function'&&longueurCible())||6400)*(JADE_RU&&!JADE_A.force?Math.min(2.9,1.5+.075*Math.max(0,(engTier|0)-10)):1); /* (LES ROUTES UNIQUES) MESURÉ : le paquet d'avant posait toutes ses scènes sans regarder la longueur et dépassait la visée de 50 % (palier 0), 58 % (10), 86 % (15), ~140 % (20), ~220 % (27) — la vallée durait ~55 s à tous les paliers ; le plan, lui, s'arrête à sa visée : ×1,5 → ×2,9, la vallée dure autant qu'avant (le contrôle adverse, 17/11) */
   const C=[],RO=[],NX=[],D=[],MM=[],ZC=[],MK=[],SCN=[],RAC=[];
   let P=new THREE.Vector3(0,0,0),phi=r()*6.2832,th=0,lon=0,scCur=-1,cible=phi,tCible=0;const phi0=phi;
   const sm=x=>x<=0?0:x>=1?1:x*x*(3-2*x),ang=a=>Math.atan2(Math.sin(a),Math.cos(a));
@@ -65,7 +98,7 @@ function jadeAGen(r,fam,rot,gr9){
   const k=()=>C.length-1;
   /* va : `len` m (dans l'espace), le cap tourne de `dP`, la pente passe de la courante à `th1` (en douceur) ; o.ro(u) : le roulis écrit ; o.dro : le roulis total
      (au moins un point de contrôle tous les ~14° de roulis) ; o.n : au moins n pas */
-  const va=(len,dP,th1,o)=>{o=o||{};const t0=th,n=Math.max(o.n||0,2,Math.ceil(len/42),Math.ceil(Math.abs(dP)/.14),Math.ceil(Math.abs(th1-t0)/.1),Math.ceil(Math.abs(o.dro||0)/.24));
+  const va=(len,dP,th1,o)=>{o=o||{};if(U){const lm=2.4*Math.abs(th1-th)*rP;if(len<lm)len=lm;} /* (LES ROUTES UNIQUES, le contrôle adverse) aucun creux ni crête sous le rayon tenable : un changement de pente prend au moins 1,6 × l'angle × rP (la pente passe en S : sa pointe est 1,5 × la moyenne) */const t0=th,n=Math.max(o.n||0,2,Math.ceil(len/42),Math.ceil(Math.abs(dP)/.14),Math.ceil(Math.abs(th1-t0)/.1),Math.ceil(Math.abs(o.dro||0)/.24));
     for(let i=1;i<=n;i++){const tm=t0+(th1-t0)*sm((i-.5)/n);phi+=dP/n/2;const l9=len/n;
       P.x+=Math.cos(tm)*Math.sin(phi)*l9;P.y+=Math.sin(tm)*l9;P.z+=Math.cos(tm)*Math.cos(phi)*l9;phi+=dP/n/2;th=t0+(th1-t0)*sm(i/n);push(o.ro?o.ro(i/n):null,null);}
     lon+=len;};
@@ -79,7 +112,12 @@ function jadeAGen(r,fam,rot,gr9){
   /* LA BOUSSOLE : toutes les 4,5-6,5 s de route, le cap visé tourne de 95-150° — `cote(net)` : le côté (±1) dont le cap de sortie (cap + côté × net) est le plus près
      du cap visé (un sur huit au hasard) ; `vers()` : le côté de la boussole (0 : on y est) */
   const vers=()=>{const d=ang(cible-phi);return Math.abs(d)<15*rd?0:d>0?1:-1;};
-  const boussole=()=>{const t9=lon/vP;if(t9-tCible<4.5+r()*2)return;tCible=t9;cible=phi+(r()<.5?-1:1)*(95+r()*55)*rd;};
+  let U=null,uN=0,uAxe=0,uCro=0; /* (LES ROUTES UNIQUES) le plan de la route, le compte des caps, l'axe du serpent */
+  const boussole=()=>{const t9=lon/vP;if(U){if(t9-tCible<U.pas+r()*U.pasV)return;tCible=t9;uN++;const al=uN%2?1:-1;
+      if(U.cap==='derive')cible=phi+U.sg*(70+r()*55)*rd;else if(U.cap==='zigzag')cible=phi+al*U.sg*(80+r()*60)*rd;
+      else if(U.cap==='serpent'||U.cap==='crochet'){if(U.cap==='crochet'&&!uCro&&lon>U.cro*LC){uCro=1;uAxe+=U.sg*(110+r()*60)*rd;}cible=uAxe+al*(38+r()*30)*rd;}
+      else cible=phi+(r()<.5?-1:1)*(60+r()*110)*rd;return;}
+    if(t9-tCible<4.5+r()*2)return;tCible=t9;cible=phi+(r()<.5?-1:1)*(95+r()*55)*rd;};
   /* le cap moyen (en plan) de la route entre t1 et t2 secondes en arrière (les bouts presque verticaux ne comptent pas) */
   const capMoyen=(t1,t2)=>{let acc=0,sx=0,sz=0;for(let i=C.length-1;i>0;i--){const a=C[i-1],b=C[i],l=a.distanceTo(b);acc+=l;if(acc<t1*vT)continue;if(acc>t2*vT)break;const dx=b.x-a.x,dz=b.z-a.z,lp=Math.hypot(dx,dz);if(lp<.3*l)continue;sx+=dx;sz+=dz;}return sx*sx+sz*sz>1?Math.atan2(sx,sz):null;};
   let nForce=0;const garde=()=>{if(lon<5*vT)return;const c0=capMoyen(0,1.5);if(c0==null)return;let mn=0,mx=0;for(let q=1;q<4;q++){const c=capMoyen(1.5*q,1.5*q+1.5);if(c==null)continue;const d=ang(c-c0);if(d<mn)mn=d;if(d>mx)mx=d;}if(mx-mn>=60*rd)return; /* les 6 dernières secondes en quatre caps moyens : s'ils tiennent tous dans 60°, la route vire */
@@ -91,6 +129,23 @@ function jadeAGen(r,fam,rot,gr9){
       let d=ang(cible-phi),a;if(Math.abs(d)<=22*rd&&!neuve){neuve=true;tCible=lon/vP;cible=phi+(r()<.5?-1:1)*(95+r()*55)*rd;d=ang(cible-phi);}
       if(Math.abs(d)>22*rd){sg=d>0?1:-1;a=Math.max(35*rd,Math.min(Math.abs(d),(45+r()*35)*rd));}else{sg=prem?sg:-sg;a=(35+r()*30)*rd;}
       const Rp=(JAV_LIA?JAV_LIA.R0+r()*JAV_LIA.Rv:2.6+r()*1.0)*rP,l=Rp*a/Math.cos(thL),f9=Math.min(1,(reste+40)/l);va(l*f9,sg*a*f9,thL);reste-=l*f9;prem=false;}};
+  /* LA LIAISON LIBRE (2026-11-17, LES ROUTES UNIQUES — Sacha : « on roule 100 mètres, après un virage pendant 50 mètres, après ça descend, après ça remonte ») : une suite de
+     petits gestes tirés — un virage (30-110°, 1,9-3,5 rP), une droite courte, une marche (la crête, 42-51°, la ressource), une remontée (7-15°, puis la crête), une épingle
+     (120-170°), un S — à la pente du RELIEF de la route (falaise, plateaux, vagues, gradins, mixte) ; le cap suit la boussole du tempérament. Jamais deux fois le même geste de suite. */
+  const thU=()=>{const q=U.relief,x=r();return -(q==='falaise'?28+x*12:q==='plateaux'?3+x*11:q==='gradins'?4+x*7:q==='vagues'?16+x*14:5+x*33)*rd;};
+  const UG={arc:[3,3,3,3,3],droite:[.8,1.7,.8,1.3,1.1],marche:[.7,1.1,1,3.2,1.1],remonte:[.5,1.3,3.2,.7,1.1],epingle:[.7,.7,.6,.5,.8],esse:[1,1.1,1,.8,1]},UQ=['falaise','plateaux','vagues','gradins','mixte'];
+  const liaisonU=dur=>{boussole();garde();let reste=dur*vT,der9='',g9=0;const thL=thU(),iq=Math.max(0,UQ.indexOf(U.relief));
+    while(reste>40&&g9++<7){let d=ang(cible-phi);if(Math.abs(d)<=22*rd){tCible=-1e9;boussole();d=ang(cible-phi);}
+      const sgC=Math.abs(d)>10*rd?(d>0?1:-1):(r()<.5?-1:1),l0=lon;let tot=0,kind='arc';for(const k9 in UG)if(k9!==der9||k9==='arc')tot+=UG[k9][iq];
+      let x=r()*tot;for(const k9 in UG){if(k9===der9&&k9!=='arc')continue;x-=UG[k9][iq];if(x<=0){kind=k9;break;}}
+      if(kind!=='marche'&&kind!=='remonte'&&th-thL>14*rd)crete(thL,sgC*(12+r()*12)*rd); /* une pente qui se creuse s'arrondit toujours */
+      if(kind==='droite')va(Math.min(Math.max(reste,60),(.45+r()*.8)*vT),(r()-.5)*8*rd,thL);
+      else if(kind==='marche'){crete(-(42+r()*9)*rd,sgC*(12+r()*14)*rd);va((.35+r()*.5)*vT,sgC*(8+r()*10)*rd,th);va(.5*vT,sgC*(8+r()*8)*rd,thL);}
+      else if(kind==='remonte'){va((.45+r()*.3)*vT,sgC*(10+r()*12)*rd,(7+r()*8)*rd);va((.3+r()*.5)*vT,sgC*(8+r()*14)*rd,th);crete(thL,sgC*(14+r()*10)*rd);}
+      else if(kind==='epingle')arcP((1.9+r()*.4)*rP,sgC*Math.min(Math.max(Math.abs(d),110*rd),(120+r()*50)*rd),thL);
+      else if(kind==='esse'){const a=(32+r()*26)*rd,Rp=(2.1+r()*.8)*rP;arcP(Rp,sgC*a,thL);arcP(Rp,-sgC*a*(.7+r()*.5),thL);}
+      else arcP((1.9+r()*1.6)*rP,sgC*Math.max(30*rd,Math.min(Math.max(Math.abs(d),30*rd),(35+r()*75)*rd)),thL);
+      reste-=lon-l0;der9=kind;}};
   /* LE RACCOURCI (forme : spirale | stade | colimacon | puits) — une lèvre presque à plat, une boucle de 360° qui descend de ~100-120 m, la sortie-tremplin sous la lèvre */
   const raccourci=forme=>{const sg=r()<.5?-1:1,thS=-(4.5+r()*1)*rd;
     va(.6*vP,(r()-.5)*14*rd,-2*rd);va(.45*vP,0,-2*rd);const iL=k(),pL=P.clone(),fL=phi; /* LA LÈVRE : la file d'or part d'ici */
@@ -165,6 +220,7 @@ function jadeAGen(r,fam,rot,gr9){
       dec({t:'tour',x:c.x,z:c.z,r:Rp-RH*cb-62,top:Math.max(y0,P.y)+120+r()*120,foot:Math.min(y0,P.y)-150,k:i0}); /* LA TOUR au centre, derrière la paroi */
       for(let j=1;j<=6;j++){const al=a*j/7,ri=17+r()*6,q=surArc(c,f0,sg,al,Rp-RH*cb-6-ri),ii=Math.round(i0+(i1-i0)*j/7);dec({t:'tour',x:q.x,z:q.z,r:ri,top:C[ii].y+100+r()*120,foot:C[ii].y-120,k:ii,clr:RH*cb+5});}}}; /* LA PAROI : des pics contre le bord bas de la dalle couchée */
   if(JADE_AV)jadeAvScenes(S9,{r:r,rd:rd,PI:PI,vT:vT,vP:vP,rP:rP,RH:RH,C:C,P:P,ZC:ZC,RAC:RAC,va:va,arcP:arcP,crete:crete,centre:centre,surArc:surArc,dec:dec,pic:pic,cote:cote,vers:vers,rp:rp,k:k,Fv:Fv,Sv:Sv,ang:ang,phi:()=>phi,th:()=>th,sc:()=>scCur}); /* (2026-11-16, JADE, LES VERBES : jade-avatar.js) les scènes neuves s'ajoutent au catalogue */
+  if(JADE_RU)jadeUScenes(S9,{r:r,rd:rd,PI:PI,vT:vT,vP:vP,rP:rP,RH:RH,C:C,P:P,va:va,arcP:arcP,crete:crete,centre:centre,surArc:surArc,dec:dec,pic:pic,cote:cote,vers:vers,k:k,th:()=>th}); /* (2026-11-17, LES ROUTES UNIQUES : jade-uniques.js) les neuf petits modules */
   const scene=(nom,o)=>{boussole();garde();scCur=SCN.length;const i0=k();SCN.push({nom:nom,i0:i0,i1:i0});S9[nom]();SCN[scCur].i1=k();
     const m={i0:i0,i1:k(),nom:nom,fig:nom};if(o&&o.climax)m.climax=1;MM.push(m);MK.push(nom);scCur=-1;};
   /* LE PAQUET (2026-11-13 ; puis la supervision, évaluation n° 2 : « un passage à l'envers sur CHAQUE route, 8-20 % ; vise 5-6 modules ») : la famille de la
@@ -174,20 +230,33 @@ function jadeAGen(r,fam,rot,gr9){
   const F9=JA_FAM[fam&1],a4=F9.autres.slice(),autres=a4.slice(rot|0).concat(a4.slice(0,rot|0)),racs=mel(F9.rac.slice()); /* les autres TOURNENT d'une graine à l'autre de la famille (R5 : sur 8 graines, toutes les scènes passent) */
   if(r()<.5){const x=autres[1];autres[1]=autres[2];autres[2]=x;}
   let file=(LC>=34*vT?[autres[0]]:[]).concat([racs[0],F9.env]);const apres=[racs[1]],plus=LC>=34*vT?autres.slice(1):[]; /* A : le remplissage, tant que la longueur visée le permet (LA DURÉE DES MAPS : plus courte aux grands paliers) */
-  let clx9='balcon',pq=null;JAV_LIA=null;if(JADE_AV){pq=jadeAvPaquet(gr9,LC>=34*vT,vP/rP);file=pq.file;apres.length=0;plus.length=0;for(const c of pq.plus)plus.push(c);clx9=pq.climax;JAV_LIA=pq.lia;} /* (2026-11-16, LES ITINÉRAIRES) toute la vallée : ses étapes dans l'ordre, l'allure de ses liaisons, son ouverture */ /* (2026-11-16, JADE, LES VERBES) le paquet de la vallée : son ouverture, ses raccourcis, son envers, son climax */
+  let clx9='balcon',pq=null;JAV_LIA=null;U=JADE_RU&&!JADE_A.force?jadeUPlan(gr9,vP/rP):null;if(U){uAxe=phi0+U.axe*rd;clx9=U.climax;}if(JADE_AV&&!U){pq=jadeAvPaquet(gr9,LC>=34*vT,vP/rP);file=pq.file;apres.length=0;plus.length=0;for(const c of pq.plus)plus.push(c);clx9=pq.climax;JAV_LIA=pq.lia;} /* (2026-11-16, LES ITINÉRAIRES) toute la vallée : ses étapes dans l'ordre, l'allure de ses liaisons, son ouverture */ /* (2026-11-16, JADE, LES VERBES) le paquet de la vallée : son ouverture, ses raccourcis, son envers, son climax */
   if(JADE_A.force){const v=JADE_A.force.split(',').filter(function(c){return JA_CLES.indexOf(c)>=0;});file=v.concat(file.filter(function(c){return v.indexOf(c)<0;}));if(v.indexOf(racs[1])>=0)apres.length=0;}
   push(null,null);
-  if(pq&&pq.ouv==='plonge'){va(Math.max(1.2*vP,140),(r()-.5)*8*rd,0,{n:3});va(.7*vT,(r()<.5?-1:1)*(15+r()*15)*rd,-(32+r()*6)*rd);} /* (LES ITINÉRAIRES) 1 s, et on pique */
+  if(U){const s=r()<.5?-1:1,pl=Math.max((.9+r()*.9)*vP,120); /* (LES ROUTES UNIQUES) L'OUVERTURE TIRÉE : au moins ~1 s à plat après le portail, puis un des sept départs */
+    if(U.ouv==='virage'){va(pl*.75,(r()-.5)*6*rd,0,{n:3});arcP((2.4+r()*1.4)*rP,s*(50+r()*65)*rd,-(4+r()*10)*rd);}
+    else if(U.ouv==='plonge'){va(pl,(r()-.5)*8*rd,0,{n:3});va(.7*vT,s*(15+r()*15)*rd,-(32+r()*8)*rd);}
+    else if(U.ouv==='balcon'){va(Math.max(2.2*vP,220),s*(45+r()*40)*rd,-1.5*rd,{n:5});va(.8*vT,(r()<.5?-1:1)*(20+r()*15)*rd,-18*rd);}
+    else if(U.ouv==='bosse'){va(pl*.8,(r()-.5)*6*rd,0,{n:3});va(.5*vT,s*(8+r()*10)*rd,-(12+r()*6)*rd);va(.55*vT,s*(10+r()*12)*rd,(8+r()*6)*rd);crete(-(26+r()*14)*rd,s*(14+r()*10)*rd);}
+    else if(U.ouv==='esse'){va(pl*.75,(r()-.5)*6*rd,0,{n:3});const a=(35+r()*25)*rd,Rp=(2.2+r()*.8)*rP;arcP(Rp,s*a,-(6+r()*8)*rd);arcP(Rp,-s*a*(.8+r()*.5),-(10+r()*14)*rd);}
+    else if(U.ouv==='direct')va(pl,(r()-.5)*8*rd,-2*rd,{n:3});
+    else{va(Math.max((1.2+r()*.8)*vP,160),(r()-.5)*8*rd,0,{n:4});va(.8*vT,s*(20+r()*15)*rd,-16*rd);}}
+  else if(pq&&pq.ouv==='plonge'){va(Math.max(1.2*vP,140),(r()-.5)*8*rd,0,{n:3});va(.7*vT,(r()<.5?-1:1)*(15+r()*15)*rd,-(32+r()*6)*rd);} /* (LES ITINÉRAIRES) 1 s, et on pique */
   else if(pq&&pq.ouv==='balcon'){va(Math.max(2.2*vP,220),(r()<.5?-1:1)*(45+r()*30)*rd,-1.5*rd,{n:5});va(.8*vT,(r()<.5?-1:1)*(20+r()*15)*rd,-18*rd);} /* un long virage à plat sur la vallée, puis on bascule */
   else{
   va(Math.max(2*vP,200),(r()-.5)*8*rd,0,{n:4}); /* L'OUVERTURE : 2 s de croisière après le portail, à plat */
   va(.8*vT,(r()<.5?-1:1)*(20+r()*15)*rd,-16*rd);} /* et ça bascule, en tournant */
   const fin9=2.2*vT,vus={};let climax=false,der=null;
-  const suite=(nom,o)=>{if(vus[nom])return;vus[nom]=1;if(der)liaison(JAV_LIA?JAV_LIA.d0+r()*JAV_LIA.dv:.5+r()*.5);scene(nom,o);der=nom;if(o&&o.climax)climax=true;};
-  for(const nom of file)suite(nom,nom===clx9?{climax:1}:null);
+  const suite=(nom,o)=>{if(vus[nom])return;vus[nom]=1;if(U){if(der)liaisonU(U.ry*(.2+r()*r()*2.4));else if(U.ouv!=='direct'&&r()<.35)liaisonU(.3+r()*.8);} /* le 1er module vient vite : au plus ~1 s de liaison après l'ouverture */else if(der)liaison(JAV_LIA?JAV_LIA.d0+r()*JAV_LIA.dv:.5+r()*.5);scene(nom,o);der=nom;if(o&&o.climax)climax=true;};
+  if(U){let n9=0; /* (LES ROUTES UNIQUES) le plan de la route : ses modules dans SON ordre, tant qu'il reste de la place ; puis le reste du sac */
+    for(const nom of U.ordre){const pt=JU_ROLE[nom]==='P';if(lon>LC-fin9-2.6*vT)break;if(n9>=2&&!pt&&lon>LC-fin9-6.5*vT)continue;if((pt||JU_ROLE[nom]==='M')&&der&&JAV_VERBE[der]===JAV_VERBE[nom])continue;if(JA_ENVERS[nom]&&JA_ENVERS[der])continue;suite(nom,nom===clx9?{climax:1}:null);n9++;yield* jadeAPas();}
+    if(!climax&&MM.length){MM[MM.length-1].climax=1;climax=true;}
+    liaisonU(.4+r()*.8);}
+  else{
+  for(const nom of file){suite(nom,nom===clx9?{climax:1}:null);yield* jadeAPas();}
   if(!climax)suite(clx9,{climax:1});
-  for(const nom of apres)suite(nom);
-  for(const nom of plus){if(lon>LC-fin9-7*vT)break;if(JA_ENVERS[nom]&&JA_ENVERS[der])continue;suite(nom);} /* B (et plus) s'il reste de la place */
+  for(const nom of apres){suite(nom);yield* jadeAPas();}
+  for(const nom of plus){yield* jadeAPas();if(lon>LC-fin9-7*vT)break;if(JA_ENVERS[nom]&&JA_ENVERS[der])continue;suite(nom);}} /* B (et plus) s'il reste de la place */
   boussole();garde();{const d=ang(cible-phi),sg=Math.abs(d)>5*rd?(d>0?1:-1):(r()<.5?-1:1);arcP((2.3+r()*.4)*rP,sg*Math.max(35*rd,Math.min(60*rd,Math.abs(d))),-8*rd);}const iFin=k();va(fin9,0,0,{n:3}); /* LA FIN */
   /* ---- les décors relatifs (au bord d'un point, `rel`) passent dans le monde ---- */
   const tan=i=>{const a=C[Math.max(0,i-1)],b=C[Math.min(C.length-1,i+1)];let tx=b.x-a.x,tz=b.z-a.z;const l=Math.hypot(tx,tz)||1;return [tx/l,tz/l];};
@@ -200,16 +269,18 @@ function jadeAGen(r,fam,rot,gr9){
   for(let i=1;i<n-1;i++){const ax=C[i].x-C[i-1].x,az=C[i].z-C[i-1].z,bx=C[i+1].x-C[i].x,bz=C[i+1].z-C[i].z,la=Math.hypot(ax,az),lb=Math.hypot(bx,bz);
     kap[i]=(la<2||lb<2||NX[i])?0:Math.asin(Math.max(-1,Math.min(1,(ax*bz-az*bx)/(la*lb))))/((C[i].distanceTo(C[i-1])+C[i+1].distanceTo(C[i]))/2);}
   const lisse=a9=>{const o9=new Float32Array(n);for(let i=0;i<n;i++){let sw=0,sk=0;for(let j=i;j>=0&&sc[i]-sc[j]<W9;j--){sw+=hh[j];sk+=a9[j]*hh[j];}for(let j=i+1;j<n&&sc[j]-sc[i]<W9;j++){sw+=hh[j];sk+=a9[j]*hh[j];}o9[i]=sk/sw;}return o9;};
-  const kl=lisse(lisse(kap)),kref=1/(2.4*1.8*rP),ecr=[];for(let i=0;i<n;i++)if(!isNaN(RO[i])||NX[i])ecr.push(sc[i]);
-  const N=[];let bmx=0;
-  for(let i=0;i<n;i++){if(NX[i]){N.push(NX[i].clone());continue;}
-    let m=sm(sc[i]/300)*sm((sc[n-1]-sc[i])/260);for(const e of ecr){const d=Math.abs(sc[i]-e);if(d<WE+20)m=Math.min(m,sm((d-12)/WE));}
+  yield* jadeAPas();const kl0=lisse(kap);yield* jadeAPas();const kl=lisse(kl0);yield* jadeAPas();const kref=1/(2.4*1.8*rP),ecr=[];for(let i=0;i<n;i++)if(!isNaN(RO[i])||NX[i])ecr.push(sc[i]);
+  const N=[];let bmx=0,e0=0; /* e0 : (2026-11-17, L'OPTIMISATION iPHONE) ecr est rangé (sc croît) : seuls les repères à moins de WE+20 m comptent, lus dans le même ordre — même m au bit près, ~20 % d'un essai de moins */
+  for(let i=0;i<n;i++){if((i&63)===63&&jadeAPasT()){const l9=JAV_LIA;yield;JAV_LIA=l9;}if(NX[i]){N.push(NX[i].clone());continue;}
+    let m=sm(sc[i]/300)*sm((sc[n-1]-sc[i])/260);
+    if(JADE_OPT){while(e0<ecr.length&&sc[i]-ecr[e0]>=WE+20)e0++;for(let q=e0;q<ecr.length;q++){const e=ecr[q],d=Math.abs(sc[i]-e);if(d<WE+20)m=Math.min(m,sm((d-12)/WE));else if(e>sc[i])break;}}
+    else for(const e of ecr){const d=Math.abs(sc[i]-e);if(d<WE+20)m=Math.min(m,sm((d-12)/WE));}
     const b9=isNaN(RO[i])?JADE_A.bank*Math.tanh(kl[i]/kref)*m:RO[i],t=tan(i);
     N.push(new THREE.Vector3(-t[1]*Math.sin(b9),Math.cos(b9),t[0]*Math.sin(b9)));if(isNaN(RO[i])&&Math.abs(b9)>bmx)bmx=Math.abs(b9);}
   for(let i=1;i<n;i++)if(N[i].lengthSq()<1e-6)N[i].copy(N[i-1]);
   /* ---- LES CONTRÔLES, COMME LE JUGE (passation/CHARTE-ROUTES.md) : la route rééchantillonnée tous les 4 m, ses normales (celles des points de contrôle, mélangées),
      la tangente 3D ; les cônes de 30° et de 8°, le roulis lissé sur 0,5 s, l'envers, le plus court écart entre deux passages, les raccourcis au tir ---- */
-  const PAS=4,Ltot=sc[n-1],nR=Math.max(3,Math.floor(Ltot/PAS)+1),Q=new Float64Array(nR*3),NN=new Float64Array(nR*3),TT=new Float64Array(nR*3),BB=new Float64Array(nR*3),SS=new Float64Array(nR),KI=new Float64Array(nR);
+  yield* jadeAPas();const PAS=4,Ltot=sc[n-1],nR=Math.max(3,Math.floor(Ltot/PAS)+1),Q=new Float64Array(nR*3),NN=new Float64Array(nR*3),TT=new Float64Array(nR*3),BB=new Float64Array(nR*3),SS=new Float64Array(nR),KI=new Float64Array(nR);
   {let kk=0;for(let q=0;q<nR;q++){const s=Math.min(Ltot,q*PAS);while(kk<n-2&&sc[kk+1]<s)kk++;const ds=(sc[kk+1]-sc[kk])||1,t=Math.max(0,Math.min(1,(s-sc[kk])/ds)),A=C[kk],B9=C[kk+1],NA=N[kk],NB=N[kk+1];
     Q[q*3]=A.x+(B9.x-A.x)*t;Q[q*3+1]=A.y+(B9.y-A.y)*t;Q[q*3+2]=A.z+(B9.z-A.z)*t;NN[q*3]=NA.x+(NB.x-NA.x)*t;NN[q*3+1]=NA.y+(NB.y-NA.y)*t;NN[q*3+2]=NA.z+(NB.z-NA.z)*t;SS[q]=s;KI[q]=kk+t;}}
   for(let q=0;q<nR;q++){const a=Math.max(0,q-1),b=Math.min(nR-1,q+1);let x=Q[b*3]-Q[a*3],y=Q[b*3+1]-Q[a*3+1],z=Q[b*3+2]-Q[a*3+2];const l=Math.hypot(x,y,z)||1;TT[q*3]=x/l;TT[q*3+1]=y/l;TT[q*3+2]=z/l;
@@ -217,16 +288,16 @@ function jadeAGen(r,fam,rot,gr9){
     NN[q*3]=nx/ln;NN[q*3+1]=ny/ln;NN[q*3+2]=nz/ln;BB[q*3]=TT[q*3+1]*NN[q*3+2]-TT[q*3+2]*NN[q*3+1];BB[q*3+1]=TT[q*3+2]*NN[q*3]-TT[q*3]*NN[q*3+2];BB[q*3+2]=TT[q*3]*NN[q*3+1]-TT[q*3+1]*NN[q*3];}
   const dotT=(a,b)=>TT[a*3]*TT[b*3]+TT[a*3+1]*TT[b*3+1]+TT[a*3+2]*TT[b*3+2];
   const tenue=deg=>{const c9=Math.cos(deg*rd);let best=0;for(let i=0;i<nR-1;i++){let j=i+1;while(j<nR&&dotT(i,j)>=c9)j++;const d=SS[j-1]-SS[i];if(d>best)best=d;if(j>=nR)break;}return best/vT;};
-  const t30=tenue(30),t8=tenue(8);
+  yield* jadeAPas();const t30=tenue(30);yield* jadeAPas();const t8=tenue(8);yield* jadeAPas();
   let rMax=0,rP95=0;{const inc=new Float64Array(nR);for(let i=0;i<nR-1;i++){const tx=TT[i*3],ty=TT[i*3+1],tz=TT[i*3+2];let mx=NN[i*3+3],my=NN[i*3+4],mz=NN[i*3+5];const d=mx*tx+my*ty+mz*tz;mx-=d*tx;my-=d*ty;mz-=d*tz;
       const ax=NN[i*3],ay=NN[i*3+1],az=NN[i*3+2],cx=ay*mz-az*my,cy=az*mx-ax*mz,cz=ax*my-ay*mx;inc[i]=Math.atan2(cx*tx+cy*ty+cz*tz,ax*mx+ay*my+az*mz);}
     const w=Math.max(1,Math.round(.5*vT/PAS)),tx9=[];let acc=0;for(let i=0;i<nR-1;i++){acc+=inc[i];if(i>=w)acc-=inc[i-w];if(i>=w-1)tx9.push(Math.abs(acc)/(w*PAS)*vT/rd);}
     tx9.sort(function(a,b){return a-b;});if(tx9.length){rMax=tx9[tx9.length-1];rP95=tx9[Math.min(tx9.length-1,Math.floor(.95*tx9.length))];}}
-  let env=0,envR=0,envMax=0;for(let q=0;q<nR;q++){if(NN[q*3+1]<0){env++;envR+=PAS;if(envR>envMax)envMax=envR;}else envR=0;}const envPart=env/nR*100,envMaxS=envMax/vT;
+  yield* jadeAPas();let env=0,envR=0,envMax=0;for(let q=0;q<nR;q++){if(NN[q*3+1]<0){env++;envR+=PAS;if(envR>envMax)envMax=envR;}else envR=0;}const envPart=env/nR*100,envMaxS=envMax/vT;
   const CG=40,cle9=(x,y,z)=>((Math.floor(x/CG)&1023)*1024+(Math.floor(y/CG)&1023))*1024+(Math.floor(z/CG)&1023),grille=new Map();
   for(let q=0;q<nR;q+=1){const cx=Math.floor(Q[q*3]/CG),cy=Math.floor(Q[q*3+1]/CG),cz=Math.floor(Q[q*3+2]/CG);
     for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(let c=-1;c<=1;c++){const kk=(((cx+a)&1023)*1024+((cy+b)&1023))*1024+((cz+c)&1023);let l=grille.get(kk);if(!l)grille.set(kk,l=[]);l.push(q);}}
-  let dMin=1e9;for(let q=0;q<nR;q+=3){const l=grille.get(cle9(Q[q*3],Q[q*3+1],Q[q*3+2]));if(!l)continue;for(const j of l){if(SS[j]>SS[q]-200)continue;const d=Math.hypot(Q[q*3]-Q[j*3],Q[q*3+1]-Q[j*3+1],Q[q*3+2]-Q[j*3+2]);if(d<dMin)dMin=d;}}
+  yield* jadeAPas();let dMin=1e9;for(let q=0;q<nR;q+=3){if((q&255)===255&&jadeAPasT()){const l9=JAV_LIA;yield;JAV_LIA=l9;}const l=grille.get(cle9(Q[q*3],Q[q*3+1],Q[q*3+2]));if(!l)continue;for(const j of l){if(SS[j]>SS[q]-200)continue;const d=Math.hypot(Q[q*3]-Q[j*3],Q[q*3+1]-Q[j*3+1],Q[q*3+2]-Q[j*3+2]);if(d<dMin)dMin=d;}}
   /* LE TIR (la physique du juge et du jeu : pesanteur du vol 23 m/s² le long de la normale quittée, impulsion du saut 21 m/s, 6 s au plus) */
   const qDe=ic=>{let b=0;for(let q=0;q<nR;q++)if(KI[q]<=ic)b=q;else break;return b;};
   const vole=(i,lat,vMul,yaw,vUp,minAhead,g9)=>{const nx=NN[i*3],ny=NN[i*3+1],nz=NN[i*3+2],cy=Math.cos(yaw*rd),sy=Math.sin(yaw*rd),g=g9||23,dt=1/30;
@@ -240,28 +311,28 @@ function jadeAGen(r,fam,rot,gr9){
         const vv=Math.hypot(vx,vy,vz)||1;return {j:j,dist:dist,cosA:(vx*TT[j*3]+vy*TT[j*3+1]+vz*TT[j*3+2])/vv};}}
     return null;};
   let racOk=0,racRob=0;const racInfo=[];
-  for(const R9 of RAC){const qL=qDe(R9.iL),vms=new Set();let pose=-1;
+  for(const R9 of RAC){yield* jadeAPas();const qL=qDe(R9.iL),vms=new Set();let pose=-1;
     for(const vm of [1.2,.9,1.5,1.8])for(const opt9 of [[0,21],[-(RH+.5),0],[RH+.5,0]])for(const yaw of [0,-12,12]){if(vms.has(vm)||vms.size>=3)continue;const v9=vole(qL,opt9[0],vm,yaw,opt9[1],120);
       if(!v9||v9.cosA<Math.cos(55*rd)||SS[v9.j]-SS[qL]-v9.dist<150)continue;vms.add(vm);if(vm===1.2||pose<0)pose=v9.j;}
     let vrai=0;for(const vm of [1,1.5,1.9]){let ok9=false;for(const yaw of [0,-8,8]){const v9=vole(qL,0,vm,yaw,VEQ_K.saut*SPD,120,28);if(v9&&v9.cosA>=Math.cos(55*rd)&&SS[v9.j]-SS[qL]-v9.dist>=150){ok9=true;break;}}if(ok9)vrai++;}R9.vrai=vrai;
     if(vms.size>=2&&vrai>=2)racOk++;if(vms.size>=3&&vrai>=2)racRob++;R9.i1=pose>=0?Math.max(R9.iL+1,Math.round(KI[pose])):null;racInfo.push(vms.size);
     if(R9.sc>=0&&R9.i1!=null){const m=MM[R9.sc];m.i0=R9.iL;m.i1=R9.i1;m.rac=1;}racInfo[racInfo.length-1]=vms.size+'/'+vrai;}
   /* ---- LES DÉCORS des scènes ne touchent pas la route d'une autre ; aucun passage à moins de 45 m de haut d'un autre (en plan à moins de 2 demi-largeurs + 26 m) ---- */
-  const scE=new Int16Array(nR).fill(-1);for(let q9=0;q9<SCN.length;q9++)for(let q=0;q<nR;q++)if(KI[q]>=SCN[q9].i0&&KI[q]<=SCN[q9].i1)scE[q]=q9;
-  let croisDur=0;{const dP=2*RH+26;for(let q=0;q<nR;q+=3){const l=grille.get(cle9(Q[q*3],Q[q*3+1],Q[q*3+2]));if(!l)continue;for(const j of l){if(j<=q||SS[j]-SS[q]<350||(scE[q]>=0&&scE[q]===scE[j]))continue;
+  yield* jadeAPas();const scE=new Int16Array(nR).fill(-1);for(let q9=0;q9<SCN.length;q9++)for(let q=0;q<nR;q++)if(KI[q]>=SCN[q9].i0&&KI[q]<=SCN[q9].i1)scE[q]=q9;
+  yield* jadeAPas();let croisDur=0;{const dP=2*RH+26;for(let q=0;q<nR;q+=3){if((q&255)===255&&jadeAPasT()){const l9=JAV_LIA;yield;JAV_LIA=l9;}const l=grille.get(cle9(Q[q*3],Q[q*3+1],Q[q*3+2]));if(!l)continue;for(const j of l){if(j<=q||SS[j]-SS[q]<350||(scE[q]>=0&&scE[q]===scE[j]))continue;
     if(Math.hypot(Q[q*3]-Q[j*3],Q[q*3+2]-Q[j*3+2])<dP&&Math.abs(Q[q*3+1]-Q[j*3+1])<45)croisDur++;}}}
   const TPLH=r9=>{let h=190;for(const t9 of JADE_TPL)if(t9[0]<=r9)h=t9[1];return h;};
   let confl=0;const conflits=[];
-  for(const o of D){if(o.t!=='tour'&&o.t!=='ile')continue;const sc9=o.sc>=0?SCN[o.sc]:null,a9=sc9?sc9.i0-1:-1,b9=sc9?sc9.i1+1:-1;
+  yield* jadeAPas();for(const o of D){if(jadeAPasT()){const l9=JAV_LIA;yield;JAV_LIA=l9;}if(o.t!=='tour'&&o.t!=='ile')continue;const sc9=o.sc>=0?SCN[o.sc]:null,a9=sc9?sc9.i0-1:-1,b9=sc9?sc9.i1+1:-1;
     const rr=o.t==='tour'?Math.min(o.r,56):o.r,hi=o.t==='tour'?o.top:o.y+o.r*1.1,lo=o.t==='tour'?o.top-TPLH(rr):o.y-o.r*1.1;let hit=false;
     for(let q=0;q<nR&&!hit;q+=2){const e=KI[q];if(e>=a9&&e<=b9)continue;const py=Q[q*3+1];if(py<lo-15||py>hi+15)continue;if(Math.hypot(Q[q*3]-o.x,Q[q*3+2]-o.z)<rr+RH+8)hit=true;}
     if(hit){confl++;conflits.push(o.t+(sc9?':'+sc9.nom:''));o.ko=1;}}
   const note=croisDur*.2+confl*1.2+Math.abs(lon-LC)/LC*3+Math.max(0,t30-8)*1.5+Math.max(0,t8-3.6)*2+Math.max(0,rMax-50)*.2+Math.max(0,rP95-30)*.2
-    +Math.max(0,envPart-20)*.5+Math.max(0,8-envPart)*.5+Math.max(0,envMaxS-8.8)*2+(dMin<20?5:0)+Math.max(0,2-racOk)*4+(racRob>=1?0:3);
+    +Math.max(0,envPart-20)*.5+(U&&!MK.some(function(c){return JU_ROLE[c]==='E';})?0:Math.max(0,8-envPart)*.5)+Math.max(0,envMaxS-8.8)*2+(dMin<20?5:0)+(U?Math.max(0,RAC.length-racOk)*4+(RAC.length&&racRob<1?3:0):Math.max(0,2-racOk)*4+(racRob>=1?0:3)); /* (LES ROUTES UNIQUES) une route n'a plus toujours deux sauts et un envers : seuls ceux qu'elle a doivent tenir */
   const vri=[];{let a9=-1;for(let i=0;i<=n;i++){const e=i<n&&(!isNaN(RO[i])||NX[i]);if(e&&a9<0)a9=i;if(!e&&a9>=0){vri.push({s0:Math.round(sc[a9]),s1:Math.round(sc[i-1])});a9=-1;}}}
   let yMin=1e9;for(const p of C)if(p.y<yMin)yMin=p.y;
   let pMax=0;for(let q=0;q<nR;q++){const dv=-Math.asin(Math.max(-1,Math.min(1,TT[q*3+1])))/rd;if(dv>pMax&&!(Math.abs(NN[q*3+1])<.2))pMax=dv;} /* (la pente la plus raide, en degrés, hors des points presque verticaux) */
-  return {itin:pq?pq.itin:null,ctrl:C,N:N,D:D,MM:MM,MK:MK,ZC:ZC,SCN:SCN,RAC:RAC,note:note,croisDur:croisDur,confl:confl,conflits:conflits,t30:+t30.toFixed(1),t8:+t8.toFixed(1),rollMax:Math.round(rMax),rollP95:Math.round(rP95),
+  return {itin:U?U.itin:pq?pq.itin:null,u:U,gr:gr9,ctrl:C,N:N,D:D,MM:MM,MK:MK,ZC:ZC,SCN:SCN,RAC:RAC,note:note,croisDur:croisDur,confl:confl,conflits:conflits,t30:+t30.toFixed(1),t8:+t8.toFixed(1),rollMax:Math.round(rMax),rollP95:Math.round(rP95),
     envers:+envPart.toFixed(1),enversMaxS:+envMaxS.toFixed(1),dMin:Math.round(dMin),racOk:racOk,racRob:racRob,racVm:racInfo,nForce:nForce,lon:Math.round(lon),LC:Math.round(LC),penteMax:Math.round(pMax),
     chute:Math.round(-yMin),pente:+(-yMin/Math.max(1,lon)).toFixed(3),phi0:phi0,iFin:iFin,bankMax:Math.round(bmx*57.3),vri:vri,vP:Math.round(vP),vT:Math.round(vT),rP:Math.round(rP)};}
 function jadeAApplique(b){
@@ -278,6 +349,7 @@ function jadeAApplique(b){
   JADE.rac3=b.RAC.filter(function(R9){return R9.i1!=null;}).map(function(R9){return {p0:C[R9.iL].clone(),p1:C[R9.i1].clone()};}); /* les lèvres des raccourcis (les fils d'or : jadeFilsOr) */
   JADE.Q={depart:{p:C[0].clone(),phi:b.phi0},fin:{p:C[b.iFin].clone(),phi:0}};
   JADE.vrille=b.vri;JADE.desc=b.pente;JADE.mk=b.MK;
+  JADE.u=b.u?{cap:b.u.cap,relief:b.u.relief,ouv:b.u.ouv,itin:b.u.itin,ordre:b.u.ordre.slice()}:null;if(b.u)ruFormeGarde('jade',ruForme(b.ctrl),b.gr);if(b.u)ruMarque('jade',b.gr,b.MK,{cap:b.u.cap,relief:b.u.relief,ouv:b.u.ouv,itin:String(b.u.itin)}); /* (LES ROUTES UNIQUES) la route gardée vieillit le sac */
   JADE.a3={ms:b.ms,note:+b.note.toFixed(2),essai:b.essai,notes:b.notes,famille:b.fam,croisDur:b.croisDur,confl:b.confl,conflits:b.conflits,nForce:b.nForce,t30:b.t30,t8:b.t8,rollMax:b.rollMax,rollP95:b.rollP95,
     envers:b.envers,enversMaxS:b.enversMaxS,dMin:b.dMin,racOk:b.racOk,racRob:b.racRob,racVm:b.racVm,penteMax:b.penteMax,lon:b.lon,LC:b.LC,chute:b.chute,pente:b.pente,bankMax:b.bankMax,vP:b.vP,vT:b.vT,rP:b.rP,
     scenes:b.SCN.map(function(s){return s.nom;}),climax:b.MM.filter(function(m){return m.climax;}).map(function(m){return m.nom;}),raccourcis:b.MM.filter(function(m){return m.rac;}).map(function(m){return m.nom;})};}
@@ -333,15 +405,16 @@ function jadeCascRoute(){if(JADE.dbgSaut!=null&&mode==='drive'&&s>=JADE.dbgSaut)
    Comme ceux de l'orbite (espFilsOr) ; `?filsor=0` = sans. ===== */
 /* LE COULOIR DU VOL (2026-11-13) : les vols d'un saut nitro lancé de chaque lèvre de raccourci (VEQ_K.saut le long de la normale, à 1, 1,4 et 1,9 × la croisière, pesanteur
    du vol 23 et 28 m/s² le long de la normale quittée : VOLR_FIGE), joués jusqu'à leur pose ; leurs points dans une grille (cases de 60 m). jadeBatit n'y pose rien. */
-function jadeCouloirVol(){if(!JADE.rac3||!JADE.rac3.length||!(NP>1))return null;const t09=performance.now(),G9=new Map(),CS=60,vc=typeof vPalier==='function'?vPalier():78,imN=VEQ_K.saut*SPD,h=1/30,P9=new THREE.Vector3(),V9=new THREE.Vector3(),D9=new THREE.Vector3();
+function jadeCouloirVol(){return jadeAMene(jadeCouloirVolG());} /* (lot JADEPREBATI) d'un trait */
+function* jadeCouloirVolG(){if(!JADE.rac3||!JADE.rac3.length||!(NP>1))return null;let t09=performance.now(),ms9=0;const G9=new Map(), /* (lot JADEPREBATI) rend la main à l'échéance entre deux tirs (45 ms d'un bloc au banc ×10) — mêmes tirs, même ordre */CS=60,vc=typeof vPalier==='function'?vPalier():78,imN=VEQ_K.saut*SPD,h=1/30,P9=new THREE.Vector3(),V9=new THREE.Vector3(),D9=new THREE.Vector3();
   const pres=p=>{let bi=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(p);if(d<bd){bd=d;bi=i;}}return bi;};let n=0;
   for(const R9 of JADE.rac3){const i0=pres(R9.p0),i1=pres(R9.p1),Nl=Nn[i0];
-    for(const vm of [1,1.4,1.9])for(const g of [23,28]){P9.copy(pts[i0]).addScaledVector(Nl,1);V9.copy(T[i0]).multiplyScalar(vc*vm).addScaledVector(Nl,imN);
+    for(const vm of [1,1.4,1.9])for(const g of [23,28]){if(jadeAPasT()){ms9+=performance.now()-t09;yield;t09=performance.now();}P9.copy(pts[i0]).addScaledVector(Nl,1);V9.copy(T[i0]).multiplyScalar(vc*vm).addScaledVector(Nl,imN);
       for(let t=h;t<5.5;t+=h){V9.addScaledVector(Nl,-g*h);P9.addScaledVector(V9,h);
         const kk=Math.floor(P9.x/CS)*100003+Math.floor(P9.z/CS);let a=G9.get(kk);if(!a)G9.set(kk,a=[]);a.push(P9.x,P9.y,P9.z);n++;
         if(t>.4){let bj=-1,bd=1e18;for(let j=Math.max(i0,i1-Math.round(600*(NP-1)/L));j<=Math.min(NP-1,i1+Math.round(700*(NP-1)/L));j+=4){const d=P9.distanceToSquared(pts[j]);if(d<bd){bd=d;bj=j;}}
           if(bj>=0){D9.subVectors(P9,pts[bj]);if(Math.abs(D9.dot(B[bj]))<ROAD_HALF&&D9.dot(Nn[bj])<1.5)break;}}}}}
-  JADE.nVol=n;JADE.cvMs=+(performance.now()-t09).toFixed(1);return {g:G9,CS:CS};}
+  JADE.nVol=n;JADE.cvMs=+(ms9+performance.now()-t09).toFixed(1);return {g:G9,CS:CS};}
 /* la montagne (cylindre de rayon rm, de bas à haut) laisse-t-elle passer le vol ? (10 m de marge : la caisse et son roulis) */
 function jadeVolLibre(CV,cx,cz,rm,bas,haut){if(!CV)return true;const r=Math.ceil((rm+10)/CV.CS),bx=Math.floor(cx/CV.CS),bz=Math.floor(cz/CV.CS);
   for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=CV.g.get((bx+dx)*100003+(bz+dz));if(!a)continue;for(let k=0;k<a.length;k+=3){if(a[k+1]<bas-10||a[k+1]>haut+10)continue;if(Math.hypot(a[k]-cx,a[k+2]-cz)<rm+10)return false;}}

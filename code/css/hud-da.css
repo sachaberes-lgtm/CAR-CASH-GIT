@@ -510,6 +510,10 @@ i.nw{font-style:normal;white-space:nowrap} /* (2026-09-30, revue) le mot compos�
 /* (relevé de GAMEPLAY) ⏸ et NITRO sont des plaques PENCHÉES : leur pente déborde de la boîte (4 et 8 px) et mangeait la marge — le coin
    touchait presque le bord ; décalées d'autant, leur coin tombe sur la marge ; les barres reculent pour garder 12 px avant le ⏸ */
 html body.touch #tGear{right:calc(var(--hudD) + 4px)!important;top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 8px)!important}
+/* (2026-11-17, LA PAUSE SÛRE — voir mobile-tactile.js) la zone tactile du ⏸ déborde, invisible, vers le HAUT et la DROITE seulement (le coin de l'écran, où il n'y a
+   rien d'autre) : 48 × 48 dessinés, 58 × 66 touchables. Rien vers le bas (l'argent) ni vers la gauche (la barre de NITRO). `?sans=pausesure` = comme avant. */
+html.pauseSure body.touch.play #tGear::after{display:block!important;content:''!important;position:absolute!important;top:-10px!important;right:-18px!important;bottom:0!important;left:0!important;
+  background:none!important;border:0!important;box-shadow:none!important;opacity:0!important;animation:none!important;transform:none!important;pointer-events:auto!important}
 html body.touch #nitroWrap,html body.touch #flowHud{right:calc(var(--hudD) + 70px)!important}
 @media (orientation:landscape) and (max-height:540px){html body.touch #nitroWrap,html body.touch #flowHud{right:auto!important}}
 html body.touch :is(#cashHud,#airHud,#pwrChip,#campChip){right:var(--hudD)!important;left:auto!important}

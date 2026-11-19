@@ -1,4 +1,4 @@
-if(MG.on)MG.ts[4]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 4 — voir moteur/mouchard-gels.js */
+if(MG.on)mgTs(4); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 4 — voir moteur/mouchard-gels.js */
     // ---- LOD DE PROXIMITÉ : on ne s'occupe QUE du couloir utile ----
     // La scène porte ~1550 meshes (≈550 pièces + ≈590 plots). Avant, CHAQUE frame faisait tourner les
     // 600 pièces à l'autre bout de la piste : 600 quaternions + 600 matrices monde recalculées pour des
@@ -7,6 +7,7 @@ if(MG.on)MG.ts[4]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
     // que rien n'apparaisse sous le nez, et en VOL on se recentre sur la portion de piste survolée
     // (`lastNearS`) — sinon le couloir resterait figé au point de décollage et la zone d'arrivée
     // se retrouverait vide pendant tout le saut.
+    if(MG.on)mgSt('b4 pièces (couloir, coinFlush)');
     {
       const cS=(mode==='fall'?lastNearS:s),lodR=620+Math.abs(vA)*1.1,pieceArr=C3_ON?PAL.b('pieceArr',1e9):1e9; /* (2026-11-05, perf mobile 2, C3) les pièces À PLUS DE 150 m DERRIÈRE la caisse (ancien) ne sont dans aucune vue : on ne les range plus (`?c3=0` = avant) */
       if(CALG.ok){const on9=CALG.on;CALG.entree=on9&&!CALG.was;CALG.sortie=CALG.was&&!on9;if(CALG.entree){CALG.id++;CALG.vus=0;CALG.neufs=0;CALG.perdus=0;}if(CALG.sortie)CALG.pres=CALG_PRES();CALG.was=on9;} /* (2026-11-15) LA GARDE DU CALME : voir CALG (cadence.js) — l'entrée photographie le couloir, la sortie décide de ce qui arrive pendant le calme */
@@ -30,10 +31,10 @@ if(MG.on)MG.ts[4]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
       coinVolTick(dt); /* (2026-11-10) les pièces qui finissent leur course DANS la caisse, rangées à la suite de celles du couloir */
       coinFlush(); // le couloir de l'image part au GPU d'un bloc — et `count` s'y arrête
     }
-    updateMoneyRain(dt,t);
-    updatePigeons(dt,t);
-    updateClouds(dt,t);
-    pluieCaisseTick(dt); // (2026-10-21) la pluie éclabousse la caisse
+    if(MG.on)mgSt('updateMoneyRain');updateMoneyRain(dt,t);
+    if(MG.on)mgSt('updatePigeons');updatePigeons(dt,t);
+    if(MG.on)mgSt('updateClouds');updateClouds(dt,t);
+    if(MG.on)mgSt('pluieCaisseTick, crânes');pluieCaisseTick(dt); // (2026-10-21) la pluie éclabousse la caisse
     for(let i9=skulls.length-1;i9>=0;i9--){ // crânes qui tournoient puis s'estompent
       const k9=skulls[i9];
       k9.life-=dt;k9.v.y-=18*dt;
@@ -42,7 +43,7 @@ if(MG.on)MG.ts[4]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
       if(k9.life<.6)k9.m.material.opacity=Math.max(0,k9.life/.6);
       if(k9.life<=0){scene.remove(k9.m);k9.m.material.dispose();skulls.splice(i9,1);}
     }
-    carLight.position.copy(carGroup.position);carLight.position.y+=3;carLight.distance=12;carLight.decay=2; // ⚠ le menu la passe à 60 : on la reprend à chaque image de course
+    if(MG.on)mgSt('b4 lumières (caisse, phares)');carLight.position.copy(carGroup.position);carLight.position.y+=3;carLight.distance=12;carLight.decay=2; // ⚠ le menu la passe à 60 : on la reprend à chaque image de course
     if(SURV.last&&!gameOver){carLight.color.setHex(Math.sin(t*18)>0?0xff3030:0x7a1010);carLight.intensity=1.6+Math.sin(t*18)*.9;} // DERNIER : la caisse clignote rouge
     else if(fever>0){carLight.color.setHex(0xffd75e);carLight.intensity=.9+Math.sin(t*12)*.45;}
     else{carLight.color.setHex(0xfff2ea);carLight.intensity=1;}
@@ -66,7 +67,7 @@ if(MG.on)MG.ts[4]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
     // REFLET NITRO/BOOST : le pool de lumière colle à l'échappement (repère caisse : marche aussi sous la dalle)
     hsU.set(0,1,0).applyQuaternion(carGroup.quaternion);
     potMonde(CAR_POT_C,nitroLight.position).addScaledVector(hsF,-.3).addScaledVector(hsU,.1); // (2026-09-26) au droit des POTS, plus au milieu de la poupe
-    nfxTick(dt); // (vague 3) NITRO : l'onde d'allumage, les bords de l'image, les enveloppes du coup (voir NFX)
+    if(MG.on)mgSt('nfxTick, lumière nitro');nfxTick(dt); // (vague 3) NITRO : l'onde d'allumage, les bords de l'image, les enveloppes du coup (voir NFX)
     const nTgt=((mode==='boom')?0:(nitroOn?(nitroBlue?1.5:1.25):(boost>0?.8:0)))*(1+NFX.ign*NFX.ignK*.5); // (vague 3) l'allumage ÉCLAIRE la poupe un instant — un éclair, pas une flaque qui reste // (2026-09-26, audit rendu) AU REPOS : 0 — le reflet rouge permanent était la « tache rouge » derrière la caisse // (2026-09-25) ÷1,5 à ÷2 : additionnée aux flaques et au bloom, elle faisait la « tache violette » // .68 au repos (était .8) : les FEUX ARRIÈRE posent leur reflet rouge en permanence — braise posée, plus le point chaud qui perçait
     nitroLight.intensity+=(nTgt*(.82+.18*Math.sin(t*43))-nitroLight.intensity)*Math.min(1,dt*14); // flamme qui tremble, fondu doux
     {const FL9=CARS[level].fx,fxL=(FL9&&FL9.light!=null&&!nitroBlue)?FL9.light:null; // la signature n'éclaire QUE sous poussée
@@ -80,7 +81,7 @@ if(MG.on)MG.ts[4]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
     // PLUME DE RÉACTEUR : court au filage, long et affûté à la nitro — flicker haute fréquence, la flamme VIT
     /* (2026-10-07) LA LANCÉE SE VOIT : tenir sa ligne remplit l'élan (`momT`, jusqu'à ×2,8 de reprise) — un mécanisme invisible jusqu'ici. Au sol,
        la plume de croisière (.34) s'allonge avec lui jusqu'à .56 : on VOIT la caisse se charger quand on conduit propre, et retomber au coup de volant. */
-    const lanc9=mode==='drive'&&!nitroOn?THREE.MathUtils.clamp(momT/4.2,0,1):0;
+    if(MG.on)mgSt('b4 plumes des pots (JETS)');const lanc9=mode==='drive'&&!nitroOn?THREE.MathUtils.clamp(momT/4.2,0,1):0;
     const jTgt=(mode==='boom')?0:((nitroOn?(nitroBlue?1.35:1.05):((mode!=='drive'||loop._wasUp)&&Math.abs(speedKmh)>20?.34+.22*lanc9*lanc9:0))+(boost>0?.4:0));
     JETS.k+=(jTgt-JETS.k)*Math.min(1,dt*11);
     const FM9=FLM_ON?flmPas(dt,speedKmh):null,nfK9=FLM_ON&&NFEU.on?NFEU.k:0,ecl9=!!FM9&&MOTEUR_MINI&&!nitroOn&&!(boost>0)&&!(pwrNitroT>0); // ecl9 : hors nitro, la flamme EST le feu de pixels en minuscule (la goutte lisse se cache, la lueur du pot reste) // (2026-10-15) LE MOTEUR QUI AVANCE (FLM) et le FEU DE PIXELS du nitro (NFEU) — voir près de JET_DIR
@@ -119,7 +120,7 @@ if(MG.on)MG.ts[4]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
       const g9=.2+.55*JETS.k*(FM9?FM9.glow:fl9)+iK9*1.1+NFX.off*NFX.off*.35; // (vague 3) la tuyère FLASHE à l'allumage, hoquette à l'extinction
       for(const s9 of JETS.glows){s9.visible=jOn;s9.scale.set(g9,g9,1);}
     }
-    if(FLM_ON)try{nfeuPas(dt,nitroOn&&!(NYAN.on&&!FX_EFF),nitroBlue,pwrNitroT>0&&!nitroBlue,speedKmh,FM9,ecl9&&JETS.k>.05);}catch(e){loopWarn(1048576,'feu du nitro',e);} // (2026-10-15) LE NITRO EN FEU DE PIXELS
+    if(MG.on)mgSt('nfeuPas');if(FLM_ON)try{nfeuPas(dt,nitroOn&&!(NYAN.on&&!FX_EFF),nitroBlue,pwrNitroT>0&&!nitroBlue,speedKmh,FM9,ecl9&&JETS.k>.05);}catch(e){loopWarn(1048576,'feu du nitro',e);} // (2026-10-15) LE NITRO EN FEU DE PIXELS
     // LE DÉPART EN ARC-EN-CIEL (2026-09-05) : les premières secondes de chaque run brillent d'une
     // teinte qui TOURNE — signature du LANCEMENT, pas de la caisse (elle n'efface donc RIEN de la
     // réserve bleue ni des signatures par caisse : elle s'applique APRÈS leur calcul, seulement
@@ -129,7 +130,7 @@ if(MG.on)MG.ts[4]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
     // (2026-10-08, Léo : « le départ n'est pas de la nitro ») RETIRÉ : le départ ne tient plus la touche, il n'a plus de flamme à teinter —
     // une vraie nitro prise dans ces 3 s garde la couleur de SA caisse.
     // TRAÎNÉE DE NITRO : les rubans collent aux tuyères — orange nitro, bleu réserve, or pad turbo
-    const tTgt=(mode==='boom')?0:(nitroOn?1:(boost>0?.5:0));
+    if(MG.on)mgSt('b4 sillages (traînées)');const tTgt=(mode==='boom')?0:(nitroOn?1:(boost>0?.5:0));
     trailK+=(tTgt-trailK)*Math.min(1,dt*(tTgt>trailK?16:6)); // s'allume sec, s'éteint en douceur
     hsR.set(1,0,0).applyQuaternion(carGroup.quaternion);
     const spec9=CARS[level],tz9=-(spec9.l/2+.32);
@@ -169,7 +170,7 @@ if(MG.on)MG.ts[4]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
     // `trailK`, exactement comme les rubans des autres : il se déclenche à l'appui, s'éteint en
     // douceur, et le joueur le MÉRITE. (Première version : toujours visible dès qu'on roulait ;
     // le user a tranché — les effets spéciaux de caisse sont des effets de nitro.)
-    { // (2026-10-07) L'ARC-EN-CIEL EN FEU DE PIXELS (voir ARC_*) : le CHAT à la nitro (et plus en vol : 2026-10-08), ou toute caisse qui porte la
+    if(MG.on)mgSt('b4 arc-en-ciel');{ // (2026-10-07) L'ARC-EN-CIEL EN FEU DE PIXELS (voir ARC_*) : le CHAT à la nitro (et plus en vol : 2026-10-08), ou toute caisse qui porte la
       // traînée ARC-EN-CIEL de la boutique, à la nitro. ⚠ Il s'efface en réserve bleue et en nitro infinie, comme la plume : sinon la caisse
       // arborerait ses six couleurs pendant que le reste dit « tu tapes dans la réserve » — deux messages, et le signal se perd dans la fête.
       const nyan9=NYAN.on&&!FX_EFF,arcOn9=nyan9||!!(FXT&&FXT.rainbow);
@@ -183,11 +184,11 @@ if(MG.on)MG.ts[4]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
         rainbowStep(tmp2.x,tmp2.y,tmp2.z,rk,t,dt,-hsF.x,-hsF.y,-hsF.z);
       }else if(rainbow.m.visible&&!rainbow.apercu)rainbowCoupe();
     }
-    { // (2026-10-14) LES TRAÎNÉES POP (voir TRX) : à la nitro, comme l'arc-en-ciel et WOW — `dbgTrx('grille')` en force une sur n'importe quelle caisse
+    if(MG.on)mgSt('trxStep');{ // (2026-10-14) LES TRAÎNÉES POP (voir TRX) : à la nitro, comme l'arc-en-ciel et WOW — `dbgTrx('grille')` en force une sur n'importe quelle caisse
       const pop9=(FXT&&FXT.pop)||TRX_FORCE;
       if(pop9||(TRX&&TRX.n)){const pk=(!pop9||mode==='boom'||(trSig9&&!TRX_FORCE&&(nitroBlue||pwrNitroT>0)))?0:(loop._arcK||0);trxStep(pop9,pk,dt);}
     }
-    { // (2026-10-14) LA TRAÎNÉE WOW (voir wowStep) : le DOGE, ou toute caisse qui porte la traînée WOW — à la nitro, comme l'arc-en-ciel
+    if(MG.on)mgSt('b4 wow, hélices, fin');{ // (2026-10-14) LA TRAÎNÉE WOW (voir wowStep) : le DOGE, ou toute caisse qui porte la traînée WOW — à la nitro, comme l'arc-en-ciel
       const wow9=!!(FXT&&FXT.wow);
       if(wow9||WOWT.n){const wk=(!wow9||mode==='boom'||(trSig9&&(nitroBlue||pwrNitroT>0)))?0:(loop._arcK||0);potMonde(CAR_POT_C,tmp2).addScaledVector(hsU,.25);wowStep(tmp2.x,tmp2.y,tmp2.z,wk,dt,1);}
     }

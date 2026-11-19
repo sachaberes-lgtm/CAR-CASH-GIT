@@ -1,0 +1,12 @@
+chrome pid 65256 ports 9741 9742
+http://127.0.0.1:9741/index.html?intro=ancien&chute=0&tel=1&appareil=iPhone14,2&carte=nuages&routeverif=1
+{"k":1,"cible":"espace","pret":true,"lieu":"espace","kmh":283}
+espace 0 {"ouv":"sserre","fin":"lacet","court":false,"rel":"raide","sil":"S","cx":"failleEnvers","joues":["failleEnvers*@-43","quart@32","plongeon@137","ceinture@77"],"colles":0,"gestes":5,"Tt":140.448,"a0":155.11515926616875,"lon":8727,"LEN":8911} envers-entree@486 faille-envers@1206 envers-sortie@1710 quart@2826 plongeon@3744 ceinture@4896
+{"k":2,"cible":"jade","lieu":"jade","kmh":490}
+{"k":3,"cible":"espace","pret":true,"lieu":"espace","kmh":628}
+espace 1 {"ouv":"mur","fin":"desorb","court":false,"rel":"rampe","sil":"crochet","cx":"roue","joues":["mur@-67","marche@-7","roue*@128"],"colles":0,"gestes":13,"Tt":233.90778399999996,"a0":270.01438733955297,"lon":11183,"LEN":11482} mur@270 marche@1584 roue-entree@3149 roue@3995 roue-sortie@5453 rentree@7793 plongee@9701
+{"k":4,"cible":"ville","lieu":"ville","kmh":806}
+{"k":5,"cible":"espace","pret":true,"lieu":"espace","kmh":839}
+espace 2 {"ouv":"grand","fin":"lacet","court":false,"rel":"vagues","sil":"spirale","cx":"asteroide","joues":["asteroide*@78","plongeon@25"],"colles":0,"gestes":2,"Tt":311.99269200000003,"a0":382.46277866576867,"lon":12607,"LEN":13018} asteroide-entree@1782 asteroide@2592 asteroide-sortie@4463 plongeon@6712
+fin
+code 0

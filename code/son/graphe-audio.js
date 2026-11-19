@@ -90,7 +90,7 @@ function portesTick(){ // à chaque image, hors de la simulation (la porte doit 
 }
 // (2026-10-12, banc du son) `dbgVu()` : le niveau (dB RMS) de chaque chaîne continue à sa sortie (ordre des portes) et du MASTER — pour trouver
 // QUI fait « le bruit » au lieu de deviner. Les analyseurs se posent au 1er appel (ils n'écoutent qu'en dérivation, rien n'est rebranché).
-window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','sifflet','crisse','nitroGronde','nitroJet','nitroBas','nitroOsc','pluie','gomSouffle','gomGrain','roulement','appui','rape'];
+window.dbgVu=function(){if(!AC||!MASTER)return null;const N=(gainN?['moteur']:[]).concat(['vent', /* (2026-11-17, LE MOTEUR SE TAIT) sans moteur, sa porte n'existe pas : les noms suivent */'sifflet','crisse','nitroGronde','nitroJet','nitroBas','nitroOsc','pluie','gomSouffle','gomGrain','roulement','appui','rape']);
   if(!dbgVu.A)dbgVu.A=[];while(dbgVu.A.length<PORTES.length){const a=AC.createAnalyser();a.fftSize=1024;try{PORTES[dbgVu.A.length].g.connect(a);}catch(e){}dbgVu.A.push(a);}
   if(!dbgVu.M){dbgVu.M=AC.createAnalyser();dbgVu.M.fftSize=1024;MASTER.connect(dbgVu.M);dbgVu.b=new Float32Array(1024);}
   const db=function(a){a.getFloatTimeDomainData(dbgVu.b);let q=0;for(const v of dbgVu.b)q+=v*v;return Math.round(10*Math.log10(q/1024+1e-12));};
@@ -335,6 +335,7 @@ function initAudio(){
   if(!musWaTient()&&musGraphe())try{musWaSon();}catch(e){} // (15/10) Pouce bleu sans MUS_WA : SON coupé ferme l'entrée des effets, le contexte reste éveillé pour le morceau
   // MOTEUR v2 : 2 oscillateurs à onde harmonique (le timbre de la caisse) désaccordés de 7 cents
   // + sub sinus à f/2 (la poitrine) + souffle d'admission → SATURATION (grain) → filtre (brillance)
+  if(MOTEUR_SON){ /* (2026-11-17, LE MOTEUR SE TAIT) toute la chaîne du moteur, le moteur vivant et le moteur moderne : seulement avec ?plus=moteurson (voir billets-devises.js) */
   osc=AC.createOscillator();osc2=AC.createOscillator();
   engMix=AC.createGain();engMix.gain.value=.5;
   const o2g=AC.createGain();o2g.gain.value=.6;
@@ -438,9 +439,12 @@ function initAudio(){
   engWhineG=AC.createGain();engWhineG.gain.value=0;
   engWhine.connect(ewf);ewf.connect(engWhineG);engWhineG.connect(gainN);
   osc.start();osc2.start();engSub.start();enz.start();engLfo.start();engWhine.start();
+  }
   engSetTier(0); // on démarre toujours au timbre du moteur d'origine
+  if(MOTEUR_SON){
   try{MV.build();}catch(e){} // (2026-10-22) LE MOTEUR VIVANT (?moteurvivant=1) : rien sans le drapeau
   try{MB.build();}catch(e){}
+  }
   try{NPHY.build();}catch(e){} /* (2026-11-10) LE NITRO PHYSIQUE (?nitro=physique) : rien sans le drapeau */ /* (2026-11-10) LE MOTEUR MODERNE (?moteur=buche, l'appli de Léo) : rien sans le drapeau */
   // vent
   const wsrc=AC.createBufferSource();wsrc.buffer=noiseBuf(2);wsrc.loop=true;
@@ -523,8 +527,8 @@ function initAudio(){
      désaccord inaudible — pour 0,2 % d'un cœur, le moteur reste au bit près. ⚠ PAS le crissement (skF1/skF2) : un LFO de broutage les
      module à la fréquence audio, en k-rate il serait échantillonné. ⚠ PAS les gains : en k-rate un gain saute par paliers (effet
      « fermeture éclair ») — et le banc n'y gagnait rien. */
-  for(const q of [filt.frequency,engNzF.frequency,ovrF.frequency,engEq.gain,windF.frequency,whF.frequency,jrF.frequency,jetF.frequency,
-    engSub.frequency,engLfo.frequency,transO.frequency,diffO.frequency,engTickO.frequency,engWhine.frequency,jetOsc.frequency,skLfo.frequency])
+  for(const q of (MOTEUR_SON?[filt.frequency,engNzF.frequency,ovrF.frequency,engEq.gain,engSub.frequency,engLfo.frequency,transO.frequency,diffO.frequency,engTickO.frequency,engWhine.frequency]:[]).concat([
+    windF.frequency,whF.frequency,jrF.frequency,jetF.frequency,jetOsc.frequency,skLfo.frequency])) /* (2026-11-17, LE MOTEUR SE TAIT) les paramètres du moteur seulement s'il existe */
     try{if(q&&'automationRate' in q)q.automationRate='k-rate';}catch(e){}
   try{if(!SND.sfx&&!SND.music)AC.suspend();}catch(e){} /* (2026-11-07, chasse SON-N04) tout coupé dès la sauvegarde : le graphe dort tout de suite (sndRefresh ne tourne pas au premier geste) */
 }

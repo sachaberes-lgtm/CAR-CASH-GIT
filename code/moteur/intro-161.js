@@ -66,6 +66,26 @@
   const INTRO_AP=INTRO_APRES;
   try{if(window.__ccNote)window.__ccNote('chargement','introapres '+INTRO_AP+' · TEL_NATIF '+(typeof TEL_NATIF!=='undefined'&&TEL_NATIF?1:0)+' · ALLEGE '+(typeof ALLEGE!=='undefined'&&ALLEGE?1:0)+' · Capacitor '+(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()?1:0));}catch(e){} /* le mode qui tourne, écrit dès le démarrage */
   if(INTRO_AP)window.__guetTient=true; /* la sonde du serpent ne s'arrête pas 10 s après le démarrage du jeu : le chargement qui précède le film est plus long (voir debut-corps.html) */
+  /* ===== LE FILM CHARGE LE RESTE (2026-11-15, qualité · lot lancement2, Sacha : « le film d'intro permet de charger le reste, ce qui prend du temps c'est le serpent avant le film ») =====
+     Depuis le 8/11 (INTRO_AP = 1) RIEN ne travaillait pendant le film : tout le chargement se payait sous le serpent, départ d'avance compris (la piste de la 1re course : 0,4 à 4 s au banc ×4,
+     selon la map tirée), alors que la boule tourne 4,6 s au moins avant d'accepter le toucher. Désormais, sur le chemin du téléphone seulement (INTRO_AP = 1 et le chargement dense : TEL_NATIF / ALLEGE) :
+       · le film part dès que tout est prêt SAUF le départ d'avance déjà en route (`introPrete` ne l'attend plus) ; tout ce qui est indécoupable (étapes, liaison, chauffe, tôles, le début du
+         départ d'avance) reste AVANT le film, sous le serpent, comme avant ;
+       · pendant la boule, AVANT le toucher, le départ d'avance continue par tranches courtes, APRÈS le dessin de chaque image du film : `FILM_MS` ms au plus par image (`?filmtranche=<ms>`),
+         et aucune tranche dans une image déjà en retard ;
+       · la 2e banque de sons (tardive dans l'app depuis le lot LANCEMENT) : son fichier est lu pendant l'arrêt d'avant-film, ses sons relevés par tranches pendant le film (CCSON.filmDebut / filmTranche, sfx.js ; `?sans=filmbanque`) ;
+       · la boule n'est « prête » (le toucher accepté, l'invite affichée) que lorsque le départ d'avance est fini (`filmReste`) ; plafond : 20 s de boule, comme avant ;
+       · au toucher, plus aucune tranche : l'explosion joue seule, comme avant. Ce qui resterait (plafond) se finit au menu, comme quand le plafond de 30 s tombait.
+     Deux retouches du même lot, mêmes bornes : la chauffe de l'intro (vignettes de la boule) part sans son minuteur de 900 ms (`?sans=filmchauffe`), et le calme exigé avant le film passe de 40 à
+     24 images (`?filmcalme=40` = avant). ESSAYÉ puis retiré : `ouvrir()` (le son du jeu) dès la liaison finie — son coût se déplaçait sous le serpent sans rien gagner (banc ×4). `?sans=filmcharge` = le chemin d'avant, exact. L'ordinateur (INTRO_AP = 0) ne passe par aucune de ces lignes. `dbgIntro.film()`. */
+  const FILM_CH=(function(){try{return INTRO_AP===1&&DENSE.ok&&!/[?&]sans=[^&]*filmcharge/.test(location.search);}catch(e){return false;}})();
+  const FILM_MS=(function(){const m=/[?&]filmtranche=(\d+(?:\.\d+)?)/.exec(location.search);return m?Math.max(.01,Math.min(30,+m[1])):4;})(); /* le budget d'une image de la boule ; 4 ms choisi au banc ×4 (8 ms : des images de 50 ms ; 4 et 6 : aucune au-delà de 33 ms) ; `?filmtranche=0` = un seul pas par image */
+  const FILM_NOIR=(function(){const m=/[?&]filmnoir=(\d+(?:\.\d+)?)/.exec(location.search);return m?Math.min(40,+m[1]):DENSE_MS;})(),NOIR_FIN=.66,NOIR_VU=.8; /* le NOIR D'OUVERTURE : jusqu'à 0,7 s le film ne montre que du noir et le serpent (chCl), le 1er point de la boule naît à 0,8 s — les tranches y sont celles du serpent (DENSE_MS), aucune image ne s'y voit */
+  const FILM_CALME=(function(){const m=/[?&]filmcalme=(\d+)/.exec(location.search);return m?Math.max(1,Math.min(40,+m[1])):24;})(); /* les images calmes d'affilée exigées avant le film (`pageCalme`) : 24 au lieu de 40 — le temps de l'arrêt INTRO_DRAIN, et les 0,8 premières secondes du film sont noires ; `?filmcalme=40` = avant */
+  const FILM_CHAUFFE=FILM_CH&&!/[?&]sans=[^&]*filmchauffe/.test(location.search); /* `?sans=filmchauffe` : la chauffe de l'intro garde son minuteur de 900 ms, le reste du lot inchangé */
+  const FILM_BANQUE=!/[?&]sans=[^&]*filmbanque/.test(location.search); /* `?sans=filmbanque` : la 2e banque de sons reste tardive (menu + 1,2 s), le reste du lot inchangé */
+  const FILM_GAB=FILM_CH&&!/[?&]sans=[^&]*filmgab/.test(location.search); /* `?sans=filmgab` : la boule ne taille pas les gabarits de la jade (voir filmGab) */
+  const FC={repos:0,serp:0,part:0,restait:'',fin:0,pret:0,n:0,ms:0,pire:0,sautees:0,banque:0,k34:0,tap:0,long:0,nN:0,msN:0,kN:0,k34N:0,h:[0,0,0,0,0],gN:0,gMs:0,gFin:0,longs:[]};
   let pretIntro=false,touchRetenu=false,IK={n:0,mx:0,k:0,prev:0,l:[],pn:0,rd:0}; /* tout est-il prêt ; un toucher venu avant ; les images du film : nombre, pire intervalle, > 20 ms, la durée du rendu de l'image d'avant */
   let lance=false,fini=false,casse=false,doux=false,manuel=false,passee=false,ouvert=false,revele=false,RM=false;
   let TOUCH=null,preAC=null,filmMuet=false,tLance=0,latV=0,tCasse=0,raf=0,sonCasseFait=false,t0a=0,iAC=null,SON=null,SK0={x:0,y:0};
@@ -201,6 +221,19 @@
     let a='0',b='1',s='';while(s.length<600){s+=b;const c=ad(a,b);a=b;b=c;}return s;
   })();
   const FIB_GLISSE=1.3,FIB_DUREE=4.4; /* le temps qu'un chiffre met à glisser du pôle à sa place ; l'écart entre le premier et le dernier paquet (2026-11-16, Sacha : « plus lente » : 0,8 et 2,8 s avant) */
+  /* ===== LA PLANÈTE ENTIÈRE AU PIVOT (2026-11-17, Sacha, build 119 : « l'animation de la planète bug toujours quand on passe du mode horizontal au mode vertical : il y a un temps où la planète est à moitié coupée ») =====
+     La CAUSE : la place de la boule (centre, rayon, taille des chiffres) était calculée UNE fois, dans sa géométrie (`geoLabSphere`, gardée dans ETS.boule). Au pivot, la toile passait
+     tout de suite à la nouvelle taille (LE PIVOT DE L'INTRO, 13/11), mais la boule restait dessinée à son ANCIENNE place jusqu'à ce que la préparation étalée refasse sa géométrie
+     (2e tâche, et 660 vignettes refaites puis reconverties en ImageBitmap) : couché, le centre d'avant (195, 388) tombait au ras du bas d'un écran haut de 390 → la moitié du bas coupée ;
+     debout, le centre d'avant (422, 195) sortait à droite d'un écran large de 390. Désormais `dBoule` replace la boule à CHAQUE image où la taille a changé (quatre nombres, même formule
+     que `geoLabSphere`) et la géométrie n'est plus refaite au pivot quand seul le cadre change (même nombre de points) : la boule reste entière et centrée dès la première image à la
+     nouvelle taille, sans le coût de 660 vignettes refaites. Et le sens de l'écran est relu à chaque image (une requête média, sans mise en page forcée) : s'il change, la taille est relue tout de suite, même si WKWebView
+     livre `resize` et le ResizeObserver en retard. Le Worker du film (`?plus=filmworker`) reçoit la même règle (constante BOULE_PLACE, dBoule copiée). `?sans=pivotplanete` = avant. */
+  const BOULE_PLACE=!/[?&]sans=[^&]*pivotplanete/.test(location.search);
+  const MQ_COUCHE=(function(){try{return BOULE_PLACE&&window.matchMedia?matchMedia('(orientation: landscape)'):null;}catch(e){return null;}})(); /* le sens de l'écran, lu sans mise en page forcée */
+  let mqCouche=MQ_COUCHE?MQ_COUCHE.matches:false; /* le dernier sens vu (une relecture par CHANGEMENT, jamais à chaque image : le cadre téléphone de l'ordinateur reste plus étroit que sa fenêtre couchée) */
+  function bouleNb(){return Math.round(Math.max(260,Math.min(520,W*H/420)));} /* le nombre de points de la boule pour cette taille (le même que `geoLabSphere`) */
+  function etiquettes(){const ids=DEMO?ORDRE_LABELS:[LABELS[LAB_ID]?LAB_ID:'neon'];for(const k of ids){if(BOULE_PLACE&&k==='boule'&&ETS.boule&&ETS.boule.n===bouleNb())continue; /* la boule se replace seule (dBoule) : rien à refaire */ETS[k]=LABELS[k].geo();}}
   const BOULE_PRET_T=BOULE_ANCIEN?4.6:.8+FIB_DUREE*1.1+FIB_GLISSE; /* la boule n'est prête au toucher (et le grave du chargement ne finit de monter) qu'une fois écrite : ≈ 6,9 s, 4,6 s avant */
   function bouleDepart(n){ /* l'heure de départ de chaque point : r = son rang depuis le pôle du haut ; son paquet j (tailles de Fibonacci), puis sa place dans le paquet */
     let J=0;{let x=1,y=1,s=0;while(s<n){s+=x;const z=x+y;x=y;y=z;J++;}}
@@ -255,7 +288,7 @@
         x.globalCompositeOperation='source-over';Lg.push(cc); /* contour sombre de la teinte : le chiffre a du corps et de la forme (comme les dorés) */}}
     const th=F(),ca=F(),sa=F(); /* (2026-11-16) pour la glissade depuis le pôle du haut (0,−1,0) : l'angle au pôle de chaque point et la direction de son méridien */
     for(let i=0;i<n;i++){const r=Math.sqrt(Math.max(1e-9,1-py[i]*py[i]));th[i]=Math.acos(borne(-py[i],-1,1));ca[i]=px[i]/r;sa[i]=pz[i]/r;}
-    return{sprH:sprH,R:R,cx:cx,cy:cy,n:n,px:px,py:py,pz:pz,dl:dl,tf:tf,fx:fx,gk:gk,spr:[],gs:Math.max(9*ku,R*.2),th:th,ca:ca,sa:sa,t0:BOULE_ANCIEN?null:bouleDepart(n)};
+    return{W:W,H:H,sprH:sprH,R:R,cx:cx,cy:cy,n:n,px:px,py:py,pz:pz,dl:dl,tf:tf,fx:fx,gk:gk,spr:[],gs:Math.max(9*ku,R*.2),th:th,ca:ca,sa:sa,t0:BOULE_ANCIEN?null:bouleDepart(n)};
   }
   /* 10. BOULE (2026-10-23 soir) : seulement la sphère de « 1.61 » ; elle tourne lentement tant que ça charge, s'arrête quand c'est prêt ; l'appui la fait exploser en CASH CAR (dActe3), puis le voile fond vers le jeu. */
   let pasSon=-1;
@@ -307,6 +340,7 @@
     }catch(x){fin();}
   }
   function dBoule(c,t,e){
+    if(BOULE_PLACE&&(e.W!==W||e.H!==H)){const l9=W>H*1.15;e.R=Math.min(W*.24,H*(l9?.27:.19));e.cx=W/2;e.cy=H*(l9?.5:.46);e.gs=Math.max(9*ku,e.R*.2);e.W=W;e.H=H;} /* (LA PLANÈTE ENTIÈRE AU PIVOT) la place de la boule suit la taille de l'écran, dès cette image */
     const dtf=bTP===null?0:borne(t-bTP,0,.1);bTP=t;
     if(!bDown){bYaw+=bVy*dtf;bPit+=bVp*dtf;const f=Math.exp(-dtf*2.5);bVy*=f;bVp*=f;bPit*=Math.exp(-dtf*.8);}
     const LX=-.52,LY=-.5,LZ=.69; /* la lumière : en haut à gauche, devant ; elle ne tourne pas avec la planète */
@@ -784,6 +818,8 @@
   function reveler(){ /* à l'instant où l'écran noir casse : le voile n'est plus l'écran titre, il ne prend plus les touchers */
     window.__introCouvre=false;window.__introPause=false;window.__guetTient=false;if(revele)return;revele=true;
     introLigne('à l\'ouverture du menu'); /* (2026-11-08) le critère de Sacha : K = 0 */
+    filmLigne();
+    if(FILM_CH&&!/[?&]sans=[^&]*filmentree/.test(location.search))window.__ccEntree={t:-1e9,n:0,t1:0,ok:0,dur:670,K:['lune','eng','vif']}; /* (2026-11-16) l'entrée du menu étalée : voir entreeTour (boucle-1.js) */
     try{if(window.__ccChargeTout)window.__ccChargeTout();}catch(e){} /* (2026-11-05, passe perf mobile 2, A2.b) ce qui reste du chargement se fait d'un trait avant que le jeu paraisse */
     sp.id=''; /* ⚠ retire l'id AVANT tout : start() et les écrans d'accueil se gardent par `getElementById('splash')` ; et la règle CSS #splash part avec lui. z-index 1000 : les éclats volent PAR-DESSUS tout (la plaque du 1er accueil s'ouvre ~0,85 s après, à 200+) */
     sp.style.cssText='position:fixed;inset:0;z-index:1000;display:block;pointer-events:none;overflow:hidden;background:transparent';
@@ -824,7 +860,7 @@
   }
   function tapBoule(){ /* l'appui, une fois que c'est prêt : la boule explose en CASH CAR, le jeu se prépare dessous, puis le voile fond */
     if(!lance||fini||tapT!==null||pretT===null)return;
-    tapT=(performance.now()-tLance)/1000-latV;passee=true;
+    tapT=(performance.now()-tLance)/1000-latV;passee=true;FC.tap=performance.now();
     try{if(iAC&&iAC.state!=='running')acReveil(iAC);}catch(e){}
     try{if(SON){SON.suite();
       if(INTRO_AP&&BUM.buf&&VOL9){SON.finChargement(iAC.currentTime+.02);const sb=iAC.createBufferSource();sb.buffer=BUM.buf;sb.connect(VOL9);sb.start(iAC.currentTime+.02);} /* (INTRO_AP) le coup pré-rendu : UN nœud */
@@ -887,7 +923,7 @@
     prepGen++;prepVise=''; /* (LE PIVOT) une préparation étalée en cours est annulée : celle-ci refait tout */
     TPS=[];SNAP=null;SNAPPIX=null;PCI_N.prepares++; /* (la photo du logo se refait à la nouvelle taille) */
     etape('ressources',function(){if(!SPR.bl)faitRessources();});
-    etape('etiquette',function(){const ids=DEMO?ORDRE_LABELS:[LABELS[LAB_ID]?LAB_ID:'neon'];for(const k of ids)ETS[k]=LABELS[k].geo();});
+    etape('etiquette',etiquettes);
     etape('logo',function(){try{apresPolice(function(){faitLogo();});}catch(e){faitLogo();}});
     etape('fracture',fracture);
     prepEn=W+'x'+H+'x'+S;
@@ -901,6 +937,7 @@
   }
   function rendu(t){const a9=performance.now();try{rendu0(t);}finally{const d9=performance.now()-a9;IK.rd=d9;if(d9>=40&&window.__ccSondeTache){try{window.__ccSondeTache('rendu',a9,d9);}catch(_){}}}} /* (2026-11-07, OPTI ULTIME : « image boucle 373 ms : quelle étape ? ») la sonde du serpent nomme l'image du film qui dépasse 40 ms */
   function rendu0(t){
+    if(FILMW.on&&FILMW.image(t))return; /* (2026-11-15, lot SONDEOC, `?plus=filmworker`, éteint par défaut) le film est dessiné par un Worker : rien à peindre ici (voir film-worker.js) */
     g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';
     if(casse){dEclats(g,t-tCasse);return;}
     g.fillStyle='#000';g.fillRect(0,0,W,H);
@@ -916,12 +953,13 @@
     if(fini)return;
     raf=requestAnimationFrame(boucle);
     if(manuel)return;
-    if(lance&&!revele&&!doux){const d9=now-IK.prev;if(IK.prev&&d9<2000){IK.n++;if(d9>IK.mx)IK.mx=d9;if(d9>20){IK.k++;if(IK.l.length<6)IK.l.push(((now-tLance)/1000).toFixed(1)+'s '+Math.round(d9)+' (rendu d\'avant '+Math.round(IK.rd||0)+')');}}IK.prev=now;} /* (2026-11-08) les images du film : le pire intervalle, combien dépassent 20 ms (écrit par `introLigne`) */
+    if(lance&&!revele&&!doux){const d9=now-IK.prev;if(IK.prev&&d9<2000){IK.n++;if(d9>IK.mx)IK.mx=d9;if(d9>34)FC.k34++;if(d9>20){IK.k++;if(now-d9-tLance<NOIR_VU*1000){FC.kN++;if(d9>34)FC.k34N++;}else if(IK.l.length<6)IK.l.push(((now-tLance)/1000).toFixed(1)+'s '+Math.round(d9)+' (rendu d\'avant '+Math.round(IK.rd||0)+')');}}IK.prev=now;} /* (2026-11-08) les images du film : le pire intervalle, combien dépassent 20 ms (écrit par `introLigne`) */
+    if(MQ_COUCHE&&!casse&&MQ_COUCHE.matches!==mqCouche){mqCouche=MQ_COUCHE.matches;pciSale=true;} /* (LA PLANÈTE ENTIÈRE AU PIVOT) le sens de l'écran a changé : la taille est relue À CETTE IMAGE, sans attendre `resize` ni le ResizeObserver (WKWebView peut les livrer après) */
     if(!casse){const t=PCI_ON?pciTaille(now):tailleEcran();if(t[0]!==W||t[1]!==H)remesure();} /* l'écran a changé de taille sans que `resize` nous le dise (cadre du volet, rotation) : tout se refait à la bonne taille (vu le 23/10 : logo énorme, coupé à droite) */
     if(!lance){try{attente();}catch(e){}return;}
     try{
       const t=(now-tLance)/1000-latV;
-      if(BOULE){if(pretT===null&&t>=BOULE_PRET_T&&(t>=20||(document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')&&(!window.__ccCharge||window.__ccCharge())))){ /* (2026-11-07, chasse SON-N02) une ressource du load qui traîne (police, image, 3G) laissait la boule tourner sans fin, le toucher ignoré : à 20 s elle est prête quoi qu'il arrive */pretT=t;introLigne('à la boule prête');try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}if(PCI_60&&tapT===null&&pciSaute(now))return;rendu(t);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
+      if(BOULE){if(pretT===null&&t>=BOULE_PRET_T&&(t>=20||(document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')&&(!window.__ccCharge||window.__ccCharge())&&(!FILM_CH||!filmReste())))){FC.pret=performance.now(); /* (2026-11-15, LE FILM CHARGE LE RESTE) le toucher n'est accepté que le départ d'avance fini */ /* (2026-11-07, chasse SON-N02) une ressource du load qui traîne (police, image, 3G) laissait la boule tourner sans fin, le toucher ignoré : à 20 s elle est prête quoi qu'il arrive */pretT=t;introLigne('à la boule prête');try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}if(PCI_60&&tapT===null&&pciSaute(now))return;rendu(t);if(FILM_CH&&tapT===null&&!FC.fin)filmTranche(now);else if(FILM_CH&&tapT===null&&FC.banque===1)filmBanque(now,performance.now()+FILM_MS);else if(FILM_GAB&&tapT===null&&!FC.gFin)filmGab(now);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
       if(DEMO){const T=PERIODE_DEMO(),idx=Math.floor(Math.max(0,t)/T);if(idx>0)sonDemo(idx,t-idx*T);else sonDemo(0,t);rendu(t);return;}
       if(!ouvert&&t>=TL.noir)crea('ouvrir',ouvrir);
       if(!revele&&!doux&&!passee){ /* le jeu ne dessine rien derrière le film (voir `loop`), SAUF quelques images dans le NOIR COMPLET : ses accrocs du premier dessin (relecture du ciel, compilations) ne se voient pas là, et il reprend à chaud 0,5 s avant la casse */
@@ -942,6 +980,7 @@
   function lancer(geste){
     if(lance||fini)return;lance=true;RM=reduit();tLance=performance.now();window.__intro='joue'; /* l'intro passe : pas de rechargement */
     eteintTitre();
+    FC.part=tLance;if(FILM_CH){FC.restait=filmReste();if(!FC.restait)FC.fin=tLance;} /* (2026-11-16) l'instant du départ du film, noté partout (un horodatage : la ligne « chargement2 » le donne aussi pour `?sans=filmcharge` et l'ordinateur) */
     if(window.__ccSondeTache)try{const a9=performance.now();void document.body.offsetHeight;if(window.__ccSondeCrea)window.__ccSondeCrea('layout-lancer',a9,performance.now()-a9);}catch(e){} /* (2026-11-07, OPTI ULTIME) pendant le guet seulement : un layout forcé au départ du film, chronométré (le style + layout du DOM entier, natif, est-il le trou de 1,1 s ?) */
     window.__introCouvre=true; /* le film couvre l'écran : le jeu ne calcule ni ne dessine plus rien dessous, jusqu'à 0,5 s avant la casse (voir `boucle`) */
     if(INTRO_AP){window.__introPause=true;setTimeout(function(){try{if(window.__ccGuetFin)window.__ccGuetFin();}catch(e){}},3000);} /* (2026-11-08) et RIEN d'autre ne travaille : photos, pré-bâti… (jusqu'à `reveler`) ; la sonde du serpent écrit sa ligne 3 s après le départ du film */
@@ -957,7 +996,7 @@
   const ROT_ETALE=TEL_NATIF&&!/[?&]sans=[^&]*rotation/.test(location.search);
   function prepareEtale(){const k9=W+'x'+H+'x'+S;if(prepVise===k9)return; /* la même taille est déjà en préparation (iOS envoie deux `resize` par rotation) */prepVise=k9;const g=++prepGen;TPS=[];SNAP=null;SNAPPIX=null;PCI_N.prepares++;PCI_N.etalees=(PCI_N.etalees|0)+1;
     const L=[['ressources',function(){if(!SPR.bl)faitRessources();}],
-      ['etiquette',function(){const ids=DEMO?ORDRE_LABELS:[LABELS[LAB_ID]?LAB_ID:'neon'];for(const k of ids)ETS[k]=LABELS[k].geo();}],
+      ['etiquette',etiquettes],
       ['logo',function(){try{apresPolice(function(){if(g===prepGen)faitLogo();});}catch(e){faitLogo();}}],
       ['fracture',fracture]];let i=0;
     const pas=function(){if(g!==prepGen||fini||casse)return;
@@ -980,8 +1019,8 @@
 
   mesure();
   chargeLit();
-  setTimeout(irPret,500); /* pendant l'attente du toucher : 10 ms de calcul, hors de vue */
-  setTimeout(chauffe,900); /* puis le reste (quelques dizaines de ms, hors de vue) */
+  setTimeout(irPret,FILM_CHAUFFE?0:500); /* pendant l'attente du toucher : 10 ms de calcul, hors de vue */
+  setTimeout(chauffe,FILM_CHAUFFE?0:900); /* puis le reste (quelques dizaines de ms, hors de vue) */ /* (2026-11-15, LE FILM CHARGE LE RESTE) sur le téléphone : tout de suite, les vignettes de la boule se convertissent à côté pendant les étapes */
   let remesureTO=0;
   function remesureGroupee(){clearTimeout(remesureTO);remesureTO=setTimeout(remesure,120);} /* (2026-10-26, Sacha : « petites latences au lancement ») sur mobile, la barre d'adresse qui se rétracte envoie plusieurs `resize` d'affilée PENDANT le film : chacun relançait `remesure` (donc `prepare`, synchrone : logo, fracture) tout de suite, ça saccadait ; groupés en un seul passage 120 ms après la dernière secousse */
   /* (2026-11-13, Sacha, build 100 : « l'écran d'accueil avec la planète : quand on retourne l'écran, la moitié du rectangle est noire, et après ça se met normal — ça dure 1 seconde mais c'est chiant »)
@@ -998,7 +1037,7 @@
      Le jeu endort SON contexte audio quand la page est cachée (voir init.js), pas celui de l'intro : la boule attend le toucher indéfiniment,
      son pad tourne en boucle — sur le site (Chrome Android), il continuait de jouer dans la poche. Caché : le contexte de l'intro s'endort ;
      revenu : il se réveille (le film muet, lui, attend toujours son toucher). */
-  function introVis(){try{if(fini||!iAC||iAC.state==='closed')return;if(document.hidden){if(iAC.state==='running')iAC.suspend();}else if(lance&&!filmMuet&&iAC.state!=='running')acReveil(iAC);}catch(e){}}
+  function introVis(){if(!document.hidden)FC.repos=performance.now()+500; /* (2026-11-16) revenu d'arrière-plan : 0,5 s sans tranche, le film reprend son pas d'abord (banc --fond : une image > 34 ms de plus sinon) */try{if(fini||!iAC||iAC.state==='closed')return;if(document.hidden){if(iAC.state==='running')iAC.suspend();}else if(lance&&!filmMuet&&iAC.state!=='running')acReveil(iAC);}catch(e){}}
   document.addEventListener('visibilitychange',introVis);
   sp.addEventListener('pointerdown',pose,true);boulePointeur();
   sp.addEventListener('click',function(){
@@ -1029,7 +1068,7 @@
   function pageCalme(){
     if(!CALME_ON||performance.now()-calmeT0>14000)return true;
     if(document.readyState!=='complete'||!chauffeOk)return false;
-    return (window.__imagesJeu|0)>=3&&calmeBons>=40; /* le jeu a lié ses programmes ET dessiné ses premières images (c'est ça, la chauffe qui gelait l'explosion) */
+    return (window.__imagesJeu|0)>=3&&calmeBons>=(FILM_CH?FILM_CALME:40); /* le jeu a lié ses programmes ET dessiné ses premières images (c'est ça, la chauffe qui gelait l'explosion) */
   }
   function essaiAuto(n){ /* attendre que le DOM soit prêt, la police du film chargée et la fenêtre visible */
     if(lance||fini)return;
@@ -1050,13 +1089,79 @@
       if(LIER.dem!==2||(LIER.X&&!lierPret()))return 'lier';
       if(!(engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait))return 'chauffe';
       if(CHAUFFE_R.ap>=0)return 'tôles';
-      if(PREB.on&&PREB.W&&PREB.dep&&!PREB.fait)return 'depart-avance';
+      if(!FILM_CH&&PREB.on&&PREB.W&&PREB.dep&&!PREB.fait)return 'depart-avance'; /* (2026-11-15, LE FILM CHARGE LE RESTE) en route : le film le finit lui-même, par tranches (filmTranche) ; pas encore commencé : toujours attendu ici (son début est un bloc) */
+      if(FILM_CH&&filmPasLong())return 'depart-avance'; /* (2026-11-16, 3e passe) le pas long connu du départ d'avance se fait encore sous le serpent (voir filmPasLong) */
       if(DENSE.ok&&PREB.on&&!PREB.W&&!PREB.fait&&PREB.echecs<3){const c9=prebDepCible();if(c9&&c9.t!==PREB.non)return 'depart-avance';} /* (2026-11-13, LE CHARGEMENT DENSE) les tôles n'attendent plus le départ d'avance : c'est le film qui l'attend (avant, il partait après les tôles, donc après lui) */
       if(typeof PHQ!=='undefined'&&PHQ.q.length&&garageOn&&!gEl.classList.contains('quiet')&&!PHOTO_VUE)return 'photos'; /* (2026-11-13) PHOTO_VUE : les photos attendent d'être en vue, plus le film */ /* la file des photos ne se vide que garage ouvert (photoTour) : sinon elle attend le menu, pas le film */
       if(litEnCours&&!LIT)return 'lit';
       if(BUM.pr&&!BUM.buf&&!BUM.err)return 'coup-appui';
       return '';
     }catch(x){return '';}
+  }
+  function filmReste(){try{return (PREB.on&&PREB.W&&PREB.dep&&!PREB.fait)?'depart-avance':'';}catch(x){return '';}} /* ce que le film doit encore charger avant d'accepter le toucher */
+  /* (2026-11-16, lot lancement2, 3e passe) LES PAS LONGS CONNUS RESTENT SOUS LE SERPENT. MESURÉ (profil du banc ×4, grotte) : le décor de la grotte a des pas indivisibles
+     (maps/ interdit) — l'entrée (grtEchantillons, grtGaleries, grtMonde : 44-58 ms ×4), les piliers (grtPiliers, grtBouche : 21-50 ms), puis décors, lumières, grwMailleInit ; tombé dans
+     la boule visible, c'était une image de 50 ms (contrôle adverse : 1,33 s ; reproduit sans ce correctif : 1,43 s). Le film attend donc ces pas sous le serpent : niveau 3 (défaut) =
+     jusqu'au maillage des tronçons (`file` posé dans l'état de travail du module, W.mods[0][1], voir prebObj) ; après lui, des tranches de tronçon (≤ 25 ms relevées dans la boule).
+     `?filmpas=1` : l'entrée seulement (W.mods posé dans le même pas) ; `?filmpas=2` : jusqu'aux piliers ; `?sans=filmpas` : rien (la 2e passe). Les autres maps : rien d'attendu en plus. */
+  const FILM_PAS=/[?&]sans=[^&]*filmpas/.test(location.search)?0:(function(){const m=/[?&]filmpas=(\d)/.exec(location.search);return m?+m[1]:3;})();
+  function filmPasLong(){try{const W=PREB.W;if(!FILM_PAS||!PREB.on||!W||!PREB.dep||PREB.fait||W.piste!=='grotte')return false;
+    if(!W.mods)return true; /* l'entrée du décor pas encore passée */
+    const V9=W.mods[0]&&W.mods[0][1];if(!V9)return false;
+    return FILM_PAS===2?!V9.piliers:FILM_PAS>2?!V9.file:false;}catch(x){return false;}} /* les piliers pas encore posés (l'état de travail du module entre deux tranches : W.mods[0][1], voir prebObj) */
+  function filmPhase(){try{const W=PREB.W;return W?(W.piste||'route')+(W.mods?':decor':':route'):'';}catch(x){return '?';}}
+  function filmBanque(now,lim){try{if(FC.banque===1&&window.CCSON&&window.CCSON.filmTranche){if(performance.now()<lim-1&&!window.CCSON.filmTranche(lim))FC.banque=2;}}catch(x){FC.banque=3;}}
+  function filmTranche(now){ /* (boucle du film, APRÈS le dessin de l'image) une tranche du départ d'avance ; jamais dans une image déjà en retard */
+    const a=performance.now(),tf=(a-tLance)/1000-latV,noir=tf<NOIR_FIN;
+    if(noir&&FC.banque===1)filmBanque(now,a+4); /* la 2e banque : quelques ms en tout, dans le noir si son fichier est déjà lu */
+    if(!filmReste()){FC.fin=performance.now();return;}
+    const ms=noir?Math.min(FILM_NOIR,(NOIR_FIN-tf)*1000):FILM_MS;
+    if(!(ms>0))return;
+    if(a<FC.repos){FC.sautees++;return;}
+    if(!noir&&(a-now>FILM_MS+6||FC.long)){FC.long=0;FC.sautees++;return;} /* le rappel est arrivé tard, le dessin a été long, ou la tranche d'avant a débordé (un pas indécoupable) : cette image ne charge rien, le film reprend son pas */
+    FILM_TR.fin=performance.now()+ms;try{prebTick(now);}catch(x){}finally{FILM_TR.fin=0;}
+    const d=performance.now()-a;
+    if(d>ms+6&&FC.longs.length<16)FC.longs.push([+tf.toFixed(2),Math.round(d),filmPhase()]); /* (3e passe) les tranches qui débordent : quand, combien, dans quelle phase du départ d'avance (dbgIntro.film().longs) */
+    if(noir){FC.nN++;FC.msN+=d;}else{FC.n++;FC.ms+=d;if(d>FC.pire)FC.pire=d;if(d>FILM_MS+6)FC.long=1;FC.h[d<8?0:d<12?1:d<20?2:d<34?3:4]++;}
+    if(!filmReste())FC.fin=performance.now();
+  }
+  /* (2026-11-16, lot lancement2, 2e passe) LES GABARITS DE LA JADE PENDANT LA BOULE. MESURÉ (profil, banc ×4, grotte) : avec le lot, le film part avant la fin du départ d'avance, et les gabarits de la jade
+     (jadeGabFond : ils attendent le départ d'avance) ne se taillaient plus sous le serpent mais AU MENU, dès la casse (voxMeshG, voxPilierG : 5 à 8 ms par image à l'entrée du menu ; l'image de la casse
+     passait de 33 à 50 ms). Le départ d'avance fini, la boule leur donne donc ses tranches, avant le toucher, au même budget (FILM_MS, posé le temps de l'appel sur leur palier `gabFondMs`).
+     Le toucher ne les attend pas : ce qui reste se taille au menu, comme avant. `?sans=filmgab` : la boule ne les taille pas. */
+  function filmGab(now){
+    try{
+      if(JADE.geos||GAB_FOND.fini){FC.gFin=performance.now();return;}
+      const a=performance.now();
+      if(a<FC.repos||a-now>FILM_MS+6||FC.long){FC.long=0;FC.sautees++;return;}
+      const n0=GAB_FOND.n,s9=PAL.B.gabFondMs;PAL.B.gabFondMs=[FILM_MS,FILM_MS,FILM_MS,FILM_MS,FILM_MS,FILM_MS];
+      try{jadeGabFond();}finally{PAL.B.gabFondMs=s9;}
+      if(GAB_FOND.n===n0)return; /* refusé (chauffe, volet…) : rien de fait, l'image suivante réessaie */
+      const d=performance.now()-a;FC.gN++;FC.gMs+=d;if(d>FC.pire)FC.pire=d;if(d>FILM_MS+6)FC.long=1;FC.h[d<8?0:d<12?1:d<20?2:d<34?3:4]++;
+      if(JADE.geos||GAB_FOND.fini)FC.gFin=performance.now();
+    }catch(x){FC.gFin=-1;}
+  }
+  /* (2026-11-16, lot lancement2, 2e passe) LA LIGNE « chargement » ÉTAIT COUPÉE : __ccNote garde 240 signes, elle en faisait ~330 (et la ligne du film ~600).
+     Deux lignes qui tiennent chacune : « chargement » (au départ du film : prêt en, lier, chauffe, étapes, libérés, programmes, dense) et « chargement2 » (à l'ouverture du menu :
+     le départ du film, ce qui restait, tout prêt, boule prête, toucher, images du film > 20 et > 34 ms et la pire, puis l'état du téléphone et les tranches).
+     Les morceaux s'ajoutent dans l'ordre tant que la ligne tient ; l'obligatoire d'abord. Écrites dans les deux chemins (`?sans=filmcharge` aussi) : l'A/B se lit pareil. Le détail : dbgIntro.film(). */
+  const LIGNE_MAX=240;
+  function ligneTient(L){let s='';for(let i=0;i<L.length;i++){if(!L[i])continue;const x=(s?' · ':'')+L[i];if(s&&s.length+x.length>LIGNE_MAX)continue;s+=x;}return s.slice(0,LIGNE_MAX);}
+  let etatTel='';
+  function filmLigne(){ /* la ligne « chargement2 » : écrite à l'ouverture du menu */
+    try{if(!window.__ccNote||!FC.part)return;const s9=function(x){return x?(Math.round(x/100)/10)+' s':'-';},s1=function(x){return x?String(Math.round(x/100)/10):'-';};
+      const fin=FILM_CH?(FC.fin?s1(FC.fin):'PAS FINI ('+filmReste()+')'):s1(FC.serp);
+      window.__ccNote('chargement2',ligneTient([
+        'film parti à '+s9(FC.part)+(FILM_CH?'':' (sans filmcharge)'),
+        'restait '+(FILM_CH?(FC.restait||'rien')+(FC.banque?'+banque2':''):'rien'),
+        'tout prêt '+fin,
+        'boule prête '+s1(FC.pret)+', toucher '+s1(FC.tap),
+        'images '+IK.n+' : >20 ms '+IK.k+' (noir '+FC.kN+'), >34 ms '+FC.k34+' (noir '+FC.k34N+'), pire '+Math.round(IK.mx),
+        etatTel,
+        FILM_CH?'tranches '+FILM_MS+' ms : '+FC.n+' pire '+Math.round(FC.pire)+', noir '+FC.nN+', sautées '+FC.sautees:'',
+        FILM_GAB?'gab '+(FC.gFin>0?s1(FC.gFin):FC.gFin<0?'erreur':'menu'):'',
+        FILM_CH&&FC.banque?'banque2 '+(['-','pas finie','finie','erreur'][FC.banque]||'-'):''
+      ]));}catch(x){}
   }
   function introLigne(quand){ /* la ligne « intro » de la boîte noire : les images du film jusqu'ici (à la boule prête, avant tout toucher ; puis à l'ouverture du menu) */
     try{if(window.__ccNote&&IK.n)window.__ccNote('intro','mode '+INTRO_AP+' · '+quand+' : '+IK.n+' images, pire '+Math.round(IK.mx)+' ms, images > 20 ms : '+IK.k+(IK.l.length?' ('+IK.l.join(' · ')+')':''));}catch(x){}
@@ -1069,20 +1174,22 @@
   const INTRO_ORDRE=['chauffe-intro','etapes','lier','chauffe','tôles','depart-avance','photos','lit','coup-appui'],INTRO_LIB={},INTRO_VU={};
   function introLibere(manque,t){const i=manque?INTRO_ORDRE.indexOf(manque):INTRO_ORDRE.length;if(manque)INTRO_VU[manque]=1;
     for(let k=0;k<i;k++)if(INTRO_LIB[INTRO_ORDRE[k]]==null)INTRO_LIB[INTRO_ORDRE[k]]=t;}
-  function introDetail(){let s='';
-    try{const L=INTRO_ORDRE.filter(function(k){return INTRO_VU[k]&&INTRO_LIB[k]!=null;}).map(function(k){return k+' '+(Math.round(INTRO_LIB[k]/100)/10);});s+=' · libérés : '+(L.length?L.join(', '):'-');}catch(x){}
-    try{s+=' · programmes '+((renderer.info&&renderer.info.programs)?renderer.info.programs.length:'-');}catch(x){}
-    try{s+=' · dense '+(DENSE.ok?DENSE.img+' images, '+DENSE.pas+' pas, '+DENSE.toles+' tôles, '+Math.round(DENSE.ms)+' ms':'non');}catch(x){}
-    try{const e=window.__ccEco,th=window.__ccThermique,b=window.__ccBranche|0;
-      s+=' · éco '+(e==null?'?':(e|0))+' · thermique '+(th==null?'?':(th|0))+' · branché '+(b===1?'non':b===2?'en charge':b===3?'plein':'?');}catch(x){}
-    return s;}
-  function introNote(manque){
+  function introDetail(){const L=[]; /* (2026-11-16) en morceaux : « chargement » les prend tant qu'elle tient (voir ligneTient) ; l'état du téléphone part sur « chargement2 » */
+    try{const l=INTRO_ORDRE.filter(function(k){return INTRO_VU[k]&&INTRO_LIB[k]!=null;}).map(function(k){return k+' '+(Math.round(INTRO_LIB[k]/100)/10);});L.push('libérés : '+(l.length?l.join(', '):'-'));}catch(x){}
+    try{L.push('programmes '+((renderer.info&&renderer.info.programs)?renderer.info.programs.length:'-'));}catch(x){}
+    try{L.push('dense '+(DENSE.ok?DENSE.img+' im, '+DENSE.pas+' pas, '+DENSE.toles+' tôles, '+Math.round(DENSE.ms)+' ms':'non'));}catch(x){}
+    return L;}
+  function introEtat(){try{const e=window.__ccEco,th=window.__ccThermique,b=window.__ccBranche|0;
+      return 'éco '+(e==null?'?':(e|0))+', thermique '+(th==null?'?':(th|0))+', branché '+(b===1?'non':b===2?'en charge':b===3?'plein':'?');}catch(x){return '';}}
+  function introNote(manque){try{if(window.ccNatifNote)window.ccNatifNote();}catch(x){} /* (2026-11-15, lot natif) le chrono du lancement de l'app, sur SA ligne « natif » (natif-lancement.js) : rien hors de l'app */
     try{if(!window.__ccNote)return;const t=performance.now();
-      window.__ccNote('chargement','mode '+INTRO_AP+' · '+(manque?'PLAFOND '+Math.round(INTRO_PLAFOND/1000)+' s, manque « '+manque+' » · ':'')+'prêt en '+(Math.round(t/100)/10)+' s : lier '+(LIER.msDem|0)+' ms, chauffe '+(CHAUFFE_R.ms|0)+' ms, photos '+((typeof PHQ!=='undefined'&&PHQ.q)?PHQ.q.length:'-')+' restantes, étapes '+(CHARGEMENT.ms.length)+(touchRetenu?' · toucher retenu':'')+introDetail());}catch(x){}
+      FC.serp=t;etatTel=introEtat();
+      window.__ccNote('chargement',ligneTient(['mode '+INTRO_AP+(manque?' · PLAFOND '+Math.round(INTRO_PLAFOND/1000)+' s, manque « '+manque+' »':'')+' · prêt en '+(Math.round(t/100)/10)+' s : lier '+(LIER.msDem|0)+' ms, chauffe '+(CHAUFFE_R.ms|0)+' ms, photos '+((typeof PHQ!=='undefined'&&PHQ.q)?PHQ.q.length:'-')+' restantes, étapes '+(CHARGEMENT.ms.length),touchRetenu?'toucher retenu':''].concat(introDetail())));}catch(x){}
   }
   function introPartir(manque){
     if(lance||fini||pretIntro)return;pretIntro=true;window.__ccFilmPart=true;introNote(manque); /* (2026-11-13) __ccFilmPart : le chargement dense s'arrête (voir DENSE) */
     try{ouvrir();}catch(e){} /* le son du jeu (initAudio) se prépare ICI, sous le serpent : plus au toucher */
+    if(FILM_CH&&FILM_BANQUE){try{if(window.CCSON&&window.CCSON.filmDebut)FC.banque=window.CCSON.filmDebut()?1:0;}catch(e){}} /* (2026-11-15, LE FILM CHARGE LE RESTE) la 2e banque de sons : son fichier est LU ici (l'arrêt d'avant-film, sous le serpent : rien d'autre ne travaille), le film n'aura qu'à relever ses sons, par tranches */
     /* LE JEU SE TAIT UN INSTANT AVANT LE FILM : sa boucle (donc ses rendus 3D, mis en file au processeur graphique) s'arrête INTRO_DRAIN ms avant que le film ne dessine sa 1re image — mesuré sur le Mac ×4 :
        400-500 ms d'intervalle entre la 1re et la 2e image du film (rendu d'avant : 3 ms ; sans le son : le même), le temps que la file graphique se vide. `?introdrain=0` = sans cet arrêt. */
     const go=function(){if(INTRO_AP===2&&!touchRetenu)return; /* mode 2 : le film attend le toucher (le clic ou une touche appelle lancer) */
@@ -1104,6 +1211,7 @@
   raf=requestAnimationFrame(boucle);
   let vuRev=false;
   window.__ccIntroAuto={lancer:lancer,tapBoule:tapBoule,lance:function(){return lance;},pret:function(){return pretT!==null;},fini:function(){return fini;}}; /* (2026-11-07, banc iPhone automatique : banc-iphone.js touche l'écran titre tout seul ; inerte sinon) */
+  if(FILMW.on)try{FILMW.accroche({cv:cv,sp:sp,SPR:SPR,chCl:chCl,e:function(){return ETS.boule;},boule:function(c,t){dBoule(c,t,ETS.boule||(ETS.boule=geoLabSphere()));},lit:function(){return[tLance,latV,pretT,tapT,presFin,tenuJeu?1:0,bYaw,bPit,bVy,bVp,bDown?1:0,W,H,S,ku,lance?1:0,fini?1:0,casse?1:0,manuel?1:0,bTP];},K:{BOULE_PLACE:BOULE_PLACE,NLUM:NLUM,PRES_FIN:PRES_FIN,TOUCHE_BOULE:TOUCHE_BOULE,PCI_ON:PCI_ON,PCI_60:PCI_60,FIB_GLISSE:FIB_GLISSE,BOULE_ANCIEN:BOULE_ANCIEN,BOULE_PRET_T:BOULE_PRET_T},src:{borne:borne,lisse:lisse,sort3:sort3,halo:halo,pciSaute:pciSaute,dBoule:dBoule,dToucheBoule:dToucheBoule,dAttenteJeu:dAttenteJeu,dPresente:dPresente,rendu0:rendu0}});}catch(e){} /* (2026-11-15, lot SONDEOC, `?plus=filmworker`) le Worker du film reçoit l'état et le TEXTE des fonctions de dessin (voir film-worker.js) */
   window.dbgIntro={TL:TL,construitSon:function(A,t0,d){const r=construitSon(A,t0,d);r.suite();r.acte3();return r;},
     voir:function(t,id){manuel=true;forceId=id||null;if(!lance){lance=true;RM=reduit();eteintTitre();}if(!LOGO||!Object.keys(ETS).length){mesure();prepare();}
       if(t<TL.casse){casse=false;ECL=null;if(vuRev){vuRev=false;sp.id='splash';sp.style.cssText='';}}else if(!casse)casser(TL.casse,true);
@@ -1111,6 +1219,7 @@
       rendu(t);return{W:W,H:H,S:S};},
     mesure:function(){mesure();prepare();return{W:W,H:H,S:S,etapes:TPS};},
     calme:function(){return{bons:calmeBons,chauffeIntro:chauffeOk,rs:document.readyState,ms:Math.round(performance.now()-calmeT0)};}, /* (2026-11-08) pourquoi le film attend encore */
+    film:function(){return{on:FILM_CH,ms:FILM_MS,part:Math.round(FC.part),restait:FC.restait,fin:Math.round(FC.fin),pret:Math.round(FC.pret),tap:Math.round(FC.tap),noir:{tranches:FC.nN,ms:Math.round(FC.msN),sup20:FC.kN,sup34:FC.k34N},tranches:FC.n,msTranches:Math.round(FC.ms),pire:Math.round(FC.pire*10)/10,histo:FC.h.slice(),sansTranche:FC.sautees,gabarits:{on:FILM_GAB,tranches:FC.gN,ms:Math.round(FC.gMs),fin:Math.round(FC.gFin)},banque:FC.banque,images:IK.n,sup20:IK.k,sup34:FC.k34,pireImage:Math.round(IK.mx),reste:filmReste(),longs:FC.longs.slice()};}, /* (2026-11-15) LE FILM CHARGE LE RESTE */
     labels:Object.keys(LABELS),
     boule:function(o){if(o.pret!==undefined)pretT=o.pret;if(o.tap!==undefined)tapT=o.tap;}, /* (banc) l'instant où c'est prêt / où l'on appuie */
     toucher:function(x,y){TOUCH=x==null?null:{x:x,y:y};}, /* (banc) l'endroit où l'écran casse */

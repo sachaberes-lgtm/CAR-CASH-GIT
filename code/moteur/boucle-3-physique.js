@@ -1,4 +1,4 @@
-if(MG.on)MG.ts[3]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 3 — voir moteur/mouchard-gels.js */
+if(MG.on)mgTs(3); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 3 — voir moteur/mouchard-gels.js */
       if(mode==='drive'){
         frameAt(s,F);
         if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
@@ -246,7 +246,7 @@ if(MG.on)MG.ts[3]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
         if(ct9){const f09=Math.min(160,fovPor(fb9));fovT=camTailleFov(f09)+(fovT-f09);}
         else if(H9){const H=CAM_HEROS,K=H.fovMaxL-H.genouL,f09=Math.min(160,fovPor(fb9));fovT=(f09<=K?f09:K+H.genouL*(1-Math.exp(-(f09-K)/H.genouL)))+(fovT-f09);} /* (CAM_HEROS) COUCHÉ aussi, le champ tenu passe par un genou (112°) — les coups passent par-dessus */ // (2026-09-30) CAM_TAILLE : le champ tenu passe par le genou, le COUP (fovPunch) passe par-dessus, intact
         {const n9=performance.now();if(loop._fovB==null||n9-(loop._fovBT||0)>(window.dbgCamReprise||CAM_REPRISE))loop._fovB=camera.fov;loop._fovBT=n9;} // le champ « de base » repart du vrai champ à chaque reprise de conduite
-        loop._fovB+=(fovT-loop._fovB)*Math.min(1,dt*(NFX.off>0&&fovT<loop._fovB?2.4:6));
+        {const kB9=NFX.off>0&&fovT<loop._fovB?2.4:6;loop._fovB+=(fovT-loop._fovB)*(CHAMP_PAS?lisse60(kB9,dt):Math.min(1,dt*kB9));} /* (2026-11-16, CHAMP_PAS) le champ (coup du pad turbo, nitro) au temps près : `?sans=champpas` = avant */
         CAMV.zoom=Math.max(0,CAMV.zoom-dt*2);CAMV.zp=24*CAMV.zoom*CAMV.zoom*FOVP_K; // (2026-09-28) le COUP DE ZOOM d'une pose PARFAITE : sec à l'impact (−24°), relâché en 0,5 s — (2026-09-30) à 30 % sous « Réduire les animations », comme fovPunch
         camera.fov=Math.max(20,loop._fovB-CAMV.zp); // (vague 3) à l'extinction de la nitro le champ RETOMBE en douceur (il s'ouvre toujours sec)
         camera.updateProjectionMatrix();CAM_HEROS.leveApplique(dt,1); // (CAM_HEROS) l'image monte : la caisse au-dessus des commandes
@@ -472,8 +472,15 @@ if(MG.on)MG.ts[3]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
          0,6 s — une fois installée, c'est l'ancien suivi au chiffre près (même cible, même raideur, même retard en régime établi). */
       {const oA=CAMV.oA||(CAMV.oA=new THREE.Vector3());loop._camAirT=(loop._camAirT||0)+dt;
        const c09=CAMV.p0ok&&CAMV.p0.distanceToSquared(camera.position)<100?CAMV.p0:camera.position; /* (2026-10-17) l'écart se lit sur la place d'AVANT les secousses (CAMV.p0) : relu après elles, chaque coup et le vent étaient réinjectés dans le suivi — ×1,5 à 2 à 60 i/s, ×3 à 120 Hz, et le « vent ×.42 » voulu n'existait plus */
-       oA.subVectors(c09,fallPos).addScaledVector(fallVel,SPD*dtF*(1-Math.min(1,loop._camAirT/.6))) // l'écart de l'image d'avant, moins la part de traîne pas encore installée
-         .lerp(tmp2.sub(fallPos),Math.min(1,dt*(3+bigAir*4.5)*(1+Math.abs(VEQ.on?VEQ.u:steer)*(lacetVolK(fallVel.length())-1)))); // suivi plus vif en gros air : la caméra ne décroche pas — (2026-10-18) et dans le VIRAGE SERRÉ, au prorata du lacet gagné (`lacetVolK`) : elle garde son retard d'avant
+       const kS9=(3+bigAir*4.5)*(1+Math.abs(VEQ.on?VEQ.u:steer)*(lacetVolK(fallVel.length())-1)); /* suivi plus vif en gros air : la caméra ne décroche pas — (2026-10-18) et dans le VIRAGE SERRÉ, au prorata du lacet gagné (`lacetVolK`) : elle garde son retard d'avant */
+       if(CAM_VOL_PAS&&dt>0){ /* (2026-11-16, CAM_VOL_PAS) le même suivi, au temps près : l'écart d'avant ramené à la caisse d'avant, puis la part de 60 i/s composée sur dt vers une cible
+         reculée de la traîne de régime de 60 i/s (v·r·(1−a)/a /60). À 60 i/s : exactement l'ancien calcul ; à 30 ou à 33/50 alternés : la même place, sans aller-retour. */
+         const a9=Math.min(1,kS9/60),r9=Math.min(1,loop._camAirT/.6);
+         oA.subVectors(c09,fallPos).addScaledVector(fallVel,SPD*dtF);tmp2.sub(fallPos);
+         if(a9<1)tmp2.addScaledVector(fallVel,-SPD*(dtF/dt)*r9*(1-a9)/(a9*60));
+         oA.lerp(tmp2,lisse60(kS9,dt));}
+       else oA.subVectors(c09,fallPos).addScaledVector(fallVel,SPD*dtF*(1-Math.min(1,loop._camAirT/.6))) /* l'écart de l'image d'avant, moins la part de traîne pas encore installée */
+         .lerp(tmp2.sub(fallPos),Math.min(1,dt*kS9));
        camera.position.copy(fallPos).add(oA);}
       /* LE BRAS DE LA CAMÉRA (2026-09-28, nuit, Sacha : « sur mobile la voiture devient trop petite en air time — il faut juste pas que ça
          complexifie »). MESURÉ en portrait : la poursuite décroche à 17-18 m dans la 1re seconde du vol, quand le champ est encore large —
@@ -485,7 +492,7 @@ if(MG.on)MG.ts[3]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
       villeCamPlafond(camera.position);(CAMV.p0||(CAMV.p0=new THREE.Vector3())).copy(camera.position);CAMV.p0ok=true; // (2026-10-17) la place du suivi, AVANT secousses et vent (lue à l'image suivante)
       {const tg9=CAM_VIE.on?camVieVise(CAM_VIE.tg||(CAM_VIE.tg=new THREE.Vector3()),CAM_VIE.d.subVectors(fallPos,camera.position).normalize()):FLY_U; /* (CAMÉRA VIVANTE) le haut visé glisse vers la face de la pose annoncée */
        if(CAM_VIE.on)camRoulis(tg9,CAM_VIE.d.subVectors(fallPos,camera.position).normalize(),dt); // le roulis du vol est le même ressort que celui du sol
-       camUp.lerp(tg9,Math.min(1,dt*3)).normalize();} // (vol libre) le haut de l'écran = le haut de la caisse : la caméra ne se remet plus « à l'endroit »
+       camUp.lerp(tg9,CAM_VOL_PAS?lisse60(3,dt):Math.min(1,dt*3)).normalize();} // (vol libre) le haut de l'écran = le haut de la caisse : la caméra ne se remet plus « à l'endroit »
       camera.up.copy(camUp);
       /* (bord v2) LA VISÉE GLISSE — c'était LE « clic » du bord : au sol la caméra vise ~10 m DEVANT la caisse (`loop._vise`, la caisse en
          bas de l'image, décalée du côté où elle file), en vol elle vise la caisse ; le passage se faisait en UNE image. La visée de conduite
@@ -506,9 +513,9 @@ if(MG.on)MG.ts[3]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
          DESCENTE, le champ s'ouvre avec la vitesse de chute (jusqu'à +20°) — et comme le BRAS ci-dessus garde la caisse à sa taille du
          décollage, la caméra se RAPPROCHE d'elle-même : la caisse ne bouge pas, le décor s'étire, la route d'en bas file vers soi (le
          « vertigo » des films). Aucun angle ne change : la visée du 28/09 reste intacte. Montée et sommet : rien. Dans l'eau : rien. */
-      CAMV.vtg+=((JEAU.dans?0:THREE.MathUtils.smoothstep(-volVu(fallVel),12,70))-CAMV.vtg)*Math.min(1,dt*5);
+      CAMV.vtg+=((JEAU.dans?0:THREE.MathUtils.smoothstep(-volVu(fallVel),12,70))-CAMV.vtg)*(CAM_VOL_PAS?lisse60(5,dt):Math.min(1,dt*5));
       const fovAir=fovPor(76-bigAir*22+CAMV.vtg*20*FOVP_K+fovPunch*FOVP_K+(nitroOn?(nitroBlue?18:13):0)); // le champ se resserre avec l'ampleur du saut (76° petit air → 54° gros air) — et se rouvre dans le plongeon (le vertigo)
-      camera.fov+=(fovAir-camera.fov)*Math.min(1,dt*(NFX.off>0&&fovAir<camera.fov?2:4)); // (vague 3) la nitro coupée : le champ retombe en douceur
+      {const kF9=NFX.off>0&&fovAir<camera.fov?2:4;camera.fov+=(fovAir-camera.fov)*(CAM_VOL_PAS?lisse60(kF9,dt):Math.min(1,dt*kF9));} // (vague 3) la nitro coupée : le champ retombe en douceur
       camera.updateProjectionMatrix();CAM_HEROS.leveApplique(dt,0); // (CAM_HEROS) en vol le décentrement s'efface en douceur
       // (2026-09-28) le vent du VOL au même régime que celui du sol (×.42, le PLANÉ SUPERSONIQUE qui calme, « Réduire les animations ») :
       // en l'air la caméra tremblait 3 à 6 fois plus fort qu'au sol, en bruit blanc, pile sur le beau plan de trois-quarts des gros sauts

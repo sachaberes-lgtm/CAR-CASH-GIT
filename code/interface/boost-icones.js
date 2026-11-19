@@ -67,13 +67,13 @@ const NXP={Z:4/3,MT:20,MX:16,GW:92,GH:86,CX:34.5,CY:31,R:10,H0:5,BOX_W:30,BOX_H:
 function nxpInit(){const G=NXP,N=G.GW*G.GH;G.B=new Uint8Array(N);G.E=new Uint8Array(N);G.P=new Int32Array(N);G.T=new Uint8Array(N);G.D=new Uint8Array(N);
   G.N1=new Uint8Array(4096);G.N2=new Uint8Array(4096);let h=0x9e3779b9|0;const tire=function(){h^=h<<13;h^=h>>>17;h^=h<<5;return h&255;}; /* deux bruits 64 × 64 (fin, gros), toujours les mêmes */
   for(let i=0;i<4096;i++){G.N1[i]=tire();G.N2[i]=tire();}
-  G.CEN=new Float32Array(8*G.NS);G.WID=new Float32Array(8*G.NS);G.S=new Float32Array(8*9);G.rc=[0,0,-1,-1];}
+  G.CEN=new Float32Array(8*G.NS);G.WID=new Float32Array(8*G.NS);G.S=new Float32Array(8*9);G.rc=[0,0,-1,-1];G.TB=new Float64Array(8*4);G.KA=new Int32Array(8);} /* TB, KA : lot jsimage (la boîte de chaque langue, les langues d'une ligne) */
 function nxpPal(pal){let c=NXP.pc[pal];
   if(!c){const P=NX3_PAL[pal]||NX3_PAL.f1,D=NXP.DOIGT[pal]||NXP.DOIGT.f1;
     c=NXP.pc[pal]={bd:(NXP.BANDES[pal]||[P[3],P[1],P[2],P[0]]).map(nx3Rgb),chair:D[0].map(nx3Rgb),ong:D[1].map(nx3Rgb),ink:nx3Rgb(P[7]),rouge:nx3Rgb('#ff5a6e'),lueur:nx3Rgb(pal==='f3'?'#ffb347':P[6])&0x00ffffff};}
   return c;}
 function nxfDessine(d,pal,a,clig){
-  const G=NXP;if(!G.B)nxpInit();
+  const G=NXP;if(!G.B)nxpInit();const jsi=JSI.ok;
   const Z=G.Z,W=G.GW,H=G.GH,u=NX3.u32,B=G.B,N1=G.N1,N2=G.N2,pc=nxpPal(pal),bd=pc.bd,ink=clig?pc.rouge:pc.ink,
     fh=NX3.fh||0,fr=NX3.ft||0,wx=NX3.wx||0,wx2=NX3.wx2||0,wy=NX3.wy||0,p=NX3.p||0,fl=NX3.fl||0,bm=NX3.bm||0,be=1-bm,pop=bm>0?Math.sin(Math.min(1,be/.45)*3.1416):0,na=NX3.nais==null?1:NX3.nais,
     e9=na>=1?1:1+2.2*Math.pow(na-1,3)+1.2*Math.pow(na-1,2),sc=.25+.75*e9,sec=pal==='sec'?.62:1; /* la naissance : une sortie « élastique » (dépasse puis se pose) */
@@ -100,19 +100,30 @@ function nxfDessine(d,pal,a,clig){
     for(let i=0;i<=n;i++){const s=(i+.5)/PAS,t=s<Ls?s/Ls:1,m=(CEN[b+(i<n?i+1:n)]-CEN[b+(i>0?i-1:0)])*PAS/2;WID[b+i]=r0*(1-Math.pow(t,1.1))*Math.sqrt(1+m*m);}
     const lo=c0-1.5*r0,hi=c1+1.5*r0,ex=ox+dx*Ls,ey=oy+dy*Ls,ax=dy,ay=-dx;
     ux0=Math.min(ux0,ox-1.2*r0,ox+lo*ax,ox+hi*ax,ex+lo*ax,ex+hi*ax);ux1=Math.max(ux1,ox+1.2*r0,ox+lo*ax,ox+hi*ax,ex+lo*ax,ex+hi*ax);
-    uy0=Math.min(uy0,oy-1.2*r0,oy+lo*ay,oy+hi*ay,ey+lo*ay,ey+hi*ay);uy1=Math.max(uy1,oy+1.2*r0,oy+lo*ay,oy+hi*ay,ey+lo*ay,ey+hi*ay);}
+    uy0=Math.min(uy0,oy-1.2*r0,oy+lo*ay,oy+hi*ay,ey+lo*ay,ey+hi*ay);uy1=Math.max(uy1,oy+1.2*r0,oy+lo*ay,oy+hi*ay,ey+lo*ay,ey+hi*ay);
+    if(jsi){ /* (2026-11-16, lot jsimage) LA BOÎTE DE CHAQUE LANGUE, en unités : là où elle peut donner qk > −0,2 (en deçà, une case ne peint jamais : q < −0,2 saute, et q = −0,2 plus le bruit
+         le plus fort, +0,169, reste sous 0). Corps : |lat| < |CEN| + WID ; tête et calotte : r < 1,2 × rr ≤ 1,344 × r0. Rectangle s ∈ [smin, Ls] × |lat| ≤ Lm, puis 1 unité de marge. */
+      let Lm=1.35*r0;for(let i=0;i<=n;i++){const c=CEN[b+i],v=(c<0?-c:c)+WID[b+i];if(v>Lm)Lm=v;}
+      const s0=k===0?-1.15*r0-H0:-1.15*r0,TB=G.TB,t4=k*4;
+      const xa=ox+s0*dx,xb=ox+Ls*dx,ya=oy+s0*dy,yb=oy+Ls*dy,lx=Lm*(dy<0?-dy:dy),ly=Lm*(dx<0?-dx:dx);
+      TB[t4]=Math.min(xa,xb)-lx-1;TB[t4+1]=Math.max(xa,xb)+lx+1;TB[t4+2]=Math.min(ya,yb)-ly-1;TB[t4+3]=Math.max(ya,yb)+ly+1;}}
   uy0=Math.min(uy0,cy-1.25*R,jy-17.5*sc);uy1=Math.max(uy1,jy+8.5*sc);ux0=Math.min(ux0,tx-15*sc);ux1=Math.max(ux1,tx+15*sc); /* la calotte de la capsule et le pouce (qui penche hors du feu) entrent dans la boîte */
   const bx0=Math.max(4,Math.floor(ux0*Z)-1),bx1=Math.min(W-5,Math.ceil(ux1*Z)+1),by0=Math.max(4,Math.floor(uy0*Z)-1),by1=Math.min(H-5,Math.ceil(uy1*Z)+1),cyc=Math.round(cy*Z),ecl=fl*.25+pop*.3;
+  const KA=G.KA;
   for(let y=by0;y<=by1;y++){const py=(y+.5)/Z,yy=y-cyc,fy=(yy<0?-yy:yy)-fr,l1=(fy&63)<<6,l2=((fy>>1)&63)<<6; /* le bruit défile en s'éloignant de la tête */
-    for(let x=bx0;x<=bx1;x++){
+    let nA=0,xr0=bx0,xr1=bx1; /* (lot jsimage) les langues qui touchent cette ligne, et la plage de x qu'elles couvrent : hors d'elles, aucune case ne peint (voir G.TB) */
+    if(jsi){let u0=1e9,u1=-1e9;const TB=G.TB;for(let k=0;k<ns;k++){const t4=k*4;if(py<TB[t4+2]||py>TB[t4+3])continue;KA[nA++]=k;if(TB[t4]<u0)u0=TB[t4];if(TB[t4+1]>u1)u1=TB[t4+1];}
+      if(!nA)continue;xr0=Math.max(bx0,Math.floor(u0*Z)-1);xr1=Math.min(bx1,Math.ceil(u1*Z)+1);}
+    else{for(let k=0;k<ns;k++)KA[k]=k;nA=ns;}
+    for(let x=xr0;x<=xr1;x++){
       let q=-1;const px=(x+.5)/Z;
-      for(let k=0;k<ns;k++){const o=k*9,vx=px-S[o],vy=py-S[o+1],dx=S[o+2],dy=S[o+3],r0=S[o+5],s=vx*dx+vy*dy;
+      for(let j=0;j<nA;j++){const k=KA[j],o=k*9,vx=px-S[o],vy=py-S[o+1],dx=S[o+2],dy=S[o+3],r0=S[o+5],s=vx*dx+vy*dy;
         if(s<(k===0?-1.15*r0-H0:-1.15*r0)||s>=S[o+4])continue;
         const lat=vx*dy-vy*dx;let qk;
         if(s<0){let r,rr=r0;
           if(k===0){ /* (2026-11-12) la tête en CAPSULE : flancs droits sur H0, calotte ronde au-dessus ; la lisière ondule partout */
             if(s>-H0){r=lat<0?-lat:lat;rr=r0*(1+.05*Math.sin(s*1.1+(lat<0?fr:-fr)*.6));}
-            else{const s2=s+H0;r=Math.sqrt(s2*s2+lat*lat);if(r>.3*r0){const th=Math.atan2(lat,s2);rr=r0*(1+.07*Math.sin(3*th+fr*.55)+.05*Math.sin(5*th-fr*.8));}}}
+            else{const s2=s+H0;r=Math.sqrt(s2*s2+lat*lat);if(jsi&&r>1.35*r0)continue; /* (lot jsimage) qk ≤ 1 − r/(1,12·r0) < −0,2 : la case ne peint pas, l'atan2 et les deux sinus sont épargnés */if(r>.3*r0){const th=Math.atan2(lat,s2);rr=r0*(1+.07*Math.sin(3*th+fr*.55)+.05*Math.sin(5*th-fr*.8));}}}
           else r=Math.sqrt(s*s+lat*lat);
           qk=1-r/rr;}
         else{const i=k*NS+((s*PAS)|0),w=WID[i];let uu=lat-CEN[i];if(uu<0)uu=-uu;if(uu>=w)continue;qk=1-uu/w;}
@@ -256,6 +267,22 @@ function nxfTick(dt,d,pal,aQ,clig,appui,rm,fh){
   if(mobhChaud()){if(d===MOBH_nx3D&&tn-MOBH_nx3T<MOBH_R.nx3Ms)return;MOBH_nx3T=tn;}
   else if(d===MOBH_nx3D&&pal===NX3.palD&&tn-(NX3.tD||0)<29)return;
   MOBH_nx3D=d;NX3.palD=pal;NX3.tD=tn;NX3.k1=k1;NX3.k2=k2;NX3.k3=k3;
-  nxfDessine(d,pal,aQ,clig);NX3.ms=(NX3.ms||0)*.9+(performance.now()-tn)*.1;NX3.nD=(NX3.nD||0)+1;
+  if(NXF_DBL.on)nxfDouble(d,pal,aQ,clig);else nxfDessine(d,pal,aQ,clig);NX3.ms=(NX3.ms||0)*.9+(performance.now()-tn)*.1;if(MG.on)mgAj('dont nxfDessine (flamme + putImageData)',performance.now()-tn);NX3.nD=(NX3.nD||0)+1;
 }
+/* (2026-11-16, lot jsimage) LA PREUVE À L'OCTET : dbgNxfDouble(1) fait dessiner chaque image DEUX fois sur le même état — l'avant (JSI.ok faux) puis le lot — et compare la toile
+   (NX3.u32), la grille du feu (B), le rectangle gardé (rc), NXP.Lc et l'appel putImageData. dbgNxfDouble() rend {n, diff, ms avant, ms lot, premier écart}. Banc seulement. */
+const NXF_DBL={on:false,n:0,diff:0,msA:0,msB:0,ecart:null};
+function nxfDouble(d,pal,aQ,clig){const G=NXP;if(!G.B)nxpInit();const ok0=JSI.ok,cx=NX3.cx,F=NXF_DBL;
+  const cop=function(){return {u:NX3.u32.slice(),B:G.B.slice(),E:G.E.slice(),P:G.P.slice(),T:G.T.slice(),D:G.D.slice(),rc:G.rc.slice(),Lc:G.Lc};},
+    pose=function(s){NX3.u32.set(s.u);G.B.set(s.B);G.E.set(s.E);G.P.set(s.P);G.T.set(s.T);G.D.set(s.D);for(let i=0;i<4;i++)G.rc[i]=s.rc[i];G.Lc=s.Lc;};
+  let put=null;const faux={putImageData:function(im,a,b,c,e,f,g){put=[a,b,c,e,f,g].join(',');}};
+  const s0=cop();
+  try{NX3.cx=faux;JSI.ok=false;let t=performance.now();nxfDessine(d,pal,aQ,clig);F.msA+=performance.now()-t;const A=cop(),pA=put;
+    pose(s0);JSI.ok=true;t=performance.now();nxfDessine(d,pal,aQ,clig);F.msB+=performance.now()-t;const pB=put;
+    F.n++;let e='';if(pA!==pB)e='put '+pA+' / '+pB;else if(A.Lc!==G.Lc)e='Lc';else{for(let i=0;i<4;i++)if(A.rc[i]!==G.rc[i])e='rc';
+      if(!e)for(let i=0;i<A.u.length;i++)if(A.u[i]!==NX3.u32[i]||A.B[i]!==G.B[i]){e='case '+i;break;}}
+    if(e){F.diff++;if(!F.ecart)F.ecart=e;}}
+  finally{NX3.cx=cx;JSI.ok=ok0;}
+  NX3.cx.putImageData(NX3.img,0,0); /* (banc) toute la toile : le contenu est celui du lot, déjà comparé */}
+window.dbgNxfDouble=function(on){if(on!=null){NXF_DBL.on=!!on;if(on){NXF_DBL.n=NXF_DBL.diff=0;NXF_DBL.msA=NXF_DBL.msB=0;NXF_DBL.ecart=null;}}return {n:NXF_DBL.n,diff:NXF_DBL.diff,msAvant:+NXF_DBL.msA.toFixed(1),msLot:+NXF_DBL.msB.toFixed(1),ecart:NXF_DBL.ecart};};
 function nxfRows(){const m=nxfMasque(.35,2),r=[];for(let y=0;y<20;y++){let t='';for(let x=0;x<15;x++)t+=m[y*15+x]?'#':'.';r.push(t);}return r;} // la flamme en lignes de cases, pour le dessin SVG du réglage des figures (même forme que NX3_G)

@@ -24,7 +24,7 @@
    jadeAvAncre (appelée par jadeDeco3Pose) ; jadeAvPose (les cascades libres) ; jadeAvBatit (lianes : UN maillage ; rivières : UN maillage ; pierres : UNE
    famille d'instances, sans collision, déplacée par jadeAvTick) — trois appels de dessin au plus, et sur ALLEGE une liane sur deux et un seul plan par liane.
    `?jade=avatar` : ALLUME tout (Jade publiée est validée : rien ne change sans le drapeau). `?jscene=gue,pont` impose les premières scènes, comme avant. */
-const JADE_AV=typeof location!=='undefined'&&/[?&]jade=avatar(&|$)/.test(location.search);
+const JADE_AV=JADE_RU||(typeof location!=='undefined'&&/[?&]jade=avatar(&|$)/.test(location.search)); /* (2026-11-17, LES ROUTES UNIQUES) les verbes sont dans le sac de toutes les routes ; `?sans=uniques` les remet derrière leur drapeau */
 const JAV_CLES=['gue','pont','gouffre','galerie','belvedere','escalier','mouton','pierres','ange','ceinture','cirque','passe','corniche','lacets','viaduc','essaim','defile'];
 if(JADE_AV)for(const c of JAV_CLES)if(JA_CLES.indexOf(c)<0)JA_CLES.push(c);
 const JAV_VERBE={gue:'posee',ange:'posee',pont:'suspendue',gouffre:'percee',galerie:'taillee',ceinture:'enroulee',spirale:'enroulee',stade:'enroulee',colimacon:'enroulee',puits:'enroulee',
@@ -271,18 +271,18 @@ function jadeAvPose(X){const R0=JADE.avR;JADE.av=R0?{itin:R0.itin,pierres:R0.pie
   for(const R of A.riv){const q=R.mesas.length&&R.mesas[0].q;if(!q)continue;const s9=R.cote,ox=R.F[1]*s9,oz=-R.F[0]*s9,ex=(R.b.x+ox*R.off)-q[0],ez=(R.b.z+oz*R.off)-q[1],e=ex*ox+ez*oz,av9=Math.sqrt(Math.max(0,q[2]*q[2]*.94-e*e)); /* le point du bord de la mésa sur la ligne de la rivière */
     X.CASC.push([q[0]+ox*e+R.F[0]*av9,q[4]-1.2,q[1]+oz*e+R.F[1]*av9,R.F[0],R.F[1],R.w*1.5,Math.min(ALLEGE?420:900,R.lg),X.jr()]);A.n.rivieres++;}}
 /* ---- LES MAILLAGES (jadeBatit) : lianes, rivières, pierres ---- */
-function jadeAvBatit(root,G,M9,FC){const A=JADE.av;if(!A)return;const t0=performance.now();
+function jadeAvBatit(root,G,M9,FC){const A=JADE.av;if(!A)return;const t0=performance.now(),ALG=jadeAvAllege(); /* ALG : l'allègement des verbes (voir jadeAvAllege) */
   const sDe=function(v){let bi=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(v);if(d<bd){bd=d;bi=i;}}return bi;},ds=L/Math.max(1,NP-1);
   /* LES LIANES : du bord de la dalle au ventre de l'île qui tient le pont — un ruban fin (deux plans croisés ; un seul sur ALLEGE), une flèche de 4 % */
-  {const Pp=[],I=[],ep=.32,S=6,pas=Math.max(1,Math.round((ALLEGE?34:17)/ds));let nl=0;
+  {const Pp=[],I=[],ep=.32,S=6,pas=Math.max(1,Math.round((ALG?34:17)/ds));let nl=0;
     const ruban=function(a,b,ux,uz){const b0=Pp.length/3,l=a.distanceTo(b);for(let j=0;j<=S;j++){const t=j/S,x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t-l*.04*4*t*(1-t),z=a.z+(b.z-a.z)*t;Pp.push(x-ux*ep,y,z-uz*ep,x+ux*ep,y,z+uz*ep);}
       for(let j=0;j<S;j++){const q=b0+j*2;I.push(q,q+1,q+2,q+1,q+3,q+2);}};
     for(const o of JADE.deco3||[]){const a=o.av;if(!a||!a.lia||!a.q)continue;const q=a.q,i0=sDe(a.lia[0]),i1=sDe(a.lia[1]),A3=new THREE.Vector3(),B3=new THREE.Vector3();
       for(let i=i0;i<=i1;i+=pas)for(const sd of [-1,1]){A3.copy(pts[i]).addScaledVector(B[i],sd*(ROAD_HALF-.8));
         const dx=A3.x-q[0],dz=A3.z-q[1],dl=Math.hypot(dx,dz)||1,e=Math.min(dl*.3,q[2]*.25);B3.set(q[0]+dx/dl*e,q[3]+(q[4]-q[3])*.3,q[1]+dz/dl*e);
-        ruban(A3,B3,T[i].x,T[i].z);if(!ALLEGE)ruban(A3,B3,B[i].x,B[i].z);nl++;}}
-    if(nl){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(Pp,3));g.setIndex(I);g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1e7);
-      const m=new THREE.Mesh(g,JAV_MAT.liane());m.userData.jeter=true;m.frustumCulled=false;m.matrixAutoUpdate=false;root.add(m);}
+        ruban(A3,B3,T[i].x,T[i].z);if(!ALG)ruban(A3,B3,B[i].x,B[i].z);nl++;}}
+    if(nl){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(Pp,3));g.setIndex(I);if(JADE_OPT)g.computeBoundingSphere();else g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1e7); /* (2026-11-17) la vraie sphère : hors champ, pas dessinée */
+      const m=new THREE.Mesh(g,JAV_MAT.liane());m.userData.jeter=true;m.frustumCulled=JADE_OPT;m.matrixAutoUpdate=false;root.add(m);}
     A.n.lianes=nl;}
   /* LES RIVIÈRES : un ruban d'eau posé sur le dessus des mésas, le long de la route (rien n'est dessiné hors de la roche) */
   {const Pp=[],I=[],pas=Math.max(1,Math.round(8/ds));let nq=0;
@@ -291,22 +291,59 @@ function jadeAvBatit(root,G,M9,FC){const A=JADE.av;if(!A)return;const t0=perform
         for(const q of M)if(Math.hypot(cx-q[0],cz-q[1])<q[2]*.96-R.w*.5&&(y==null||q[4]>y))y=q[4];
         if(y==null){av=null;continue;}const cur=[cx-bx*R.w*.5,y+.3,cz-bz*R.w*.5,cx+bx*R.w*.5,y+.3,cz+bz*R.w*.5];
         if(av){const q0=Pp.length/3;Pp.push(av[0],av[1],av[2],av[3],av[4],av[5],cur[0],cur[1],cur[2],cur[3],cur[4],cur[5]);I.push(q0,q0+1,q0+2,q0+1,q0+3,q0+2);nq++;}av=cur;}}
-    if(nq){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(Pp,3));g.setIndex(I);g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1e7);
-      const m=new THREE.Mesh(g,JAV_MAT.eau());m.userData.jeter=true;m.frustumCulled=false;m.matrixAutoUpdate=false;m.renderOrder=5;root.add(m);}
+    if(nq){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(Pp,3));g.setIndex(I);if(JADE_OPT)g.computeBoundingSphere();else g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1e7);
+      const m=new THREE.Mesh(g,JAV_MAT.eau());m.userData.jeter=true;m.frustumCulled=JADE_OPT;m.matrixAutoUpdate=false;m.renderOrder=5;root.add(m);}
     A.n.eau=nq;}
   /* LES PIERRES QUI PASSENT : une famille d'instances d'UN rocher de la palette (sa géométrie copiée : rien de partagé à libérer), SANS collision, hors du tri de la vallée */
-  if(A.pierres.length){const t=FC?FC.roc(A.pierres[0].roc):JADE_NTPL,T9=G.p[t],g0=T9&&T9.geo&&(T9.geo[ALLEGE?1:0]||T9.geo[0]);
-    if(g0&&g0.attributes&&g0.attributes.position&&g0.attributes.position.count){const n=A.pierres.length,g=g0.clone(),e=ALLEGE&&T9.geo[1]?2:1;g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1e7);
+  if(A.pierres.length){const t=FC?FC.roc(A.pierres[0].roc):JADE_NTPL,T9=G.p[t],g0=T9&&T9.geo&&(T9.geo[ALG?1:0]||T9.geo[0]);
+    if(g0&&g0.attributes&&g0.attributes.position&&g0.attributes.position.count){const n=A.pierres.length,g=JADE_OPT?jadeVueGeo(g0):g0.clone(),e=ALG&&T9.geo[1]?2:1;g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1e7); /* (2026-11-17) jadeVueGeo : les tampons du gabarit PARTAGÉS (son aJ à elle ; jadeJette les rend sans toucher au gabarit : userData.vue) */
       const aJ=new THREE.InstancedBufferAttribute(new Float32Array(n*4),4);for(let i=0;i<n;i++){aJ.array[i*4]=A.pierres[i].roc;aJ.array[i*4+1]=1;}g.setAttribute('aJ',aJ);
-      const im=new THREE.InstancedMesh(g,M9.vrO,n);im.frustumCulled=false;im.matrixAutoUpdate=false;im.userData.jeter=true;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);root.add(im);
-      A.pm={im:im,e:e,M:T9.M/e,H:T9.yTop/e,sc:VX*e,c:new THREE.Vector3(A.pierres[0].x,A.pierres[0].y,A.pierres[0].z)};jadeAvTick(true);}}
-  A.n.pierres=A.pm?A.pierres.length:0;A.n.ms=+(performance.now()-t0).toFixed(1);}
+      const im=new THREE.InstancedMesh(g,M9.vrO,n);im.frustumCulled=false;im.matrixAutoUpdate=false;if(JADE_OPT)im.userData.vue=true;else im.userData.jeter=true;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);root.add(im);
+      A.pm={im:im,e:e,M:T9.M/e,H:T9.yTop/e,sc:VX*e,c:new THREE.Vector3(A.pierres[0].x,A.pierres[0].y,A.pierres[0].z)};
+      if(JADE_OPT){A.pm.T=new THREE.Matrix4().makeTranslation(-A.pm.M,-A.pm.H/2,-A.pm.M);A.pm.S=jadeAvSphere(A,g0);g.boundingSphere=A.pm.S.clone();im.frustumCulled=true;}
+      jadeAvTick(true);}}
+  A.n.pierres=A.pm?A.pierres.length:0;A.n.allege=ALG;A.n.ms=+(performance.now()-t0).toFixed(1);}
+/* ===== L'OPTIMISATION iPHONE DES VERBES (2026-11-17, session d'optimisation finale ; `?sans=jadeopt` = comme avant) =====
+   · L'IMAGE ENTIÈRE sur les téléphones profilés (PRF.on : iPhone 12 et après, niveau HAUTE de la classe ≥ N2 — le 13 Pro en est) : les lianes à deux plans
+     tous les 17 m, les pierres au niveau de détail 0 — comme l'ordinateur. L'allègement (une liane sur deux, un plan, pierres au niveau 1) ne reste qu'aux
+     téléphones hors profil (iPhone XR/11 et avant, Safari sans modèle connu). Coût mesuré : passation/JADE-VERBES.md § « Optimisation iPhone ».
+   · Lianes et eau : leur vraie sphère, coupées hors champ. Les pierres : UNE sphère qui tient toutes leurs positions possibles (dérive, houle de 3 m, le
+     rocher entier quelle que soit sa rotation) avec marge (dbgJadeAvSphere le vérifie) ; jadeAvTick ne remonte leurs matrices que si cette sphère,
+     élargie, est dans le champ et à moins de 2,6 km. */
+function jadeAvAllege(){if(!ALLEGE)return false;if(!JADE_OPT)return true;try{return !(PRF.on&&PRF.nMax>=2);}catch(e){return true;}}
+function jadeAvSphere(A,g0){const P=A.pierres,pm=A.pm,c=new THREE.Vector3();for(const o of P)c.x+=o.x,c.y+=o.y,c.z+=o.z;c.multiplyScalar(1/P.length);
+  let R=0;for(const o of P){const d=Math.hypot(o.x-c.x,o.y-c.y,o.z-c.z)+Math.abs(o.amp)+3;if(d>R)R=d;} /* la dérive (amp, le long de dx,dz unitaire) et la houle (3 m) */
+  const pa=g0.attributes.position;let r2=0;for(let i=0;i<pa.count;i++){const x=pa.getX(i)-pm.M,y=pa.getY(i)-pm.H/2,z=pa.getZ(i)-pm.M,q=x*x+y*y+z*z;if(q>r2)r2=q;}
+  pm.rTpl=Math.sqrt(r2)*pm.sc; /* le rocher, de son pivot à son coin le plus loin (une rotation ne l'allonge pas) */
+  return new THREE.Sphere(c,(R+pm.rTpl)*1.1+8);}
+window.dbgJadeAvVerbes=function(){const A=JADE.av;if(!A||!JADE.root)return null; /* (banc, 2026-11-17) les triangles des verbes ; les pierres dans le champ, et leur famille (une pierre visible dont la famille serait coupée : une faute) */
+  const o={lianes:0,eau:0,pierres:0,inst:0,coupe:{}};JADE.root.traverse(function(x){if(!x.geometry)return;const g=x.geometry,n=(g.index?g.index.count:g.attributes.position?g.attributes.position.count:0)/3;
+    if(x.material===JAV_MAT.l){o.lianes+=n;o.coupe.lianes=x.frustumCulled;}else if(x.material===JAV_MAT.e){o.eau+=n;o.coupe.eau=x.frustumCulled;}else if(A.pm&&x===A.pm.im){o.pierres=n*x.count;o.inst=x.count;o.coupe.pierres=x.frustumCulled;}});
+  if(A.pm&&typeof camera!=='undefined'){camera.updateMatrixWorld();const F=new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse)),M=new THREE.Matrix4(),c=new THREE.Vector3(A.pm.M,A.pm.H/2,A.pm.M),S=new THREE.Sphere(),pm=A.pm;
+    const rT=pm.rTpl||pm.sc*Math.hypot(pm.M,pm.H/2,pm.M);S.copy(pm.im.geometry.boundingSphere).applyMatrix4(pm.im.matrixWorld);o.familleDansChamp=F.intersectsSphere(S);o.visibles=0;o.fautes=0;
+    for(let i=0;i<A.pierres.length;i++){pm.im.getMatrixAt(i,M);const p=c.clone().applyMatrix4(M).applyMatrix4(pm.im.matrixWorld);if(F.intersectsSphere(new THREE.Sphere(p,rT))){o.visibles++;if(!o.familleDansChamp)o.fautes++;}}}
+  o.sphere=window.dbgJadeAvSphere();return o;};
+window.dbgJadeAvSphere=function(){const A=JADE.av,pm=A&&A.pm;if(!pm||!pm.S)return null; /* (banc) chaque pierre, à l'instant : sa sphère dans celle de la famille ? */
+  const M=new THREE.Matrix4(),v=new THREE.Vector3(),c=new THREE.Vector3(pm.M,pm.H/2,pm.M);let pire=-1e9,hors=0;
+  for(let i=0;i<A.pierres.length;i++){pm.im.getMatrixAt(i,M);v.copy(c).applyMatrix4(M);const m=v.distanceTo(pm.S.center)+pm.rTpl-pm.S.radius;if(m>pire)pire=m;if(m>0)hors++;}
+  return {n:A.pierres.length,R:Math.round(pm.S.radius),rTpl:+pm.rTpl.toFixed(1),margeMin:+(-pire).toFixed(1),hors:hors,maj:pm.maj|0,sautees:pm.saute|0};};
 const JAV_MAT={l:null,e:null,
   liane:function(){return this.l||(this.l=new THREE.MeshBasicMaterial({color:0x14200f,side:THREE.DoubleSide,fog:true}));},
   eau:function(){return this.e||(this.e=new THREE.MeshBasicMaterial({color:0x8fdde6,transparent:true,opacity:.85,depthWrite:false,side:THREE.DoubleSide,fog:true}));}};
 const JAV_M4=new THREE.Matrix4(),JAV_M4B=new THREE.Matrix4(),JAV_V3=new THREE.Vector3(),JAV_Q=new THREE.Quaternion(),JAV_E=new THREE.Euler();
 /* ---- à chaque image (jadeCascRoute) : les pierres dérivent en travers de la route et tournent lentement ; rien n'est fait à plus de 2,6 km ---- */
+const JAV_V3B=new THREE.Vector3(),JAV_SPH=new THREE.Sphere(),JAV_FR=new THREE.Frustum(),JAV_M4C=new THREE.Matrix4();
 function jadeAvTick(force){const A=JADE.av,pm=A&&A.pm;if(!pm||!pm.im.parent)return;
+  if(pm.S){ /* (2026-11-17, L'OPTIMISATION iPHONE) sans allocation ; rien quand toutes les pierres sont à plus de 2,6 km ou hors du champ élargi */
+    if(!force&&typeof camera!=='undefined'){JAV_SPH.copy(pm.S).applyMatrix4(pm.im.matrixWorld);const d=camera.position.distanceTo(JAV_SPH.center)-JAV_SPH.radius;
+      if(d>2600){pm.saute=(pm.saute|0)+1;return;}
+      JAV_SPH.radius+=60+.15*Math.max(0,d); /* la marge : ce que la caméra peut tourner ou avancer avant le rendu de cette image */
+      JAV_FR.setFromProjectionMatrix(JAV_M4C.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse));if(!JAV_FR.intersectsSphere(JAV_SPH)){pm.saute=(pm.saute|0)+1;return;}}
+    const t=JADE_U.uTime.value;pm.maj=(pm.maj|0)+1;JAV_V3.set(pm.sc,pm.sc,pm.sc);
+    for(let i=0;i<A.pierres.length;i++){const o=A.pierres[i],d=Math.sin(t*o.v/o.amp+o.ph)*o.amp;
+      JAV_E.set(.25*Math.sin(o.ph*3),t*o.rot+o.ph,.2*Math.cos(o.ph*5));JAV_Q.setFromEuler(JAV_E);
+      JAV_V3B.set(o.x+o.dx*d,o.y+3*Math.sin(t*.4+o.ph),o.z+o.dz*d);JAV_M4.compose(JAV_V3B,JAV_Q,JAV_V3);JAV_M4.multiply(pm.T);pm.im.setMatrixAt(i,JAV_M4);}
+    pm.im.instanceMatrix.needsUpdate=true;return;}
   if(!force&&typeof camera!=='undefined'&&camera.position.distanceToSquared(pm.c)>2600*2600)return;
   const t=JADE_U.uTime.value;
   for(let i=0;i<A.pierres.length;i++){const o=A.pierres[i],d=Math.sin(t*o.v/o.amp+o.ph)*o.amp;

@@ -56,7 +56,7 @@ function cielDeuxTemps(r9,cam){
   if(cible)U.uBasInv.value.set(1/cible.width,1/cible.height);else U.uBasInv.value.set(1/CIEL2.v.x,1/CIEL2.v.y); // le pixel de l'écran → la cible lisse
   CIEL2.me.material=md==='J'?C.jdB:md==='N'?C.basN:C.basV;CIEL2.me.matrixWorld.copy(skyDome.matrixWorld);
   /* (2026-11-05, passe perf mobile 2, C4) LA PASSE LISSE UNE IMAGE SUR N AU PALIER 0. Mesuré (banc-perf/passes.py, p0, nuages/ville/forêt) : 4 framebuffers par image dessinée (scène, ombre, CETTE passe, écran) ; la puce à tuiles de l'iPhone 7 paie chaque changement de cible. La base lisse est un fond à basses fréquences lu à la position de l'écran : la recopier une image sur deux (ancien) ne se voit pas, le détail (netN/netV) est redessiné à chaque image. Redessinée tout de suite si le mode, la taille ou la cible changent. PAL.B.cielImg=[2,1,1] (ancien, moyen, récent) ; `?cielimg=0` = avant. */
-  const nI=CIEL2_IMG0||md==='J'?1:(Math.max(PAL.b('cielImg',1),PAL.bT('imgCielImg',1,'d'),IMG_DYN.ciel)|0) /* (P2) plancher du levier d ; le gouverneur thermique (cielImg plus haut) garde la main */,K=CIEL2.k||(CIEL2.k={m:'',w:0,h:0,i:0});
+  const nI=CIEL2_IMG0||md==='J'?1:(Math.max(PAL.b('cielImg',1),PAL.bT('imgCielImg',1,'d'),IMG_DYN.ciel,IMG_DYN.vdaCiel)|0) /* (P2) plancher du levier d ; le gouverneur thermique (cielImg plus haut) garde la main */,K=CIEL2.k||(CIEL2.k={m:'',w:0,h:0,i:0});
   /* (2026-11-11, Sacha : « le ciel des nuages vibre et se déplace avec la caméra ») L'IMAGE SAUTÉE RELIT LA PASSE LISSE DANS LE REPÈRE DE SA CAMÉRA. Avant : l'image sautée la relisait au même
      pixel de l'écran — la mer de cumulus et l'horizon restaient collés à l'écran une image sur deux pendant que la caméra tournait, puis sautaient à leur place : un tremblement à 30 Hz, d'autant
      plus fort que la caméra bouge (virage, vol, gestes CAM_FX). Le ciel est à l'infini : on garde projection × vue × dôme du moment du dessin (`uBasPVM`), et la passe nette y retrouve chaque
@@ -259,7 +259,7 @@ function engVigRender(dt){
   if(carte9){if(performance.now()-engEndT>(performance.now()-engBig.t0<ENG_COULOIR+60?(PAL.b('engVigMs',33)>33?33:0):Math.max(PAL.b('engVigMs',33),mobhChaud()?MOBH_R.engMs:0))){ /* (v6) pendant la sortie et le double tour (0,8 s) : 30 rendus par seconde au moins, chaque image au palier récent — à 10 par seconde, deux tours en une demi-seconde ne se liraient pas */ engEndT=performance.now();engVigRendRT(engRTc);}engQuadDraw();return;} // (2026-10-24, passe perf) la carte de COURSE aussi à la cadence du palier (engVigMs : 10 / 15 / 30 rendus par seconde) — le quad recolle l'image d'avant entre deux
   /* (2026-11-16, LE MOTEUR VIF) écran de mort : le moteur est dessiné DIRECTEMENT dans sa toile WebGL, à chaque image — plus de relecture ni de recopie
      (voir ENG_VIVE, interface/vignette-moteur.js). Le reste de cette fonction n'est plus que le repli. */
-  if((fin||tel)&&ENG_VIVE.ok&&!ENG_VIVE.ko){
+  if((fin||tel)&&ENG_VIVE.ok&&!ENG_VIVE.ko&&engVifPeut()){ /* (2026-11-16, MOTEURVIF2) engVifPeut : le filet — un moteur que la toile vive ne peut pas dessiner passe CETTE mort par l'ancien chemin */
     const now9=performance.now(),hote9=tel?ENG_MORT.cv:(ENG_VIVE.cv&&ENG_VIVE.cv.id==='endEngCv'?ENG_VIVE.cv:engEndCv);
     if(hote9){
       /* carte cachée (accueil ou atelier ouverts par-dessus la mort) : rien à dessiner, la pompe s'arrête — `offsetParent` force la mise en page, il n'est demandé que 4 fois par seconde */
@@ -308,7 +308,7 @@ window.dbgEquipe=function(i){if(started&&!gameOver)return 'en course';i=Math.max
 window.dbgSpec=function(i){const c=CARS[i|0];return c?{name:c.name,w:c.w,l:c.l,h:c.h,shape:c.shape}:null;};window.dbgNbCaisses=function(){return CARS.length;}; // (dev) les fiches, pour les bancs d'essai
  // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
 window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShadow,shadow:shadow,cam:camera,rdr:renderer};}; // dissection console (visuel pur) — (2026-09-26) + caméra et renderer : le banc des laques mesure la caisse au pixel
-window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,psi:+psi.toFixed(4),yawR:+yawR.toFixed(4),slipB:+slipB.toFixed(4),glisse:+glisse9.toFixed(3),drift:driftEnCours,roulisDeg:+(carRoll9*57.3).toFixed(1),glisseDeg:+(driftYaw*57.3).toFixed(1),vH:+(mode==='fall'?Math.hypot(fallVel.x,fallVel.z):Math.abs(vA)).toFixed(1),driftLv:driftLv,graceT:+graceT.toFixed(2),
+window.dbgState=function(){return {cgorGy:(function(){try{return +(+CGOR.gy).toExponential(3);}catch(e){return null;}})() /* (2026-11-16, vibration) le hoquet des pièces : 0 au repos, jamais au-delà de 0,07 */,started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,psi:+psi.toFixed(4),yawR:+yawR.toFixed(4),slipB:+slipB.toFixed(4),glisse:+glisse9.toFixed(3),drift:driftEnCours,roulisDeg:+(carRoll9*57.3).toFixed(1),glisseDeg:+(driftYaw*57.3).toFixed(1),vH:+(mode==='fall'?Math.hypot(fallVel.x,fallVel.z):Math.abs(vA)).toFixed(1),driftLv:driftLv,graceT:+graceT.toFixed(2),
   /* flux des PIÈCES : sans ces trois-là, régler leur arrivée se fait à l'aveugle */
   engTier:engTier,coinsGot:coinsGot,prochainPalier:(ENGINE_TIERS[engTier+1]||{}).coins||null,
   steer:+steer.toFixed(3),airRoll:+airRoll.toFixed(3),
@@ -338,6 +338,8 @@ window.dbgStep=function(n,ms){
   for(let k=0;k<n;k++){last=performance.now()-ms;loop(performance.now());cancelAnimationFrame(loop._raf);} /* (2026-11-07, finition) chaque appel manuel programmait une rAF de plus : dbgStep(60) laissait 61 boucles tourner */
   return window.dbgState();
 };
+/* (2026-11-16, lot jsimage) le banc du JS par image lit le compte d'images et les tranches du mouchard (outils/banc-jsimage) */
+window.dbgJsImage=function(){return {fr:loop._fr|0,nLoop:MG.nLoop,tr:Array.from(MG.tr)};};
 window.CASHCAR_BUILD='2026-07-20 v5 (anti-flicker + anti-cache)'; // vérif version : taper CASHCAR_BUILD en console
 console.log('%c🏎 CASH CAR — build '+CASHCAR_BUILD,'color:#f24aa0;font-weight:bold'); // si ce texte n'apparaît pas au chargement → tu es sur une VIEILLE version en cache (Ctrl+Shift+R)
 /* (2026-10-24, allègement mobile) `dbgGros(seuil)` : les objets VISIBLES de la scène qui pèsent le plus (triangles, instances, matière, parent), tous niveaux confondus — le relevé qui manquait hors de Jade */
