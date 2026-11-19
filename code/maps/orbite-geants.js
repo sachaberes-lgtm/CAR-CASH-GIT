@@ -57,8 +57,8 @@ const GT_LUNE_FS=['uniform vec3 uSol,uTerre,uFog,uPlan,uTeinte;uniform float uOp
   '  col+=alb*vec3(.05,.08,.14)*(1.-max(d,0.));',
   '  col=mix(col,uFog,smoothstep(2600.,8500.,length(vW-cameraPosition)));',
   '  gl_FragColor=vec4(mix(uFog,col,uOp),1.);}'].join('\n');
-const GT_LUNE_G=GT_TEL?new THREE.SphereGeometry(1,64,40):new THREE.SphereGeometry(1,128,80);
-const GT_LUNES=[0,1].map(function(i){ /* [0] la lune glacée · [1] le berger du plan des anneaux */
+const GT_LUNE_G=ESP_SANS_GEANTS?null:GT_TEL?new THREE.SphereGeometry(1,64,40):new THREE.SphereGeometry(1,128,80);
+const GT_LUNES=ESP_SANS_GEANTS?[]:[0,1].map(function(i){ /* (2026-11-18, L'ESPACE SANS GÉANTS : voir ESP_SANS_GEANTS, orbite-modules.js) aucun géant n'est créé — rien de plus dans la scène, rien à compiler au menu ; le voile reste */ /* [0] la lune glacée · [1] le berger du plan des anneaux */
   const mt=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true},defines:GT_TEL?{TEL:''}:{},vertexShader:GT_LUNE_VS,fragmentShader:GT_LUNE_FS,
     uniforms:Object.assign({},GT_U,{uGr:{value:0},uR:{value:300},uRel:{value:.035},uTeinte:{value:new THREE.Color(1,1,1)}})});
   const m=new THREE.Mesh(GT_LUNE_G,mt);m.visible=false;m.name='orbite géant : lune '+i;m.userData.on=false;scene.add(m);return m;});
@@ -77,7 +77,7 @@ const GT_EP_FS=['uniform vec3 uSol,uTerre,uFog,uPlan;uniform float uOp,uT;varyin
   '  col+=vC*e*1.5;',
   '  col=mix(col,uFog,smoothstep(2600.,8500.,length(vW-cameraPosition)));',
   '  gl_FragColor=vec4(mix(uFog,col,uOp),1.);}'].join('\n');
-const GT_EPAVE=(function(){const g=new THREE.BufferGeometry(),z=[0,0,0,0,0,0,0,0,0];for(const k of ['position','normal','aCol','aK'])g.setAttribute(k,new THREE.Float32BufferAttribute(z,3));
+const GT_EPAVE=ESP_SANS_GEANTS?{visible:false,material:null}:(function(){const g=new THREE.BufferGeometry(),z=[0,0,0,0,0,0,0,0,0];for(const k of ['position','normal','aCol','aK'])g.setAttribute(k,new THREE.Float32BufferAttribute(z,3));
   const m=new THREE.Mesh(g,new THREE.ShaderMaterial({fog:false,side:THREE.DoubleSide,uniforms:GT_U,vertexShader:GT_EP_VS,fragmentShader:GT_EP_FS}));
   m.visible=false;m.name='orbite géant : épave';scene.add(m);return m;})();
 /* ---- LE GAZ (les queues de la comète, sa chevelure, la poussière de Mars) : une coque (un cône tronqué, vu de DOS : chaque pixel a un seul fragment, au fond) — le fragment intègre
@@ -99,8 +99,8 @@ const GT_VOL_FS=['uniform vec3 uO,uD,uE1,uE2,uCol,uCol2;uniform vec4 uW,uC;unifo
   '    Ic=uC.y*exp(-mc/(s*s))*(erfA((T+ev)/s)-erfA((t0+ev)/s))*.5+uC.w*exp(-mc/(s2*s2))*(erfA((T+ev)/s2)-erfA((t0+ev)/s2))*.5;}',
   '  vec3 col=uCol*(1.-exp(-Iq))+uCol2*(1.-exp(-Ic*1.2));',
   '  gl_FragColor=vec4(col*uOp,1.);}'].join('\n');
-const GT_VOL_G=(function(){const g=new THREE.CylinderGeometry(1,1,1,GT_TEL?20:32,1,false);g.translate(0,.5,0);g.rotateX(Math.PI/2);return g;})(); /* l'axe sur +Z, de 0 à 1, rayon 1 : le sommet place tout */
-const GT_VOLS=[0,1,2].map(function(i){ /* [0] la queue de poussière + la chevelure · [1] la queue d'ions · [2] la poussière rouge de Mars */
+const GT_VOL_G=ESP_SANS_GEANTS?null:(function(){const g=new THREE.CylinderGeometry(1,1,1,GT_TEL?20:32,1,false);g.translate(0,.5,0);g.rotateX(Math.PI/2);return g;})(); /* l'axe sur +Z, de 0 à 1, rayon 1 : le sommet place tout */
+const GT_VOLS=ESP_SANS_GEANTS?[]:[0,1,2].map(function(i){ /* [0] la queue de poussière + la chevelure · [1] la queue d'ions · [2] la poussière rouge de Mars */
   const mt=new THREE.ShaderMaterial({transparent:true,depthWrite:false,depthTest:true,blending:THREE.AdditiveBlending,side:THREE.BackSide,fog:false,vertexShader:GT_VOL_VS,fragmentShader:GT_VOL_FS,
     uniforms:{uO:{value:new THREE.Vector3()},uD:{value:new THREE.Vector3(0,0,1)},uE1:{value:new THREE.Vector3(1,0,0)},uE2:{value:new THREE.Vector3(0,1,0)},uH:{value:new THREE.Vector4(0,1,1,1)},
       uW:{value:new THREE.Vector4(1,0,1,0)},uC:{value:new THREE.Vector4(1,0,0,0)},uCol:{value:new THREE.Color()},uCol2:{value:new THREE.Color()},uOp:SAT_U.uOp}});
@@ -119,7 +119,7 @@ const GT_GRAIN_VS=['attribute vec4 aP;uniform vec3 uO,uD1,uD2,uN;uniform vec4 uW
   '  vC=io?vec3(.55,.8,1.3):vec3(1.,.86,.62);',
   '  gl_PointSize=clamp(uPx*(io?1.6:2.6)/max(1.,-mv.z),1.,34.);vA*=1.6;}'].join('\n');
 const GT_GRAIN_FS='varying vec3 vC;varying float vA;void main(){vec2 q=gl_PointCoord*2.-1.;float a=max(0.,1.-dot(q,q));gl_FragColor=vec4(vC*a*a*vA,1.);}';
-const GT_GRAINS=(function(){const N=GT_TEL?360:1400,g=new THREE.BufferGeometry(),a=new Float32Array(N*4),r=mulberry32(0x6C0E7E);
+const GT_GRAINS=ESP_SANS_GEANTS?{visible:false}:(function(){const N=GT_TEL?360:1400,g=new THREE.BufferGeometry(),a=new Float32Array(N*4),r=mulberry32(0x6C0E7E);
   const gs=function(){return (r()+r()+r()-1.5)*1.1;};
   for(let i=0;i<N;i++){a[i*4]=r();a[i*4+1]=gs();a[i*4+2]=gs();a[i*4+3]=i%3===0?1:0;}
   g.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(N*3),3));g.setAttribute('aP',new THREE.Float32BufferAttribute(a,4));
@@ -146,8 +146,8 @@ const GT_NAP_FS=['uniform sampler2D uProf;uniform vec3 uSol,uN,uFog;uniform vec2
   '  vec3 col=mix(p.rgb,vec3(.86,.9,.97),.3)*(.55+.6*abs(sN))*face*(1.05+.3*rl)+vec3(1.,.95,.85)*(av+sc)*p.a;',
   '  col=mix(col,uFog,smoothstep(3000.,8500.,dC));',
   '  gl_FragColor=vec4(col,a*uOp);}'].join('\n');
-const GT_NAP_G=new THREE.CircleGeometry(1,GT_TEL?72:128);
-const GT_NAPPES=(GT_TEL?[0]:[-5.5,0,5.5]).map(function(off,i){
+const GT_NAP_G=ESP_SANS_GEANTS?null:new THREE.CircleGeometry(1,GT_TEL?72:128);
+const GT_NAPPES=ESP_SANS_GEANTS?[]:(GT_TEL?[0]:[-5.5,0,5.5]).map(function(off,i){
   const mt=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,fog:false,vertexShader:GT_NAP_VS,fragmentShader:GT_NAP_FS,
     uniforms:{uProf:{value:null},uSol:SAT_U.uSol,uFog:SAT_U.uFog,uOp:SAT_U.uOp,uN:{value:new THREE.Vector3(0,1,0)},uE1:{value:new THREE.Vector3(1,0,0)},uE2:{value:new THREE.Vector3(0,0,1)},
       uP0:{value:new THREE.Vector3()},uRr:{value:1000},uOff:{value:off},uBd:{value:new THREE.Vector2(100,1000)}}});
@@ -317,6 +317,7 @@ function geantsPose(seed,libre){ /* (orbiteBuild, avant rochesModules) le genre 
     if(ROCHE_U.uOcre)ROCHE_U.uOcre.value=typ===1?1:0; /* Mars : les roches sont OCRE */
     if(ORB_VOY)voyDecorPose(r); /* (2026-11-16, LES VOYAGES) la roue, la petite lune, l'astéroïde percé, la nébuleuse : d'abord (la lune glacée et le gaz leur sont réservés) */
     for(const m of MODS)if(m.fig==='plongee')GEANTS.plo=[m.s0+60,m.s1]; /* LA PLONGÉE (le bout du climax, vers la planète) : la lueur de la rentrée la suit */
+    if(ESP_SANS_GEANTS){GEANTS.ms=Math.round(performance.now()-t0);return;} /* (2026-11-18, L'ESPACE SANS GÉANTS) la planète (GEANTS.typ : elle grossit), ses teintes, les pentes des voyages (voyDecorPose) et la plongée (la lueur de la rentrée) : rien d'autre */
     const L9=[];for(const m of MODS){if(!m.nu)continue;for(const q of m.nu)if(q.t==='geant'&&q.R>0)L9.push(q);}
     L9.sort(function(a,b){return a.s-b.s;});
     const reste=Object.assign({},GT_POIDS[Math.max(0,Math.min(2,typ))]);if(L9.some(function(q){return q.gros;}))delete reste.asteroide; /* le PLUS GROS GÉANT (la rentrée) est un astéroïde : les autres géants prennent d'autres genres */
@@ -367,15 +368,15 @@ function geantsHeurt(p){ /* EN VOL : la coque du hangar (dans sa longueur, entre
   for(const q of GEANTS.lunes)if(p.distanceToSquared(q.C)<q.R*q.R)return 'paroi';
   return '';}
 window.dbgGeants=function(k,a){ /* (banc) l'état des géants · 'heurt' : la coque du hangar contre ses points d'essai · 'vue', j : une image du géant j (la course en pause, l'œil sur la route avant lui) */
-  if(k==='chauffe'){const o={};for(const m of [GT_LUNES[0],GT_LUNES[1],GT_EPAVE,GT_VOLS[0],GT_GRAINS,GT_NAPPES[0],GT_VOILE,ROCHES]){const P9=renderer.properties.get(m.material);o[m.name]=!!(P9.currentProgram||(P9.programs&&P9.programs.size));};return o;} /* les programmes sont-ils compilés (au menu : orbiteChauffe) ? */
+  if(k==='chauffe'){const o={};for(const m of [GT_LUNES[0],GT_LUNES[1],GT_EPAVE,GT_VOLS[0],GT_GRAINS,GT_NAPPES[0],GT_VOILE,ROCHES].filter(function(m){return m&&m.material;})){ /* (sans géants : le voile et les roches) */const P9=renderer.properties.get(m.material);o[m.name]=!!(P9.currentProgram||(P9.programs&&P9.programs.size));};return o;} /* les programmes sont-ils compilés (au menu : orbiteChauffe) ? */
   if(k==='heurt'){const E=GEANTS.ep;if(!E)return 'pas d\'épave';const m=(E.h0+E.h1)/2,o={},P=new THREE.Vector3();frameAt(m,GT_F);
     for(const c of [['centre',0,2],['plafond',0,40],['bord',30,4],['dans la coque',43,12],['dehors loin',0,200],['sous la dalle',0,-4]]){P.copy(GT_F.p).addScaledVector(GT_F.b,c[1]).addScaledVector(GT_F.n,c[2]);o[c[0]]=geantsHeurt(P)||'libre';}return o;}
   if(k==='vue'){const g=GEANTS.liste[a|0];if(!g)return 'pas de géant '+(a|0);if(started&&!gameOver&&!paused)togglePause();frameAt(Math.max(0,g.sa-120),GT_F);
     camera.position.copy(GT_F.p).addScaledVector(GT_F.n,110).addScaledVector(GT_F.t,-220);camera.up.copy(GT_F.n);camera.lookAt(g.C);camera.updateMatrixWorld();skyDome.position.copy(camera.position);
     orbiteTick(skyU.uTime.value);if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);camera.up.set(0,1,0);return {k:g.k,s:Math.round(g.s)};}
   const f=function(v){return v?v.toArray().map(function(x){return Math.round(x);}):null;};
-  return {typ:GEANTS.typ,force:GT_FORCE,ms:GEANTS.ms,err:window.__geantsErr?String(window.__geantsErr&&window.__geantsErr.stack||window.__geantsErr).slice(0,400):null,col:GEANTS.col,
+  return {sans:ESP_SANS_GEANTS,typ:GEANTS.typ,force:GT_FORCE,ms:GEANTS.ms,err:window.__geantsErr?String(window.__geantsErr&&window.__geantsErr.stack||window.__geantsErr).slice(0,400):null,col:GEANTS.col,
     voile:+GEANTS.voile.toFixed(3),rentree:+GEANTS.rentree.toFixed(3),planeteK:+geantsPlaneteK().toFixed(3),
     liste:GEANTS.liste.map(function(g){return {k:g.k,fig:g.q.fig||null,s:Math.round(g.s),sa:Math.round(g.sa),sb:Math.round(g.sb),R:Math.round(g.q.R),Rc:Math.round(g.Rc),rad:Math.round(g.rad||0),C:f(g.C)};}),
     plo:GEANTS.plo?GEANTS.plo.map(Math.round):null,epave:GEANTS.ep?{h0:Math.round(GEANTS.ep.h0),h1:Math.round(GEANTS.ep.h1),tri:GEANTS.ep.tri}:null,nappe:GEANTS.nap?{sx:Math.round(GEANTS.nap.sx),rIn:Math.round(GEANTS.nap.rIn),rOut:Math.round(GEANTS.nap.rOut)}:null,
-    visibles:{lunes:GT_LUNES.map(function(m){return m.visible;}),epave:GT_EPAVE.visible,gaz:GT_VOLS.map(function(m){return m.visible;}),grains:GT_GRAINS.visible,nappes:GT_NAPPES[0].visible,voile:GT_VOILE.visible}};};
+    visibles:{lunes:GT_LUNES.map(function(m){return m.visible;}),epave:GT_EPAVE.visible,gaz:GT_VOLS.map(function(m){return m.visible;}),grains:GT_GRAINS.visible,nappes:GT_NAPPES.length?GT_NAPPES[0].visible:false,voile:GT_VOILE.visible}};};
