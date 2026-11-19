@@ -1,0 +1,355 @@
+diff --git a/code/maps/ville-entree.js b/code/maps/ville-entree.js
+index 03f5bf80b..fb41640eb 100644
+--- a/code/maps/ville-entree.js
++++ b/code/maps/ville-entree.js
+@@ -355,7 +355,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
+   const VANC=VILLE_ANCRES&&VILLE_RACC&&GEN_V2&&(MC==='ville'||MC==='crypto'); /* (2026-11-13, LA ROUTE DE LA VILLE : DES ANCRES — voir route-rythme.js) : les villes seulement, avec la descente */
+   const VAME=VILLE_AME&&VANC,VCAL=VAME&&VILLE_CALME,VRAY=VCAL&&VILLE_RAYON,VSPI=VCAL&&VILLE_SPIRALE&&(typeof engTier!=='undefined'?(engTier|0):0)<10;let spiC=0;const spiDefait=function(hc0,ph0){const w=(phi>ph0?1:-1)*2*Math.PI;for(let k=1;k<HCAP.length;k+=2)HCAP[k]=k<hc0?HCAP[k]+w:phi;}; /* spiDefait : comme la boucle du raccourci, le tour complet de la spirale ne compte pas dans l'ENROULEMENT */ /* VSPI : (2026-11-14, LA GRANDE SPIRALE, la charte R6) au palier 0, le grand moment redevient un GRAND tour descendant (2,8-3,1 rP, à plat) qui repasse sous lui-même : le 2e raccourci de la route ; spiC : vrai pendant l'appel du climax seulement */ /* VCAL : (2026-11-14, LA VILLE CALME — voir ville-scenes.js) moins de torsades, plus de boucle serrée */ /* (2026-11-13 soir, LA VILLE QUI SE VISITE — voir ville-scenes.js) les liaisons vivantes, le souffle léger, les scènes, le dévers */
+   if(VRAY){arcPas=6;arcCorde=60;} /* (LE RAYON TENU) à 12° par point le Catmull-Rom centripète se pince de 21 % sur chaque point d'un arc (banc : rayon tenu 0,79 × le rayon dessiné ; 0,88 à 6°) : un virage dessiné à 2,1 rP en tenait 1,6 sur 20 m ; et là où une corde de 160 m touche une de 30 m (une liaison large contre un virage), la courbe déborde au raccord : plus de corde au-delà de 60 m */
+-  const VS=VAME?vsModules({arc:arc,straight:straight,courbe:courbe,P:function(){return P;},phi:function(){return phi;},ctrl:ctrl,rf:rf,thrH:thrH,hand:hand,rP:rP,LV:LV,vD:vD,rPl:function(){return rPlancher;},enr:function(){return enroul()*57.2958;},spi:function(){return VSPI&&spiC;},hc:function(){return HCAP.length;},spiDefait:function(h,p){spiDefait(h,p);}}):null; /* enr : l'enroulement (le cap gagné sur 1500 m, en degrés) */
++  const VS=VAME?vsModules({arc:arc,straight:straight,courbe:courbe,P:function(){return P;},phi:function(){return phi;},ctrl:ctrl,rf:rf,thrH:thrH,hand:hand,rP:rP,LV:LV,vD:vD,rPl:function(){return rPlancher;},enr:function(){return enroul()*57.2958;},spi:function(){return VSPI&&spiC;},hc:function(){return HCAP.length;},spiDefait:function(h,p){spiDefait(h,p);},hall:VILLE_HALL&&MC==='ville'}):null; /* hall : (2026-11-18, VILLE_HALL) la traversée refaite, la carte 'ville' seulement */ /* enr : l'enroulement (le cap gagné sur 1500 m, en degrés) */
+   const CLIMAX=!GEN_V2?null:VAME?(MC==='crypto'?function(){const u=rf(),gr=VILLE_BANK.graine;return (gr!=null?[VSPI?mTourGeante:mMoon,VSPI?mRondPoint:VCAL?VS.sPlongee:VS.sNoeud,mTourGeante,VS.scenes[3]][((gr%4)+4)%4]:u<.35?(VSPI?mTourGeante:mMoon):u<.7?(VSPI?mRondPoint:VCAL?VS.sPlongee:VS.sNoeud):mTourGeante)();}:function(){const u=rf(),gr=VILLE_BANK.graine;return (gr!=null?[VSPI?mRondPoint:VCAL?VS.sPlongee:VS.sNoeud,mTourGeante,mRondPoint,VS.scenes[3]][((gr%4)+4)%4]:u<.4?(VSPI?mRondPoint:VCAL?VS.sPlongee:VS.sNoeud):u<.7?mTourGeante:mRondPoint)();} /* (LA VILLE CALME) le nœud (270° du même côté à 1,8 rP) laisse sa place à la plongée */): /* (la charte, R5) le grand moment tourne avec la graine : deux graines voisines n'ont jamais le même */MC==='crypto'?(VANC?function(){return (rf()<.3?mTourGeante:mMoon)();}:mMoon):MC==='vitree'?mMiroir:MC==='espace'?fCouloir:MC==='ville'?(VANC?function(){return (rf()<.4?mTourGeante:mRondPoint)();}:mRondPoint):MODT?fSurf:null; /* (LES ANCRES) le grand moment varie */
+   const FIGF=!FIGON?[]:EV4?[fBoucle,fBoucle2,fEnvers,fMur,fRetourne,fTonneau]:EV3?[fBoucle,fEnvers,fMur,fRetourne]:!TORD_MOD?[fBoucle,fTonneau,fEnvers,fMur,fPuits]:MC==='espace'?[fBoucle,fEnvers,fMur,fPuits]:[fBoucle,fTonneau,fMur,fPuits]; /* (2026-11-11, LE BUDGET DE TORSION) le tonneau aux nuages, le passage à l'envers à l'orbite */
+   /* ===== LES MODULES À RACCOURCI (2026-11-11 soir, LA DESCENTE — Sacha : « des modules qui permettent de prendre des raccourcis fun et stylés », voir route-sans-haut.js) ===== Sur la route des nuages et de
+@@ -455,7 +455,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
+   const mcTire=()=>{for(let e=0;e<8;e++){if(!mcPaq.length){const t=MCJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rf()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}if(VANC&&!mcGeante){mcGeante=1;const gr9=VILLE_BANK.graine;
+       if(VAME&&gr9!=null){const n9=MCJ.length,L9=[];const pl9=VCAL&&!VSPI&&((gr9%4)+4)%4===(MC==='crypto'?1:0)?MCJ.indexOf(VS.sPlongee):-1; /* (LA VILLE CALME) la plongée, quand elle est le grand moment, sort du paquet (comme le phare) */
+         if(pl9>=0){const q9=t.indexOf(pl9);if(q9>=0)t.splice(q9,1);}
+-        for(let k=1;k<n9;k++)if(k!==pl9&&VS.longueur(MCJ[k])<=VS.longueur(MCJ[0])*1.35)L9.push(k); /* L9 : les scènes qui tiennent à l'ouverture (ni le phare ni le slalom) */
++        for(let k=1;k<n9;k++)if(k!==pl9&&VS.longueur(MCJ[k])<=VS.longueur(MCJ[0],1)*1.35)L9.push(k); /* (VILLE_HALL) le tri de l'ouverture garde la longueur de l'ancienne traversée (1) : les autres scènes s'ouvrent comme avant */ /* L9 : les scènes qui tiennent à l'ouverture (ni le phare ni le slalom) */
+         const nL=L9.length,j1=((gr9%nL)+nL)%nL,j2=(j1+(nL>>1))%nL;let w9=[L9[j1],L9[j2]];if(gr9%2===0){const q0=t.indexOf(0);if(q0>=0)t.splice(q0,1);}
+         {const f9=(/[?&]villescene=(\w+)/.exec(typeof location!=='undefined'?location.search:'')||[])[1],k9=f9?['traversee','passerelle','facade','phare','crete','portes','plongee','slalom','epingle','bougie','krach'].indexOf(f9):-1;
+          if(k9>=0&&k9<n9&&!(k9===0&&gr9%2===0)){w9=[k9].concat(w9.filter(function(x){return x!==k9;}));if(t.indexOf(k9)<0)t.push(k9);}} /* (test) ?villescene= : la première scène imposée */ /* (la traversée des graines paires est déjà jouée : l'entrée) */if(((gr9%4)+4)%4===3){const q9=t.indexOf(3);if(q9>=0)t.splice(q9,1);} /* une graine sur deux la traversée, puis deux cartes qui avancent d'un cran par graine ; le phare, quand il est le grand moment, sort du paquet */ /* (LA PASSE IMAGE) une graine sur deux, la TRAVERSÉE ouvre la route (MCJ[0] : le tunnel dans la tour) ; les autres font tourner le reste du paquet */ /* la première scène avance d'un cran à chaque graine : deux graines voisines ne commencent jamais par la même, le paquet entier passe en n graines ; la suite est tirée */for(let i=w9.length-1;i>0;i--){const j=(rf()*(i+1))|0,x=w9[i];w9[i]=w9[j];w9[j]=x;} 
+@@ -505,7 +505,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
+   if(sansLoop&&LVL.cur.id==='ville'){ // (2026-09-29) L'ENTRÉE DANS LA VILLE : droite surélevée, puis la grande rampe qui plonge dans le canyon (voir VILLE_ENTREE_R)
+     const E9=MC?Object.assign({},VILLE_ENTREE_R,{droite:260,rampe:320,chute:160}):VILLE_ENTREE_R; // (2e tour) avec les modules, l'entrée raccourcit : 260 m de droite au lieu de 420, une rampe de 320 m (en virage) au lieu de 520 (« trop de tout droit »)
+     straight(VAME?Math.min(E9.droite*LV,2.6*vD):E9.droite*LV,-6*LV,4);const iA9=ctrl.length-1; /* (la charte, R2) la droite surélevée de l'entrée : 2,6 s au plus */
+-    if(VAME){if(VILLE_BANK.graine!=null&&VILLE_BANK.graine%2===0){const iT9=ctrl.length-1,fT9=VS.scenes[0]();MODMARK.push(Object.assign({i0:iT9,i1:ctrl.length-1},fT9||{}));} /* une graine sur deux : la traversée de la tour, à plat, en haut de la ville */
++    if(VAME){if(VILLE_BANK.graine!=null&&VILLE_BANK.graine%2===0){const iT9=ctrl.length-1,fT9=VS.entree(); /* (VILLE_HALL, tour 2) l'ancienne traversée, même avec le hall : la porte dans l'axe coûtait des appels de dessin */MODMARK.push(Object.assign({i0:iT9,i1:ctrl.length-1},fT9||{}));} /* une graine sur deux : la traversée de la tour, à plat, en haut de la ville */
+       const gv9=VILLE_BANK.graine,vr9=!VCAL||((typeof engTier!=='undefined'?(engTier|0):0)<10&&(gv9!=null?((gv9%4)+4)%4===1:rf()<.25)); /* (LA VILLE CALME) la vrille : une graine sur quatre, jamais au palier 10 et plus */
+       if(vr9){const iM9=ctrl.length-1,fm9=VS.vrille(E9.chute*LV);MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));VILLE_ENTREE={pA:ctrl[iA9],pB:ctrl[iM9+Math.max(1,Math.round((ctrl.length-1-iM9)*.35))]};}
+       else{const se9=VS.cote(undefined,true),iM9=ctrl.length-1,k9=gv9!=null?((gv9%3)+3)%3:(rf()*3)|0,pl9=function(sg,a,R,p){const l=a/57.2958*R;arc(sg*a,R,Math.ceil(a/9),-p*l);};
+diff --git a/code/maps/ville-scenes.js b/code/maps/ville-scenes.js
+index df9e87f21..049a47e62 100644
+--- a/code/maps/ville-scenes.js
++++ b/code/maps/ville-scenes.js
+@@ -41,6 +41,19 @@ const VILLE_SPIRALE=VILLE_CALME&&!/[?&]sans=([^&]*,)?villespirale(,|&|$)/.test(l
+    alors 0,88 du rayon dessiné au lieu de 0,79 (le « pincement » de 1,54-1,83 rP aux raccords). `?sans=villerayon` remet 12°. */
+ const VILLE_RAYON=VILLE_CALME&&!/[?&]sans=([^&]*,)?villerayon(,|&|$)/.test(location.search);
+ const VS_TENUE_VITE=!/[?&]sans=([^&]*,)?villetenue(,|&|$)/.test(location.search); /* (optimisation) la tenue de cap sans rebalayage : voir vsTenue */
++/* ===== L'IMMEUBLE QU'ON TRAVERSE, REFAIT (2026-11-18, Sacha : « la ville et la route se mélangent » ; la traversée : « mal amenée, mal faite, mal gérée ») =====
++   VILLE_HALL (`?sans=villehall` : la traversée d'avant, route et décor au bit près), la carte 'ville' SEULEMENT (genCtrl1 passe G.hall ; Crypto City et le nœud gardent
++   l'ancien couloir) :
++   · L'APPROCHE : après le calage sur la trame, une LIGNE DE MIRE de 2,1 s RÉELLES (la croisière × l'élan) presque droite, qui descend de 3,5 % vers la bouche — avant, 40 m
++     (0,3 s) après le virage : l'immeuble arrivait sans qu'on le voie venir ;
++   · LA FORME : la tour la plus haute du quartier (330-570 m au-dessus de la route), une façade d'entrée dessinée (des lames verticales de part et d'autre de la bouche, une
++     grande enseigne au-dessus — pas de cadre de lumière autour de la route), et dedans un HALL : deux bouches basses (40 m) et, entre elles, un ATRIUM de 96 m de haut
++     (plus haut que large), ses étages vus en coupe (trois galeries par côté, leur nez éclairé), une colonnade hors de la bande roulable ;
++   · LA ROUTE : 5 % de descente dans le hall (le socle suit, par tranches), puis LA SORTIE : on débouche et la route plonge (14 %) en tournant franchement (32-46°) ;
++   · la longueur du hall suit la période des façades (VS_PER) : les linteaux des bouches ont la façade de la tour — un immeuble, pas des blocs collés. */
++const VILLE_HALL=VILLE_AME&&!/[?&]sans=([^&]*,)?villehall(,|&|$)/.test(location.search);
++const VS_HALL_LONG=[12.3,7.3]; /* (VILLE_HALL) la longueur du hall, en secondes de croisière aux paliers 0 et 20 (mesurée : 11,4 et 6,7 au pire de 40 graines, + 8 %) (VS.longueur ; `ref` : celle d'avant, pour le tri de l'ouverture) */
++const VS_HA=96; /* (VILLE_HALL) la hauteur libre de l'atrium au-dessus du point le plus haut de la route dans le hall (les bouches : VS_HC) */
+ const VILLE_BANK={N:null,max:0};
+ const VS_PER={x:1/.0131,z:1/.0173}; /* la GRAINE des façades (villeMatTours : fract(x·0,0131 + z·0,0173)) revient tous les 76,34 m en x et 57,80 m en z : deux volumes décalés
+    d'un nombre entier de périodes ont la même façade — une tour percée reste UNE tour, pas trois immeubles empilés */
+@@ -77,10 +90,23 @@ function vsModules(G){
+     arc(sg*a,R,Math.max(3,Math.ceil(a/8)),p*a/57.2958*R);der=sg;};
+   /* LA TRAVERSÉE (la gare de Liziba, à Chongqing : le train qui passe DANS l'immeuble) : calage, la ligne de mire (la tour en face), 120-180 m presque plats AU
+      TRAVERS d'une tour percée — un hall éclairé, plafond à 40 m —, la sortie */
+-  const sTraversee=function(){const C=calage(2+rf()*.4),l0=Math.max(.3*vD,40*LV);straight(l0,-.02*l0,1);
++  /* (VILLE_HALL) LE HALL : le calage, la ligne de mire (2,1 s réelles, −3,5 %), le hall (−5 %) — sa longueur Lt + 20 m : 2·k périodes de la façade le long de l'axe + les
++     linteaux (22-36 m), vsReserve en retire 10 m à chaque bout —, la sortie qui plonge (−14 %) en tournant de 32-46° à 2,4 rP au moins */
++  /* (VILLE_HALL, après le contrôle, tour 2) LA PORTE DE LA VILLE (le hall imposé à l'entrée, une graine sur deux, dans l'axe de la droite du départ) est RETIRÉE :
++     MESURÉ (contrôle, tour 2, hc2.cjs en course, ?tel=1) son cadrage — la droite du départ dans l'axe de la trame, face à la ville — tirait +13 % d'appels en paysage et
++     +34-37 % en portrait pendant l'ouverture. L'entrée rejoue la ROUTE de l'ancienne traversée au bit près (VS.entree : calage, 120-180 m presque plats, la sortie droite) et y pose le décor du
++     hall (la tour la plus haute, le pied, les lames, l'atrium) : même cadrage qu'avant ; l'approche longue et la sortie qui plonge restent au hall de milieu de route */
++  const sHall=function(){const pal=typeof engTier!=='undefined'?(engTier|0):0,EL=1.8-.8*Math.min(1,Math.max(0,pal/25));
++    const C=calage(2+rf()*.4),La=Math.max(2.1*vD*EL,140*LV);straight(La,-.035*La,Math.max(2,Math.round(La/90)));
++    const PA=C.ax==='z'?VS_PER.z:VS_PER.x,cible=(150+rf()*40)*Math.min(LV,1.8),dL=22+rf()*14,kA=Math.max(1,Math.round((cible-dL)/(2*PA))),Lt=2*kA*PA+dL+20;
++    const iA=ix(),A=P().clone();straight(Lt,-.05*Lt,Math.max(3,Math.round(Lt/45)));const iB=ix(),B9=P().clone();
++    {const sg=cote(undefined,true),a=32+rf()*14,Ls=Math.max(1.2*vD,a/57.2958*2.4*rP);courbe(Ls,-.14*Ls,sg*a,Math.max(3,Math.ceil(a/10)));der=sg;}
++    FILETMARK.push({anc:[{t:'tunnel',hall:1,ax:C.ax,ux:C.ux,uz:C.uz,x0:A.x,z0:A.z,x1:B9.x,z1:B9.z}]});return {fig:'traversee',nul:[[iA,iB]]};};
++  const sTravAvant=function(h){const C=calage(2+rf()*.4),l0=Math.max(.3*vD,40*LV);straight(l0,-.02*l0,1);
+     const Lt=(120+rf()*60)*Math.min(LV,1.8),iA=ix(),A=P().clone();straight(Lt,-.012*Lt,Math.max(2,Math.round(Lt/60)));const iB=ix(),B9=P().clone();
+     const l1=Math.max(.3*vD,35*LV);straight(l1,-.03*l1,1);
+-    der=C.sg;FILETMARK.push({anc:[{t:'tunnel',ax:C.ax,ux:C.ux,uz:C.uz,x0:A.x,z0:A.z,x1:B9.x,z1:B9.z}]});return {fig:'traversee',nul:[[iA,iB]]};};
++    der=C.sg;const an9={t:'tunnel',ax:C.ax,ux:C.ux,uz:C.uz,x0:A.x,z0:A.z,x1:B9.x,z1:B9.z};if(h)an9.hall=1;FILETMARK.push({anc:[an9]});return {fig:'traversee',nul:[[iA,iB]]};}; /* h : (VILLE_HALL, tour 2, l'entrée) la MÊME route, le décor du hall */
++  const sTraversee=G.hall?sHall:sTravAvant; /* (VILLE_HALL) au milieu de la route, le hall ; sans lui, l'ancienne traversée, inchangée */
+   /* LA PASSERELLE (les tours Petronas) : calage, deux tours jumelles de part et d'autre de la route, reliées par un pont de verre 30 m au-dessus d'elle (parfois deux) */
+   const sPasserelle=function(){const C=calage(2+rf()*.4),l0=Math.max(.3*vD,35*LV);straight(l0,-.02*l0,1);
+     const Lp=(100+rf()*40)*Math.min(LV,1.8),iA=ix(),A=P().clone();straight(Lp,-.02*Lp,2);const iB=ix(),B9=P().clone();const l1=Math.max(.3*vD,35*LV);straight(l1,-.03*l1,1);
+@@ -142,10 +168,11 @@ function vsModules(G){
+   /* LES LONGUEURS (en secondes de croisière, au palier 0 puis au palier 20 ; mesurées : outils de la session, long-scenes.cjs) — la place d'une scène se juge sur SA longueur */
+   const LONG=new Map([[sTraversee,[7,3.2]],[sPasserelle,[6.4,2.4]],[sFacade,[5.6,2.8]],[sSpirale,[10.7,10.7]],[sCrete,[4,3.6]],[sPortes,[7.6,4.2]],[sPlongee,[7.9,6]],[sNoeud,[19.4,9.8]]]),
+     LONGN={'slalom des géantes':[12.2,6.8],'épingle de la tour':[7.2,4],'bougie':[6.1,5],'krach':[6,5.6]};
+-  return {liaison:liaison,souffle:souffle,sTraversee:sTraversee,sPasserelle:sPasserelle,sFacade:sFacade,sSpirale:sSpirale,sCrete:sCrete,sPortes:sPortes,sPlongee:sPlongee,sNoeud:sNoeud,
++  return {entree:function(){return sTravAvant(G.hall);}, /* (VILLE_HALL, tour 2) la traversée de l'entrée (une graine sur deux) : la ROUTE d'avant au bit près (son cadrage, donc ses appels de dessin) ; avec le hall, le décor du hall s'y pose */
++    liaison:liaison,souffle:souffle,sTraversee:sTraversee,sPasserelle:sPasserelle,sFacade:sFacade,sSpirale:sSpirale,sCrete:sCrete,sPortes:sPortes,sPlongee:sPlongee,sNoeud:sNoeud,
+     scenes:scenes,vrille:sVrille,nomme:function(fn,nom){const f=function(){return Object.assign({nom:nom},fn()||{});};f.nom=nom;return f;},
+     souffleL:function(){const kL=1+.45*Math.max(0,LV-1);return Math.max(G.rPl(),2.2*vD*kL,2.2*rP)*(60/57.2958)/Math.sqrt(kL);}, /* la longueur d'un souffle sans consigne (souffle({L:0})), au plus */
+-    longueur:function(fn){const f=(VILLE_CALME&&(fn===sSpirale?[10.7,7.2]:fn&&fn.nom==='épingle de la tour'?[8.1,4.7]:null))||LONG.get(fn)||(fn&&LONGN[fn.nom])||[8,6],u=Math.max(0,Math.min(1,(LV-1.08)/2.63));return 1.08*vD*(f[0]+(f[1]-f[0])*u);}, /* la longueur d'une scène (m), au pire des graines mesurées, + 8 % */
++    longueur:function(fn,ref){const f=(G.hall&&!ref&&fn===sTraversee?VS_HALL_LONG:null)||(VILLE_CALME&&(fn===sSpirale?[10.7,7.2]:fn&&fn.nom==='épingle de la tour'?[8.1,4.7]:null))||LONG.get(fn)||(fn&&LONGN[fn.nom])||[8,6],u=Math.max(0,Math.min(1,(LV-1.08)/2.63));return 1.08*vD*(f[0]+(f[1]-f[0])*u);}, /* la longueur d'une scène (m), au pire des graines mesurées, + 8 % */
+ cote:cote,setDer:function(s){der=s>0?1:s<0?-1:0;},estScene:function(f){return scenes.indexOf(f)>=0||f===sNoeud;}};
+ }
+ /* LE CONTRAT DE LA CHARTE (passation/CHARTE-ROUTES.md § 3) : chaque MODMARK de la ville porte son NOM en clair (le banc juge compte la variété par nom) */
+@@ -269,6 +296,7 @@ function vsBande(V,r){ /* la BANDE d'une route de scène : le rectangle r et la
+   return y1>-1e8?[r[0],r[1],r[2],r[3],y0-6,y1+6]:null;}
+ function vsProche(V,x,z,R){let best=-1,bd=R*R;V.proches(x,z,R,function(i){const p=V.P[i],d=(p.x-x)*(p.x-x)+(p.z-z)*(p.z-z);if(d<bd){bd=d;best=i;}});return best;}
+ function vsAirOk(V,x0,x1,z0,z1,top){for(const a of V.AIRZ){const ex=Math.max(x0-a.x,0,a.x-x1),ez=Math.max(z0-a.z,0,a.z-z1);if(ex*ex+ez*ez<a.r*a.r&&top>a.y-60)return false;}return true;}
++function vsAirSous(V,x0,x1,z0,z1,b){for(const a of V.AIRZ){const ex=Math.max(x0-a.x,0,a.x-x1),ez=Math.max(z0-a.z,0,a.z-z1);if(ex*ex+ez*ez<a.r*a.r&&b<a.y+150)return false;}return true;} /* (VILLE_HALL) l'air d'un saut passe SOUS le hall : son pied reste 150 m au-dessus de la trajectoire */
+ function vsReserve(V,essai){ /* essai : (le meilleur-de-N) rien n'est gardé dans CITY */
+   const plans=[],hi=ROAD_HALF+14,HC=VS_HC,MS=ROAD_HALF+14,RB=12; /* MS : la marge d'une scène (14 m du bord de la dalle ; les tours ordinaires : 24) · RB : l'axe d'une route de scène reste à ±12 m de sa bande */
+   for(const m9 of FILETMARK)if(m9.anc)for(const a of m9.anc){
+@@ -276,7 +304,20 @@ function vsReserve(V,essai){ /* essai : (le meilleur-de-N) rien n'est gardé dan
+     const P0={t:a.t,ok:false,a:a,raison:''};plans.push(P0);const non=function(r){P0.raison=r;if(r==='route'||r==='pont')P0.gene=Object.assign({},VS_GENE);};
+     if(a.t==='tunnel'||a.t==='passerelle'||a.t==='rue'){
+       const cx=(a.x0+a.x1)/2,cz=(a.z0+a.z1)/2,L=Math.abs((a.x1-a.x0)*a.ux+(a.z1-a.z0)*a.uz);P0.x=cx;P0.z=cz;
+-      if(a.t==='tunnel'){const Lt=L-20;if(Lt<60){non('court');continue;}const PL=a.ax==='z'?VS_PER.x:VS_PER.z;let D=PL;while(D-hi<14)D+=PL;const Hl=2*D-hi,L2=Lt/2;
++      if(a.t==='tunnel'&&a.hall){const Lt=L-20;if(Lt<60){non('court');continue;} /* (VILLE_HALL) LE HALL : les hauteurs de SA route par tranches de l'axe (le socle et les bouches les suivent) */
++        const PL=a.ax==='z'?VS_PER.x:VS_PER.z,PA=a.ax==='z'?VS_PER.z:VS_PER.x;let D=PL;while(D-hi<14)D+=PL;const Hl=2*D-hi,L2=Lt/2,kA=Math.floor((L2-8)/PA),aA=kA>=1?2*kA*PA-L2:0; /* aA : la demi-longueur de l'atrium — le centre d'un linteau à kA périodes du centre */
++        const bd=vsBande(V,vsRect(a.ax,cx,cz,-L2-90,L2+90,-RB,RB));if(!bd){non('bande');continue;}
++        const nT=4,yT=[];for(let j=0;j<nT;j++)yT.push([1e9,-1e9]);
++        vsPoints(V,cx-L2-12,cx+L2+12,cz-L2-12,cz+L2+12,0,function(i,p){if(p.y<bd[4]||p.y>bd[5])return;const u=(p.x-cx)*a.ux+(p.z-cz)*a.uz,l=Math.abs((p.x-cx)*a.uz-(p.z-cz)*a.ux);if(l>RB||Math.abs(u)>L2+12)return;
++          const j=Math.max(0,Math.min(nT-1,Math.floor((u+L2)/(Lt/nT))));if(p.y<yT[j][0])yT[j][0]=p.y;if(p.y>yT[j][1])yT[j][1]=p.y;});
++        for(let j=0;j<nT;j++)if(yT[j][1]<-1e8){const q=yT[j>0?j-1:j+1];yT[j]=q&&q[1]>-1e8?q.slice():[bd[4]+6,bd[5]-6];} /* une tranche sans point (l'échantillon) prend sa voisine */
++        let y0=1e9,y1=-1e9;for(const q of yT){y0=Math.min(y0,q[0]);y1=Math.max(y1,q[1]);}
++        const h=VS_H(cx,cz),yA=y1+VS_HA,Z9=vsRect(a.ax,cx,cz,-L2-4,L2+4,-Hl,Hl);let top=0,b=0,r9='';
++        for(const E9 of [[yA+240+h*240,y0-330],[yA+60+h*120,y0-330],[yA+240+h*240,y0-190],[yA+60+h*120,y0-190],[yA+240+h*240,y0-110],[yA+14,y0-110]]){top=E9[0];b=E9[1]; /* la plus haute du quartier ; sinon (un saut passe au-dessus : 'air', une route en dessous : 'route') plus basse, puis le pied moins profond, enfin le hall seul sous son toit */
++          if(!vsLibre(V,Z9[0],Z9[1],b,top,Z9[2],Z9[3],MS,[bd])){r9='route';continue;}if(!vsAirOk(V,Z9[0],Z9[1],Z9[2],Z9[3],top)&&!vsAirSous(V,Z9[0],Z9[1],Z9[2],Z9[3],b)){r9='air';continue;}r9='';break;}
++        if(r9){non(r9);continue;}
++        Object.assign(P0,{ok:true,hall:1,zone:Z9,cx:cx,cz:cz,ax:a.ax,ux:a.ux,uz:a.uz,Lt:Lt,L2:L2,aA:aA,D:D,Hl:Hl,yT:yT,y0:y0,y1:y1,yM0:yT[0][1]+HC,yM1:yT[nT-1][1]+HC,yA:yA,top:top,b:b,h:h,bandes:[bd],hHall:VS_HA});}
++      else if(a.t==='tunnel'){const Lt=L-20;if(Lt<60){non('court');continue;}const PL=a.ax==='z'?VS_PER.x:VS_PER.z;let D=PL;while(D-hi<14)D+=PL;const Hl=2*D-hi,L2=Lt/2;
+         const bd=vsBande(V,vsRect(a.ax,cx,cz,-L2-90,L2+90,-RB,RB));if(!bd){non('bande');continue;}
+         const h=VS_H(cx,cz),y0=bd[4]+6,y1=bd[5]-6,top=y1+HC+150+h*260,b=y0-330,Z9=vsRect(a.ax,cx,cz,-L2,L2,-Hl,Hl);
+         if(!vsLibre(V,Z9[0],Z9[1],b,top,Z9[2],Z9[3],MS,[bd])){non('route');continue;}if(!vsAirOk(V,Z9[0],Z9[1],Z9[2],Z9[3],top)){non('air');continue;}
+@@ -377,7 +418,36 @@ function* vsBatirG(V){const ech9=function(){return typeof JF!=='undefined'&&perf
+   /* le sommet d'une tour de scène : la couronne (une fois sur deux), le mât et son feu */
+   const sommet=function(cx,cz,dx,dz,top,k,h){if(h>.4)lum(cx-dx*.53,cx+dx*.53,top-1.4,top+1.4,cz-dz*.53,cz+dz*.53,6,k);const ha=36+h*44;vol(cx-1.2,cx+1.2,top,top+ha,cz-1.2,cz+1.2,2,true,k);lum(cx-2.25,cx+2.25,top+ha-2.25,top+ha+2.25,cz-2.25,cz+2.25,5,k);};
+   for(const p of plans){if(ech9())yield;if(!p.ok)continue;const k=[p.cx,(p.b!=null?p.b:p.rue||0)+200,p.cz,[]];grp.push(k[3]);
+-    if(p.t==='tunnel'){const ax=p.ax,L2=p.Lt/2,cx=p.cx,cz=p.cz,yc=p.y1+HC,fl=p.y0-6.5;
++    if(p.t==='tunnel'&&p.hall){const ax=p.ax,L2=p.L2,cx=p.cx,cz=p.cz,yA=p.yA,aA=p.aA,nT=p.yT.length,dT=2*L2/nT,ys=p.y0,cE=Math.floor(p.h*50),sg9=ax==='z'?(p.uz<0?-1:1):(p.ux<0?-1:1); /* (VILLE_HALL) LE HALL — u : l'abscisse le long de la marche (la bouche d'entrée en u = −L2), sg9 : son sens sur l'axe */
++      const volU=function(u0,u1,l0,l1,y0,y1,g,sp){volA(ax,cx,cz,Math.min(sg9*u0,sg9*u1),Math.max(sg9*u0,sg9*u1),l0,l1,y0,y1,g,sp,k);},lumU=function(u0,u1,l0,l1,y0,y1,c){lumA(ax,cx,cz,Math.min(sg9*u0,sg9*u1),Math.max(sg9*u0,sg9*u1),l0,l1,y0,y1,c,k);};
++      volA(ax,cx,cz,-L2,L2,-p.Hl,-hi,p.b,yA,0,false,k);volA(ax,cx,cz,-L2,L2,hi,p.Hl,p.b,yA,0,false,k); /* les deux murs, du pied au plafond de l'atrium (une façade : leurs centres à ±D) */
++      for(let j=0;j<nT;j++)volU(-L2+j*dT,-L2+(j+1)*dT,-hi,hi,p.b,p.yT[j][0]-6.5,0,false); /* le socle, par tranches : 6,5 m sous le bitume de chacune (la route descend) */
++      volU(-L2,L2,-p.Hl,p.Hl,yA,p.top,0,true);                                         /* la tour, posée sur ses murs */
++      if(aA>8){volU(-L2,-aA,-hi,hi,p.yM0,yA,0,true);volU(aA,L2,-hi,hi,p.yM1,yA,0,true);} /* les LINTEAUX des deux bouches (40 m) : entre eux, l'atrium */
++      else volU(-L2,L2,-hi,hi,Math.max(p.yM0,p.yM1),yA,0,true);
++      const ya=aA>8?aA:0;
++      if(ya>0)for(const e of [-1,1]){
++        for(const g of [46,64,82]){const yg=p.y1+g;volU(-ya,ya,e>0?hi-6:-hi,e>0?hi:-hi+6,yg,yg+2.4,0,true); /* LES ÉTAGES VUS EN COUPE : trois galeries par côté */
++          lumU(-ya+1,ya-1,e*(hi-6.3)-.35,e*(hi-6.3)+.35,yg-.5,yg+.3,g===64?(cE+(e>0?1:3))%5:6);} /* leur nez, éclairé (la lumière rasante) */
++        const nP=Math.max(2,Math.round((2*ya-16)/24));for(let q=0;q<nP;q++){const s0=-ya+8+(2*ya-16)*q/Math.max(1,nP-1); /* LA COLONNADE : des pilastres adossés aux murs, 11,5 m au-delà du bord de la dalle (un saut qui dérive ne les touche pas plus tôt que les murs d'avant), du socle à la 1re galerie */
++          volU(s0-1.6,s0+1.6,e>0?hi-2.5:-hi,e>0?hi:-hi+2.5,p.b,p.y1+46,0,false);}}
++      /* les lumières du hall : les bandes du plafond des bouches (et leurs traverses), les trois grandes bandes de l'atrium, les rails (murCote) */
++      for(const B9 of [[-L2,-ya,p.yM0],[ya,L2,p.yM1]]){if(B9[1]-B9[0]<4)continue;for(const l of [-hi+2.1,-hi/2,0,hi/2,hi-2.1])lumU(B9[0]+2,B9[1]-2,l-1.1,l+1.1,B9[2]-1.2,B9[2]-.1,6);
++        for(let s9=B9[0]+6.5;s9<=B9[1]-6.5;s9+=13)lumU(s9-1,s9+1,-hi+3,hi-3,B9[2]-1,B9[2]-.1,6);}
++      if(ya>0)for(const l of [-hi/2,0,hi/2])lumU(-ya+2,ya-2,l-1.6,l+1.6,yA-1.6,yA-.1,6);
++      {const nR0=V.neon.length/6,yU=function(u){const x=ax==='z'?cx:cx+sg9*u,z=ax==='z'?cz+sg9*u:cz;let y=null,bd=1e9;V.proches(x,z,24,function(i){const q=V.P[i];if(q.y<p.y0-10||q.y>p.y1+10)return;const d=(q.x-x)*(q.x-x)+(q.z-z)*(q.z-z);if(d<bd){bd=d;y=q.y;}});
++         if(y!=null)return y;const j=Math.max(0,Math.min(nT-1,Math.floor((u+L2)/dT)));return (p.yT[j][0]+p.yT[j][1])/2;}; /* (après le contrôle, tour 1) le bitume sous l'abscisse u : la route DESCEND dans le hall, les rails la suivent par tronçons de 15 m (avant : à plat au point le plus bas, noyés dans le socle) */
++       const nS=Math.max(1,Math.round((2*L2-4)/15)),dS=(2*L2-4)/nS;for(let q=0;q<nS;q++){const u0=-L2+2+q*dS,yr=yU(u0+dS/2);for(const e of [-1,1])lumU(u0,u0+dS+.05,e*(ROAD_HALF+1)-.7,e*(ROAD_HALF+1)+.7,yr+.2,yr+1.6,(cE+(e>0?1:3))%5);}
++       for(let q=nR0;q<V.neon.length/6;q++)CITY.railN.push(q);}
++      /* LA FAÇADE D'ENTRÉE : trois lames verticales de chaque côté de la bouche (adossées au mur), une grande enseigne au-dessus — aucune lumière autour de la route */
++      for(const e of [-1,1])for(let q=0;q<3;q++){const l=e*(hi+5+q*7);volU(-L2-3,-L2,l-1.2,l+1.2,p.y0-60,p.yM0+56+q*14,1,true);
++        if(q===0)lumU(-L2-3.3,-L2-3,l-.45,l+.45,p.yM0-36,p.yM0+52,(cE+2)%5);} /* (après le contrôle, tour 2 : la bouche « trou sombre » à 300 m) la lame la plus proche porte un trait de lumière vertical, de la dalle à 50 m au-dessus du linteau : la porte se lit de loin — deux traits verticaux, jamais un cadre autour de la route */
++      lumU(-L2-1.2,-L2,-8,8,p.yM0+8,Math.min(yA-6,p.yM0+64),(cE+2)%5);
++      sommet(cx,cz,ax==='z'?2*p.Hl:2*L2,ax==='z'?2*L2:2*p.Hl,p.top,k,p.h);
++      {let i0=1e9,i1=-1;V.proches(cx,cz,L2+hi+30,function(i){const q=V.P[i];if(q.y<ys-8||q.y>yA)return;const u=ax==='z'?q.z-cz:q.x-cx,l=ax==='z'?q.x-cx:q.z-cz;if(Math.abs(u)<=L2+2&&Math.abs(l)<=hi){if(i<i0)i0=i;if(i>i1)i1=i;}});
++       if(i1>=0&&V.dsP)CITY.couloirs.push([i0*V.dsP-10,i1*V.dsP+10]);} /* l'intervalle de la route (s) DANS le hall : villeCouloirIci (murCote) */
++      for(const B9 of [[-L2,-ya,p.yM0],[-ya,ya,yA],[ya,L2,p.yM1]]){if(B9[1]-B9[0]<1)continue;const Z=vsRect(ax,cx,cz,Math.min(sg9*B9[0],sg9*B9[1]),Math.max(sg9*B9[0],sg9*B9[1]),-hi,hi);CITY.abris.push([Z[0],Z[1],ys-2,B9[2],Z[2],Z[3]]);}} /* les abris : la pluie s'éteint, la caméra reste sous le plafond */
++    else if(p.t==='tunnel'){const ax=p.ax,L2=p.Lt/2,cx=p.cx,cz=p.cz,yc=p.y1+HC,fl=p.y0-6.5;
+       volA(ax,cx,cz,-L2,L2,-p.Hl,-hi,p.b,yc,0,false,k);volA(ax,cx,cz,-L2,L2,hi,p.Hl,p.b,yc,0,false,k); /* les deux murs, du pied au plafond (leur pied se noie avec la ville) */
+       volA(ax,cx,cz,-L2,L2,-hi,hi,p.b,fl,0,false,k);                                                          /* le socle sous la route, 6,5 m sous le bitume */
+       volA(ax,cx,cz,-L2,L2,-p.Hl,p.Hl,yc,p.top,0,true,k);                                                     /* la tour au-dessus du hall : elle FLOTTE (sans pied) */
+diff --git a/code/maps/ville-v3.js b/code/maps/ville-v3.js
+index 3e749c230..5264e516f 100644
+--- a/code/maps/ville-v3.js
++++ b/code/maps/ville-v3.js
+@@ -443,7 +443,7 @@ window.dbgVilleAudit=function(){
+         else if(!fr&&y1>p.y-1&&y0<p.y+12)fr={nom:nom,s:Math.round(i*dsA),d:+d.toFixed(1),bas:+(y0-p.y).toFixed(1),haut:+(y1-p.y).toFixed(1),x:Math.round((x0+x1)/2),z:Math.round((z0+z1)/2)};}}
+     if(dans){out.dans++;if(out.exDans.length<12)out.exDans.push(dans);}else if(fr){out.frole++;if(out.exFrole.length<12)out.exFrole.push(fr);}};
+   for(let k=0;k<C.length/6;k++){const o=k*6;teste(C[o]-C[o+3]/2,C[o]+C[o+3]/2,C[o+1]-C[o+4]/2,C[o+1]+C[o+4]/2,C[o+2]-C[o+5]/2,C[o+2]+C[o+5]/2,nomV(k));}
+-  const RN9=new Set(CITY.railN||[]); /* les rails des couloirs : la paroi, au bord de la route par construction */
++  const RH9=VILLE_HALL&&LVL.cur&&LVL.cur.id==='ville'&&!LVL.cur.crypto&&!LVL.cur.vitre; const RN9=new Set(CITY.railN||[]); /* les rails des couloirs : la paroi, au bord de la route par construction */
+   for(let k=0;k<N.length/6;k++){if(RN9.has(k))continue;const o=k*6;teste(N[o]-N[o+3]/2,N[o]+N[o+3]/2,N[o+1]-N[o+4]/2,N[o+1]+N[o+4]/2,N[o+2]-N[o+5]/2,N[o+2]+N[o+5]/2,nomN(NC[k]));}
+   const boitePub=function(o){const r=P[o+3],hx=Math.abs(Math.cos(r))*P[o+4]/2+.2,hz=Math.abs(Math.sin(r))*P[o+4]/2+.2;return [P[o]-hx,P[o]+hx,P[o+1]-P[o+5]/2,P[o+1]+P[o+5]/2,P[o+2]-hz,P[o+2]+hz];};
+   for(let k=0;k<P.length/6;k++){const b=boitePub(k*6);teste(b[0],b[1],b[2],b[3],b[4],b[5],'réclame');}
+@@ -454,7 +454,7 @@ window.dbgVilleAudit=function(){
+       for(const o of a){if(vu.has(o))continue;vu.add(o);const dx=Math.max(C[o]-C[o+3]/2-x1,0,x0-C[o]-C[o+3]/2),dz=Math.max(C[o+2]-C[o+5]/2-z1,0,z0-C[o+2]-C[o+5]/2);if(Math.hypot(dx,dz)>m)continue;
+         const c=Math.max(0,Math.min(y1,C[o+1]+C[o+4]/2)-Math.max(y0,C[o+1]-C[o+4]/2))/Math.max(.01,y1-y0);if(c>best)best=c;}}return best;};
+   const flotte=function(b,nom){const c=adosse(b[0],b[1],b[2],b[3],b[4],b[5],3);if(c<.5){out.flotte++;out.flottes[nom]=(out.flottes[nom]||0)+1;if(out.exFlotte.length<12)out.exFlotte.push({nom:nom,x:Math.round((b[0]+b[1])/2),y:Math.round((b[2]+b[3])/2),z:Math.round((b[4]+b[5])/2),porte:+c.toFixed(2)});}};
+-  for(let k=0;k<N.length/6;k++){if(NC[k]>=5)continue;const o=k*6;flotte([N[o]-N[o+3]/2,N[o]+N[o+3]/2,N[o+1]-N[o+4]/2,N[o+1]+N[o+4]/2,N[o+2]-N[o+5]/2,N[o+2]+N[o+5]/2],'enseigne');}
++  for(let k=0;k<N.length/6;k++){if(NC[k]>=5||RH9&&RN9.has(k))continue;const o=k*6;flotte( /* (2026-11-18, VILLE_HALL) les rails du hall (carte 'ville' seulement, RH9) : portés par le bord de la dalle (à 0,3 m, à la hauteur du bitume par construction), pas par une façade — l'audit ne voit pas la dalle */[N[o]-N[o+3]/2,N[o]+N[o+3]/2,N[o+1]-N[o+4]/2,N[o+1]+N[o+4]/2,N[o+2]-N[o+5]/2,N[o+2]+N[o+5]/2],'enseigne');}
+   for(let k=0;k<P.length/6;k++)flotte(boitePub(k*6),'réclame');
+   for(let k=0;k<C.length/6;k++){if(G[k]!==1)continue;const o=k*6;flotte([C[o]-C[o+3]/2,C[o]+C[o+3]/2,C[o+1]-C[o+4]/2,C[o+1]+C[o+4]/2,C[o+2]-C[o+5]/2,C[o+2]+C[o+5]/2],'lame');}
+   /* le ciel de CRYPTO CITY : la plus courte distance au bitume, rayon déduit (le dirigeable : 16 m de rayon, 60 m de demi-longueur — compté 60) */
+diff --git a/outils/banc-routes/ville-hall-chrome.cjs b/outils/banc-routes/ville-hall-chrome.cjs
+new file mode 100644
+index 000000000..103fc4b3f
+--- /dev/null
++++ b/outils/banc-routes/ville-hall-chrome.cjs
+@@ -0,0 +1,67 @@
++/* Banc Chrome du HALL (lot B) : pour chaque graine × orientation, charge la ville (?villescene=traversee&tel=1), roule au pilote auto à travers le hall
++   (photos en jeu aux abscisses), puis en pause des vues fixes (chasse à 300/150/50 m de la bouche, intérieur, sortie, profil) + audits.
++   node hall-chrome.cjs --racine=<arbre> --tag=avant --graines=1,2,3 --orients=pay,por [--q=&sans=villehall] [--course=1] --port=8467 --cdp=9467 --out=<dossier> */
++const {spawn}=require('child_process'),fs=require('fs'),os=require('os'),path=require('path'),http=require('http');
++const opt={};for(const a of process.argv.slice(2)){const m=/^--([a-zA-Z]+)=(.*)$/.exec(a);if(m)opt[m[1]]=m[2];}
++const CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',PORT=+(opt.port||8467),CDP=+(opt.cdp||9467),RAC=opt.racine,TAG=opt.tag||'x',OUT=opt.out;fs.mkdirSync(OUT,{recursive:true});
++const dort=ms=>new Promise(r=>setTimeout(r,ms)),log=function(){console.log.apply(console,arguments);};
++function getJson(u){return new Promise((ok,ko)=>http.get(u,r=>{let b='';r.on('data',d=>b+=d);r.on('end',()=>{try{ok(JSON.parse(b));}catch(e){ko(e);}});}).on('error',ko));}
++function putJson(u){return new Promise((ok,ko)=>{const r=http.request(u,{method:'PUT'},r=>{let b='';r.on('data',d=>b+=d);r.on('end',()=>{try{ok(JSON.parse(b));}catch(e){ko(e);}});});r.on('error',ko);r.end();});}
++let chrome=null,serv=null;
++const ARB=(opt.arbres||(TAG+'@'+RAC+'@'+PORT)).split(',').map(x=>x.split('@'));const servs=[];
++async function lance(){for(const a of ARB)servs.push(spawn('node',[path.join(a[1],'outils/banc-maps/serveur.cjs'),a[2],a[1]],{stdio:'ignore',detached:true}));
++  const udd=fs.mkdtempSync(path.join(os.tmpdir(),'cc-hall-'));
++  chrome=spawn(CHROME,['--headless=new','--remote-debugging-port='+CDP,'--user-data-dir='+udd,'--no-first-run','--no-default-browser-check','--mute-audio','--autoplay-policy=no-user-gesture-required','--use-angle=metal','--ignore-gpu-blocklist','--enable-gpu-rasterization','--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows','about:blank'],{stdio:'ignore',detached:true});
++  for(let i=0;i<150;i++){try{await getJson('http://127.0.0.1:'+CDP+'/json/version');return;}catch(e){await dort(200);}}throw new Error('Chrome muet');}
++function tue(){for(const c of [chrome].concat(servs))if(c){try{process.kill(-c.pid,'SIGKILL');}catch(e){}try{c.kill('SIGKILL');}catch(e){}}}
++class Page{constructor(ws){this.ws=ws;this.n=0;this.att={};this.erreurs=[];
++  ws.onmessage=(m)=>{const r=JSON.parse(m.data);if(r.id&&this.att[r.id]){const a=this.att[r.id];delete this.att[r.id];r.error?a.ko(new Error(JSON.stringify(r.error))):a.ok(r.result);}
++    else if(r.method==='Runtime.consoleAPICalled'&&r.params.type==='error'){this.erreurs.push('CONSOLE '+r.params.args.map(a=>a.value!==undefined?String(a.value):(a.description||a.type)).join(' ').slice(0,300));}
++    else if(r.method==='Runtime.exceptionThrown'){const d=r.params.exceptionDetails;this.erreurs.push('EXCEPTION '+String((d.exception&&(d.exception.description||d.exception.value))||d.text).split('\n').slice(0,2).join(' | '));}};}
++  call(m,p){return new Promise((ok,ko)=>{const id=++this.n;this.att[id]={ok,ko};this.ws.send(JSON.stringify({id,method:m,params:p||{}}));});}
++  async ev(e,t){const r=await this.call('Runtime.evaluate',{expression:e,awaitPromise:true,returnByValue:true,timeout:t||120000});if(r.exceptionDetails)throw new Error('page : '+((r.exceptionDetails.exception&&r.exceptionDetails.exception.description)||r.exceptionDetails.text));return r.result.value;}
++  async attend(e,ms,pas){const t0=Date.now();while(Date.now()-t0<(ms||60000)){try{if(await this.ev('!!('+e+')'))return true;}catch(x){}await dort(pas||250);}return false;}
++  async photo(f){const r=await this.call('Page.captureScreenshot',{format:'jpeg',quality:82});fs.writeFileSync(f,Buffer.from(r.data,'base64'));return f;}}
++async function ouvre(w,h){const t=await putJson('http://127.0.0.1:'+CDP+'/json/new?about:blank');const ws=new WebSocket(t.webSocketDebuggerUrl);await new Promise((ok,ko)=>{ws.onopen=ok;ws.onerror=ko;});
++  const p=new Page(ws);p.id=t.id;await p.call('Runtime.enable');await p.call('Page.enable');await p.call('Network.enable');await p.call('Network.setBypassServiceWorker',{bypass:true});
++  await p.call('Emulation.setDeviceMetricsOverride',{width:w,height:h,deviceScaleFactor:2,mobile:true});await p.call('Emulation.setTouchEmulationEnabled',{enabled:true});
++  await p.call('Page.addScriptToEvaluateOnNewDocument',{source:"try{localStorage.setItem('cashcarSave',JSON.stringify({v:2,tuto:1,plq:{m:'fr',x:'BANC',ok:1},bank:50000,ex:{runs:3},sfx:false,mus:false,vox:false}));}catch(e){}"});return p;}
++async function ferme(p){try{p.ws.close();}catch(e){}try{await getJson('http://127.0.0.1:'+CDP+'/json/close/'+p.id);}catch(e){}}
++const ETAT=`(function(){const d=dbgVilleDeco(),R=dbgRoute(),ds=R.L/(R.NP-1);const sc=(d.scenes||[]).filter(x=>x.t==='tunnel');const C=(d.couloirs||[]);
++  let sA=null,sB=null;if(C.length){sA=C[0][0]+10;sB=C[0][1]-10;}else if(sc.length&&sc[0].x!=null){let bi=0,bd=1e18;for(let i=0;i<R.NP;i++){const p=R.pts[i],q=(p.x-sc[0].x)**2+(p.z-sc[0].z)**2;if(q<bd){bd=q;bi=i;}}sA=bi*ds-70;sB=bi*ds+70;}
++  return {pret:d.pret,scenes:sc,couloirs:C,abris:d.abris,sA:sA,sB:sB,L:R.L,mods:d.mods,graine:d.graine};})()`;
++const VUE=`(function(s,k){const R=dbgRoute(),i=Math.max(1,Math.min(R.NP-2,Math.round(s/R.L*(R.NP-1)))),p=R.pts[i],t=R.T[i],n=R.Nn[i];
++  if(k==='profil'){const b=R.B[i];return {p:[p.x+b.x*420,p.y+90,p.z+b.z*420],c:[p.x,p.y+60,p.z]};}
++  if(k==='haut'){return {p:[p.x-t.x*260,p.y+260,p.z-t.z*260],c:[p.x+t.x*40,p.y,p.z+t.z*40]};}
++  return {p:[p.x-t.x*13+n.x*5.5,p.y-t.y*13+n.y*5.5,p.z-t.z*13+n.z*5.5],c:[p.x+t.x*90+n.x*3,p.y+t.y*90+n.y*3,p.z+t.z*90+n.z*3]};})`;
++const INFOV=`(function(p,c,fov){const R=dbgScene().rdr,o=R.renderBufferDirect;let n=0,t=0;R.renderBufferDirect=function(cam,sc,geo,mat,obj,grp){let q=geo.index?geo.index.count:(geo.attributes.position?geo.attributes.position.count:0);if(geo.drawRange&&geo.drawRange.count!==Infinity)q=Math.min(q,geo.drawRange.count);if(grp)q=Math.min(q,grp.count);const k=obj.isInstancedMesh?obj.count:1;n++;t+=(obj.isPoints?q:q/3)*k;return o.apply(this,arguments);};try{dbgAudit('vue',{p:p,c:c,fov:fov});}finally{R.renderBufferDirect=o;}const m=R.info.memory;return {appels:n,tri:Math.round(t),geo:m.geometries,tex:m.textures,prog:R.info.programs?R.info.programs.length:null};})`;
++(async function(){await lance();const BIL=[];
++ try{for(const A9 of ARB)for(const g of (opt.graines||'1,2,3').split(',').map(Number)){const TAG=A9[0],PORT=A9[2],o='pay';
++  const p=await ouvre(844,390);const r={tag:TAG,g:g,o:'pay+por'};BIL.push(r);const t0=Date.now();
++  try{const url='http://127.0.0.1:'+PORT+'/VERSION%20PRINCIPALE/index.html?intro=ancien&attente=0&prebati=0&carte=ville&meteo='+(opt.meteo||'soir')+'&pistegraine='+g+'&tel=1&villescene=traversee'+(A9[3]?'&'+A9[3]:'')+(opt.q||'');
++    await p.call('Page.navigate',{url});if(!await p.attend('window.__gameReady',180000,300))throw new Error('pas prêt');
++    for(let i=0;i<40&&await p.ev('!!window.__introCouvre');i++){await p.call('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter'});await p.call('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter'});await dort(500);}
++    await p.attend("document.body.classList.contains('titreCiel')",40000,300);
++    for(let i=0;i<8&&await p.ev("!!document.getElementById('splash')");i++){await p.ev("(function(){const e=document.getElementById('splash');try{e.click();}catch(x){}})()");await dort(500);}
++    let st=false;for(let k=0;k<3&&!st;k++){await p.ev('dbgJouer()');await p.ev("window.dbgAuto&&dbgAuto(1,0,{nit:0})");st=await p.attend('window.dbgState&&dbgState().started&&dbgState().running',k?20000:45000,250);}
++    await p.ev("window.dbgAuto&&dbgAuto(1,0,{nit:0})");if(!st)throw new Error('course pas lancée');
++    await p.attend("dbgVilleDeco().pret&&dbgVilleDeco().scenes",60000,400);await dort(1500);
++    const E=await p.ev(ETAT);r.etat={scenes:E.scenes,couloirs:E.couloirs,sA:E.sA,sB:E.sB,L:E.L,mods:E.mods};log(TAG,'g'+g,o,'scènes tunnel',JSON.stringify(E.scenes),'couloirs',JSON.stringify(E.couloirs),'sA',E.sA&&Math.round(E.sA),'sB',E.sB&&Math.round(E.sB));
++    await p.ev("(function(){for(const id of ['hud','garage','mobCtl','bNitro','pauseBtn']){const e=document.getElementById(id);if(e)e.style.display='none';}try{serieWFerme();}catch(e){}})()");
++    if(opt.course==='1'&&E.sA!=null){const marques=[-150,-50,20,(E.sB-E.sA)/2,E.sB-E.sA+15,E.sB-E.sA+120];let km=0;const tc=Date.now();
++      while(Date.now()-tc<(+opt.tcourse||100000)){const s=await p.ev("(function(){const s=dbgState(),R=dbgRoute();return {go:s.gameOver,s:R.s,mode:R.mode,lat:R.lat};})()");
++        if(s.go){r.course={mort:true,s:Math.round(s.s),cause:await p.ev("dbgRoute().cause")};break;}
++        while(km<marques.length&&s.s>=E.sA+marques[km]){await p.photo(path.join(OUT,TAG+'-g'+g+'-'+o+'-jeu'+km+'.jpg'));km++;}
++        if(s.s>E.sB+250){r.course={mort:false,s:Math.round(s.s),mode:s.mode};break;}await dort(80);}
++      if(!r.course)r.course={mort:false,delai:true,s:Math.round((await p.ev('dbgRoute().s'))||0)};log('   course',JSON.stringify(r.course));}
++    try{r.audit=await p.ev("(function(){const a=dbgVilleAudit()||{};const q=window.dbgVillePortiques?dbgVillePortiques():null;return {dans:a.dans,frole:a.frole,flotte:a.flotte,flottes:a.flottes,exDans:a.exDans,exFrole:a.exFrole,exFlotte:a.exFlotte,portiques:q&&{barres:q.barres,enseignes:q.enseignes,ouvrages:q.ouvrages,plafonds:q.plafonds,ex:q.ex.filter(function(e){return e.k==='barres';}).slice(0,6)}};})()");}catch(e){r.audit=String(e);}
++    log('   audit',JSON.stringify(r.audit));
++    if(E.sA!=null)for(const o of ['pay','por']){if(o==='por'){await p.call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});await dort(1500);}
++      const V=[['a300',E.sA-300],['a150',E.sA-150],['a50',E.sA-50],['in',(E.sA+E.sB)/2],['out',E.sB-25],['apres',E.sB+70],['profil',(E.sA+E.sB)/2,'profil'],['haut',E.sA-40,'haut']];r.info=r.info||{};r.info[o]={};
++      for(const v of V){const c=await p.ev(VUE+'('+v[1]+','+JSON.stringify(v[2]||'')+')');await p.ev("dbgAudit('vue',{p:"+JSON.stringify(c.p)+",c:"+JSON.stringify(c.c)+",fov:"+(o==='pay'?62:78)+"})");await dort(350);
++        await p.ev("dbgAudit('vue',{p:"+JSON.stringify(c.p)+",c:"+JSON.stringify(c.c)+",fov:"+(o==='pay'?62:78)+"})");r.info[o][v[0]]=await p.ev(INFOV+'('+JSON.stringify(c.p)+','+JSON.stringify(c.c)+','+(o==='pay'?62:78)+')');await p.photo(path.join(OUT,TAG+'-g'+g+'-'+o+'-'+v[0]+'.jpg'));}
++      log('   info',o,JSON.stringify(r.info[o].a150),JSON.stringify(r.info[o].in));}
++  }catch(e){r.err=String(e&&e.message||e);log(TAG,'g'+g,o,'ERREUR',r.err);}
++  r.erreurs=p.erreurs.slice(0,10);r.ms=Date.now()-t0;if(r.erreurs.length)log('   erreurs',JSON.stringify(r.erreurs.slice(0,4)));log('   ms',r.ms);await ferme(p);fs.writeFileSync(path.join(OUT,'bilan.json'),JSON.stringify(BIL,null,1));}}
++ finally{fs.writeFileSync(path.join(OUT,'bilan.json'),JSON.stringify(BIL,null,1));tue();}
++})();
+diff --git a/outils/banc-routes/ville-hall-planche.py b/outils/banc-routes/ville-hall-planche.py
+new file mode 100644
+index 000000000..cd615ad47
+--- /dev/null
++++ b/outils/banc-routes/ville-hall-planche.py
+@@ -0,0 +1,31 @@
++#!/usr/bin/env python3
++# planche.py <dossier> <sortie.jpg> <graine> <orient> <tagA> <tagB> [vues]  : AVANT (ligne 1) / APRÈS (ligne 2), mêmes vues, JPEG <= 250 Ko
++import sys, os
++from PIL import Image, ImageDraw
++d, out, g, o, ta, tb = sys.argv[1:7]
++vues = (sys.argv[7] if len(sys.argv) > 7 else 'a300,a150,a50,in,out,apres,profil').split(',')
++tw = 300 if o == 'pay' else 150
++rows = []
++for t in (ta, tb):
++    row = []
++    for v in vues:
++        f = os.path.join(d, f'{t}-g{g}-{o}-{v}.jpg')
++        im = Image.open(f).convert('RGB') if os.path.exists(f) else Image.new('RGB', (844, 390) if o == 'pay' else (390, 844), (40, 0, 0))
++        im = im.resize((tw, int(im.height * tw / im.width)), Image.LANCZOS)
++        row.append(im)
++    rows.append(row)
++th = rows[0][0].height
++W, H = tw * len(vues), (th + 16) * 2
++P = Image.new('RGB', (W, H), (0, 0, 0))
++dr = ImageDraw.Draw(P)
++for r, row in enumerate(rows):
++    for c, im in enumerate(row):
++        P.paste(im, (c * tw, r * (th + 16) + 16))
++        dr.text((c * tw + 3, r * (th + 16) + 2), f'{(ta, tb)[r]} g{g} {vues[c]}', fill=(255, 255, 0))
++q = 80
++while True:
++    P.save(out, 'JPEG', quality=q)
++    if os.path.getsize(out) <= 250000 or q <= 30:
++        break
++    q -= 8
++print(out, os.path.getsize(out), q)
+diff --git a/outils/banc-routes/ville-hall.cjs b/outils/banc-routes/ville-hall.cjs
+new file mode 100644
+index 000000000..61576acfc
+--- /dev/null
++++ b/outils/banc-routes/ville-hall.cjs
+@@ -0,0 +1,54 @@
++/* ville-hall.cjs (2026-11-18, lot B de la ville cyberpunk — Sacha : « la ville et la route se mélangent » ; l'immeuble qu'on traverse) : le banc Node du HALL.
++   Charge les VRAIS générateurs (charge.cjs : genCtrl, vsReserve, vsBatirG), tire les routes de la carte, et pour chaque ancre 'tunnel' :
++   · son verdict (vsReserve sur la route échantillonnée tous les 10 m, comme vsMalusDecor : ce que le meilleur-de-N optimise) et sa raison d'abandon ;
++   · les volumes et néons du plan bâtis (vsBatirG, les rails exclus) contre TOUS les points de la route (tous ses étages) :
++       dans  : la boîte coupe le couloir de conduite (demi-largeur + 1 m, de 0,3 à 7 m au-dessus du bitume) — la règle de dbgVilleAudit ;
++       frole : à moins de 6 m du bord, entre 1 m sous la route et 12 m au-dessus — la règle de dbgVilleAudit ;
++       horsBande : un point de route à moins de la marge d'une scène (ROAD_HALF + 14 m, en plan, dans la hauteur du volume −40 / +60) HORS des bandes du plan ;
++   · la pente de la route dans le hall, la longueur droite avant la bouche (ligne de mire), le temps du tirage (ms).
++   node outils/banc-routes/ville-hall.cjs [racine=<worktree>] [graines=1-60] [paliers=0,10,20] [carte=ville] [json=<f>]   (SEARCH='?…' : une variante) */
++const path=require('path'),vm=require('vm'),fs=require('fs');const arg=(k,d)=>{const a=process.argv.find(x=>x.startsWith(k+'='));return a?a.slice(k.length+1):d;};
++const RAC=path.resolve(arg('racine',path.join(__dirname,'../..')));
++const B=require(path.join(RAC,'outils/banc-routes/charge.cjs')).creer(process.env.SEARCH||''),ctx=B.ctx;
++const [g0,g1]=arg('graines','1-60').split('-').map(Number),PAL=arg('paliers','0,10,20').split(',').map(Number),CARTE=arg('carte','ville');
++vm.runInContext('var CITY={};var trackMeshes=[];',ctx);
++const MESURE=`(function(){const ctrl=__c9,out={plans:[],ms:0};const t0=performance.now();
++  const P=[{x:ctrl[0].x,y:ctrl[0].y,z:ctrl[0].z}];
++  for(let i=1;i<ctrl.length;i++){const a=ctrl[i-1],b=ctrl[i],d=Math.hypot(b.x-a.x,b.z-a.z),n=Math.max(1,Math.ceil(d/10));for(let k=1;k<=n;k++)P.push({x:a.x+(b.x-a.x)*k/n,y:a.y+(b.y-a.y)*k/n,z:a.z+(b.z-a.z)*k/n});}
++  const HB=120,G=new Map();P.forEach(function(p,i){const k=Math.floor(p.x/HB)*100003+Math.floor(p.z/HB);let l=G.get(k);if(!l)G.set(k,l=[]);l.push(i);});
++  const proches=function(x,z,R9,cb){const r=Math.ceil(R9/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB);for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const l=G.get((bx+dx)*100003+(bz+dz));if(l)for(const i of l)cb(i);}};
++  const AIRZ=[];for(const m9 of FILETMARK)if(m9.air)for(const a9 of m9.air)AIRZ.push(a9);
++  const V={P:P,pts:P,proches:proches,pasP:1,snap:function(v){const q=typeof VOX_CITY!=="undefined"?VOX_CITY:6.4;return Math.max(1,Math.round(v/q))*q;},AIRZ:AIRZ,
++    corps:[],genre:[],tqC:[],neon:[],neonC:[],tqN:[],sp:[],NEON:[],root:null};
++  const plans=vsReserve(V,true);CITY.vsP=plans;rythmeMene(vsBatirG(V));out.ms=performance.now()-t0;
++  const RN=new Set(CITY.railN||[]),MS=ROAD_HALF+14,RB=12;
++  const boites=function(p){const L9=[];for(let k=0;k<V.genre.length;k++)if(V.tqC[k*3]===p.cx&&V.tqC[k*3+2]===p.cz){const o=k*6;L9.push({n:'v'+V.genre[k],b:[V.corps[o]-V.corps[o+3]/2,V.corps[o]+V.corps[o+3]/2,V.corps[o+1]-V.corps[o+4]/2,V.corps[o+1]+V.corps[o+4]/2,V.corps[o+2]-V.corps[o+5]/2,V.corps[o+2]+V.corps[o+5]/2]});}
++    for(let k=0;k<V.neonC.length;k++)if(!RN.has(k)&&V.tqN[k*3]===p.cx&&V.tqN[k*3+2]===p.cz){const o=k*6;L9.push({n:'n'+V.neonC[k],b:[V.neon[o]-V.neon[o+3]/2,V.neon[o]+V.neon[o+3]/2,V.neon[o+1]-V.neon[o+4]/2,V.neon[o+1]+V.neon[o+4]/2,V.neon[o+2]-V.neon[o+5]/2,V.neon[o+2]+V.neon[o+5]/2]});}return L9;};
++  for(const p of plans){if(p.t!=='tunnel')continue;const q={ok:p.ok,raison:p.raison||'',gene:p.gene||null};out.plans.push(q);if(!p.ok)continue;
++    const a=p.a,L2=p.Lt/2;const bds=p.bandes||[vsBande(V,vsRect(a.ax,p.cx,p.cz,-L2-90,L2+90,-RB,RB))];
++    let dans=0,frole=0,hors=0;const ex=[];const L9=boites(p);q.volumes=L9.filter(function(o){return o.n[0]==='v';}).length;q.neons=L9.length-q.volumes;
++    for(const o of L9){const b=o.b;let d9=false,f9=false,h9=false;
++      for(const pt of P){const dx=Math.max(b[0]-pt.x,0,pt.x-b[1]),dz=Math.max(b[4]-pt.z,0,pt.z-b[5]),d=Math.hypot(dx,dz);
++        if(d<ROAD_HALF+1&&b[3]>pt.y+.3&&b[2]<pt.y+7)d9=true;else if(d<ROAD_HALF+6&&b[3]>pt.y-1&&b[2]<pt.y+12)f9=true;
++        if(o.n[0]==='v'&&d<MS&&pt.y>=b[2]-40&&pt.y<=b[3]+60){let dansB=false;for(const bd of bds)if(bd&&pt.x>=bd[0]&&pt.x<=bd[1]&&pt.z>=bd[2]&&pt.z<=bd[3]&&pt.y>=bd[4]&&pt.y<=bd[5])dansB=true;if(!dansB)h9=true;}}
++      if(d9){dans++;if(ex.length<4)ex.push(['dans',o.n,b.map(Math.round)]);}else if(f9){frole++;if(ex.length<4)ex.push(['frole',o.n,b.map(Math.round)]);}if(h9){hors++;if(ex.length<4)ex.push(['hors',o.n,b.map(Math.round)]);}}
++    Object.assign(q,{dans:dans,frole:frole,hors:hors,ex:ex,Lt:Math.round(p.Lt),haut:p.hHall!=null?Math.round(p.hHall):40});
++    /* la LIGNE DE MIRE : la longueur de route (m) avant la bouche dont le cap reste à 6° de l'axe du hall */
++    {const ux=a.ux,uz=a.uz,bx=p.cx-ux*L2,bz=p.cz-uz*L2;let ib=0,bd=1e18;for(let i=0;i<P.length;i++){const d=(P[i].x-bx)**2+(P[i].z-bz)**2;if(d<bd){bd=d;ib=i;}}
++     let s=0;for(let i=ib;i>0;i--){const dx=P[i].x-P[i-1].x,dz=P[i].z-P[i-1].z,l=Math.hypot(dx,dz);if(l<1e-6)continue;if((dx*ux+dz*uz)/l<Math.cos(6/57.2958))break;s+=l;}q.mire=Math.round(s);
++     let s2=0,y2=P[ib].y,ie=ib,be=1e18;const ex9=p.cx+ux*L2,ez9=p.cz+uz*L2;for(let i=ib;i<Math.min(P.length,ib+60);i++){const d=(P[i].x-ex9)**2+(P[i].z-ez9)**2;if(d<be){be=d;ie=i;}}q.pente=+((P[ib].y-P[ie].y)/Math.max(1,p.Lt)*100).toFixed(1);for(let i=ie;i<P.length-1&&s2<200;i++){s2+=Math.hypot(P[i+1].x-P[i].x,P[i+1].z-P[i].z);y2=P[i+1].y;}q.sortie=+((P[ie].y-y2)).toFixed(0);}}
++  return out;})()`;
++const R=[];const agg={};
++for(const p of PAL)for(let g=g0;g<=g1;g++){vm.runInContext('VILLE_BANK.graine='+g+';if(typeof VILLE_ENTREE!=="undefined")VILLE_ENTREE=null;',ctx);
++  const t0=performance.now();const r=B.piste(CARTE,g,p);const tg=performance.now()-t0;ctx.__c9=r.ctrl;
++  let m;try{m=vm.runInContext(MESURE,ctx);}catch(e){m={err:String(e&&e.stack||e).slice(0,300),plans:[]};}
++  const mods=r.marks.map(function(x){return x.nom||x.fig||'?';});
++  R.push({g:g,p:p,tGen:Math.round(tg),tDecor:+(m.ms||0).toFixed(1),mods:mods,plans:m.plans,err:m.err});
++  const A=agg[p]||(agg[p]={routes:0,ancres:0,ok:0,raisons:{},dans:0,frole:0,hors:0,tGen:0,tDecor:0,mire:[],haut:[],pente:[],sortie:[],err:0,ouverture:0});
++  A.routes++;A.tGen+=tg;A.tDecor+=m.ms||0;if(m.err)A.err++;if(mods.length&&/travers/.test(mods[0]))A.ouverture++;
++  for(const q of m.plans){A.ancres++;if(q.ok){A.ok++;A.dans+=q.dans;A.frole+=q.frole;A.hors+=q.hors;A.mire.push(q.mire);A.haut.push(q.haut);A.pente.push(q.pente);A.sortie.push(q.sortie);}else A.raisons[q.raison]=(A.raisons[q.raison]||0)+1;}}
++const med=a=>{if(!a.length)return '-';const b=a.slice().sort((x,y)=>x-y);return b[b.length>>1];};
++for(const p of PAL){const A=agg[p];console.log(CARTE,'p'+p,'routes',A.routes,'| ancres tunnel',A.ancres,'bâties',A.ok,'('+(A.ancres?Math.round(A.ok/A.ancres*100):0)+' %) | abandons',JSON.stringify(A.raisons),
++  '| dans',A.dans,'frole',A.frole,'horsBande',A.hors,'| ouverture',A.ouverture,'| mire méd',med(A.mire),'m (min',A.mire.length?Math.min.apply(null,A.mire):'-',') · haut méd',med(A.haut),'· pente méd',med(A.pente),'% · chute sortie méd',med(A.sortie),'m',
++  '| tirage moy',(A.tGen/A.routes).toFixed(0),'ms · décor moy',(A.tDecor/A.routes).toFixed(1),'ms',A.err?'| ERREURS '+A.err:'');}
++const J=arg('json','');if(J)fs.writeFileSync(J,JSON.stringify(R,null,0));

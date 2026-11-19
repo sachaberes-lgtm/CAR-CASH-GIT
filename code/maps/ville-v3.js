@@ -444,7 +444,8 @@ window.dbgVilleAudit=function(){
     if(dans){out.dans++;if(out.exDans.length<12)out.exDans.push(dans);}else if(fr){out.frole++;if(out.exFrole.length<12)out.exFrole.push(fr);}};
   for(let k=0;k<C.length/6;k++){const o=k*6;teste(C[o]-C[o+3]/2,C[o]+C[o+3]/2,C[o+1]-C[o+4]/2,C[o+1]+C[o+4]/2,C[o+2]-C[o+5]/2,C[o+2]+C[o+5]/2,nomV(k));}
   const RN9=new Set(CITY.railN||[]); /* les rails des couloirs : la paroi, au bord de la route par construction */
-  for(let k=0;k<N.length/6;k++){if(RN9.has(k))continue;const o=k*6;teste(N[o]-N[o+3]/2,N[o]+N[o+3]/2,N[o+1]-N[o+4]/2,N[o+1]+N[o+4]/2,N[o+2]-N[o+5]/2,N[o+2]+N[o+5]/2,nomN(NC[k]));}
+  const CN8=new Set(CITY.cadreN||[]); /* (2026-11-18) les cadres de lumière : leur boîte englobante n'est pas leur forme (ils penchent) — jugés au plus près par dbgVilleCadres */
+  for(let k=0;k<N.length/6;k++){if(RN9.has(k)||CN8.has(k))continue;const o=k*6;teste(N[o]-N[o+3]/2,N[o]+N[o+3]/2,N[o+1]-N[o+4]/2,N[o+1]+N[o+4]/2,N[o+2]-N[o+5]/2,N[o+2]+N[o+5]/2,nomN(NC[k]));}
   const boitePub=function(o){const r=P[o+3],hx=Math.abs(Math.cos(r))*P[o+4]/2+.2,hz=Math.abs(Math.sin(r))*P[o+4]/2+.2;return [P[o]-hx,P[o]+hx,P[o+1]-P[o+5]/2,P[o+1]+P[o+5]/2,P[o+2]-hz,P[o+2]+hz];};
   for(let k=0;k<P.length/6;k++){const b=boitePub(k*6);teste(b[0],b[1],b[2],b[3],b[4],b[5],'réclame');}
   /* l'adossement : les volumes de béton et de verre (genre 0) rangés par cases de 60 m */
@@ -454,7 +455,8 @@ window.dbgVilleAudit=function(){
       for(const o of a){if(vu.has(o))continue;vu.add(o);const dx=Math.max(C[o]-C[o+3]/2-x1,0,x0-C[o]-C[o+3]/2),dz=Math.max(C[o+2]-C[o+5]/2-z1,0,z0-C[o+2]-C[o+5]/2);if(Math.hypot(dx,dz)>m)continue;
         const c=Math.max(0,Math.min(y1,C[o+1]+C[o+4]/2)-Math.max(y0,C[o+1]-C[o+4]/2))/Math.max(.01,y1-y0);if(c>best)best=c;}}return best;};
   const flotte=function(b,nom){const c=adosse(b[0],b[1],b[2],b[3],b[4],b[5],3);if(c<.5){out.flotte++;out.flottes[nom]=(out.flottes[nom]||0)+1;if(out.exFlotte.length<12)out.exFlotte.push({nom:nom,x:Math.round((b[0]+b[1])/2),y:Math.round((b[2]+b[3])/2),z:Math.round((b[4]+b[5])/2),porte:+c.toFixed(2)});}};
-  for(let k=0;k<N.length/6;k++){if(NC[k]>=5)continue;const o=k*6;flotte([N[o]-N[o+3]/2,N[o]+N[o+3]/2,N[o+1]-N[o+4]/2,N[o+1]+N[o+4]/2,N[o+2]-N[o+5]/2,N[o+2]+N[o+5]/2],'enseigne');}
+  const CN9=new Set(CITY.cadreN||[]); /* (2026-11-18) les cadres de lumière : posés en l'air exprès (leur écart à la dalle : dbgVilleCadres) */
+  for(let k=0;k<N.length/6;k++){if(NC[k]>=5||CN9.has(k))continue;const o=k*6;flotte([N[o]-N[o+3]/2,N[o]+N[o+3]/2,N[o+1]-N[o+4]/2,N[o+1]+N[o+4]/2,N[o+2]-N[o+5]/2,N[o+2]+N[o+5]/2],'enseigne');}
   for(let k=0;k<P.length/6;k++)flotte(boitePub(k*6),'réclame');
   for(let k=0;k<C.length/6;k++){if(G[k]!==1)continue;const o=k*6;flotte([C[o]-C[o+3]/2,C[o]+C[o+3]/2,C[o+1]-C[o+4]/2,C[o+1]+C[o+4]/2,C[o+2]-C[o+5]/2,C[o+2]+C[o+5]/2],'lame');}
   /* le ciel de CRYPTO CITY : la plus courte distance au bitume, rayon déduit (le dirigeable : 16 m de rayon, 60 m de demi-longueur — compté 60) */
@@ -485,3 +487,32 @@ window.dbgVillePortiques=function(){
   if(CITY.vsIm){const im=CITY.vsIm,M=new THREE.Matrix4(),b=new THREE.Box3();for(let k=0;k<im.count;k++){im.getMatrixAt(k,M);b.min.set(-.5,-.5,-.5);b.max.set(.5,.5,.5);b.applyMatrix4(M);teste(b.min.x,b.max.x,b.min.y,b.max.y,b.min.z,b.max.z,'portique',true);}
     out.portiques=im.count;}else out.portiques=0;
   out.ex.sort(function(a,b){return a.s-b.s;});out.couloirs=(CITY.couloirs||[]).length;return out;};
+/* ===== LES CADRES DE LUMIÈRE, PAR MOMENTS (2026-11-18, Sacha : « remets les portails … à certains moments, pas tout le temps ») — le relevé, lecture seule =====
+   Les familles tirées pour cette route (CITY.cadres : u, k, dispo, fam) et, pour CHAQUE pièce posée, son écart à la dalle mesuré au plus près, indépendamment
+   du juge de la pose (cadLibre) : la boîte orientée (sa matrice) contre chaque point de l'axe de la route, de tous ses étages — écart en plan dans le repère de
+   la dalle moins la demi-largeur, pour une pièce qui passe de 6 m sous la dalle à 18 m au-dessus. `bas` : la plus petite hauteur d'une pièce au-dessus de la dalle
+   qu'elle enjambe (une barre au ras du toit de la caisse se verrait là). */
+window.dbgVilleCadres=function(o){o=o||{};
+  const R=CITY.neonR,I=CITY.cadreN||[],F=CITY.cadreF||[],out={cadres:CITY.cadres||null,pieces:I.length,parFam:{},ecart:{},sous5:0,bas:{},ms:0};
+  if(o.empreinte&&CITY.aud){const A=CITY.aud,S9=new Set(I),f64=new Float64Array(1),u8=new Uint8Array(f64.buffer);let h=0x811c9dc5,n9=0; /* o.empreinte : FNV-1a du DÉCOR hors cadres (volumes, genres, néons et leurs couleurs, réclames) — le même avec ou sans `?sans=villecadres` */
+    const mange=function(v){f64[0]=v;for(let b=0;b<8;b++){h^=u8[b];h=Math.imul(h,16777619)>>>0;}n9++;};
+    for(const v of A.corps)mange(v);for(const v of A.genre)mange(v);for(let k=0;k<A.neon.length/6;k++){if(S9.has(k))continue;for(let q=0;q<6;q++)mange(A.neon[k*6+q]);mange(A.neonC[k]);}for(const v of A.pubs)mange(v);
+    out.empreinte=('00000000'+h.toString(16)).slice(-8);out.nombres=n9;out.volumes=A.corps.length/6;out.neons=A.neon.length/6-I.length;out.pubs=A.pubs.length/6;out.bilan=CITY.vsBilan||null;}
+  if(o.poses&&R&&I.length&&NP>1){const ds=L/(NP-1),P9=[];for(let j=0;j<I.length;j++){const m=R.get(I[j]);if(!m)continue;let bi=-1,bd=1e18;for(let i=0;i<NP;i+=2){const p=pts[i],d=(p.x-m[12])*(p.x-m[12])+(p.z-m[14])*(p.z-m[14]);if(d<bd){bd=d;bi=i;}}
+      const s9=Math.round(bi*ds),f=F[j];const q=P9.find(function(e){return e.f===f&&Math.abs(e.s-s9)<60;});if(!q)P9.push({f:f,s:s9,x:Math.round(m[12]),y:Math.round(m[13]),z:Math.round(m[14]),n:1});else q.n++;}out.poses=P9;} /* o.poses : où sont les cadres (abscisse de la route la plus proche), pour les photos */
+  if(o.pres&&R&&I.length){const Q=o.pres===1?[[carGroup.position.x,carGroup.position.y,carGroup.position.z]]:o.pres,d9={}; /* o.pres : l'écart (m) de points (ou de la caisse) à chaque famille de cadres, boîte orientée — le banc du vol */
+    for(let j=0;j<I.length;j++){const m=R.get(I[j]),f=F[j];if(!m)continue;const ax=[[m[0],m[1],m[2]],[m[4],m[5],m[6]],[m[8],m[9],m[10]]],ln=ax.map(function(a){return Math.hypot(a[0],a[1],a[2]);});
+      for(const p of Q){const d=[p[0]-m[12],p[1]-m[13],p[2]-m[14]];let s=0;for(let q=0;q<3;q++){const v=(d[0]*ax[q][0]+d[1]*ax[q][1]+d[2]*ax[q][2])/ln[q],e=Math.max(0,Math.abs(v)-ln[q]/2);s+=e*e;}
+        s=Math.sqrt(s);if(d9[f]==null||s<d9[f])d9[f]=s;}}
+    out.pres=d9;if(o.seul)return out;}
+  if(!R||!I.length||!(NP>1))return out;
+  const t0=performance.now(),K=40,g=new Map(),ds=L/(NP-1);for(let i=0;i<NP;i++){const p=pts[i],k=Math.floor(p.x/K)*100003+Math.floor(p.z/K);let a=g.get(k);if(!a)g.set(k,a=[]);a.push(i);}
+  for(let j=0;j<I.length;j++){const m=R.get(I[j]),f=F[j];if(!m)continue;out.parFam[f]=(out.parFam[f]||0)+1;
+    const U=[m[0],m[1],m[2]],V=[m[4],m[5],m[6]],W=[m[8],m[9],m[10]],lu=Math.hypot(U[0],U[1],U[2]),lv=Math.hypot(V[0],V[1],V[2]),lw=Math.hypot(W[0],W[1],W[2]);
+    for(let q=0;q<3;q++){U[q]/=lu;V[q]/=lv;W[q]/=lw;}const c=[m[12],m[13],m[14]],Rq=(lu+lv+lw)/2+ROAD_HALF+20;let e9=1e9,b9=1e9;
+    for(let gx=Math.floor((c[0]-Rq)/K);gx<=Math.floor((c[0]+Rq)/K);gx++)for(let gz=Math.floor((c[2]-Rq)/K);gz<=Math.floor((c[2]+Rq)/K);gz++){const a=g.get(gx*100003+gz);if(!a)continue;
+      for(const i of a){const p=pts[i],d=[p.x-c[0],p.y-c[1],p.z-c[2]],cl=function(A,h){const v=d[0]*A[0]+d[1]*A[1]+d[2]*A[2];return v<-h?-h:v>h?h:v;},a1=cl(U,lu/2),a2=cl(V,lv/2),a3=cl(W,lw/2);
+        const e=[c[0]+U[0]*a1+V[0]*a2+W[0]*a3-p.x,c[1]+U[1]*a1+V[1]*a2+W[1]*a3-p.y,c[2]+U[2]*a1+V[2]*a2+W[2]*a3-p.z],n=Nn[i],b=B[i],t=T[i],u=e[0]*n.x+e[1]*n.y+e[2]*n.z,la=Math.max(0,Math.abs(e[0]*b.x+e[1]*b.y+e[2]*b.z)-ROAD_HALF),ta=Math.max(0,Math.abs(e[0]*t.x+e[1]*t.y+e[2]*t.z)-ds*.5),h=Math.hypot(la,ta); /* (reprise) l'écart à la DALLE : en travers moins la demi-largeur, le long moins le demi-pas (au bout d'une route — la lèvre d'un saut — la dalle s'arrête : l'ancien calcul la prenait pour un disque de 28 m) */
+        if(u>-6&&u<18&&h<e9)e9=h;if(h===0&&u>0&&u<b9)b9=u;}}
+    if(out.ecart[f]==null||e9<out.ecart[f])out.ecart[f]=+e9.toFixed(1);if(e9<5)out.sous5++;if(b9<1e8&&(out.bas[f]==null||b9<out.bas[f]))out.bas[f]=+b9.toFixed(1);}
+  out.ms=Math.round(performance.now()-t0);return out;};

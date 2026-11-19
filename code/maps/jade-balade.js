@@ -28,7 +28,7 @@ function buildVoxCity(seed,accC){rythmeMene(buildVoxCityG(seed,accC));} /* (2026
 function* buildVoxCityG(seed,accC){ /* (lot portv) la ville en tranches : rend la main à l'échéance (JF.lim) entre ses grandes étapes et dans ses boucles — mêmes tirages `vr`, même ordre */
   const ech9=function(){return typeof JF!=='undefined'&&performance.now()>JF.lim;};
   for(const F of CITY.fam||[])for(const x of [F.im,F.imL])x.dispose(); // (passe perf) les tampons d'instances de l'ancienne ville (les géométries sont parties avec trackMeshes)
-  CITY.root=null;CITY.n={};CITY.nAnc=null;CITY.anc=null;CITY.vsP=null;CITY.vs=null;CITY.vsG=null;CITY.abris=null;CITY.couloirs=null;CITY.railN=null;CITY.vsBilan=null;if(CITY.vsIm){CITY.vsIm.dispose();CITY.vsIm=null;}CITY.aud=null;CITY.col=null;CITY.dz=null;CITY.deco=null;CITY.ens=[];CITY.solY=null;CITY.imC=CITY.imN=null;CITY.fam=null;CITY.lampes=null;cryptoVide(); // (CRYPTOCITY) ce que la ville d'avant avait de crypto part avec elle // (l'ancien cratère s'éteint avec son quartier)
+  CITY.root=null;CITY.n={};CITY.nAnc=null;CITY.anc=null;CITY.vsP=null;CITY.vs=null;CITY.vsG=null;CITY.abris=null;CITY.couloirs=null;CITY.railN=null;CITY.cadreN=null;CITY.cadres=null;CITY.vsBilan=null;if(CITY.vsIm){CITY.vsIm.dispose();CITY.vsIm=null;}CITY.aud=null;CITY.col=null;CITY.dz=null;CITY.deco=null;CITY.ens=[];CITY.solY=null;CITY.imC=CITY.imN=null;CITY.fam=null;CITY.lampes=null;cryptoVide(); // (CRYPTOCITY) ce que la ville d'avant avait de crypto part avec elle // (l'ancien cratère s'éteint avec son quartier)
   if(PARK.on)return; // le parc a sa prairie
   if(LVL.cur&&LVL.cur.id!=='ville')return; // NIVEAUX : la ville n'existe qu'au niveau VILLE
   if(!(NP>1))return;
@@ -112,8 +112,8 @@ function* buildVoxCityG(seed,accC){ /* (lot portv) la ville en tranches : rend l
   CITY.entree=iEA<0?null:[iEA,iEB];
   /* (2026-11-13, LA VILLE QUI SE VISITE — voir ville-scenes.js) les SCÈNES : leurs emprises sont réservées AVANT les tours (et avant les pièces ₿) ; leurs volumes se posent APRÈS (vsBatir) ;
      SP9 = les volumes « sans pied » (ils flottent : un plafond, un pont, une tour posée sur la rue — leur pied ne se noie pas dans la brume) */
-  const VAME9=VILLE_AME&&!VI&&!VS,SP9=[],V9=VAME9?{P:pts,pts:pts,dsP:dsP,proches:proches,pasP:pasP,snap:snap,corps:corps,genre:genre,tqC:tqC,neon:neon,neonC:neonC,tqN:tqN,sp:SP9,AIRZ:AIRZ,root:root,NEON:NEON,CR:CR}:null;
-  if(V9)vsReserve(V9);
+  const VAME9=VILLE_AME&&!VI&&!VS,SP9=[],V9=VAME9?{P:pts,pts:pts,dsP:dsP,proches:proches,pasP:pasP,snap:snap,corps:corps,genre:genre,tqC:tqC,neon:neon,neonC:neonC,tqN:tqN,sp:SP9,AIRZ:AIRZ,root:root,NEON:NEON,CR:CR,neonR:new Map()}:null; /* neonR (2026-11-18, LES CADRES PAR MOMENTS) : la matrice des néons qui ne sont pas des boîtes droites (indice → 16 nombres), lue par fam */
+  if(V9){if(VILLE_CYBER)V9.vcDiff=[];vsReserve(V9);if(V9.vcDiff)for(const d9 of V9.vcDiff)yield* vcReserveG(V9,d9[0],d9[1],d9[2],false,ech9);} /* (2026-11-18, LA VILLE CYBERPUNK, tour 2) les plans des modules route-ville, en tranches (ville-cyber.js) */
   if(CR)cryptoPlace(seed,proches); // (CRYPTOCITY) les pièces géantes, les diamants, les dirigeables se réservent leur place AVANT les tours
   /* (2026-11-13, LES ANCRES DE LA ROUTE — voir plus bas) les géantes des ancres sont connues AVANT les tours : une tour ordinaire qui tomberait sur leur emprise n'est pas bâtie (ses tirages ont eu lieu : la ville d'à côté ne bouge pas) */
   const ANCD=[];if(VILLE_ANCRES&&!VI&&!VS)for(const m9 of FILETMARK)if(m9.anc)for(const a9 of m9.anc)if(a9.t==='geante'){let w=snap(Math.min(150,(a9.r-5)*1.4142)),hd=Math.hypot(w,w)*.5+5;while(w>VOX_CITY*5&&hd>a9.r){w-=VOX_CITY;hd=Math.hypot(w,w)*.5+5;}ANCD.push({x:a9.x,z:a9.z,hd:hd});}
@@ -302,7 +302,7 @@ function* buildVoxCityG(seed,accC){ /* (lot portv) la ville en tranches : rend l
   for(let i=0;i<neonC.length;i++)NEON[neonC[i]].toArray(colN,i*3);
   if(V9){for(const gq of CITY.vsG||[]){let g0=-1;for(const i of gq)if(genre[i]===0){g0=i;break;}if(g0<0)continue;for(const i of gq)if(genre[i]===0){colT[i*3]=colT[g0*3];colT[i*3+1]=colT[g0*3+1];colT[i*3+2]=colT[g0*3+2];}}
     for(const i of SP9)if(i<genre.length)colT[i*3+2]+=4;} /* (LA VILLE QUI SE VISITE) une scène, une teinte ; « sans pied » : bleu + 4, décodé par villeMatTours / cryptoMatTours (voir vSP9) */
-  const fam=(arr,kT,cols,mat,matL,geo,flip,colL)=>{ // (2026-10-18, NÉON ET VERRE) colL : l'instance AU LOIN a aussi sa couleur (le drapeau du pied des géantes de verre)
+  const fam=(arr,kT,cols,mat,matL,geo,flip,colL,rot)=>{ /* (2026-11-18) rot : les instances posées par leur matrice (les cadres de lumière de la ville), indice → 16 nombres ; vide = la pose d'avant */ // (2026-10-18, NÉON ET VERRE) colL : l'instance AU LOIN a aussi sa couleur (le drapeau du pied des géantes de verre)
     // (2026-10-17) flip : les instances RETOURNÉES (la ville d'en haut de la VILLE VITRÉE) // (2026-10-17) geo : la géométrie des tours PRÈS (la VILLE VITRÉE : ses coins biseautés) ; au loin, toujours le cube // une FAMILLE : tableau maître rangé par quartiers + l'instance complète (PRÈS) et l'instance nue (AU LOIN)
     // ⚠ le quartier se choisit par la TOUR (kT), pas par le volume : les pièces d'une même tour (retraits emboîtés, tuyaux, mât, néons) restent
     // ensemble et dans leur ordre d'origine — là où deux d'entre elles se croisent, la profondeur tombe à égalité sur une ligne de pixels et
@@ -313,7 +313,7 @@ function* buildVoxCityG(seed,accC){ /* (lot portv) la ville en tranches : rend l
       z:new Float64Array(cle.size),pP:new Int32Array(cle.size),pL:new Int32Array(cle.size),fP:0,fL:0,d:new Int32Array([2e9,-1,2e9,-1]),vide:[false,false],refait:false};
     let p=0,j=0;
     for(const L of cle.values()){const a=p;let x0=1e9,y0=1e9,z0=1e9,x1=-1e9,y1=-1e9,z1=-1e9;
-      for(const i of L){const o=i*6;if(flip&&flip[i])M.makeScale(-arr[o+3],-arr[o+4],arr[o+5]);else M.makeScale(arr[o+3],arr[o+4],arr[o+5]);M.setPosition(arr[o],arr[o+1],arr[o+2]);M.toArray(F.M,p*16); // la matrice d'AVANT, au bit près
+      for(const i of L){const o=i*6,r9=rot&&rot.size?rot.get(i):null;if(r9)M.fromArray(r9);else{if(flip&&flip[i])M.makeScale(-arr[o+3],-arr[o+4],arr[o+5]);else M.makeScale(arr[o+3],arr[o+4],arr[o+5]);M.setPosition(arr[o],arr[o+1],arr[o+2]);}M.toArray(F.M,p*16); // la matrice d'AVANT, au bit près
         F.C[p*3]=cols[i*3];F.C[p*3+1]=cols[i*3+1];F.C[p*3+2]=cols[i*3+2];F.rang[i]=p++;
         x0=Math.min(x0,arr[o]-arr[o+3]/2);x1=Math.max(x1,arr[o]+arr[o+3]/2);y0=Math.min(y0,arr[o+1]-arr[o+4]/2);y1=Math.max(y1,arr[o+1]+arr[o+4]/2);
         z0=Math.min(z0,arr[o+2]-arr[o+5]/2);z1=Math.max(z1,arr[o+2]+arr[o+5]/2);}
@@ -334,7 +334,7 @@ function* buildVoxCityG(seed,accC){ /* (lot portv) la ville en tranches : rend l
     for(const RG of [[A,vitreGeo()],[B,vitreGeoR()]])if(RG[0].a.length){const F=fam(RG[0].a,RG[0].k,RG[0].c,vitreMatToursNeon(),vitreMatToursNeonLoin(),RG[1],null,true);if(!CITY.imC)CITY.imC=F.im;CITY.fam.push(F);}}
   else if(corps.length){const F=fam(corps,tqC,colT,CR?cryptoMatTours():villeMatTours(),CR?cryptoMatToursLoin():villeMatToursLoin());CITY.imC=F.im;CITY.fam.push(F);}
   if(ech9())yield;
-  if(neon.length){const F=fam(neon,tqN,colN,villeMatNeon(),villeMatNeonLoin());CITY.imN=F.im;CITY.fam.push(F);}
+  if(neon.length){const F=fam(neon,tqN,colN,villeMatNeon(),villeMatNeonLoin(),undefined,undefined,undefined,V9?V9.neonR:null);CITY.imN=F.im;CITY.fam.push(F);}
   if(ech9())yield;
   if(pubs.length){if(!CR)villePubAtlas(); /* (2026-10-16) repeint si la teinte de la ville a changé */ const Qp=new THREE.Quaternion(),Pp=new THREE.Vector3(),Sp=new THREE.Vector3(),Ay=new THREE.Vector3(0,1,0),PL=new THREE.PlaneGeometry(1,1),n9=pubs.length/6;
     const imP=new THREE.InstancedMesh(PL,CR?cryptoMatPub():villeMatPub(),n9);

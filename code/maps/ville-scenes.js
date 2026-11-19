@@ -32,6 +32,18 @@ const VILLE_CALME=VILLE_AME&&!/[?&]sans=([^&]*,)?villecalme(,|&|$)/.test(locatio
    (et son monorail).
    Rendu seul : aucun tirage, aucune route ne change. Le portail de fin de map n'est pas d'ici. `?sans=villeportails` remet l'avant. */
 const VILLE_SANS_CADRES=VILLE_AME&&!/[?&]sans=([^&]*,)?villeportails(,|&|$)/.test(location.search);
+/* ===== LES CADRES DE LUMIÈRE, PAR MOMENTS (2026-11-18, Sacha : « remets les portails … à certains moments, pas tout le temps ») =====
+   La carte VILLE seulement (ni Crypto City ni la vitrée). Deux familles reviennent, redessinées : les PORTES DE LUMIÈRE (le grand S) et les BOUCHES
+   de tunnel et de couloir (l'ANNEAU du saut des néons est écrit mais hors tirage : VILLE_CADRES_ANNEAU). Fines (1,4-1,6 m vues de la caisse), hautes (la barre à 26 m au-dessus de la dalle), d'une lueur
+   pleine (« lames » de 3,6 m de profondeur : ni enseigne à caractères ni guirlande rayée — voir villeMatNeon), posées DANS la famille des néons
+   (une matrice par instance : V.neonR, lue par fam de buildVoxCity) : aucun appel de dessin, aucune matière de plus. Une pièce à moins de 5 m de la
+   dalle roulée (de 6 m sous elle à 18 m au-dessus, tous ses étages) n'est pas posée ; l'anneau se place là où passent TOUS les vols du saut.
+   LE TIRAGE, par route (dans vsBatirG, bloc CAD) : un hasard né de la PLACE de la route finie (VS_H, ni `rf` ni `vr` : la route et les tours ne bougent pas) —
+   k = ⌊3u⌋ familles visées (0, 1 ou 2), prises dans un ordre tiré parmi celles que la route offre ET dont le cadre a passé le juge ; jamais trois. `?sans=villecadres` : aucun cadre (la ville du 14/11). */
+const VILLE_CADRES_RARES=VILLE_SANS_CADRES&&!/[?&]sans=([^&]*,)?villecadres(,|&|$)/.test(location.search);
+/* (reprise, 2026-11-18) L'ANNEAU du saut des néons reste HORS du tirage : vu en photo (graines 1 et 5, 844×390 et 390×844), c'est encore un grand rectangle
+   suspendu dont la barre basse barre l'écran au-dessus de la route d'en bas — le « chelou » du 14/11. `?avec=villeanneau` le remet au tirage (pour en juger). */
+const VILLE_CADRES_ANNEAU=/[?&]avec=([^&]*,)?villeanneau(,|&|$)/.test(location.search);
 /* ===== LA GRANDE SPIRALE (2026-11-14, correction de la ville calme : la charte R6, « ≥ 2 raccourcis par route au palier 0 ») =====
    La ville calme n'avait plus qu'UN raccourci sur 7 routes sur 12 : les autres naissaient des boucles serrées qui repassaient sous la route. Au palier 0 seulement,
    le grand moment redevient un GRAND tour descendant (320-345° à 2,8-3,1 rP, dalle à plat, pente 12-20 %) dont la sortie passe sous l'entrée : on peut sauter
@@ -139,13 +151,14 @@ function vsModules(G){
     else an.push({t:'vrille',v:v9,x:Cm.x,z:Cm.z,ux:(Cb.x-Ca.x)/tl,uz:(Cb.z-Ca.z)/tl});
     FILETMARK.push({anc:an});return {fig:'vrille',nom:['vrille du pont de verre','vrille du monorail','vrille du pont des tours','vrille des tours'][v9],vr:[[i0,i1]]};};
   const scenes=[sTraversee,sPasserelle,sFacade,sSpirale,sCrete,sPortes,sPlongee];
+  const VC=VILLE_CYBER?vcModules(G,{calage:calage,cote:cote,Rv:Rv,setDer:function(s9){der=s9;}}):null; /* (2026-11-18, LA VILLE CYBERPUNK — voir ville-cyber.js) les modules route-ville : aucun tirage ici */
   /* LES LONGUEURS (en secondes de croisière, au palier 0 puis au palier 20 ; mesurées : outils de la session, long-scenes.cjs) — la place d'une scène se juge sur SA longueur */
   const LONG=new Map([[sTraversee,[7,3.2]],[sPasserelle,[6.4,2.4]],[sFacade,[5.6,2.8]],[sSpirale,[10.7,10.7]],[sCrete,[4,3.6]],[sPortes,[7.6,4.2]],[sPlongee,[7.9,6]],[sNoeud,[19.4,9.8]]]),
     LONGN={'slalom des géantes':[12.2,6.8],'épingle de la tour':[7.2,4],'bougie':[6.1,5],'krach':[6,5.6]};
   return {liaison:liaison,souffle:souffle,sTraversee:sTraversee,sPasserelle:sPasserelle,sFacade:sFacade,sSpirale:sSpirale,sCrete:sCrete,sPortes:sPortes,sPlongee:sPlongee,sNoeud:sNoeud,
-    scenes:scenes,vrille:sVrille,nomme:function(fn,nom){const f=function(){return Object.assign({nom:nom},fn()||{});};f.nom=nom;return f;},
+    scenes:scenes,cyber:VC,vrille:sVrille,nomme:function(fn,nom){const f=function(){return Object.assign({nom:nom},fn()||{});};f.nom=nom;return f;},
     souffleL:function(){const kL=1+.45*Math.max(0,LV-1);return Math.max(G.rPl(),2.2*vD*kL,2.2*rP)*(60/57.2958)/Math.sqrt(kL);}, /* la longueur d'un souffle sans consigne (souffle({L:0})), au plus */
-    longueur:function(fn){const f=(VILLE_CALME&&(fn===sSpirale?[10.7,7.2]:fn&&fn.nom==='épingle de la tour'?[8.1,4.7]:null))||LONG.get(fn)||(fn&&LONGN[fn.nom])||[8,6],u=Math.max(0,Math.min(1,(LV-1.08)/2.63));return 1.08*vD*(f[0]+(f[1]-f[0])*u);}, /* la longueur d'une scène (m), au pire des graines mesurées, + 8 % */
+    longueur:function(fn){const f=(VILLE_CALME&&(fn===sSpirale?[10.7,7.2]:fn&&fn.nom==='épingle de la tour'?[8.1,4.7]:null))||LONG.get(fn)||(fn&&fn.lg)||(fn&&LONGN[fn.nom])||[8,6],u=Math.max(0,Math.min(1,(LV-1.08)/2.63));return 1.08*vD*(f[0]+(f[1]-f[0])*u);}, /* la longueur d'une scène (m), au pire des graines mesurées, + 8 % */
 cote:cote,setDer:function(s){der=s>0?1:s<0?-1:0;},estScene:function(f){return scenes.indexOf(f)>=0||f===sNoeud;}};
 }
 /* LE CONTRAT DE LA CHARTE (passation/CHARTE-ROUTES.md § 3) : chaque MODMARK de la ville porte son NOM en clair (le banc juge compte la variété par nom) */
@@ -274,6 +287,7 @@ function vsReserve(V,essai){ /* essai : (le meilleur-de-N) rien n'est gardé dan
   for(const m9 of FILETMARK)if(m9.anc)for(const a of m9.anc){
     if(a.t==='geante'||a.t==='pile')continue; /* (les géantes et les piles des ancres de la v1544 : bâties à part, plus haut dans buildVoxCity) */
     const P0={t:a.t,ok:false,a:a,raison:''};plans.push(P0);const non=function(r){P0.raison=r;if(r==='route'||r==='pont')P0.gene=Object.assign({},VS_GENE);};
+    if(VILLE_CYBER&&VC_TYPES[a.t]){if(!essai&&V.vcDiff)V.vcDiff.push([a,P0,non]);else vcReserve(V,a,P0,non,essai);continue;} /* (LA VILLE CYBERPUNK) le plan des modules route-ville : ville-cyber.js — (tour 2) dans buildVoxCityG, mené en tranches juste après (V.vcDiff) */
     if(a.t==='tunnel'||a.t==='passerelle'||a.t==='rue'){
       const cx=(a.x0+a.x1)/2,cz=(a.z0+a.z1)/2,L=Math.abs((a.x1-a.x0)*a.ux+(a.z1-a.z0)*a.uz);P0.x=cx;P0.z=cz;
       if(a.t==='tunnel'){const Lt=L-20;if(Lt<60){non('court');continue;}const PL=a.ax==='z'?VS_PER.x:VS_PER.z;let D=PL;while(D-hi<14)D+=PL;const Hl=2*D-hi,L2=Lt/2;
@@ -352,12 +366,12 @@ function vsMalusDecor(ctrl){
   const proches=function(x,z,R9,cb){const r=Math.ceil(R9/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB);for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const l=G.get((bx+dx)*100003+(bz+dz));if(l)for(const i of l)cb(i);}};
   const AIRZ=[];for(const m9 of FILETMARK)if(m9.air)for(const a9 of m9.air)AIRZ.push(a9);
   const V={P:P,proches:proches,pasP:1,snap:function(v){const q=typeof VOX_CITY!=="undefined"?VOX_CITY:6.4;return Math.max(1,Math.round(v/q))*q;},AIRZ:AIRZ};
-  let perdus=0;for(const p of vsReserve(V,true))if(!p.ok&&p.t!=='portes')perdus++;return perdus*3;}
-function vsBloque(cx,cz,hd){const L=CITY.vsP;if(!L)return false;for(const p of L)if(p.ok&&p.zone){const z=p.zone;if(cx+hd>z[0]-6&&cx-hd<z[1]+6&&cz+hd>z[2]-6&&cz-hd<z[3]+6)return true;}return false;}
+  let perdus=0;for(const p of vsReserve(V,true))if(!p.ok&&p.t!=='portes')perdus++;else if(p.vcPerdus)perdus+=p.vcPerdus*.5;return perdus*3;} /* (LA VILLE CYBERPUNK) une pièce perdue d'un module route-ville : une demie */
+function vsBloque(cx,cz,hd){const L=CITY.vsP;if(!L)return false;for(const p of L)if(p.ok&&p.zone){const z=p.zone;if(cx+hd>z[0]-6&&cx-hd<z[1]+6&&cz+hd>z[2]-6&&cz-hd<z[3]+6)return true;}else if(p.ok&&p.zones)for(const z of p.zones)if(cx+hd>z[0]-6&&cx-hd<z[1]+6&&cz+hd>z[2]-6&&cz-hd<z[3]+6)return true;return false;} /* (LA VILLE CYBERPUNK) zones : les emprises pièce par pièce */
 function vsZonesCrypto(){const out=[],L=CITY.vsP;if(!L)return out;for(const p of L)if(p.ok&&p.zone){const z=p.zone;out.push((z[0]+z[1])/2,(z[2]+z[3])/2,Math.hypot(z[1]-z[0],z[3]-z[2])/2+8);}return out;}
 function vsBatir(V){return rythmeMene(vsBatirG(V));} /* (2026-11-17, lot portv) d'un trait : le même générateur */
 function* vsBatirG(V){const ech9=function(){return typeof JF!=='undefined'&&performance.now()>JF.lim;}; /* (lot portv) une pause possible (échéance JF.lim) entre deux scènes — mêmes volumes, même ordre */
-  const plans=CITY.vsP||[],hi=ROAD_HALF+14,HC=VS_HC,grp=[];let nV=0,nN=0;CITY.abris=[];CITY.couloirs=[];CITY.railN=[];
+  const plans=CITY.vsP||[],hi=ROAD_HALF+14,HC=VS_HC,grp=[];let nV=0,nN=0;CITY.abris=[];CITY.couloirs=[];CITY.railN=[];CITY.cadreN=null;CITY.cadreF=null;CITY.neonR=null;CITY.cadres=null;
   const vol=function(x0,x1,y0,y1,z0,z1,g,sp,k){if(x1-x0<.5||y1-y0<.5||z1-z0<.5)return;V.corps.push((x0+x1)/2,(y0+y1)/2,(z0+z1)/2,x1-x0,y1-y0,z1-z0);V.genre.push(g);V.tqC.push(k[0],k[1],k[2]);
     const i=V.genre.length-1;if(sp)V.sp.push(i);k[3].push(i);nV++;};
   const lum=function(x0,x1,y0,y1,z0,z1,c,k){if(x1-x0<.3||y1-y0<.3||z1-z0<.3)return;V.neon.push((x0+x1)/2,(y0+y1)/2,(z0+z1)/2,x1-x0,y1-y0,z1-z0);V.neonC.push(c);V.tqN.push(k[0],k[1],k[2]);nN++;};
@@ -373,10 +387,63 @@ function* vsBatirG(V){const ech9=function(){return typeof JF!=='undefined'&&perf
     {let i0=1e9,i1=-1;V.proches(cx,cz,demi+hi+30,function(i){const p=V.P[i];if(p.y<yb-8||p.y>yc)return;const a=ax==='z'?p.z-cz:p.x-cx,l=ax==='z'?p.x-cx:p.z-cz;if(Math.abs(a)<=demi+2&&Math.abs(l)<=hi){if(i<i0)i0=i;if(i>i1)i1=i;}});
      if(i1>=0&&V.dsP)CITY.couloirs.push([i0*V.dsP-10,i1*V.dsP+10]);} /* l'intervalle de la route (s) DANS le couloir : villeCouloirIci */
     if(!VILLE_SANS_CADRES)for(const e of [-1,1]){const s=e*demi;lumA(ax,cx,cz,s-1.6,s+1.6,-hi,-hi+3.2,yb,yc,6,k);lumA(ax,cx,cz,s-1.6,s+1.6,hi-3.2,hi,yb,yc,6,k);lumA(ax,cx,cz,s-1.6,s+1.6,-hi,hi,yc-3,yc,6,k);}
+    else if(CAD&&CAD.bouches){const A9=ax==='z'?{x:0,y:0,z:1}:{x:1,y:0,z:0},L9=ax==='z'?{x:1,y:0,z:0}:{x:0,y:0,z:1},Y9={x:0,y:1,z:0},c9=Math.floor(VS_H(cx,cz)*5)%5; /* (LES CADRES PAR MOMENTS) la bouche cadrée : deux montants et un linteau fins, d'une couleur par tunnel */
+      for(const e of [-1,1]){const s=e*demi,X=cx+A9.x*s,Z=cz+A9.z*s;
+        for(const l of [-1,1])cadPose('bouches',X+L9.x*l*(hi-.8),(yb+yc)/2,Z+L9.z*l*(hi-.8),Y9,A9,yc-yb,1.6,c9,k,1.5);
+        cadPose('bouches',X,yc-.8,Z,L9,A9,2*hi,1.6,c9,k,1.5);const G9=cadFige('bouches');if(G9)cadPousse(G9);}}
     const Z=ax==='z'?[cx-hi,cx+hi,cz-demi,cz+demi]:[cx-demi,cx+demi,cz-hi,cz+hi];CITY.abris.push([Z[0],Z[1],yb-2,yc,Z[2],Z[3]]);};
   /* le sommet d'une tour de scène : la couronne (une fois sur deux), le mât et son feu */
   const sommet=function(cx,cz,dx,dz,top,k,h){if(h>.4)lum(cx-dx*.53,cx+dx*.53,top-1.4,top+1.4,cz-dz*.53,cz+dz*.53,6,k);const ha=36+h*44;vol(cx-1.2,cx+1.2,top,top+ha,cz-1.2,cz+1.2,2,true,k);lum(cx-2.25,cx+2.25,top+ha-2.25,top+ha+2.25,cz-2.25,cz+2.25,5,k);};
+  /* ===== LES CADRES DE LUMIÈRE, PAR MOMENTS (2026-11-18, Sacha : « remets les portails … à certains moments, pas tout le temps » — voir VILLE_CADRES_RARES) =====
+     Une PIÈCE : une lame de néon de centre (x, y, z), longue de lu sur U, profonde de 3,6 m sur V (la marche), épaisse de lw sur W = U × V. Sa matrice va dans V.neonR
+     (fam la pose telle quelle) ; le tableau des néons garde sa boîte englobante (le tri par quartiers, les bancs). Les pièces d'un cadre vont ensemble : cadFige les
+     décale le long de V pour que la lueur de chacune respire sans clignoter (vS9 de villeMatNeon hors de ses bandes de clignotement), puis les juge contre la dalle
+     (cadLibre) — une seule qui gêne et le cadre entier n'est pas posé. */
+  let CAD=null,CADP=[],nCad=0;const NR9=V.neonR||null,CADS={groupes:{portes:0,anneau:0,bouches:0},rejets:{portes:0,anneau:0,bouches:0},pieces:0,jeu:1e9};
+  const cadPose=function(f,x,y,z,U,V9,lu,lw,c,k,sh){const W={x:U.y*V9.z-U.z*V9.y,y:U.z*V9.x-U.x*V9.z,z:U.x*V9.y-U.y*V9.x};CADP.push({f:f,x:x,y:y,z:z,U:U,V:V9,W:W,lu:lu,lv:3.6,lw:lw,c:c,k:k,sh:sh||0});};
+  const cadSur=function(x,y,z){const v=x*.113+z*.071+y*.037,f=v-Math.floor(v);return f>.08&&f<.86;}; /* vS9 de villeMatNeon : au-dessus de ,88 la lame clignote, sous ,05 elle grésille */
+  const cadDecale=function(D,r){for(let q=0;q<=4*r;q++){const d=(q&1?-1:1)*Math.ceil(q/2)*.25;let ok=true;for(const p of CADP)if(!cadSur(p.x+D.x*d,p.y+D.y*d,p.z+D.z*d)){ok=false;break;}
+      if(ok){for(const p of CADP){p.x+=D.x*d;p.y+=D.y*d;p.z+=D.z*d;}return;}}};
+  const cadLibre=function(q){const hu=q.lu/2,hv=q.lv/2,hw=q.lw/2,ds=Math.max(1,(V.pasP||1)*(V.dsP||4)*.5+.5) /* (reprise) V.proches ne rend qu'un point tous les pasP (~12 m) : la tolérance le long de la route est la moitié de CE pas — avec dsP seul, une barre de l'anneau passait à 17,7 m au-dessus d'une dalle (dbgVilleCadres, graine 1) */,cv=ROAD_HALF*.125,cl=function(v,h){return v<-h?-h:v>h?h:v;};let jeu=1e9,ok=true;
+    V.proches(q.x,q.z,hu+hv+hw+ROAD_HALF+8,function(i){if(!ok)return;const p=V.P[i],b=B[i],n=Nn[i],t=T[i];
+      for(let s=-4;s<=4;s++){const f=s/4*ROAD_HALF,rx=p.x+b.x*f,ry=p.y+b.y*f,rz=p.z+b.z*f,dx=rx-q.x,dy=ry-q.y,dz=rz-q.z;
+        const a=cl(dx*q.U.x+dy*q.U.y+dz*q.U.z,hu),c=cl(dx*q.V.x+dy*q.V.y+dz*q.V.z,hv),w=cl(dx*q.W.x+dy*q.W.y+dz*q.W.z,hw);
+        const ex=q.x+q.U.x*a+q.V.x*c+q.W.x*w-rx,ey=q.y+q.U.y*a+q.V.y*c+q.W.y*w-ry,ez=q.z+q.U.z*a+q.V.z*c+q.W.z*w-rz;
+        const u=ex*n.x+ey*n.y+ez*n.z,l=ex*b.x+ey*b.y+ez*b.z,tt=Math.max(0,Math.abs(ex*t.x+ey*t.y+ez*t.z)-ds);
+        const le=(s===4&&l>0)||(s===-4&&l<0)?Math.abs(l):Math.max(0,Math.abs(l)-cv),h=Math.hypot(le,tt); /* l'écart à la DALLE (sa largeur, la distance entre deux points) */
+        if(u>-6&&u<18){if(h<jeu)jeu=h;if(h<5){ok=false;return;}}}}); /* de 6 m sous la dalle à 18 m au-dessus : la caisse, sa caméra, un saut */
+    q.jeu=jeu;return ok;};
+  const cadFige=function(f){const G=CADP;CADP=[];
+    for(const q of G)if(q.sh){for(let s=0;s<=4*q.sh;s++){const d=(s&1?-1:1)*Math.ceil(s/2)*.25;if(cadSur(q.x+q.V.x*d,q.y+q.V.y*d,q.z+q.V.z*d)){q.x+=q.V.x*d;q.y+=q.V.y*d;q.z+=q.V.z*d;break;}}}
+    for(const q of G)if(!cadLibre(q)){CADS.rejets[f]++;return null;}return G;};
+  const cadPousse=function(G){if(!G||!G.length)return;CADS.groupes[G[0].f]++;
+    for(const q of G){const i=V.neon.length/6,su=q.lu/2,sv=q.lv/2,sw=q.lw/2,U=q.U,V9=q.V,W=q.W;
+      V.neon.push(q.x,q.y,q.z,2*(Math.abs(U.x)*su+Math.abs(V9.x)*sv+Math.abs(W.x)*sw),2*(Math.abs(U.y)*su+Math.abs(V9.y)*sv+Math.abs(W.y)*sw),2*(Math.abs(U.z)*su+Math.abs(V9.z)*sv+Math.abs(W.z)*sw));
+      V.neonC.push(q.c);V.tqN.push(q.k[0],q.k[1],q.k[2]);
+      NR9.set(i,[U.x*q.lu,U.y*q.lu,U.z*q.lu,0,V9.x*q.lv,V9.y*q.lv,V9.z*q.lv,0,W.x*q.lw,W.y*q.lw,W.z*q.lw,0,q.x,q.y,q.z,1]);CITY.cadreN.push(i);CITY.cadreF.push(q.f);nCad++;if(q.jeu<CADS.jeu)CADS.jeu=q.jeu;}};
+  if(VILLE_CADRES_RARES&&NR9&&!V.CR&&LVL.cur&&LVL.cur.id==='ville'&&!LVL.cur.vitre&&!LVL.cur.crypto&&NP>1){CITY.cadreN=[];CITY.cadreF=[];CITY.neonR=NR9;
+    /* LES PORTES DE LUMIÈRE : un cadre tous les ~0,9 s du grand S, dans le repère de la DALLE (il penche avec elle) — deux montants à 9 m du bord, la barre à 26 m */
+    const GP=[];{let g=0;for(const p of plans)if(p.ok&&p.t==='portes')for(const q of p.a.q){const i=vsProche(V,q.x,q.z,30);if(i<0)continue;
+      const o=pts[i],t=T[i],nn=Nn[i],bb=B[i],w=ROAD_HALF+9,H=26,c=(g++)%5,kk=[o.x,o.y,o.z],at=function(ox,oy){return [o.x+bb.x*ox+nn.x*oy,o.y+bb.y*ox+nn.y*oy,o.z+bb.z*ox+nn.z*oy];};
+      for(const e of [-1,1]){const a=at(e*w,(H-3.3)/2);cadPose('portes',a[0],a[1],a[2],nn,t,H+4.7,1.4,c,kk,0);}
+      {const a=at(0,H);cadPose('portes',a[0],a[1],a[2],bb,t,2*w+1.4,1.4,c,kk,0);}cadDecale(t,6);const G=cadFige('portes');if(G)GP.push(G);}}
+    /* L'ANNEAU DU SAUT DES NÉONS : un cadre de lumière en travers de l'axe du saut, là où passent TOUS les vols (du plus lent, qui se pose au début de la piste
+       d'en bas, au plus vif, et 14 m plus haut pour qui saute) à 6 m des barres au moins, et à 5 m de toute dalle ; essayé à mi-vol, puis un peu avant, un peu après */
+    const GA=[];{let g=0;for(const p of plans)if(p.ok&&p.t==='anneau'&&p.a.xS!=null&&VILLE_CADRES_ANNEAU){const a=p.a,ln=Math.hypot(a.ux,a.uz)||1,D={x:a.ux/ln,y:0,z:a.uz/ln},Lt={x:D.z,y:0,z:-D.x},Y9={x:0,y:1,z:0};
+      const gv=FALL_G*SPD,iL9=vsProche(V,a.aX+D.x*a.xS,a.aZ+D.z*a.xS,ROAD_HALF+30),yL=iL9>=0?V.P[iL9].y:a.yA-a.pC*a.xS,vmin=.4*a.vD,c=(g++ +2)%5;let G=null; /* yL : la hauteur FINALE de la route là où l'on quitte le bord (les lissages déplacent les y) */
+      for(const fr of [.5,.62,.38,.74,.26]){const x=fr*Math.max(20,a.d0-a.xS),d9=a.xS+x,top=yL-a.pC*x+14,bot=yL-a.pC*x-.5*gv*(x/vmin)*(x/vmin)-4,hh=Math.max(24,(top-bot)/2+6),hw=Math.max(ROAD_HALF+22,x*.2126+12);
+        const yc=(top+bot)/2,cx=a.aX+D.x*d9,cz=a.aZ+D.z*d9,kk=[cx,yc,cz];
+        for(const e of [-1,1])cadPose('anneau',cx+Lt.x*e*hw,yc,cz+Lt.z*e*hw,Y9,D,2*hh+1.4,1.4,c,kk,0);
+        for(const e of [-1,1])cadPose('anneau',cx,yc+e*hh,cz,Lt,D,2*hw+1.4,1.4,c,kk,0);
+        cadDecale(D,6);G=cadFige('anneau');if(G){G.vol={x:cx,y:yc,z:cz,hh:hh,hw:hw,top:top,bot:bot,D:D};break;}}
+      if(G)GA.push(G);}}
+    const dispo={portes:GP.length>0,anneau:GA.length>0,bouches:plans.some(function(p){return p.ok&&(p.t==='tunnel'||p.t==='noeud');})};
+    const m9=pts[NP>>1],z9=pts[NP-1],u=VS_H(m9.x*1.37+z9.z*.61,m9.z*1.13-z9.x*.47),u2=VS_H(m9.z*.83+z9.x*1.9,m9.x*.71+z9.z*.29),k9=u<1/3?0:u<2/3?1:2; /* le hasard de la route : sa PLACE (ni rf ni vr) */
+    const ord=[['portes','anneau','bouches'],['portes','bouches','anneau'],['anneau','portes','bouches'],['anneau','bouches','portes'],['bouches','portes','anneau'],['bouches','anneau','portes']][Math.min(5,Math.floor(u2*6))];
+    CAD={u:+u.toFixed(3),k:k9,ordre:ord,dispo:dispo,fam:[],GP:GP,GA:GA};for(const f of ord)if(CAD.fam.length<k9&&dispo[f]){CAD[f]=true;CAD.fam.push(f);}
+    CADS.groupes={portes:0,anneau:0,bouches:0};CADS.rejetsAvant={portes:CADS.rejets.portes,anneau:CADS.rejets.anneau};}
   for(const p of plans){if(ech9())yield;if(!p.ok)continue;const k=[p.cx,(p.b!=null?p.b:p.rue||0)+200,p.cz,[]];grp.push(k[3]);
+    if(VILLE_CYBER&&VC_TYPES[p.t]){yield* vcBatirG(V,p,k,{vol:vol,lum:lum,sommet:sommet},ech9);continue;} /* (LA VILLE CYBERPUNK) ville-cyber.js — (tour 2) en tranches */
     if(p.t==='tunnel'){const ax=p.ax,L2=p.Lt/2,cx=p.cx,cz=p.cz,yc=p.y1+HC,fl=p.y0-6.5;
       volA(ax,cx,cz,-L2,L2,-p.Hl,-hi,p.b,yc,0,false,k);volA(ax,cx,cz,-L2,L2,hi,p.Hl,p.b,yc,0,false,k); /* les deux murs, du pied au plafond (leur pied se noie avec la ville) */
       volA(ax,cx,cz,-L2,L2,-hi,hi,p.b,fl,0,false,k);                                                          /* le socle sous la route, 6,5 m sous le bitume */
@@ -434,6 +501,9 @@ function* vsBatirG(V){const ech9=function(){return typeof JF!=='undefined'&&perf
   /* LES PORTES DE LUMIÈRE : des portiques posés dans le repère de la DALLE (T, Nn, B : ils penchent avec le dévers) — une instance de la matière néon */
   const G9=[],A9=[];for(const p of plans)if(p.ok&&p.t==='portes')for(const q of p.a.q){const i=vsProche(V,q.x,q.z,30);if(i>=0)G9.push(i);}for(const p of plans)if(p.ok&&p.t==='anneau')A9.push(p.a);
   if(VILLE_SANS_CADRES){G9.length=0;A9.length=0;} /* (plus de cadres autour de la route) ni portique ni anneau : les plans restent posés (le tri des routes n'y voit rien) */
+  if(CAD){if(CAD.portes)for(const G of CAD.GP)cadPousse(G);if(CAD.anneau)for(const G of CAD.GA)cadPousse(G); /* (LES CADRES PAR MOMENTS) les portes et l'anneau tirés pour cette route, dans la famille des néons */
+    CITY.cadres={fam:CAD.fam,k:CAD.k,u:CAD.u,ordre:CAD.ordre,dispo:CAD.dispo,groupes:CADS.groupes,rejets:CADS.rejets,pieces:nCad,jeu:nCad?+CADS.jeu.toFixed(1):null,
+      anneaux:CAD.anneau?CAD.GA.map(function(G){return G.vol;}):[],portesDispo:CAD.GP.length,anneauxDispo:CAD.GA.length};}
   if(G9.length||A9.length){const n=G9.length*3+A9.length*4,im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),villeMatNeon(),n),M=new THREE.Matrix4(),S=new THREE.Vector3(),col=new THREE.Color();let j=0;
     const pose=function(i,ox,oy,sx,sy,sz,c){const p=pts[i],t=T[i],nn=Nn[i],bb=B[i];M.makeBasis(bb,nn,t);M.scale(S.set(sx,sy,sz));M.setPosition(p.x+bb.x*ox+nn.x*oy,p.y+bb.y*ox+nn.y*oy,p.z+bb.z*ox+nn.z*oy);im.setMatrixAt(j,M);im.setColorAt(j,c);j++;};
     const w=ROAD_HALF+5;G9.forEach(function(i,g){col.copy(V.NEON[g%5]);pose(i,-w,13,7,34,2.6,col);pose(i,w,13,7,34,2.6,col);pose(i,0,30.5,2*w+7,3,2.6,col);});
@@ -443,7 +513,7 @@ function* vsBatirG(V){const ech9=function(){return typeof JF!=='undefined'&&perf
       bar(-a.w/2,0,3.2,a.h);bar(a.w/2,0,3.2,a.h);bar(0,a.h/2,a.w+3.2,3);bar(0,-a.h/2,a.w+3.2,3);});
     im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;im.frustumCulled=false;V.root.add(im);trackMeshes.push(im);CITY.vsIm=im;}
   CITY.vsG=grp;CITY.vs=plans.map(function(p){return {t:p.t,ok:p.ok,raison:p.raison||'',gene:p.gene||null,x:p.x!=null?Math.round(p.x):null,z:p.z!=null?Math.round(p.z):null,y:p.y1!=null?Math.round(p.y1):p.top!=null?Math.round(p.top):p.rue!=null?Math.round(p.rue):null};});
-  return {volumes:nV,neons:nN,portes:G9.length,poses:plans.filter(function(p){return p.ok;}).length,plans:plans.length};
+  return {volumes:nV,neons:nN,portes:G9.length,poses:plans.filter(function(p){return p.ok;}).length,plans:plans.length,cadres:nCad};
 }
 /* LA PLUIE SOUS UN TOIT : 1 si la caméra est sous le plafond d'un couloir (à 2 m près), 0 sinon — pluieTick en éteint l'averse */
 /* DANS UN COULOIR (le tunnel, les couloirs du nœud) : les bords de la route sont des parois — la conduite y appelle murCote, comme aux couloirs du canyon */
@@ -452,6 +522,6 @@ function villeCouloirIci(){const C=CITY.couloirs;if(!C||!C.length)return false;f
 function villeCamPlafond(p){const A=CITY.abris;if(!A||!A.length)return;for(const b of A){const ex=Math.max(b[0]-p.x,0,p.x-b[1]),ez=Math.max(b[4]-p.z,0,p.z-b[5]),e=Math.hypot(ex,ez);
   if(e>40||p.y<b[2]||p.y>b[3]+400)continue;const lim=b[3]-3+e*.8;if(p.y>lim)p.y=lim;}}
 /* LE SAUT REFUSÉ TÊTE EN BAS (la vrille) : vrai si la dalle regarde vers le bas sur la distance d'un vol devant la caisse */
-function villeEnversRefuse(){if(!VILLE_AME||!TORD.on||!LVL.cur||LVL.cur.id!=='ville'||LVL.cur.vitre||!(NP>1))return false;
+function villeEnversRefuse(){if(VILLE_CYBER&&vcSautRefuse())return true; /* (2026-11-18, LA VILLE CYBERPUNK) les crêtes du piqué et des montagnes russes : ville-cyber.js */if(!VILLE_AME||!TORD.on||!LVL.cur||LVL.cur.id!=='ville'||LVL.cur.vitre||!(NP>1))return false;
   const ds=L/(NP-1),i0=Math.max(0,Math.round((s-20)/ds)),i1=Math.min(NP-1,Math.round((s+Math.max(200,4*Math.abs(vA)*SPD))/ds));for(let i=i0;i<=i1;i+=2)if(Nn[i].y<.3)return true;return false;}
 function villeAbri(p){const A=CITY.abris;if(!A||!A.length)return 0;for(const b of A)if(p.x>b[0]-2&&p.x<b[1]+2&&p.y>b[2]&&p.y<b[3]&&p.z>b[4]-2&&p.z<b[5]+2)return 1;return 0;}
