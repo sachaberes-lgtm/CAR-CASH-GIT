@@ -595,3 +595,24 @@ function espAstPieces(){ /* (v6) LES PIÈCES DES GÉANTS — dans la fronde et l
   for(const m of MODS){if(!m.nu||(m.fig!=='ceinture'&&m.fig!=='fronde'&&m.fig!=='rentree'))continue;for(const q of m.nu)if(q.t==='geant'){const ep=q.k==='epave';for(let j=-1;j<=1;j++)piece(q.s+j*26,q.s9*(ep?ROAD_HALF*.5:ROAD_HALF+14),(ep?13:9)+3*Math.abs(j));}} /* (2026-11-13) l'ÉPAVE : ses pièces DANS le hangar (à côté, elles tombaient dans la coque) */ /* (v6) et la rentrée, autour du plus gros */
   return n;}
 window.dbgFilsOr=function(){let n=0,pr=0;for(const p of pickups)if(p.air&&p.ci){n++;if(p.taken)pr++;}return {on:ESP_FILS,pieces:n,prises:pr};}; /* (banc) les pièces des fils d'or de la piste en cours */
+/* ===== LE JUMEAU CACHÉ PAR LA DALLE (2026-11-19, astuces-chauffe — Sacha : « des techniques de triche […] Si ça peut alléger le jeu, on le fait ») =====
+   Chaque pièce, fruit et cristal existe DEUX fois : au-dessus de la dalle et sous elle (la route se roule dans les deux sens). Au sol, le LOD (boucle-4) ne montre
+   que la face où l'on roule ; mais EN VOL il montre les deux. MESURÉ (outils/banc-astuces/sonde.cjs, canyon, pilote qui saute, processeur ×4) : les fruits et leurs
+   jumeaux font ~23 appels de dessin par image sur 149, chaque paire dessinée en entier — la moitié derrière la dalle, invisible.
+   `jumVu(pk)` : en vol, un objet ne part au dessin que si la caméra le voit sans traverser la dalle. Droite caméra → objet : si elle croise le plan de SA face
+   à moins d'une demi-largeur de route (moins une marge) du milieu, et près du point de l'objet le long de la route, la dalle le cache. Un trou de route, un
+   croisement au-delà du bord, la caméra à moins de 0,5 m du plan : montré, comme avant. Rien ne change au sol ni pour les pièces des fils d'or (`air`).
+   `?sans=jumeaux` = les deux faces en vol, comme avant ; `dbgJumeaux()` compte les objets cachés à la dernière image. */
+const JUM={on:!/[?&]sans=[^&]*\bjumeaux\b/.test(location.search),n:0,img:-1};
+function jumVu(pk){
+  if(!JUM.on||pk.air||!(NP>1)||!pts.length||!(L>0))return true;
+  const i=Math.max(0,Math.min(NP-1,Math.round(pk.s*(NP-1)/L)));if(TROU&&(TROU[i]||TROU[Math.max(0,i-1)]))return true;
+  const C=pts[i],n=Nn[i],b=B[i],tg=T[i];if(!C||!n||!b||!tg)return true;
+  const f=pk.face<0?-1:1,nx=n.x*f,ny=n.y*f,nz=n.z*f,ep=f<0?THICK:0; /* la surface de SA face : le dessus de la dalle, ou son dessous (THICK plus bas) */
+  const sx=C.x-n.x*ep,sy=C.y-n.y*ep,sz=C.z-n.z*ep,E=camera.position,Q=pk.mesh.position;
+  const de=(E.x-sx)*nx+(E.y-sy)*ny+(E.z-sz)*nz;if(de>-.5)return true; /* la caméra du côté de l'objet (ou dans le plan) */
+  const dq=(Q.x-sx)*nx+(Q.y-sy)*ny+(Q.z-sz)*nz;if(dq<=0)return true;
+  const k=dq/(dq-de),X=Q.x+(E.x-Q.x)*k,Y=Q.y+(E.y-Q.y)*k,Z=Q.z+(E.z-Q.z)*k; /* là où la droite traverse le plan */
+  const lat=(X-sx)*b.x+(Y-sy)*b.y+(Z-sz)*b.z,lon=(X-sx)*tg.x+(Y-sy)*tg.y+(Z-sz)*tg.z;
+  return !(Math.abs(lat)<ROAD_HALF*.85-.5&&Math.abs(lon)<12);}
+window.dbgJumeaux=function(on){if(on!=null)JUM.on=!!on;return {on:JUM.on,caches:JUM.n};};
