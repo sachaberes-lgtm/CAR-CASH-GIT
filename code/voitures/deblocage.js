@@ -40,9 +40,9 @@ const CAR_UNLOCK=[
   {p:180e3},            // (2026-10-06 : RETIRÉE, le prix sert au remboursement) SA MAJESTÉ — RARE, la plus chère des rares : l'argent achète la Rolls, c'est même à ça qu'il sert
   {p:4e6},/* (2026-10-22, Sacha : « tableau des voitures » 4 000 000 → 400 000) */ // (2026-10-19 : 2,5 M → 4 M, la plus chère des caisses à l'argent du jeu ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) (2026-10-06 : 1,5 M → 2,5 M) ROSSO 40 — (2026-09-25 : le mode Survivant est retiré, un seul mode de jeu) la caisse de RÊVE, à 1,5 M
   {p:132e5},/* (2026-11-05, Sacha : « poster 84 doit coûter 13200000 ») : 3 200 000 → 13 200 000 $ ; (2026-10-26, Sacha : « la POSTER 84 ne doit plus être en boutique ni à vendre en vrai argent : 20 % moins chère que la ROSSO 40 ») : 4 000 000 × 0,8 = 3 200 000 $ au garage ; avant : premium 1,61 € (2026-10-22, « tableau des voitures »), avant encore : rang d'aura MYTHE */
-  {k:'carnet',v:1},     // LA BULLE — contrat n° 1
-  {k:'carnet',v:2},     // LE COMBI — contrat n° 2
-  {k:'carnet',v:3},     // LA DOLORÈS — contrat n° 3
+  {k:'carnet',v:1},     // LA BULLE — contrat n° 1 — (2026-11-18, Sacha) LE SCARABÉE RETIRÉ (voir CARS) : la ligne reste pour l'index
+  {k:'carnet',v:2},     // LE COMBI — contrat n° 2 — (2026-11-18, Sacha) SECRÈTE : la mission `nuages10` (missions/table.js) remplace cette ligne au chargement ; elle reste la condition d'AVANT (`av`), relue une seule fois par la migration des missions (m2MigreV2)
+  {k:'carnet',v:3},     // LA DOLORÈS — contrat n° 3 — (2026-11-18, Sacha) SECRÈTE : la mission `mois1` (missions/table.js) remplace cette ligne au chargement ; elle reste la condition d'AVANT (`av`)
   // LES PREMIUM : en BOUTIQUE, contre du vrai argent (StoreKit à brancher). `eur` = le prix affiché, `rar` = la rareté de la carte
   {k:'premium',eur:'4,20 €',rar:'leg',une:1,horsVente:1}, // (2026-10-06 : 4,99 → 4,20 €) CHAT POP-TART — l'offre à la une · (2026-11-13, Sacha : « le chat nian cat, tu le tej de la boutique ») `horsVente` : plus en boutique (carEnVente) ; la fiche, le dessin et l'achat déjà fait (restauration Apple) restent
   {k:'premium',eur:'9,99 €',rar:'leg'},       // REQUIN — SUPPRIMÉE (2026-11-07, Sacha : « supprime-la complètement du code du jeu ») : la ligne reste pour l'index ; `retire` la sort de la boutique et de la sauvegarde
@@ -81,14 +81,14 @@ const CAR_UNLOCK=[
   {p:1300000},/* (2026-10-22, Sacha : « tableau des voitures » 200 000 → 130 000) */ // LA GRANDE ANGLAISE
   {p:700000},/* (2026-10-22, Sacha : « tableau des voitures » 300 000 → 70 000) */ // LE CHARGEUR 69
   {p:380000}, // L'ÉTALON — (2026-10-06) RETIRÉE
-  {p:8000000}, // LA QUEUE DE CANARD — (2026-10-19) 550 000 → 800 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) — (2026-10-18, Léo) 460 000 → 550 000 : épique, elle passe au-dessus des exotiques (LA GROUPE B 500 000)
+  {p:8000000}, /* (2026-11-18, Sacha) RETIRÉE (voir CARS) : la ligne reste pour l'index ; son prix ne sert plus qu'au REMBOURSEMENT de qui l'avait payée (SAVE.san) */ // LA QUEUE DE CANARD — (2026-10-19) 550 000 → 800 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) — (2026-10-18, Léo) 460 000 → 550 000 : épique, elle passe au-dessus des exotiques (LA GROUPE B 500 000)
   {p:550000}, // LA DAYTONA
   {p:12000000}, // LA TAURINE — (2026-10-19) 650 000 → 1 200 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
   {p:7500000}, // LA STRATOS
   {p:8500000}, // LA NOCTAMBULE (ex-LA CHAUVE-SOURIS — renommée le 2026-10-14, Sacha : nom trop proche de Batman pour la revue App Store)
   {p:950000}, // LA PAGODE — (2026-10-06) RETIRÉE
   {p:1100000}, // LA DÉESSE — (2026-10-06) RETIRÉE
-  {p:8000000}, // L'AIGLE DE FEU (2026-10-06 : 1,3 M → 1 M) (2026-10-09, Léo, fiche de la salle blanche) RARE à 800 000 : entre LA QUEUE DE CANARD et LA NOCTAMBULE (ex-LA CHAUVE-SOURIS), l'ordre de la fiche
+  {k:'premium',eur:'1,61 €',rar:'leg'}, /* (2026-11-18, Sacha : « la voiture Aigle de Feu, tu la mets en payante à 1,61 € en légendaire ») en BOUTIQUE (produit Apple cashcar.car.e_aigle, à créer : voir passation/qualite/voitures-tri.md) ; qui l'avait déjà (achetée 8 M$ ou gagnée par la mission `lave`) la GARDE : elle est dans `owned` ; avant : {p:8000000} */ // L'AIGLE DE FEU (2026-10-06 : 1,3 M → 1 M) (2026-10-09, Léo, fiche de la salle blanche) RARE à 800 000 : entre LA QUEUE DE CANARD et LA NOCTAMBULE (ex-LA CHAUVE-SOURIS), l'ordre de la fiche
   {p:600000}, // (2026-10-19) 1 600 000 → 600 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) — // LA ZED
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LA FÉLINE — (2026-10-06) LÉGENDAIRE en boutique (était épique, 2 M)
   {p:2600000},/* (2026-10-22, Sacha : « tableau des voitures » 2 500 000 → 260 000) */ // LA RAIE — (2026-10-18, Sacha) REMISE dans le jeu : épique à 2,5 M, comme avant le 6/10 (« DÉFI À VENIR » du 6 au 14/10, retirée ensuite)
@@ -109,18 +109,18 @@ const CAR_UNLOCK=[
   {p:9000000}, // (2026-10-06) ATCHOUM — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 900 000 : entre LA STRATOS et L'ORIGAMI, l'ordre de la fiche
   {k:'premium',eur:'1,61 €',rar:'leg'}, // (2026-10-21, Sacha : « remplace le shark par l'autre requin de Léo, à 1,61 € ») LE SQUALE passe en boutique, ex-700 000 (la mission secrète `abysse` ne le donne plus : elle paie de l'argent, voir missions/table.js — sinon le patch des missions le remettait en `k:'mis'` et il disparaissait de la boutique) ; (2026-10-08) LE SQUALE — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 700 000 : entre LA TAURINE et ACIDE, l'ordre de la fiche
   {p:3000000}, // (2026-10-09, Léo : « fais-en une hyper abstraite mais travaillée, concept, ajoute-la à la liste ») L'ABSTRAITE — ÉPIQUE, la plus chère des épiques (juste après ROSSO 40)
-  {p:3200000}, /* (2026-11-05, jury ECO-07 : 32 000 000 → 3 200 000, c'était ×100 au lieu de ×10) */ // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg ») L'ICEBERG — ÉPIQUE, juste après L'ABSTRAITE
+  {k:'premium',eur:'0,80 €',rar:'leg',une:1,promo:{av:'1,61 €',t:'OFFRE DE L\'HIVER'}}, /* (2026-11-18, Sacha : « L'iceberg, tu la mets là où elle était Nyan Cat avant, en mode offre de l'hiver ; elle est à 80 centimes au lieu de 1,61 € en mode promo ») L'OFFRE À LA UNE (`une` : la grande boîte de la page ACHAT, la place du CHAT POP-TART jusqu'au 13/11) ; `promo` : le prix d'avant BARRÉ (`av`) et le bandeau (`t`), voir prixBarre (achats-store.js) — `?promo=0` les éteint ; produit Apple cashcar.car.iceberg, à créer à 0,80 € (voir passation/qualite/voitures-tri.md) ; qui l'avait déjà (achetée 3,2 M$ ou gagnée par la mission `verglas100`) la GARDE ; avant : {p:3200000} */ // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg ») L'ICEBERG — ÉPIQUE, juste après L'ABSTRAITE
   {p:3400000}, // (2026-10-10, Léo : « une voiture flamme ») LA FOURNAISE — ÉPIQUE, juste après L'ICEBERG
   {p:3600000}, // (2026-10-10, Léo : « une abstraite type eau ») LA DÉFERLANTE — ÉPIQUE, juste après LA FOURNAISE
   {p:3800000}, // (2026-10-11, Léo : « génère-la en 3D dans mon jeu ») LA MERCURE — ÉPIQUE, juste après LA DÉFERLANTE
   {p:4000000}, /* (2026-11-05, jury ECO-07 : 40 000 000 → 4 000 000, ×100 au lieu de ×10) */ // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
   {p:4200000}, // (2026-10-16, Léo : « une belle Porsche Cayenne rose Barbie ») LA POUPÉE — ÉPIQUE, juste après LE DOGE
-  {p:2400000},/* (2026-10-22, Sacha : « tableau des voitures » 2 000 000 → 240 000) */ // (2026-10-19) 4 400 000 → 2 000 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) (2026-10-16, Léo : « Taycan 4S », blanche, « la perle ») LA PERLE — ÉPIQUE, juste après LA POUPÉE
+  {p:2400000}, /* (2026-11-18, Sacha) RETIRÉE (voir CARS) : la ligne reste pour l'index ; son prix ne sert plus qu'au REMBOURSEMENT de qui l'avait payée (SAVE.san) *//* (2026-10-22, Sacha : « tableau des voitures » 2 000 000 → 240 000) */ // (2026-10-19) 4 400 000 → 2 000 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) (2026-10-16, Léo : « Taycan 4S », blanche, « la perle ») LA PERLE — ÉPIQUE, juste après LA POUPÉE
   /* LES NOUVELLES VOITURES (2026-10-18) — prix provisoires (réglables dans la salle blanche) : communes 2 500 → 8 000 $, rares 25 000 → 50 000 $ */
   /* · */
   /* · */
   /* · */
-  {p:25000}, // 79 — COMMUNE : la berline rose des Simpson
+  {p:25000}, /* (2026-11-18, Sacha) RETIRÉE (voir CARS) : la ligne reste pour l'index ; son prix ne sert plus qu'au REMBOURSEMENT de qui l'avait payée (SAVE.san) */ // 79 — COMMUNE : la berline rose des Simpson
   /* · */
   /* · */
   /* · */
@@ -128,7 +128,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:40000}, // 81 — COMMUNE : Toyota Corolla berline (2019)
+  {p:40000}, /* (2026-11-18, Sacha) RETIRÉE (voir CARS) : la ligne reste pour l'index ; son prix ne sert plus qu'au REMBOURSEMENT de qui l'avait payée (SAVE.san) */ // 81 — COMMUNE : Toyota Corolla berline (2019)
   /* · */
   /* · */
   /* · */

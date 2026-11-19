@@ -1,5 +1,7 @@
 # ACHATS EN VRAI ARGENT DANS L'APP — ce que Sacha doit faire (07/11/2026)
 
+> **18/11 (lot « tri des voitures », branche `qa/voitures-tri`)** : deux caisses de plus à créer, `cashcar.car.e_aigle` (L'AIGLE DE FEU, 1,61 €) et `cashcar.car.iceberg` (L'ICEBERG, 0,80 €, l'offre de l'hiver). `produits.csv` en a 39 (10 caisses + 29 peintures). Détail et risque du prix barré : `passation/qualite/voitures-tri.md`.
+
 Branche `boutique-affichage` (locale : rien n'est poussé, rien n'est envoyé à Apple). Le plan et les choix sont dans
 `docs/superpowers/specs/2026-11-06-achats-app-store-design.md` (la section 11 dit ce qui est vérifié et ce qui ne l'est pas).
 
