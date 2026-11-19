@@ -295,6 +295,7 @@ interface/habillages-accueil.js      # la bande des habillages, les plans de l'a
 interface/flammes-cubes.js           # les flammes en cubes
 interface/titre-soleil.js            # le soleil du titre : lever/coucher d'après la date et le fuseau (saisons)
 interface/chute-menu.js              # la chute : le menu dans le ciel, le doigt de bienvenue
+rendu/couleurs-finies.js             # les couleurs finies : nuages et ville, nuit/pluie/orage moins ternes, rien d'éblouissant (?sans=couleursfinies)
 interface/richesse-1.js              # la pluie de richesse : programmes, dessins
 interface/richesse-2.js              # la pluie de richesse : formes
 interface/richesse-3.js              # la pluie de richesse : tirage, chaque image
