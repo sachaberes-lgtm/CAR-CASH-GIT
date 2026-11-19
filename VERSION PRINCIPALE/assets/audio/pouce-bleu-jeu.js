@@ -236,6 +236,8 @@
       for (const p of P) if (p >= 0 && p < NP) { garde.add(fic(p, j0)); garde.add(fic(p, jn)); }
       T.forEach((b, f) => { if (!garde.has(f)) T.delete(f); }); memoire();
       if (EC.size) return;   /* jamais deux décodages à la fois */
+      /* 0) (lot MUSIQUESECOURS) le segment EN COURS est un trou (son fichier a raté deux fois au bord) : on le redemande, sinon 10 s muettes ; la reprise à la mesure suivante le pose dès qu'il est décodé */
+      if (Math.floor(kN / MS) === j0 && !couvre(S.cur, k0) && lance(fic(S.cur, j0), 'secours')) return;
       const reste = S.T0 + jn * MS * mes - now, pret = p => T.has(fic(p, jn));
       /* 1) le départ (prepare) : le segment en cours et le suivant du palier visé, puis de ses deux voisins (sous le piqué ; au départ de la course, PB.course, le visé seul) */
       if (now < S.prepFin && S.prepN < 8) { const js = kN >= jn * MS ? [jn] : [j0, jn];
@@ -243,8 +245,9 @@
       /* 2) le suivant du palier visé : une fois par segment, dans ses 5 dernières secondes, hors de la seconde qui suit un gel, au plus tard à 2,25 s du bord */
       if (pret(c)) { if (!S.suiv || S.suiv.j !== jn) S.suiv = { j: jn, p: c }; }
       else if (S.lanceJ !== jn && reste <= 5 && (reste <= 2.25 || calmeOk())) { S.lanceJ = jn; S.suiv = { j: jn, p: c }; lance(fic(c, jn), reste <= 2.25 ? 'force' : 'suivant'); return; }
+      else if (S.lanceJ === jn && RATE[fic(c, jn)] && lance(fic(c, jn), 'secours')) return;   /* (lot MUSIQUESECOURS) ce suivant a raté : on le redemande dès que charge le permet (1 s après l'échec, 3 essais en tout), pas seulement à 1 s du bord */
       /* 3) le secours : à 1 s du bord, aucun palier prêt pour le segment qui vient (un décodage raté) */
-      if (reste < 1 && S.secJ !== jn) { let ok = false; for (let p = 0; p < NP && !ok; p++) ok = pret(p); if (!ok) { S.secJ = jn; lance(fic(c, jn), 'secours'); } } };
+      if (reste < 1 && S.secJ !== jn) { let ok = false; for (let p = 0; p < NP && !ok; p++) ok = pret(p); if (!ok) { S.secJ = jn; lance(RATE[fic(c, jn)] && !RATE[fic(S.cur, jn)] ? fic(S.cur, jn) : fic(c, jn), 'secours'); } } };   /* (lot MUSIQUESECOURS) le visé a déjà raté : la suite du palier joué, qui a ses chances d'arriver avant le bord */
     const tick = force => { if (S.arret) return; const now = ac.currentTime; if (!force && now - S.tTick < .05) return; S.tTick = now;
       if (S.pend && now >= S.T0 + S.pend.k * mes) { const tb = S.T0 + S.pend.k * mes; S.cur = S.pend.p; S.pend = null; S.V.forEach(v => { if (v.p !== S.cur && !v.mort) { v.mort = true; try { v.s.stop(tb + FONDU + .05); } catch (e) {} } }); }
       S.V = S.V.filter(v => v.fin > now - .5);
