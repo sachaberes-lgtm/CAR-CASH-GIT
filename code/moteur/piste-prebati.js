@@ -142,8 +142,9 @@ function pisteLoin(cam){ // chaque tranche : entière de près, moyenne au-delà
     let p9=(c.x-px)*fx+(c.y-py)*fy+(c.z-pz)*fz-E.s.radius,pM=p9; // la profondeur de vue de son point le plus proche
     if(orb9&&E.a!=null&&E.b!=null&&E.b>E.a&&(p9<PISTE_MOY_D||p9-1<far)){const o9=pisteOrbProf(E,px,py,pz,fx,fy,fz);p9=Math.max(p9,o9[0]);pM=Math.max(p9,o9[1]);} /* (2026-11-15) L'ORBITE : ses points de route (voir ORB_LODS) — pM : la distance, pour la tranche moyenne */
     const hors9=iB>=0&&E.b!=null&&(E.a>iB||E.b<iA);
-    const et=p9-1>=far?(E.chaud?(ch9&&E.mo&&!PISTE_SANSMOY?1:0):2):(E.mo&&!PISTE_SANSMOY&&(!E.chaud||ch9)&&(pM>=PISTE_MOY_D||hors9))?1:0; /* E.chaud : la tranche moyenne seulement à chaud (rails, nappe) ; pas de maigre — hors9 : LA TRANCHE MOYENNE PAR L'ABSCISSE (les rails et la nappe ne la suivent qu'à chaud, comme le reste de leur moyenne) */ // (1 m de garde au brouillard, comme avant)
+    let et=p9-1>=far?(E.chaud?(ch9&&E.mo&&!PISTE_SANSMOY?1:0):2):(E.mo&&!PISTE_SANSMOY&&(!E.chaud||ch9)&&(pM>=PISTE_MOY_D||hors9))?1:0; /* E.chaud : la tranche moyenne seulement à chaud (rails, nappe) ; pas de maigre — hors9 : LA TRANCHE MOYENNE PAR L'ABSCISSE (les rails et la nappe ne la suivent qu'à chaud, comme le reste de leur moyenne) */ // (1 m de garde au brouillard, comme avant)
     if(et===1&&hors9&&pM<PISTE_MOY_D)nS++;
+    if(et===1&&E.rien&&RLOIN.on&&pM>=PISTE_MOY_D)et=2; /* (2026-11-19, LES DESSINS DU LOIN, voir RLOIN) les motifs peints de la route : rien au-delà de PISTE_MOY_D */
     if(et!==E.et){E.et=et;E.loin=et===2;E.hi.visible=et===0;if(E.lo)E.lo.visible=et===2;if(E.mo)E.mo.visible=et===1;}}
   if(PISTE_MOYS)PISTE_MOYS.n=nS;
 }
