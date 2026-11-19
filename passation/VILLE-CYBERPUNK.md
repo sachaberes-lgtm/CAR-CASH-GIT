@@ -44,5 +44,5 @@ structure de cette ville-là et tu y ajoutes les modules et les trucs en plus »
 En bref : la route descendait fort et sans montée (≈ 17 % au banc contre 10 %), tournait plus (4,8 tours contre 3,1) et revenait le long d'elle-même, plus haut de ~190 m ;
 `tourLibre` relevait le pied des tours du dessus, `villePied` le fondait dans la brume violette. Défait surtout par 5188a4d21 (7/11), e1c64a63e (8/11) et les scènes du 13/11.
 Plan : socle = lots A, B, C ; puis lot E (la route à étages, `?sans=villeetages` rend le socle au bit près, carte ville seule) ; puis lot D (tours pendues, fondu violet).
-Choix pris sans attendre (à confirmer par Sacha) : la spirale du parking revient SERRÉE comme au 3/11 ; les sauts et raccourcis restent ; pas de portage `?ville=0311`
+Choix pris sans attendre (à confirmer par Sacha) : la spirale du parking revient SERRÉE comme au 3/11 (CONFIRMÉ par Sacha le 19/11 : « 3 novembre ») ; les sauts et raccourcis restent ; pas de portage `?ville=0311`
 (l'étalon est l'archive d'aa160d07f, servie à part pour les photos et mesurée au banc Node de l'enquête).
