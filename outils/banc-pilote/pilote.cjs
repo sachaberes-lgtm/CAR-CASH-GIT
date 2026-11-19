@@ -25,6 +25,9 @@
 //   haute : M1 (HAUTE choisie, k2) · cycle --expire 1 : le mur échu, le 2e échec pose 7 j · vraipic : une seule sonde haute isolée (vrai1)
 // (7e tour, 17/11) deuxpic1 (--nf n images ratées isolées après deux pics : aucun mur) · sondeT (la sonde seule tenue) · vert · alterne (--conds, pompage) — repris du banc du contrôle ·
 //   quitte : une course quittée sans fin (on rejoue, puis on recharge) écrit la mémoire · courts --ni 60 : 60 images/s simulées (une seconde à 4 images ratées = 6,7 % : ratée, pas ROUGE)
+// (2026-11-19, lot pilotevoiture : LA VOITURE EN DERNIER) pvechelle : libre (N2), le cran K posé de 0 à 13 par une VRAIE pause (dbgPiloteSim Kv, __panBascule) : leviers, niveau, loupe (dans la pause et en course) ·
+//   pvserious : serious + branché + éco, ratés simulés (--r 0.15) --s s, la mort, la course suivante, puis le froid : la loupe à chaque étape, les toiles visibles refaites ·
+//   pvrouge : ROUGE simulé (--r) --s s : l'ordre des retraits (journal), puis la mort ; --crit 1 : critical en course (4 % de ratés) puis mort puis froid
 // compteurs : M5, à lancer avec --q sans=pilote (ou --pc 1 : sans émulation du téléphone) : aucun compteur du pilote ne bouge
 // Une ligne JSON par essai. Chrome est fermé à la fin, quoi qu'il arrive.
 const fs = require('fs'), path = require('path');
@@ -410,6 +413,37 @@ const PIL = `(function(){try{var p=dbgPilote();return JSON.stringify({on:p.on,K:
         await tient(15, 'course', false, suivi); await ev('dbgSaut();1'); await dormir(3000); await mort();
         const p = JSON.parse(await ev("JSON.stringify(dbgPilote())"));
         R.compteurs = { on: p.on, K: p.K, retailles: p.retailles, halo: p.halo, ombresNeuves: p.ombresNeuves, gels: p.gels, trous: p.trous, wDer: p.wDer, constructions: p.constructions, portails: p.portails, departs: p.departs, changements: p.changements, histo: p.histo.reduce((a, b) => a + b, 0), journal: p.journal.length, nBorne: p.nBorne, nUrg: p.nUrg };
+      } else if (MODE === 'pvechelle' || MODE === 'pvserious' || MODE === 'pvrouge') {
+        const LP = "(function(){try{var p=dbgPilote(),i=imgRegle(),g=dbgGouvPaliers(),L=dbgLoupe();return JSON.stringify({K:p.K,vise:p.vise,nom:p.nom,n:p.niveau,zone:p.zone,lpOff:p.lpOff,loupe:L.on,toile:L.toile,scene:L.scene,dpr:i.dpr,cap:i.cap,halo:i.halo,mips:i.mips,ombre:i.ombre,ciel:i.ciel,stries:i.stries,ql:i.ql,qlMin:g.qlMin,ventK:g.ventK,emiK:g.emiK,poly:p.poly,urgence:p.urgence,nUrg:p.nUrg,nUrgD:p.nUrgD,retailles:p.retailles,ou:dbgPiloteOu(),pv:p.pv})}catch(e){return JSON.stringify({err:String(e.message)})}})()";
+        const lp = async () => { const v = await ev(LP); try { return JSON.parse(v); } catch (e) { return { err: String(v) }; } };
+        const suit = async (s, tag) => { const t0 = Date.now(); while (Date.now() - t0 < s * 1000) { await dormir(1000);
+          if (!(await enCourse())) { if (await ev('dbgState().gameOver')) { suivi.push({ ph: tag, mortAuto: 1, etat: await lp() }); await ev('dbgJouer()'); await dormir(3000); await ev('dbgAuto(1,0,{nit:1});1'); } }
+          const e = Math.round((Date.now() - t0) / 1000); if (e % 3 === 0) { const o = await lp(); suivi.push({ ph: tag, t: e, K: o.K, vise: o.vise, n: o.n, zone: o.zone, loupe: o.loupe, lpOff: o.lpOff, toile: o.toile, dpr: o.dpr, ou: o.ou }); } } };
+        await ev('window.__bancToile.ev.length=0;1');
+        if (MODE === 'pvechelle') {
+          await suit(4, 'calme'); await ev('dbgPiloteSim({vrai:11,rates:0,gels:0});1'); R.table = [];
+          for (let k = 0; k <= 13; k++) {
+            if (!(await enCourse())) { await lance(); await dormir(2000); await ev('dbgPiloteSim({vrai:11,rates:0,gels:0});1'); }
+            await ev(`dbgPiloteSim({Kv:${k}});1`); await ev('window.__panBascule();1'); await dormir(2600);
+            const pa = await lp(); await ev('window.__panBascule();1'); await dormir(4000); const co = await lp();
+            R.table.push({ k, pause: pa, course: { K: co.K, n: co.n, loupe: co.loupe, toile: co.toile, scene: co.scene, ou: co.ou } }); }
+        } else if (MODE === 'pvserious') {
+          await suit(6, 'calme'); R.d0 = await lp();
+          await ev(`dbgPiloteSim({rates:${+(A.r || .15)}});1`); await suit(SEC, 'rates'); R.avantMort = await lp();
+          await mort(); R.apresMort = await lp(); await ev('dbgPiloteSim({rates:0});1');
+          await lance(); await dormir(3000); R.course2 = await lp(); await suit(9, 'course2'); R.course2fin = await lp();
+          await ev('dbgPiloteSim({t:0});1'); await dormir(1500); await mort(); R.mortFroid = await lp();
+          await lance(); await dormir(3000); R.course3froid = await lp(); await suit(6, 'course3');
+        } else {
+          await suit(6, 'calme'); R.d0 = await lp();
+          if (A.crit === '1') { await ev('dbgPiloteSim({t:3,rates:.04,gels:0,vrai:8});1'); await suit(SEC, 'critical'); }
+          else { await ev(`dbgPiloteSim({rates:${+(A.r || .15)}});1`); await suit(SEC, 'rouge'); }
+          R.avantMort = await lp(); await mort(); await dormir(3000); R.apresMort = await lp();
+          if (A.crit === '1') { await ev('dbgPiloteSim({rates:0});1'); await lance(); await dormir(3000); R.course2crit = await lp(); await suit(6, 'course2crit'); await mort(); await dormir(3000); R.mort2crit = await lp(); }
+          await ev('dbgPiloteSim({t:0,rates:0});1'); await dormir(1500); if (A.crit === '1') { await lance(); await dormir(2000); await mort(); await dormir(3000); R.mortFroid = await lp(); }
+          await lance(); await dormir(3000); R.course2 = await lp();
+        }
+        R.toile = JSON.parse(await ev("JSON.stringify((window.__bancToile||{ev:[]}).ev)"));
       } else if (MODE === 'rouge') {
         await ev('window.__bancToile.ev.length=0;1');
         await tient(8, 'calme', false, suivi);
