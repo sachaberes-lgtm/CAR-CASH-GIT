@@ -15,7 +15,14 @@ const PAGE = fs.readFileSync(path.join(__dirname, 'sonde-page.js'), 'utf8');
       if (A.cpu) await c.send('Emulation.setCPUThrottlingRate', { rate: +A.cpu });
       await dormir(+(A.attente || 5000));
       await c.ev(PAGE);
-      if (A.horizon) {
+      if (A.etats) { /* (lot 2) --etats "tout:dbgBrume(true,1)|sans:dbgBrume(false)" --cliches K : la même image dans chaque état, photos aux clichés 2, 6, 10 */
+        const E = A.etats.split('|').map(x => { const i = x.indexOf(':'); return JSON.stringify(x.slice(0, i)) + ':function(){' + x.slice(i + 1) + '}'; }).join(',');
+        R.fige = await c.ev('__sd.fige(' + (+(A.cliches || 10)) + ',' + (+(A.pas || 20)) + ',{' + E + '},2,[2,6,10])', 900000);
+        const ph = await c.ev('__sd.photos.map(function(p){return [p[0],p[1],p[2]]})', 120000);
+        const dir = path.join(OUT, 'photos'); fs.mkdirSync(dir, { recursive: true });
+        for (const [k, e, d] of ph) fs.writeFileSync(path.join(dir, (A.tag || 'sonde') + '-' + carte + '-' + k + '-' + e + '.jpg'), Buffer.from(d.split(',')[1], 'base64'));
+        console.log(carte, 'etats', JSON.stringify(R.fige)); }
+      else if (A.horizon) {
         R.fige = await c.ev('__sd.fige(' + (+A.horizon) + ',' + (+(A.pas || 20)) + ',{tout:function(){dbgHorizon(false)},h1500:function(){dbgHorizon(true,1500)},h1000:function(){dbgHorizon(true,1000)}},2,[2,6,10])', 600000);
         const ph = await c.ev('__sd.photos.map(function(p){return [p[0],p[1],p[2]]})', 120000);
         const dir = path.join(OUT, 'photos'); fs.mkdirSync(dir, { recursive: true });
