@@ -49,3 +49,15 @@ function instSegJette(s){if(!s||!s.userData||!s.userData.segment)return false;
   const i=SEG_L.indexOf(s);if(i>=0)SEG_L.splice(i,1);return true;}
 window.dbgSegments=function(on){if(on!=null)for(let i=SEG_L.length-1;i>=0;i--){const s=SEG_L[i];if(!s.parent&&!s.geometry){SEG_L.splice(i,1);continue;}s.frustumCulled=!!on;}
   let n=0,t=0;for(const s of SEG_L)if(s.parent){n++;t+=s.count;}return {segments:n,instances:t,coupe:SEG_L.length?SEG_L[0].frustumCulled:null,on:SEG_ON};};
+/* ===== LE DÉCOR DANS LE DOS NE PART PLUS (2026-11-19, astuces-chauffe — Sacha : « supprimer les décors qui sont derrière le joueur. Ça sert à rien […] Si ça peut alléger le jeu, on le fait ») =====
+   MESURÉ (outils/banc-astuces/sonde.cjs : chaque appel de dessin de la caméra classé, 10-12 s de course, édition téléphone, 6 maps) : three.js jette déjà tout ce qui
+   a une sphère englobante et sort du champ. Ce qui part ENCORE dans le dos, ce sont les maillages marqués `frustumCulled=false` (« toujours dessiné ») : 1 à 3 appels
+   par image sur chaque map, dont le motel de la Route 66 au départ du canyon (6 148 triangles redessinés à chaque image, DERRIÈRE la caméra, tout le canyon durant).
+   `derrTri(m, marge)` rend son tri à un tel maillage quand sa sphère dit vrai (sommets en coordonnées monde, ou une seule instance à l'identité) : sphère recalculée
+   + marge (les arbres ondulent au vent dans leur nuanceur). Aucun pixel ne change : seul ce qui est entièrement hors du champ n'est plus envoyé.
+   `?sans=derriere` = comme avant (toujours dessinés). */
+const DERR={on:!/[?&]sans=[^&]*\bderriere\b/.test(location.search),L:[]};
+function derrTri(m,marge){if(!m||!m.geometry||!m.geometry.attributes||!m.geometry.attributes.position)return m;
+  const g=m.geometry;if(!bornes9(g,false,true))g.computeBoundingSphere();g.boundingSphere.radius+=marge||0;m.frustumCulled=DERR.on;
+  for(let i=DERR.L.length-1;i>=0;i--)if(!DERR.L[i].parent)DERR.L.splice(i,1);DERR.L.push(m);return m;}
+window.dbgDerriere=function(on){if(on!=null){DERR.on=!!on;for(const m of DERR.L)m.frustumCulled=DERR.on;}return {on:DERR.on,n:DERR.L.length};}; /* (banc) bascule en direct, pour les mesures appariées */
