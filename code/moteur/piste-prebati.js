@@ -131,12 +131,24 @@ function pisteOrbProf(E,px,py,pz,fx,fy,fz){ /* la tranche par ses points de rout
   const k=E.a*65536+E.b,v=ORB_LODS.vu.get(k);if(v!==undefined)return v;const P=ORB_LODS.pas,a=Math.max(0,E.a|0),b=Math.min(NP-1,E.b|0);let m=Infinity,m2=Infinity;
   for(let i=a;;i+=P){const j=i>b?b:i,q=pts[j],dx=q.x-px,dy=q.y-py,dz=q.z-pz,d=dx*fx+dy*fy+dz*fz,d2=dx*dx+dy*dy+dz*dz;if(d<m)m=d;if(d2<m2)m2=d2;if(j===b)break;}
   const mg=ROAD_HALF+12+P/2,o=ORB_LODS.lib.length?ORB_LODS.lib.pop():[0,0];o[0]=m-mg;o[1]=Math.sqrt(m2)-mg;ORB_LODS.pris.push(o);ORB_LODS.vu.set(k,o);return o;}
+/* ===== L'HORIZON COURT (2026-11-19, astuces-chauffe — Sacha : « des techniques de triche […] Si ça peut alléger le jeu, on le fait ») — À MONTRER À SACHA =====
+   MESURÉ (outils/banc-astuces/sonde.cjs, canyon, processeur ×4) : 23 des ~37 appels de dessin de la route vont à des tranches à PLUS DE 1,6 km (et 34 appels de décor).
+   Au-delà de HZ.d mètres de profondeur de vue, une tranche ne garde que la SILHOUETTE de son bitume (la tranche maigre, la même que passé le brouillard) :
+   plus de rails néon, de nappe, de flancs, de traits ni de motifs. MESURÉ (image figée, même image avec / sans, 12 clichés) : canyon −14 appels et −108 000 triangles
+   par image (−24 %) — la route lointaine du canyon était dessinée DERRIÈRE les falaises ; nuages −1,5 appel, ville −0,6. Photos avant/après : les pixels qui changent
+   (0,01 à 0,16 %) sont ceux des effets animés (anneau, pluie), pas la route. En principe visible au loin sur une map ouverte la nuit (néons au-delà de 1,5 km) : à montrer.
+   `?sans=horizon` = comme avant ; `?horizon=1200` : la distance (1 500 m par défaut).
+   Téléphone seulement (ALLEGE) ; l'ordinateur ne change jamais. `dbgHorizon(on, d)` : bascule en direct (banc). */
+const HZ={on:ALLEGE&&!/[?&]sans=[^&]*\bhorizon\b/.test(location.search),chaud:false,
+  d:+((/[?&]horizon=(\d+)/.exec(location.search)||[])[1])||1500,n:0};
+window.dbgHorizon=function(on,d){if(on!=null)HZ.on=!!on&&ALLEGE;if(d)HZ.d=+d;return {on:HZ.on,chaud:HZ.chaud,d:HZ.d,tranches:HZ.n};};
 function pisteLoin(cam){ // chaque tranche : entière de près, moyenne au-delà de PISTE_MOY_D (téléphone), maigre (ou absente) quand elle est TOUTE au-delà du brouillard
   if(!PISTE_LOD.length)return;
   if(PISTE_TEMOIN||PISTE_SANSLOIN){for(const E of PISTE_LOD){E.loin=false;E.et=0;E.hi.visible=true;if(E.lo)E.lo.visible=false;if(E.mo)E.mo.visible=false;}return;}
   const f=scene.fog,far=f&&f.isFog?f.far:Infinity,e=cam.matrixWorld.elements,ch9=RAIL_CHAUD&&gpuChaud();
   const il=1/Math.hypot(e[8],e[9],e[10]),fx=-e[8]*il,fy=-e[9]*il,fz=-e[10]*il,px=e[12],py=e[13],pz=e[14];
   const orb9=ORB_LODS.on&&pisteOrbOn();if(orb9){ORB_LODS.vu.clear();while(ORB_LODS.pris.length)ORB_LODS.lib.push(ORB_LODS.pris.pop());}
+  const hz9=HZ.on||(HZ.chaud&&gpuChaud());HZ.n=0;
   let iA=0,iB=-1,nS=0;if(pisteMoysOn()){const k9=(NP-1)/L;iA=(s-PISTE_MOYS.ar)*k9;iB=(s+PISTE_MOYS.av)*k9;} /* (LA TRANCHE MOYENNE PAR L'ABSCISSE) la fenêtre fine, en indices de points */
   for(let i=0;i<PISTE_LOD.length;i++){const E=PISTE_LOD[i],c=E.s.center;
     let p9=(c.x-px)*fx+(c.y-py)*fy+(c.z-pz)*fz-E.s.radius,pM=p9; // la profondeur de vue de son point le plus proche
@@ -144,6 +156,7 @@ function pisteLoin(cam){ // chaque tranche : entière de près, moyenne au-delà
     const hors9=iB>=0&&E.b!=null&&(E.a>iB||E.b<iA);
     let et=p9-1>=far?(E.chaud?(ch9&&E.mo&&!PISTE_SANSMOY?1:0):2):(E.mo&&!PISTE_SANSMOY&&(!E.chaud||ch9)&&(pM>=PISTE_MOY_D||hors9))?1:0; /* E.chaud : la tranche moyenne seulement à chaud (rails, nappe) ; pas de maigre — hors9 : LA TRANCHE MOYENNE PAR L'ABSCISSE (les rails et la nappe ne la suivent qu'à chaud, comme le reste de leur moyenne) */ // (1 m de garde au brouillard, comme avant)
     if(et===1&&hors9&&pM<PISTE_MOY_D)nS++;
+    if(hz9&&p9>=HZ.d){et=E.lo?2:3;HZ.n++;} /* (L'HORIZON COURT) au loin, la silhouette du bitume seule (et = 3 : rien) */
     if(et===1&&E.rien&&RLOIN.on&&pM>=PISTE_MOY_D)et=2; /* (2026-11-19, LES DESSINS DU LOIN, voir RLOIN) les motifs peints de la route : rien au-delà de PISTE_MOY_D */
     if(et!==E.et){E.et=et;E.loin=et===2;E.hi.visible=et===0;if(E.lo)E.lo.visible=et===2;if(E.mo)E.mo.visible=et===1;}}
   if(PISTE_MOYS)PISTE_MOYS.n=nS;
