@@ -1,0 +1,61 @@
+{
+ "carte": "ville",
+ "qs": "",
+ "charge0": "3.1",
+ "fige": {
+  "tout": {
+   "images": 30,
+   "partVol": 0.73,
+   "appels": 102.87,
+   "tri": 236504,
+   "rendu": 7.02,
+   "boucle": 14.563
+  },
+  "sansDerriere": {
+   "images": 30,
+   "partVol": 0.73,
+   "appels": 102.4,
+   "tri": 236450,
+   "rendu": 6.823,
+   "boucle": 15.413
+  },
+  "sansJumeaux": {
+   "images": 30,
+   "partVol": 0.73,
+   "appels": 102.67,
+   "tri": 249455,
+   "rendu": 6.93,
+   "boucle": 14.367
+  },
+  "sansDessinsLoin": {
+   "images": 30,
+   "partVol": 0.73,
+   "appels": 103.07,
+   "tri": 236421,
+   "rendu": 7.027,
+   "boucle": 14.51
+  },
+  "rien": {
+   "images": 30,
+   "partVol": 0.73,
+   "appels": 103.8,
+   "tri": 249480,
+   "rendu": 6.79,
+   "boucle": 14.587
+  }
+ },
+ "etat": {
+  "s": 1751,
+  "zone": {
+   "carte": "ville",
+   "meteo": "orage",
+   "teinte": "violet",
+   "ciel": "villeOrage",
+   "pluie": 1,
+   "nuit": 0,
+   "orage": true
+  }
+ },
+ "exc": [],
+ "charge1": "3.9"
+}
