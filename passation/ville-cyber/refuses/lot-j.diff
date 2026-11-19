@@ -1,0 +1,206 @@
+diff --git a/code/ORDRE.txt b/code/ORDRE.txt
+index 45efcc3af..12211062b 100644
+--- a/code/ORDRE.txt
++++ b/code/ORDRE.txt
+@@ -159,6 +159,7 @@ maps/niveaux.js                      # les niveaux, le mode classique au hasard,
+ maps/continuite.js                   # continuité des maps, la planète du niveau
+ rendu/equilibre-maps.js              # l'équilibre des maps : la dernière couche d'étalonnage, map × météo, calée sur les mesures (?equilibre=0|A|B)
+ rendu/lumiere-design.js              # le plan de feu : l'échelle des clartés (route, contre-jour, liseré) par ambiance, jugée sur le chemin iPhone (?lumiere=0)
++maps/cryptocity-jour.js              # CRYPTO CITY de jour au niveau de la nuit : ciel, brume de chaleur, ombres des trois heures (?sans=cryptojour)
+ maps/audit-placement.js              # dbgAudit : l'audit des décors posés au sol (pics flottants…)
+ maps/orbite-1.js                     # L'ORBITE : la lune, les Starlink, les variantes empilées
+ maps/orbite-lune.js                  # orbite : la lune choquée (visage de troll, regard sur la caisse), vue en frénésie seulement (?lune=0)
+diff --git a/code/gameplay/zones-caisses.js b/code/gameplay/zones-caisses.js
+index 6c008ce1c..a6538a914 100644
+--- a/code/gameplay/zones-caisses.js
++++ b/code/gameplay/zones-caisses.js
+@@ -366,7 +366,7 @@ window.dbgNiveauVitre=function(m){SF.force={carte:'crypto',meteo:m||null};return
+ function classiqueJouer(){ // (2026-10-13, Sacha) JOUER = le MODE CLASSIQUE AU HASARD : la 1re map et sa météo tirées, la piste bâtie sous le voile (le chemin de jadeJouer)
+   if(pendingScore!=null||(started&&!gameOver))return 'en course';if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return 'occupé';
+   JADE_JEU=false;if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}}
+-  const t=SF.force?sfImpose(SF.der):(SF.prochain&&SF.prochainDer===SF.der?SF.prochain:sfTire(SF.der));SF.prochain=null;SF.tirage=[t];SF.der=t;SF.neuf=true;SF.pret=true; // neuf : le REJOUER de garageLaunch (resetGame) garde ce tirage · prochain : celui que la vignette du garage annonçait — (2026-10-19) le tirage D'AVANCE du départ (prebDepCible)
++  const t=SF.force?sfImpose(SF.der):(SF.prochain&&SF.prochainDer===SF.der?SF.prochain:sfTireDepart(SF.der));SF.prochain=null;SF.tirage=[t]; /* (2026-11-18, lot J) le départ : voir sfTireDepart */SF.der=t;SF.neuf=true;SF.pret=true; // neuf : le REJOUER de garageLaunch (resetGame) garde ce tirage · prochain : celui que la vignette du garage annonçait — (2026-10-19) le tirage D'AVANCE du départ (prebDepCible)
+   /* (2026-10-19, LE DÉPART D'AVANCE) sous9 : au 1er JOUER de la session, la piste du départ bâtie au menu est PRISE (prebDepPrend) ; après une
+      partie, sous le nuage blanc ou le voile chaud (leger : resetGame suit dans la même image), la piste de sous9 n'est jamais dessinée — elle se
+      fait légère (son ciel seul) et resetGame prend la sienne, la caméra reposée comme closeGarage l'aurait fait (PREB.cam). */
+diff --git a/code/maps/continuite.js b/code/maps/continuite.js
+index 58557c440..75ab34750 100644
+--- a/code/maps/continuite.js
++++ b/code/maps/continuite.js
+@@ -238,7 +238,7 @@ function lvlChoisir(){ // appelé par newTrack AVANT buildTrack
+     LVL.n=1;lvlAstre(null);ROAD_HALF=ROAD_HALF0*2.0;return LVL.cur;}
+   /* (2026-10-13, Sacha) LE MODE CLASSIQUE AU HASARD — en course (et sous le voile du JOUER : SF.pret) ; la piste du MENU garde NIVEAUX[0] et son ciel */
+   if(SF.on&&(started||SF.pret)){const zn=Math.max(0,z-(LVL.tutoZ|0));let t=SF.tirage[zn];
+-    if(!t){t=SF.tirage[zn]=SF.force?sfImpose(SF.tirage[zn-1]||null):sfTire(SF.tirage[zn-1]||SF.der);SF.der=t;SF.prochain=null;}else if(SF.der!==t){SF.der=t;SF.prochain=null;} /* (2026-10-17) le couple tiré D'AVANCE par le portail de cubes (portDest) : arrivé ici, c'est lui le dernier */ // (2026-10-14, chasse aux bugs) SF.der change : le couple « annoncé d'avance » (calculé contre l'ancien der) est périmé — il pouvait ressortir au JOUER suivant = la même map deux fois de suite
++    if(!t){t=SF.tirage[zn]=SF.force?sfImpose(SF.tirage[zn-1]||null):(zn?sfTire:sfTireDepart)(SF.tirage[zn-1]||SF.der); /* (2026-11-18, lot J) zn 0 = le départ : voir sfTireDepart */SF.der=t;SF.prochain=null;}else if(SF.der!==t){SF.der=t;SF.prochain=null;} /* (2026-10-17) le couple tiré D'AVANCE par le portail de cubes (portDest) : arrivé ici, c'est lui le dernier */ // (2026-10-14, chasse aux bugs) SF.der change : le couple « annoncé d'avance » (calculé contre l'ancien der) est périmé — il pouvait ressortir au JOUER suivant = la même map deux fois de suite
+     LVL.cur=sfNiveau(t.carte,t.meteo,t.teinte);LVL.n=zn+1;lvlAstre(LVL.cur.astre||null);return LVL.cur;} // (2026-10-14, passe graphismes) la variante peut porter sa planète (PLANETES)
+   {const zn=Math.max(0,z-(LVL.tutoZ|0));LVL.cur=NIVEAUX[zn%NIVEAUX.length];LVL.n=zn+1;lvlAstre(null);}
+   return LVL.cur;
+diff --git a/code/maps/cryptocity-jour.js b/code/maps/cryptocity-jour.js
+new file mode 100644
+index 000000000..b174a410a
+--- /dev/null
++++ b/code/maps/cryptocity-jour.js
+@@ -0,0 +1,132 @@
++/* ===== CRYPTO CITY DE JOUR, AU NIVEAU DE LA NUIT (2026-11-18, Sacha : « tu les retravailles la journée pour que ce soit beau […] qu'elles soient au même niveau que la nuit ») =====
++   Le jour de Crypto City (carte `crypto` : matin `cryptoMatin`, midi `bullrun`, soir `cryptoSoir`) revient au tirage du téléphone (CRYPTO_JOUR, niveaux.js).
++   La nuit vit de ses néons ; le jour n'avait qu'un ciel pâle et une brume crème presque grise : les tours de verre renvoyaient un ciel délavé et la ville
++   sortait grise. Ici, une MÉGAPOLE DE VERRE SOUS UN SOLEIL FRANC, dans la DA du jeu (laque, or, néon) :
++   · LE CIEL que renvoient les façades (uZen9 / uMid9 / uHor9 = jZen / jMid / jHor, voir CRYPTO_VERRE) : un azur profond en haut, un horizon d'or en bas —
++     le verre prend deux couleurs franches au lieu d'un gris bleuté ;
++   · L'AIR : la brume du lointain (fog, fogIn) prend la couleur de l'OMBRE de l'heure (azur à midi, lavande au matin, prune au soir) et seul le contre-jour
++     (fogCj) garde l'or — (tour 2) la brume dorée ou orange délavait les tours proches en crème et en aplats orange ;
++   · LES OMBRES : un soleil plus dur et un ciel d'hémisphère plus faible et plus bleu — les faces à l'ombre tombent dans le bleu, celles au soleil
++     dans le chaud (le complémentaire fait le volume) ;
++   · le contre-jour des caisses (kick) et le piqué (con) un cran plus forts.
++   Trois heures, trois cartes postales : le MATIN rose et or (ombres lavande), le MIDI azur et or (soleil dur), le SOIR l'heure dorée (ciel violet → orange,
++   ombres prune). Que des VALEURS D'AMBIANCE posées en dernier (après l'équilibre des maps et le plan de feu) : zéro programme, zéro texture, zéro appel
++   de dessin en plus. `?sans=cryptojour` = le jour d'avant au bit près (et le téléphone sans jour). */
++if(CRYPTO_JOUR){
++  /* MIDI · LE SOLEIL DUR : azur profond, verre bleu au sommet et or au pied, ombres bleues, béton bleu ardoise (rtK, rtT : ni le gris clair d'avant, ni le noir) */
++  if(BIOMES.bullrun)Object.assign(BIOMES.bullrun,{
++    jZen:[.02,.15,.68],jMid:[.20,.50,.93],jHor:[1,.84,.56],jSol:[1,.66,.26],
++    fog:[.60,.74,.94],fogN:900,fogCj:[1,.84,.58],fogIn:[.80,.88,1], /* (tour 2) l'air AZUR : la brume d'or délavait les tours proches en crème */
++    sunC:[1,.93,.76],sunI:1.6,hemiS:[.56,.72,1],hemiG:[.70,.50,.24],hemiI:.42,fillC:[.44,.70,.98],
++    kickC:[1,.78,.36],kickI:.18,expo:.8,con:1.34,sat:1.34,sh:[-.004,.012,.05],hi:[.02,.01,-.02],bloomS:.3,vigK:.3,vigC:[.04,.06,.16],
++    rtK:.84,rtT:[.86,.94,1.14],
++    env:[[0,'#1a5ad0'],[.3,'#4a94ea'],[.48,'#f2d8a0'],[.58,'#ffc860'],[.66,'#a8884e'],[1,'#5e4c30']]});
++  /* MATIN · ROSE ET OR : l'aube sur le verre, ombres lavande, brume rose dorée tenue plus loin */
++  if(BIOMES.cryptoMatin)Object.assign(BIOMES.cryptoMatin,{
++    jZen:[.10,.18,.56],jMid:[.56,.50,.86],jHor:[1,.72,.52],jSol:[1,.58,.32],
++    fog:[.66,.60,.88],fogN:850,fogCj:[1,.72,.58],fogIn:[.86,.80,.98], /* (tour 2) l'air LAVANDE */
++    sunC:[1,.80,.58],sunI:1.4,hemiS:[.66,.62,1],hemiG:[.62,.42,.36],hemiI:.44,fillC:[.62,.58,.98],
++    kickC:[1,.52,.66],kickI:.2,expo:.82,con:1.3,sat:1.2,sh:[0,.006,.05],hi:[.02,.008,-.012],bloomS:.32,vigK:.3,vigC:[.06,.04,.16],
++    rtK:.76,rtT:[.94,.90,1.10],
++    env:[[0,'#283e98'],[.3,'#8078d0'],[.48,'#ffcab0'],[.58,'#ffb07a'],[.66,'#a8806c'],[1,'#5a444c']]});
++  /* SOIR · L'HEURE DORÉE : ciel violet → orange, ombres prune, contre-jour rose */
++  if(BIOMES.cryptoSoir)Object.assign(BIOMES.cryptoSoir,{
++    jZen:[.12,.08,.34],jMid:[.42,.22,.50],jHor:[1,.60,.26],jSol:[1,.48,.16], /* (tour 3) le milieu du ciel VIOLET (il était rose [.88,.42,.40]) : la couronne des tours lointaines et le haut du verre en tiraient des aplats roses ; ils sortent en silhouettes violettes sur la bande d'or */
++    fog:[.46,.28,.52],fogN:800,fogCj:[.98,.52,.50],fogIn:[.86,.62,.70], /* (tour 2) l'air PRUNE : la brume orange écrasait les tours en aplats et noyait les pièces */
++    sunC:[1,.74,.52],sunI:1.3, /* (tour 2) un soleil d'or rose, moins dur : à 1,75 orange la façade au soleil sortait en aplat sans fenêtres */hemiS:[.58,.44,.88],hemiG:[.60,.34,.20],hemiI:.44,fillC:[.70,.48,.92],
++    kickC:[1,.40,.70],kickI:.22,con:1.3,bloomS:.34,vigK:.3,vigC:[.10,.03,.14],
++    env:[[0,'#221a62'],[.3,'#94448a'],[.48,'#ff944a'],[.58,'#ffbe60'],[.66,'#a0604a'],[1,'#4a3044']]});
++}
++/* ===== LE JOUR DE CRYPTO CITY SORT AU DÉPART, ET NE COÛTE RIEN AUX AUTRES PARTIES (2026-11-18, contrôle du lot J, tour 1 : « le coût monte sur téléphone pour
++   toute partie, même la nuit et les autres maps ») =====
++   1er tour : Crypto City sortait de SF_HORS sur téléphone — la chauffe du menu (cryptoChauffe) recompilait alors les matières du jour pour TOUTE partie
++   (10 programmes, 5 textures, 14 géométries de plus, même une nuit ou une autre map), les portails tiraient le jour, la nuit tombait à 40 % de Crypto City
++   et les missions des météos changeaient. Désormais, sur téléphone (SF_HORS.crypto reste vrai) :
++   · LE TIRAGE : seul le DÉPART d'une partie (le tirage d'avance du menu et de l'écran de fin, le JOUER, le REJOUER : sfTireDepart) peut changer la NUIT de
++     Crypto City qu'il vient de tirer en son JOUR, une fois sur deux (CJ.part) — la météo du jour tirée à ses poids (matin 1, midi 1,3, soir 1,2). Les portails
++     ne mènent jamais au jour (rien ne s'y compile en course), les autres maps gardent leur part, la nuit reste la plus fréquente de Crypto City ;
++   · LA CHAUFFE : les matières du jour se compilent quand le jour est tiré (cjChauffe), hors course — au menu ou à l'écran de fin, sous le tirage d'avance.
++     Une partie qui ne tire pas le jour ne compile rien de plus ;
++   · LES MISSIONS : m2Meteo lit SF_HORS — inchangées.
++   L'ordinateur (SF_HORS.crypto faux) tire comme avant : sfTireDepart y est sfTire. */
++const CJ={part:.5,chaud:false,voulu:false,quand:'',verre:1};
++/* ===== LA CHAUFFE DU JOUR ATTEND LE MENU (2026-11-19, contrôle du lot J, tour 2 : « un programme se compile en course, au portail, dans toute partie de jour ;
++   171 programmes au départ contre 164 pour le jour d'avant ») =====
++   Le tirage d'avance (prebDepCible) est appelé dès les premières images, sous l'intro : la chauffe partait alors AVANT que la scène du menu, ses lumières et
++   ses tampons soient posés — des programmes compilés pour un état qui ne revient jamais (7 de trop), et un 8e, le bon, compilé en course au portail.
++   Désormais le tirage ne fait que RETENIR le jour (CJ.voulu) ; la chauffe part quand la chauffe du menu a fini (CHAUFFE_R.fait : l'état même où le jour de
++   l'ordinateur et `?carte=crypto` se compilent), au plus tard quand la piste du jour se bâtit (lvlChoisir : le départ d'avance ou le voile du JOUER, hors
++   course). Sur ALLEGE, ce que CJ_LEGER retire du ciel du jour et qui vit hors de la piste (les feux d'artifice, la lune ₿, la fumée des fusées) n'est plus
++   compilé : jamais dessiné, il ne coûte plus un programme. */
++function cjChauffe(quand){if(CJ.chaud)return;CJ.chaud=true;CJ.quand=quand||'';
++  const sv={};let M=null;
++  try{if(ALLEGE){cryptoInit();plaInit();M=cryptoMats();
++    if(CJ_LEGER.feux&&CRYPTO.feux){sv.feux=CRYPTO.feux;CRYPTO.feux=null;}
++    if(CJ_LEGER.lune&&CRYPTO.lune){sv.lune=CRYPTO.lune;CRYPTO.lune=new THREE.Object3D();} /* (un leurre : cryptoInit voit la lune posée et ne rebâtit rien) */
++    if(CJ_LEGER.fumee){sv.fus=CRYPTO.fus;CRYPTO.fus=CRYPTO.fus.map(function(f){return {g:f.g,tr:new THREE.Object3D()};});}}
++    cryptoChauffe();}catch(e){console.warn('cryptoChauffe',e);}
++  finally{if(sv.feux)CRYPTO.feux=sv.feux;if(sv.lune)CRYPTO.lune=sv.lune;if(sv.fus){CRYPTO.fus=sv.fus;for(const f of sv.fus)f.tr.visible=false;}}}
++function sfTireDepart(prev){const t=sfTire(prev);
++  if(!CRYPTO_JOUR||!SF_HORS.crypto||!t||t.carte!=='ville'||!SF_CARTES.crypto||Math.random()>=CJ.part)return t;
++  const j=sfTire(prev,'crypto');CJ.voulu=true;if(CHAUFFE_R.fait)cjChauffe(started?'fin':'menu');return j;}
++if(CRYPTO_JOUR){const lc0=lvlChoisir;lvlChoisir=function(){const r=lc0();
++  if(CJ.voulu&&!CJ.chaud&&SF_HORS.crypto&&r&&r.crypto)cjChauffe('piste'); /* le jour se bâtit et la chauffe du menu n'a pas fini : maintenant, hors course */
++  return r;};}
++/* ===== LA ROUTE DU JOUR RENVOIE LE CIEL (2026-11-18, contrôle du lot J, tour 1 : « la route est un aplat ardoise sans reflet sur 50 à 55 % de l'écran ») =====
++   La nuit, la route vit de son eau (flaques, enseignes étirées). Le jour, le béton sec restait presque MAT (GLACE.crypto .5, un reflet à peine visible). Sur le jour de Crypto City seulement, le béton devient une dalle POLIE : vu en rasant il renvoie le ciel de l'heure (le cube du biome : l'azur et la
++   bande d'or à midi, le rose au matin, l'orange sous le violet au soir) — le reflet du soleil en reste retiré (la traînée dure refusée le 26/09) — et la
++   brillance d'horizon (uSheen, la couleur de la brume) s'y pose. Deux UNIFORMES du programme du béton (bitumeV5, branche déjà compilée) : zéro programme,
++   zéro texture, zéro appel. Pas l'eau (uWet) : elle noierait aussi le pied des tours dans la brume (villePied). Fondu avec LVL.crypto (le portail). */
++const CJ_ROUTE={bullrun:{g:.85,s:.32},cryptoMatin:{g:.8,s:.3},cryptoSoir:{g:.8,s:.34}};
++if(CRYPTO_JOUR){const rt0=routeTick;routeTick=function(){rt0();const r=CJ_ROUTE[BIO.name];
++  const k=r?Math.min(1,LVL.crypto||0)*(1-Math.min(1,LVL.nuit||0))*(1-Math.min(1,LVL.pluie||0)):0;CJ_U.uCj.value=k*CJ.verre;if(k<=0)return;
++  ROAD_U.uGlace.value=Math.max(ROAD_U.uGlace.value,r.g*k);ROAD_U.uSheen.value=Math.max(ROAD_U.uSheen.value,r.s*k);};}
++/* ===== LES TOURS DE JOUR : MOINS DE CÉRAMIQUE CRÈME, PLUS DE VERRE (2026-11-19, contrôle du lot J, tour 2 : « le midi reste crème et délavé : en portrait,
++   un mur presque blanc occupe la moitié de l'écran ») =====
++   Le mur crème, c'est la TOUR BLANCHE (une tour sur cinq, CRYPTO_VERRE) : une résille de céramique autour de baies étroites, plein soleil — de près, un
++   aplat presque blanc. Le jour seulement (uCj9 : le jour de Crypto City, fondu au portail ; uNuit9 l'éteint aussi), dans le MÊME programme (il remplace
++   « toursCrypto3 », il ne s'y ajoute pas — 0 programme de plus, compilé au menu comme avant) :
++   · la tour blanche ouvre ses baies (la vitre renvoie l'azur et l'or du ciel), et sa céramique passe d'un crème cru à un blanc d'acier bleuté ;
++   · les montants des autres tours prennent un froid léger (la lumière dure du midi garde ses ombres bleues, le verre garde ses deux couleurs).
++   `?sans=cryptojour` : la matière d'avant, au caractère près. */
++const CJ_U={uCj:{value:0}};
++if(CRYPTO_JOUR){const cmt0=cryptoMatTours;cryptoMatTours=function(){const m=cmt0();if(m.cj9)return m;m.cj9=1;const ob=m.onBeforeCompile;
++  m.onBeforeCompile=function(sh){ob.call(this,sh);sh.uniforms.uCj9=CJ_U.uCj;const R9=[
++    ['uniform float uT9,uWet9,uNuit9;','uniform float uT9,uWet9,uNuit9,uCj9;'],
++    ['if(bl9>0.)hw*=vec2(.56,.78);','if(bl9>0.)hw*=mix(vec2(.56,.78),vec2(.86,.92),uCj9*(1.-uNuit9));'],
++    ['  gl_FragColor.rgb=mix(gl_FragColor.rgb,glass,pane*.93);','  gl_FragColor.rgb*=mix(vec3(1.),mix(vec3(.90,.94,1.03),vec3(.66,.74,.92),bl9),uCj9*(1.-uNuit9));gl_FragColor.rgb=mix(gl_FragColor.rgb,glass,pane*.93);']];
++    for(const r of R9){if(sh.fragmentShader.indexOf(r[0])<0)console.warn('cryptoMatTours (jour) : morceau absent',r[0]);sh.fragmentShader=sh.fragmentShader.split(r[0]).join(r[1]);}};
++  m.customProgramCacheKey=function(){return 'toursCrypto3j';};return m;};}
++window.dbgCryptoJour=function(o){ /* (banc) retouche à chaud : {bio:{…valeurs de l'ambiance courante…}, route:{g,s}, part} */
++  if(o){if(o.part!=null)CJ.part=o.part;if(o.verre!=null)CJ.verre=o.verre;if(o.route&&CJ_ROUTE[BIO.name])Object.assign(CJ_ROUTE[BIO.name],o.route);
++    if(o.bio&&BIOMES[BIO.name]){Object.assign(BIOMES[BIO.name],JSON.parse(JSON.stringify(o.bio)));bioLerp(BIOMES[BIO.name],BIOMES[BIO.name],1,BIO.cur);bioApply(BIO.cur);}
++    try{routeTick();}catch(e){}}
++  return {on:CRYPTO_JOUR,bio:BIO.name,part:CJ.part,chaud:CJ.chaud,voulu:CJ.voulu,quand:CJ.quand,verre:CJ.verre,uCj:+CJ_U.uCj.value.toFixed(3),route:CJ_ROUTE[BIO.name]||null,crypto:LVL.crypto,glace:ROAD_U.uGlace.value,sheen:ROAD_U.uSheen.value,hors:SF_HORS.crypto};};
++/* ===== LE JOUR DE CRYPTO CITY NE COÛTE PAS PLUS D'APPELS QUE LA NUIT SUR TÉLÉPHONE (2026-11-18, contrôle du lot J, tour 1 : « le jour coûte plus d'appels que
++   la nuit ») =====
++   Mesuré appel par appel (audit-image-par-appel, graine 11, ?tel=1) : le jour dessine 5 appels de plus que la nuit, tous des décors du ciel propres au jour —
++   la pluie de fond (billets PLA.mB, pièces PLA.mP : 2 appels, 23 k triangles), les feux d'artifice (C.feux), le sillage de fumée des fusées (un appel par
++   fusée en vol), la lune ₿ et les diamants. Sur ALLEGE seulement (le vrai téléphone ; l'ordinateur garde tout), on retire ceux qui se lisent le moins
++   en plein jour : CJ_LEGER (1 = retiré). Les feux additifs se perdent sur un ciel clair, la fumée blanche aussi ; les fusées, les dirigeables, les pièces
++   géantes (le JACKPOT) et la pluie d'argent restent. L'AVERSE d'un NOUVEL ATH (PLA.surge) n'est jamais coupée. `?sans=cryptojour` : rien n'est retiré. */
++const CJ_LEGER={feux:1,fumee:1,lune:1,diam:1,fusees:1,dirig:1,billets:0,pieces:0,pluie:.5};
++if(CRYPTO_JOUR&&ALLEGE){
++  const ct0=cryptoTick;cryptoTick=function(dt,sim){ct0(dt,sim);if(!cryptoOn())return;
++    if(CJ_LEGER.feux&&CRYPTO.feux)CRYPTO.feux.visible=false;
++    if(CJ_LEGER.fumee)for(const f of CRYPTO.fus)f.tr.visible=false;
++    if(CJ_LEGER.lune&&CRYPTO.lune)CRYPTO.lune.visible=false;
++    if(CJ_LEGER.diam&&CRYPTO.diam)CRYPTO.diam.visible=false;
++    if(CJ_LEGER.fusees)for(let k=1;k<CRYPTO.fus.length;k++){const f=CRYPTO.fus[k];f.g.visible=false;f.tr.visible=false;}
++    if(CJ_LEGER.dirig)for(let k=1;k<CRYPTO.dirig.length;k+=2)CRYPTO.dirig[k].g.visible=false;};
++  /* (2026-11-19, contrôle du lot J, tour 2 : « le jour coûte plus que la nuit sur téléphone ») LA PLUIE DE FOND À MOITIÉ : audit appel par appel (graines 9 et 2,
++     ?tel=1), le décor du jour ne dépasse celui de la nuit que de ~6 appels et ~35 k triangles, dont la pluie d'argent seule fait 2 appels et ~23 k triangles
++     (900 billets, 220 pièces). Hors averse, on n'en dessine que la part CJ_LEGER.pluie (la moitié) : ~11 k triangles de moins, la pluie reste là, plus
++     fine. L'AVERSE (un NOUVEL ATH, le JACKPOT : PLA.surge) la rend entière. Le reste de l'écart est la ROUTE de Crypto City (ses tracés, plus longs
++     dans le champ à certaines graines) : on n'y touche pas. */
++  const pt0=plaTick;plaTick=function(dt,sim){pt0(dt,sim);if(!PLA.mB)return;
++    const k9=cryptoOn()&&PLA.surge<=0&&CJ_LEGER.pluie<1?Math.max(0,CJ_LEGER.pluie):1;
++    PLA.mB.geometry.instanceCount=Math.round(PLA.N*k9);PLA.mP.geometry.instanceCount=Math.round(PLA.NP*k9);
++    if(!cryptoOn()||PLA.surge>0)return;
++    if(CJ_LEGER.billets)PLA.mB.visible=false;if(CJ_LEGER.pieces)PLA.mP.visible=false;};
++  const dj0=window.dbgCryptoJour;window.dbgCryptoJour=function(o){if(o&&o.leger)Object.assign(CJ_LEGER,o.leger);const r=dj0(o);r.leger=Object.assign({},CJ_LEGER);return r;};
++}
+diff --git a/code/maps/niveaux.js b/code/maps/niveaux.js
+index c9ff8eb45..c2cb29dfb 100644
+--- a/code/maps/niveaux.js
++++ b/code/maps/niveaux.js
+@@ -55,6 +55,12 @@ const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau da
+    ========================================================================== */
+ const SF={on:!/[?&](classique=cycle|play=sansfin)\b/.test(location.search),pret:false,neuf:false,tirage:[],der:null,force:null,prochain:null,prochainDer:null};
+ /* (2026-10-30, Léo : « enlève la map pic de glace du jouer, elle n'est pas au niveau ») LE GLACIER (id 'banquise') quitte le JOUER : seul `?carte=banquise` le remet. */
++/* ===== CRYPTO CITY DE JOUR REVIENT AU TÉLÉPHONE (2026-11-18, Sacha : « remets les maps Crypto City jour […] et tu remets les lumières jour, c'était bien en jour ») =====
++   Le 24/10 (v883, « supprime la map crypto city de téléphone ») le JOUR de Crypto City (la carte `crypto` : matin, midi, soir) avait quitté le tirage du téléphone (ALLEGE) ;
++   l'ordinateur l'a toujours gardé. Il revient, mais AU DÉPART d'une partie seulement (sfTireDepart, maps/cryptocity-jour.js) : SF_HORS.crypto reste vrai sur téléphone
++   (les portails, les missions et la chauffe du menu ne changent pas : une partie de nuit ou d'une autre map coûte ce qu'elle coûtait), et ses matières ne se compilent
++   qu'au moment où le jour est tiré, hors course. `?sans=cryptojour` = le jeu d'avant au bit près (le tirage ET le rendu). */
++const CRYPTO_JOUR=!/[?&]sans=([^&]*,)?cryptojour(,|&|$)/.test(location.search);
+ const SF_HORS={vitree:VILLE_VERRE_V&&!/[?&]vitree=1\b/.test(location.search),crypto:ALLEGE&&!/[?&](carte|niveau)=crypto\b/.test(location.search),banquise:!/[?&](carte|niveau)=banquise\b/.test(location.search),dunes:!/[?&](carte|niveau)=dunes\b/.test(location.search)}; /* (2026-11-09, Sacha : « enlève la map Dune du jeu pour l'instant ») LES DUNES D'OR quittent le JOUER, les portails et les missions, comme le glacier : tout leur code reste, `?carte=dunes` (ou `?niveau=dunes`) les remet ; leur copie vit aussi sur la branche de Léo. */ /* ⚠ TEL_NATIF, PAS l'ancien drapeau mobile (2026-10-25, Sacha : « sur PC la qualité a chuté ») : `l'ancien drapeau mobile` est vrai AUSSI sur l'ordi qui joue l'édition 'mobile' (FORCE_TEL, voir EDITION) — les retraits « téléphone » du 24/10 tombaient donc sur le PC. */ /* (2026-10-24, Sacha : « enlève les maps dunes et forêt de la version mobile ») LA FORÊT n'est plus tirée sur téléphone (l'ordi la garde) · (2026-10-25, Léo : « remets la map dune dans le main, intelligible pour un iPhone 13 ») LES DUNES sont REVENUES au tirage du téléphone, allégées (DN_MOB, dunes-1.js ; `?dunesplein=1` rend l'image d'avant) ; `?carte=foret` / `?carte=dunes` les remettent */ /* (2026-10-24, Sacha : « supprime la map crypto city de téléphone ») CRYPTO CITY n'est plus tirée sur téléphone (l'ordi la garde) ; `?carte=crypto` la remet pour les essais */ /* (2026-10-25, Léo : « remets forêt sur iPhone ») LA FORÊT est REVENUE au tirage du téléphone (elle y garde son allègement : arbres ×0,8, MOB) ; l'ordi la gardait déjà */
+ /* (2026-10-18, Sacha : « fusionne les maps ville et ville vitrée ») les maps HORS DU TIRAGE — jouables par ?carte= et dbgClassique (voir VILLE_VERRE_V) */
+ {const q9=/[?&]carte=(\w+)/.exec(location.search)||(/[?&]niveau=crypto\b/.test(location.search)?[0,'crypto']:null),m9=/[?&]meteo=(\w+)/.exec(location.search),t9=/[?&]teinte=(\w+)/.exec(location.search);if(q9||m9)SF.force={carte:q9?q9[1]:null,meteo:m9?m9[1]:null,teinte:t9?t9[1]:null};} // (2026-10-16) + `?teinte=` (la ville : violet, vert, jaune, bleu)
+diff --git a/code/moteur/depart-avance.js b/code/moteur/depart-avance.js
+index 68d4199de..b3c481818 100644
+--- a/code/moteur/depart-avance.js
++++ b/code/moteur/depart-avance.js
+@@ -30,7 +30,7 @@ function prebDepCible(){ // la 1re piste du prochain départ, quand on sait la b
+     return CHUTE.sous||GAR.sous?{t:t,z:0,zn:0,dep:true,st:false,eng:0}:null;} // sous9, au bout du piqué ou du lâcher (déjà passé : la piste est bâtie)
+   if(SF.force&&!(SF.force.carte&&SF_CARTES[SF.force.carte]))return null; // un lien de test sans map valide : tiré au départ, comme avant
+   if(SF.prochain&&(SF.prochainDer!==SF.der||SF.force))SF.prochain=null; // périmé : le dernier couple a changé, ou un lien de test impose sa map
+-  if(!SF.prochain){SF.prochain=SF.force?sfImpose(SF.der):sfTire(SF.der);SF.prochainDer=SF.der;} // tiré D'AVANCE, par la règle du départ
++  if(!SF.prochain){SF.prochain=SF.force?sfImpose(SF.der):sfTireDepart(SF.der);SF.prochainDer=SF.der;} /* (2026-11-18, lot J) sfTireDepart : le jour de Crypto City ne sort qu'au départ (maps/cryptocity-jour.js) */ // tiré D'AVANCE, par la règle du départ
+   const t=SF.prochain;if(!SF_CARTES[t.carte])return null;
+   return {t:t,z:0,zn:0,dep:true,st:!!started,eng:0};} // (LA VITESSE DE DÉPART) sous9 comme resetGame posent le palier du cran choisi avant de bâtir
+ /* ===== LA VITESSE D'UNE PARTIE FINIE NE SERT PAS À LA SUIVANTE (2026-11-17, lot JADEPREBATI — Sacha : « quelques freezes sur la map jade ») =====
