@@ -22,7 +22,19 @@ const D0=Object.assign({},G3,{cyG:[0,0,0]}),D1=Object.assign({},G3,{cyL:[0,0,0]}
 /* W2 = le soir de la correction 5 (cyT doré), pour l'illustrer à côté des diagnostics ; quand le jeu chargé n'a pas la clé cyG (le code de la correction 6 l'a retirée),
    elle est ignorée : D0 et les G n'ont alors plus de sens (bioLerp échoue sur une clé absente de BIO.cur) */
 const W2=Object.assign({},B0,{cyT:[.92,1.08,.66],_sat:1.20});
-export const VARIANTES={B0,G1,G2,G3,G4,G5,D0,D1,H1,H2,H3,W2};
+/* correction 7 (uArd : l'ardoise de l'ombre devient une clé d'ambiance, cyAr) : l'albédo doré de W2 + une ardoise PRUNE + un rebond or pâle */
+const K1=Object.assign({},W2,{cyAr:[1.02,.84,.92],cyL:[.86,.72,.50]});
+const K2=Object.assign({},W2,{cyAr:[.96,.80,1.0],cyL:[.86,.72,.50]});
+const K3=Object.assign({},K1,{cyT:[.94,1.06,.70],_sat:1.25,_sunI:.86});
+const K4=Object.assign({},K1,{cyL:[.80,.74,.56],cyAr:[1.04,.82,.96],_sat:1.22});
+const K5=Object.assign({},K2,{cyT:[.90,1.10,.64],_sat:1.28,_sunI:.86});
+const K6=Object.assign({},K1,{fog:[.86,.66,.40],fogIn:[.96,.84,.66],fogCj:[1,.72,.44],cyH:[.98,.70,.46],jHor:[.98,.70,.46]});
+/* second passage de la correction 7 : la sonde (sonde-ard.mjs) montre que l'ardoise agit fort au fond de la gorge mais peu sur les parois d'ombre proches ; K1-K6
+   (ardoise [1.02,.84,.92]) étaient trop faibles. K7/K8 : ardoise prune franche, rebond de W2 ; X = diagnostic, un albédo vert outré (la braise de course suit-elle cyT ?) */
+const K7=Object.assign({},W2,{cyAr:[1.15,.72,1.0],cyL:[.95,.62,.40]});
+const K8=Object.assign({},K7,{cyAr:[1.25,.66,1.05],_sat:1.24});
+const X=Object.assign({},W2,{cyT:[.5,1.5,.5]});
+export const VARIANTES={B0,G1,G2,G3,G4,G5,D0,D1,H1,H2,H3,W2,K1,K2,K3,K4,K5,K6,K7,K8,X};
 export default async function(api,a){
   const out=a.out||'.',F={paysage:[844,390,2],portrait:[390,844,2]},res={amb:{},vars:{},journal:[]};fs.mkdirSync(out,{recursive:true});
   const ecrit=()=>fs.writeFileSync(`${out}/tour7.json`,JSON.stringify(res,null,1));
@@ -43,7 +55,7 @@ export default async function(api,a){
     for(const n of liste){if(tard()){api.log('garde-temps : variante',n,'g'+g,'sautée');continue;}
       let V={};if(n!=='AV'){const S=VARIANTES[n];for(const k in S){if(k==='_sat')V.sat=+(AVB.sat*S[k]).toFixed(3);else if(k==='_sunI')V.sunI=+(AVB.sunI*S[k]).toFixed(3);else if(k!=='cyG'||LB.cyG)V[k]=S[k];}}
       res.vars[n]=n==='AV'?'avant entier':V;
-      await api.ev(`(dbgAmb('canyonSoir',Object.assign(${JSON.stringify(AVB)},${LB.cyG?'{cyG:[1,1,1]}':'{}'})),dbgAmb('canyonSoir',${JSON.stringify(V)}),1)`);await api.dort(300);
+      await api.ev(`(dbgAmb('canyonSoir',Object.assign(${JSON.stringify(AVB)},${JSON.stringify(Object.assign({},LB.cyG?{cyG:[1,1,1]}:{},LB.cyAr?{cyAr:[.72,.90,1.06]}:{}))})),dbgAmb('canyonSoir',${JSON.stringify(V)}),1)`);await api.dort(300);
       await tir(n,g,n==='AV'&&g!==graines[0]);res.journal.push(n+' g'+g+' '+Math.round((Date.now()-T0)/1000)+' s');api.log('variante',n,'g'+g,'ok',Math.round((Date.now()-T0)/1000)+' s');ecrit();}
     res.erreurs=(res.erreurs||[]).concat(api.erreurs.slice(0,4));}
   ecrit();
