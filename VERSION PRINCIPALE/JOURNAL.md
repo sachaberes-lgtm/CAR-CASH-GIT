@@ -5,6 +5,19 @@
 
 
 
+## LA PLUIE DE DEVISES : JOUET MODERNE, ELLE REBONDIT (2026-11-20, v1625 — Léo : « RGB », « plus 3D, ça tombe sur la route et rebondit », « on fonce dedans »)
+- Ce qui change (`code/rendu/billets-devises.js`) : les glyphes d'or cerclés d'encre deviennent des BLOCS ciselés (un plat verni, quatre chanfreins,
+  une tranche sombre, plus de liseré) teintés par instance d'une couleur presque pure qui fait le tour de l'arc-en-ciel en ~6 s. Ils tournent sur
+  eux-mêmes (largeur du panneau = cos de l'angle), tombent avec une vraie gravité dans le repère de la route (`frameAt` à la naissance), REBONDISSENT
+  sur la chaussée, et la caisse les PERCUTE (sphère de 2,5 m balayée sur son trajet de l'image, une fois par glyphe). Un tiers naît dans notre couloir.
+- Ce qui ne change pas : le déclencheur (`startMoneyRain`, 4 000 € × ECO3.gain puis ×2,6), le son, les 600 panneaux, l'atlas 256 × 256, le programme
+  partagé `PAN_FS` (aucun shader touché), UN appel de dessin.
+- Par appareil : `PAL.B.pluieDens=[.6,.8,1]` (324 / 432 / 540 glyphes). Garde-fous : route illisible ou repère NaN → l'averse s'arrête ; un glyphe NaN
+  ou tombé 60 m sous sa dalle est rangé ; à moins de 9 m de la caméra il s'efface (un glyphe chassé bouchait l'écran).
+- Banc : `dbgPluie()` la lance en course, `dbgPluie('etat')` → `{vivants, rebonds, chocs}`. Mesuré en Chromium logiciel : ~1 000 rebonds et ~90 chocs
+  par averse (téléphone debout) ; départ + course + averse sans erreur debout, couché et dans le cadre de l'ordi. Pas mesuré sur un vrai iPhone.
+- ⚠ Le retour à l'averse de glyphes était un choix de Sacha (26/10) : ce sont toujours des glyphes, mais leur allure a changé à la demande de Léo.
+
 ## L'ÉCRAN DE MORT EST MUET (2026-11-08 — Sacha : « il y a la musique alors que je suis mort »)
 - Cause : depuis fin septembre, `endGame` relançait la musique du menu 1,4 s après la mort (`musicMenu` → le lobby lié de Pouce bleu, le morceau de la
   PROCHAINE course, niveau 0,34 à 0,58 au banc). Ce n'était pas la musique de course qui continuait : elle s'éteint bien au crash (`explode`, tape-stop).
