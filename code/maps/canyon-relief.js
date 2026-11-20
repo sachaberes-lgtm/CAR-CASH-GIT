@@ -146,8 +146,13 @@ const CY_FINI_R={
      fond de gorge [.72,.62,.80] → [.82,.66,.66], horizon [1,.64,.36] → [.98,.62,.46] (et jHor), milieu du ciel [.44,.30,.54] → [.38,.28,.60]. Jeu « W2 » du banc
      (outils/banc-routes/canyon-finition/tour6.mjs, 11 jeux mesurés, puis ces valeurs chargées) : haut de l'image en vue figée, chroma 87-94 % de l'avant (le tour 4 : 60-75 %),
      luminance −2 à +3 %, braise (teinte 0-30°) g3 58 → 22 %, g11 62 → 38 % ; en course g11 91 → 66 %, g7 96 → 66 %. Le R−B reste au-dessus de 100 en course : c'est le prix du chroma. */
-  canyonSoir:{sunC:[.97,.72,.34],sunI:1.604,sat:1.2,cyL:[.95,.58,.36],cyT:[.92,1.08,.66],hemiS:[.38,.36,.66],hemiG:[.38,.27,.24],fillC:[.46,.40,.78],fog:[.88,.58,.40],fogCj:[1,.64,.44],
-    fogIn:[.96,.80,.66],cyF:[.82,.66,.66],cyH:[.98,.62,.46],jHor:[.98,.62,.46],cyZ:[.10,.12,.42],jZen:[.10,.12,.42],cyM:[.38,.28,.60],jMid:[.38,.28,.60],cyC:[1,.68,.50],cyD:[.26,.22,.40],cyR:[.36,.26,.40]},
+  /* Correction 6 (20/11, contrôle : « ombres vert mousse sur g17 ; en course g17 et g23 aussi rouges qu'avant ») : LE SOIR EST RENDU À L'AVANT (plus de clé canyonSoir).
+     La cause, mesurée (outils/banc-routes/canyon-finition/tour7.mjs, stats7.cjs) : le rouge NAÎT dans l'albédo du grès (st.rgb² de uSTR : déjà teinte ~20-27° sous une lumière
+     blanche), multiplié par TOUTE la lumière. En course, le terme qui domine les parois est le REBOND (uBnc : sans lui la braise tombe de 87 à 50 %, sans le soleil de 87 à 83 %),
+     mais sa TEINTE ne change rien (rebond or [.84,.84,.40] : braise ±4 points) : il ne fait qu'éclairer l'albédo rouge. Seul un facteur posé SUR l'albédo (cyT) ou sur le soleil
+     de la roche (essai cyG) dore le grès — et les deux verdissent l'ombre : l'ombre se mêle (jusqu'à 60 %) à l'ARDOISE TEAL figée dans le shader (CY_LOOK.ard [.72,.90,1.06],
+     ardK/ardF), et la lueur d'altitude de l'ombre suit uSunC ; c'est le rouge de l'albédo qui neutralisait ce teal. Il faudrait que l'ardoise ou l'albédo dépendent de l'ambiance :
+     une instruction ou un uniforme de plus dans cyFS, ou la texture des strates refaite au soir — hors des règles du lot. Mesures : passation/photos/finition-maps/canyon/NOTE.md. */
   /* LA NUIT : la route bleu électrique est GARDÉE (rtT d'avant). Seuls l'ombre (hemiS [.28,.32,.64] → [.30,.27,.66]) et le remplissage glissent du bleu vers le bleu-violet,
      à luminance égale (le tour 1 assombrissait la nuit de 20 % : retiré). */
   canyonNuit:{hemiS:[.30,.27,.66],fillC:[.34,.28,.74]},
