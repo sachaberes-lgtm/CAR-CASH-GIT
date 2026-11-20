@@ -490,3 +490,155 @@ Aucun pixel brûlé (> 245) nulle part, avant comme après. Aucun pixel vert-kak
 
 ### Pas vérifié
 Le vrai téléphone. Le midi. La pluie et l'orage en portrait sur une seconde graine. L'avant de la nuit en course n'a été pris qu'une fois : le −12 % de L du haut en course nuit paysage (vue figée −1 %) n'a pas été rejoué, et il est très probablement dû à l'instant de course, ce lot n'ayant pas touché la nuit. Les comptes ne sont pris qu'en vue figée 900.
+
+## Correction 6, 20/11 : le soir rendu à l'avant (fait = non)
+
+**Résultat** : aucun jeu de nombres ne rend le soir « nettement moins rouge partout » sans verdir l'ombre ou perdre du chroma. Conformément à la consigne, le soir du lot est **rendu à l'avant** : la clé `canyonSoir` est retirée de `CY_FINI_R` (`code/maps/canyon-relief.js`), remplacée par un commentaire qui donne la cause. Nuit, pluie et orage du lot : inchangés.
+
+### La cause du rouge (lecture du shader `cyFS` + diagnostics au banc)
+- **L'albédo du grès est déjà rouge-orange** : `rc = st.rgb²` (texture des strates `uSTR`, palette `pal` de `CY_LOOKS.A` posée dessus). Le carré pousse la teinte vers le rouge : sous une lumière blanche, le grès sort vers 20-27° (le seuil de la « braise » est 30°). Toute lumière chaude le fait descendre vers 10-20°.
+- **Tout se multiplie par cet albédo** : `col *= uRkT` (cyT) agit AVANT la lumière, donc sur le soleil ET sur l'ombre ; puis `c = col × Lc` (soleil, ciel, sol, rebond `uBnc`, remplissage, lueur d'altitude, planchers).
+- **L'ombre est mêlée à une ARDOISE TEAL figée dans le shader** : `c = mix(c, lum(c) × ard, om)`, avec `ard = [.72,.90,1.06]` (texte de `CY_LOOKS.A.ard`), et `om` qui va jusqu'à 0,6 (`ardK` à l'ombre, `ardF` au fond de la gorge sous la caméra). Avant, le ROUGE de l'albédo neutralisait ce teal : on obtenait un brun-ardoise. Dès que l'albédo (cyT) ou la lumière de l'ombre (lueur d'altitude, qui suit `uSunC`) tire vers l'or, rouge en moins + teal = **vert mousse**. C'est le défaut de W2 (`cyT [.92,1.08,.66]`).
+- **En course, ce sont les ombres éclairées par le REBOND qui font la braise, pas le soleil** (graine 17, s = 2200, paysage, braise du tiers haut) :
+  - sans soleil sur la roche (D0) : 87 → 83 % ;
+  - sans rebond (D1, `cyL` [0,0,0]) : 87 → 50 %, mais chroma −40 % et luminance −12 %.
+  - La TEINTE du rebond ne change rien : un rebond or `cyL [.84,.84,.40]` (H3) donne une braise de −4 à +3 points. Le rebond ne fait qu'éclairer l'albédo rouge, et le produit garde la teinte de l'albédo.
+- Bref, seuls deux leviers dorent le grès : un facteur posé SUR l'albédo (cyT), ou sur le soleil de la roche (essai cyG ci-dessous). Les deux verdissent l'ombre, à cause de l'ardoise teal et de la lueur d'altitude. Les jeux qui ne touchent que la lumière (soleil, rebond, ciel) laissent la braise.
+
+### Ce qui a été essayé (deux passages de banc, 16:12-16:16 et 16:18-16:21, sous le mutex du groupe puis le verrou « finition-canyon »)
+- Un essai de code, **retiré** depuis : une clé `cyG` (par défaut [1,1,1] dans `BIO_ETAL0`) qui multipliait `uSunC` pour la roche seule, dans `canyonTick` (une ligne de JS : ni GLSL, ni uniforme, ni texture). Il laissait `cyT` à sa valeur d'avant, pour que l'ombre ne soit pas teintée.
+- Les jeux, posés à chaud (`tour7.mjs`) par-dessus l'ambiance ENTIÈRE de l'avant :
+  - base B0 = le ciel, la brume, l'hémisphère et le soleil de W2, avec cyT d'avant ;
+  - G2 : cyG [.80,1.55,1], sat ×1,12 ;
+  - G3 : G2 + brume, horizon et rebond plus or ;
+  - G4 : cyG [.74,1.75,1], sat ×1,16 ;
+  - G5 : cyG [.70,1.95,1.05], sat ×1,18 ;
+  - H1 : rebond or + ciel et remplissage plus magenta (contre le vert), sat ×1,22, soleil ×0,84 ;
+  - H2 : H1 plus fort ;
+  - H3 : rebond or seul.
+- Le contrôle **AV** (l'avant posé à chaud) redonne l'avant à ±0,2 près.
+- Bilan des cibles, cas tenus sur le nombre de cas. Les cas : graines 17, 23 et 7 ; vue 900 en paysage et en portrait, vue 2600 en paysage, course en paysage et en portrait.
+
+| jeu | braise −10 pts | verdâtres sombres ≤ avant +2 | chroma ≥ 90 % | L ±4 % | écart de braise | écart de chroma |
+|---|---|---|---|---|---|---|
+| G2 | 8/15 | 12/15 | 5/15 | 10/15 | −39..−2 | −19..+12 % |
+| G3 | 9/15 | 11/15 | 4/15 | 11/15 | −38..+1 | −23..+9 % |
+| G4 | 11/15 | 9/15 | 4/15 | 4/15 | −60..−5 | −22..+8 % |
+| G5 | 12/15 | 6/15 | 5/15 | 2/15 | −77..−8 | −23..+6 % |
+| H1 (g17, g23) | 3/10 | 9/10 | 8/10 | 9/10 | −17..+2 | −14..+17 % |
+| H2 (g17, g23) | 4/10 | 9/10 | 6/10 | 5/10 | −29..−1 | −16..+15 % |
+| H3 (g17, g23) | 0/10 | 10/10 | 10/10 | 9/10 | −4..+3 | −1..+22 % |
+
+- Exemples. Pour G4, sur g17 :
+  - verdâtres sombres en vue 2600 paysage : 0,3 → 22 % ;
+  - en vue 900 portrait : 0,5 → 18 % ;
+  - braise en course paysage : 87 → 82 % seulement.
+- Pour G5, sur g23 en course portrait : braise 90 → 80 %, mais chroma −22 %.
+- Plus le soleil de la roche dore, plus la braise baisse en vue figée, mais l'ombre verdit et le chroma tombe. En course, la braise reste au-dessus de 75-80 % sur g17 et g23, sauf avec les jeux qui verdissent.
+
+### Ce qu'il faudrait changer (hors des règles de ce lot, à décider)
+1. Faire suivre l'AMBIANCE à l'ardoise de l'ombre (`ard`) : une ardoise prune ou brun chaud au soir, au lieu du teal. Cela demande que `ard` devienne un uniforme (un `vec3` de plus dans cyFS), ou un second programme.
+2. Ou bien faire suivre l'ambiance à l'ALBÉDO, sans toucher à l'ombre. Deux façons :
+   - une texture des strates refaite au soir (la palette `pal` plus or) : coût d'un envoi de texture au changement d'ambiance, rien en course ;
+   - ou cyT appliqué au seul terme du soleil direct (une instruction de plus).
+3. Seule voie sans code : accepter un soir plus jaune ET des ombres plus vertes. Ce compromis a déjà été refusé.
+
+### Valeurs chargées (passage final, 16:37-16:42, `tour8.mjs`)
+- Le lot (correction 6) lit au soir **exactement** les nombres de l'avant (`dbgAmb('canyonSoir')`) : sat 0,81, sunI 1,782, sunC [1,.56,.30], cyT [1,.95,.93], fog [.92,.52,.34]. Graines 3, 7, 11, 17 et 23.
+- **Image, lot contre avant**, au tiers haut (vue figée 900 et 2600, paysage et portrait, g17 et g23 ; vue 900 paysage pour g3, g7 et g11) :
+  - L, chroma, braise et verdâtres égaux à 0,1 près ;
+  - en course (instant variable) : L −2 à +3 %, braise −1 à +3 points ;
+  - 0 % brûlé.
+- **sans=canyonfini** (g17) : identique au lot en vue figée.
+- **Nuit** (g17, vue 900) : lot = HEAD, L 49,3 → 49,2 et chroma 23,2 → 23,2. Mêmes nombres d'ambiance.
+- **Orage** (g23) : mêmes nombres d'ambiance que HEAD. La première photo du lot est tombée sur un ÉCLAIR (L 45 → 98).
+  - Repris à 16:49, HEAD et lot rechargés deux fois chacun : L du haut 98,1 → 98,0, chroma 30,3 → 30,3 (cette fois, les deux photos sont tombées sur la même phase d'éclair).
+  - Appels : 130-131 des deux côtés.
+- **Comptes** (`?tel=1`, vue figée 900) : 149 programmes partout, et 124 textures (126 pour g11).
+
+| graine | appels / triangles : avant | lot | sans |
+|---|---|---|---|
+| g17 soir | 137 / 597 009 | 145 / 598 073 | 145 / 598 145 |
+| g23 soir | 139 / 544 539 | 147 / 545 619 | — |
+| g3 soir | 116 / 520 409 | 108 / 519 777 | — |
+| g7 soir | 151 / 549 879 | 151 / 549 879 | — |
+| g11 soir | 123 / 567 425 | 123 / 567 097 | — |
+| g17 nuit (HEAD / lot) | 137 / 597 337 | 137 / 597 325 | — |
+
+  - Les écarts de 8 appels changent de sens d'une graine à l'autre : c'est le bruit de la boucle non figée, déjà relevé par le contrôle. Le lot de cette correction n'a ni shader, ni maillage, ni texture.
+- Console : 0 erreur, 0 avertissement sur les 14 chargements.
+- **Routes** : `canyon.cjs graines=1-24 --brut` donne le même md5 dans le lot et dans avant (`621452dc…`).
+- **Gardes** : `--depuis-morceaux` d'accord (349 morceaux) ; garde-demarrage (21 scripts), garde-texte-nu, garde-allege : OK.
+
+### Outils
+- `mesure-couleurs.cjs` gagne `vsom` : les verdâtres, SOMBRES compris (teinte 65-170°, s > ,15, v > ,12), lus sur la moitié haute (`TIERS.moitie`).
+- `stats7.cjs` : le tableau des cibles de cette correction.
+- `tour7.mjs` : les jeux à chaud et les diagnostics D0 / D1.
+- `tour8.mjs` : le passage « valeurs chargées », avec avant / lot / sans / HEAD servi à côté.
+
+### Planches
+- `soir-diagnostic-paysage.jpg` et `soir-diagnostic-portrait.jpg` : l'avant (= le lot), W2 (correction 5 : l'ombre verte), sans rebond (D1) et rebond or (H3), en vue figée et en course, pour g17 et g23 (`tour7.mjs`, passage de 16:44).
+  À l'œil : avec W2, l'ombre vert-olive est nette (g17, vue 2600 et vue 900 portrait). Le rebond or (H3) donne la même image que l'avant. Sans rebond (D1), les parois de course passent à un brique terne.
+- Les planches du soir de la correction 5 sont supprimées : elles montraient un soir qui n'est plus dans le lot.
+
+### Pas vérifié
+- Le vrai téléphone.
+- Le matin et le midi : la correction ne les touche pas, et les nombres de `CY_FINI_R` ne changent pas pour eux.
+- La pluie : pas rechargée. Son entrée de `CY_FINI_R` n'a pas changé.
+- Une seule image par cas en course.
+- Le compteur `vsom` redonne le chiffre du contrôle : W2, g17, vue 900 portrait, 0,5 → 25,8 % (le contrôle disait 25,7 %).
+
+## Correction 7, 20/11 : l'ardoise d'ombre en uniforme (uArd), essayée puis retirée (fait = non)
+
+**Résultat.** La combinaison demandée ne tient pas les cibles :
+- albédo doré par cyT, de la famille W2 ;
+- ardoise d'ombre prune, portée par une clé d'ambiance `cyAr` et l'uniforme `uArd` ;
+- rebond moins rouge ;
+- sat et sunI réglés.
+
+Le code de jeu revient donc exactement à `f1bb165e4` (soir d'avant, pas d'uniforme). Seuls des outils sont commités : `tour7.mjs` (jeux K1-K8, X) et `sonde-ard.mjs`.
+
+### Ce qui a été codé puis retiré
+- **Dans cyFS**, le littéral `vec3(ard)` devenait `uArd`, déclaré dans la liste des `uniform vec3`. C'était le même produit, sans instruction de plus.
+- **Côté JS** :
+  - `uArd` était posé chaque image dans `canyonTick` depuis `BIO.cur.cyAr` ;
+  - le défaut `CY_ARD0` reprenait le littéral de chaque look (A : [.72,.90,1.06]), placé dans `BIO_ETAL0` pour que `bioLerp` trouve la clé partout.
+- **Preuve que l'uniforme agit** (`sonde-ard.mjs`, g17, soir) : une ardoise [2,0,2] teint le fond de gorge en magenta, et [0,2,0] le teint en vert.
+  - L'ardoise colore surtout le fond de gorge sous la caméra (`ardF`). Elle colore peu les parois d'ombre proches (`ardK` 0,22).
+- **Non mesuré**, puisque le code est retiré : les comptes (programmes, appels) avec uArd, et l'égalité matin, midi et nuit à ±0,2.
+
+### Les jeux (posés à chaud sur l'ambiance entière de l'avant, g17 et g23, vue 900 en paysage et en portrait, vue 2600 en paysage, course en paysage et en portrait)
+Tous partent de W2 : cyT [.92,1.08,.66], soleil [.97,.72,.34] ×0,90, sat ×1,20, ciel et brume de la correction 5.
+
+| jeu | ardoise cyAr | rebond cyL | autre | braise −10 | verdâtres ≤ +2 | C ≥ 90 % | L ±4 % | écart de braise |
+|---|---|---|---|---|---|---|---|---|
+| W2 | (teal) | [.95,.58,.36] | — | 3/10 | 6/10 | 7/10 | 8/10 | −28..0 |
+| K1 | [1.02,.84,.92] | [.86,.72,.50] | — | 5/10 | 6/10 | 9/10 | 6/10 | −33..+1 |
+| K2 | [.96,.80,1.0] | [.86,.72,.50] | — | 4/10 | 6/10 | 10/10 | 8/10 | −30..+1 |
+| K3 | K1 | K1 | cyT [.94,1.06,.70], sat ×1,25, soleil ×0,86 | 3/10 | 7/10 | 10/10 | 10/10 | −22..+1 |
+| K4 | [1.04,.82,.96] | [.80,.74,.56] | sat ×1,22 | 5/10 | 6/10 | 10/10 | 9/10 | −32..0 |
+| K5 | K2 | K2 | cyT [.90,1.10,.64], sat ×1,28, soleil ×0,86 | 5/10 | 5/10 | 10/10 | 10/10 | −36..−1 |
+| K6 | K1 | K1 | brume et horizon or | 5/10 | 5/10 | 10/10 | 9/10 | −29..0 |
+| K7 | [1.15,.72,1.0] | [.95,.62,.40] | — | 0/10 | 7/10 | 10/10 | 10/10 | −6..+1 |
+| K8 | [1.25,.66,1.05] | K7 | sat ×1,24 | 0/10 | 8/10 | 10/10 | 7/10 | −9..+3 |
+| X (diag.) | (teal) | W2 | cyT [.5,1.5,.5] | 10/10 | 0/10 | — | — | −90..−24 |
+
+- **Les verdâtres sombres de g17 en vue 2600 paysage** (avant 0,3 %) : W2 30, K1 35, K3 23, K5 39, K7 11,5, K8 10,2. Avec une ardoise faible, les verdâtres ne baissent pas. Une ardoise prune franche les baisse, mais pas sous 10 %.
+- **Dans le même temps, l'ardoise prune remet le rouge.** Avec K7 et K8, la braise ne baisse plus que de −9 à +3 points, partout.
+- **La braise en course de g17** (86,9 % en paysage, 61,5 % en portrait) ne baisse avec AUCUN jeu, sauf le diagnostic X. Le meilleur reste 82,3 % (K5).
+- **Pour g23 en course portrait** (90,3 %) : aucun jeu sous 89,6 %.
+- **Le diagnostic X le prouve** : les parois de course SONT bien le relief qui lit cyT (braise → 0, parois vertes). Il n'y a donc pas de matière cachée hors du shader. Mais il faut une teinte d'albédo outrée pour sortir de la braise en course, et elle verdit tout.
+- **À l'œil** (`soir-correction7-essais.jpg`) : avec K7, la paroi d'ombre de gauche reste olive sur g17 en vue 2600 ; le fond de gorge passe au prune ; les parois de course de g23 restent orange-rouge.
+
+### La cause, précisée
+1. **Le grès est un albédo rouge-orange.** En course, il est vu de près et très éclairé (soleil, rebond, lueur), au-dessus des seuils de la braise.
+2. **Le sortir de la teinte 0-30° demande un facteur vert fort sur l'albédo.**
+3. **Ce facteur rend olive l'ombre proche.** Ce n'est pas l'ardoise qui la verdit, c'est l'albédo doré sombre lui-même : un jaune sombre se lit kaki.
+4. **L'ardoise n'agit qu'à 22 % sur ces ombres proches.** Une ardoise assez prune pour les corriger remet du rouge partout où elle agit.
+5. **Il faudrait séparer la teinte de l'ombre proche de celle du soleil.** Par exemple : cyT appliqué au seul terme du soleil direct, et la part d'ardoise `ardK` en uniforme. Cela demande une instruction de plus, ce que la règle « zéro instruction » interdit. Autre voie : une palette de grès plus jaune pour toutes les ambiances, ce qui change le matin et le midi.
+
+### État final
+- Code de jeu identique à `f1bb165e4` : `git diff f1bb165e4 -- code` est vide.
+- Assemblage d'accord (349 morceaux) ; gardes garde-demarrage, garde-texte-nu et garde-allege : OK.
+- Routes : inchangées (aucun fichier de génération touché ; md5 vérifié à la correction 6, `621452dc…`).
+- Planches du soir : `soir-diagnostic-paysage.jpg` et `soir-diagnostic-portrait.jpg` (correction 6), plus `soir-correction7-essais.jpg`.

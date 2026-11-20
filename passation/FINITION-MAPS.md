@@ -18,7 +18,7 @@ Tout couper d'un coup : `?sans=nappes,couleursfinies,espacefini,jadefini,canyonf
 | Espace | oui | `?sans=espacefini` | fusionnable, 20/11 |
 | Pic de Jade | oui | `?sans=jadefini` | fusionnable, 20/11 |
 | Canyon : nuit, pluie, orage | oui | `?sans=canyonfini` | jugés bons au banc les 19 et 20/11 |
-| Canyon : le soir trop rouge | NON (essais sur `finition-maps-canyon`) | — | refusé six fois, dernier contrôle le 20/11 |
+| Canyon : le soir trop rouge | NON (essais sur `finition-maps-canyon`) | — | huit tentatives, aucune ne tient ; cause établie |
 | Modules de l'espace | abandonné | — | Sacha a retiré les géants (41285daf1) |
 
 Coût, pour les lots fusionnés : aucune texture, aucun maillage, aucun programme, aucune instruction GLSL en plus (l'espace en retire une). Au banc : 149 programmes avant = après partout, textures égales, appels et triangles dans le bruit du banc (les écarts existent aussi entre « avant » et « sans », qui sont le même code). Routes identiques au bit près sur ≥ 20 graines × 2 paliers pour chaque lot.
@@ -71,9 +71,15 @@ Audit mesuré des maps au tirage du téléphone hors des autres lots. Rien de br
 
 - Fichier : `code/maps/canyon-relief.js` (bloc `CY_FINI_R`, des nombres d'ambiance) ; banc `outils/banc-routes/canyon-finition/`.
 - Sur la branche : la nuit (ombre et remplissage du bleu vers le bleu-violet, luminance −1 à −2 %, chroma +6 à +25 %), la pluie (route bleu canard au lieu du gris, chroma de la route 7-10 → 23-33) et l'orage (indigo-violet, chroma +60 %). Pluie et orage sont hors tirage. 0 % de pixels brûlés, coût nul, routes au même md5.
-- **Le soir trop rouge n'est pas corrigé.** Six jeux de nombres ont été refusés au banc, chacun pour un défaut différent : roche délavée, puis kaki (chroma −27 à −40 %), puis, à la dernière correction, ombres vert mousse sur une graine (g17 : 0,5 → 26 % de pixels verdâtres) et un soir pas moins rouge en course sur deux graines sur trois. J'ai donc retiré le soir du lot : sur la branche il est celui d'avant, au caractère près (la clé `canyonSoir` n'est plus dans `CY_FINI_R`).
-- Ce que les essais ont appris : par les seuls nombres d'ambiance, on ne tient pas à la fois « nettement moins rouge » et « roche aussi saturée » ; baisser le rouge de la roche la grise ou la verdit. Le dernier essai (ocre doré, joli sur deux graines) est sur `finition-maps-canyon` (aee197455), planches `soir-*` et `controle/ctl6-*` dans `passation/photos/finition-maps/canyon/`.
-- Décision pour Sacha : regarder ces planches du soir. Soit le soir d'avant te va tel quel, soit il faut toucher à la couleur de la roche elle-même (palette du grès), ce qui sort d'une simple finition.
+- **Le soir trop rouge n'est pas corrigé.** Huit tentatives, toutes refusées au banc ou abandonnées par leur auteur : roche délavée, puis kaki (chroma −27 à −40 %), puis ombres vert mousse (g17 : 0,5 → 26 % de pixels verdâtres) avec un soir pas moins rouge en course sur deux graines sur trois. Sur la branche, le soir est celui d'avant, au caractère près (la clé `canyonSoir` n'est plus dans `CY_FINI_R`).
+- La cause, établie le 20/11 par lecture du shader et mesures :
+  - le grès est rouge-orange par son albédo (`rc = st.rgb²`, strates + palette) : sous une lumière blanche il sort déjà vers 20-27° de teinte ;
+  - la teinte `cyT` multiplie l'albédo avant la lumière, donc elle teinte aussi l'ombre : dorer la roche rend l'ombre proche olive (un jaune sombre se lit kaki) ;
+  - en course, la braise vient du rebond (`uBnc`) sur l'albédo rouge, pas du soleil : couper le rebond fait 87 → 50 % de braise mais −40 % de chroma ; un rebond or ne change rien ;
+  - l'ardoise d'ombre passée en uniforme (essayée puis retirée) ne pèse que 22 % sur les parois proches : pas assez pour corriger le vert sans remettre du rouge.
+- Ce qu'il faudrait pour le faire vraiment (hors d'une finition) : soit appliquer la teinte au seul soleil direct dans le shader de la roche (au moins une instruction de plus, à prouver sur iPhone), soit une palette de grès plus jaune pour toutes les ambiances (le matin et le midi changent aussi).
+- Les essais, leurs tableaux et leurs planches : `passation/photos/finition-maps/canyon/NOTE.md` (corrections 5, 6, 7), `soir-diagnostic-*.jpg`, `soir-correction7-essais.jpg`, `controle/ctl6-*.jpg` ; outils sur `finition-maps-canyon` (144c7c16c).
+- Décision pour Sacha : garder le soir tel quel, ou ouvrir un vrai chantier « roche du canyon » avec l'une des deux voies ci-dessus.
 - Non vérifié : la fusion sans le soir n'a pas été rephotographiée (nuit, pluie et orage ont les nombres jugés au banc ; le soir est celui d'avant par construction) ; pluie et orage en portrait sur une seule graine.
 
 ## Pour livrer
