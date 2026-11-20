@@ -150,7 +150,7 @@ const MONN_TEX=(function(){
 const MONN_N=600,MONN=mkPanneaux(MONN_N,MONN_TEX,4,4,false,1,2);
 const MR={x:new Float32Array(MONN_N),y:new Float32Array(MONN_N),z:new Float32Array(MONN_N),vx:new Float32Array(MONN_N),vy:new Float32Array(MONN_N),
   vz:new Float32Array(MONN_N),ph:new Float32Array(MONN_N),rs:new Float32Array(MONN_N),rot:new Float32Array(MONN_N),life:new Float32Array(MONN_N),
-  sc:new Float32Array(MONN_N),f:new Uint8Array(MONN_N),head:0,viv:0,acc:0,reb:0,
+  sc:new Float32Array(MONN_N),f:new Uint8Array(MONN_N),head:0,viv:0,acc:0,reb:0,choc:0,cx:0,cy:0,cz:0,cok:false,tap:new Uint8Array(MONN_N), /* choc : les glyphes percutés par la caisse · cx,cy,cz : où elle était l'image d'avant · tap : déjà percuté (une seule fois chacun) */
   nx:new Float32Array(MONN_N),ny:new Float32Array(MONN_N),nz:new Float32Array(MONN_N),d0:new Float32Array(MONN_N),   /* le plan de SA dalle : la normale, et n·p */
   bx:new Float32Array(MONN_N),by:new Float32Array(MONN_N),bz:new Float32Array(MONN_N),b0:new Float32Array(MONN_N)};  /* le travers de la route, et b·p (la chaussée s'arrête à ROAD_HALF) */
 PAL.B.pluieDens=[.6,.8,1]; /* la part de l'averse par palier (téléphone ancien · téléphone · ordi et téléphone récent) : moins de glyphes à animer et à dessiner, le même spectacle */
@@ -176,17 +176,26 @@ function updateMoneyRain(dt,t){
       try{frameAt(s+d9*driveDir,MRF);}catch(e){moneyRainT=0;MR.acc=0;break;} /* GARDE-FOU : pas de route lisible (un mode sans tracé) → l'averse s'arrête, la partie continue */
       if(!(MRF.p.x===MRF.p.x&&MRF.n.x===MRF.n.x&&MRF.b.x===MRF.b.x)){moneyRainT=0;MR.acc=0;break;} /* un repère cassé (NaN) : pareil */
       if(side<0){MRF.n.multiplyScalar(-1);MRF.b.multiplyScalar(-1);} /* la dalle où il tombera (dessous de la route : le repère se retourne, comme la caisse) */
-      const N=MRF.n,Bv=MRF.b,T9=MRF.t,l9=lat+(Math.random()-.5)*46,h9=(side<0?THICK:0)+3+Math.random()*13;
+      const N=MRF.n,Bv=MRF.b,T9=MRF.t,l9=lat+(Math.random()-.5)*(Math.random()<.35?9:46),h9=(side<0?THICK:0)+3+Math.random()*13;
       MR.nx[i]=N.x;MR.ny[i]=N.y;MR.nz[i]=N.z;MR.d0[i]=N.dot(MRF.p)+(side<0?THICK:0);
       MR.bx[i]=Bv.x;MR.by[i]=Bv.y;MR.bz[i]=Bv.z;MR.b0[i]=Bv.dot(MRF.p);
       MR.x[i]=MRF.p.x+Bv.x*l9+N.x*h9;MR.y[i]=MRF.p.y+Bv.y*l9+N.y*h9;MR.z[i]=MRF.p.z+Bv.z*l9+N.z*h9;
       const vn9=-(1+Math.random()*4),vb9=(Math.random()-.5)*5,vt9=(Math.random()-.5)*5;
       MR.vx[i]=N.x*vn9+Bv.x*vb9+T9.x*vt9;MR.vy[i]=N.y*vn9+Bv.y*vb9+T9.y*vt9;MR.vz[i]=N.z*vn9+Bv.z*vb9+T9.z*vt9;
       MR.ph[i]=Math.random()*6;MR.rs[i]=(Math.random()<.5?-1:1)*(3+Math.random()*6);MR.rot[i]=Math.random()*6.28; /* rot : l'angle de la pièce qui tourne sur elle-même */
-      MR.life[i]=3.2+Math.random()*1.8;
+      MR.life[i]=3.2+Math.random()*1.8;MR.tap[i]=0;
     }
   }
-  if(!MR.viv&&moneyRainT<=0){if(MONN.cnt||!MONN.chaud){MONN.cnt=0;panPousse(MONN);}return;} /* rien ne tombe : rien n'est dessiné */
+  if(!MR.viv&&moneyRainT<=0){if(MONN.cnt||!MONN.chaud){MONN.cnt=0;panPousse(MONN);}MR.cok=false;return;} /* rien ne tombe : rien n'est dessiné */
+  /* ===== ON FONCE DEDANS (2026-11-20, Léo : « ça défile sur nous et ça rebondit sur la route ET la voiture — le même effet de on fonce dedans ») =====
+     Les glyphes ne suivent PAS la caisse : ils tombent à un endroit du monde et y restent, on traverse le rideau (un tiers naît dans notre
+     couloir). Et la caisse les PERCUTE : une sphère de 2,5 m balayée sur son trajet de l'image (elle fait plus de 2 m par image à fond) —
+     le glyphe touché est chassé de côté et vers le haut avec une part de notre élan, une seule fois, puis il retombe et rebondit derrière. */
+  const cp=carGroup.position,pcx=MR.cx,pcy=MR.cy,pcz=MR.cz;let sx=cp.x-pcx,sy=cp.y-pcy,sz=cp.z-pcz,s2=sx*sx+sy*sy+sz*sz;
+  const cOn=MR.cok&&dt>0&&s2<3600; /* une image d'avant connue, et pas un saut (réapparition, portail) */
+  if(!cOn){sx=sy=sz=s2=0;}
+  const kv=cOn?.55/dt:0; /* la part de la vitesse de la caisse que prend le glyphe percuté */
+  MR.cx=cp.x;MR.cy=cp.y;MR.cz=cp.z;MR.cok=true;
   const P=MONN.P,S=MONN.S,C=MONN.C,F=MONN.F,gdt=MR_G*dt;let n=0;
   for(let i=0;i<MONN_N;i++){if(MR.life[i]<=0)continue;
     MR.life[i]-=dt;if(MR.life[i]<=0)continue;
@@ -201,6 +210,12 @@ function updateMoneyRain(dt,t){
         x+=nx*k9;y+=ny*k9;z+=nz*k9;vx-=nx*vn9*e9;vy-=ny*vn9*e9;vz-=nz*vn9*e9;
         vx*=.78;vy*=.78;vz*=.78;MR.rs[i]*=e9>1?-.72:.9;if(e9>1)MR.reb++;} /* il repart en tournant dans l'autre sens, un peu moins vite · posé : il ralentit */
     }else if(h9>=r9){const w9=Math.min(1,(h9-r9)*.5);x+=Math.sin(t*3+MR.ph[i])*1.1*w9*dt;z+=Math.cos(t*2.6+MR.ph[i])*1.1*w9*dt;} /* en l'air : il flotte un peu (rien au ras du sol) */
+    if(cOn&&!MR.tap[i]){ /* LA CAISSE : le point de son trajet (image d'avant → maintenant) le plus proche du glyphe, relevé de 0,8 m */
+      let ex=x-pcx-nx*.8,ey=y-pcy-ny*.8,ez=z-pcz-nz*.8;const u9=s2>1e-6?Math.min(1,Math.max(0,(ex*sx+ey*sy+ez*sz)/s2)):1;
+      ex-=sx*u9;ey-=sy*u9;ez-=sz*u9;const d2=ex*ex+ey*ey+ez*ez,R9=2.5+r9;
+      if(d2<R9*R9){const d9=Math.sqrt(d2)||1,k9=9/d9;MR.tap[i]=1;MR.choc++;
+        vx=sx*kv+ex*k9+nx*7;vy=sy*kv+ey*k9+ny*7;vz=sz*kv+ez*k9+nz*7;MR.rs[i]=(MR.rs[i]<0?-1:1)*(9+Math.random()*6);} /* chassé : notre élan + l'écart + un coup vers le haut · il part en vrille */
+    }
     MR.x[i]=x;MR.y[i]=y;MR.z[i]=z;MR.vx[i]=vx;MR.vy[i]=vy;MR.vz[i]=vz;
     MR.rot[i]+=MR.rs[i]*dt;
     const c9=Math.cos(MR.rot[i]),a9=Math.abs(c9),l9=c9>0?.82+.26*a9:.5+.3*a9; /* la face éclate quand elle passe devant l'œil · le dos reste dans l'ombre */
@@ -215,8 +230,8 @@ function updateMoneyRain(dt,t){
   }
   MR.viv=n;MONN.cnt=n;panPousse(MONN);
 }
-function moneyRainClear(){MR.life.fill(0);MR.viv=0;moneyRainT=0;MONN.cnt=0;panPousse(MONN);} // nouvelle partie : l'averse s'arrête net
-window.dbgPluie=function(q){if(q==='etat')return {vivants:MR.viv,rebonds:MR.reb,reste:+moneyRainT.toFixed(2)};startMoneyRain();return 'pluie de devises lancée';}; /* (2026-11-20) le crochet de test de la pluie RGB : en course, `dbgPluie()` la lance, `dbgPluie('etat')` compte les vivants et les rebonds */
+function moneyRainClear(){MR.cok=false;MR.life.fill(0);MR.viv=0;moneyRainT=0;MONN.cnt=0;panPousse(MONN);} // nouvelle partie : l'averse s'arrête net
+window.dbgPluie=function(q){if(q==='etat')return {vivants:MR.viv,rebonds:MR.reb,chocs:MR.choc,reste:+moneyRainT.toFixed(2)};startMoneyRain();return 'pluie de devises lancée';}; /* (2026-11-20) le crochet de test de la pluie RGB : en course, `dbgPluie()` la lance, `dbgPluie('etat')` compte les vivants et les rebonds */
 // ---------- AUDIO ----------
 let AC=null,osc=null,osc2=null,filt=null,gainN=null,engDose=null,windG=null,windF=null,skidG=null,jetG=null,jetF=null,jetLowG=null,jetOsc=null,jetOscG=null,whF=null,whG=null;
 // LA CHARGE — l'état interne du moteur. ⚠ Ce n'est PAS la position de l'accélérateur : c'est ce
