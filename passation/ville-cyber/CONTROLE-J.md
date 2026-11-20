@@ -446,3 +446,175 @@ Planches regardées : paysage g13, g14, g5 et g21 (nuit, matin, midi, soir × s2
 1. **Tours lointaines du jour** : rendre leurs fenêtres lisibles à s85, et sortir le matin du voile pêche (brume, fogN, contraste), sans programme de plus. Ce sont des valeurs d'ambiance ou des uniformes déjà compilés.
 2. **Route du jour** : un reflet du ciel qui se voie à la hauteur de caméra du jeu, et un soir sans aplat orange (route moins saturée que le ciel), en vérifiant qu'une pièce s'y lit.
 3. Faire trancher Sacha sur la perte de l'ancien jour `crypto` au PC et sur les missions météo.
+
+---
+
+## Reprise, tour 2 (2026-11-20, vers 16 h 10) — après la passe 2 (brume plus sombre que le ciel, courant ×1,8, dalle polie)
+
+**Verdict : FUSIONNABLE.** Aucun défaut bloquant trouvé. Les deux bloquants du tour 1 sont levés à l'image : fenêtres au lointain, plus de matin délavé en pêche, reflet visible sur la route, plus d'aplat orange le soir. Il reste des mineurs (goût) et des décisions pour Sacha.
+
+Code jugé : `cryptocity-jour.js` du 20/11 14:49 et `index.html` assemblé à la même heure. `niveaux.js` est celui du 19/11. Toutes les mesures ci-dessous sont postérieures.
+
+Bancs : `<scratchpad>/lot-j2/controle/t2/`, avec `banc-c2.cjs` (ports 8349 / 9549, profil `profil-chrome-ctrlj2`), `banc-c4.cjs` (photos à la caméra du jeu), `mk.py`, `jobs1/2/3/5/6.json`, `out-jobs*/res-*.json` et `p1`, `p2`, `p5`, `p6.log`.
+
+Quatre prises sous verrou (`ville-cyber-j-ctrl2`) :
+- 15:21:50 → 15:25:26
+- 15:34:08 → 15:38:19
+- 16:01:08 → 16:03:20
+- 16:03:29 → 16:05:28
+
+Chrome tournait muet (`--mute-audio`, sfx, mus et vox coupés). Le groupe de processus a été tué, le profil supprimé et le verrou rendu à chaque prise. La référence propre (`controle/ref`, HEAD assemblé `--depuis-morceaux`, 13 185 999 octets) a été supprimée à la fin.
+
+Mes graines : **13, 14, 33, 62** (photos et comptes), 9 (portail vers le jour), 62 (course de matin). Hasard du tirage : 4243.
+
+### 1. Interrupteur, routes, diff, gardes : JUSTE
+
+- **Gardes** : vertes.
+  - garde-demarrage : OK (21 scripts) ;
+  - garde-allege : ✔ ;
+  - garde-charte : OK ;
+  - `assembler --verifier` : 349 morceaux, 13 196 713 octets.
+- **Empreintes `graines=1-12`** : toutes intactes.
+  - ville 17b89297a6b8 / 9dc6766ea34f ;
+  - crypto 5447610bd8f2 / eae97981f833 ;
+  - nuages 469d52aff855 / 2e1661d8fe93 ;
+  - espace 9c99fae61d38 / ea2d9e750351.
+
+  La vitrée casse avec `VIT_SOL`, déjà avant le lot.
+- **Diff**
+  - `diff -rq` de la référence `code/` contre le lot : seulement `ORDRE.txt`, `niveaux.js` et le nouveau `cryptocity-jour.js`.
+  - `index.html` de la référence contre le lot : 90 lignes, toutes du lot.
+  - Ni route, ni autre map, ni rendu réservé, ni `sw.js`.
+  - `CJ`, `CJ_BIO`, `CJ_ROUTE`, `cjPoids` et `CRYPTO_JOUR` ne sont déclarés qu'une fois dans `index.html`.
+  - Aucun `IS_MOBILE`, aucun `ALLEGE`, aucun `//` dans le morceau.
+- **Tirage de 200 parties** (1 départ et 2 portails, soit 600 tirages ; `?tel=1` ; programmes au tirage 0 → 0 partout) :
+
+  | | empreinte du tirage | BIOMES | SF_CARTES | m2Cartes |
+  |---|---|---|---|---|
+  | référence (HEAD) | 2101787703 | 1747857425 | −69475444 | nuages,cryptoville,jade,espace,grotte,canyon |
+  | lot | 2118100537 | 184114904 | −526369708 | identique |
+  | lot `?sans=cryptojour` | **2101787703** | **1747857425** | **−69475444** | identique |
+
+  Les comptes par carte et météo de `?sans` sont égaux à ceux de la référence, case par case.
+- **Nuit g33**, avec un état de ville complet (route, `F.M`, `F.C`, géométries de `CITY.root`) :
+  - référence, `?sans` et lot donnent les mêmes hachages : route 115647719, famM 787707963, cityH −1774614892, famC égales ;
+  - appels 88-89 / 83-84 / 54-55, triangles 246-248 k / 237-240 k / 100-103 k ;
+  - 154 programmes, 122 textures.
+- **Le code** : `uC` est reposé à chaque image par `villeApres` avant le ×1,8 de l'enveloppe, donc rien ne s'accumule d'une image à l'autre. `uJf` est remis à null hors du jour.
+
+### 2. Même map (preuve A) et coût (preuve B) : JUSTE
+
+**A.** État lu dans le jeu (`?tel=1`) après la construction, nuit / matin / midi / soir :
+
+| graine | route (hachage, points) | tours | famM | cityH | couleurs `F.C` |
+|---|---|---|---|---|---|
+| 13 | 94268732, 6389 | 1082 | 1080977477 ×4 | −210372394 ×4 | égales ×4 sauf la 4e famille (néons : 790,45 la nuit, 985,11 le jour) |
+| 14 | −983360515, 6911 | 2057 | −1047191885 ×4 | −173690613 ×4 | idem (2906,11 contre 3451,48) |
+| 33 | 115647719, 6671 | 2260 | 787707963 ×4 | −1774614892 ×4 | idem |
+| 62 | −1298871485, 7066 | 1387 | 1287587044 ×4 | −1408384315 ×4 | idem |
+
+- Portrait g14 et g33 : mêmes hachages.
+- Aucune différence de géométrie, de densité ni de décor. La seule différence est la teinte de nuit des néons, de la lumière donc, ce qui est permis.
+- Sur les planches, ce sont les mêmes tours, passerelles et enseignes aux mêmes places.
+
+**B. Coût**, `?tel=1` 844×390, appels / triangles (k), s25 / s55 / s85 :
+
+| graine | nuit | matin | midi | soir |
+|---|---|---|---|---|
+| 13 | 78/166 · 119/272 · 50/84 | 77/166 · 133/273 · 50/81 | 69/165 · 125/272 · 50/81 | 69/164 · 125/272 · 50/81 |
+| 14 | 66/173 · 74/192 · 61/193 | 64/171 · 73/192 · 61/190 | 72/172 · 73/192 · 61/190 | 63/171 · 72/191 · 60/190 |
+| 33 | 88/245 · 83/237 · 55/102 | 87/245 · 82/241 · 53/100 | 87/245 · 82/241 · 53/100 | 87/245 · 82/241 · 53/100 |
+| 62 | 76/224 · 69/170 · 82/260 | 74/222 · 68/170 · 80/258 | 74/222 · 68/170 · 80/258 | 74/222 · 68/170 · 80/257 |
+| portrait g14 s30 / s60 | 65/164 · 64/156 | 59/163 · 55/152 | 58/164 · 54/152 | 58/164 · 54/153 |
+| portrait g33 s30 / s60 | 62/162 · 69/191 | 61/162 · 68/191 | 61/162 · 68/191 | 69/163 · 68/191 |
+
+(La valeur basse des deux mesures ; la haute est l'image « double » du banc, ×2, de jour comme de nuit.)
+
+- **Programmes : 154 partout. Textures : 121 (g13, g14) et 122 (g33, g62), égales à la nuit.**
+- L'écart le plus fort est g13 matin s55, à 133 contre 119 la nuit. **Je l'ai remesuré** (prise 3, audit appel par appel à g13 s55) :
+  - appels : nuit 120, matin 125, midi 126 ;
+  - lignes qui diffèrent : Sprite 1 → 8 (le soleil et ses halos, 0 triangle), −1 `LineSegments` (l'éclair), Mesh Shader 7 → 6, et +1 « étincelles » au midi.
+  - Le 133 était du bruit de mesure. **Le coût est celui de la nuit, plus le soleil.**
+  - Sur g33, l'audit est **identique ligne pour ligne** à la nuit aux trois vues.
+- **Courses** (prébâti coupé, clés des programmes comparées) :
+  - **`ville:matin` g62** : de 262 m à 6 952 m, puis portail vers `jade:pluie`. 154 programmes à chacun des 38 relevés, **0 programme nouveau, 0 erreur console**, 0 mort.
+  - **Portail VERS le jour** : `nuages:soir` g9, avec le tirage du portail imposé à `ville:midi` (`SF.force` et `SF.tirage.length=1`, juste après le départ).
+    - Course complète des nuages, puis portail, puis **`ville:midi` suivie 24 s** (de 843 à 3 474 m).
+    - `dbgCryptoJour()` y donne : jour vrai, `cjMidi`, uJ 0,3, pied 0, glace 2,4, sheen 0,5.
+    - **154 programmes, 0 nouveau, 0 erreur.**
+    - (Un premier essai, en baissant les poids, n'avait pas mené au jour : le portail est allé à `jade:matin`. Le tirage du portail était déjà fait.)
+- **0 erreur console** sur les 40 chargements, les deux courses et les 6 chargements en caméra de jeu.
+
+### 3. Image (preuve C) : PAS DE BLOQUANT
+
+Je les ai toutes regardées : paysage g13, g14, g33 et g62 × nuit, matin, midi, soir × s25 / s55 / s85 ; portrait g14 et g33 × s30 / s60 ; et, pour la première fois, **à la caméra du jeu** (voiture, HUD, en roulant) : g14 en paysage et g13 en portrait, aux trois heures. Copies dans `planches/controle-reprise2-{g13,g14,g62}-844x390.jpg`, `controle-reprise2-g14-g33-390x844.jpg` et `controle-reprise2-camera-jeu-g14.jpg`.
+
+**Mesures des photos** (hors HUD) :
+- **0,0 % de pixels brûlés** (≥ 235 sur les trois canaux) sur les 72 photos de jour. Au plus 0,4 % au-dessus de 215.
+- Contraste (écart-type de la luminance) de 37 à 67 le jour, contre 27 à 45 la nuit.
+
+**Les bloquants du tour 1 sont levés.**
+- **a. Les tours lointaines ont leurs fenêtres.** À s85 (g13, g33, g62), la ligne d'horizon n'est plus faite d'aplats pâles :
+  - midi : silhouettes bleu profond, avec des grilles de fenêtres fines mais visibles ;
+  - matin : brunes sur une brume chaude ;
+  - soir : sombres sur l'orange.
+  - Les tours moyennes sont pleines de fenêtres et de néons.
+- **Le matin n'est plus un voile pêche** : 0 aplat, contraste 40 à 65.
+- **b. La route a un reflet** : une bande claire du ciel en rasant, à toutes les vues s55 / s85 et à la caméra du jeu.
+  - Le soir, la route est violet et corail, **plus un aplat orange** (g14 s85, g62 s85, g33).
+  - À midi, elle est ardoise et bleue.
+  - Les marquages se lisent partout.
+- **Les heures ont leur identité** au premier coup d'œil :
+  - midi : azur dur, bande d'or, ville bleue ;
+  - matin : soleil bas doré, brume chaude ;
+  - soir : couchant violet et orange.
+- **Les néons et les enseignes se lisent en plein jour.** Les pads de boost orange se lisent sur la route aux trois heures (portrait g13).
+
+**Mineurs (goût), aucun bloquant.**
+- **Matin g13 s25** (vue plongeante sur les tours pendues) : la moitié basse est une brume ocre, avec des tours orange qui y flottent. C'est chaud, pas délavé (contraste 65), mais c'est la vue la plus voilée.
+- **À la caméra du jeu**, la moitié haute de la route est une grande nappe claire : rose-blanc le matin, blanc bleuté à midi (luminance ~200, non brûlée), corail le soir. C'est le reflet en rasant. Il est lisible, mais à midi en portrait (g14 s60), le haut de la route frôle le blanc.
+- Dans les rues serrées (g14 s25), les trois heures se ressemblent : façades orange, seule la teinte du ciel change.
+- Le jour n'a pas les flaques et les liserés néon roses de la route de nuit (choix du lot : `uWet` laissé à la nuit).
+- Les **pièces** elles-mêmes ne sont vues que petites, sur la caméra du jeu en portrait. Le matin, sur la route rose-orangée, le contraste est faible. Les pads et les objets se lisent, mais une pièce isolée n'a pas été cadrée de près.
+
+### 4. Tirage (preuve E), map VILLE, ordinateur
+
+- **Sur 600 tirages** (`?tel=1`) :
+
+  | | Crypto City | nuit | matin | midi | soir | nuages / grotte / espace / jade / canyon |
+  |---|---|---|---|---|---|---|
+  | référence | 113 | 113 | 0 | 0 | 0 | 116 / 110 / 110 / 105 / 46 |
+  | lot | 113 | 61 | 16 | 21 | 15 | 113 / 111 / 105 / 110 / 48 |
+
+  - Au départ : 15 nuits pour 16 jours. Aux portails : 46 nuits pour 36 jours.
+  - Jamais deux fois la même carte de suite.
+  - Les noms affichés sont `CRYPTO CITY|MATIN|MIDI|SOIR`. `dbgCryptoJour()` donne les poids orage 3,5, matin 1, midi 1,3, soir 1,2 (`CJ.part` 0,5).
+  - Les autres maps restent dans le bruit du hasard.
+- **La map VILLE** : au tirage, la seule carte « ville » est la nuit de Crypto City (`nm` CRYPTO CITY). Sa nuit `orage` est inchangée (mêmes hachages et mêmes comptes que la référence). `?carte=ville` sans météo garde la nuit : c'est l'enveloppe de `sfImpose`, lue dans le code (le lot dit 3 sur 3, je ne l'ai pas rejoué).
+- **L'ordinateur** (lecture du code) : rien n'est retiré sous `ALLEGE`, et le morceau n'en contient aucun. Le seul effet sur le PC est `SF_HORS.crypto = (ALLEGE || CRYPTO_JOUR) && …` : **le PC perd l'ancienne carte `crypto`** (tours d'or, pièces ₿ géantes, dirigeables, fusées, pluie d'argent, couronne d'horizon) au profit du jour de la vraie ville. C'est une **décision pour Sacha**, pas un défaut. La carte reste jouable par `?carte=crypto`. Le PC ne précompile plus ses matières au menu (`vignette-moteur.js:761`), ce qui est un gain.
+
+### Mineurs (code et jeu)
+
+- **`CITY.uPied` est mis à 0 à chaque image du jour** et n'est remis à 1 qu'à la construction d'une ville (`jade-balade.js:82`). Comme une même carte ne sort jamais deux fois de suite, la nuit suivante est reconstruite et l'effet n'est pas visible. Un « rejouer » sans reconstruction n'a pas été essayé.
+- **Missions météo (`m2Meteo`)** :
+  - sur téléphone, Crypto City passe de 1 à 4 météos ;
+  - sur PC, la progression faite sur `crypto:matin/midi/soir` ne compte plus.
+  - Non testé en jeu : décision pour Sacha.
+- **La musique du jour** est celle de la nuit (banc muet, non écoutée).
+- `sfNiveau(…,null)` appelle encore `vtBio` pour une ambiance teintée jamais servie. C'est sans effet.
+
+### Ce que je n'ai PAS pu vérifier
+
+- Aucun vrai iPhone : ni chauffe, ni i/s.
+- Le vrai PC (`?tel=0` en mode bureau) : non lancé. Les essais du tour 1 restaient « pas prêt » dans ce Chrome sans fenêtre. Le chemin PC n'est prouvé que par la lecture du code.
+- Le premier JOUER réel qui tire le jour : seuls le `sfTire` simulé et le portail imposé l'ont été.
+- Une pièce isolée cadrée de près sur la route du matin.
+- Le rendu de `?sans=cryptojour` au pixel près : il n'est prouvé que par les hachages, les comptes et les tirages.
+- Le portrait de g13 aux abscisses fixes (vu seulement à la caméra du jeu) et le portrait de g62.
+
+### Décisions pour Sacha (avant de fusionner)
+
+1. **Le PC perd l'ancienne carte `crypto`** au tirage : la ville d'or et de verre, avec ses pièces ₿.
+2. **La part jour / nuit** dans Crypto City : 0,5 (`CJ.part`).
+3. **La progression des missions météo** faite sur `crypto:*` (PC).
+4. **Le courant ×1,8 et la nappe claire de la route** à midi : à garder ou à baisser à l'œil.

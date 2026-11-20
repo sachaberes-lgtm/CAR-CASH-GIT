@@ -161,6 +161,7 @@ maps/niveaux.js                      # les niveaux, le mode classique au hasard,
 maps/continuite.js                   # continuité des maps, la planète du niveau
 rendu/equilibre-maps.js              # l'équilibre des maps : la dernière couche d'étalonnage, map × météo, calée sur les mesures (?equilibre=0|A|B)
 rendu/lumiere-design.js              # le plan de feu : l'échelle des clartés (route, contre-jour, liseré) par ambiance, jugée sur le chemin iPhone (?lumiere=0)
+maps/cryptocity-jour.js              # CRYPTO CITY de jour = la carte de la nuit (ville) sous trois soleils : matin, midi, soir, que la lumière (?sans=cryptojour)
 maps/audit-placement.js              # dbgAudit : l'audit des décors posés au sol (pics flottants…)
 maps/orbite-1.js                     # L'ORBITE : la lune, les Starlink, les variantes empilées
 maps/orbite-lune.js                  # orbite : la lune choquée (visage de troll, regard sur la caisse), vue en frénésie seulement (?lune=0)
