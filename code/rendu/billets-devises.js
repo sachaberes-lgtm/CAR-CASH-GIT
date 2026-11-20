@@ -113,21 +113,35 @@ function updatePool(pool,dt,grav){
 const CURR=['€','€','¥','£','€']; // (2026-10-15, UNE SEULE POLICE) les cinq que la police pixel DESSINE — ₹ ₩ ₽ ฿ ₺ ₪ ₫ ₴ ₦ ₱ tombaient dans une police de secours (mesuré)
 /* ===== LA PLUIE EN VOLUME QUI REBONDIT (2026-11-20, Léo : « un peu plus beau, un peu plus 3D, et ça tombe sur la route et rebondit ») =====
    Trois choses, sans un triangle ni un appel de dessin de plus (mêmes 600 panneaux, même programme, même atlas 256 × 256) :
-   · LE VOLUME : chaque glyphe est cuit en BLOC — une tranche de 6 px qui part en bas à droite, plus sombre que la face, le tout cerclé d'encre.
+   · LE VOLUME : chaque glyphe est cuit en BLOC — une tranche de 6 px qui part en bas à droite, plus sombre que la face (facettes : voir plus bas).
    · LA ROTATION : le panneau s'écrase en largeur (cos de son angle) — il TOURNE sur lui-même comme une pièce, et sa face ÉCLATE quand elle
      passe devant l'œil (couleur > 1 : le bloom la prend là où il existe).
    · LA CHUTE : une vraie gravité, dans le repère de la ROUTE (sa normale, prise à la naissance du glyphe par `frameAt`) : il tombe sur la
      dalle, REBONDIT deux ou trois fois, glisse et s'éteint. Ceux qui naissent hors de la chaussée tombent dans le vide.
    La couleur reste le RGB d'instance (un tour d'arc-en-ciel en ~2,5 s). `dbgPluie()` la lance en course. */
+/* ===== LES FACETTES, SANS LISERÉ (2026-11-20, Léo : « une teinte un peu moins jouet · enlève les bords pour faire des trucs 3D facette ») =====
+   Plus de cerne d'encre : le glyphe est un SOLIDE TAILLÉ. La face est coupée en huit facettes franches (un éventail de triangles, chacun
+   son gris, comme une pierre taillée), une arête claire en haut à gauche, et la tranche a deux pans (le dessous plus sombre que le côté).
+   La teinte : un MÉTAL IRISÉ — l'arc-en-ciel d'instance à demi-saturé, plus lent, avec un éclat BLANC quand la face passe devant l'œil. */
 const MONN_TEX=(function(){
   const S=64,cv=document.createElement('canvas');cv.width=cv.height=S*4;const c=cv.getContext('2d'),tx=new THREE.CanvasTexture(cv);
+  const tc=document.createElement('canvas');tc.width=tc.height=S;const q=tc.getContext('2d'); /* la toile d'UN glyphe : on y taille (source-atop), puis on la pose dans l'atlas */
+  const GRIS=[255,196,232,168,214,150,240,184]; /* les huit facettes de la face, du clair au sombre en alternance */
   apresPolice(function(){c.clearRect(0,0,S*4,S*4);
-  c.textAlign='center';c.textBaseline='middle';c.font='34px "Press Start 2P",monospace';c.lineJoin='round';
-  for(let i=0;i<CURR.length;i++){const x=(i&3)*S+S/2-3,y=(i>>2)*S+S/2-1,E=6;
-    c.lineWidth=7;c.strokeStyle='#1c0430';for(let k=0;k<=E;k++)c.strokeText(CURR[i],x+k,y+k);       /* le liseré d'encre, autour du bloc entier */
-    for(let k=E;k>=1;k--){const v9=70+((E-k)*9)|0;c.fillStyle='rgb('+v9+','+v9+','+v9+')';c.fillText(CURR[i],x+k,y+k);} /* la TRANCHE : sombre au fond, plus claire vers la face */
-    const g=c.createLinearGradient(0,y-17,0,y+17);g.addColorStop(0,'#ffffff');g.addColorStop(.45,'#ececec');g.addColorStop(1,'#9c9c9c');
-    c.fillStyle=g;c.fillText(CURR[i],x,y);}                                          /* la FACE : un blanc en relief (clair en haut, ombre en bas) — la couleur vient de l'instance */
+  q.textAlign='center';q.textBaseline='middle';q.font='38px "Press Start 2P",monospace';
+  for(let i=0;i<CURR.length;i++){const x=S/2-3,y=S/2-1,E=6,ox=(i&3)*S,oy=(i>>2)*S;
+    /* LA TRANCHE : six couches vers le bas à droite, puis deux pans — tout ce qui est sous la diagonale (le dessous) s'assombrit */
+    q.globalCompositeOperation='source-over';q.clearRect(0,0,S,S);
+    for(let k=E;k>=1;k--){const v9=92+((E-k)*8)|0;q.fillStyle='rgb('+v9+','+v9+','+v9+')';q.fillText(CURR[i],x+k,y+k);}
+    q.globalCompositeOperation='source-atop';q.fillStyle='rgba(0,0,0,.42)';q.beginPath();q.moveTo(0,S*.2);q.lineTo(S*.8,S);q.lineTo(0,S);q.closePath();q.fill();
+    c.drawImage(tc,ox,oy);
+    /* LA FACE : l'arête claire (un pixel en haut à gauche), puis le glyphe taillé en huit facettes autour d'un sommet décentré */
+    q.globalCompositeOperation='source-over';q.clearRect(0,0,S,S);
+    q.fillStyle='#ffffff';q.fillText(CURR[i],x-1,y-1);c.drawImage(tc,ox,oy);q.clearRect(0,0,S,S);q.fillText(CURR[i],x,y);
+    q.globalCompositeOperation='source-atop';
+    const sx=x-5,sy=y-6;for(let k=0;k<8;k++){const a0=k/8*6.2832+.35,a1=(k+1)/8*6.2832+.35;
+      q.fillStyle='rgb('+GRIS[k]+','+GRIS[k]+','+GRIS[k]+')';q.beginPath();q.moveTo(sx,sy);q.lineTo(sx+Math.cos(a0)*S,sy+Math.sin(a0)*S);q.lineTo(sx+Math.cos(a1)*S,sy+Math.sin(a1)*S);q.closePath();q.fill();}
+    c.drawImage(tc,ox,oy);}
   tx.needsUpdate=true;});
   return tx;
 })();
@@ -137,6 +151,7 @@ const MR={x:new Float32Array(MONN_N),y:new Float32Array(MONN_N),z:new Float32Arr
   sc:new Float32Array(MONN_N),f:new Uint8Array(MONN_N),head:0,viv:0,acc:0,reb:0,
   nx:new Float32Array(MONN_N),ny:new Float32Array(MONN_N),nz:new Float32Array(MONN_N),d0:new Float32Array(MONN_N),   /* le plan de SA dalle : la normale, et n·p */
   bx:new Float32Array(MONN_N),by:new Float32Array(MONN_N),bz:new Float32Array(MONN_N),b0:new Float32Array(MONN_N)};  /* le travers de la route, et b·p (la chaussée s'arrête à ROAD_HALF) */
+PAL.B.pluieDens=[.6,.8,1]; /* la part de l'averse par palier (téléphone ancien · téléphone · ordi et téléphone récent) : moins de glyphes à animer et à dessiner, le même spectacle */
 const MRF={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},MR_G=22; /* le repère de route d'un glyphe qui naît · la gravité de l'averse (m/s²) */
 let moneyRainT=0,nextRainAt=4e3*ECO3.gain; /* calé sur l'éco ×2,5 : ~une pluie par niveau (l'ancien 1e4/×10 suivait l'éco ×10) · ×ECO3.gain (vague 3) : la pluie tombe au même moment de la partie */
 function startMoneyRain(){
@@ -149,14 +164,16 @@ function updateMoneyRain(dt,t){
     /* (2026-09-30) 180 GLYPHES PAR SECONDE, pas 3 par image : l'averse dépendait de la cadence — 270 glyphes à 30 i/s, 540 à 60,
        1 080 à 120 Hz pour 600 places en anneau (des glyphes encore en l'air étaient écrasés et réapparaissaient ailleurs). Un
        accumulateur, comme nfxVent : 540 sur les 3 s, vivants 3,2-5 s → jamais plus de ~540 à la fois, l'anneau tient. */
-    MR.acc+=dt*180;
+    MR.acc+=dt*180*PAL.b('pluieDens',1); /* (2026-11-20, Léo : « que tout appareil puisse le retranscrire avec la qualité possible ») la densité suit le palier : 324 / 432 / 540 glyphes */
     const v9=Math.min(140,Math.abs(vA)*SPD*vitMult()); /* la vitesse de la caisse le long de la route (m/s) : l'averse naît là où elle SERA dans 0,35 à 1,85 s — le temps de toucher la dalle et de rebondir devant elle */
     while(MR.acc>=1){MR.acc-=1;
       const i=MR.head;MR.head=(i+1)%MONN_N;
       const g9=(Math.random()*CURR.length)|0,d9=10+Math.random()*20+v9*(.35+Math.random()*1.5);
       MR.f[i]=(3-(g9>>2))*4+(g9&3); /* la case de l'atlas (la toile a y vers le BAS, les UV vers le HAUT) */
       MR.sc[i]=1.1+Math.random()*1.7;
-      frameAt(s+d9*driveDir,MRF);if(side<0){MRF.n.multiplyScalar(-1);MRF.b.multiplyScalar(-1);} /* la dalle où il tombera (dessous de la route : le repère se retourne, comme la caisse) */
+      try{frameAt(s+d9*driveDir,MRF);}catch(e){moneyRainT=0;MR.acc=0;break;} /* GARDE-FOU : pas de route lisible (un mode sans tracé) → l'averse s'arrête, la partie continue */
+      if(!(MRF.p.x===MRF.p.x&&MRF.n.x===MRF.n.x&&MRF.b.x===MRF.b.x)){moneyRainT=0;MR.acc=0;break;} /* un repère cassé (NaN) : pareil */
+      if(side<0){MRF.n.multiplyScalar(-1);MRF.b.multiplyScalar(-1);} /* la dalle où il tombera (dessous de la route : le repère se retourne, comme la caisse) */
       const N=MRF.n,Bv=MRF.b,T9=MRF.t,l9=lat+(Math.random()-.5)*46,h9=(side<0?THICK:0)+3+Math.random()*13;
       MR.nx[i]=N.x;MR.ny[i]=N.y;MR.nz[i]=N.z;MR.d0[i]=N.dot(MRF.p)+(side<0?THICK:0);
       MR.bx[i]=Bv.x;MR.by[i]=Bv.y;MR.bz[i]=Bv.z;MR.b0[i]=Bv.dot(MRF.p);
@@ -175,6 +192,7 @@ function updateMoneyRain(dt,t){
     let vx=MR.vx[i]-nx*gdt,vy=MR.vy[i]-ny*gdt,vz=MR.vz[i]-nz*gdt; /* la gravité tire vers SA dalle */
     let x=MR.x[i]+vx*dt,y=MR.y[i]+vy*dt,z=MR.z[i]+vz*dt;
     const h9=nx*x+ny*y+nz*z-MR.d0[i];
+    if(!(h9===h9)||h9<-60){MR.life[i]=0;continue;} /* GARDE-FOU : un glyphe devenu fou (NaN) ou tombé 60 m sous sa dalle est rangé, il ne part jamais au GPU */
     if(h9<r9&&h9>-1.5){const vn9=vx*nx+vy*ny+vz*nz;
       if(vn9<0&&Math.abs(MR.bx[i]*x+MR.by[i]*y+MR.bz[i]*z-MR.b0[i])<ROAD_HALF){ /* LE REBOND : sur la chaussée seulement (au-delà du bord, il file dans le vide) */
         const e9=vn9<-2.2?1.72:1,k9=r9-h9; /* un choc franc rend ~56 % de sa vitesse ; un choc mou se POSE (plus de micro-rebonds) */
@@ -183,13 +201,13 @@ function updateMoneyRain(dt,t){
     }else if(h9>=r9){const w9=Math.min(1,(h9-r9)*.5);x+=Math.sin(t*3+MR.ph[i])*1.1*w9*dt;z+=Math.cos(t*2.6+MR.ph[i])*1.1*w9*dt;} /* en l'air : il flotte un peu (rien au ras du sol) */
     MR.x[i]=x;MR.y[i]=y;MR.z[i]=z;MR.vx[i]=vx;MR.vy[i]=vy;MR.vz[i]=vz;
     MR.rot[i]+=MR.rs[i]*dt;
-    const c9=Math.cos(MR.rot[i]),a9=Math.abs(c9),l9=c9>0?.74+.62*a9*a9*a9*a9:.5+.3*a9; /* la face éclate quand elle passe devant l'œil · le dos reste dans l'ombre */
+    const c9=Math.cos(MR.rot[i]),a9=Math.abs(c9),l9=c9>0?.7+.3*a9:.46+.3*a9; /* la face éclate quand elle passe devant l'œil · le dos reste dans l'ombre */
     P[n*3]=x;P[n*3+1]=y;P[n*3+2]=z;
     S[n*4]=MR.sc[i]*(c9<0?-1:1)*Math.max(.16,a9);S[n*4+1]=MR.sc[i];S[n*4+2]=Math.sin(t*2.2+MR.ph[i])*.22;S[n*4+3]=0; /* la largeur = le cos de l'angle (jamais moins que la TRANCHE) · un léger balancement */
     /* LA PLUIE RGB (2026-11-20, Léo : « que la pluie de currencies soit RGB ») : chaque glyphe fait le tour de l'arc-en-ciel (~2,5 s), décalé par sa phase.
        Coût : zéro — la couleur d'instance (`iC`) partait déjà au GPU à chaque image. */
-    const u9=(t*.4+MR.ph[i]/6)%1*6;
-    C[n*4]=l9*(.12+.88*Math.min(1,Math.max(0,Math.abs(u9-3)-1)));C[n*4+1]=l9*(.12+.88*Math.min(1,Math.max(0,2-Math.abs(u9-2))));C[n*4+2]=l9*(.12+.88*Math.min(1,Math.max(0,2-Math.abs(u9-4))));
+    const u9=(t*.16+MR.ph[i]/6)%1*6,e9=c9>0?.55*a9*a9*a9*a9*a9*a9*a9*a9:0; /* un tour en ~6 s · e9 : l'éclat BLANC du métal, face à l'œil */
+    C[n*4]=l9*(.5+.5*Math.min(1,Math.max(0,Math.abs(u9-3)-1)))+e9;C[n*4+1]=l9*(.5+.5*Math.min(1,Math.max(0,2-Math.abs(u9-2))))+e9;C[n*4+2]=l9*(.5+.5*Math.min(1,Math.max(0,2-Math.abs(u9-4))))+e9; /* le MÉTAL IRISÉ : la teinte à demi-saturée (moitié blanc, moitié arc-en-ciel) */
     C[n*4+3]=Math.min(1,MR.life[i]);
     F[n*2]=MR.f[i];F[n*2+1]=0;n++;
   }
