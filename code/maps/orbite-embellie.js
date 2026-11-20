@@ -18,6 +18,16 @@
    nuages, fil d'air fin : voir le patch du globe). Paliers : orbQ [0,1,1] (l'aube, la 3e octave des nuages ; les nuages à 60 % au palier 0).
    Hooks : `dbgBeau()` (état + réglages à chaud : vid, pl, nua), `dbgBeau('photo',{vid,pl,nua,yaw,pitch,fov,planete})` (UNE image rendue, renvoie le JPEG). */
 PAL.B.orbQ=[0,1,1]; /* (2026-11-12, L'ORBITE FAÇON GRAVITY) les étoiles-vedettes et la poussière cosmique sont retirées : voir plus bas */
+/* ===== LA FINITION DE L'ESPACE (2026-11-18, finition des maps : « le plus jolies possible tout en restant aussi optimisées qu'elles le sont ») =====
+   Des NOMBRES seulement (aucune géométrie, aucune texture, aucun programme, aucune instruction de shader en plus) : voir « LA FINITION DE L'ESPACE, LES NOMBRES » plus bas
+   et le globe de Mars et de Saturne ci-dessous. `?sans=espacefini` = l'image d'avant, au bit près. */
+const ESPACE_FINI=!/[?&]sans=([^&]*,)?espacefini(,|&|$)/.test(location.search);
+/* les nombres du lot ; pour le banc seulement, `?espnuit=r/g/b` (la face nuit de Mars et de Saturne) et `?espneb=k` (les étoiles sous Mars et Saturne) les remplacent */
+function espFiniNb(k,d){const m=new RegExp('[?&]'+k+'=([^&]*)').exec(location.search);const v=m?m[1].split('/').map(Number):null;return v&&v.length===d.length&&v.every(isFinite)?v:d;}
+const ESP_NUIT=espFiniNb('espnuit',[.030,.036,.095]),ESP_NEB=espFiniNb('espneb',[1.25])[0];
+/* (2026-11-19, reprise) les amas à l'écart de la route : [liseré des satellites, Terre sous les satellites, liseré des météorites, planète sur leur face sombre, l'encre de l'ombre
+   des satellites] ; `?espamas=a/b/c/d/e` pour le banc */
+const ESP_AMAS_L=espFiniNb('espamas',[.26,.42,.62,.32,.50]);
 const OBEAU={u:{uOrb:{value:0},uOrbQ:{value:PAL.b('orbQ',1)},uSunO:{value:new THREE.Vector3(-.55,.7,.4).normalize()},uNua:{value:PAL.b('orbQ',1)?1:.6},uTyp:{value:0}},kPl:1,kSol:.6,sunP:new THREE.Vector3(-.55,.7,.4).normalize(),sunOk:false,t2:new THREE.Vector3(),kPous:1,rate:[],cp:new THREE.Vector3(),vel:new THREE.Vector3(),t1:new THREE.Vector3(),ok:false,
   q:new THREE.Quaternion(),fov:0};
 function orbRempl(src,cherche,par,qui){ /* remplace TOUTES les occurrences ; si le texte cherché a bougé (un autre morceau l'a réécrit), on le note : l'effet manque, rien ne casse */
@@ -65,8 +75,13 @@ skyU.uVid={value:1};
          SATURNE (uTyp 2) : l'atmosphère épaisse — terminateur doux, l'assombrissement du bord marqué, les bandes crème. Même recette que la Terre, sans ses nuages ni ses villes. */
       '    if(uTyp>.5){bool ma=uTyp<1.5;',
       '      float jr=ma?smoothstep(-.03,.07,ndl):smoothstep(-.18,.32,ndl),lu=dot(c0,vec3(.30,.59,.11));',
-      '      vec3 cj=mix(vec3(lu),c0,ma?.62:.50)*(ma?vec3(1.04,.94,.86):vec3(1.,.97,.90));',
-      '      vec3 ct=mix(c0*vec3(.012,.010,.012),cj,jr);',
+      /* (2026-11-18, LA FINITION DE L'ESPACE) côté jour, la rouille et la crème gardent leur couleur (Mars sortait chocolat à 62 % de saturation) ; côté NUIT, le disque n'est
+         plus un trou plus noir que le ciel : (tour 2) une ombre bleu-violet FIXE, ESP_NUIT, au lieu de c0 × un facteur (Mars n'a presque pas de bleu : c0 × bleu restait noir, mesuré [2,1,3]
+         sRGB pour un ciel à [15,18,42]) — (reprise du 19/11) le tour 2 avait gardé (.045,.054,.140) : [9-10,11-12,28-30] sRGB, juste sous le ciel du HAUT mais 2,5-3× plus clair que le
+         ciel du BAS du cadre ([4,4,12]). Trois essais au banc (Mars g7 portrait, ESP_NUIT .045 / .030 / .022 de rouge) : gardé (.030,.036,.095) = [6,8,20] en haut (70 % du ciel
+         voisin [10,11,28]) et [6,7,19] en bas (1,6× le ciel [4,4,12]) : une nuit bleu marine qui ne se lit plus comme une lueur. Une multiplication de MOINS (`?sans=espacefini` = avant). */
+      '      vec3 cj=mix(vec3(lu),c0,ma?'+(ESPACE_FINI?'.80:.60':'.62:.50')+')*(ma?vec3(1.04,.94,.86):vec3(1.,.97,.90));',
+      '      vec3 ct=mix('+(ESPACE_FINI?'vec3('+ESP_NUIT.map(function(x){return x.toFixed(4);}).join(',')+')':'c0*vec3(.012,.010,.012)')+',cj,jr);',
       '      ct*=ma?.52+.48*smoothstep(0.,.75,nv):.30+.70*pow(nv,.5);',
       '      float fl=pow(1.-nv,ma?10.:6.),sl=smoothstep(-.15,.6,ndl);',
       '      ct+=fl*(ma?vec3(.82,.64,.52):vec3(.90,.82,.62))*(.02+.50*sl);',
@@ -155,6 +170,20 @@ if(!/[?&]daorb=0\b/.test(location.search)){
       env:[[0,'#0e0c1c'],[.3,'#241e3c'],[.48,'#4a4060'],[.58,'#ffd08a'],[.66,'#241e3c'],[1,'#08071a']]}}; /* SATURNE : la crème et l'or des anneaux, des ombres lavande */
   for(const k in DA_ORB)if(BIOMES[k])Object.assign(BIOMES[k],DA_ORB[k],{kickC:ROSE});}
 /* ===== fin de LA DA DE L'ORBITE ===== */
+/* ===== LA FINITION DE L'ESPACE, LES NOMBRES (2026-11-18, finition des maps : « ça manque de finition graphique » — sobre, pas d'effet en plus) =====
+   (tour 2) `stars` du biome ne compte pas en orbite (le ciel le multiplie par 1 − uSpace) : les étoiles de l'orbite sont la voûte `pous` × uNeb, réglée dans geantsTick
+   (orbite-geants.js : ESP_NEB sous Mars et Saturne au lieu de 1,7 ; la Terre garde 1,7). Mesuré (pixels > 160/255 dans le haut du cadre) : −10 à −45 %.
+   Essayé puis RETIRÉ : les lumières de Mars et de Saturne (clé plus or, hémisphère plus bas) — au banc la route ne bouge que de 4/255 : la couleur de la dalle n'en vient pas. */
+/* (2026-11-19, reprise : « les amas de satellites et de météorites ne se voient pas nettement ») LES AMAS, À L'ÉCART DE LA ROUTE : cinq LITTÉRAUX changés dans les matières
+   des satellites (SAT_MAT et sa copie SAT_MAT_E) et des météorites (ROCHE_MAT), avant leur 1re compilation — le liseré du côté du soleil, la lumière bleue de la planète et l'encre
+   violette de leur face sombre, un cran plus forts : la silhouette se détache du noir. Aucune instruction, aucun uniforme en plus ; ni leur place ni leur taille ne changent. */
+if(ESPACE_FINI){const A9=ESP_AMAS_L.map(function(x){return x.toFixed(3);});
+  for(const m of [SAT_MAT,SAT_MAT_E]){let f=orbRempl(m.fragmentShader,'*.14*smoothstep(-.2,.5,d)','*'+A9[0]+'*smoothstep(-.2,.5,d)','amas liseré sat');
+    f=orbRempl(f,'*.30*(1.-met*.5)','*'+A9[1]+'*(1.-met*.5)','amas terre sat');
+    m.fragmentShader=orbRempl(f,'*(1.-w)*.22;','*(1.-w)*'+A9[4]+';','amas encre sat');}
+  let f=orbRempl(ROCHE_MAT.fragmentShader,'*.40*smoothstep(-.1,.4,d)','*'+A9[2]+'*smoothstep(-.1,.4,d)','amas liseré roche');
+  ROCHE_MAT.fragmentShader=orbRempl(f,'*.22*(1.-max(d,0.))','*'+A9[3]+'*(1.-max(d,0.))','amas ombre roche');}
+/* ===== fin de LA FINITION DE L'ESPACE, LES NOMBRES ===== */
 window.dbgBeau=function(k,o){o=o||{};
   if(o.vid!=null)skyU.uVid.value=+o.vid;if(o.pl!=null)OBEAU.kPl=+o.pl;if(o.nua!=null)OBEAU.u.uNua.value=+o.nua;
   if(k==='photo'){if(started&&!gameOver&&!paused)togglePause();
