@@ -73518,13 +73518,12 @@ const CURR=['€','€','¥','£','€']; // (2026-10-15, UNE SEULE POLICE) les 
      dalle, REBONDIT deux ou trois fois, glisse et s'éteint. Ceux qui naissent hors de la chaussée tombent dans le vide.
    La couleur reste le RGB d'instance (un tour d'arc-en-ciel en ~2,5 s). `dbgPluie()` la lance en course. */
 /* ===== LES FACETTES, SANS LISERÉ (2026-11-20, Léo : « une teinte un peu moins jouet · enlève les bords pour faire des trucs 3D facette ») =====
-   Plus de cerne d'encre : le glyphe est un SOLIDE TAILLÉ. La face est coupée en huit facettes franches (un éventail de triangles, chacun
-   son gris, comme une pierre taillée), une arête claire en haut à gauche, et la tranche a deux pans (le dessous plus sombre que le côté).
+   Plus de cerne d'encre : le glyphe est un SOLIDE CISELÉ — un plat et quatre chanfreins (voir LA FACE EN BISEAU), et la tranche a deux pans
+   (le dessous plus sombre que le côté).
    La teinte : un MÉTAL IRISÉ — l'arc-en-ciel d'instance à demi-saturé, plus lent, avec un éclat BLANC quand la face passe devant l'œil. */
 const MONN_TEX=(function(){
   const S=64,cv=document.createElement('canvas');cv.width=cv.height=S*4;const c=cv.getContext('2d'),tx=new THREE.CanvasTexture(cv);
   const tc=document.createElement('canvas');tc.width=tc.height=S;const q=tc.getContext('2d'); /* la toile d'UN glyphe : on y taille (source-atop), puis on la pose dans l'atlas */
-  const GRIS=[255,170,226,132,204,112,240,150]; /* les huit facettes de la face, du clair au sombre en alternance */
   apresPolice(function(){c.clearRect(0,0,S*4,S*4);
   q.textAlign='center';q.textBaseline='middle';q.font='38px "Press Start 2P",monospace';
   for(let i=0;i<CURR.length;i++){const x=S/2-3,y=S/2-1,E=6,ox=(i&3)*S,oy=(i>>2)*S;
@@ -73533,13 +73532,14 @@ const MONN_TEX=(function(){
     for(let k=E;k>=1;k--){const v9=58+((E-k)*7)|0;q.fillStyle='rgb('+v9+','+v9+','+v9+')';q.fillText(CURR[i],x+k,y+k);}
     q.globalCompositeOperation='source-atop';q.fillStyle='rgba(0,0,0,.42)';q.beginPath();q.moveTo(0,S*.2);q.lineTo(S*.8,S);q.lineTo(0,S);q.closePath();q.fill();
     c.drawImage(tc,ox,oy);
-    /* LA FACE : l'arête claire (un pixel en haut à gauche), puis le glyphe taillé en huit facettes autour d'un sommet décentré */
-    q.globalCompositeOperation='source-over';q.clearRect(0,0,S,S);
-    q.fillStyle='#ffffff';q.fillText(CURR[i],x-1,y-1);c.drawImage(tc,ox,oy);q.clearRect(0,0,S,S);q.fillText(CURR[i],x,y);
-    q.globalCompositeOperation='source-atop';
-    const sx=x-5,sy=y-6;for(let k=0;k<8;k++){const a0=k/8*6.2832+.35,a1=(k+1)/8*6.2832+.35;
-      q.fillStyle='rgb('+GRIS[k]+','+GRIS[k]+','+GRIS[k]+')';q.beginPath();q.moveTo(sx,sy);q.lineTo(sx+Math.cos(a0)*S,sy+Math.sin(a0)*S);q.lineTo(sx+Math.cos(a1)*S,sy+Math.sin(a1)*S);q.closePath();q.fill();}
-    c.drawImage(tc,ox,oy);}
+    /* LA FACE EN BISEAU (2026-11-20, Léo : « facetté pas comme ça, pas de point au milieu ») : plus d'éventail. Le glyphe est CISELÉ comme une
+       lettre gravée — un plat au centre, et quatre chanfreins de 2 px sur ses bords, chacun sa lumière : le haut blanc, la gauche claire,
+       la droite dans l'ombre, le bas sombre. Un chanfrein = le glyphe MOINS le glyphe décalé de 2 px du côté opposé. */
+    q.globalCompositeOperation='source-over';q.clearRect(0,0,S,S);q.fillStyle='rgb(206,206,206)';q.fillText(CURR[i],x,y);c.drawImage(tc,ox,oy); /* le plat */
+    const CH=[[2,0,236],[-2,0,138],[0,2,255],[0,-2,104]]; /* gauche · droite · haut · bas : (décalage du glyphe qu'on retire, gris du pan) */
+    for(let k=0;k<4;k++){q.globalCompositeOperation='source-over';q.clearRect(0,0,S,S);q.fillStyle='rgb('+CH[k][2]+','+CH[k][2]+','+CH[k][2]+')';q.fillText(CURR[i],x,y);
+      q.globalCompositeOperation='destination-out';q.fillText(CURR[i],x+CH[k][0],y+CH[k][1]);c.drawImage(tc,ox,oy);}
+    q.globalCompositeOperation='source-over';}
   tx.needsUpdate=true;});
   return tx;
 })();
