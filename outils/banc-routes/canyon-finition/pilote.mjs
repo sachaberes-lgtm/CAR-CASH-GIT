@@ -12,7 +12,7 @@
 import {spawn,spawnSync} from 'node:child_process';
 import fs from 'node:fs';import path from 'node:path';import os from 'node:os';
 const RACINE=path.resolve(new URL('../../..',import.meta.url).pathname),WEB=process.env.WEB||path.join(RACINE,'VERSION PRINCIPALE');
-const QUI='finition-canyon',LOCK='/private/tmp/cashcar-banc.lock/qui';
+const QUI='finition-canyon',LOCK=(function(){for(const L of ['/private/tmp/cashcar-banc.lock/qui','/private/tmp/cashcar-banc.lock.2/qui']){try{if(fs.readFileSync(L,'utf8').indexOf(QUI)>=0)return L;}catch(e){}}return '/private/tmp/cashcar-banc.lock/qui';})(); /* (2026-11-20) le verrou a deux places : la nôtre est celle qui porte notre nom */
 const args={};for(const a of process.argv.slice(3)){const i=a.indexOf('=');if(i>0)args[a.slice(0,i)]=a.slice(i+1);else args[a]='1';}
 const scen=(await import(path.resolve(process.argv[2]))).default;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));

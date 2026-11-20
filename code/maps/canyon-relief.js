@@ -138,9 +138,16 @@ const CY_FINI_R={
      Mesuré en course (haut de l'image, part de pixels R>200 et B<90) : g3 53 % → 15 %, g7 56 % → 24 %, g11 74 % → 43 %.
      Tour 4 (19/11, contrôle : « la roche se délave au lieu de dorer ») : la roche vire à l'OR au lieu du froid, cyT [.94,.99,1.10] → [.94,1.06,.92] (moins de rouge, plus de vert,
      bleu bas), le soleil un cran plus bas et plus or [1,.68,.44] → [.97,.70,.42], l'horizon or [1,.58,.32] → [1,.64,.36]. Mesuré (outils/banc-routes/canyon-finition/mesure-couleurs.cjs,
-     haut de l'image, pixels rouge-orange vifs teinte 0-30°) : avant → tour 4, g3 course 81 % → 58 %, g7 96 % → 66 %, g11 91 % → 63 %, et des pixels OR (30-55°) 0 % → 12-26 %. */
-  canyonSoir:{sunC:[.97,.70,.42],cyL:[.90,.63,.50],cyT:[.94,1.06,.92],hemiS:[.34,.40,.66],hemiG:[.31,.24,.31],fillC:[.36,.42,.80],fog:[.82,.52,.58],fogCj:[1,.64,.44],fogIn:[.94,.80,.82],cyF:[.72,.62,.80],cyH:[1,.64,.36],
-    cyZ:[.10,.12,.42],jZen:[.10,.12,.42],cyM:[.44,.30,.54],jMid:[.44,.30,.54],cyC:[1,.68,.50],cyD:[.26,.22,.40],cyR:[.36,.26,.40]},
+     haut de l'image, pixels rouge-orange vifs teinte 0-30°) : avant → tour 4, g3 course 81 % → 58 %, g7 96 % → 66 %, g11 91 % → 63 %, et des pixels OR (30-55°) 0 % → 12-26 %.
+     Correction 5 (20/11, contrôle : « la roche tourne au kaki-olive délavé », chroma −25 à −40 %, luminance +3 à +9 %) : le vert de cyT qui DORE est gardé, c'est le BLEU
+     qu'on coupe (le gris) : cyT [.94,1.06,.92] → [.92,1.08,.66], soleil [.97,.70,.42] → [.97,.72,.34] et sunI 1,782 → 1,604 (×0,90), la saturation de l'image ×1,20
+     (sat ,81 → ,972), brume et intérieur chauds au lieu du corail-mauve (fog [.82,.52,.58] → [.88,.58,.40], fogIn [.94,.80,.82] → [.96,.80,.66]), rebond [.90,.63,.50] →
+     [.95,.58,.36], sol de l'hémisphère [.31,.24,.31] → [.38,.27,.24], remplissage moins bleu [.36,.42,.80] → [.46,.40,.78], ombre du ciel [.34,.40,.66] → [.38,.36,.66],
+     fond de gorge [.72,.62,.80] → [.82,.66,.66], horizon [1,.64,.36] → [.98,.62,.46] (et jHor), milieu du ciel [.44,.30,.54] → [.38,.28,.60]. Jeu « W2 » du banc
+     (outils/banc-routes/canyon-finition/tour6.mjs, 11 jeux mesurés, puis ces valeurs chargées) : haut de l'image en vue figée, chroma 87-94 % de l'avant (le tour 4 : 60-75 %),
+     luminance −2 à +3 %, braise (teinte 0-30°) g3 58 → 22 %, g11 62 → 38 % ; en course g11 91 → 66 %, g7 96 → 66 %. Le R−B reste au-dessus de 100 en course : c'est le prix du chroma. */
+  canyonSoir:{sunC:[.97,.72,.34],sunI:1.604,sat:1.2,cyL:[.95,.58,.36],cyT:[.92,1.08,.66],hemiS:[.38,.36,.66],hemiG:[.38,.27,.24],fillC:[.46,.40,.78],fog:[.88,.58,.40],fogCj:[1,.64,.44],
+    fogIn:[.96,.80,.66],cyF:[.82,.66,.66],cyH:[.98,.62,.46],jHor:[.98,.62,.46],cyZ:[.10,.12,.42],jZen:[.10,.12,.42],cyM:[.38,.28,.60],jMid:[.38,.28,.60],cyC:[1,.68,.50],cyD:[.26,.22,.40],cyR:[.36,.26,.40]},
   /* LA NUIT : la route bleu électrique est GARDÉE (rtT d'avant). Seuls l'ombre (hemiS [.28,.32,.64] → [.30,.27,.66]) et le remplissage glissent du bleu vers le bleu-violet,
      à luminance égale (le tour 1 assombrissait la nuit de 20 % : retiré). */
   canyonNuit:{hemiS:[.30,.27,.66],fillC:[.34,.28,.74]},
