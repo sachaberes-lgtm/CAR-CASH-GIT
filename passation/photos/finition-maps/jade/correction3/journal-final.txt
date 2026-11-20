@@ -1,0 +1,105 @@
+=== attente du mutex 14:35:15
+=== mutex pris 14:37:15
+verrou pris par finition-jade (place 1)
+=== verrou pris 14:41:33 ; df 6.1Gi
+MESURE av-soir-g5-couche {"calls":84,"tris":267952,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 17s
+BIO av-soir {"amb":"jade","sat":1.586,"jdZ":[0.5,0.56,0.66],"jdL":[0.74,0.72,0.74],"jdM":[1,0.66,0.42],"jdH":[1,0.78,0.54],"jdB":[0.9,0.82,0.76],"jdR":[0.4,0.38,0.46],"jdS":[1,0.72,0.44],"fog":[0.8274,0.7419,0.6563],"fogIn":[0.8832,0.7977,0.7121],"fogCj":[0.9565,0.6998,0.4859]}
+FIN av-soir-g5-couche pannes [] exc []
+MESURE fi-soir-g5-couche {"calls":84,"tris":267634,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 38s
+BIO fi-soir {"amb":"jade","sat":1.586,"jdZ":[0.44,0.52,0.72],"jdL":[0.74,0.74,0.84],"jdM":[1,0.72,0.54],"jdH":[1,0.84,0.62],"jdB":[0.86,0.82,0.8],"jdR":[0.38,0.38,0.5],"jdS":[1,0.72,0.44],"fog":[0.8,0.76,0.72],"fogIn":[0.86,0.82,0.78],"fogCj":[0.94,0.74,0.58]}
+FIN fi-soir-g5-couche pannes [] exc []
+MESURE sa-soir-g5-couche {"calls":139,"tris":432770,"prog":149,"geo":619,"tex":120} etat {"go":false,"d":0,"vH":129.5} 55s
+BIO sa-soir {"amb":"jade","sat":1.586,"jdZ":[0.5,0.56,0.66],"jdL":[0.74,0.72,0.74],"jdM":[1,0.66,0.42],"jdH":[1,0.78,0.54],"jdB":[0.9,0.82,0.76],"jdR":[0.4,0.38,0.46],"jdS":[1,0.72,0.44],"fog":[0.8274,0.7419,0.6563],"fogIn":[0.8832,0.7977,0.7121],"fogCj":[0.9565,0.6998,0.4859]}
+FIN sa-soir-g5-couche pannes [] exc []
+MESURE av-soir-g3-couche {"calls":91,"tris":179747,"prog":149,"geo":604,"tex":119} etat {"go":false,"d":0,"vH":129.3} 71s
+BIO av-soir {"amb":"jade","sat":1.586,"jdZ":[0.5,0.56,0.66],"jdL":[0.74,0.72,0.74],"jdM":[1,0.66,0.42],"jdH":[1,0.78,0.54],"jdB":[0.9,0.82,0.76],"jdR":[0.4,0.38,0.46],"jdS":[1,0.72,0.44],"fog":[0.8274,0.7419,0.6563],"fogIn":[0.8832,0.7977,0.7121],"fogCj":[0.9565,0.6998,0.4859]}
+FIN av-soir-g3-couche pannes [] exc []
+MESURE fi-soir-g3-couche {"calls":91,"tris":163807,"prog":149,"geo":568,"tex":119} etat {"go":false,"d":0,"vH":133.3} 90s
+BIO fi-soir {"amb":"jade","sat":1.586,"jdZ":[0.44,0.52,0.72],"jdL":[0.74,0.74,0.84],"jdM":[1,0.72,0.54],"jdH":[1,0.84,0.62],"jdB":[0.86,0.82,0.8],"jdR":[0.38,0.38,0.5],"jdS":[1,0.72,0.44],"fog":[0.8,0.76,0.72],"fogIn":[0.86,0.82,0.78],"fogCj":[0.94,0.74,0.58]}
+FIN fi-soir-g3-couche pannes [] exc []
+MESURE av-soir-g17-couche {"calls":81,"tris":151964,"prog":149,"geo":643,"tex":119} etat {"go":false,"d":0,"vH":129.5} 107s
+BIO av-soir {"amb":"jade","sat":1.586,"jdZ":[0.5,0.56,0.66],"jdL":[0.74,0.72,0.74],"jdM":[1,0.66,0.42],"jdH":[1,0.78,0.54],"jdB":[0.9,0.82,0.76],"jdR":[0.4,0.38,0.46],"jdS":[1,0.72,0.44],"fog":[0.8274,0.7419,0.6563],"fogIn":[0.8832,0.7977,0.7121],"fogCj":[0.9565,0.6998,0.4859]}
+FIN av-soir-g17-couche pannes [] exc []
+MESURE fi-soir-g17-couche {"calls":81,"tris":151408,"prog":149,"geo":643,"tex":119} etat {"go":false,"d":0,"vH":129.5} 123s
+BIO fi-soir {"amb":"jade","sat":1.586,"jdZ":[0.44,0.52,0.72],"jdL":[0.74,0.74,0.84],"jdM":[1,0.72,0.54],"jdH":[1,0.84,0.62],"jdB":[0.86,0.82,0.8],"jdR":[0.38,0.38,0.5],"jdS":[1,0.72,0.44],"fog":[0.8,0.76,0.72],"fogIn":[0.86,0.82,0.78],"fogCj":[0.94,0.74,0.58]}
+FIN fi-soir-g17-couche pannes [] exc []
+MESURE av-soir-g11-debout {"calls":163,"tris":448133,"prog":149,"geo":616,"tex":121} etat {"go":false,"d":0,"vH":129.2} 140s
+BIO av-soir {"amb":"jade","sat":1.586,"jdZ":[0.5,0.56,0.66],"jdL":[0.74,0.72,0.74],"jdM":[1,0.66,0.42],"jdH":[1,0.78,0.54],"jdB":[0.9,0.82,0.76],"jdR":[0.4,0.38,0.46],"jdS":[1,0.72,0.44],"fog":[0.8274,0.7419,0.6563],"fogIn":[0.8832,0.7977,0.7121],"fogCj":[0.9565,0.6998,0.4859]}
+FIN av-soir-g11-debout pannes [] exc []
+MESURE fi-soir-g11-debout {"calls":163,"tris":449677,"prog":149,"geo":616,"tex":121} etat {"go":false,"d":0,"vH":129.2} 156s
+BIO fi-soir {"amb":"jade","sat":1.586,"jdZ":[0.44,0.52,0.72],"jdL":[0.74,0.74,0.84],"jdM":[1,0.72,0.54],"jdH":[1,0.84,0.62],"jdB":[0.86,0.82,0.8],"jdR":[0.38,0.38,0.5],"jdS":[1,0.72,0.44],"fog":[0.8,0.76,0.72],"fogIn":[0.86,0.82,0.78],"fogCj":[0.94,0.74,0.58]}
+FIN fi-soir-g11-debout pannes [] exc []
+MESURE av-nuit-g5-couche {"calls":84,"tris":265972,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 173s
+BIO av-nuit {"amb":"jadeNuit","sat":1.376,"jdZ":[0.018,0.052,0.098],"jdL":[0.03,0.086,0.13],"jdM":[0.045,0.135,0.15],"jdH":[0.065,0.19,0.18],"jdB":[0.07,0.19,0.195],"jdR":[0.03,0.09,0.09],"jdS":[1,0.9,0.68],"fog":[0.047,0.142,0.148],"fogIn":[0.06,0.17,0.17],"fogCj":[0.08,0.22,0.21]}
+FIN av-nuit-g5-couche pannes [] exc []
+MESURE fi-nuit-g5-couche {"calls":84,"tris":265444,"prog":149,"geo":633,"tex":120} etat {"go":false,"d":0,"vH":129.5} 190s
+BIO fi-nuit {"amb":"jadeNuit","sat":1.376,"jdZ":[0.04,0.07,0.15],"jdL":[0.04,0.12,0.17],"jdM":[0.045,0.135,0.15],"jdH":[0.065,0.19,0.18],"jdB":[0.07,0.19,0.195],"jdR":[0.03,0.09,0.09],"jdS":[1,0.88,0.62],"fog":[0.047,0.142,0.148],"fogIn":[0.06,0.17,0.17],"fogCj":[0.08,0.22,0.21]}
+FIN fi-nuit-g5-couche pannes [] exc []
+MESURE sa-nuit-g5-couche {"calls":140,"tris":428898,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 206s
+BIO sa-nuit {"amb":"jadeNuit","sat":1.376,"jdZ":[0.018,0.052,0.098],"jdL":[0.03,0.086,0.13],"jdM":[0.045,0.135,0.15],"jdH":[0.065,0.19,0.18],"jdB":[0.07,0.19,0.195],"jdR":[0.03,0.09,0.09],"jdS":[1,0.9,0.68],"fog":[0.047,0.142,0.148],"fogIn":[0.06,0.17,0.17],"fogCj":[0.08,0.22,0.21]}
+FIN sa-nuit-g5-couche pannes [] exc []
+MESURE av-nuit-g11-debout {"calls":155,"tris":444057,"prog":149,"geo":608,"tex":121} etat {"go":false,"d":0,"vH":129.2} 222s
+BIO av-nuit {"amb":"jadeNuit","sat":1.376,"jdZ":[0.018,0.052,0.098],"jdL":[0.03,0.086,0.13],"jdM":[0.045,0.135,0.15],"jdH":[0.065,0.19,0.18],"jdB":[0.07,0.19,0.195],"jdR":[0.03,0.09,0.09],"jdS":[1,0.9,0.68],"fog":[0.047,0.142,0.148],"fogIn":[0.06,0.17,0.17],"fogCj":[0.08,0.22,0.21]}
+FIN av-nuit-g11-debout pannes [] exc []
+MESURE fi-nuit-g11-debout {"calls":155,"tris":445069,"prog":149,"geo":598,"tex":121} etat {"go":false,"d":0,"vH":129.2} 238s
+BIO fi-nuit {"amb":"jadeNuit","sat":1.376,"jdZ":[0.04,0.07,0.15],"jdL":[0.04,0.12,0.17],"jdM":[0.045,0.135,0.15],"jdH":[0.065,0.19,0.18],"jdB":[0.07,0.19,0.195],"jdR":[0.03,0.09,0.09],"jdS":[1,0.88,0.62],"fog":[0.047,0.142,0.148],"fogIn":[0.06,0.17,0.17],"fogCj":[0.08,0.22,0.21]}
+FIN fi-nuit-g11-debout pannes [] exc []
+MESURE av-nuit-g3-couche {"calls":92,"tris":179457,"prog":149,"geo":604,"tex":119} etat {"go":false,"d":0,"vH":129.3} 254s
+BIO av-nuit {"amb":"jadeNuit","sat":1.376,"jdZ":[0.018,0.052,0.098],"jdL":[0.03,0.086,0.13],"jdM":[0.045,0.135,0.15],"jdH":[0.065,0.19,0.18],"jdB":[0.07,0.19,0.195],"jdR":[0.03,0.09,0.09],"jdS":[1,0.9,0.68],"fog":[0.047,0.142,0.148],"fogIn":[0.06,0.17,0.17],"fogCj":[0.08,0.22,0.21]}
+FIN av-nuit-g3-couche pannes [] exc []
+MESURE fi-nuit-g3-couche {"calls":92,"tris":179235,"prog":149,"geo":594,"tex":119} etat {"go":false,"d":0,"vH":129.3} 271s
+BIO fi-nuit {"amb":"jadeNuit","sat":1.376,"jdZ":[0.04,0.07,0.15],"jdL":[0.04,0.12,0.17],"jdM":[0.045,0.135,0.15],"jdH":[0.065,0.19,0.18],"jdB":[0.07,0.19,0.195],"jdR":[0.03,0.09,0.09],"jdS":[1,0.88,0.62],"fog":[0.047,0.142,0.148],"fogIn":[0.06,0.17,0.17],"fogCj":[0.08,0.22,0.21]}
+FIN fi-nuit-g3-couche pannes [] exc []
+MESURE av-nuit-g17-couche {"calls":82,"tris":151846,"prog":149,"geo":643,"tex":119} etat {"go":false,"d":0,"vH":129.5} 287s
+BIO av-nuit {"amb":"jadeNuit","sat":1.376,"jdZ":[0.018,0.052,0.098],"jdL":[0.03,0.086,0.13],"jdM":[0.045,0.135,0.15],"jdH":[0.065,0.19,0.18],"jdB":[0.07,0.19,0.195],"jdR":[0.03,0.09,0.09],"jdS":[1,0.9,0.68],"fog":[0.047,0.142,0.148],"fogIn":[0.06,0.17,0.17],"fogCj":[0.08,0.22,0.21]}
+FIN av-nuit-g17-couche pannes [] exc []
+MESURE fi-nuit-g17-couche {"calls":82,"tris":151634,"prog":149,"geo":619,"tex":119} etat {"go":false,"d":0,"vH":130.4} 305s
+BIO fi-nuit {"amb":"jadeNuit","sat":1.376,"jdZ":[0.04,0.07,0.15],"jdL":[0.04,0.12,0.17],"jdM":[0.045,0.135,0.15],"jdH":[0.065,0.19,0.18],"jdB":[0.07,0.19,0.195],"jdR":[0.03,0.09,0.09],"jdS":[1,0.88,0.62],"fog":[0.047,0.142,0.148],"fogIn":[0.06,0.17,0.17],"fogCj":[0.08,0.22,0.21]}
+FIN fi-nuit-g17-couche pannes [] exc []
+MESURE av-pluie-g11-debout {"calls":156,"tris":410383,"prog":149,"geo":598,"tex":121} etat {"go":false,"d":0,"vH":129.2} 323s
+BIO av-pluie {"amb":"jadePluie","sat":1.3509,"jdZ":[0.2,0.3,0.31],"jdL":[0.3,0.42,0.41],"jdM":[0.4,0.52,0.49],"jdH":[0.54,0.64,0.59],"jdB":[0.4,0.5,0.47],"jdR":[0.2,0.28,0.27],"jdS":[0.3,0.32,0.34],"fog":[0.3845,0.4469,0.5323],"fogIn":[0.4859,0.5593,0.6661],"fogCj":[0.4526,0.5224,0.6235]}
+FIN av-pluie-g11-debout pannes [] exc []
+MESURE fi-pluie-g11-debout {"calls":148,"tris":408619,"prog":149,"geo":616,"tex":121} etat {"go":false,"d":0,"vH":129.2} 339s
+BIO fi-pluie {"amb":"jadePluie","sat":1.16,"jdZ":[0.14,0.28,0.27],"jdL":[0.2,0.4,0.38],"jdM":[0.32,0.58,0.56],"jdH":[0.54,0.68,0.62],"jdB":[0.38,0.52,0.52],"jdR":[0.2,0.3,0.32],"jdS":[0.3,0.32,0.34],"fog":[0.38,0.5,0.52],"fogIn":[0.5,0.62,0.62],"fogCj":[0.48,0.58,0.62]}
+FIN fi-pluie-g11-debout pannes [] exc []
+MESURE sa-pluie-g11-debout {"calls":148,"tris":410235,"prog":149,"geo":616,"tex":121} etat {"go":false,"d":0,"vH":129.2} 355s
+BIO sa-pluie {"amb":"jadePluie","sat":1.3509,"jdZ":[0.2,0.3,0.31],"jdL":[0.3,0.42,0.41],"jdM":[0.4,0.52,0.49],"jdH":[0.54,0.64,0.59],"jdB":[0.4,0.5,0.47],"jdR":[0.2,0.28,0.27],"jdS":[0.3,0.32,0.34],"fog":[0.3845,0.4469,0.5323],"fogIn":[0.4859,0.5593,0.6661],"fogCj":[0.4526,0.5224,0.6235]}
+FIN sa-pluie-g11-debout pannes [] exc []
+MESURE av-pluie-g5-couche {"calls":141,"tris":413904,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 371s
+BIO av-pluie {"amb":"jadePluie","sat":1.3509,"jdZ":[0.2,0.3,0.31],"jdL":[0.3,0.42,0.41],"jdM":[0.4,0.52,0.49],"jdH":[0.54,0.64,0.59],"jdB":[0.4,0.5,0.47],"jdR":[0.2,0.28,0.27],"jdS":[0.3,0.32,0.34],"fog":[0.3845,0.4469,0.5323],"fogIn":[0.4859,0.5593,0.6661],"fogCj":[0.4526,0.5224,0.6235]}
+FIN av-pluie-g5-couche pannes [] exc []
+MESURE fi-pluie-g5-couche {"calls":141,"tris":413886,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 386s
+BIO fi-pluie {"amb":"jadePluie","sat":1.16,"jdZ":[0.14,0.28,0.27],"jdL":[0.2,0.4,0.38],"jdM":[0.32,0.58,0.56],"jdH":[0.54,0.68,0.62],"jdB":[0.38,0.52,0.52],"jdR":[0.2,0.3,0.32],"jdS":[0.3,0.32,0.34],"fog":[0.38,0.5,0.52],"fogIn":[0.5,0.62,0.62],"fogCj":[0.48,0.58,0.62]}
+FIN fi-pluie-g5-couche pannes [] exc []
+MESURE av-pluie-g3-couche {"calls":89,"tris":170201,"prog":149,"geo":604,"tex":119} etat {"go":false,"d":0,"vH":129.3} 403s
+BIO av-pluie {"amb":"jadePluie","sat":1.3509,"jdZ":[0.2,0.3,0.31],"jdL":[0.3,0.42,0.41],"jdM":[0.4,0.52,0.49],"jdH":[0.54,0.64,0.59],"jdB":[0.4,0.5,0.47],"jdR":[0.2,0.28,0.27],"jdS":[0.3,0.32,0.34],"fog":[0.3845,0.4469,0.5323],"fogIn":[0.4859,0.5593,0.6661],"fogCj":[0.4526,0.5224,0.6235]}
+FIN av-pluie-g3-couche pannes [] exc []
+MESURE fi-pluie-g3-couche {"calls":89,"tris":170853,"prog":149,"geo":604,"tex":119} etat {"go":false,"d":0,"vH":129.3} 418s
+BIO fi-pluie {"amb":"jadePluie","sat":1.16,"jdZ":[0.14,0.28,0.27],"jdL":[0.2,0.4,0.38],"jdM":[0.32,0.58,0.56],"jdH":[0.54,0.68,0.62],"jdB":[0.38,0.52,0.52],"jdR":[0.2,0.3,0.32],"jdS":[0.3,0.32,0.34],"fog":[0.38,0.5,0.52],"fogIn":[0.5,0.62,0.62],"fogCj":[0.48,0.58,0.62]}
+FIN fi-pluie-g3-couche pannes [] exc []
+MESURE av-midi-g11-debout {"calls":165,"tris":470999,"prog":149,"geo":616,"tex":121} etat {"go":false,"d":0,"vH":129.2} 434s
+BIO av-midi {"amb":"jadeMidi","sat":1.229,"jdZ":[0.16,0.42,0.8],"jdL":[0.4,0.64,0.86],"jdM":[0.66,0.82,0.78],"jdH":[0.96,0.88,0.72],"jdB":[0.82,0.9,0.86],"jdR":[0.28,0.4,0.38],"jdS":[1,0.97,0.9],"fog":[0.66,0.8,0.8],"fogIn":[0.8,0.9,0.9],"fogCj":[0.96,0.95,0.9]}
+FIN av-midi-g11-debout pannes [] exc []
+MESURE fi-midi-g11-debout {"calls":157,"tris":470007,"prog":149,"geo":616,"tex":121} etat {"go":false,"d":0,"vH":129.2} 451s
+BIO fi-midi {"amb":"jadeMidi","sat":1.315,"jdZ":[0.08,0.38,0.9],"jdL":[0.32,0.7,0.92],"jdM":[0.48,0.88,0.78],"jdH":[0.98,0.86,0.66],"jdB":[0.82,0.9,0.86],"jdR":[0.28,0.4,0.38],"jdS":[1,0.97,0.9],"fog":[0.62,0.8,0.86],"fogIn":[0.78,0.9,0.92],"fogCj":[0.96,0.95,0.9]}
+FIN fi-midi-g11-debout pannes [] exc []
+MESURE av-midi-g5-couche {"calls":139,"tris":434504,"prog":149,"geo":609,"tex":120} etat {"go":false,"d":0,"vH":129.5} 469s
+BIO av-midi {"amb":"jadeMidi","sat":1.229,"jdZ":[0.16,0.42,0.8],"jdL":[0.4,0.64,0.86],"jdM":[0.66,0.82,0.78],"jdH":[0.96,0.88,0.72],"jdB":[0.82,0.9,0.86],"jdR":[0.28,0.4,0.38],"jdS":[1,0.97,0.9],"fog":[0.66,0.8,0.8],"fogIn":[0.8,0.9,0.9],"fogCj":[0.96,0.95,0.9]}
+FIN av-midi-g5-couche pannes [] exc []
+MESURE fi-midi-g5-couche {"calls":147,"tris":434988,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 484s
+BIO fi-midi {"amb":"jadeMidi","sat":1.315,"jdZ":[0.08,0.38,0.9],"jdL":[0.32,0.7,0.92],"jdM":[0.48,0.88,0.78],"jdH":[0.98,0.86,0.66],"jdB":[0.82,0.9,0.86],"jdR":[0.28,0.4,0.38],"jdS":[1,0.97,0.9],"fog":[0.62,0.8,0.86],"fogIn":[0.78,0.9,0.92],"fogCj":[0.96,0.95,0.9]}
+FIN fi-midi-g5-couche pannes [] exc []
+MESURE av-matin-g5-couche {"calls":139,"tris":431370,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 500s
+BIO av-matin {"amb":"jadeMatin","sat":1.337,"jdZ":[0.22,0.44,0.74],"jdL":[0.46,0.64,0.8],"jdM":[0.72,0.82,0.72],"jdH":[1,0.82,0.6],"jdB":[0.82,0.88,0.82],"jdR":[0.3,0.38,0.36],"jdS":[1,0.9,0.66],"fog":[0.8,0.82,0.74],"fogIn":[0.86,0.88,0.82],"fogCj":[1,0.92,0.76]}
+FIN av-matin-g5-couche pannes [] exc []
+MESURE fi-matin-g5-couche {"calls":147,"tris":432280,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 516s
+BIO fi-matin {"amb":"jadeMatin","sat":1.444,"jdZ":[0.16,0.44,0.9],"jdL":[0.4,0.7,0.9],"jdM":[0.56,0.9,0.76],"jdH":[1,0.8,0.64],"jdB":[0.82,0.9,0.84],"jdR":[0.3,0.38,0.36],"jdS":[1,0.9,0.66],"fog":[0.86,0.82,0.74],"fogIn":[0.92,0.88,0.8],"fogCj":[1,0.92,0.76]}
+FIN fi-matin-g5-couche pannes [] exc []
+MESURE av-orage-g5-couche {"calls":140,"tris":400732,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 531s
+BIO av-orage {"amb":"jadeOrage","sat":1.352,"jdZ":[0.125,0.14,0.141],"jdL":[0.145,0.165,0.17],"jdM":[0.173,0.2,0.207],"jdH":[0.23,0.27,0.28],"jdB":[0.25,0.29,0.3],"jdR":[0.12,0.14,0.14],"jdS":[0.2,0.24,0.28],"fog":[0.2126,0.2431,0.2949],"fogIn":[0.2575,0.2939,0.3561],"fogCj":[0.2405,0.275,0.3333]}
+FIN av-orage-g5-couche pannes [] exc []
+MESURE fi-orage-g5-couche {"calls":140,"tris":400296,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 547s
+BIO fi-orage {"amb":"jadeOrage","sat":1.352,"jdZ":[0.1,0.09,0.14],"jdL":[0.13,0.14,0.19],"jdM":[0.16,0.21,0.24],"jdH":[0.22,0.32,0.34],"jdB":[0.22,0.28,0.32],"jdR":[0.12,0.14,0.14],"jdS":[0.2,0.24,0.28],"fog":[0.17,0.2,0.25],"fogIn":[0.21,0.24,0.29],"fogCj":[0.22,0.24,0.3]}
+FIN fi-orage-g5-couche pannes [] exc []
+=== fini 14:50:41
+mutex rendu

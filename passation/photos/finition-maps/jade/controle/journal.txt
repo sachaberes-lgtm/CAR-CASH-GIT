@@ -1,0 +1,60 @@
+=== passage 1 pris 07:06:50
+MESURE av-soir-g3 {"calls":91,"tris":179491,"prog":154,"geo":610,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.3} pannes [] exc [] 16s
+MESURE ap-soir-g3 {"calls":91,"tris":180207,"prog":154,"geo":610,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.3} pannes [] exc [] 31s
+MESURE av-nuit-g3 {"calls":92,"tris":178685,"prog":154,"geo":610,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.3} pannes [] exc [] 47s
+MESURE ap-nuit-g3 {"calls":92,"tris":178909,"prog":154,"geo":610,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.3} pannes [] exc [] 62s
+MESURE av-matin-g3 {"calls":91,"tris":179611,"prog":154,"geo":610,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.3} pannes [] exc [] 77s
+MESURE ap-matin-g3 {"calls":91,"tris":179459,"prog":154,"geo":610,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.3} pannes [] exc [] 92s
+MESURE av-midi-g3 {"calls":91,"tris":180017,"prog":154,"geo":610,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.3} pannes [] exc [] 108s
+MESURE ap-midi-g3 {"calls":91,"tris":179753,"prog":154,"geo":610,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.3} pannes [] exc [] 123s
+MESURE av-pluie-g3 {"calls":89,"tris":170321,"prog":154,"geo":610,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.3} pannes [] exc [] 139s
+MESURE ap-pluie-g3 {"calls":89,"tris":170671,"prog":154,"geo":610,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.3} pannes [] exc [] 154s
+MESURE av-orage-g3 {"calls":84,"tris":166863,"prog":154,"geo":610,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.3} pannes [] exc [] 169s
+MESURE ap-orage-g3 {"calls":84,"tris":166815,"prog":154,"geo":610,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.3} pannes [] exc [] 184s
+MESURE av-soir-g17 {"calls":81,"tris":151934,"prog":154,"geo":649,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 200s
+MESURE ap-soir-g17 {"calls":81,"tris":151608,"prog":154,"geo":649,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 215s
+MESURE av-nuit-g17 {"calls":82,"tris":151942,"prog":154,"geo":649,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 230s
+MESURE ap-nuit-g17 {"calls":82,"tris":151912,"prog":154,"geo":649,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 245s
+MESURE av-matin-g17 {"calls":81,"tris":152760,"prog":154,"geo":649,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 261s
+MESURE ap-matin-g17 {"calls":81,"tris":151646,"prog":154,"geo":649,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 276s
+MESURE av-midi-g17 {"calls":81,"tris":151450,"prog":154,"geo":649,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 292s
+MESURE ap-midi-g17 {"calls":81,"tris":151272,"prog":154,"geo":649,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 307s
+MESURE av-pluie-g17 {"calls":82,"tris":149858,"prog":154,"geo":649,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 322s
+MESURE ap-pluie-g17 {"calls":82,"tris":149920,"prog":154,"geo":649,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 338s
+MESURE av-orage-g17 {"calls":78,"tris":147550,"prog":154,"geo":649,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 354s
+MESURE ap-orage-g17 {"calls":78,"tris":146920,"prog":154,"geo":649,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 369s
+MESURE sa-soir-g17 {"calls":81,"tris":151504,"prog":154,"geo":649,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 385s
+MESURE sa-nuit-g17 {"calls":82,"tris":151664,"prog":154,"geo":649,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 400s
+MESURE sa-matin-g17 {"calls":81,"tris":151312,"prog":154,"geo":649,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 416s
+MESURE sa-midi-g17 {"calls":81,"tris":151786,"prog":154,"geo":649,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 431s
+MESURE sa-pluie-g17 {"calls":82,"tris":149976,"prog":154,"geo":649,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 447s
+MESURE sa-orage-g17 {"calls":78,"tris":147362,"prog":154,"geo":649,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 462s
+=== fini 07:14:32
+=== passage 2 pris 07:56:48
+MESURE av-soir-g3-debout {"calls":89,"tris":226619,"prog":154,"geo":610,"tex":119} 18s
+MESURE ap-soir-g3-debout {"calls":89,"tris":226935,"prog":154,"geo":610,"tex":119} 34s
+MESURE av-nuit-g3-debout {"calls":90,"tris":226883,"prog":154,"geo":610,"tex":119} 50s
+MESURE ap-nuit-g3-debout {"calls":90,"tris":226333,"prog":154,"geo":610,"tex":119} 66s
+MESURE av-matin-g3-debout {"calls":89,"tris":226499,"prog":154,"geo":608,"tex":119} 83s
+MESURE ap-matin-g3-debout {"calls":89,"tris":226641,"prog":154,"geo":610,"tex":119} 99s
+MESURE av-midi-g3-debout {"calls":89,"tris":226675,"prog":154,"geo":610,"tex":119} 115s
+MESURE ap-midi-g3-debout {"calls":89,"tris":226465,"prog":154,"geo":610,"tex":119} 131s
+MESURE av-pluie-g3-debout {"calls":87,"tris":220741,"prog":154,"geo":610,"tex":119} 148s
+MESURE ap-pluie-g3-debout {"calls":87,"tris":221113,"prog":154,"geo":608,"tex":119} 164s
+MESURE av-orage-g3-debout {"calls":82,"tris":218777,"prog":154,"geo":610,"tex":119} 180s
+MESURE ap-orage-g3-debout {"calls":82,"tris":219213,"prog":154,"geo":610,"tex":119} 196s
+MESURE av-soir-g11-debout {"calls":163,"tris":448291,"prog":154,"geo":620,"tex":121} 212s
+MESURE ap-soir-g11-debout {"calls":163,"tris":448397,"prog":154,"geo":622,"tex":121} 228s
+MESURE av-nuit-g11-debout {"calls":155,"tris":443783,"prog":154,"geo":620,"tex":121} 245s
+MESURE ap-nuit-g11-debout {"calls":155,"tris":444057,"prog":154,"geo":614,"tex":121} 261s
+MESURE av-matin-g11-debout {"calls":164,"tris":458731,"prog":154,"geo":620,"tex":121} 278s
+MESURE ap-matin-g11-debout {"calls":156,"tris":457571,"prog":154,"geo":622,"tex":121} 294s
+MESURE av-midi-g11-debout {"calls":165,"tris":469885,"prog":154,"geo":622,"tex":121} 310s
+MESURE ap-midi-g11-debout {"calls":157,"tris":468583,"prog":154,"geo":622,"tex":121} 327s
+MESURE av-pluie-g11-debout {"calls":148,"tris":408811,"prog":154,"geo":622,"tex":121} 343s
+MESURE ap-pluie-g11-debout {"calls":148,"tris":409011,"prog":154,"geo":622,"tex":121} 359s
+MESURE av-orage-g11-debout {"calls":144,"tris":396195,"prog":154,"geo":622,"tex":121} 375s
+MESURE ap-orage-g11-debout {"calls":144,"tris":394923,"prog":154,"geo":622,"tex":121} 391s
+MESURE sa-nuit-g11-debout {"calls":155,"tris":443501,"prog":154,"geo":622,"tex":121} 407s
+MESURE sa-soir-g11-debout {"calls":155,"tris":447045,"prog":154,"geo":622,"tex":121} 423s
+=== fini 08:03:51

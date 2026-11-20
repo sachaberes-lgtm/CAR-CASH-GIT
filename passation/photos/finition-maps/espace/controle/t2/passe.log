@@ -1,0 +1,118 @@
+verrou pris par finition-espace
+=== banc pris à 09:40:12
+  avant-midi-g7-paysage ok [{"calls": 118, "tris": 336477, "prog": 154, "geo": 584, "tex": 95}, {"calls": 117, "tris": 335099, "prog": 154, "geo": 584, "tex": 95}]
+  apres-midi-g7-paysage ok [{"calls": 110, "tris": 335625, "prog": 154, "geo": 586, "tex": 95}, {"calls": 109, "tris": 334055, "prog": 154, "geo": 586, "tex": 95}]
+  sans-midi-g7-paysage ok [{"calls": 110, "tris": 335323, "prog": 154, "geo": 584, "tex": 95}, {"calls": 109, "tris": 333945, "prog": 154, "geo": 584, "tex": 95}]
+  avant-midi-g7-portrait ok [{"calls": 116, "tris": 340641, "prog": 154, "geo": 586, "tex": 95}, {"calls": 120, "tris": 376841, "prog": 154, "geo": 586, "tex": 95}]
+  apres-midi-g7-portrait ok [{"calls": 116, "tris": 340503, "prog": 154, "geo": 586, "tex": 95}, {"calls": 120, "tris": 376607, "prog": 154, "geo": 586, "tex": 95}]
+  sans-midi-g7-portrait ok [{"calls": 116, "tris": 340857, "prog": 154, "geo": 586, "tex": 95}, {"calls": 120, "tris": 377249, "prog": 154, "geo": 586, "tex": 95}]
+  avant-midi-g99-paysage ok [{"calls": 86, "tris": 253060, "prog": 154, "geo": 587, "tex": 95}, {"calls": 86, "tris": 253308, "prog": 154, "geo": 587, "tex": 95}]
+  apres-midi-g99-paysage ok [{"calls": 85, "tris": 250222, "prog": 154, "geo": 591, "tex": 95}, {"calls": 85, "tris": 250326, "prog": 154, "geo": 591, "tex": 95}]
+  sans-midi-g99-paysage ok [{"calls": 85, "tris": 249912, "prog": 154, "geo": 591, "tex": 95}, {"calls": 85, "tris": 250064, "prog": 154, "geo": 591, "tex": 95}]
+  avant-midi-g99-portrait ok [{"calls": 62, "tris": 157458, "prog": 154, "geo": 593, "tex": 95}, {"calls": 62, "tris": 157682, "prog": 154, "geo": 593, "tex": 95}]
+  apres-midi-g99-portrait ok [{"calls": 63, "tris": 159632, "prog": 154, "geo": 593, "tex": 95}, {"calls": 63, "tris": 159832, "prog": 154, "geo": 593, "tex": 95}]
+  sans-midi-g99-portrait ok [{"calls": 62, "tris": 157084, "prog": 154, "geo": 593, "tex": 95}, {"calls": 62, "tris": 157164, "prog": 154, "geo": 593, "tex": 95}]
+  avant-midi-g31-paysage ok [{"calls": 111, "tris": 330380, "prog": 154, "geo": 562, "tex": 95}, {"calls": 111, "tris": 330532, "prog": 154, "geo": 562, "tex": 95}]
+  apres-midi-g31-paysage ok [{"calls": 112, "tris": 333696, "prog": 154, "geo": 554, "tex": 95}, {"calls": 112, "tris": 333896, "prog": 154, "geo": 554, "tex": 95}]
+  sans-midi-g31-paysage ok [{"calls": 120, "tris": 334136, "prog": 154, "geo": 568, "tex": 95}, {"calls": 120, "tris": 334360, "prog": 154, "geo": 568, "tex": 95}]
+  avant-midi-g31-portrait ok [{"calls": 70, "tris": 166230, "prog": 154, "geo": 562, "tex": 95}, {"calls": 70, "tris": 166454, "prog": 154, "geo": 562, "tex": 95}]
+  apres-midi-g31-portrait ok [{"calls": 70, "tris": 166258, "prog": 154, "geo": 580, "tex": 95}, {"calls": 70, "tris": 166554, "prog": 154, "geo": 580, "tex": 95}]
+  sans-midi-g31-portrait ok [{"calls": 69, "tris": 163380, "prog": 154, "geo": 580, "tex": 95}, {"calls": 69, "tris": 163628, "prog": 154, "geo": 580, "tex": 95}]
+  avant-soir-g4242-paysage ok [{"calls": 112, "tris": 392938, "prog": 154, "geo": 562, "tex": 95}, {"calls": 112, "tris": 393114, "prog": 154, "geo": 562, "tex": 95}]
+  apres-soir-g4242-paysage ok [{"calls": 119, "tris": 392906, "prog": 154, "geo": 568, "tex": 95}, {"calls": 119, "tris": 393082, "prog": 154, "geo": 568, "tex": 95}]
+  sans-soir-g4242-paysage ok [{"calls": 112, "tris": 393418, "prog": 154, "geo": 566, "tex": 95}, {"calls": 112, "tris": 393546, "prog": 154, "geo": 566, "tex": 95}]
+  avant-soir-g4242-portrait ok [{"calls": 88, "tris": 293178, "prog": 154, "geo": 570, "tex": 95}, {"calls": 88, "tris": 293330, "prog": 154, "geo": 570, "tex": 95}]
+  apres-soir-g4242-portrait ok [{"calls": 89, "tris": 294926, "prog": 154, "geo": 570, "tex": 95}, {"calls": 89, "tris": 295102, "prog": 154, "geo": 570, "tex": 95}]
+  sans-soir-g4242-portrait ok [{"calls": 89, "tris": 295770, "prog": 154, "geo": 570, "tex": 95}, {"calls": 89, "tris": 295922, "prog": 154, "geo": 570, "tex": 95}]
+  avant-soir-g99-paysage ok [{"calls": 87, "tris": 247554, "prog": 154, "geo": 591, "tex": 95}, {"calls": 87, "tris": 247850, "prog": 154, "geo": 591, "tex": 95}]
+  apres-soir-g99-paysage ok [{"calls": 87, "tris": 247756, "prog": 154, "geo": 593, "tex": 95}, {"calls": 87, "tris": 247956, "prog": 154, "geo": 593, "tex": 95}]
+  sans-soir-g99-paysage ok [{"calls": 87, "tris": 247314, "prog": 154, "geo": 591, "tex": 95}, {"calls": 87, "tris": 247586, "prog": 154, "geo": 591, "tex": 95}]
+  avant-soir-g99-portrait ok [{"calls": 66, "tris": 161886, "prog": 154, "geo": 593, "tex": 95}, {"calls": 66, "tris": 162254, "prog": 154, "geo": 593, "tex": 95}]
+  apres-soir-g99-portrait ok [{"calls": 66, "tris": 162188, "prog": 154, "geo": 591, "tex": 95}, {"calls": 66, "tris": 162340, "prog": 154, "geo": 591, "tex": 95}]
+  sans-soir-g99-portrait ok [{"calls": 65, "tris": 159502, "prog": 154, "geo": 593, "tex": 95}, {"calls": 65, "tris": 159606, "prog": 154, "geo": 593, "tex": 95}]
+  avant-soir-g31-paysage ok [{"calls": 108, "tris": 333090, "prog": 154, "geo": 568, "tex": 95}, {"calls": 108, "tris": 333290, "prog": 154, "geo": 568, "tex": 95}]
+  apres-soir-g31-paysage ok [{"calls": 108, "tris": 332588, "prog": 154, "geo": 560, "tex": 95}, {"calls": 108, "tris": 332740, "prog": 154, "geo": 560, "tex": 95}]
+  sans-soir-g31-paysage ok [{"calls": 109, "tris": 335414, "prog": 154, "geo": 572, "tex": 95}, {"calls": 109, "tris": 335662, "prog": 154, "geo": 572, "tex": 95}]
+  avant-soir-g31-portrait ok [{"calls": 68, "tris": 168696, "prog": 154, "geo": 580, "tex": 95}, {"calls": 68, "tris": 168848, "prog": 154, "geo": 580, "tex": 95}]
+  apres-soir-g31-portrait ok [{"calls": 68, "tris": 168292, "prog": 154, "geo": 580, "tex": 95}, {"calls": 68, "tris": 168468, "prog": 154, "geo": 580, "tex": 95}]
+  sans-soir-g31-portrait ok [{"calls": 68, "tris": 168792, "prog": 154, "geo": 560, "tex": 95}, {"calls": 68, "tris": 168992, "prog": 154, "geo": 560, "tex": 95}]
+  avant-matin-g12345-paysage ok [{"calls": 105, "tris": 332244, "prog": 154, "geo": 568, "tex": 95}, {"calls": 105, "tris": 332444, "prog": 154, "geo": 568, "tex": 95}]
+  apres-matin-g12345-paysage ok [{"calls": 105, "tris": 332606, "prog": 154, "geo": 570, "tex": 95}, {"calls": 105, "tris": 332806, "prog": 154, "geo": 570, "tex": 95}]
+avant  midi   g7      paysage  #0 calls=118 tris=336477 prog=154 geo=584 tex=95 piste=7cefec44:8978:8977.4 err=0 loop=ok
+avant  midi   g7      paysage  #1 calls=117 tris=335099 prog=154 geo=584 tex=95 piste=7cefec44:8978:8977.4 err=0 loop=ok
+apres  midi   g7      paysage  #0 calls=110 tris=335625 prog=154 geo=586 tex=95 piste=7cefec44:8978:8977.4 err=0 loop=ok
+apres  midi   g7      paysage  #1 calls=109 tris=334055 prog=154 geo=586 tex=95 piste=7cefec44:8978:8977.4 err=0 loop=ok
+sans   midi   g7      paysage  #0 calls=110 tris=335323 prog=154 geo=584 tex=95 piste=7cefec44:8978:8977.4 err=0 loop=ok
+sans   midi   g7      paysage  #1 calls=109 tris=333945 prog=154 geo=584 tex=95 piste=7cefec44:8978:8977.4 err=0 loop=ok
+avant  midi   g7      portrait #0 calls=116 tris=340641 prog=154 geo=586 tex=95 piste=7cefec44:8978:8977.4 err=0 loop=ok
+avant  midi   g7      portrait #1 calls=120 tris=376841 prog=154 geo=586 tex=95 piste=7cefec44:8978:8977.4 err=0 loop=ok
+apres  midi   g7      portrait #0 calls=116 tris=340503 prog=154 geo=586 tex=95 piste=7cefec44:8978:8977.4 err=0 loop=ok
+apres  midi   g7      portrait #1 calls=120 tris=376607 prog=154 geo=586 tex=95 piste=7cefec44:8978:8977.4 err=0 loop=ok
+sans   midi   g7      portrait #0 calls=116 tris=340857 prog=154 geo=586 tex=95 piste=7cefec44:8978:8977.4 err=0 loop=ok
+sans   midi   g7      portrait #1 calls=120 tris=377249 prog=154 geo=586 tex=95 piste=7cefec44:8978:8977.4 err=0 loop=ok
+avant  midi   g99     paysage  #0 calls=86 tris=253060 prog=154 geo=587 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+avant  midi   g99     paysage  #1 calls=86 tris=253308 prog=154 geo=587 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+apres  midi   g99     paysage  #0 calls=85 tris=250222 prog=154 geo=591 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+apres  midi   g99     paysage  #1 calls=85 tris=250326 prog=154 geo=591 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+sans   midi   g99     paysage  #0 calls=85 tris=249912 prog=154 geo=591 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+sans   midi   g99     paysage  #1 calls=85 tris=250064 prog=154 geo=591 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+avant  midi   g99     portrait #0 calls=62 tris=157458 prog=154 geo=593 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+avant  midi   g99     portrait #1 calls=62 tris=157682 prog=154 geo=593 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+apres  midi   g99     portrait #0 calls=63 tris=159632 prog=154 geo=593 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+apres  midi   g99     portrait #1 calls=63 tris=159832 prog=154 geo=593 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+sans   midi   g99     portrait #0 calls=62 tris=157084 prog=154 geo=593 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+sans   midi   g99     portrait #1 calls=62 tris=157164 prog=154 geo=593 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+avant  midi   g31     paysage  #0 calls=111 tris=330380 prog=154 geo=562 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+avant  midi   g31     paysage  #1 calls=111 tris=330532 prog=154 geo=562 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+apres  midi   g31     paysage  #0 calls=112 tris=333696 prog=154 geo=554 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+apres  midi   g31     paysage  #1 calls=112 tris=333896 prog=154 geo=554 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+sans   midi   g31     paysage  #0 calls=120 tris=334136 prog=154 geo=568 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+sans   midi   g31     paysage  #1 calls=120 tris=334360 prog=154 geo=568 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+avant  midi   g31     portrait #0 calls=70 tris=166230 prog=154 geo=562 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+avant  midi   g31     portrait #1 calls=70 tris=166454 prog=154 geo=562 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+apres  midi   g31     portrait #0 calls=70 tris=166258 prog=154 geo=580 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+apres  midi   g31     portrait #1 calls=70 tris=166554 prog=154 geo=580 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+sans   midi   g31     portrait #0 calls=69 tris=163380 prog=154 geo=580 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+sans   midi   g31     portrait #1 calls=69 tris=163628 prog=154 geo=580 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+avant  soir   g4242   paysage  #0 calls=112 tris=392938 prog=154 geo=562 tex=95 piste=1ddd8778:8887:8885.6 err=0 loop=ok
+avant  soir   g4242   paysage  #1 calls=112 tris=393114 prog=154 geo=562 tex=95 piste=1ddd8778:8887:8885.6 err=0 loop=ok
+apres  soir   g4242   paysage  #0 calls=119 tris=392906 prog=154 geo=568 tex=95 piste=1ddd8778:8887:8885.6 err=0 loop=ok
+apres  soir   g4242   paysage  #1 calls=119 tris=393082 prog=154 geo=568 tex=95 piste=1ddd8778:8887:8885.6 err=0 loop=ok
+sans   soir   g4242   paysage  #0 calls=112 tris=393418 prog=154 geo=566 tex=95 piste=1ddd8778:8887:8885.6 err=0 loop=ok
+sans   soir   g4242   paysage  #1 calls=112 tris=393546 prog=154 geo=566 tex=95 piste=1ddd8778:8887:8885.6 err=0 loop=ok
+avant  soir   g4242   portrait #0 calls=88 tris=293178 prog=154 geo=570 tex=95 piste=1ddd8778:8887:8885.6 err=0 loop=ok
+avant  soir   g4242   portrait #1 calls=88 tris=293330 prog=154 geo=570 tex=95 piste=1ddd8778:8887:8885.6 err=0 loop=ok
+apres  soir   g4242   portrait #0 calls=89 tris=294926 prog=154 geo=570 tex=95 piste=1ddd8778:8887:8885.6 err=0 loop=ok
+apres  soir   g4242   portrait #1 calls=89 tris=295102 prog=154 geo=570 tex=95 piste=1ddd8778:8887:8885.6 err=0 loop=ok
+sans   soir   g4242   portrait #0 calls=89 tris=295770 prog=154 geo=570 tex=95 piste=1ddd8778:8887:8885.6 err=0 loop=ok
+sans   soir   g4242   portrait #1 calls=89 tris=295922 prog=154 geo=570 tex=95 piste=1ddd8778:8887:8885.6 err=0 loop=ok
+avant  soir   g99     paysage  #0 calls=87 tris=247554 prog=154 geo=591 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+avant  soir   g99     paysage  #1 calls=87 tris=247850 prog=154 geo=591 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+apres  soir   g99     paysage  #0 calls=87 tris=247756 prog=154 geo=593 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+apres  soir   g99     paysage  #1 calls=87 tris=247956 prog=154 geo=593 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+sans   soir   g99     paysage  #0 calls=87 tris=247314 prog=154 geo=591 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+sans   soir   g99     paysage  #1 calls=87 tris=247586 prog=154 geo=591 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+avant  soir   g99     portrait #0 calls=66 tris=161886 prog=154 geo=593 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+avant  soir   g99     portrait #1 calls=66 tris=162254 prog=154 geo=593 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+apres  soir   g99     portrait #0 calls=66 tris=162188 prog=154 geo=591 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+apres  soir   g99     portrait #1 calls=66 tris=162340 prog=154 geo=591 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+sans   soir   g99     portrait #0 calls=65 tris=159502 prog=154 geo=593 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+sans   soir   g99     portrait #1 calls=65 tris=159606 prog=154 geo=593 tex=95 piste=f0d2b00f:8953:8952.5 err=0 loop=ok
+avant  soir   g31     paysage  #0 calls=108 tris=333090 prog=154 geo=568 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+avant  soir   g31     paysage  #1 calls=108 tris=333290 prog=154 geo=568 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+apres  soir   g31     paysage  #0 calls=108 tris=332588 prog=154 geo=560 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+apres  soir   g31     paysage  #1 calls=108 tris=332740 prog=154 geo=560 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+sans   soir   g31     paysage  #0 calls=109 tris=335414 prog=154 geo=572 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+sans   soir   g31     paysage  #1 calls=109 tris=335662 prog=154 geo=572 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+avant  soir   g31     portrait #0 calls=68 tris=168696 prog=154 geo=580 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+avant  soir   g31     portrait #1 calls=68 tris=168848 prog=154 geo=580 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+apres  soir   g31     portrait #0 calls=68 tris=168292 prog=154 geo=580 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+apres  soir   g31     portrait #1 calls=68 tris=168468 prog=154 geo=580 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+sans   soir   g31     portrait #0 calls=68 tris=168792 prog=154 geo=560 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+sans   soir   g31     portrait #1 calls=68 tris=168992 prog=154 geo=560 tex=95 piste=3aff2db4:8926:8925.0 err=0 loop=ok
+avant  matin  g12345  paysage  #0 calls=105 tris=332244 prog=154 geo=568 tex=95 piste=4e53685:9001:9043.0 err=0 loop=ok
+avant  matin  g12345  paysage  #1 calls=105 tris=332444 prog=154 geo=568 tex=95 piste=4e53685:9001:9043.0 err=0 loop=ok
+apres  matin  g12345  paysage  #0 calls=105 tris=332606 prog=154 geo=570 tex=95 piste=4e53685:9001:9043.0 err=0 loop=ok
+apres  matin  g12345  paysage  #1 calls=105 tris=332806 prog=154 geo=570 tex=95 piste=4e53685:9001:9043.0 err=0 loop=ok
+=== banc fini à 09:47:52
+verrou rendu

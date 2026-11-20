@@ -1,0 +1,27 @@
+=== pris 21:24:40 ; df 4.2Gi
+MESURE av-nuit-g5 {"calls":148,"tris":430446,"prog":149,"geo":635,"tex":120} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 20s
+MESURE ap-nuit-g5 {"calls":148,"tris":429380,"prog":149,"geo":609,"tex":120} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 38s
+MESURE av-soir-g5 {"calls":139,"tris":431258,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 57s
+MESURE ap-soir-g5 {"calls":139,"tris":431658,"prog":149,"geo":627,"tex":120} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 76s
+MESURE av-pluie-g5 {"calls":141,"tris":414442,"prog":149,"geo":619,"tex":120} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 96s
+MESURE ap-pluie-g5 {"calls":141,"tris":414384,"prog":149,"geo":623,"tex":120} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 116s
+MESURE av-orage-g5 {"calls":148,"tris":401278,"prog":149,"geo":633,"tex":120} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 135s
+MESURE ap-orage-g5 {"calls":140,"tris":400122,"prog":149,"geo":635,"tex":120} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 154s
+MESURE av-matin-g5 {"calls":139,"tris":431346,"prog":149,"geo":635,"tex":120} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 173s
+MESURE ap-matin-g5 {"calls":149,"tris":434396,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"z":null,"x":null,"vH":131.5} pannes [] exc [] 193s
+MESURE av-midi-g5 {"calls":139,"tris":433798,"prog":149,"geo":625,"tex":120} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 212s
+MESURE ap-midi-g5 {"calls":139,"tris":433476,"prog":149,"geo":619,"tex":120} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 232s
+MESURE sa-nuit-g5 {"calls":148,"tris":429620,"prog":149,"geo":619,"tex":120} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 251s
+MESURE sa-soir-g5 {"calls":139,"tris":431706,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.5} pannes [] exc [] 272s
+MESURE av-nuit-g11-debout {"calls":155,"tris":443669,"prog":149,"geo":598,"tex":121} 291s
+MESURE ap-nuit-g11-debout {"calls":155,"tris":444081,"prog":149,"geo":592,"tex":121} 309s
+MESURE av-soir-g11-debout {"calls":156,"tris":447751,"prog":149,"geo":572,"tex":121} 328s
+MESURE ap-soir-g11-debout {"calls":156,"tris":448793,"prog":149,"geo":578,"tex":121} 348s
+MESURE av-pluie-g11-debout {"calls":148,"tris":410331,"prog":149,"geo":590,"tex":121} 367s
+MESURE ap-pluie-g11-debout {"calls":156,"tris":409547,"prog":149,"geo":594,"tex":121} 387s
+MESURE av-orage-g11-debout {"calls":144,"tris":395153,"prog":149,"geo":596,"tex":121} 407s
+MESURE ap-orage-g11-debout {"calls":144,"tris":395155,"prog":152,"geo":602,"tex":121} 427s
+MESURE av-midi-g11-debout {"calls":157,"tris":468941,"prog":149,"geo":598,"tex":121} 447s
+MESURE ap-midi-g11-debout {"calls":157,"tris":469039,"prog":149,"geo":602,"tex":121} 467s
+9 min : arrêt (le verrou doit être rendu)
+=== fini 21:32:27

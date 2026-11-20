@@ -1,0 +1,506 @@
+[
+ {
+  "version": "avant",
+  "meteo": "midi",
+  "graine": 7,
+  "format": "paysage",
+  "piste": "7cefec44:8978:8977.4",
+  "prises": [
+   {
+    "fichier": "avant-midi-g7-paysage-0.png",
+    "mesure": {
+     "calls": 111,
+     "tris": 337837,
+     "prog": 154,
+     "geo": 580,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "sans",
+  "meteo": "midi",
+  "graine": 7,
+  "format": "paysage",
+  "piste": "7cefec44:8978:8977.4",
+  "prises": [
+   {
+    "fichier": "sans-midi-g7-paysage-0.png",
+    "mesure": {
+     "calls": 110,
+     "tris": 335355,
+     "prog": 154,
+     "geo": 584,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "apres",
+  "meteo": "midi",
+  "graine": 7,
+  "format": "paysage",
+  "piste": "7cefec44:8978:8977.4",
+  "prises": [
+   {
+    "fichier": "apres-midi-g7-paysage-0.png",
+    "mesure": {
+     "calls": 118,
+     "tris": 336233,
+     "prog": 154,
+     "geo": 564,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "avant",
+  "meteo": "midi",
+  "graine": 7,
+  "format": "portrait",
+  "piste": "7cefec44:8978:8977.4",
+  "prises": [
+   {
+    "fichier": "avant-midi-g7-portrait-0.png",
+    "mesure": {
+     "calls": 123,
+     "tris": 338783,
+     "prog": 154,
+     "geo": 572,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "sans",
+  "meteo": "midi",
+  "graine": 7,
+  "format": "portrait",
+  "piste": "7cefec44:8978:8977.4",
+  "prises": [
+   {
+    "fichier": "sans-midi-g7-portrait-0.png",
+    "mesure": {
+     "calls": 116,
+     "tris": 340853,
+     "prog": 154,
+     "geo": 572,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "apres",
+  "meteo": "midi",
+  "graine": 7,
+  "format": "portrait",
+  "piste": "7cefec44:8978:8977.4",
+  "prises": [
+   {
+    "fichier": "apres-midi-g7-portrait-0.png",
+    "mesure": {
+     "calls": 115,
+     "tris": 339359,
+     "prog": 154,
+     "geo": 568,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "avant",
+  "meteo": "midi",
+  "graine": 99,
+  "format": "paysage",
+  "piste": "f0d2b00f:8953:8952.5",
+  "prises": [
+   {
+    "fichier": "avant-midi-g99-paysage-0.png",
+    "mesure": {
+     "calls": 85,
+     "tris": 250222,
+     "prog": 154,
+     "geo": 569,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "sans",
+  "meteo": "midi",
+  "graine": 99,
+  "format": "paysage",
+  "piste": "f0d2b00f:8953:8952.5",
+  "prises": [
+   {
+    "fichier": "sans-midi-g99-paysage-0.png",
+    "mesure": {
+     "calls": 86,
+     "tris": 252814,
+     "prog": 154,
+     "geo": 571,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "apres",
+  "meteo": "midi",
+  "graine": 99,
+  "format": "paysage",
+  "piste": "f0d2b00f:8953:8952.5",
+  "prises": [
+   {
+    "fichier": "apres-midi-g99-paysage-0.png",
+    "mesure": {
+     "calls": 86,
+     "tris": 252698,
+     "prog": 154,
+     "geo": 565,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":34,\"driftLv\":0,\"graceT\":1.44,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":33.96,\"s\":2.4,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "avant",
+  "meteo": "midi",
+  "graine": 99,
+  "format": "portrait",
+  "piste": "f0d2b00f:8953:8952.5",
+  "prises": [
+   {
+    "fichier": "avant-midi-g99-portrait-0.png",
+    "mesure": {
+     "calls": 63,
+     "tris": 159566,
+     "prog": 154,
+     "geo": 573,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "sans",
+  "meteo": "midi",
+  "graine": 99,
+  "format": "portrait",
+  "piste": "f0d2b00f:8953:8952.5",
+  "prises": [
+   {
+    "fichier": "sans-midi-g99-portrait-0.png",
+    "mesure": {
+     "calls": 63,
+     "tris": 159478,
+     "prog": 154,
+     "geo": 567,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "apres",
+  "meteo": "midi",
+  "graine": 99,
+  "format": "portrait",
+  "piste": "f0d2b00f:8953:8952.5",
+  "prises": [
+   {
+    "fichier": "apres-midi-g99-portrait-0.png",
+    "mesure": {
+     "calls": 63,
+     "tris": 160050,
+     "prog": 154,
+     "geo": 573,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "avant",
+  "meteo": "soir",
+  "graine": 4242,
+  "format": "paysage",
+  "piste": "1ddd8778:8887:8885.6",
+  "prises": [
+   {
+    "fichier": "avant-soir-g4242-paysage-0.png",
+    "mesure": {
+     "calls": 111,
+     "tris": 390298,
+     "prog": 154,
+     "geo": 540,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "sans",
+  "meteo": "soir",
+  "graine": 4242,
+  "format": "paysage",
+  "piste": "1ddd8778:8887:8885.6",
+  "prises": [
+   {
+    "fichier": "sans-soir-g4242-paysage-0.png",
+    "mesure": {
+     "calls": 112,
+     "tris": 393416,
+     "prog": 154,
+     "geo": 552,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "apres",
+  "meteo": "soir",
+  "graine": 4242,
+  "format": "paysage",
+  "piste": "1ddd8778:8887:8885.6",
+  "prises": [
+   {
+    "fichier": "apres-soir-g4242-paysage-0.png",
+    "mesure": {
+     "calls": 111,
+     "tris": 391770,
+     "prog": 154,
+     "geo": 538,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "avant",
+  "meteo": "soir",
+  "graine": 4242,
+  "format": "portrait",
+  "piste": "1ddd8778:8887:8885.6",
+  "prises": [
+   {
+    "fichier": "avant-soir-g4242-portrait-0.png",
+    "mesure": {
+     "calls": 89,
+     "tris": 295794,
+     "prog": 154,
+     "geo": 562,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "sans",
+  "meteo": "soir",
+  "graine": 4242,
+  "format": "portrait",
+  "piste": "1ddd8778:8887:8885.6",
+  "prises": [
+   {
+    "fichier": "sans-soir-g4242-portrait-0.png",
+    "mesure": {
+     "calls": 89,
+     "tris": 294706,
+     "prog": 154,
+     "geo": 552,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "apres",
+  "meteo": "soir",
+  "graine": 4242,
+  "format": "portrait",
+  "piste": "1ddd8778:8887:8885.6",
+  "prises": [
+   {
+    "fichier": "apres-soir-g4242-portrait-0.png",
+    "mesure": {
+     "calls": 88,
+     "tris": 292008,
+     "prog": 154,
+     "geo": 548,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "avant",
+  "meteo": "soir",
+  "graine": 99,
+  "format": "paysage",
+  "piste": "f0d2b00f:8953:8952.5",
+  "prises": [
+   {
+    "fichier": "avant-soir-g99-paysage-0.png",
+    "mesure": {
+     "calls": 88,
+     "tris": 249900,
+     "prog": 154,
+     "geo": 587,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "sans",
+  "meteo": "soir",
+  "graine": 99,
+  "format": "paysage",
+  "piste": "f0d2b00f:8953:8952.5",
+  "prises": [
+   {
+    "fichier": "sans-soir-g99-paysage-0.png",
+    "mesure": {
+     "calls": 95,
+     "tris": 248848,
+     "prog": 154,
+     "geo": 593,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "apres",
+  "meteo": "soir",
+  "graine": 99,
+  "format": "paysage",
+  "piste": "f0d2b00f:8953:8952.5",
+  "prises": [
+   {
+    "fichier": "apres-soir-g99-paysage-0.png",
+    "mesure": {
+     "calls": 88,
+     "tris": 249868,
+     "prog": 154,
+     "geo": 591,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "avant",
+  "meteo": "soir",
+  "graine": 99,
+  "format": "portrait",
+  "piste": "f0d2b00f:8953:8952.5",
+  "prises": [
+   {
+    "fichier": "avant-soir-g99-portrait-0.png",
+    "mesure": {
+     "calls": 65,
+     "tris": 159382,
+     "prog": 154,
+     "geo": 593,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "sans",
+  "meteo": "soir",
+  "graine": 99,
+  "format": "portrait",
+  "piste": "f0d2b00f:8953:8952.5",
+  "prises": [
+   {
+    "fichier": "sans-soir-g99-portrait-0.png",
+    "mesure": {
+     "calls": 65,
+     "tris": 159430,
+     "prog": 154,
+     "geo": 593,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ },
+ {
+  "version": "apres",
+  "meteo": "soir",
+  "graine": 99,
+  "format": "portrait",
+  "piste": "f0d2b00f:8953:8952.5",
+  "prises": [
+   {
+    "fichier": "apres-soir-g99-portrait-0.png",
+    "mesure": {
+     "calls": 66,
+     "tris": 162530,
+     "prog": 154,
+     "geo": 593,
+     "tex": 95
+    },
+    "etat": "{\"cgorGy\":0,\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":32,\"driftLv\":0,\"graceT\":1.48,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":31.99,\"s\":1.7,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":0,\"chainVal\":0,\"fvy\":0,\"fspd\":0}"
+   }
+  ],
+  "erreurs": "{\"errs\":[],\"warns\":[],\"loop\":\"\"}"
+ }
+]

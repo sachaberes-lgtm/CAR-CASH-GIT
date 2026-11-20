@@ -1,0 +1,71 @@
+
+## matin-g5-couche    (haut | milieu | bas : L C B R V)
+  av  L169.6 C108.4 B0.00 R 0.00 V  9.1 | L158.6 C 71.5 B0.00 R10.31 V  6.5 | L101.2 C 54.9 B0.00 R 6.42 V  0.0
+  fi  L159.8 C157.1 B0.00 R 0.00 V 32.2 | L155.6 C 74.1 B0.00 R 8.80 V  8.2 | L100.4 C 57.9 B0.00 R 6.00 V  0.0
+
+## midi-g11-debout    (haut | milieu | bas : L C B R V)
+  av  L135.4 C195.3 B0.00 R 0.00 V  1.3 | L140.7 C 66.1 B0.00 R 4.96 V  2.2 | L 88.3 C 80.9 B0.00 R19.77 V  0.0
+  fi  L125.8 C231.4 B0.00 R 0.00 V 11.7 | L138.8 C 73.3 B0.00 R 6.99 V  4.7 | L 86.9 C 85.5 B0.00 R19.71 V  0.0
+
+## midi-g5-couche    (haut | milieu | bas : L C B R V)
+  av  L163.9 C131.3 B0.00 R 0.00 V 13.8 | L166.9 C 56.8 B0.00 R 1.01 V  9.1 | L 89.2 C 63.9 B0.00 R 5.82 V  0.0
+  fi  L157.5 C178.3 B0.00 R 0.00 V 36.3 | L164.6 C 65.7 B0.00 R 1.89 V 13.3 | L 89.5 C 68.3 B0.00 R 5.97 V  0.0
+
+## nuit-g11-debout    (haut | milieu | bas : L C B R V)
+  av  L 17.3 C 56.0 B0.00 R 0.00 V  0.1 | L 58.3 C 49.5 B0.00 R 0.62 V 38.4 | L 58.2 C 90.6 B0.00 R37.54 V  6.5
+  fi  L 33.4 C 90.1 B0.00 R 0.00 V  0.1 | L 58.4 C 49.6 B0.00 R 0.63 V 38.1 | L 58.6 C 93.1 B0.00 R38.47 V  6.4
+
+## nuit-g17-couche    (haut | milieu | bas : L C B R V)
+  av  L 21.3 C 56.1 B0.00 R 0.00 V  1.4 | L 54.5 C 61.5 B0.00 R 0.07 V 34.1 | L 41.9 C 54.5 B0.00 R 9.84 V  5.0
+  fi  L 35.7 C 82.6 B0.00 R 0.00 V  2.0 | L 55.8 C 62.4 B0.00 R 0.06 V 35.5 | L 39.8 C 55.0 B0.00 R10.68 V  5.0
+
+## nuit-g3-couche    (haut | milieu | bas : L C B R V)
+  av  L 28.0 C 62.6 B0.00 R 0.00 V  1.0 | L 53.2 C 57.3 B0.00 R 0.00 V 34.2 | L 38.1 C 50.8 B0.00 R 9.34 V  1.7
+  fi  L 42.1 C 92.1 B0.00 R 0.00 V  0.9 | L 53.5 C 58.4 B0.00 R 0.01 V 34.5 | L 38.8 C 50.8 B0.00 R 9.35 V  1.8
+
+## nuit-g5-astre    (haut | milieu | bas : L C B R V)
+  av  L  9.9 C 46.6 B0.00 R 0.00 V  0.0 | L 48.2 C 73.1 B0.00 R 0.00 V 17.4 | L 62.1 C 49.6 B0.00 R 0.31 V 36.2
+  fi  L 25.6 C 88.1 B0.00 R 0.00 V  0.0 | L 56.5 C 87.8 B0.00 R 0.00 V 18.2 | L 61.0 C 49.6 B0.00 R 0.30 V 36.4
+
+## nuit-g5-couche    (haut | milieu | bas : L C B R V)
+  av  L 45.0 C 58.2 B0.00 R 0.00 V 16.0 | L 59.7 C 54.8 B0.00 R 0.28 V 47.1 | L 45.9 C 52.3 B0.00 R 9.61 V 20.5
+  sa  L 45.0 C 58.2 B0.00 R 0.00 V 16.0 | L 59.6 C 54.7 B0.00 R 0.26 V 47.9 | L 46.4 C 53.6 B0.00 R10.15 V 20.4
+  fi  L 55.8 C 76.6 B0.00 R 0.00 V 17.2 | L 59.4 C 54.6 B0.00 R 0.28 V 47.5 | L 47.7 C 55.2 B0.00 R10.73 V 21.2
+
+## orage-g5-couche    (haut | milieu | bas : L C B R V)
+  av  L 53.3 C 29.3 B0.00 R 0.00 V  0.9 | L 63.0 C 40.1 B0.00 R 1.66 V  2.7 | L 27.8 C 34.4 B0.00 R 6.99 V  0.0
+  fi  L 47.8 C 53.7 B0.00 R 0.00 V  0.3 | L 61.5 C 50.1 B0.00 R 1.66 V  2.6 | L 24.5 C 33.7 B0.00 R 6.76 V  0.0
+
+## pluie-g11-debout    (haut | milieu | bas : L C B R V)
+  av  L129.5 C 81.4 B0.00 R 0.00 V 98.6 | L 97.3 C 55.8 B0.00 R 5.63 V  3.3 | L 72.6 C 65.6 B0.00 R21.23 V  0.0
+  sa  L129.5 C 81.4 B0.00 R 0.00 V 98.6 | L 97.2 C 55.8 B0.00 R 5.63 V  3.4 | L 72.0 C 66.2 B0.00 R21.67 V  0.0
+  fi  L121.5 C118.2 B0.00 R 0.00 V 99.1 | L 99.8 C 52.2 B0.00 R 4.05 V 20.8 | L 73.5 C 58.0 B0.00 R18.77 V  0.0
+
+## pluie-g3-couche    (haut | milieu | bas : L C B R V)
+  av  L132.6 C 80.6 B0.00 R 0.00 V 94.7 | L119.0 C 61.1 B0.00 R 1.84 V 22.9 | L 64.7 C 45.2 B0.00 R 4.90 V  0.0
+  fi  L125.4 C117.4 B0.00 R 0.00 V 98.1 | L122.2 C 66.8 B0.00 R 1.05 V 42.0 | L 66.4 C 39.5 B0.00 R 4.37 V  0.0
+
+## pluie-g5-couche    (haut | milieu | bas : L C B R V)
+  av  L128.6 C 73.8 B0.00 R 0.00 V 84.0 | L112.0 C 57.6 B0.00 R 2.35 V  9.4 | L 68.1 C 48.3 B0.00 R 4.72 V  0.0
+  fi  L125.1 C106.7 B0.00 R 0.00 V 91.3 | L115.3 C 55.9 B0.00 R 1.63 V 33.5 | L 69.4 C 42.4 B0.00 R 4.51 V  0.0
+
+## soir-g11-debout    (haut | milieu | bas : L C B R V)
+  av  L174.6 C 59.0 B0.00 R13.04 V  0.0 | L 89.9 C 75.9 B0.00 R26.89 V  0.7 | L 59.5 C 72.1 B0.00 R26.30 V  0.0
+  fi  L169.8 C 92.3 B0.00 R 9.12 V  0.0 | L 98.2 C 68.6 B0.00 R22.08 V  0.2 | L 59.9 C 71.1 B0.00 R25.74 V  0.0
+
+## soir-g17-couche    (haut | milieu | bas : L C B R V)
+  av  L173.4 C 65.9 B0.00 R18.13 V  1.0 | L108.3 C 86.5 B0.00 R27.20 V  5.4 | L 51.5 C 44.5 B0.00 R 7.18 V  0.0
+  fi  L175.1 C 79.3 B0.00 R12.21 V  0.6 | L117.4 C 76.7 B0.00 R21.50 V  4.9 | L 52.0 C 44.4 B0.00 R 7.01 V  0.0
+
+## soir-g3-couche    (haut | milieu | bas : L C B R V)
+  av  L178.9 C 56.9 B0.00 R13.78 V  0.0 | L114.8 C 89.0 B0.00 R30.26 V  1.6 | L 48.0 C 41.5 B0.00 R 6.70 V  0.0
+  fi  L178.1 C 78.5 B0.00 R 7.36 V  0.0 | L130.9 C 75.5 B0.00 R26.01 V  0.6 | L 49.6 C 40.3 B0.00 R 7.56 V  0.0
+
+## soir-g5-astre    (haut | milieu | bas : L C B R V)
+  av  L170.2 C 54.4 B0.00 R 0.22 V  0.2 | L178.7 C101.3 B0.00 R34.16 V  0.2 | L 85.2 C 57.5 B0.00 R19.73 V  0.8
+  fi  L154.9 C107.1 B0.00 R 0.00 V  0.3 | L185.5 C 94.2 B0.00 R22.13 V  0.2 | L 94.4 C 50.9 B0.00 R10.00 V  0.6
+
+## soir-g5-couche    (haut | milieu | bas : L C B R V)
+  av  L167.4 C 84.7 B0.00 R27.33 V  0.6 | L111.1 C 89.6 B0.00 R31.73 V  1.8 | L 55.6 C 40.5 B0.00 R 7.30 V  0.0
+  sa  L167.4 C 84.7 B0.00 R27.34 V  0.6 | L111.1 C 89.6 B0.00 R31.71 V  1.8 | L 55.0 C 39.6 B0.00 R 6.71 V  0.0
+  fi  L172.5 C 83.2 B0.00 R17.30 V  0.6 | L122.1 C 79.3 B0.00 R23.88 V  1.6 | L 56.1 C 39.5 B0.00 R 6.75 V  0.0

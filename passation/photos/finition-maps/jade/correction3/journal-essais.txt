@@ -1,0 +1,150 @@
+=== attente du mutex 14:13:35
+=== mutex pris 14:13:35
+=== verrou pris 14:24:08 ; df 6.4Gi
+MESURE av-soir-g5-couche {"calls":139,"tris":432866,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 18s
+BIO av-soir {"amb":"jade","sat":1.586,"jdZ":[0.5,0.56,0.66],"jdL":[0.74,0.72,0.74],"jdM":[1,0.66,0.42],"jdH":[1,0.78,0.54],"jdB":[0.9,0.82,0.76],"jdR":[0.4,0.38,0.46],"jdS":[1,0.72,0.44],"fog":[0.8274,0.7419,0.6563],"fogIn":[0.8832,0.7977,0.7121],"fogCj":[0.9565,0.6998,0.4859]}
+POSE lv true
+FIN av-soir-g5-couche pannes [] exc []
+MESURE ap-soir-g5-couche {"calls":139,"tris":431872,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 37s
+BIO ap-soir {"amb":"jade","sat":1.586,"jdZ":[0.4,0.46,0.7],"jdL":[0.86,0.7,0.76],"jdM":[1,0.7,0.48],"jdH":[1,0.8,0.52],"jdB":[0.94,0.7,0.64],"jdR":[0.42,0.3,0.46],"jdS":[1,0.7,0.4],"fog":[0.86,0.66,0.58],"fogIn":[0.92,0.74,0.66],"fogCj":[1,0.7,0.5]}
+POSE k1 true 38s
+POSE k2 true 40s
+POSE k3 true 42s
+FIN ap-soir-g5-couche pannes [] exc []
+MESURE av-soir-g3-couche {"calls":91,"tris":180231,"prog":149,"geo":604,"tex":119} etat {"go":false,"d":0,"vH":129.3} 58s
+BIO av-soir {"amb":"jade","sat":1.586,"jdZ":[0.5,0.56,0.66],"jdL":[0.74,0.72,0.74],"jdM":[1,0.66,0.42],"jdH":[1,0.78,0.54],"jdB":[0.9,0.82,0.76],"jdR":[0.4,0.38,0.46],"jdS":[1,0.72,0.44],"fog":[0.8274,0.7419,0.6563],"fogIn":[0.8832,0.7977,0.7121],"fogCj":[0.9565,0.6998,0.4859]}
+POSE lv true
+FIN av-soir-g3-couche pannes [] exc []
+MESURE ap-soir-g3-couche {"calls":91,"tris":179913,"prog":149,"geo":604,"tex":119} etat {"go":false,"d":0,"vH":129.3} 74s
+BIO ap-soir {"amb":"jade","sat":1.586,"jdZ":[0.4,0.46,0.7],"jdL":[0.86,0.7,0.76],"jdM":[1,0.7,0.48],"jdH":[1,0.8,0.52],"jdB":[0.94,0.7,0.64],"jdR":[0.42,0.3,0.46],"jdS":[1,0.7,0.4],"fog":[0.86,0.66,0.58],"fogIn":[0.92,0.74,0.66],"fogCj":[1,0.7,0.5]}
+POSE k1 true 75s
+POSE k2 true 76s
+POSE k3 true 77s
+FIN ap-soir-g3-couche pannes [] exc []
+MESURE av-soir-g17-couche {"calls":81,"tris":151416,"prog":149,"geo":643,"tex":119} etat {"go":false,"d":0,"vH":129.5} 92s
+BIO av-soir {"amb":"jade","sat":1.586,"jdZ":[0.5,0.56,0.66],"jdL":[0.74,0.72,0.74],"jdM":[1,0.66,0.42],"jdH":[1,0.78,0.54],"jdB":[0.9,0.82,0.76],"jdR":[0.4,0.38,0.46],"jdS":[1,0.72,0.44],"fog":[0.8274,0.7419,0.6563],"fogIn":[0.8832,0.7977,0.7121],"fogCj":[0.9565,0.6998,0.4859]}
+POSE lv true
+FIN av-soir-g17-couche pannes [] exc []
+MESURE ap-soir-g17-couche {"calls":81,"tris":151470,"prog":149,"geo":643,"tex":119} etat {"go":false,"d":0,"vH":129.5} 109s
+BIO ap-soir {"amb":"jade","sat":1.586,"jdZ":[0.4,0.46,0.7],"jdL":[0.86,0.7,0.76],"jdM":[1,0.7,0.48],"jdH":[1,0.8,0.52],"jdB":[0.94,0.7,0.64],"jdR":[0.42,0.3,0.46],"jdS":[1,0.7,0.4],"fog":[0.86,0.66,0.58],"fogIn":[0.92,0.74,0.66],"fogCj":[1,0.7,0.5]}
+POSE k1 true 110s
+POSE k2 true 110s
+POSE k3 true 111s
+FIN ap-soir-g17-couche pannes [] exc []
+MESURE av-soir-g11-debout {"calls":155,"tris":447427,"prog":149,"geo":616,"tex":121} etat {"go":false,"d":0,"vH":129.2} 127s
+BIO av-soir {"amb":"jade","sat":1.586,"jdZ":[0.5,0.56,0.66],"jdL":[0.74,0.72,0.74],"jdM":[1,0.66,0.42],"jdH":[1,0.78,0.54],"jdB":[0.9,0.82,0.76],"jdR":[0.4,0.38,0.46],"jdS":[1,0.72,0.44],"fog":[0.8274,0.7419,0.6563],"fogIn":[0.8832,0.7977,0.7121],"fogCj":[0.9565,0.6998,0.4859]}
+POSE lv true
+FIN av-soir-g11-debout pannes [] exc []
+MESURE ap-soir-g11-debout {"calls":155,"tris":447659,"prog":149,"geo":616,"tex":121} etat {"go":false,"d":0,"vH":129.2} 143s
+BIO ap-soir {"amb":"jade","sat":1.586,"jdZ":[0.4,0.46,0.7],"jdL":[0.86,0.7,0.76],"jdM":[1,0.7,0.48],"jdH":[1,0.8,0.52],"jdB":[0.94,0.7,0.64],"jdR":[0.42,0.3,0.46],"jdS":[1,0.7,0.4],"fog":[0.86,0.66,0.58],"fogIn":[0.92,0.74,0.66],"fogCj":[1,0.7,0.5]}
+POSE k1 true 144s
+POSE k2 true 145s
+POSE k3 true 146s
+FIN ap-soir-g11-debout pannes [] exc []
+MESURE av-nuit-g5-couche {"calls":140,"tris":430006,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 162s
+BIO av-nuit {"amb":"jadeNuit","sat":1.376,"jdZ":[0.018,0.052,0.098],"jdL":[0.03,0.086,0.13],"jdM":[0.045,0.135,0.15],"jdH":[0.065,0.19,0.18],"jdB":[0.07,0.19,0.195],"jdR":[0.03,0.09,0.09],"jdS":[1,0.9,0.68],"fog":[0.047,0.142,0.148],"fogIn":[0.06,0.17,0.17],"fogCj":[0.08,0.22,0.21]}
+POSE lv true
+FIN av-nuit-g5-couche pannes [] exc []
+MESURE ap-nuit-g5-couche {"calls":140,"tris":428414,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 180s
+BIO ap-nuit {"amb":"jadeNuit","sat":1.376,"jdZ":[0.062,0.034,0.098],"jdL":[0.072,0.05,0.15],"jdM":[0.045,0.135,0.15],"jdH":[0.065,0.19,0.18],"jdB":[0.07,0.19,0.195],"jdR":[0.03,0.09,0.09],"jdS":[1,0.88,0.62],"fog":[0.047,0.142,0.148],"fogIn":[0.06,0.17,0.17],"fogCj":[0.08,0.22,0.21]}
+POSE k1 true 182s
+POSE k2 true 184s
+POSE k3 true 185s
+FIN ap-nuit-g5-couche pannes [] exc []
+MESURE av-nuit-g11-debout {"calls":155,"tris":444081,"prog":149,"geo":616,"tex":121} etat {"go":false,"d":0,"vH":129.2} 201s
+BIO av-nuit {"amb":"jadeNuit","sat":1.376,"jdZ":[0.018,0.052,0.098],"jdL":[0.03,0.086,0.13],"jdM":[0.045,0.135,0.15],"jdH":[0.065,0.19,0.18],"jdB":[0.07,0.19,0.195],"jdR":[0.03,0.09,0.09],"jdS":[1,0.9,0.68],"fog":[0.047,0.142,0.148],"fogIn":[0.06,0.17,0.17],"fogCj":[0.08,0.22,0.21]}
+POSE lv true
+FIN av-nuit-g11-debout pannes [] exc []
+MESURE ap-nuit-g11-debout {"calls":155,"tris":444003,"prog":149,"geo":616,"tex":121} etat {"go":false,"d":0,"vH":129.2} 217s
+BIO ap-nuit {"amb":"jadeNuit","sat":1.376,"jdZ":[0.062,0.034,0.098],"jdL":[0.072,0.05,0.15],"jdM":[0.045,0.135,0.15],"jdH":[0.065,0.19,0.18],"jdB":[0.07,0.19,0.195],"jdR":[0.03,0.09,0.09],"jdS":[1,0.88,0.62],"fog":[0.047,0.142,0.148],"fogIn":[0.06,0.17,0.17],"fogCj":[0.08,0.22,0.21]}
+POSE k1 true 218s
+POSE k2 true 219s
+POSE k3 true 220s
+FIN ap-nuit-g11-debout pannes [] exc []
+MESURE av-nuit-g17-couche {"calls":82,"tris":151442,"prog":149,"geo":643,"tex":119} etat {"go":false,"d":0,"vH":129.5} 235s
+BIO av-nuit {"amb":"jadeNuit","sat":1.376,"jdZ":[0.018,0.052,0.098],"jdL":[0.03,0.086,0.13],"jdM":[0.045,0.135,0.15],"jdH":[0.065,0.19,0.18],"jdB":[0.07,0.19,0.195],"jdR":[0.03,0.09,0.09],"jdS":[1,0.9,0.68],"fog":[0.047,0.142,0.148],"fogIn":[0.06,0.17,0.17],"fogCj":[0.08,0.22,0.21]}
+POSE lv true
+FIN av-nuit-g17-couche pannes [] exc []
+MESURE ap-nuit-g17-couche {"calls":82,"tris":151592,"prog":149,"geo":643,"tex":119} etat {"go":false,"d":0,"vH":129.5} 251s
+BIO ap-nuit {"amb":"jadeNuit","sat":1.376,"jdZ":[0.062,0.034,0.098],"jdL":[0.072,0.05,0.15],"jdM":[0.045,0.135,0.15],"jdH":[0.065,0.19,0.18],"jdB":[0.07,0.19,0.195],"jdR":[0.03,0.09,0.09],"jdS":[1,0.88,0.62],"fog":[0.047,0.142,0.148],"fogIn":[0.06,0.17,0.17],"fogCj":[0.08,0.22,0.21]}
+POSE k1 true 252s
+POSE k2 true 253s
+POSE k3 true 253s
+FIN ap-nuit-g17-couche pannes [] exc []
+MESURE av-pluie-g11-debout {"calls":148,"tris":410283,"prog":149,"geo":616,"tex":121} etat {"go":false,"d":0,"vH":129.2} 269s
+BIO av-pluie {"amb":"jadePluie","sat":1.3509,"jdZ":[0.2,0.3,0.31],"jdL":[0.3,0.42,0.41],"jdM":[0.4,0.52,0.49],"jdH":[0.54,0.64,0.59],"jdB":[0.4,0.5,0.47],"jdR":[0.2,0.28,0.27],"jdS":[0.3,0.32,0.34],"fog":[0.3845,0.4469,0.5323],"fogIn":[0.4859,0.5593,0.6661],"fogCj":[0.4526,0.5224,0.6235]}
+POSE lv true
+FIN av-pluie-g11-debout pannes [] exc []
+MESURE ap-pluie-g11-debout {"calls":148,"tris":409145,"prog":149,"geo":616,"tex":121} etat {"go":false,"d":0,"vH":129.2} 286s
+BIO ap-pluie {"amb":"jadePluie","sat":1.16,"jdZ":[0.17,0.28,0.48],"jdL":[0.26,0.46,0.54],"jdM":[0.32,0.58,0.56],"jdH":[0.54,0.68,0.62],"jdB":[0.38,0.52,0.52],"jdR":[0.2,0.3,0.32],"jdS":[0.3,0.32,0.34],"fog":[0.38,0.5,0.52],"fogIn":[0.5,0.62,0.62],"fogCj":[0.48,0.58,0.62]}
+POSE k1 true 286s
+POSE k2 true 287s
+POSE k3 true 288s
+FIN ap-pluie-g11-debout pannes [] exc []
+MESURE av-pluie-g5-couche {"calls":141,"tris":414100,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 304s
+BIO av-pluie {"amb":"jadePluie","sat":1.3509,"jdZ":[0.2,0.3,0.31],"jdL":[0.3,0.42,0.41],"jdM":[0.4,0.52,0.49],"jdH":[0.54,0.64,0.59],"jdB":[0.4,0.5,0.47],"jdR":[0.2,0.28,0.27],"jdS":[0.3,0.32,0.34],"fog":[0.3845,0.4469,0.5323],"fogIn":[0.4859,0.5593,0.6661],"fogCj":[0.4526,0.5224,0.6235]}
+POSE lv true
+FIN av-pluie-g5-couche pannes [] exc []
+MESURE ap-pluie-g5-couche {"calls":141,"tris":415094,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 320s
+BIO ap-pluie {"amb":"jadePluie","sat":1.16,"jdZ":[0.17,0.28,0.48],"jdL":[0.26,0.46,0.54],"jdM":[0.32,0.58,0.56],"jdH":[0.54,0.68,0.62],"jdB":[0.38,0.52,0.52],"jdR":[0.2,0.3,0.32],"jdS":[0.3,0.32,0.34],"fog":[0.38,0.5,0.52],"fogIn":[0.5,0.62,0.62],"fogCj":[0.48,0.58,0.62]}
+POSE k1 true 321s
+POSE k2 true 322s
+POSE k3 true 323s
+FIN ap-pluie-g5-couche pannes [] exc []
+MESURE av-midi-g5-couche {"calls":139,"tris":434042,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 339s
+BIO av-midi {"amb":"jadeMidi","sat":1.229,"jdZ":[0.16,0.42,0.8],"jdL":[0.4,0.64,0.86],"jdM":[0.66,0.82,0.78],"jdH":[0.96,0.88,0.72],"jdB":[0.82,0.9,0.86],"jdR":[0.28,0.4,0.38],"jdS":[1,0.97,0.9],"fog":[0.66,0.8,0.8],"fogIn":[0.8,0.9,0.9],"fogCj":[0.96,0.95,0.9]}
+POSE lv true
+FIN av-midi-g5-couche pannes [] exc []
+MESURE ap-midi-g5-couche {"calls":139,"tris":433942,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 355s
+BIO ap-midi {"amb":"jadeMidi","sat":1.315,"jdZ":[0.08,0.38,0.9],"jdL":[0.32,0.7,0.92],"jdM":[0.48,0.88,0.78],"jdH":[1,0.84,0.6],"jdB":[0.82,0.9,0.86],"jdR":[0.28,0.4,0.38],"jdS":[1,0.97,0.9],"fog":[0.62,0.8,0.86],"fogIn":[0.78,0.9,0.92],"fogCj":[0.96,0.95,0.9]}
+POSE k1 true 356s
+POSE k2 true 357s
+POSE k3 true 358s
+FIN ap-midi-g5-couche pannes [] exc []
+MESURE av-midi-g11-debout {"calls":165,"tris":469503,"prog":149,"geo":616,"tex":121} etat {"go":false,"d":0,"vH":129.2} 374s
+BIO av-midi {"amb":"jadeMidi","sat":1.229,"jdZ":[0.16,0.42,0.8],"jdL":[0.4,0.64,0.86],"jdM":[0.66,0.82,0.78],"jdH":[0.96,0.88,0.72],"jdB":[0.82,0.9,0.86],"jdR":[0.28,0.4,0.38],"jdS":[1,0.97,0.9],"fog":[0.66,0.8,0.8],"fogIn":[0.8,0.9,0.9],"fogCj":[0.96,0.95,0.9]}
+POSE lv true
+FIN av-midi-g11-debout pannes [] exc []
+MESURE ap-midi-g11-debout {"calls":157,"tris":469197,"prog":149,"geo":616,"tex":121} etat {"go":false,"d":0,"vH":129.2} 391s
+BIO ap-midi {"amb":"jadeMidi","sat":1.315,"jdZ":[0.08,0.38,0.9],"jdL":[0.32,0.7,0.92],"jdM":[0.48,0.88,0.78],"jdH":[1,0.84,0.6],"jdB":[0.82,0.9,0.86],"jdR":[0.28,0.4,0.38],"jdS":[1,0.97,0.9],"fog":[0.62,0.8,0.86],"fogIn":[0.78,0.9,0.92],"fogCj":[0.96,0.95,0.9]}
+POSE k1 true 392s
+POSE k2 true 392s
+POSE k3 true 393s
+FIN ap-midi-g11-debout pannes [] exc []
+MESURE av-matin-g5-couche {"calls":139,"tris":433034,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 409s
+BIO av-matin {"amb":"jadeMatin","sat":1.337,"jdZ":[0.22,0.44,0.74],"jdL":[0.46,0.64,0.8],"jdM":[0.72,0.82,0.72],"jdH":[1,0.82,0.6],"jdB":[0.82,0.88,0.82],"jdR":[0.3,0.38,0.36],"jdS":[1,0.9,0.66],"fog":[0.8,0.82,0.74],"fogIn":[0.86,0.88,0.82],"fogCj":[1,0.92,0.76]}
+POSE lv true
+FIN av-matin-g5-couche pannes [] exc []
+MESURE ap-matin-g5-couche {"calls":139,"tris":431130,"prog":149,"geo":637,"tex":120} etat {"go":false,"d":0,"vH":129.5} 426s
+BIO ap-matin {"amb":"jadeMatin","sat":1.444,"jdZ":[0.16,0.44,0.9],"jdL":[0.4,0.7,0.9],"jdM":[0.56,0.9,0.76],"jdH":[1,0.76,0.62],"jdB":[0.82,0.9,0.84],"jdR":[0.3,0.38,0.36],"jdS":[1,0.9,0.66],"fog":[0.9,0.8,0.7],"fogIn":[0.94,0.86,0.76],"fogCj":[1,0.92,0.76]}
+POSE k1 true 427s
+POSE k2 true 428s
+POSE k3 true 429s
+FIN ap-matin-g5-couche pannes [] exc []
+MESURE ap-orage-g11-debout {"calls":144,"tris":395057,"prog":149,"geo":616,"tex":121} etat {"go":false,"d":0,"vH":129.2} 445s
+BIO ap-orage {"amb":"jadeOrage","sat":1.352,"jdZ":[0.1,0.09,0.14],"jdL":[0.13,0.14,0.19],"jdM":[0.16,0.21,0.24],"jdH":[0.22,0.32,0.34],"jdB":[0.22,0.28,0.32],"jdR":[0.12,0.14,0.14],"jdS":[0.2,0.24,0.28],"fog":[0.17,0.2,0.25],"fogIn":[0.21,0.24,0.29],"fogCj":[0.22,0.24,0.3]}
+FIN ap-orage-g11-debout pannes [] exc []
+MESURE ap-orage-g11-debout {"calls":144,"tris":394809,"prog":149,"geo":616,"tex":121} etat {"go":false,"d":0,"vH":129.2} 460s
+BIO ap-orage {"amb":"jadeOrage","sat":1.352,"jdZ":[0.1,0.09,0.14],"jdL":[0.13,0.14,0.19],"jdM":[0.16,0.21,0.24],"jdH":[0.22,0.32,0.34],"jdB":[0.22,0.28,0.32],"jdR":[0.12,0.14,0.14],"jdS":[0.2,0.24,0.28],"fog":[0.17,0.2,0.25],"fogIn":[0.21,0.24,0.29],"fogCj":[0.22,0.24,0.3]}
+FIN ap-orage-g11-debout pannes [] exc []
+MESURE av-nuit-g3-couche {"calls":92,"tris":179457,"prog":149,"geo":604,"tex":119} etat {"go":false,"d":0,"vH":129.3} 475s
+BIO av-nuit {"amb":"jadeNuit","sat":1.376,"jdZ":[0.018,0.052,0.098],"jdL":[0.03,0.086,0.13],"jdM":[0.045,0.135,0.15],"jdH":[0.065,0.19,0.18],"jdB":[0.07,0.19,0.195],"jdR":[0.03,0.09,0.09],"jdS":[1,0.9,0.68],"fog":[0.047,0.142,0.148],"fogIn":[0.06,0.17,0.17],"fogCj":[0.08,0.22,0.21]}
+POSE lv true
+FIN av-nuit-g3-couche pannes [] exc []
+MESURE ap-nuit-g3-couche {"calls":92,"tris":179275,"prog":149,"geo":604,"tex":119} etat {"go":false,"d":0,"vH":129.3} 492s
+BIO ap-nuit {"amb":"jadeNuit","sat":1.376,"jdZ":[0.062,0.034,0.098],"jdL":[0.072,0.05,0.15],"jdM":[0.045,0.135,0.15],"jdH":[0.065,0.19,0.18],"jdB":[0.07,0.19,0.195],"jdR":[0.03,0.09,0.09],"jdS":[1,0.88,0.62],"fog":[0.047,0.142,0.148],"fogIn":[0.06,0.17,0.17],"fogCj":[0.08,0.22,0.21]}
+POSE k1 true 492s
+POSE k2 true 493s
+POSE k3 true 494s
+FIN ap-nuit-g3-couche pannes [] exc []
+MESURE av-pluie-g3-couche {"calls":89,"tris":170973,"prog":149,"geo":604,"tex":119} etat {"go":false,"d":0,"vH":129.3} 509s
+BIO av-pluie {"amb":"jadePluie","sat":1.3509,"jdZ":[0.2,0.3,0.31],"jdL":[0.3,0.42,0.41],"jdM":[0.4,0.52,0.49],"jdH":[0.54,0.64,0.59],"jdB":[0.4,0.5,0.47],"jdR":[0.2,0.28,0.27],"jdS":[0.3,0.32,0.34],"fog":[0.3845,0.4469,0.5323],"fogIn":[0.4859,0.5593,0.6661],"fogCj":[0.4526,0.5224,0.6235]}
+POSE lv true
+FIN av-pluie-g3-couche pannes [] exc []
+MESURE ap-pluie-g3-couche {"calls":89,"tris":170901,"prog":149,"geo":604,"tex":119} etat {"go":false,"d":0,"vH":129.3} 526s
+BIO ap-pluie {"amb":"jadePluie","sat":1.16,"jdZ":[0.17,0.28,0.48],"jdL":[0.26,0.46,0.54],"jdM":[0.32,0.58,0.56],"jdH":[0.54,0.68,0.62],"jdB":[0.38,0.52,0.52],"jdR":[0.2,0.3,0.32],"jdS":[0.3,0.32,0.34],"fog":[0.38,0.5,0.52],"fogIn":[0.5,0.62,0.62],"fogCj":[0.48,0.58,0.62]}
+POSE k1 true 527s
+POSE k2 true 528s
+POSE k3 true 528s
+FIN ap-pluie-g3-couche pannes [] exc []
+=== fini 14:32:57

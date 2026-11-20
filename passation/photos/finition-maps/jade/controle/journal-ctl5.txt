@@ -1,0 +1,35 @@
+=== attente mutex 14:54:52
+=== mutex pris 15:04:33
+place 1 abandonnée (15167 1795182596 flouvitesse), reprise
+verrou pris par finition-jade (place 1)
+=== verrou pris 15:05:03 ; df 5.6Gi
+MESURE av-soir-g23 {"calls":105,"tris":217282,"prog":149,"geo":607,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.2} pannes [] exc [] 20s
+MESURE ap-soir-g23 {"calls":105,"tris":216928,"prog":149,"geo":635,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.2} pannes [] exc [] 39s
+MESURE av-nuit-g23 {"calls":105,"tris":216978,"prog":149,"geo":635,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.2} pannes [] exc [] 57s
+MESURE ap-nuit-g23 {"calls":105,"tris":216648,"prog":149,"geo":635,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.2} pannes [] exc [] 73s
+MESURE av-pluie-g23 {"calls":104,"tris":210754,"prog":149,"geo":635,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.2} pannes [] exc [] 89s
+MESURE ap-pluie-g23 {"calls":104,"tris":210668,"prog":149,"geo":635,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.2} pannes [] exc [] 105s
+MESURE av-orage-g23 {"calls":102,"tris":206388,"prog":149,"geo":635,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.2} pannes [] exc [] 120s
+MESURE ap-orage-g23 {"calls":102,"tris":206956,"prog":149,"geo":635,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.2} pannes [] exc [] 136s
+MESURE av-matin-g23 {"calls":105,"tris":218854,"prog":149,"geo":635,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.2} pannes [] exc [] 151s
+MESURE ap-matin-g23 {"calls":105,"tris":218160,"prog":149,"geo":635,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.2} pannes [] exc [] 167s
+MESURE av-midi-g23 {"calls":105,"tris":218812,"prog":149,"geo":635,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.2} pannes [] exc [] 183s
+MESURE ap-midi-g23 {"calls":105,"tris":218560,"prog":149,"geo":635,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.2} pannes [] exc [] 198s
+MESURE sa-soir-g23 {"calls":105,"tris":217246,"prog":149,"geo":635,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.2} pannes [] exc [] 214s
+MESURE sa-nuit-g23 {"calls":105,"tris":216322,"prog":149,"geo":635,"tex":119} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.2} pannes [] exc [] 230s
+MESURE av-soir-g7-debout {"calls":139,"tris":458011,"prog":149,"geo":616,"tex":119} 245s
+MESURE ap-soir-g7-debout {"calls":139,"tris":459387,"prog":149,"geo":616,"tex":119} 261s
+MESURE av-nuit-g7-debout {"calls":147,"tris":455255,"prog":149,"geo":616,"tex":119} 277s
+MESURE ap-nuit-g7-debout {"calls":139,"tris":454311,"prog":149,"geo":616,"tex":119} 292s
+MESURE av-pluie-g7-debout {"calls":136,"tris":418521,"prog":149,"geo":616,"tex":119} 308s
+MESURE ap-pluie-g7-debout {"calls":136,"tris":418283,"prog":149,"geo":616,"tex":119} 324s
+MESURE av-soir-g29 {"calls":139,"tris":499518,"prog":149,"geo":645,"tex":121} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.3} pannes [] exc [] 340s
+MESURE ap-soir-g29 {"calls":139,"tris":499342,"prog":149,"geo":645,"tex":121} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.3} pannes [] exc [] 355s
+MESURE av-nuit-g29 {"calls":140,"tris":495238,"prog":149,"geo":645,"tex":121} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.3} pannes [] exc [] 371s
+MESURE ap-nuit-g29 {"calls":140,"tris":496870,"prog":149,"geo":645,"tex":121} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.3} pannes [] exc [] 386s
+MESURE sa-nuit-g7-debout {"calls":139,"tris":454359,"prog":149,"geo":616,"tex":119} 402s
+MESURE av-pluie-g29 {"calls":141,"tris":486146,"prog":149,"geo":645,"tex":121} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.3} pannes [] exc [] 418s
+MESURE ap-pluie-g29 {"calls":141,"tris":486266,"prog":149,"geo":645,"tex":121} etat {"go":false,"d":0,"z":null,"x":null,"vH":129.3} pannes [] exc [] 433s
+MESURE sa-pluie-g7-debout {"calls":136,"tris":418641,"prog":149,"geo":616,"tex":119} 449s
+=== fini 15:12:32
+verrou rendu (/private/tmp/cashcar-banc.lock)
