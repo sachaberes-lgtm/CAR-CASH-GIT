@@ -16,6 +16,12 @@
   ou tombé 60 m sous sa dalle est rangé ; à moins de 9 m de la caméra il s'efface (un glyphe chassé bouchait l'écran).
 - Banc : `dbgPluie()` la lance en course, `dbgPluie('etat')` → `{vivants, rebonds, chocs}`. Mesuré en Chromium logiciel : ~1 000 rebonds et ~90 chocs
   par averse (téléphone debout) ; départ + course + averse sans erreur debout, couché et dans le cadre de l'ordi. Pas mesuré sur un vrai iPhone.
+- Coût mesuré (micro-banc Node, 540 glyphes, hors GPU) : `updateMoneyRain` 0,020 → 0,054 ms par image en médiane (pire 0,056 → 0,135 ms), pendant
+  les ~6 s d'une averse seulement ; rien quand il ne pleut pas. Côté GPU : rien de plus (mêmes panneaux, même atlas, même programme).
+- PORTÉE SUR LES AUTRES VERSIONS (20/11, Léo : « sur toutes les versions »), le BLOC de la pluie seul, rien d'autre de main : `ios-capacitor`
+  (7a5312af : jeu + `app-ios/www/` resynchronisé, sw.js laissé à v1604 — pas de service worker dans l'app), `maj` (60a50107, cache v1421),
+  `android-capacitor` (a465dc76, cache v1136). Chacune : départ + course + averse sans erreur. Une fusion de main dans ces branches retrouvera
+  le même bloc (pas de conflit attendu sur `billets-devises.js` ; `sw.js` : garder la version de main).
 - ⚠ Le retour à l'averse de glyphes était un choix de Sacha (26/10) : ce sont toujours des glyphes, mais leur allure a changé à la demande de Léo.
 
 ## L'ÉCRAN DE MORT EST MUET (2026-11-08 — Sacha : « il y a la musique alors que je suis mort »)
