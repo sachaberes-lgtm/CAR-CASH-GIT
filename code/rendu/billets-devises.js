@@ -126,13 +126,13 @@ const CURR=['€','€','¥','£','€']; // (2026-10-15, UNE SEULE POLICE) les 
 const MONN_TEX=(function(){
   const S=64,cv=document.createElement('canvas');cv.width=cv.height=S*4;const c=cv.getContext('2d'),tx=new THREE.CanvasTexture(cv);
   const tc=document.createElement('canvas');tc.width=tc.height=S;const q=tc.getContext('2d'); /* la toile d'UN glyphe : on y taille (source-atop), puis on la pose dans l'atlas */
-  const GRIS=[255,196,232,168,214,150,240,184]; /* les huit facettes de la face, du clair au sombre en alternance */
+  const GRIS=[255,170,226,132,204,112,240,150]; /* les huit facettes de la face, du clair au sombre en alternance */
   apresPolice(function(){c.clearRect(0,0,S*4,S*4);
   q.textAlign='center';q.textBaseline='middle';q.font='38px "Press Start 2P",monospace';
   for(let i=0;i<CURR.length;i++){const x=S/2-3,y=S/2-1,E=6,ox=(i&3)*S,oy=(i>>2)*S;
     /* LA TRANCHE : six couches vers le bas à droite, puis deux pans — tout ce qui est sous la diagonale (le dessous) s'assombrit */
     q.globalCompositeOperation='source-over';q.clearRect(0,0,S,S);
-    for(let k=E;k>=1;k--){const v9=92+((E-k)*8)|0;q.fillStyle='rgb('+v9+','+v9+','+v9+')';q.fillText(CURR[i],x+k,y+k);}
+    for(let k=E;k>=1;k--){const v9=58+((E-k)*7)|0;q.fillStyle='rgb('+v9+','+v9+','+v9+')';q.fillText(CURR[i],x+k,y+k);}
     q.globalCompositeOperation='source-atop';q.fillStyle='rgba(0,0,0,.42)';q.beginPath();q.moveTo(0,S*.2);q.lineTo(S*.8,S);q.lineTo(0,S);q.closePath();q.fill();
     c.drawImage(tc,ox,oy);
     /* LA FACE : l'arête claire (un pixel en haut à gauche), puis le glyphe taillé en huit facettes autour d'un sommet décentré */
@@ -201,13 +201,13 @@ function updateMoneyRain(dt,t){
     }else if(h9>=r9){const w9=Math.min(1,(h9-r9)*.5);x+=Math.sin(t*3+MR.ph[i])*1.1*w9*dt;z+=Math.cos(t*2.6+MR.ph[i])*1.1*w9*dt;} /* en l'air : il flotte un peu (rien au ras du sol) */
     MR.x[i]=x;MR.y[i]=y;MR.z[i]=z;MR.vx[i]=vx;MR.vy[i]=vy;MR.vz[i]=vz;
     MR.rot[i]+=MR.rs[i]*dt;
-    const c9=Math.cos(MR.rot[i]),a9=Math.abs(c9),l9=c9>0?.7+.3*a9:.46+.3*a9; /* la face éclate quand elle passe devant l'œil · le dos reste dans l'ombre */
+    const c9=Math.cos(MR.rot[i]),a9=Math.abs(c9),l9=c9>0?.62+.3*a9:.4+.28*a9; /* la face éclate quand elle passe devant l'œil · le dos reste dans l'ombre */
     P[n*3]=x;P[n*3+1]=y;P[n*3+2]=z;
     S[n*4]=MR.sc[i]*(c9<0?-1:1)*Math.max(.16,a9);S[n*4+1]=MR.sc[i];S[n*4+2]=Math.sin(t*2.2+MR.ph[i])*.22;S[n*4+3]=0; /* la largeur = le cos de l'angle (jamais moins que la TRANCHE) · un léger balancement */
     /* LA PLUIE RGB (2026-11-20, Léo : « que la pluie de currencies soit RGB ») : chaque glyphe fait le tour de l'arc-en-ciel (~2,5 s), décalé par sa phase.
        Coût : zéro — la couleur d'instance (`iC`) partait déjà au GPU à chaque image. */
-    const u9=(t*.16+MR.ph[i]/6)%1*6,e9=c9>0?.55*a9*a9*a9*a9*a9*a9*a9*a9:0; /* un tour en ~6 s · e9 : l'éclat BLANC du métal, face à l'œil */
-    C[n*4]=l9*(.5+.5*Math.min(1,Math.max(0,Math.abs(u9-3)-1)))+e9;C[n*4+1]=l9*(.5+.5*Math.min(1,Math.max(0,2-Math.abs(u9-2))))+e9;C[n*4+2]=l9*(.5+.5*Math.min(1,Math.max(0,2-Math.abs(u9-4))))+e9; /* le MÉTAL IRISÉ : la teinte à demi-saturée (moitié blanc, moitié arc-en-ciel) */
+    const u9=(t*.16+MR.ph[i]/6)%1*6,e9=c9>0?.14*a9*a9*a9*a9*a9*a9*a9*a9:0; /* un tour en ~6 s · e9 : l'éclat du métal, face à l'œil — discret (2026-11-20, Léo : « moins clair, couleurs plus vivantes, les lettres sont trop fantomatiques » : .55 → .14, le bloom ne les noie plus) */
+    C[n*4]=l9*(.14+.86*Math.min(1,Math.max(0,Math.abs(u9-3)-1)))+e9;C[n*4+1]=l9*(.14+.86*Math.min(1,Math.max(0,2-Math.abs(u9-2))))+e9;C[n*4+2]=l9*(.14+.86*Math.min(1,Math.max(0,2-Math.abs(u9-4))))+e9; /* la teinte VIVE et pleine (86 % d'arc-en-ciel, 14 % de blanc : plus de pastel) */
     C[n*4+3]=Math.min(1,MR.life[i]);
     F[n*2]=MR.f[i];F[n*2+1]=0;n++;
   }
