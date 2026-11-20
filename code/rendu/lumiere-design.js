@@ -71,16 +71,22 @@ if(JADE_FINI&&BIOMES.jadeNuit){
   Object.assign(BIOMES.jade,{ /* SOIR : le zénith bleu-violet, une bande rose (au banc : un mauve .80,.52,.74 faisait un aplat lilas, un rose .94,.58,.64 sous la saturation du soir 1,2 virait au fluo), le corail puis l'or à l'horizon (il était gris-beige au milieu).
     (contrôle, tour 1 : le soleil vermillon se perdait dans la bande rose) la bande rose tire un cran vers le rose de la marque (.92,.64,.64 → .90,.62,.70) et le milieu passe du corail à la pêche dorée (1,.62,.50 → 1,.70,.48) : le disque rouge se découpe sur du chaud clair.
     (contrôle du 19/11 : le haut tirait au rose-magenta fluo, rouge-orange vif du tiers haut 37 → 42 %, chroma 100-115 → 145) la bande rose rabattue vers le lilas-pêche (.90,.62,.70 → .84,.64,.76), le zénith un cran plus bleu (.36,.38,.64 → .34,.40,.68), l'horizon plus doré (1,.76,.46 → 1,.80,.52).
-    (correction 2 du 19/11 : le haut restait un dégradé violet → rose vif → orange « synthwave », chroma 114-121) la bande vers le pêche-lilas (.84,.64,.76 → .86,.70,.76), le zénith un cran plus clair et doux (.34,.40,.68 → .40,.46,.70) */
-    jdZ:[.40,.46,.70],jdL:[.86,.70,.76],jdM:[1,.70,.48],jdH:[1,.80,.52],jdB:[.94,.70,.64],jdR:[.42,.30,.46],jdS:[1,.70,.40],
-    fog:[.86,.66,.58],fogIn:[.92,.74,.66],fogCj:[1,.70,.50]});
+    (correction 2 du 19/11 : le haut restait un dégradé violet → rose vif → orange « synthwave », chroma 114-121) la bande vers le pêche-lilas (.84,.64,.76 → .86,.70,.76), le zénith un cran plus clair et doux (.34,.40,.68 → .40,.46,.70)
+    (correction 3 du 20/11 : le rouge-orange vif MONTAIT encore, haut et milieu, chroma du haut 113 ; la brume et l'abîme étaient passés au saumon) trois jeux mesurés
+    au banc en un passage (outils/banc-finition-jade/essais.cjs), gardé le plus calme : zénith bleu .44,.52,.72, bande LILAS .74,.74,.84 (plus de rose), milieu et
+    horizon pêche-or plus clairs (1,.72,.54 ; 1,.84,.62), abîme et brumes rendus au beige-lilas (jdB .86,.82,.80, fog .80,.76,.72, fogIn .86,.82,.78,
+    fogCj .94,.74,.58), lointain .38,.38,.50, soleil d'avant 1,.72,.44 : rouge vif du haut et du milieu SOUS celui d'avant sur g3, g5, g17 et g11 debout */
+    jdZ:[.44,.52,.72],jdL:[.74,.74,.84],jdM:[1,.72,.54],jdH:[1,.84,.62],jdB:[.86,.82,.80],jdR:[.38,.38,.50],jdS:[1,.72,.44],
+    fog:[.80,.76,.72],fogIn:[.86,.82,.78],fogCj:[.94,.74,.58]});
   Object.assign(BIOMES.jadeMatin,{ /* MATIN : azur plus franc, le céladon du milieu passe au vert jade-menthe, l'horizon pêche-rose ; brume pêche.
-    (contrôle, tour 1 : « presque invisible ») poussé : saturation × 1,08 (sur celle de l'étalonnage et de l'équilibre), la menthe plus franche (.62,.88,.76 → .56,.90,.76 ; .48,.92,.74 virait à l'acide au banc), l'horizon plus rose (1,.76,.62 → 1,.70,.60 ; contrôle du 19/11 : il tirait au saumon, remonté à 1,.76,.62) */
-    sat:+((BIOMES.jadeMatin.sat||1)*1.08).toFixed(3),jdZ:[.16,.44,.90],jdL:[.40,.70,.90],jdM:[.56,.90,.76],jdH:[1,.76,.62],jdB:[.82,.90,.84],
-    fog:[.90,.80,.70],fogIn:[.94,.86,.76]});
+    (contrôle, tour 1 : « presque invisible ») poussé : saturation × 1,08 (sur celle de l'étalonnage et de l'équilibre), la menthe plus franche (.62,.88,.76 → .56,.90,.76 ; .48,.92,.74 virait à l'acide au banc), l'horizon plus rose (1,.76,.62 → 1,.70,.60 ; contrôle du 19/11 : il tirait au saumon, remonté à 1,.76,.62 ;
+    correction 3 du 20/11 : le rouge du milieu restait 2 points au-dessus d'avant) l'horizon or-pêche 1,.80,.64, la brume pêche-crème .86,.82,.74 / .92,.88,.80 */
+    sat:+((BIOMES.jadeMatin.sat||1)*1.08).toFixed(3),jdZ:[.16,.44,.90],jdL:[.40,.70,.90],jdM:[.56,.90,.76],jdH:[1,.80,.64],jdB:[.82,.90,.84],
+    fog:[.86,.82,.74],fogIn:[.92,.88,.80]});
   Object.assign(BIOMES.jadeMidi,{ /* MIDI : cobalt au zénith, jade au milieu, crème-pêche à l'horizon ; brume bleu ciel.
-    (contrôle, tour 1 : « presque invisible ») poussé : la saturation × 1,07 (l'équilibre l'avait rabattue de × 0,93), le jade du milieu plus franc (.52,.88,.80 → .48,.88,.78 ; .40,.90,.76 virait à l'acide au banc), l'horizon or-pêche (1,.86,.68 → 1,.84,.60) */
-    sat:+((BIOMES.jadeMidi.sat||1)*1.07).toFixed(3),jdZ:[.08,.38,.90],jdL:[.32,.70,.92],jdM:[.48,.88,.78],jdH:[1,.84,.60],
+    (contrôle, tour 1 : « presque invisible ») poussé : la saturation × 1,07 (l'équilibre l'avait rabattue de × 0,93), le jade du milieu plus franc (.52,.88,.80 → .48,.88,.78 ; .40,.90,.76 virait à l'acide au banc), l'horizon or-pêche (1,.86,.68 → 1,.84,.60 ;
+    correction 3 du 20/11 : rouge du milieu +3,6 à +5 points sur avant → .98,.86,.66, crème dorée) */
+    sat:+((BIOMES.jadeMidi.sat||1)*1.07).toFixed(3),jdZ:[.08,.38,.90],jdL:[.32,.70,.92],jdM:[.48,.88,.78],jdH:[.98,.86,.66],
     fog:[.62,.80,.86],fogIn:[.78,.90,.92]});
   Object.assign(BIOMES.jadeNuit,{ /* NUIT (contrôle, tour 1 : le zénith en bleu roi pur tirait à l'électrique : .040,.030,.110 → .062,.034,.098, la bande .062,.056,.175 → .072,.050,.150 : un cran de rouge, l'indigo-violet au lieu du bleu roi) : indigo-violet au zénith, bleu au milieu, la lueur jade gardée au ras de l'horizon ; brume indigo (plus de bleu-vert gris) ; lune or pâle.
     (contrôle du 19/11 : le vert jade mourait, 30 → 6-12 % au milieu de l'image, et l'image s'assombrissait ; Sacha veut « plus de bleu, plus de vert ») le zénith indigo-violet reste, le bas redevient bleu-JADE et plus clair :
@@ -88,11 +94,15 @@ if(JADE_FINI&&BIOMES.jadeNuit){
     ciel de l'hémisphère .16,.26,.46 → .14,.32,.44, appoint .22,.36,.60 → .20,.40,.56, reflet du milieu '#243e6a' → '#1e5262'.
     (correction 2 du 19/11 : encore trop peu, le vert du milieu à 6-15 % au lieu de 34, la route et le sol en bleu marine) seul le CIEL du haut reste au lot
     (jdZ, jdL indigo-violet, la lune jdS) ; tout ce qui éclaire le sol et l'horizon reprend la nuit jade (JADE_NUIT2 plus haut) : jdM, jdH, jdB, jdR,
-    les brumes, l'hémisphère, l'appoint et le reflet. Ici on ne fait donc que le ciel. */
-    jdZ:[.062,.034,.098],jdL:[.072,.050,.150],jdS:[1,.88,.62]});
+    les brumes, l'hémisphère, l'appoint et le reflet. Ici on ne fait donc que le ciel.
+    (correction 3 du 20/11 : ce zénith indigo rendait le haut PLUS SOMBRE qu'avant, L 17 → 10 debout) trois ciels mesurés au banc, gardé le BLEU-JADE :
+    zénith bleu nuit .040,.070,.150, bande bleu-sarcelle .040,.120,.170 : le haut plus clair et plus coloré qu'avant, le sol et l'horizon jade inchangés */
+    jdZ:[.040,.070,.150],jdL:[.040,.120,.170],jdS:[1,.88,.62]});
   Object.assign(BIOMES.jadePluie,{ /* PLUIE : ardoise BLEUE au zénith, jade mouillé à l'horizon (il était gris-vert) ; un cran de saturation.
-    (contrôle, tour 1 : « presque invisible ») poussé : saturation 1,14 → 1,16, le zénith plus bleu (.20,.30,.42 → .17,.28,.48), le jade du milieu plus franc (.36,.58,.54 → .32,.58,.56 ; 1,20 et .30,.62,.56 faisaient un beau temps turquoise au banc) */
-    sat:1.16,jdZ:[.17,.28,.48],jdL:[.26,.46,.54],jdM:[.32,.58,.56],jdH:[.54,.68,.62],jdB:[.38,.52,.52],jdR:[.20,.30,.32],
+    (contrôle, tour 1 : « presque invisible ») poussé : saturation 1,14 → 1,16, le zénith plus bleu (.20,.30,.42 → .17,.28,.48), le jade du milieu plus franc (.36,.58,.54 → .32,.58,.56 ; 1,20 et .30,.62,.56 faisaient un beau temps turquoise au banc ;
+    correction 3 du 20/11 : le haut avait perdu son vert pour un azur plus clair que le midi) zénith ardoise-JADE .14,.28,.27, bande .20,.40,.38 : vert jade
+    au haut de l'image (V 92-100 %), plus sombre que le midi, plus coloré qu'avant (le conseil .16,.30,.42 aurait gardé l'azur : teinte 208°) */
+    sat:1.16,jdZ:[.14,.28,.27],jdL:[.20,.40,.38],jdM:[.32,.58,.56],jdH:[.54,.68,.62],jdB:[.38,.52,.52],jdR:[.20,.30,.32],
     fog:[.38,.50,.52],fogCj:[.48,.58,.62],fogIn:[.50,.62,.62],volSky:[.38,.50,.54]});
   Object.assign(BIOMES.jadeOrage,{ /* ORAGE : ardoise VIOLETTE au zénith, horizon bleu-vert (il était gris).
     (contrôle, tour 1 : devenu une seconde NUIT, ciel indigo S 184 V 115) rabattu vers l'ardoise : zénith .12,.10,.20 → .10,.09,.14, bande .14,.15,.24 → .13,.14,.19,
