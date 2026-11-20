@@ -73509,69 +73509,92 @@ function updatePool(pool,dt,grav){
    d'un LISERÉ d'encre #1c0430, comme tout ce qui rapporte), 600 panneaux instanciés (`mkPanneaux`), tableaux fixes, zéro allocation.
    Le mouvement est celui d'avant (ça tournoie en tombant, fondu la dernière seconde). */
 const CURR=['€','€','¥','£','€']; // (2026-10-15, UNE SEULE POLICE) les cinq que la police pixel DESSINE — ₹ ₩ ₽ ฿ ₺ ₪ ₫ ₴ ₦ ₱ tombaient dans une police de secours (mesuré)
+/* ===== LA PLUIE EN VOLUME QUI REBONDIT (2026-11-20, Léo : « un peu plus beau, un peu plus 3D, et ça tombe sur la route et rebondit ») =====
+   Trois choses, sans un triangle ni un appel de dessin de plus (mêmes 600 panneaux, même programme, même atlas 256 × 256) :
+   · LE VOLUME : chaque glyphe est cuit en BLOC — une tranche de 6 px qui part en bas à droite, plus sombre que la face, le tout cerclé d'encre.
+   · LA ROTATION : le panneau s'écrase en largeur (cos de son angle) — il TOURNE sur lui-même comme une pièce, et sa face ÉCLATE quand elle
+     passe devant l'œil (couleur > 1 : le bloom la prend là où il existe).
+   · LA CHUTE : une vraie gravité, dans le repère de la ROUTE (sa normale, prise à la naissance du glyphe par `frameAt`) : il tombe sur la
+     dalle, REBONDIT deux ou trois fois, glisse et s'éteint. Ceux qui naissent hors de la chaussée tombent dans le vide.
+   La couleur reste le RGB d'instance (un tour d'arc-en-ciel en ~2,5 s). `dbgPluie()` la lance en course. */
 const MONN_TEX=(function(){
   const S=64,cv=document.createElement('canvas');cv.width=cv.height=S*4;const c=cv.getContext('2d'),tx=new THREE.CanvasTexture(cv);
   apresPolice(function(){c.clearRect(0,0,S*4,S*4);
-  c.textAlign='center';c.textBaseline='middle';c.font='40px "Press Start 2P",monospace';c.lineJoin='round';
-  for(let i=0;i<CURR.length;i++){const x=(i&3)*S+S/2,y=(i>>2)*S+S/2+2;
-    c.lineWidth=7;c.strokeStyle='#1c0430';c.strokeText(CURR[i],x,y);                 // le liseré d'encre
-    const g=c.createLinearGradient(0,y-20,0,y+20);g.addColorStop(0,'#ffffff');g.addColorStop(.5,'#e6e6e6');g.addColorStop(1,'#8c8c8c');
-    c.fillStyle=g;c.fillText(CURR[i],x,y);}                                          // (2026-11-20, LA PLUIE RGB) un BLANC en relief (clair en haut, ombre en bas) : la couleur vient de l'instance, plus de la toile
+  c.textAlign='center';c.textBaseline='middle';c.font='34px "Press Start 2P",monospace';c.lineJoin='round';
+  for(let i=0;i<CURR.length;i++){const x=(i&3)*S+S/2-3,y=(i>>2)*S+S/2-1,E=6;
+    c.lineWidth=7;c.strokeStyle='#1c0430';for(let k=0;k<=E;k++)c.strokeText(CURR[i],x+k,y+k);       /* le liseré d'encre, autour du bloc entier */
+    for(let k=E;k>=1;k--){const v9=70+((E-k)*9)|0;c.fillStyle='rgb('+v9+','+v9+','+v9+')';c.fillText(CURR[i],x+k,y+k);} /* la TRANCHE : sombre au fond, plus claire vers la face */
+    const g=c.createLinearGradient(0,y-17,0,y+17);g.addColorStop(0,'#ffffff');g.addColorStop(.45,'#ececec');g.addColorStop(1,'#9c9c9c');
+    c.fillStyle=g;c.fillText(CURR[i],x,y);}                                          /* la FACE : un blanc en relief (clair en haut, ombre en bas) — la couleur vient de l'instance */
   tx.needsUpdate=true;});
   return tx;
 })();
 const MONN_N=600,MONN=mkPanneaux(MONN_N,MONN_TEX,4,4,false,1,2);
 const MR={x:new Float32Array(MONN_N),y:new Float32Array(MONN_N),z:new Float32Array(MONN_N),vx:new Float32Array(MONN_N),vy:new Float32Array(MONN_N),
   vz:new Float32Array(MONN_N),ph:new Float32Array(MONN_N),rs:new Float32Array(MONN_N),rot:new Float32Array(MONN_N),life:new Float32Array(MONN_N),
-  sc:new Float32Array(MONN_N),f:new Uint8Array(MONN_N),head:0,viv:0,acc:0};
-let moneyRainT=0,nextRainAt=4e3*ECO3.gain; // calé sur l'éco ×2,5 : ~une pluie par niveau (l'ancien 1e4/×10 suivait l'éco ×10) · ×ECO3.gain (vague 3) : la pluie tombe au même moment de la partie
+  sc:new Float32Array(MONN_N),f:new Uint8Array(MONN_N),head:0,viv:0,acc:0,reb:0,
+  nx:new Float32Array(MONN_N),ny:new Float32Array(MONN_N),nz:new Float32Array(MONN_N),d0:new Float32Array(MONN_N),   /* le plan de SA dalle : la normale, et n·p */
+  bx:new Float32Array(MONN_N),by:new Float32Array(MONN_N),bz:new Float32Array(MONN_N),b0:new Float32Array(MONN_N)};  /* le travers de la route, et b·p (la chaussée s'arrête à ROAD_HALF) */
+const MRF={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},MR_G=22; /* le repère de route d'un glyphe qui naît · la gravité de l'averse (m/s²) */
+let moneyRainT=0,nextRainAt=4e3*ECO3.gain; /* calé sur l'éco ×2,5 : ~une pluie par niveau (l'ancien 1e4/×10 suivait l'éco ×10) · ×ECO3.gain (vague 3) : la pluie tombe au même moment de la partie */
 function startMoneyRain(){
-  moneyRainT=3;MR.acc=0; // (2026-10-26, Sacha : « la pluie de billets, là, elle était mieux avant » — retour à l'averse de glyphes, avant la PLUIE D'ARGENT v2 du 13/10 (PLA reste pour CRYPTOCITY)
-  try{son('pluie.billets',fanfare);}catch(e){} // (console de son) la pluie FROISSE : billets qui tombent partout + pièces (plus la fanfare d'une caisse débloquée)
+  moneyRainT=3;MR.acc=0; /* (2026-10-26, Sacha : « la pluie de billets, là, elle était mieux avant » — retour à l'averse de glyphes, avant la PLUIE D'ARGENT v2 du 13/10 (PLA reste pour CRYPTOCITY) */
+  try{son('pluie.billets',fanfare);}catch(e){} /* (console de son) la pluie FROISSE : billets qui tombent partout + pièces (plus la fanfare d'une caisse débloquée) */
 }
 function updateMoneyRain(dt,t){
   if(moneyRainT>0){
     moneyRainT-=dt;
-    tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);
     /* (2026-09-30) 180 GLYPHES PAR SECONDE, pas 3 par image : l'averse dépendait de la cadence — 270 glyphes à 30 i/s, 540 à 60,
        1 080 à 120 Hz pour 600 places en anneau (des glyphes encore en l'air étaient écrasés et réapparaissaient ailleurs). Un
        accumulateur, comme nfxVent : 540 sur les 3 s, vivants 3,2-5 s → jamais plus de ~540 à la fois, l'anneau tient. */
     MR.acc+=dt*180;
-    while(MR.acc>=1){MR.acc-=1; // le défilé : ça pleut devant et autour, on traverse le rideau
+    const v9=Math.min(140,Math.abs(vA)*SPD*vitMult()); /* la vitesse de la caisse le long de la route (m/s) : l'averse naît là où elle SERA dans 0,35 à 1,85 s — le temps de toucher la dalle et de rebondir devant elle */
+    while(MR.acc>=1){MR.acc-=1;
       const i=MR.head;MR.head=(i+1)%MONN_N;
-      const g9=(Math.random()*CURR.length)|0,d9=12+Math.random()*60;
-      MR.f[i]=(3-(g9>>2))*4+(g9&3); // la case de l'atlas (la toile a y vers le BAS, les UV vers le HAUT)
-      MR.sc[i]=.9+Math.random()*1.7;
-      MR.x[i]=carGroup.position.x+tmp3.x*d9+(Math.random()-.5)*44;
-      MR.y[i]=carGroup.position.y+tmp3.y*d9+7+Math.random()*18;
-      MR.z[i]=carGroup.position.z+tmp3.z*d9+(Math.random()-.5)*44;
-      MR.ph[i]=Math.random()*6;MR.rs[i]=(Math.random()-.5)*4.5;MR.rot[i]=0;
-      MR.vx[i]=(Math.random()-.5)*2;MR.vy[i]=-(2.5+Math.random()*3.5);MR.vz[i]=(Math.random()-.5)*2;
+      const g9=(Math.random()*CURR.length)|0,d9=10+Math.random()*20+v9*(.35+Math.random()*1.5);
+      MR.f[i]=(3-(g9>>2))*4+(g9&3); /* la case de l'atlas (la toile a y vers le BAS, les UV vers le HAUT) */
+      MR.sc[i]=1.1+Math.random()*1.7;
+      frameAt(s+d9*driveDir,MRF);if(side<0){MRF.n.multiplyScalar(-1);MRF.b.multiplyScalar(-1);} /* la dalle où il tombera (dessous de la route : le repère se retourne, comme la caisse) */
+      const N=MRF.n,Bv=MRF.b,T9=MRF.t,l9=lat+(Math.random()-.5)*46,h9=(side<0?THICK:0)+3+Math.random()*13;
+      MR.nx[i]=N.x;MR.ny[i]=N.y;MR.nz[i]=N.z;MR.d0[i]=N.dot(MRF.p)+(side<0?THICK:0);
+      MR.bx[i]=Bv.x;MR.by[i]=Bv.y;MR.bz[i]=Bv.z;MR.b0[i]=Bv.dot(MRF.p);
+      MR.x[i]=MRF.p.x+Bv.x*l9+N.x*h9;MR.y[i]=MRF.p.y+Bv.y*l9+N.y*h9;MR.z[i]=MRF.p.z+Bv.z*l9+N.z*h9;
+      const vn9=-(1+Math.random()*4),vb9=(Math.random()-.5)*5,vt9=(Math.random()-.5)*5;
+      MR.vx[i]=N.x*vn9+Bv.x*vb9+T9.x*vt9;MR.vy[i]=N.y*vn9+Bv.y*vb9+T9.y*vt9;MR.vz[i]=N.z*vn9+Bv.z*vb9+T9.z*vt9;
+      MR.ph[i]=Math.random()*6;MR.rs[i]=(Math.random()<.5?-1:1)*(3+Math.random()*6);MR.rot[i]=Math.random()*6.28; /* rot : l'angle de la pièce qui tourne sur elle-même */
       MR.life[i]=3.2+Math.random()*1.8;
     }
   }
-  if(!MR.viv&&moneyRainT<=0){if(MONN.cnt||!MONN.chaud){MONN.cnt=0;panPousse(MONN);}return;} // rien ne tombe : rien n'est dessiné
-  const P=MONN.P,S=MONN.S,C=MONN.C,F=MONN.F;let n=0;
+  if(!MR.viv&&moneyRainT<=0){if(MONN.cnt||!MONN.chaud){MONN.cnt=0;panPousse(MONN);}return;} /* rien ne tombe : rien n'est dessiné */
+  const P=MONN.P,S=MONN.S,C=MONN.C,F=MONN.F,gdt=MR_G*dt;let n=0;
   for(let i=0;i<MONN_N;i++){if(MR.life[i]<=0)continue;
     MR.life[i]-=dt;if(MR.life[i]<=0)continue;
-    MR.x[i]+=(MR.vx[i]+Math.sin(t*3+MR.ph[i])*1.7)*dt;   // ça tournoie
-    MR.y[i]+=MR.vy[i]*dt;
-    MR.z[i]+=(MR.vz[i]+Math.cos(t*2.6+MR.ph[i])*1.7)*dt;
+    const nx=MR.nx[i],ny=MR.ny[i],nz=MR.nz[i],r9=MR.sc[i]*.36; /* r9 : la demi-hauteur du glyphe, son point de contact */
+    let vx=MR.vx[i]-nx*gdt,vy=MR.vy[i]-ny*gdt,vz=MR.vz[i]-nz*gdt; /* la gravité tire vers SA dalle */
+    let x=MR.x[i]+vx*dt,y=MR.y[i]+vy*dt,z=MR.z[i]+vz*dt;
+    const h9=nx*x+ny*y+nz*z-MR.d0[i];
+    if(h9<r9&&h9>-1.5){const vn9=vx*nx+vy*ny+vz*nz;
+      if(vn9<0&&Math.abs(MR.bx[i]*x+MR.by[i]*y+MR.bz[i]*z-MR.b0[i])<ROAD_HALF){ /* LE REBOND : sur la chaussée seulement (au-delà du bord, il file dans le vide) */
+        const e9=vn9<-2.2?1.72:1,k9=r9-h9; /* un choc franc rend ~56 % de sa vitesse ; un choc mou se POSE (plus de micro-rebonds) */
+        x+=nx*k9;y+=ny*k9;z+=nz*k9;vx-=nx*vn9*e9;vy-=ny*vn9*e9;vz-=nz*vn9*e9;
+        vx*=.78;vy*=.78;vz*=.78;MR.rs[i]*=e9>1?-.72:.9;if(e9>1)MR.reb++;} /* il repart en tournant dans l'autre sens, un peu moins vite · posé : il ralentit */
+    }else if(h9>=r9){const w9=Math.min(1,(h9-r9)*.5);x+=Math.sin(t*3+MR.ph[i])*1.1*w9*dt;z+=Math.cos(t*2.6+MR.ph[i])*1.1*w9*dt;} /* en l'air : il flotte un peu (rien au ras du sol) */
+    MR.x[i]=x;MR.y[i]=y;MR.z[i]=z;MR.vx[i]=vx;MR.vy[i]=vy;MR.vz[i]=vz;
     MR.rot[i]+=MR.rs[i]*dt;
-    P[n*3]=MR.x[i];P[n*3+1]=MR.y[i];P[n*3+2]=MR.z[i];
-    S[n*4]=S[n*4+1]=MR.sc[i];S[n*4+2]=MR.rot[i];S[n*4+3]=0;
-    /* ===== LA PLUIE RGB (2026-11-20, Léo : « que la pluie de currencies soit RGB ») =====
-       Chaque glyphe fait le tour de l'arc-en-ciel (un tour en ~2,5 s), décalé par sa phase : l'averse entière scintille comme un clavier RGB.
-       Coût : zéro — même atlas, même appel de dessin, mêmes 600 places ; la couleur d'instance (`iC`) partait déjà au GPU à chaque image. */
-    const h9=(t*.4+MR.ph[i]/6)%1*6;
-    C[n*4]=.12+.88*Math.min(1,Math.max(0,Math.abs(h9-3)-1));C[n*4+1]=.12+.88*Math.min(1,Math.max(0,2-Math.abs(h9-2)));C[n*4+2]=.12+.88*Math.min(1,Math.max(0,2-Math.abs(h9-4)));
+    const c9=Math.cos(MR.rot[i]),a9=Math.abs(c9),l9=c9>0?.74+.62*a9*a9*a9*a9:.5+.3*a9; /* la face éclate quand elle passe devant l'œil · le dos reste dans l'ombre */
+    P[n*3]=x;P[n*3+1]=y;P[n*3+2]=z;
+    S[n*4]=MR.sc[i]*(c9<0?-1:1)*Math.max(.16,a9);S[n*4+1]=MR.sc[i];S[n*4+2]=Math.sin(t*2.2+MR.ph[i])*.22;S[n*4+3]=0; /* la largeur = le cos de l'angle (jamais moins que la TRANCHE) · un léger balancement */
+    /* LA PLUIE RGB (2026-11-20, Léo : « que la pluie de currencies soit RGB ») : chaque glyphe fait le tour de l'arc-en-ciel (~2,5 s), décalé par sa phase.
+       Coût : zéro — la couleur d'instance (`iC`) partait déjà au GPU à chaque image. */
+    const u9=(t*.4+MR.ph[i]/6)%1*6;
+    C[n*4]=l9*(.12+.88*Math.min(1,Math.max(0,Math.abs(u9-3)-1)));C[n*4+1]=l9*(.12+.88*Math.min(1,Math.max(0,2-Math.abs(u9-2))));C[n*4+2]=l9*(.12+.88*Math.min(1,Math.max(0,2-Math.abs(u9-4))));
     C[n*4+3]=Math.min(1,MR.life[i]);
     F[n*2]=MR.f[i];F[n*2+1]=0;n++;
   }
   MR.viv=n;MONN.cnt=n;panPousse(MONN);
 }
 function moneyRainClear(){MR.life.fill(0);MR.viv=0;moneyRainT=0;MONN.cnt=0;panPousse(MONN);} // nouvelle partie : l'averse s'arrête net
-window.dbgPluie=function(){startMoneyRain();return 'pluie de devises lancée';}; /* (2026-11-20) le crochet de test de la pluie RGB : en course, `dbgPluie()` */
+window.dbgPluie=function(q){if(q==='etat')return {vivants:MR.viv,rebonds:MR.reb,reste:+moneyRainT.toFixed(2)};startMoneyRain();return 'pluie de devises lancée';}; /* (2026-11-20) le crochet de test de la pluie RGB : en course, `dbgPluie()` la lance, `dbgPluie('etat')` compte les vivants et les rebonds */
 // ---------- AUDIO ----------
 let AC=null,osc=null,osc2=null,filt=null,gainN=null,engDose=null,windG=null,windF=null,skidG=null,jetG=null,jetF=null,jetLowG=null,jetOsc=null,jetOscG=null,whF=null,whG=null;
 // LA CHARGE — l'état interne du moteur. ⚠ Ce n'est PAS la position de l'accélérateur : c'est ce
