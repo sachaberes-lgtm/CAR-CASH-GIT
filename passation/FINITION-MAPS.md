@@ -79,7 +79,7 @@ Audit mesuré des maps au tirage du téléphone hors des autres lots. Rien de br
   - l'ardoise d'ombre passée en uniforme (essayée puis retirée) ne pèse que 22 % sur les parois proches : pas assez pour corriger le vert sans remettre du rouge.
 - Ce qu'il faudrait pour le faire vraiment (hors d'une finition) : soit appliquer la teinte au seul soleil direct dans le shader de la roche (au moins une instruction de plus, à prouver sur iPhone), soit une palette de grès plus jaune pour toutes les ambiances (le matin et le midi changent aussi).
 - Les essais, leurs tableaux et leurs planches : `passation/photos/finition-maps/canyon/NOTE.md` (corrections 5, 6, 7), `soir-diagnostic-*.jpg`, `soir-correction7-essais.jpg`, `controle/ctl6-*.jpg` ; outils sur `finition-maps-canyon` (144c7c16c).
-- Décision pour Sacha : garder le soir tel quel, ou ouvrir un vrai chantier « roche du canyon » avec l'une des deux voies ci-dessus.
+- Décision de Sacha (20/11) : le chantier « roche du canyon » est abandonné, le soir reste tel quel. Rien de ce chantier n'est dans le code.
 - Non vérifié : la fusion sans le soir n'a pas été rephotographiée (nuit, pluie et orage ont les nombres jugés au banc ; le soir est celui d'avant par construction) ; pluie et orage en portrait sur une seule graine.
 
 ## Pour livrer
