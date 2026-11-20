@@ -93,8 +93,9 @@ function garBqIndus(dt,ay,t9){
   try{garBqBras(dt,t9,ay);}catch(e){window.__brasErr=e;}
   try{bqOutilTick(dt,t9,ay);}catch(e){window.__outilErr=e;}
   try{bqGesteTick(dt,t9);bqPoussiere(t9);}catch(e){window.__gesteErr=e;}
-  try{garBqPanneau(dt,t9);}catch(e){}
-  if(GBQ.rafale){GBQ.rafale=false;if(GBQ.on)try{photoRafale(PHOTO_RAFALE_MS);}catch(e){}} // (2026-10-16) sous le voile plein : les vignettes en vue, à la chaîne (voir LE STUDIO SANS À-COUPS) — la grille se découvre remplie
+  const tP9=performance.now();try{garBqPanneau(dt,t9);}catch(e){}
+  if(GBQ.rafale&&BQGEL&&GBQ.on&&(GBQ.rafRep|0)<4&&performance.now()-tP9>40){GBQ.rafRep=(GBQ.rafRep|0)+1;} /* (4 images au plus par ouverture ; MESURÉ : le panneau pèse sur DEUX images, ~270 puis ~100 ms) (2026-11-19, lot « boutiquegel ») LE PANNEAU D'ABORD, LA RAFALE À L'IMAGE SUIVANTE : MESURÉ ×4, la 1re ouverture de la boutique 3D bâtissait le panneau de vente (~280 ms) ET lançait la rafale des photos (~210 ms) dans la MÊME image sous le voile (0,58 à 0,97 s) ; une image de panneau lourde laisse la rafale à la suivante. `?sans=boutiquegel` = avant */
+  else if(GBQ.rafale){GBQ.rafale=false;GBQ.rafRep=0;if(GBQ.on)try{photoRafale(PHOTO_RAFALE_MS);}catch(e){}} // (2026-10-16) sous le voile plein : les vignettes en vue, à la chaîne (voir LE STUDIO SANS À-COUPS) — la grille se découvre remplie
 }
 /* LE DESSOUS DE LA CAISSE (bqDessous) — relevé une fois par caisse, dans SON repère : le FOND (le point le plus bas de chaque case de 8 cm,
    toutes pièces pleines comprises — roues, pare-chocs, becquet : la levée qui l'empêche de traverser le socle) et le PLANCHER (sans les roues,
