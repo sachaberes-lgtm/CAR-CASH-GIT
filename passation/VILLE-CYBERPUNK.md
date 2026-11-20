@@ -46,3 +46,32 @@ En bref : la route descendait fort et sans montée (≈ 17 % au banc contre 10 %
 Plan : socle = lots A, B, C ; puis lot E (la route à étages, `?sans=villeetages` rend le socle au bit près, carte ville seule) ; puis lot D (tours pendues, fondu violet).
 Choix pris sans attendre (à confirmer par Sacha) : la spirale du parking revient SERRÉE comme au 3/11 (CONFIRMÉ par Sacha le 19/11 : « 3 novembre ») ; les sauts et raccourcis restent ; pas de portage `?ville=0311`
 (l'étalon est l'archive d'aa160d07f, servie à part pour les photos et mesurée au banc Node de l'enquête).
+
+## ÉTAT FINAL (20/11, 18 h 15) — Sacha : « prends les meilleures décisions, finis vite »
+
+**Sur la branche `claude/ville-cyberpunk-063e59` (rien sur main, aucun build, vrai téléphone jamais vu) :**
+| Lot | Quoi | Interrupteur |
+|---|---|---|
+| A | modules route-ville (slalom des tours, piqué, toits) | `?sans=villecyber` |
+| C | cadres de néon par moments | `?sans=villecadres` |
+| E | la route à étages du 3/11 (descente forte, spirale serrée, route qui repasse sous elle-même) | `?sans=villeetages` |
+| J | Crypto City de jour = la carte de la nuit éclairée autrement (matin, midi, soir), téléphone et ordinateur | `?sans=cryptojour` |
+
+**Refusés, hors branche (`passation/ville-cyber/refuses/`, diffs prêts) :** B (immeuble traversé), D (tours pendues), F (décor du 3/11).
+
+**Le lot F et la vraie cause de « la ville moins bien qu'au 3/11 »** (`ville-cyber/ENQUETE-F.md`, `refuses/LOT-F.md`, `refuses/CONTROLE-F.md`, planches `refuses/planches-f/`) :
+1. LE FLOU DE VITESSE EST CASSÉ depuis le 17/11 (`3df790c92`, `rendu/triptyque-bloom.js` l.118 : la déclaration a gagné `uSfx`, les motifs de `FLOU_R` l.276 et de `NET_NITRO2`
+   l.308 ne la trouvent plus et renoncent en silence). Toutes les maps, sur `main` aussi. Les tours deviennent des traînées roses. Fichier de rendu RÉSERVÉ : non corrigé ici.
+   Le correctif (2 lignes) est prêt : `refuses/flou-v2-uSfx.diff`. Planche `controle-f2-t844-net.jpg` = l'image avec le flou réparé (essai injecté dans la page, pas rejoué dans le vrai fichier).
+2. La route et l'air plus clairs : équilibre des maps du 06/11 (`equilibre-maps.js`, `villeOrage`) et autoroute vivante du 13/11 — deux demandes de Sacha. DÉCISION : on les garde.
+   La nuit noire du 3/11 existe dans le diff du lot F derrière `?plus=villenoire`.
+3. Le décor (tours au pied relevé 21 contre 11, murs des deux côtés 77 % contre 59 %) : le lot F le rend en nombres, code sain, coût égal au téléphone, deux contrôles.
+   REFUSÉ deux fois pour une seule raison : tant que le flou est cassé, avant et après sont la même image au téléphone. DÉCISION : pas de 3e tour, le lot attend hors branche.
+   À FAIRE quand le flou est réparé : `git apply --3way passation/ville-cyber/refuses/lot-f.diff` (bâti sur 1a89d60fd, sans le lot J ; `veDecor3` exclut déjà les météos `cj`),
+   un contrôle à l'image, puis rejuger aussi le lot D (photographié sous le flou cassé).
+Correction : les « 620-740 k triangles du 3/11 » notés plus haut étaient une erreur de mesure (deux images comptées) ; par image : 3/11 130 appels / 369 k, aujourd'hui 109-113 / 268-288 k.
+
+**Défauts connus, mineurs :** lot E — routes trop semblables au palier 20 (81 % « parking > slalomtours »), parking à ~23 % de pente, 2 enseignes flottantes (graine 37) ;
+lot J — brume ocre du matin, heures peu distinctes en rue serrée ; socle — 2 volumes dans la route au palier 10 sur 80 graines (avant le chantier aussi).
+**Non fait :** variété du paquet de la route à étages, tirage unique (lot U), finition des immeubles, immeuble traversé.
+**Non vérifié :** vrai iPhone, vrai mode PC, Crypto City de jour photographiée sur la route à étages (égalité prouvée en Node seulement), paliers 10 et 20 en Chrome (Node seulement).
