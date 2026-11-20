@@ -27,18 +27,20 @@ function simule(sans,dts,opt){
   const cv=el();
   const R9={cls:[],imgs:[]};
   const document={getElementById:id=>id==='wipe'?wipe:null,createElement:t=>t==='canvas'?cv:el(),body:{appendChild(){},classList:{add(){},remove(){}}},documentElement:{getAttribute:()=>null},querySelectorAll:()=>[],dispatchEvent(){}};
-  const ctxv={performance:{now:()=>now},setTimeout,clearTimeout,requestAnimationFrame,cancelAnimationFrame,document,innerWidth:844,innerHeight:390,location:{search:sans?'?sans=transitions':''},
+  const ctxv={performance:{now:()=>now},setTimeout,clearTimeout,requestAnimationFrame,cancelAnimationFrame,document,innerWidth:opt.portrait?390:844,innerHeight:opt.portrait?844:390,location:{search:sans?'?sans=transitions':''},
     REDUCED_MOTION:false,window:{},Event:function(){},console,Math,Uint8Array,Set,transUI(){},uiGarde(){},voileSerpent(){},SONV2:false,sfx(){},noiseBurst(){}};
   vm.createContext(ctxv);
-  vm.runInContext(BAL+'\n'+WIPE+'\nthis.ecranWipe=ecranWipe;this.WIPEPX=WIPEPX;',ctxv);
+  vm.runInContext(BAL+'\n'+WIPE+'\nthis.ecranWipe=ecranWipe;this.WIPEPX=WIPEPX;this.TRANSq=function(){return TRANS;};',ctxv);
   /* le scénario : la page tourne à 60 i/s régulières (16,7 ms) jusqu'à la fin de fn, puis les intervalles `dts`, puis 16,7 ms */
-  let fini=-1;
-  const fn=()=>{fini=now;return undefined;};
+  let fini=-1,att=null,ka=0;
+  /* opt.attente : `fn` rend une promesse (REJOUER : rejoueAttend, tranches de 30 ms au rAF) tenue après ces images-là */
+  const fn=()=>{if(opt.attente){att={ok:null};return {then(a){att.ok=a;}};}fini=now;return undefined;};
   ctxv.ecranWipe(fn);
   let k=0,fin9=null;const regul=opt.regul||16.7;
   const ptsOut=[];let precOut=null;
   for(let pas=0;pas<400;pas++){
     let dt=regul;if(fini>=0){dt=k<dts.length?dts[k]:regul;k++;}
+    else if(att){if(ka<opt.attente.length)dt=opt.attente[ka++];else{fini=now;att.ok();att=null;}}
     const t1=now+dt;
     /* les minuteurs qui tombent avant l'image */
     for(;;){T.sort((a,b)=>a.t-b.t);if(!T.length||T[0].t>t1)break;const x=T.shift();now=Math.max(now,x.t);x.f();}
@@ -54,7 +56,7 @@ function simule(sans,dts,opt){
   const N=ctxv.WIPEPX.nc*ctxv.WIPEPX.nr;
   const out=ptsOut.filter(p=>!p.fin);
   return {leve_ms:lev?Math.round(lev[0]-fini):null,images_retrait:out.length,lourdes_pendant:out.filter(p=>p.dt>50).length,
-    saut_max_pct:Math.round(100*Math.max(0,...ptsOut.map(p=>p.saut))/N),coupe_pct:fin9?Math.round(100*fin9.coupe/N):null,retrait_fini_ms:fin9?Math.round(fin9.t):null};
+    saut_max_pct:Math.round(100*Math.max(0,...ptsOut.map(p=>p.saut))/N),coupe_pct:fin9?Math.round(100*fin9.coupe/N):null,retrait_fini_ms:fin9?Math.round(fin9.t):null,saut_aire_pct:ctxv.TRANSq().sautPct}; /* (2e tour) le relevé du jeu lui-même : l'AIRE découverte d'un coup */
 }
 const SC=[
   ['60 i/s régulières',[]],
@@ -64,12 +66,15 @@ const SC=[
   ['une image de 300 ms au 3e coup',[17,17,300]],
   ['deux images de 120 ms à 60 ms d\'écart',[17,17,120,17,17,120]],
   ['lourd sans fin : 80 ms pendant 1 s',Array(13).fill(80)],
+  ['REJOUER : rejoueAttend 10 images de 45 ms, puis 167·117·67',[167,117,67],{attente:Array(10).fill(45)}],
+  ['PORTRAIT · relance ×4 : 167·117·67 ms',[167,117,67],{portrait:1}],
+  ['PORTRAIT · REJOUER : rejoueAttend 10 × 45 ms, puis 80 ms pendant 1 s',Array(13).fill(80),{portrait:1,attente:Array(10).fill(45)}],
 ];
 const res=[];let pire=0;
-for(const [nom,dts,o] of SC){const a=simule(true,dts,o),b=simule(false,dts,o);res.push({scenario:nom,avant:a,apres:b});if(b.saut_max_pct>a.saut_max_pct)pire=1;}
+for(const [nom,dts,o] of SC){const a=simule(true,dts,o),b=simule(false,dts,o);res.push({scenario:nom,avant:a,apres:b});if(b.saut_max_pct>a.saut_max_pct||b.saut_aire_pct>a.saut_aire_pct)pire=1;}
 if(process.argv.includes('--json'))console.log(JSON.stringify(res,null,1));
 else{
-  console.log('scénario | levé (ms après fn) | images du retrait | lourdes pendant le retrait | plus grand saut (% de l\'écran) | coupé (% encore couvert) | retrait fini (ms)');
-  for(const r of res){const f=x=>[x.leve_ms,x.images_retrait,x.lourdes_pendant,x.saut_max_pct,x.coupe_pct,x.retrait_fini_ms].join(' · ');console.log(r.scenario+'\n   avant : '+f(r.avant)+'\n   après : '+f(r.apres));}
+  console.log('scénario | levé (ms après fn) | images du retrait | lourdes pendant le retrait | plus grand saut (% des cases) | coupé (% encore couvert) | retrait fini (ms) | plus grand saut (% de l\'AIRE, relevé du jeu)');
+  for(const r of res){const f=x=>[x.leve_ms,x.images_retrait,x.lourdes_pendant,x.saut_max_pct,x.coupe_pct,x.retrait_fini_ms,x.saut_aire_pct].join(' · ');console.log(r.scenario+'\n   avant : '+f(r.avant)+'\n   après : '+f(r.apres));}
 }
 process.exit(pire);

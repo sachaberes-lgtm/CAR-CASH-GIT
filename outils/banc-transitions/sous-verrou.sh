@@ -4,5 +4,5 @@
 N="$1";shift
 ~/cash-car/verrou-banc.sh prendre "$N"
 "$@";R=$?
-if grep -q " $N\$" /private/tmp/cashcar-banc.lock/qui 2>/dev/null;then ~/cash-car/verrou-banc.sh rendre;else echo "verrou déjà repris par un autre : pas rendu";fi
+if grep -q " $N\$" /private/tmp/cashcar-banc.lock*/qui 2>/dev/null;then ~/cash-car/verrou-banc.sh rendre;else echo "verrou déjà repris par un autre : pas rendu";fi
 exit $R

@@ -1,0 +1,4240 @@
+{
+ "date": "2026-11-20 17:06",
+ "qs": "",
+ "cpu": 4,
+ "charge0": 23.29541015625,
+ "mesures": [
+  {
+   "transition": "JOUER",
+   "images": 208,
+   "pire": 433,
+   "sup50": 4,
+   "sup100": 2,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": 2863,
+   "serpent": false,
+   "lentes": [
+    [
+     746,
+     67,
+     "-"
+    ],
+    [
+     2863,
+     433,
+     "-"
+    ],
+    [
+     3146,
+     283,
+     "-"
+    ],
+    [
+     3213,
+     67,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 666,
+     "d": 92,
+     "bl": 28,
+     "sc": [
+      "DIV#mob.onclick mHit 9ms forcé 1",
+      "FrameRequestCallback loop 45ms forcé 0"
+     ],
+     "rendu": 46,
+     "style": 4
+    },
+    {
+     "t": 2436,
+     "d": 433,
+     "bl": 383,
+     "sc": [
+      "FrameRequestCallback loop 430ms forcé 93"
+     ],
+     "rendu": 430,
+     "style": 3
+    },
+    {
+     "t": 2880,
+     "d": 276,
+     "bl": 223,
+     "sc": [
+      "FrameRequestCallback loop 262ms forcé 15"
+     ],
+     "rendu": 266,
+     "style": 6
+    },
+    {
+     "t": 3159,
+     "d": 59,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 16ms forcé 0"
+     ],
+     "rendu": 17,
+     "style": 2
+    },
+    {
+     "t": 3704,
+     "d": 50,
+     "bl": 0,
+     "sc": [],
+     "rendu": 8,
+     "style": 2
+    }
+   ],
+   "tour": 0,
+   "mode": "avant",
+   "trans": null
+  },
+  {
+   "transition": "MORT",
+   "images": 129,
+   "pire": 150,
+   "sup50": 6,
+   "sup100": 1,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     430,
+     83,
+     "-"
+    ],
+    [
+     930,
+     83,
+     "-"
+    ],
+    [
+     1613,
+     50,
+     "-"
+    ],
+    [
+     2213,
+     150,
+     "-"
+    ],
+    [
+     2279,
+     67,
+     "-"
+    ],
+    [
+     3163,
+     67,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 152,
+     "d": 50,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback  16ms forcé 0",
+      "FrameRequestCallback loop 21ms forcé 1"
+     ],
+     "rendu": 38,
+     "style": 0
+    },
+    {
+     "t": 259,
+     "d": 50,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 19ms forcé 0"
+     ],
+     "rendu": 19,
+     "style": 1
+    },
+    {
+     "t": 335,
+     "d": 92,
+     "bl": 29,
+     "sc": [
+      "FrameRequestCallback loop 74ms forcé 12"
+     ],
+     "rendu": 75,
+     "style": 5
+    },
+    {
+     "t": 885,
+     "d": 89,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 18ms forcé 0"
+     ],
+     "rendu": 18,
+     "style": 2
+    },
+    {
+     "t": 1551,
+     "d": 50,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 35ms forcé 0"
+     ],
+     "rendu": 35,
+     "style": 2
+    },
+    {
+     "t": 1666,
+     "d": 66,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 16ms forcé 0"
+     ],
+     "rendu": 17,
+     "style": 3
+    },
+    {
+     "t": 2050,
+     "d": 153,
+     "bl": 90,
+     "sc": [
+      "FrameRequestCallback loop 86ms forcé 31"
+     ],
+     "rendu": 86,
+     "style": 52
+    },
+    {
+     "t": 2215,
+     "d": 72,
+     "bl": 21,
+     "sc": [
+      "FrameRequestCallback loop 66ms forcé 6"
+     ],
+     "rendu": 66,
+     "style": 1
+    },
+    {
+     "t": 2820,
+     "d": 51,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 9ms forcé 0"
+     ],
+     "rendu": 10,
+     "style": 2
+    },
+    {
+     "t": 3050,
+     "d": 54,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback f 12ms forcé 6"
+     ],
+     "rendu": 21,
+     "style": 17
+    },
+    {
+     "t": 3107,
+     "d": 56,
+     "bl": 6,
+     "sc": [
+      "FrameRequestCallback loop 47ms forcé 0"
+     ],
+     "rendu": 53,
+     "style": 2
+    }
+   ],
+   "tour": 0,
+   "mode": "avant",
+   "trans": null
+  },
+  {
+   "transition": "REJOUER",
+   "images": 189,
+   "pire": 333,
+   "sup50": 7,
+   "sup100": 2,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": {
+    "images": 13,
+    "pire": 183,
+    "sup50": 4
+   },
+   "appui_a_leve_ms": 2051,
+   "appui_a_course_ms": 1567,
+   "serpent": false,
+   "lentes": [
+    [
+     150,
+     67,
+     "-"
+    ],
+    [
+     1900,
+     333,
+     "i"
+    ],
+    [
+     2084,
+     183,
+     "o"
+    ],
+    [
+     2150,
+     67,
+     "o"
+    ],
+    [
+     2267,
+     67,
+     "o"
+    ],
+    [
+     2534,
+     50,
+     "o"
+    ],
+    [
+     2634,
+     67,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": -657,
+     "d": 50,
+     "bl": 0,
+     "sc": [],
+     "rendu": 9,
+     "style": 0
+    },
+    {
+     "t": 70,
+     "d": 85,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 9ms forcé 0"
+     ],
+     "rendu": 10,
+     "style": 0
+    },
+    {
+     "t": 1581,
+     "d": 316,
+     "bl": 264,
+     "sc": [
+      "TimerHandler:setTimeout  170ms forcé 9",
+      "FrameRequestCallback loop 104ms forcé 0",
+      "FrameRequestCallback cashRemesure 35ms forcé 32"
+     ],
+     "rendu": 141,
+     "style": 2
+    },
+    {
+     "t": 1906,
+     "d": 171,
+     "bl": 113,
+     "sc": [
+      "FrameRequestCallback loop 132ms forcé 0"
+     ],
+     "rendu": 134,
+     "style": 26
+    },
+    {
+     "t": 2083,
+     "d": 69,
+     "bl": 12,
+     "sc": [
+      "IMG[src=\"assets/portail/grotte-glace.webp\"].onload  29ms forcé 0",
+      "FrameRequestCallback loop 22ms forcé 0"
+     ],
+     "rendu": 22,
+     "style": 11
+    },
+    {
+     "t": 2158,
+     "d": 55,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 43ms forcé 7"
+     ],
+     "rendu": 46,
+     "style": 2
+    },
+    {
+     "t": 2215,
+     "d": 50,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 32ms forcé 0"
+     ],
+     "rendu": 34,
+     "style": 8
+    },
+    {
+     "t": 2580,
+     "d": 55,
+     "bl": 2,
+     "sc": [
+      "FrameRequestCallback loop 18ms forcé 0"
+     ],
+     "rendu": 19,
+     "style": 31
+    },
+    {
+     "t": 2754,
+     "d": 55,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 36ms forcé 0"
+     ],
+     "rendu": 37,
+     "style": 1
+    },
+    {
+     "t": 2855,
+     "d": 58,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 32ms forcé 0"
+     ],
+     "rendu": 32,
+     "style": 12
+    }
+   ],
+   "tour": 0,
+   "mode": "avant",
+   "trans": {
+    "on": false,
+    "n": 1,
+    "attente": 299,
+    "doigt": 299,
+    "sortie": "2 images",
+    "out": 530,
+    "outImg": 9,
+    "outPire": 67,
+    "outLourdes": 2,
+    "sautMax": 165.1875,
+    "coupe": 0,
+    "seuil": 40,
+    "pas": 17,
+    "chauffe": 1,
+    "inDt": [
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     33,
+     17,
+     17
+    ],
+    "sautPct": 39,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  },
+  {
+   "transition": "MENU",
+   "images": 94,
+   "pire": 1433,
+   "sup50": 4,
+   "sup100": 2,
+   "volet_in": {
+    "images": 9,
+    "pire": 17,
+    "sup50": 0
+   },
+   "volet_couvert": {
+    "images": 3,
+    "pire": 1433,
+    "sup50": 1
+   },
+   "volet_out": {
+    "images": 12,
+    "pire": 117,
+    "sup50": 3
+   },
+   "appui_a_leve_ms": 1983,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     1887,
+     1433,
+     "i"
+    ],
+    [
+     2003,
+     117,
+     "o"
+    ],
+    [
+     2253,
+     83,
+     "o"
+    ],
+    [
+     2353,
+     100,
+     "o"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 455,
+     "d": 1421,
+     "bl": 1370,
+     "sc": [
+      "TimerHandler:setTimeout  1238ms forcé 132",
+      "FrameRequestCallback loop 177ms forcé 98"
+     ],
+     "rendu": 178,
+     "style": 4
+    },
+    {
+     "t": 1888,
+     "d": 118,
+     "bl": 64,
+     "sc": [
+      "FrameRequestCallback loop 80ms forcé 1"
+     ],
+     "rendu": 88,
+     "style": 22
+    },
+    {
+     "t": 2170,
+     "d": 86,
+     "bl": 33,
+     "sc": [
+      "FrameRequestCallback loop 70ms forcé 3",
+      "FrameRequestCallback wipePxLoop 11ms forcé 0"
+     ],
+     "rendu": 82,
+     "style": 1
+    },
+    {
+     "t": 2257,
+     "d": 97,
+     "bl": 47,
+     "sc": [
+      "FrameRequestCallback loop 95ms forcé 5"
+     ],
+     "rendu": 97,
+     "style": 0
+    }
+   ],
+   "tour": 0,
+   "mode": "avant",
+   "trans": {
+    "on": false,
+    "n": 2,
+    "attente": 289,
+    "doigt": 289,
+    "sortie": "2 images",
+    "out": 523,
+    "outImg": 8,
+    "outPire": 100,
+    "outLourdes": 2,
+    "sautMax": 139.9375,
+    "coupe": 0,
+    "seuil": 40,
+    "pas": 17,
+    "chauffe": 1,
+    "inDt": [
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17
+    ],
+    "sautPct": 33,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  },
+  {
+   "transition": "JOUER",
+   "images": 166,
+   "pire": 200,
+   "sup50": 6,
+   "sup100": 2,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": 3066,
+   "serpent": true,
+   "lentes": [
+    [
+     50,
+     50,
+     "-"
+    ],
+    [
+     283,
+     83,
+     "-"
+    ],
+    [
+     2266,
+     67,
+     "-"
+    ],
+    [
+     3066,
+     200,
+     "-"
+    ],
+    [
+     3150,
+     83,
+     "-"
+    ],
+    [
+     4000,
+     183,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": -6,
+     "d": 62,
+     "bl": 8,
+     "sc": [
+      "DIV.onpointerdown  21ms forcé 19",
+      "FrameRequestCallback loop 30ms forcé 6"
+     ],
+     "rendu": 31,
+     "style": 0
+    },
+    {
+     "t": 215,
+     "d": 70,
+     "bl": 17,
+     "sc": [
+      "DIV#mob.onclick mHit 9ms forcé 4",
+      "FrameRequestCallback loop 35ms forcé 1"
+     ],
+     "rendu": 36,
+     "style": 1
+    },
+    {
+     "t": 640,
+     "d": 63,
+     "bl": 0,
+     "sc": [],
+     "rendu": 6,
+     "style": 0
+    },
+    {
+     "t": 2218,
+     "d": 58,
+     "bl": 7,
+     "sc": [
+      "Worker.onmessage  12ms forcé 0",
+      "FrameRequestCallback loop 44ms forcé 6"
+     ],
+     "rendu": 44,
+     "style": 1
+    },
+    {
+     "t": 2868,
+     "d": 203,
+     "bl": 152,
+     "sc": [
+      "FrameRequestCallback loop 166ms forcé 15"
+     ],
+     "rendu": 166,
+     "style": 36
+    },
+    {
+     "t": 3073,
+     "d": 75,
+     "bl": 23,
+     "sc": [
+      "FrameRequestCallback loop 66ms forcé 0"
+     ],
+     "rendu": 72,
+     "style": 0
+    },
+    {
+     "t": 3204,
+     "d": 68,
+     "bl": 5,
+     "sc": [
+      "IMG[src=\"assets/portail/espace-midi.webp\"].onload  21ms forcé 0",
+      "FrameRequestCallback loop 33ms forcé 3"
+     ],
+     "rendu": 33,
+     "style": 1
+    },
+    {
+     "t": 3721,
+     "d": 51,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 13ms forcé 0"
+     ],
+     "rendu": 13,
+     "style": 22
+    }
+   ],
+   "tour": 1,
+   "mode": "apres",
+   "trans": null
+  },
+  {
+   "transition": "MORT",
+   "images": 143,
+   "pire": 283,
+   "sup50": 3,
+   "sup100": 1,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     107,
+     100,
+     "-"
+    ],
+    [
+     173,
+     67,
+     "-"
+    ],
+    [
+     2156,
+     283,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": -4,
+     "d": 110,
+     "bl": 36,
+     "sc": [
+      "FrameRequestCallback loop 36ms forcé 0"
+     ],
+     "rendu": 37,
+     "style": 49
+    },
+    {
+     "t": 116,
+     "d": 58,
+     "bl": 6,
+     "sc": [
+      "FrameRequestCallback loop 49ms forcé 0"
+     ],
+     "rendu": 50,
+     "style": 6
+    },
+    {
+     "t": 175,
+     "d": 51,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 34ms forcé 0"
+     ],
+     "rendu": 36,
+     "style": 5
+    },
+    {
+     "t": 1875,
+     "d": 267,
+     "bl": 217,
+     "sc": [
+      "FrameRequestCallback loop 231ms forcé 100"
+     ],
+     "rendu": 231,
+     "style": 35
+    }
+   ],
+   "tour": 1,
+   "mode": "apres",
+   "trans": null
+  },
+  {
+   "transition": "REJOUER",
+   "images": 185,
+   "pire": 267,
+   "sup50": 5,
+   "sup100": 2,
+   "volet_in": {
+    "images": 9,
+    "pire": 33,
+    "sup50": 0
+   },
+   "volet_couvert": {
+    "images": 109,
+    "pire": 267,
+    "sup50": 2
+   },
+   "volet_out": {
+    "images": 15,
+    "pire": 83,
+    "sup50": 1
+   },
+   "appui_a_leve_ms": 2744,
+   "appui_a_course_ms": 2407,
+   "serpent": true,
+   "lentes": [
+    [
+     2407,
+     150,
+     "i"
+    ],
+    [
+     2674,
+     267,
+     "i"
+    ],
+    [
+     3274,
+     83,
+     "-"
+    ],
+    [
+     3341,
+     67,
+     "-"
+    ],
+    [
+     3424,
+     83,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 2248,
+     "d": 157,
+     "bl": 93,
+     "sc": [
+      "FrameRequestCallback loop 12ms forcé 0",
+      "FrameRequestCallback pas 96ms forcé 8"
+     ],
+     "rendu": 109,
+     "style": 34
+    },
+    {
+     "t": 2414,
+     "d": 267,
+     "bl": 211,
+     "sc": [
+      "FrameRequestCallback loop 255ms forcé 0"
+     ],
+     "rendu": 257,
+     "style": 1
+    },
+    {
+     "t": 2943,
+     "d": 61,
+     "bl": 6,
+     "sc": [
+      "BaseAudioContext.decodeAudioData.then  11ms forcé 0",
+      "FrameRequestCallback loop 34ms forcé 0"
+     ],
+     "rendu": 38,
+     "style": 7
+    },
+    {
+     "t": 3145,
+     "d": 51,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 38ms forcé 0"
+     ],
+     "rendu": 40,
+     "style": 9
+    },
+    {
+     "t": 3202,
+     "d": 74,
+     "bl": 21,
+     "sc": [
+      "FrameRequestCallback loop 25ms forcé 0"
+     ],
+     "rendu": 25,
+     "style": 43
+    },
+    {
+     "t": 3282,
+     "d": 57,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 31ms forcé 0"
+     ],
+     "rendu": 31,
+     "style": 14
+    },
+    {
+     "t": 3345,
+     "d": 77,
+     "bl": 24,
+     "sc": [
+      "FrameRequestCallback loop 34ms forcé 0"
+     ],
+     "rendu": 34,
+     "style": 37
+    },
+    {
+     "t": 3529,
+     "d": 52,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 34ms forcé 10"
+     ],
+     "rendu": 34,
+     "style": 5
+    }
+   ],
+   "tour": 1,
+   "mode": "apres",
+   "trans": {
+    "on": true,
+    "n": 3,
+    "attente": 373,
+    "doigt": 339,
+    "sortie": "régulier",
+    "out": 538,
+    "outImg": 14,
+    "outPire": 50,
+    "outLourdes": 0,
+    "sautMax": 109.8125,
+    "coupe": 0,
+    "seuil": 40,
+    "pas": 17,
+    "chauffe": 1,
+    "inDt": [
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17
+    ],
+    "sautPct": 26,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  },
+  {
+   "transition": "MENU",
+   "images": 132,
+   "pire": 1150,
+   "sup50": 2,
+   "sup100": 1,
+   "volet_in": {
+    "images": 10,
+    "pire": 17,
+    "sup50": 0
+   },
+   "volet_couvert": {
+    "images": 5,
+    "pire": 1150,
+    "sup50": 2
+   },
+   "volet_out": {
+    "images": 26,
+    "pire": 33,
+    "sup50": 0
+   },
+   "appui_a_leve_ms": 1901,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     1774,
+     1150,
+     "i"
+    ],
+    [
+     1874,
+     67,
+     "i"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 612,
+     "d": 1174,
+     "bl": 1117,
+     "sc": [
+      "TimerHandler:setTimeout  1004ms forcé 80",
+      "FrameRequestCallback loop 161ms forcé 33"
+     ],
+     "rendu": 162,
+     "style": 1
+    },
+    {
+     "t": 1815,
+     "d": 63,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 25ms forcé 6"
+     ],
+     "rendu": 26,
+     "style": 0
+    },
+    {
+     "t": 2479,
+     "d": 55,
+     "bl": 5,
+     "sc": [
+      "FrameRequestCallback loop 54ms forcé 1"
+     ],
+     "rendu": 54,
+     "style": 0
+    }
+   ],
+   "tour": 1,
+   "mode": "apres",
+   "trans": {
+    "on": true,
+    "n": 4,
+    "attente": 289,
+    "doigt": 198,
+    "sortie": "régulier",
+    "out": 578,
+    "outImg": 22,
+    "outPire": 33,
+    "outLourdes": 0,
+    "sautMax": 60,
+    "coupe": 0,
+    "seuil": 40,
+    "pas": 17,
+    "chauffe": 1,
+    "inDt": [
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17
+    ],
+    "sautPct": 14,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  },
+  {
+   "transition": "JOUER",
+   "images": 164,
+   "pire": 217,
+   "sup50": 1,
+   "sup100": 1,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": 2237,
+   "serpent": false,
+   "lentes": [
+    [
+     2237,
+     217,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 2014,
+     "d": 219,
+     "bl": 161,
+     "sc": [
+      "FrameRequestCallback loop 177ms forcé 34"
+     ],
+     "rendu": 177,
+     "style": 34
+    },
+    {
+     "t": 2243,
+     "d": 59,
+     "bl": 1,
+     "sc": [
+      "FrameRequestCallback loop 42ms forcé 0"
+     ],
+     "rendu": 45,
+     "style": 0
+    },
+    {
+     "t": 2938,
+     "d": 56,
+     "bl": 5,
+     "sc": [
+      "FrameRequestCallback loop 54ms forcé 36"
+     ],
+     "rendu": 54,
+     "style": 1
+    }
+   ],
+   "tour": 2,
+   "mode": "avant",
+   "trans": null
+  },
+  {
+   "transition": "MORT",
+   "images": 106,
+   "pire": 183,
+   "sup50": 5,
+   "sup100": 1,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     118,
+     83,
+     "-"
+    ],
+    [
+     218,
+     67,
+     "-"
+    ],
+    [
+     668,
+     50,
+     "-"
+    ],
+    [
+     1734,
+     50,
+     "-"
+    ],
+    [
+     2051,
+     183,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 25,
+     "d": 96,
+     "bl": 34,
+     "sc": [
+      "FrameRequestCallback loop 30ms forcé 0"
+     ],
+     "rendu": 31,
+     "style": 53
+    },
+    {
+     "t": 164,
+     "d": 56,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 47ms forcé 10"
+     ],
+     "rendu": 47,
+     "style": 2
+    },
+    {
+     "t": 1872,
+     "d": 183,
+     "bl": 133,
+     "sc": [
+      "FrameRequestCallback loop 139ms forcé 82"
+     ],
+     "rendu": 139,
+     "style": 43
+    }
+   ],
+   "tour": 2,
+   "mode": "avant",
+   "trans": null
+  },
+  {
+   "transition": "REJOUER",
+   "images": 136,
+   "pire": 250,
+   "sup50": 3,
+   "sup100": 2,
+   "volet_in": {
+    "images": 8,
+    "pire": 33,
+    "sup50": 0
+   },
+   "volet_couvert": {
+    "images": 2,
+    "pire": 250,
+    "sup50": 1
+   },
+   "volet_out": {
+    "images": 14,
+    "pire": 150,
+    "sup50": 2
+   },
+   "appui_a_leve_ms": 713,
+   "appui_a_course_ms": 357,
+   "serpent": false,
+   "lentes": [
+    [
+     607,
+     250,
+     "i"
+    ],
+    [
+     757,
+     150,
+     "o"
+    ],
+    [
+     857,
+     100,
+     "o"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 349,
+     "d": 245,
+     "bl": 194,
+     "sc": [
+      "TimerHandler:setTimeout  143ms forcé 14",
+      "FrameRequestCallback loop 57ms forcé 0",
+      "FrameRequestCallback cashRemesure 39ms forcé 37"
+     ],
+     "rendu": 100,
+     "style": 1
+    },
+    {
+     "t": 607,
+     "d": 146,
+     "bl": 92,
+     "sc": [
+      "IMG[src=\"assets/portail/jade-nuit.webp\"].onload  18ms forcé 0",
+      "FrameRequestCallback loop 79ms forcé 0"
+     ],
+     "rendu": 84,
+     "style": 40
+    },
+    {
+     "t": 759,
+     "d": 108,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 40ms forcé 0"
+     ],
+     "rendu": 44,
+     "style": 2
+    }
+   ],
+   "tour": 2,
+   "mode": "avant",
+   "trans": {
+    "on": false,
+    "n": 5,
+    "attente": 217,
+    "doigt": 217,
+    "sortie": "2 images",
+    "out": 461,
+    "outImg": 9,
+    "outPire": 100,
+    "outLourdes": 1,
+    "sautMax": 238.0625,
+    "coupe": 0,
+    "seuil": 40,
+    "pas": 17,
+    "chauffe": 1,
+    "inDt": [
+     17,
+     17,
+     17,
+     17,
+     33,
+     33,
+     17,
+     17
+    ],
+    "sautPct": 57,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  },
+  {
+   "transition": "MENU",
+   "images": 106,
+   "pire": 1167,
+   "sup50": 2,
+   "sup100": 2,
+   "volet_in": {
+    "images": 8,
+    "pire": 50,
+    "sup50": 0
+   },
+   "volet_couvert": {
+    "images": 3,
+    "pire": 1167,
+    "sup50": 1
+   },
+   "volet_out": {
+    "images": 20,
+    "pire": 167,
+    "sup50": 1
+   },
+   "appui_a_leve_ms": 1702,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     -212,
+     83,
+     "-"
+    ],
+    [
+     1604,
+     1167,
+     "i"
+    ],
+    [
+     1771,
+     167,
+     "o"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": -282,
+     "d": 74,
+     "bl": 20,
+     "sc": [
+      "FrameRequestCallback loop 60ms forcé 0"
+     ],
+     "rendu": 65,
+     "style": 5
+    },
+    {
+     "t": 429,
+     "d": 1172,
+     "bl": 1121,
+     "sc": [
+      "TimerHandler:setTimeout  1070ms forcé 51",
+      "FrameRequestCallback loop 99ms forcé 20"
+     ],
+     "rendu": 100,
+     "style": 1
+    },
+    {
+     "t": 1604,
+     "d": 166,
+     "bl": 104,
+     "sc": [
+      "FrameRequestCallback loop 80ms forcé 0"
+     ],
+     "rendu": 87,
+     "style": 67
+    },
+    {
+     "t": 2292,
+     "d": 58,
+     "bl": 8,
+     "sc": [
+      "FrameRequestCallback loop 57ms forcé 1"
+     ],
+     "rendu": 58,
+     "style": 1
+    }
+   ],
+   "tour": 2,
+   "mode": "avant",
+   "trans": {
+    "on": false,
+    "n": 6,
+    "attente": 201,
+    "doigt": 201,
+    "sortie": "2 images",
+    "out": 481,
+    "outImg": 16,
+    "outPire": 33,
+    "outLourdes": 0,
+    "sautMax": 58.5625,
+    "coupe": 0,
+    "seuil": 40,
+    "pas": 17,
+    "chauffe": 1,
+    "inDt": [
+     50,
+     17,
+     17,
+     17,
+     33,
+     17,
+     17,
+     17
+    ],
+    "sautPct": 14,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  },
+  {
+   "transition": "JOUER",
+   "images": 173,
+   "pire": 150,
+   "sup50": 3,
+   "sup100": 1,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": 2263,
+   "serpent": false,
+   "lentes": [
+    [
+     2263,
+     150,
+     "-"
+    ],
+    [
+     2346,
+     83,
+     "-"
+    ],
+    [
+     2446,
+     50,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 2131,
+     "d": 148,
+     "bl": 98,
+     "sc": [
+      "FrameRequestCallback loop 132ms forcé 7"
+     ],
+     "rendu": 132,
+     "style": 16
+    },
+    {
+     "t": 2281,
+     "d": 64,
+     "bl": 8,
+     "sc": [
+      "FrameRequestCallback loop 43ms forcé 0"
+     ],
+     "rendu": 50,
+     "style": 4
+    },
+    {
+     "t": 2349,
+     "d": 61,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 37ms forcé 0"
+     ],
+     "rendu": 37,
+     "style": 9
+    }
+   ],
+   "tour": 3,
+   "mode": "apres",
+   "trans": null
+  },
+  {
+   "transition": "MORT",
+   "images": 147,
+   "pire": 117,
+   "sup50": 2,
+   "sup100": 1,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     98,
+     83,
+     "-"
+    ],
+    [
+     1931,
+     117,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 2,
+     "d": 98,
+     "bl": 34,
+     "sc": [
+      "FrameRequestCallback loop 30ms forcé 0"
+     ],
+     "rendu": 33,
+     "style": 51
+    },
+    {
+     "t": 161,
+     "d": 50,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 31ms forcé 0"
+     ],
+     "rendu": 32,
+     "style": 2
+    },
+    {
+     "t": 1808,
+     "d": 127,
+     "bl": 69,
+     "sc": [
+      "FrameRequestCallback loop 87ms forcé 52"
+     ],
+     "rendu": 88,
+     "style": 31
+    }
+   ],
+   "tour": 3,
+   "mode": "apres",
+   "trans": null
+  },
+  {
+   "transition": "REJOUER",
+   "images": 193,
+   "pire": 117,
+   "sup50": 6,
+   "sup100": 2,
+   "volet_in": {
+    "images": 9,
+    "pire": 17,
+    "sup50": 0
+   },
+   "volet_couvert": {
+    "images": 108,
+    "pire": 117,
+    "sup50": 3
+   },
+   "volet_out": {
+    "images": 16,
+    "pire": 67,
+    "sup50": 3
+   },
+   "appui_a_leve_ms": 2772,
+   "appui_a_course_ms": 2629,
+   "serpent": true,
+   "lentes": [
+    [
+     1063,
+     67,
+     "i"
+    ],
+    [
+     2629,
+     117,
+     "i"
+    ],
+    [
+     2746,
+     117,
+     "i"
+    ],
+    [
+     3013,
+     50,
+     "o"
+    ],
+    [
+     3279,
+     67,
+     "o"
+    ],
+    [
+     3446,
+     67,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 1007,
+     "d": 57,
+     "bl": 6,
+     "sc": [
+      "FrameRequestCallback loop 22ms forcé 0",
+      "FrameRequestCallback pas 33ms forcé 0"
+     ],
+     "rendu": 56,
+     "style": 1
+    },
+    {
+     "t": 2507,
+     "d": 123,
+     "bl": 65,
+     "sc": [
+      "FrameRequestCallback pas 84ms forcé 6"
+     ],
+     "rendu": 85,
+     "style": 30
+    },
+    {
+     "t": 2633,
+     "d": 105,
+     "bl": 53,
+     "sc": [
+      "FrameRequestCallback loop 101ms forcé 0"
+     ],
+     "rendu": 102,
+     "style": 0
+    },
+    {
+     "t": 2848,
+     "d": 55,
+     "bl": 2,
+     "sc": [
+      "IMG[src=\"assets/portail/canyon-matin.webp\"].onload  15ms forcé 0",
+      "FrameRequestCallback loop 30ms forcé 2"
+     ],
+     "rendu": 30,
+     "style": 3
+    },
+    {
+     "t": 3167,
+     "d": 50,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 41ms forcé 12"
+     ],
+     "rendu": 43,
+     "style": 6
+    },
+    {
+     "t": 3223,
+     "d": 53,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 30ms forcé 0"
+     ],
+     "rendu": 31,
+     "style": 12
+    },
+    {
+     "t": 3281,
+     "d": 51,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 31ms forcé 0"
+     ],
+     "rendu": 32,
+     "style": 8
+    },
+    {
+     "t": 3336,
+     "d": 53,
+     "bl": 2,
+     "sc": [
+      "FrameRequestCallback loop 18ms forcé 0"
+     ],
+     "rendu": 19,
+     "style": 32
+    },
+    {
+     "t": 3447,
+     "d": 51,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 24ms forcé 0"
+     ],
+     "rendu": 24,
+     "style": 20
+    },
+    {
+     "t": 4081,
+     "d": 57,
+     "bl": 7,
+     "sc": [
+      "FrameRequestCallback loop 49ms forcé 19"
+     ],
+     "rendu": 49,
+     "style": 8
+    }
+   ],
+   "tour": 3,
+   "mode": "apres",
+   "trans": {
+    "on": true,
+    "n": 7,
+    "attente": 172,
+    "doigt": 156,
+    "sortie": "régulier",
+    "out": 676,
+    "outImg": 13,
+    "outPire": 67,
+    "outLourdes": 2,
+    "sautMax": 112.4375,
+    "coupe": 0,
+    "seuil": 40,
+    "pas": 17,
+    "chauffe": 1,
+    "inDt": [
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17
+    ],
+    "sautPct": 27,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  },
+  {
+   "transition": "MENU",
+   "images": 102,
+   "pire": 1800,
+   "sup50": 5,
+   "sup100": 1,
+   "volet_in": {
+    "images": 7,
+    "pire": 33,
+    "sup50": 0
+   },
+   "volet_couvert": {
+    "images": 6,
+    "pire": 1800,
+    "sup50": 2
+   },
+   "volet_out": {
+    "images": 22,
+    "pire": 83,
+    "sup50": 2
+   },
+   "appui_a_leve_ms": 2322,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     2179,
+     1800,
+     "i"
+    ],
+    [
+     2262,
+     50,
+     "i"
+    ],
+    [
+     2829,
+     67,
+     "o"
+    ],
+    [
+     2912,
+     83,
+     "o"
+    ],
+    [
+     3112,
+     50,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 281,
+     "d": 54,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 28ms forcé 0"
+     ],
+     "rendu": 36,
+     "style": 0
+    },
+    {
+     "t": 376,
+     "d": 1793,
+     "bl": 1738,
+     "sc": [
+      "TimerHandler:setTimeout  1605ms forcé 132",
+      "FrameRequestCallback loop 176ms forcé 15"
+     ],
+     "rendu": 181,
+     "style": 2
+    },
+    {
+     "t": 2755,
+     "d": 85,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 24ms forcé 2"
+     ],
+     "rendu": 25,
+     "style": 2
+    },
+    {
+     "t": 2845,
+     "d": 75,
+     "bl": 25,
+     "sc": [
+      "FrameRequestCallback loop 74ms forcé 48"
+     ],
+     "rendu": 74,
+     "style": 0
+    },
+    {
+     "t": 3583,
+     "d": 63,
+     "bl": 0,
+     "sc": [],
+     "rendu": 5,
+     "style": 0
+    }
+   ],
+   "tour": 3,
+   "mode": "apres",
+   "trans": {
+    "on": true,
+    "n": 8,
+    "attente": 340,
+    "doigt": 238,
+    "sortie": "régulier",
+    "out": 625,
+    "outImg": 21,
+    "outPire": 83,
+    "outLourdes": 2,
+    "sautMax": 60,
+    "coupe": 0,
+    "seuil": 40,
+    "pas": 17,
+    "chauffe": 1,
+    "inDt": [
+     33,
+     17,
+     17,
+     17,
+     33,
+     33,
+     17
+    ],
+    "sautPct": 14,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  },
+  {
+   "transition": "JOUER",
+   "images": 137,
+   "pire": 317,
+   "sup50": 5,
+   "sup100": 1,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": 2241,
+   "serpent": false,
+   "lentes": [
+    [
+     308,
+     50,
+     "-"
+    ],
+    [
+     2241,
+     317,
+     "-"
+    ],
+    [
+     2324,
+     83,
+     "-"
+    ],
+    [
+     2408,
+     83,
+     "-"
+    ],
+    [
+     3224,
+     50,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 256,
+     "d": 55,
+     "bl": 5,
+     "sc": [
+      "FrameRequestCallback loop 46ms forcé 1"
+     ],
+     "rendu": 47,
+     "style": 0
+    },
+    {
+     "t": 1929,
+     "d": 302,
+     "bl": 251,
+     "sc": [
+      "FrameRequestCallback loop 276ms forcé 25"
+     ],
+     "rendu": 276,
+     "style": 24
+    },
+    {
+     "t": 2242,
+     "d": 85,
+     "bl": 29,
+     "sc": [
+      "FrameRequestCallback loop 65ms forcé 1",
+      "FrameRequestCallback cashRemesure 10ms forcé 10"
+     ],
+     "rendu": 75,
+     "style": 0
+    },
+    {
+     "t": 2331,
+     "d": 75,
+     "bl": 10,
+     "sc": [
+      "IMG[src=\"assets/portail/nuages-matin.webp\"].onload  35ms forcé 0",
+      "FrameRequestCallback loop 13ms forcé 0"
+     ],
+     "rendu": 13,
+     "style": 12
+    },
+    {
+     "t": 2474,
+     "d": 52,
+     "bl": 1,
+     "sc": [
+      "FrameRequestCallback loop 33ms forcé 0"
+     ],
+     "rendu": 36,
+     "style": 10
+    },
+    {
+     "t": 2813,
+     "d": 52,
+     "bl": 2,
+     "sc": [
+      "FrameRequestCallback loop 21ms forcé 0"
+     ],
+     "rendu": 23,
+     "style": 29
+    },
+    {
+     "t": 3117,
+     "d": 53,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 35ms forcé 0"
+     ],
+     "rendu": 36,
+     "style": 7
+    }
+   ],
+   "tour": 4,
+   "mode": "avant",
+   "trans": null
+  },
+  {
+   "transition": "MORT",
+   "images": 158,
+   "pire": 200,
+   "sup50": 2,
+   "sup100": 1,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     1674,
+     67,
+     "-"
+    ],
+    [
+     2224,
+     200,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 233,
+     "d": 51,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 37ms forcé 0"
+     ],
+     "rendu": 37,
+     "style": 5
+    },
+    {
+     "t": 1616,
+     "d": 103,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 27ms forcé 0"
+     ],
+     "rendu": 29,
+     "style": 1
+    },
+    {
+     "t": 2010,
+     "d": 194,
+     "bl": 128,
+     "sc": [
+      "FrameRequestCallback loop 127ms forcé 42"
+     ],
+     "rendu": 127,
+     "style": 51
+    }
+   ],
+   "tour": 4,
+   "mode": "avant",
+   "trans": null
+  },
+  {
+   "transition": "REJOUER",
+   "images": 89,
+   "pire": 233,
+   "sup50": 7,
+   "sup100": 1,
+   "volet_in": {
+    "images": 9,
+    "pire": 33,
+    "sup50": 0
+   },
+   "volet_couvert": {
+    "images": 2,
+    "pire": 233,
+    "sup50": 1
+   },
+   "volet_out": {
+    "images": 13,
+    "pire": 67,
+    "sup50": 3
+   },
+   "appui_a_leve_ms": 922,
+   "appui_a_course_ms": 633,
+   "serpent": false,
+   "lentes": [
+    [
+     866,
+     233,
+     "i"
+    ],
+    [
+     933,
+     67,
+     "o"
+    ],
+    [
+     1166,
+     67,
+     "o"
+    ],
+    [
+     1283,
+     67,
+     "o"
+    ],
+    [
+     1500,
+     50,
+     "-"
+    ],
+    [
+     2066,
+     50,
+     "-"
+    ],
+    [
+     2200,
+     67,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 632,
+     "d": 233,
+     "bl": 183,
+     "sc": [
+      "TimerHandler:setTimeout  117ms forcé 11",
+      "FrameRequestCallback loop 63ms forcé 0",
+      "FrameRequestCallback cashRemesure 42ms forcé 40"
+     ],
+     "rendu": 106,
+     "style": 10
+    },
+    {
+     "t": 877,
+     "d": 64,
+     "bl": 8,
+     "sc": [
+      "FrameRequestCallback loop 34ms forcé 0"
+     ],
+     "rendu": 38,
+     "style": 16
+    },
+    {
+     "t": 1112,
+     "d": 52,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 26ms forcé 0"
+     ],
+     "rendu": 28,
+     "style": 18
+    },
+    {
+     "t": 1168,
+     "d": 52,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 25ms forcé 0"
+     ],
+     "rendu": 28,
+     "style": 14
+    },
+    {
+     "t": 1228,
+     "d": 50,
+     "bl": 0,
+     "sc": [
+      "BaseAudioContext.decodeAudioData.then  12ms forcé 0",
+      "FrameRequestCallback loop 24ms forcé 0"
+     ],
+     "rendu": 24,
+     "style": 3
+    },
+    {
+     "t": 1285,
+     "d": 53,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 34ms forcé 12"
+     ],
+     "rendu": 36,
+     "style": 7
+    },
+    {
+     "t": 1505,
+     "d": 52,
+     "bl": 1,
+     "sc": [
+      "FrameRequestCallback loop 24ms forcé 0"
+     ],
+     "rendu": 25,
+     "style": 24
+    }
+   ],
+   "tour": 4,
+   "mode": "avant",
+   "trans": {
+    "on": false,
+    "n": 9,
+    "attente": 173,
+    "doigt": 173,
+    "sortie": "2 images",
+    "out": 470,
+    "outImg": 11,
+    "outPire": 67,
+    "outLourdes": 2,
+    "sautMax": 112.25,
+    "coupe": 0,
+    "seuil": 40,
+    "pas": 17,
+    "chauffe": 1,
+    "inDt": [
+     33,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17
+    ],
+    "sautPct": 27,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  },
+  {
+   "transition": "MENU",
+   "images": 110,
+   "pire": 633,
+   "sup50": 3,
+   "sup100": 2,
+   "volet_in": {
+    "images": 9,
+    "pire": 33,
+    "sup50": 0
+   },
+   "volet_couvert": {
+    "images": 2,
+    "pire": 633,
+    "sup50": 1
+   },
+   "volet_out": {
+    "images": 22,
+    "pire": 133,
+    "sup50": 2
+   },
+   "appui_a_leve_ms": 1097,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     984,
+     633,
+     "i"
+    ],
+    [
+     1117,
+     133,
+     "o"
+    ],
+    [
+     1168,
+     50,
+     "o"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 356,
+     "d": 615,
+     "bl": 560,
+     "sc": [
+      "TimerHandler:setTimeout  477ms forcé 54",
+      "FrameRequestCallback loop 130ms forcé 50"
+     ],
+     "rendu": 132,
+     "style": 1
+    },
+    {
+     "t": 986,
+     "d": 135,
+     "bl": 84,
+     "sc": [
+      "FrameRequestCallback loop 105ms forcé 1"
+     ],
+     "rendu": 111,
+     "style": 23
+    }
+   ],
+   "tour": 4,
+   "mode": "avant",
+   "trans": {
+    "on": false,
+    "n": 10,
+    "attente": 258,
+    "doigt": 258,
+    "sortie": "2 images",
+    "out": 463,
+    "outImg": 17,
+    "outPire": 50,
+    "outLourdes": 1,
+    "sautMax": 56.875,
+    "coupe": 0,
+    "seuil": 40,
+    "pas": 17,
+    "chauffe": 1,
+    "inDt": [
+     33,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17
+    ],
+    "sautPct": 14,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  },
+  {
+   "transition": "JOUER",
+   "images": 154,
+   "pire": 233,
+   "sup50": 3,
+   "sup100": 1,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": 2260,
+   "serpent": false,
+   "lentes": [
+    [
+     326,
+     83,
+     "-"
+    ],
+    [
+     2260,
+     233,
+     "-"
+    ],
+    [
+     3276,
+     83,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 251,
+     "d": 74,
+     "bl": 16,
+     "sc": [
+      "FrameRequestCallback loop 33ms forcé 1"
+     ],
+     "rendu": 34,
+     "style": 1
+    },
+    {
+     "t": 2030,
+     "d": 224,
+     "bl": 174,
+     "sc": [
+      "FrameRequestCallback loop 198ms forcé 23"
+     ],
+     "rendu": 199,
+     "style": 25
+    },
+    {
+     "t": 3188,
+     "d": 88,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 25ms forcé 0"
+     ],
+     "rendu": 26,
+     "style": 15
+    }
+   ],
+   "tour": 5,
+   "mode": "apres",
+   "trans": null
+  },
+  {
+   "transition": "MORT",
+   "images": 93,
+   "pire": 233,
+   "sup50": 5,
+   "sup100": 1,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     127,
+     100,
+     "-"
+    ],
+    [
+     927,
+     50,
+     "-"
+    ],
+    [
+     1477,
+     50,
+     "-"
+    ],
+    [
+     1677,
+     50,
+     "-"
+    ],
+    [
+     2110,
+     233,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 27,
+     "d": 105,
+     "bl": 47,
+     "sc": [
+      "FrameRequestCallback loop 40ms forcé 0"
+     ],
+     "rendu": 41,
+     "style": 55
+    },
+    {
+     "t": 178,
+     "d": 52,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 33ms forcé 0"
+     ],
+     "rendu": 34,
+     "style": 11
+    },
+    {
+     "t": 1636,
+     "d": 51,
+     "bl": 1,
+     "sc": [
+      "FrameRequestCallback loop 39ms forcé 0"
+     ],
+     "rendu": 40,
+     "style": 10
+    },
+    {
+     "t": 1878,
+     "d": 221,
+     "bl": 170,
+     "sc": [
+      "FrameRequestCallback loop 184ms forcé 84"
+     ],
+     "rendu": 184,
+     "style": 35
+    }
+   ],
+   "tour": 5,
+   "mode": "apres",
+   "trans": null
+  },
+  {
+   "transition": "REJOUER",
+   "images": 95,
+   "pire": 300,
+   "sup50": 2,
+   "sup100": 1,
+   "volet_in": {
+    "images": 10,
+    "pire": 17,
+    "sup50": 0
+   },
+   "volet_couvert": {
+    "images": 5,
+    "pire": 300,
+    "sup50": 2
+   },
+   "volet_out": {
+    "images": 13,
+    "pire": 50,
+    "sup50": 0
+   },
+   "appui_a_leve_ms": 749,
+   "appui_a_course_ms": 327,
+   "serpent": false,
+   "lentes": [
+    [
+     627,
+     300,
+     "i"
+    ],
+    [
+     727,
+     67,
+     "i"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 318,
+     "d": 312,
+     "bl": 260,
+     "sc": [
+      "TimerHandler:setTimeout  197ms forcé 5",
+      "FrameRequestCallback loop 91ms forcé 0",
+      "FrameRequestCallback cashRemesure 19ms forcé 18"
+     ],
+     "rendu": 112,
+     "style": 1
+    },
+    {
+     "t": 668,
+     "d": 58,
+     "bl": 0,
+     "sc": [
+      "IMG[src=\"assets/portail/ville-orage-vert.webp\"].onload  28ms forcé 0",
+      "FrameRequestCallback loop 14ms forcé 0"
+     ],
+     "rendu": 15,
+     "style": 6
+    },
+    {
+     "t": 1253,
+     "d": 52,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 39ms forcé 23"
+     ],
+     "rendu": 39,
+     "style": 2
+    }
+   ],
+   "tour": 5,
+   "mode": "apres",
+   "trans": {
+    "on": true,
+    "n": 11,
+    "attente": 233,
+    "doigt": 145,
+    "sortie": "régulier",
+    "out": 464,
+    "outImg": 12,
+    "outPire": 50,
+    "outLourdes": 0,
+    "sautMax": 113.3125,
+    "coupe": 0,
+    "seuil": 40,
+    "pas": 17,
+    "chauffe": 1,
+    "inDt": [
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17
+    ],
+    "sautPct": 27,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  },
+  {
+   "transition": "MENU",
+   "images": 100,
+   "pire": 1100,
+   "sup50": 2,
+   "sup100": 2,
+   "volet_in": {
+    "images": 7,
+    "pire": 50,
+    "sup50": 0
+   },
+   "volet_couvert": {
+    "images": 4,
+    "pire": 1100,
+    "sup50": 1
+   },
+   "volet_out": {
+    "images": 19,
+    "pire": 133,
+    "sup50": 1
+   },
+   "appui_a_leve_ms": 1541,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     1490,
+     1100,
+     "i"
+    ],
+    [
+     1707,
+     133,
+     "o"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 401,
+     "d": 1104,
+     "bl": 1050,
+     "sc": [
+      "TimerHandler:setTimeout  927ms forcé 49",
+      "FrameRequestCallback loop 171ms forcé 55"
+     ],
+     "rendu": 172,
+     "style": 1
+    },
+    {
+     "t": 1569,
+     "d": 141,
+     "bl": 84,
+     "sc": [
+      "FrameRequestCallback loop 129ms forcé 1"
+     ],
+     "rendu": 134,
+     "style": 0
+    }
+   ],
+   "tour": 5,
+   "mode": "apres",
+   "trans": {
+    "on": true,
+    "n": 12,
+    "attente": 215,
+    "doigt": 190,
+    "sortie": "régulier",
+    "out": 591,
+    "outImg": 16,
+    "outPire": 133,
+    "outLourdes": 1,
+    "sautMax": 109.8125,
+    "coupe": 0,
+    "seuil": 40,
+    "pas": 17,
+    "chauffe": 1,
+    "inDt": [
+     50,
+     17,
+     17,
+     33,
+     17,
+     33,
+     17
+    ],
+    "sautPct": 26,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  },
+  {
+   "transition": "JOUER",
+   "images": 391,
+   "pire": 200,
+   "sup50": 5,
+   "sup100": 1,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": 6402,
+   "serpent": true,
+   "lentes": [
+    [
+     2652,
+     100,
+     "-"
+    ],
+    [
+     4486,
+     67,
+     "-"
+    ],
+    [
+     6402,
+     200,
+     "-"
+    ],
+    [
+     6535,
+     83,
+     "-"
+    ],
+    [
+     6602,
+     67,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 460,
+     "d": 52,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 16ms forcé 2"
+     ],
+     "rendu": 20,
+     "style": 0
+    },
+    {
+     "t": 2542,
+     "d": 126,
+     "bl": 0,
+     "sc": [],
+     "rendu": 5,
+     "style": 0
+    },
+    {
+     "t": 4437,
+     "d": 62,
+     "bl": 11,
+     "sc": [
+      "FrameRequestCallback loop 60ms forcé 1"
+     ],
+     "rendu": 60,
+     "style": 0
+    },
+    {
+     "t": 6202,
+     "d": 201,
+     "bl": 138,
+     "sc": [
+      "FrameRequestCallback loop 172ms forcé 10"
+     ],
+     "rendu": 172,
+     "style": 16
+    },
+    {
+     "t": 6405,
+     "d": 59,
+     "bl": 7,
+     "sc": [
+      "FrameRequestCallback loop 52ms forcé 0"
+     ],
+     "rendu": 53,
+     "style": 0
+    },
+    {
+     "t": 6465,
+     "d": 79,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 25ms forcé 0"
+     ],
+     "rendu": 25,
+     "style": 5
+    },
+    {
+     "t": 6548,
+     "d": 53,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 34ms forcé 0"
+     ],
+     "rendu": 35,
+     "style": 3
+    },
+    {
+     "t": 7262,
+     "d": 54,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 14ms forcé 3"
+     ],
+     "rendu": 14,
+     "style": 2
+    }
+   ],
+   "tour": 6,
+   "mode": "avant",
+   "trans": null
+  },
+  {
+   "transition": "MORT",
+   "images": 132,
+   "pire": 150,
+   "sup50": 2,
+   "sup100": 1,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     1268,
+     50,
+     "-"
+    ],
+    [
+     1951,
+     150,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": -3,
+     "d": 51,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 34ms forcé 8"
+     ],
+     "rendu": 35,
+     "style": 3
+    },
+    {
+     "t": 1797,
+     "d": 153,
+     "bl": 96,
+     "sc": [
+      "FrameRequestCallback loop 113ms forcé 60"
+     ],
+     "rendu": 114,
+     "style": 32
+    }
+   ],
+   "tour": 6,
+   "mode": "avant",
+   "trans": null
+  },
+  {
+   "transition": "REJOUER",
+   "images": 96,
+   "pire": 200,
+   "sup50": 5,
+   "sup100": 2,
+   "volet_in": {
+    "images": 10,
+    "pire": 17,
+    "sup50": 0
+   },
+   "volet_couvert": {
+    "images": 3,
+    "pire": 200,
+    "sup50": 1
+   },
+   "volet_out": {
+    "images": 19,
+    "pire": 100,
+    "sup50": 3
+   },
+   "appui_a_leve_ms": 629,
+   "appui_a_course_ms": 342,
+   "serpent": false,
+   "lentes": [
+    [
+     542,
+     200,
+     "i"
+    ],
+    [
+     642,
+     100,
+     "o"
+    ],
+    [
+     708,
+     67,
+     "o"
+    ],
+    [
+     1158,
+     50,
+     "-"
+    ],
+    [
+     1225,
+     67,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 337,
+     "d": 202,
+     "bl": 151,
+     "sc": [
+      "TimerHandler:setTimeout  133ms forcé 10",
+      "FrameRequestCallback loop 41ms forcé 0",
+      "FrameRequestCallback cashRemesure 23ms forcé 22"
+     ],
+     "rendu": 65,
+     "style": 2
+    },
+    {
+     "t": 544,
+     "d": 110,
+     "bl": 51,
+     "sc": [
+      "FrameRequestCallback loop 71ms forcé 0"
+     ],
+     "rendu": 75,
+     "style": 23
+    },
+    {
+     "t": 658,
+     "d": 56,
+     "bl": 0,
+     "sc": [
+      "IMG[src=\"assets/portail/canyon-soir.webp\"].onload  25ms forcé 0",
+      "FrameRequestCallback loop 14ms forcé 0"
+     ],
+     "rendu": 15,
+     "style": 7
+    },
+    {
+     "t": 1168,
+     "d": 59,
+     "bl": 2,
+     "sc": [
+      "FrameRequestCallback loop 22ms forcé 0"
+     ],
+     "rendu": 22,
+     "style": 26
+    }
+   ],
+   "tour": 6,
+   "mode": "avant",
+   "trans": {
+    "on": false,
+    "n": 13,
+    "attente": 159,
+    "doigt": 159,
+    "sortie": "2 images",
+    "out": 539,
+    "outImg": 15,
+    "outPire": 67,
+    "outLourdes": 1,
+    "sautMax": 92.1875,
+    "coupe": 0,
+    "seuil": 40,
+    "pas": 17,
+    "chauffe": 1,
+    "inDt": [
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17
+    ],
+    "sautPct": 22,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  },
+  {
+   "transition": "MENU",
+   "images": 85,
+   "pire": 1183,
+   "sup50": 3,
+   "sup100": 1,
+   "volet_in": {
+    "images": 10,
+    "pire": 17,
+    "sup50": 0
+   },
+   "volet_couvert": {
+    "images": 1,
+    "pire": 1183,
+    "sup50": 1
+   },
+   "volet_out": {
+    "images": 20,
+    "pire": 100,
+    "sup50": 1
+   },
+   "appui_a_leve_ms": 1563,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     1490,
+     1183,
+     "i"
+    ],
+    [
+     1590,
+     100,
+     "o"
+    ],
+    [
+     2090,
+     50,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 304,
+     "d": 1171,
+     "bl": 1115,
+     "sc": [
+      "TimerHandler:setTimeout  1049ms forcé 60",
+      "FrameRequestCallback loop 109ms forcé 38"
+     ],
+     "rendu": 112,
+     "style": 4
+    },
+    {
+     "t": 1491,
+     "d": 102,
+     "bl": 46,
+     "sc": [
+      "FrameRequestCallback loop 63ms forcé 2"
+     ],
+     "rendu": 65,
+     "style": 30
+    }
+   ],
+   "tour": 6,
+   "mode": "avant",
+   "trans": {
+    "on": false,
+    "n": 14,
+    "attente": 208,
+    "doigt": 208,
+    "sortie": "2 images",
+    "out": 496,
+    "outImg": 14,
+    "outPire": 33,
+    "outLourdes": 0,
+    "sautMax": 111.875,
+    "coupe": 0,
+    "seuil": 40,
+    "pas": 17,
+    "chauffe": 1,
+    "inDt": [
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17
+    ],
+    "sautPct": 27,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  },
+  {
+   "transition": "JOUER",
+   "images": 163,
+   "pire": 333,
+   "sup50": 2,
+   "sup100": 1,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": 2257,
+   "serpent": false,
+   "lentes": [
+    [
+     2257,
+     333,
+     "-"
+    ],
+    [
+     2574,
+     50,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 1922,
+     "d": 341,
+     "bl": 289,
+     "sc": [
+      "FrameRequestCallback loop 315ms forcé 17"
+     ],
+     "rendu": 315,
+     "style": 24
+    }
+   ],
+   "tour": 7,
+   "mode": "apres",
+   "trans": null
+  },
+  {
+   "transition": "MORT",
+   "images": 147,
+   "pire": 183,
+   "sup50": 1,
+   "sup100": 1,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     2017,
+     183,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 1830,
+     "d": 183,
+     "bl": 130,
+     "sc": [
+      "FrameRequestCallback loop 150ms forcé 60"
+     ],
+     "rendu": 150,
+     "style": 29
+    }
+   ],
+   "tour": 7,
+   "mode": "apres",
+   "trans": null
+  },
+  {
+   "transition": "REJOUER",
+   "images": 108,
+   "pire": 267,
+   "sup50": 2,
+   "sup100": 1,
+   "volet_in": {
+    "images": 10,
+    "pire": 17,
+    "sup50": 0
+   },
+   "volet_couvert": {
+    "images": 5,
+    "pire": 267,
+    "sup50": 2
+   },
+   "volet_out": {
+    "images": 23,
+    "pire": 50,
+    "sup50": 0
+   },
+   "appui_a_leve_ms": 735,
+   "appui_a_course_ms": 321,
+   "serpent": false,
+   "lentes": [
+    [
+     587,
+     267,
+     "i"
+    ],
+    [
+     687,
+     67,
+     "i"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 328,
+     "d": 260,
+     "bl": 210,
+     "sc": [
+      "TimerHandler:setTimeout  143ms forcé 8",
+      "FrameRequestCallback loop 91ms forcé 0",
+      "FrameRequestCallback cashRemesure 22ms forcé 21"
+     ],
+     "rendu": 115,
+     "style": 1
+    },
+    {
+     "t": 636,
+     "d": 56,
+     "bl": 0,
+     "sc": [
+      "IMG[src=\"assets/portail/grotte-nuit.webp\"].onload  21ms forcé 0",
+      "FrameRequestCallback loop 16ms forcé 0"
+     ],
+     "rendu": 17,
+     "style": 7
+    }
+   ],
+   "tour": 7,
+   "mode": "apres",
+   "trans": {
+    "on": true,
+    "n": 15,
+    "attente": 264,
+    "doigt": 157,
+    "sortie": "régulier",
+    "out": 485,
+    "outImg": 22,
+    "outPire": 50,
+    "outLourdes": 0,
+    "sautMax": 63.8125,
+    "coupe": 0,
+    "seuil": 40,
+    "pas": 17,
+    "chauffe": 1,
+    "inDt": [
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17
+    ],
+    "sautPct": 15,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  },
+  {
+   "transition": "MENU",
+   "images": 94,
+   "pire": 733,
+   "sup50": 2,
+   "sup100": 1,
+   "volet_in": {
+    "images": 6,
+    "pire": 50,
+    "sup50": 1
+   },
+   "volet_couvert": {
+    "images": 3,
+    "pire": 733,
+    "sup50": 1
+   },
+   "volet_out": {
+    "images": 25,
+    "pire": 33,
+    "sup50": 0
+   },
+   "appui_a_leve_ms": 1147,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     221,
+     50,
+     "i"
+    ],
+    [
+     1104,
+     733,
+     "i"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 161,
+     "d": 57,
+     "bl": 7,
+     "sc": [
+      "DIV#mob.onclick mHit 9ms forcé 6",
+      "FrameRequestCallback loop 22ms forcé 0"
+     ],
+     "rendu": 28,
+     "style": 6
+    },
+    {
+     "t": 383,
+     "d": 715,
+     "bl": 663,
+     "sc": [
+      "TimerHandler:setTimeout  579ms forcé 46",
+      "FrameRequestCallback loop 129ms forcé 28"
+     ],
+     "rendu": 132,
+     "style": 2
+    }
+   ],
+   "tour": 7,
+   "mode": "apres",
+   "trans": {
+    "on": true,
+    "n": 16,
+    "attente": 186,
+    "doigt": 162,
+    "sortie": "régulier",
+    "out": 480,
+    "outImg": 20,
+    "outPire": 33,
+    "outLourdes": 0,
+    "sautMax": 105.5625,
+    "coupe": 0,
+    "seuil": 43,
+    "pas": 33,
+    "chauffe": 1,
+    "inDt": [
+     50,
+     17,
+     33,
+     17,
+     33
+    ],
+    "sautPct": 25,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  },
+  {
+   "transition": "JOUER",
+   "images": 166,
+   "pire": 200,
+   "sup50": 2,
+   "sup100": 1,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": 2160,
+   "serpent": false,
+   "lentes": [
+    [
+     2160,
+     200,
+     "-"
+    ],
+    [
+     2243,
+     83,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 1958,
+     "d": 203,
+     "bl": 151,
+     "sc": [
+      "FrameRequestCallback loop 179ms forcé 18"
+     ],
+     "rendu": 180,
+     "style": 22
+    },
+    {
+     "t": 2166,
+     "d": 79,
+     "bl": 24,
+     "sc": [
+      "FrameRequestCallback loop 65ms forcé 0"
+     ],
+     "rendu": 71,
+     "style": 1
+    }
+   ],
+   "tour": 8,
+   "mode": "avant",
+   "trans": null
+  },
+  {
+   "transition": "MORT",
+   "images": 152,
+   "pire": 117,
+   "sup50": 2,
+   "sup100": 1,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     124,
+     67,
+     "-"
+    ],
+    [
+     1941,
+     117,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": -4,
+     "d": 62,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 24ms forcé 0"
+     ],
+     "rendu": 24,
+     "style": 25
+    },
+    {
+     "t": 64,
+     "d": 64,
+     "bl": 13,
+     "sc": [
+      "FrameRequestCallback loop 57ms forcé 0"
+     ],
+     "rendu": 58,
+     "style": 4
+    },
+    {
+     "t": 1812,
+     "d": 127,
+     "bl": 64,
+     "sc": [
+      "FrameRequestCallback loop 90ms forcé 47"
+     ],
+     "rendu": 91,
+     "style": 22
+    }
+   ],
+   "tour": 8,
+   "mode": "avant",
+   "trans": null
+  },
+  {
+   "transition": "REJOUER",
+   "images": 105,
+   "pire": 200,
+   "sup50": 1,
+   "sup100": 1,
+   "volet_in": {
+    "images": 10,
+    "pire": 17,
+    "sup50": 0
+   },
+   "volet_couvert": {
+    "images": 3,
+    "pire": 200,
+    "sup50": 1
+   },
+   "volet_out": {
+    "images": 25,
+    "pire": 50,
+    "sup50": 0
+   },
+   "appui_a_leve_ms": 593,
+   "appui_a_course_ms": 344,
+   "serpent": false,
+   "lentes": [
+    [
+     544,
+     200,
+     "i"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 340,
+     "d": 201,
+     "bl": 149,
+     "sc": [
+      "TimerHandler:setTimeout  128ms forcé 8",
+      "FrameRequestCallback loop 64ms forcé 26"
+     ],
+     "rendu": 69,
+     "style": 2
+    },
+    {
+     "t": 548,
+     "d": 54,
+     "bl": 1,
+     "sc": [
+      "FrameRequestCallback loop 40ms forcé 0"
+     ],
+     "rendu": 41,
+     "style": 9
+    },
+    {
+     "t": 1231,
+     "d": 52,
+     "bl": 2,
+     "sc": [
+      "FrameRequestCallback loop 48ms forcé 24"
+     ],
+     "rendu": 48,
+     "style": 4
+    }
+   ],
+   "tour": 8,
+   "mode": "avant",
+   "trans": {
+    "on": false,
+    "n": 17,
+    "attente": 125,
+    "doigt": 125,
+    "sortie": "2 images",
+    "out": 461,
+    "outImg": 19,
+    "outPire": 33,
+    "outLourdes": 0,
+    "sautMax": 60,
+    "coupe": 0,
+    "seuil": 40,
+    "pas": 17,
+    "chauffe": 1,
+    "inDt": [
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17
+    ],
+    "sautPct": 14,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  },
+  {
+   "transition": "MENU",
+   "images": 95,
+   "pire": 700,
+   "sup50": 2,
+   "sup100": 1,
+   "volet_in": {
+    "images": 9,
+    "pire": 33,
+    "sup50": 0
+   },
+   "volet_couvert": {
+    "images": 2,
+    "pire": 700,
+    "sup50": 1
+   },
+   "volet_out": {
+    "images": 23,
+    "pire": 67,
+    "sup50": 1
+   },
+   "appui_a_leve_ms": 1082,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     1034,
+     700,
+     "i"
+    ],
+    [
+     1100,
+     67,
+     "o"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 329,
+     "d": 695,
+     "bl": 642,
+     "sc": [
+      "TimerHandler:setTimeout  589ms forcé 55",
+      "FrameRequestCallback loop 96ms forcé 30"
+     ],
+     "rendu": 99,
+     "style": 4
+    },
+    {
+     "t": 1036,
+     "d": 68,
+     "bl": 14,
+     "sc": [
+      "FrameRequestCallback loop 39ms forcé 0"
+     ],
+     "rendu": 40,
+     "style": 23
+    }
+   ],
+   "tour": 8,
+   "mode": "avant",
+   "trans": {
+    "on": false,
+    "n": 18,
+    "attente": 165,
+    "doigt": 165,
+    "sortie": "2 images",
+    "out": 469,
+    "outImg": 18,
+    "outPire": 50,
+    "outLourdes": 0,
+    "sautMax": 163.375,
+    "coupe": 0,
+    "seuil": 40,
+    "pas": 17,
+    "chauffe": 1,
+    "inDt": [
+     17,
+     33,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17
+    ],
+    "sautPct": 39,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  },
+  {
+   "transition": "JOUER",
+   "images": 157,
+   "pire": 217,
+   "sup50": 2,
+   "sup100": 1,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": 2137,
+   "serpent": false,
+   "lentes": [
+    [
+     2137,
+     217,
+     "-"
+    ],
+    [
+     2221,
+     83,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 1931,
+     "d": 207,
+     "bl": 156,
+     "sc": [
+      "FrameRequestCallback loop 185ms forcé 21"
+     ],
+     "rendu": 186,
+     "style": 21
+    },
+    {
+     "t": 2143,
+     "d": 84,
+     "bl": 32,
+     "sc": [
+      "FrameRequestCallback loop 72ms forcé 0"
+     ],
+     "rendu": 78,
+     "style": 1
+    }
+   ],
+   "tour": 9,
+   "mode": "apres",
+   "trans": null
+  },
+  {
+   "transition": "MORT",
+   "images": 144,
+   "pire": 183,
+   "sup50": 1,
+   "sup100": 1,
+   "volet_in": null,
+   "volet_couvert": null,
+   "volet_out": null,
+   "appui_a_leve_ms": null,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     2015,
+     183,
+     "-"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 30,
+     "d": 53,
+     "bl": 0,
+     "sc": [
+      "FrameRequestCallback loop 22ms forcé 0"
+     ],
+     "rendu": 22,
+     "style": 27
+    },
+    {
+     "t": 1823,
+     "d": 189,
+     "bl": 128,
+     "sc": [
+      "FrameRequestCallback loop 152ms forcé 51"
+     ],
+     "rendu": 153,
+     "style": 25
+    }
+   ],
+   "tour": 9,
+   "mode": "apres",
+   "trans": null
+  },
+  {
+   "transition": "REJOUER",
+   "images": 92,
+   "pire": 333,
+   "sup50": 1,
+   "sup100": 1,
+   "volet_in": {
+    "images": 10,
+    "pire": 17,
+    "sup50": 0
+   },
+   "volet_couvert": {
+    "images": 3,
+    "pire": 333,
+    "sup50": 1
+   },
+   "volet_out": {
+    "images": 15,
+    "pire": 50,
+    "sup50": 0
+   },
+   "appui_a_leve_ms": 724,
+   "appui_a_course_ms": 310,
+   "serpent": false,
+   "lentes": [
+    [
+     643,
+     333,
+     "i"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 302,
+     "d": 347,
+     "bl": 287,
+     "sc": [
+      "TimerHandler:setTimeout  255ms forcé 5",
+      "FrameRequestCallback loop 62ms forcé 0",
+      "FrameRequestCallback cashRemesure 18ms forcé 17"
+     ],
+     "rendu": 80,
+     "style": 2
+    }
+   ],
+   "tour": 9,
+   "mode": "apres",
+   "trans": {
+    "on": true,
+    "n": 19,
+    "attente": 157,
+    "doigt": 127,
+    "sortie": "régulier",
+    "out": 489,
+    "outImg": 13,
+    "outPire": 50,
+    "outLourdes": 0,
+    "sautMax": 109.8125,
+    "coupe": 0,
+    "seuil": 40,
+    "pas": 17,
+    "chauffe": 1,
+    "inDt": [
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17,
+     17
+    ],
+    "sautPct": 26,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  },
+  {
+   "transition": "MENU",
+   "images": 85,
+   "pire": 1066,
+   "sup50": 1,
+   "sup100": 1,
+   "volet_in": {
+    "images": 7,
+    "pire": 33,
+    "sup50": 0
+   },
+   "volet_couvert": {
+    "images": 3,
+    "pire": 1066,
+    "sup50": 1
+   },
+   "volet_out": {
+    "images": 19,
+    "pire": 50,
+    "sup50": 0
+   },
+   "appui_a_leve_ms": 1452,
+   "appui_a_course_ms": null,
+   "serpent": false,
+   "lentes": [
+    [
+     1427,
+     1066,
+     "i"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 356,
+     "d": 1063,
+     "bl": 1007,
+     "sc": [
+      "TimerHandler:setTimeout  886ms forcé 67",
+      "FrameRequestCallback loop 165ms forcé 39"
+     ],
+     "rendu": 169,
+     "style": 3
+    }
+   ],
+   "tour": 9,
+   "mode": "apres",
+   "trans": {
+    "on": true,
+    "n": 20,
+    "attente": 211,
+    "doigt": 199,
+    "sortie": "régulier",
+    "out": 471,
+    "outImg": 17,
+    "outPire": 50,
+    "outLourdes": 0,
+    "sautMax": 105.75,
+    "coupe": 0,
+    "seuil": 40,
+    "pas": 17,
+    "chauffe": 1,
+    "inDt": [
+     17,
+     33,
+     17,
+     33,
+     17,
+     17,
+     17,
+     17
+    ],
+    "sautPct": 25,
+    "coupePct": 0,
+    "grille": "30x14"
+   }
+  }
+ ],
+ "charge1": 26.44384765625,
+ "erreurs": "{\"l\":null,\"p\":null}",
+ "resume": {
+  "JOUER [avant]": {
+   "saut_pct": [],
+   "retrait_sup50": [],
+   "attente": [],
+   "sortie": [],
+   "n": 5,
+   "pire_max": 433,
+   "pire_med": 217,
+   "sup50_med": 4,
+   "sup50_tot": 17,
+   "out_pire": [],
+   "out_images": [],
+   "in_pire": [],
+   "leve_ms": [
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "course_ms": [
+    2863,
+    2237,
+    2241,
+    6402,
+    2160
+   ]
+  },
+  "MORT [avant]": {
+   "saut_pct": [],
+   "retrait_sup50": [],
+   "attente": [],
+   "sortie": [],
+   "n": 5,
+   "pire_max": 200,
+   "pire_med": 150,
+   "sup50_med": 2,
+   "sup50_tot": 17,
+   "out_pire": [],
+   "out_images": [],
+   "in_pire": [],
+   "leve_ms": [
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "course_ms": [
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  "REJOUER [avant]": {
+   "saut_pct": [
+    39,
+    57,
+    27,
+    22,
+    14
+   ],
+   "retrait_sup50": [
+    2,
+    1,
+    2,
+    1,
+    0
+   ],
+   "attente": [
+    299,
+    217,
+    173,
+    159,
+    125
+   ],
+   "sortie": [
+    "2 images",
+    "2 images",
+    "2 images",
+    "2 images",
+    "2 images"
+   ],
+   "n": 5,
+   "pire_max": 333,
+   "pire_med": 233,
+   "sup50_med": 5,
+   "sup50_tot": 23,
+   "out_pire": [
+    183,
+    150,
+    67,
+    100,
+    50
+   ],
+   "out_images": [
+    13,
+    14,
+    13,
+    19,
+    25
+   ],
+   "in_pire": [
+    33,
+    33,
+    17,
+    17
+   ],
+   "leve_ms": [
+    2051,
+    713,
+    922,
+    629,
+    593
+   ],
+   "course_ms": [
+    1567,
+    357,
+    633,
+    342,
+    344
+   ]
+  },
+  "MENU [avant]": {
+   "saut_pct": [
+    33,
+    14,
+    14,
+    27,
+    39
+   ],
+   "retrait_sup50": [
+    2,
+    0,
+    1,
+    0,
+    0
+   ],
+   "attente": [
+    289,
+    201,
+    258,
+    208,
+    165
+   ],
+   "sortie": [
+    "2 images",
+    "2 images",
+    "2 images",
+    "2 images",
+    "2 images"
+   ],
+   "n": 5,
+   "pire_max": 1433,
+   "pire_med": 1167,
+   "sup50_med": 3,
+   "sup50_tot": 14,
+   "out_pire": [
+    117,
+    167,
+    133,
+    100,
+    67
+   ],
+   "out_images": [
+    12,
+    20,
+    22,
+    20,
+    23
+   ],
+   "in_pire": [
+    17,
+    50,
+    33,
+    17,
+    33
+   ],
+   "leve_ms": [
+    1983,
+    1702,
+    1097,
+    1563,
+    1082
+   ],
+   "course_ms": [
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  "JOUER [apres]": {
+   "saut_pct": [],
+   "retrait_sup50": [],
+   "attente": [],
+   "sortie": [],
+   "n": 5,
+   "pire_max": 333,
+   "pire_med": 217,
+   "sup50_med": 3,
+   "sup50_tot": 16,
+   "out_pire": [],
+   "out_images": [],
+   "in_pire": [],
+   "leve_ms": [
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "course_ms": [
+    3066,
+    2263,
+    2260,
+    2257,
+    2137
+   ]
+  },
+  "MORT [apres]": {
+   "saut_pct": [],
+   "retrait_sup50": [],
+   "attente": [],
+   "sortie": [],
+   "n": 5,
+   "pire_max": 283,
+   "pire_med": 183,
+   "sup50_med": 2,
+   "sup50_tot": 12,
+   "out_pire": [],
+   "out_images": [],
+   "in_pire": [],
+   "leve_ms": [
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "course_ms": [
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  "REJOUER [apres]": {
+   "saut_pct": [
+    26,
+    27,
+    27,
+    15,
+    26
+   ],
+   "retrait_sup50": [
+    0,
+    2,
+    0,
+    0,
+    0
+   ],
+   "attente": [
+    373,
+    172,
+    233,
+    264,
+    157
+   ],
+   "sortie": [
+    "régulier",
+    "régulier",
+    "régulier",
+    "régulier",
+    "régulier"
+   ],
+   "n": 5,
+   "pire_max": 333,
+   "pire_med": 267,
+   "sup50_med": 2,
+   "sup50_tot": 16,
+   "out_pire": [
+    83,
+    67,
+    50,
+    50,
+    50
+   ],
+   "out_images": [
+    15,
+    16,
+    13,
+    23,
+    15
+   ],
+   "in_pire": [
+    33,
+    17,
+    17,
+    17,
+    17
+   ],
+   "leve_ms": [
+    2744,
+    2772,
+    749,
+    735,
+    724
+   ],
+   "course_ms": [
+    2407,
+    2629,
+    327,
+    321,
+    310
+   ]
+  },
+  "MENU [apres]": {
+   "saut_pct": [
+    14,
+    14,
+    26,
+    25,
+    25
+   ],
+   "retrait_sup50": [
+    0,
+    2,
+    1,
+    0,
+    0
+   ],
+   "attente": [
+    289,
+    340,
+    215,
+    186,
+    211
+   ],
+   "sortie": [
+    "régulier",
+    "régulier",
+    "régulier",
+    "régulier",
+    "régulier"
+   ],
+   "n": 5,
+   "pire_max": 1800,
+   "pire_med": 1100,
+   "sup50_med": 2,
+   "sup50_tot": 12,
+   "out_pire": [
+    33,
+    83,
+    133,
+    33,
+    50
+   ],
+   "out_images": [
+    26,
+    22,
+    19,
+    25,
+    19
+   ],
+   "in_pire": [
+    17,
+    33,
+    50,
+    50,
+    33
+   ],
+   "leve_ms": [
+    1901,
+    2322,
+    1541,
+    1147,
+    1452
+   ],
+   "course_ms": [
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ }
+}

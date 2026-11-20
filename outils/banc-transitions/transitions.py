@@ -21,8 +21,9 @@ sys.path.insert(0,BP)
 from cdp import CDP
 sp=importlib.util.spec_from_file_location('gp',os.path.join(BP,'garde-perf.py'));gp=importlib.util.module_from_spec(sp);sp.loader.exec_module(gp)
 VP=os.path.join(RACINE,'VERSION PRINCIPALE')
-OPT={'tours':5,'cpu':4,'qs':'','json':None,'film':None,'profil':0,'seules':None,'vp':None,'carte':'nuages:midi'}
+OPT={'tours':5,'cpu':4,'qs':'','json':None,'film':None,'profil':0,'seules':None,'vp':None,'carte':'nuages:midi','portrait':0,'ab':0}
 W,H=844,390
+MODE=['defaut']
 HOOK=r"""(function(){
  var T=window.__T={F:[],E:[],on:false,t0:performance.now(),loaf:[]};
  var l=performance.now(),wc='',st='';
@@ -74,7 +75,7 @@ def bilan(nom,t0,D,fin_js_t=None):
         L=[f[1] for f in F if a<f[0]<=(b if b else a+300)]
         return {'images':len(L),'pire':round(max(L or [0])),'sup50':sum(1 for x in L if x>50)}
     r={'transition':nom,'images':len(dts),'pire':round(max(dts or [0])),'sup50':sum(1 for x in dts if x>50),'sup100':sum(1 for x in dts if x>100),
-       'volet_in':phase(vin,vin+160) if vin else None,'volet_couvert':phase(vin+160,vout) if vin and vout else None,'volet_out':phase(vout,vout+290) if vout else None,
+       'volet_in':phase(vin,vin+160) if vin else None,'volet_couvert':phase(vin+160,vout) if vin and vout else None,'volet_out':phase(vout,vfin if vfin else vout+290) if vout else None,
        'appui_a_leve_ms':round(vout-doigt) if vout else None,'appui_a_course_ms':round(go-doigt) if go else None,'serpent':bool(ser),
        'lentes':[[round(f[0]-doigt),round(f[1]),f[2]] for f in F if f[1]>50][:30],
        'loaf':[dict(l,t=round(l['t']-doigt)) for l in D['loaf'] if l['t']>=t0-50][:12]}
@@ -108,14 +109,14 @@ def demarre(http,port):
     c.call('Network.setBypassServiceWorker',bypass=True);c.call('Network.setCacheDisabled',cacheDisabled=True)
     try:c.call('Emulation.setFocusEmulationEnabled',enabled=True)
     except Exception:pass
-    c.call('Emulation.setDeviceMetricsOverride',width=W,height=H,deviceScaleFactor=3,mobile=True,screenWidth=W,screenHeight=H,screenOrientation={'type':'landscapePrimary','angle':90})
+    c.call('Emulation.setDeviceMetricsOverride',width=W,height=H,deviceScaleFactor=3,mobile=True,screenWidth=W,screenHeight=H,screenOrientation={'type':'portraitPrimary','angle':0} if OPT['portrait'] else {'type':'landscapePrimary','angle':90})
     c.call('Emulation.setTouchEmulationEnabled',enabled=True,maxTouchPoints=5);c.call('Emulation.setUserAgentOverride',userAgent=gp.UA,platform='iPhone')
     c.call('Page.navigate',url=base+'/icon.svg');time.sleep(1)
     sv=dict(gp.SAVE,sfx=False,vox=False,mus=False)
     c.ev("localStorage.clear();localStorage.setItem('cashcarSave',%s);1"%json.dumps(json.dumps(sv)))
     c.call('Page.addScriptToEvaluateOnNewDocument',source=HOOK)
     A=OPT['carte'].split(':')
-    c.call('Page.navigate',url=base+'/index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=%s&meteo=%s%s'%(A[0],A[1],OPT['qs']))
+    c.call('Page.navigate',url=base+'/index.html?garde=1&palier=2&tel=1&appareil=iPhone14,2&pistegraine=777&carte=%s&meteo=%s%s'%(A[0],A[1],OPT['qs']))
     if not attend(c,"!!window.__gameReady&&typeof dbgState==='function'",300):print('⛔ le jeu ne démarre pas');return None
     t=time.time()
     while time.time()-t<180 and not c.ev(gp.BTN):
@@ -149,6 +150,7 @@ def tour(c,k,R,film=None):
     S=OPT['seules']
     def veut(n):return not S or n in S
     def mesure(nom,action,fin_js,apres=0.6,tmax=40):
+        n0=c.ev("typeof dbgTransitions==='function'?dbgTransitions().n:-1")
         t0=ouvre(c,nom)
         if film:film.start()
         action()
@@ -158,18 +160,24 @@ def tour(c,k,R,film=None):
             (film.pompe if film else c.pump)(.1)
         (film.pompe if film else c.pump)(apres)
         if film:film.stop()
-        r=bilan(nom,t0,ferme(c));r['tour']=k;R.append(r);montre(r);return r
+        r=bilan(nom,t0,ferme(c));r['tour']=k;r['mode']=MODE[0]
+        try:r['trans']=json.loads(c.ev("JSON.stringify(typeof dbgTransitions==='function'?dbgTransitions():null)") or 'null')
+        except Exception:r['trans']=None
+        if r.get('trans') and r['trans'].get('n')==n0:r['trans']=None # pas de volet dans cette transition : rien de neuf à lire
+        R.append(r);montre(r)
+        if r.get('trans'):T=r['trans'];print('     [%s] attente %s (%s) · chauffe %s · retrait %s img, >50 : %s, pire %s · saut %s %% (%s) · coupé %s %% · doigt %s · pas %s · seuil %s'%(MODE[0],T.get('attente'),T.get('sortie'),T.get('chauffe'),T.get('outImg'),T.get('outLourdes'),T.get('outPire'),T.get('sautPct'),T.get('grille'),T.get('coupePct'),T.get('doigt'),T.get('pas'),T.get('seuil')),flush=True)
+        return r
     # JOUER depuis l'accueil
     if not vis(c,'.mPlay'):attend(c,"!!(%s)"%(VIS%json.dumps('.mPlay')),40)
     mesure('JOUER',lambda:tape(c,'.mPlay'),"(%s)&&(%s)"%(EN_COURSE,VOLET_LIBRE),apres=1.0,tmax=60)
     c.ev("dbgSable(0);dbgAuto(1,0,{});1");c.pump(3)
-    if veut('PAUSE'):
+    if veut('PAUSE') and not OPT['ab']:
         def P():
             c.call('Input.dispatchKeyEvent',type='keyDown',key='p',code='KeyP',windowsVirtualKeyCode=80);c.call('Input.dispatchKeyEvent',type='keyUp',key='p',code='KeyP',windowsVirtualKeyCode=80)
         mesure('PAUSE ouvre',P,"dbgState().paused",apres=1.0,tmax=5)
         mesure('PAUSE ferme',P,EN_COURSE,apres=1.5,tmax=8)
         c.pump(1)
-    if veut('PORTAIL'):
+    if veut('PORTAIL') and not OPT['ab']:
         lieu0=c.ev("(function(){try{var d=dbgNiveau();return d.lieu+'/'+d.ciel}catch(e){return ''}})()")
         mesure('PORTAIL',lambda:c.ev("dbgPortail(260);1"),"(function(){try{var d=dbgNiveau();return d.lieu+'/'+d.ciel!==%s}catch(e){return false}})()"%json.dumps(lieu0),apres=2.0,tmax=25)
         c.pump(1)
@@ -190,7 +198,11 @@ def main():
         elif a in('--tours','--cpu'):OPT[a[2:]]=int(av[i+1]);i+=2
         elif a=='--seules':OPT['seules']=set(av[i+1].split(','));i+=2
         elif a=='--profil':OPT['profil']=1;i+=1
+        elif a=='--portrait':OPT['portrait']=1;i+=1
+        elif a=='--ab':OPT['ab']=1;i+=1 # avant/après ENTRELACÉS dans la même page : tour pair = avant (dbgTransitions({on:false})), impair = après
         else:i+=1
+    global W,H
+    if OPT['portrait']:W,H=390,844
     http=gp.libre();port=gp.libre()
     srv=subprocess.Popen([sys.executable,'-m','http.server',str(http),'--bind','127.0.0.1'],cwd=OPT['vp'] or VP,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
     prof=tempfile.mkdtemp(prefix='banc-transitions-')
@@ -231,20 +243,24 @@ def main():
             print('  inclusif :',', '.join('%s %d'%x for x in P['inclusif'][:30]));print('  propre :',', '.join('%s %d'%x for x in P['propre'][:14]))
         else:
             for k in range(OPT['tours']):
-                print('— tour %d —'%(k+1),flush=True);tour(c,k,R)
+                if OPT['ab']:
+                    MODE[0]='avant' if k%2==0 else 'apres';c.ev("dbgTransitions({on:%s});1"%('false' if k%2==0 else 'true'))
+                print('— tour %d (%s) —'%(k+1,MODE[0]),flush=True);tour(c,k,R)
         out['charge1']=os.getloadavg()[0]
         out['erreurs']=c.ev("JSON.stringify({l:window.__loopErr?String(window.__loopErr).slice(0,300):null,p:window.__prebErr?String(window.__prebErr).slice(0,300):null})")
         # résumé
         print('\n== RÉSUMÉ (%s, CPU ×%d, charge %.0f → %.0f) =='%(OPT['qs'] or 'défaut',OPT['cpu'],out['charge0'],out['charge1']))
         par=collections.OrderedDict()
-        for r in R:par.setdefault(r['transition'],[]).append(r)
+        for r in R:par.setdefault(r['transition']+(' ['+r['mode']+']' if OPT['ab'] else ''),[]).append(r)
         out['resume']={}
         for n,L in par.items():
             med=lambda k:statistics.median([x[k] for x in L if x.get(k) is not None] or [0])
             o=lambda ph,k:[x[ph][k] for x in L if x.get(ph)]
-            s={'n':len(L),'pire_max':max(x['pire'] for x in L),'pire_med':med('pire'),'sup50_med':med('sup50'),'sup50_tot':sum(x['sup50'] for x in L),
+            tr=[x['trans'] for x in L if x.get('trans')]
+            s={'saut_pct':[x.get('sautPct') for x in tr],'retrait_sup50':[x.get('outLourdes') for x in tr],'attente':[x.get('attente') for x in tr],'sortie':[x.get('sortie') for x in tr],'n':len(L),'pire_max':max(x['pire'] for x in L),'pire_med':med('pire'),'sup50_med':med('sup50'),'sup50_tot':sum(x['sup50'] for x in L),
                'out_pire':o('volet_out','pire'),'out_images':o('volet_out','images'),'in_pire':o('volet_in','pire'),'leve_ms':[x['appui_a_leve_ms'] for x in L],'course_ms':[x['appui_a_course_ms'] for x in L]}
             out['resume'][n]=s
+            print('  %-22s saut %% %s · retrait >50 (page) %s · attente %s %s'%(n,s['saut_pct'],s['retrait_sup50'],s['attente'],s['sortie']))
             print('  %-12s n=%d · pire max %d / méd %d · >50 méd %s (total %d) · out pire %s · out images %s · in pire %s · appui→levé %s · appui→course %s'%(n,s['n'],s['pire_max'],s['pire_med'],s['sup50_med'],s['sup50_tot'],s['out_pire'],s['out_images'],s['in_pire'],s['leve_ms'],s['course_ms']))
         print('erreurs :',out['erreurs'])
         return 0
@@ -258,4 +274,6 @@ def main():
             try:os.killpg(p.pid,9)
             except Exception:pass
         shutil.rmtree(prof,ignore_errors=True)
+        try:os.remove(os.path.join(prof,'..','banc-transitions-pgid-%d'%os.getpid()))
+        except Exception:pass
 if __name__=='__main__':sys.exit(main())
