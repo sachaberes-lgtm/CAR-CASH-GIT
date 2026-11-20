@@ -1,0 +1,596 @@
+[
+ {
+  "jeu": "avant",
+  "meteo": "soir",
+  "graine": 3,
+  "s": 26,
+  "appels": 108,
+  "triangles": 519561,
+  "programmes": 154,
+  "geometries": 565,
+  "textures": 124,
+  "amb": {
+   "hemiS": [
+    0.36,
+    0.42,
+    0.56
+   ],
+   "fog": [
+    0.92,
+    0.52,
+    0.34
+   ],
+   "sunC": [
+    1,
+    0.56,
+    0.3
+   ],
+   "sat": 0.81
+  },
+  "etat": "",
+  "warn": [],
+  "erreurs": [],
+  "warn2": []
+ },
+ {
+  "jeu": "lot",
+  "meteo": "soir",
+  "graine": 3,
+  "s": 27,
+  "appels": 116,
+  "triangles": 520577,
+  "programmes": 154,
+  "geometries": 573,
+  "textures": 124,
+  "amb": {
+   "hemiS": [
+    0.34,
+    0.4,
+    0.66
+   ],
+   "fog": [
+    0.82,
+    0.52,
+    0.58
+   ],
+   "sunC": [
+    1,
+    0.68,
+    0.44
+   ],
+   "sat": 0.81
+  },
+  "etat": "",
+  "warn": [],
+  "erreurs": [],
+  "warn2": []
+ },
+ {
+  "jeu": "sans",
+  "meteo": "soir",
+  "graine": 3,
+  "s": 20,
+  "appels": 116,
+  "triangles": 520313,
+  "programmes": 154,
+  "geometries": 565,
+  "textures": 124,
+  "amb": {
+   "hemiS": [
+    0.36,
+    0.42,
+    0.56
+   ],
+   "fog": [
+    0.92,
+    0.52,
+    0.34
+   ],
+   "sunC": [
+    1,
+    0.56,
+    0.3
+   ],
+   "sat": 0.81
+  },
+  "etat": "",
+  "warn": [],
+  "erreurs": [],
+  "warn2": []
+ },
+ {
+  "jeu": "avant",
+  "meteo": "soir",
+  "graine": 7,
+  "s": 20,
+  "appels": 151,
+  "triangles": 549367,
+  "programmes": 154,
+  "geometries": 598,
+  "textures": 124,
+  "amb": {
+   "hemiS": [
+    0.36,
+    0.42,
+    0.56
+   ],
+   "fog": [
+    0.92,
+    0.52,
+    0.34
+   ],
+   "sunC": [
+    1,
+    0.56,
+    0.3
+   ],
+   "sat": 0.81
+  },
+  "etat": "",
+  "warn": [],
+  "erreurs": [],
+  "warn2": []
+ },
+ {
+  "jeu": "lot",
+  "meteo": "soir",
+  "graine": 7,
+  "s": 19,
+  "appels": 151,
+  "triangles": 549535,
+  "programmes": 154,
+  "geometries": 608,
+  "textures": 124,
+  "amb": {
+   "hemiS": [
+    0.34,
+    0.4,
+    0.66
+   ],
+   "fog": [
+    0.82,
+    0.52,
+    0.58
+   ],
+   "sunC": [
+    1,
+    0.68,
+    0.44
+   ],
+   "sat": 0.81
+  },
+  "etat": "",
+  "warn": [],
+  "erreurs": [],
+  "warn2": []
+ },
+ {
+  "jeu": "sans",
+  "meteo": "soir",
+  "graine": 7,
+  "s": 19,
+  "appels": 159,
+  "triangles": 550623,
+  "programmes": 154,
+  "geometries": 602,
+  "textures": 124,
+  "amb": {
+   "hemiS": [
+    0.36,
+    0.42,
+    0.56
+   ],
+   "fog": [
+    0.92,
+    0.52,
+    0.34
+   ],
+   "sunC": [
+    1,
+    0.56,
+    0.3
+   ],
+   "sat": 0.81
+  },
+  "etat": "",
+  "warn": [],
+  "erreurs": [],
+  "warn2": []
+ },
+ {
+  "jeu": "avant",
+  "meteo": "soir",
+  "graine": 11,
+  "s": 19,
+  "appels": 123,
+  "triangles": 567361,
+  "programmes": 154,
+  "geometries": 586,
+  "textures": 126,
+  "amb": {
+   "hemiS": [
+    0.36,
+    0.42,
+    0.56
+   ],
+   "fog": [
+    0.92,
+    0.52,
+    0.34
+   ],
+   "sunC": [
+    1,
+    0.56,
+    0.3
+   ],
+   "sat": 0.81
+  },
+  "etat": "",
+  "warn": [],
+  "erreurs": [],
+  "warn2": []
+ },
+ {
+  "jeu": "lot",
+  "meteo": "soir",
+  "graine": 11,
+  "s": 19,
+  "appels": 131,
+  "triangles": 567945,
+  "programmes": 154,
+  "geometries": 582,
+  "textures": 126,
+  "amb": {
+   "hemiS": [
+    0.34,
+    0.4,
+    0.66
+   ],
+   "fog": [
+    0.82,
+    0.52,
+    0.58
+   ],
+   "sunC": [
+    1,
+    0.68,
+    0.44
+   ],
+   "sat": 0.81
+  },
+  "etat": "",
+  "warn": [],
+  "erreurs": [],
+  "warn2": []
+ },
+ {
+  "jeu": "sans",
+  "meteo": "soir",
+  "graine": 11,
+  "s": 20,
+  "appels": 131,
+  "triangles": 568209,
+  "programmes": 154,
+  "geometries": 584,
+  "textures": 126,
+  "amb": {
+   "hemiS": [
+    0.36,
+    0.42,
+    0.56
+   ],
+   "fog": [
+    0.92,
+    0.52,
+    0.34
+   ],
+   "sunC": [
+    1,
+    0.56,
+    0.3
+   ],
+   "sat": 0.81
+  },
+  "etat": "",
+  "warn": [],
+  "erreurs": [],
+  "warn2": []
+ },
+ {
+  "jeu": "avant",
+  "meteo": "pluie",
+  "graine": 11,
+  "s": 20,
+  "appels": 116,
+  "triangles": 529699,
+  "programmes": 154,
+  "geometries": 580,
+  "textures": 126,
+  "amb": {
+   "hemiS": [
+    0.49205,
+    0.56105,
+    0.67605
+   ],
+   "fog": [
+    0.39481000000000005,
+    0.44081,
+    0.50981
+   ],
+   "sunC": [
+    0.665,
+    0.73,
+    0.823
+   ],
+   "sat": 0.828
+  },
+  "etat": "",
+  "warn": [],
+  "erreurs": [],
+  "warn2": []
+ },
+ {
+  "jeu": "lot",
+  "meteo": "pluie",
+  "graine": 11,
+  "s": 20,
+  "appels": 116,
+  "triangles": 529771,
+  "programmes": 154,
+  "geometries": 584,
+  "textures": 126,
+  "amb": {
+   "hemiS": [
+    0.44,
+    0.56,
+    0.7
+   ],
+   "fog": [
+    0.34,
+    0.46,
+    0.52
+   ],
+   "sunC": [
+    0.665,
+    0.73,
+    0.823
+   ],
+   "sat": 0.927
+  },
+  "etat": "",
+  "warn": [],
+  "erreurs": [],
+  "warn2": []
+ },
+ {
+  "jeu": "sans",
+  "meteo": "pluie",
+  "graine": 11,
+  "s": 19,
+  "appels": 116,
+  "triangles": 529651,
+  "programmes": 154,
+  "geometries": 586,
+  "textures": 126,
+  "amb": {
+   "hemiS": [
+    0.49205,
+    0.56105,
+    0.67605
+   ],
+   "fog": [
+    0.39481000000000005,
+    0.44081,
+    0.50981
+   ],
+   "sunC": [
+    0.665,
+    0.73,
+    0.823
+   ],
+   "sat": 0.828
+  },
+  "etat": "",
+  "warn": [],
+  "erreurs": [],
+  "warn2": []
+ },
+ {
+  "jeu": "avant",
+  "meteo": "pluie",
+  "graine": 7,
+  "s": 20,
+  "appels": 138,
+  "triangles": 507225,
+  "programmes": 154,
+  "geometries": 598,
+  "textures": 124,
+  "amb": {
+   "hemiS": [
+    0.49205,
+    0.56105,
+    0.67605
+   ],
+   "fog": [
+    0.39481000000000005,
+    0.44081,
+    0.50981
+   ],
+   "sunC": [
+    0.665,
+    0.73,
+    0.823
+   ],
+   "sat": 0.828
+  },
+  "etat": "",
+  "warn": [],
+  "erreurs": [],
+  "warn2": []
+ },
+ {
+  "jeu": "lot",
+  "meteo": "pluie",
+  "graine": 7,
+  "s": 20,
+  "appels": 138,
+  "triangles": 507273,
+  "programmes": 154,
+  "geometries": 608,
+  "textures": 124,
+  "amb": {
+   "hemiS": [
+    0.44,
+    0.56,
+    0.7
+   ],
+   "fog": [
+    0.34,
+    0.46,
+    0.52
+   ],
+   "sunC": [
+    0.665,
+    0.73,
+    0.823
+   ],
+   "sat": 0.927
+  },
+  "etat": "",
+  "warn": [],
+  "erreurs": [],
+  "warn2": []
+ },
+ {
+  "jeu": "sans",
+  "meteo": "pluie",
+  "graine": 7,
+  "s": 20,
+  "appels": 138,
+  "triangles": 507273,
+  "programmes": 154,
+  "geometries": 594,
+  "textures": 124,
+  "amb": {
+   "hemiS": [
+    0.49205,
+    0.56105,
+    0.67605
+   ],
+   "fog": [
+    0.39481000000000005,
+    0.44081,
+    0.50981
+   ],
+   "sunC": [
+    0.665,
+    0.73,
+    0.823
+   ],
+   "sat": 0.828
+  },
+  "etat": "",
+  "warn": [],
+  "erreurs": [],
+  "warn2": []
+ },
+ {
+  "jeu": "avant",
+  "meteo": "nuit",
+  "graine": 7,
+  "s": 20,
+  "appels": 144,
+  "triangles": 528403,
+  "programmes": 154,
+  "geometries": 590,
+  "textures": 124,
+  "amb": {
+   "hemiS": [
+    0.28,
+    0.32,
+    0.64
+   ],
+   "fog": [
+    0.05,
+    0.045,
+    0.12
+   ],
+   "sunC": [
+    0.5,
+    0.62,
+    1
+   ],
+   "sat": 1
+  },
+  "etat": "",
+  "warn": [],
+  "erreurs": [],
+  "warn2": []
+ },
+ {
+  "jeu": "lot",
+  "meteo": "nuit",
+  "graine": 7,
+  "s": 20,
+  "appels": 152,
+  "triangles": 529643,
+  "programmes": 154,
+  "geometries": 598,
+  "textures": 124,
+  "amb": {
+   "hemiS": [
+    0.3,
+    0.27,
+    0.66
+   ],
+   "fog": [
+    0.05,
+    0.045,
+    0.12
+   ],
+   "sunC": [
+    0.5,
+    0.62,
+    1
+   ],
+   "sat": 1
+  },
+  "etat": "",
+  "warn": [],
+  "erreurs": [],
+  "warn2": []
+ },
+ {
+  "jeu": "sans",
+  "meteo": "nuit",
+  "graine": 7,
+  "s": 19,
+  "appels": 144,
+  "triangles": 528571,
+  "programmes": 154,
+  "geometries": 594,
+  "textures": 124,
+  "amb": {
+   "hemiS": [
+    0.28,
+    0.32,
+    0.64
+   ],
+   "fog": [
+    0.05,
+    0.045,
+    0.12
+   ],
+   "sunC": [
+    0.5,
+    0.62,
+    1
+   ],
+   "sat": 1
+  },
+  "etat": "",
+  "warn": [],
+  "erreurs": [],
+  "warn2": []
+ }
+]

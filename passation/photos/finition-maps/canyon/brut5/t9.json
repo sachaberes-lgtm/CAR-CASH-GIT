@@ -1,0 +1,205 @@
+{
+ "comptes": [
+  {
+   "jeu": "avant",
+   "graine": 11,
+   "meteo": "soir",
+   "appels": 123,
+   "triangles": 567989,
+   "programmes": 149,
+   "geometries": 554,
+   "textures": 126,
+   "warn": [],
+   "erreurs": []
+  },
+  {
+   "jeu": "lot",
+   "graine": 11,
+   "meteo": "soir",
+   "appels": 123,
+   "triangles": 568301,
+   "programmes": 149,
+   "geometries": 546,
+   "textures": 126,
+   "warn": [],
+   "erreurs": []
+  },
+  {
+   "jeu": "sans",
+   "graine": 11,
+   "meteo": "soir",
+   "appels": 123,
+   "triangles": 567217,
+   "programmes": 149,
+   "geometries": 580,
+   "textures": 126,
+   "warn": [],
+   "erreurs": []
+  },
+  {
+   "jeu": "avant",
+   "graine": 3,
+   "meteo": "soir",
+   "appels": 108,
+   "triangles": 519561,
+   "programmes": 149,
+   "geometries": 535,
+   "textures": 124,
+   "warn": [],
+   "erreurs": []
+  },
+  {
+   "jeu": "lot",
+   "graine": 3,
+   "meteo": "soir",
+   "appels": 108,
+   "triangles": 519681,
+   "programmes": 149,
+   "geometries": 577,
+   "textures": 124,
+   "warn": [],
+   "erreurs": []
+  },
+  {
+   "jeu": "sans",
+   "graine": 3,
+   "meteo": "soir",
+   "appels": 108,
+   "triangles": 519609,
+   "programmes": 149,
+   "geometries": 543,
+   "textures": 124,
+   "warn": [],
+   "erreurs": []
+  },
+  {
+   "jeu": "avant",
+   "graine": 7,
+   "meteo": "soir",
+   "appels": 151,
+   "triangles": 550143,
+   "programmes": 149,
+   "geometries": 596,
+   "textures": 124,
+   "warn": [],
+   "erreurs": []
+  },
+  {
+   "jeu": "lot",
+   "graine": 7,
+   "meteo": "soir",
+   "appels": 151,
+   "triangles": 550759,
+   "programmes": 149,
+   "geometries": 508,
+   "textures": 124,
+   "warn": [],
+   "erreurs": []
+  },
+  {
+   "jeu": "sans",
+   "graine": 7,
+   "meteo": "soir",
+   "appels": 159,
+   "triangles": 551015,
+   "programmes": 149,
+   "geometries": 544,
+   "textures": 124,
+   "warn": [],
+   "erreurs": []
+  }
+ ],
+ "amb": {
+  "avant-g11": {
+   "sat": 0.81,
+   "sunI": 1.782,
+   "hemiI": 0.67,
+   "fillI": 0.41,
+   "sunC": [
+    1,
+    0.56,
+    0.3
+   ],
+   "cyT": [
+    1,
+    0.95,
+    0.93
+   ]
+  },
+  "lot-g11": {
+   "sat": 0.972,
+   "sunI": 1.604,
+   "sunC": [
+    0.97,
+    0.72,
+    0.34
+   ],
+   "cyT": [
+    0.92,
+    1.08,
+    0.66
+   ]
+  },
+  "avant-g3": {
+   "sat": 0.81,
+   "sunI": 1.782,
+   "hemiI": 0.67,
+   "fillI": 0.41,
+   "sunC": [
+    1,
+    0.56,
+    0.3
+   ],
+   "cyT": [
+    1,
+    0.95,
+    0.93
+   ]
+  },
+  "lot-g3": {
+   "sat": 0.972,
+   "sunI": 1.604,
+   "sunC": [
+    0.97,
+    0.72,
+    0.34
+   ],
+   "cyT": [
+    0.92,
+    1.08,
+    0.66
+   ]
+  },
+  "avant-g7": {
+   "sat": 0.81,
+   "sunI": 1.782,
+   "hemiI": 0.67,
+   "fillI": 0.41,
+   "sunC": [
+    1,
+    0.56,
+    0.3
+   ],
+   "cyT": [
+    1,
+    0.95,
+    0.93
+   ]
+  },
+  "lot-g7": {
+   "sat": 0.972,
+   "sunI": 1.604,
+   "sunC": [
+    0.97,
+    0.72,
+    0.34
+   ],
+   "cyT": [
+    0.92,
+    1.08,
+    0.66
+   ]
+  }
+ },
+ "vars": {}
+}

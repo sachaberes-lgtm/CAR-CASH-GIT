@@ -1,0 +1,7 @@
+{"cas":["soir:3","soir:11","soir:7","pluie:11","pluie:7"],
+ "jeux":{
+  "avant":{"chemin":"avant/VERSION%20PRINCIPALE"},
+  "lot":{"chemin":"canyon/VERSION%20PRINCIPALE"},
+  "sans":{"chemin":"canyon/VERSION%20PRINCIPALE","q":"sans=canyonfini"},
+  "V2":{"chemin":"canyon/VERSION%20PRINCIPALE","meteo":"soir","essai":{"canyonSoir":{"sunC":[1,0.66,0.42],"cyL":[0.90,0.62,0.50],"cyT":[0.93,0.97,1.12],"cyC":[1,0.64,0.44]}}}
+ }}

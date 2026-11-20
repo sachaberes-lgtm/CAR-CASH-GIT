@@ -123,6 +123,25 @@ const CY_LOOKS={
   C:{sat:'.92',omb:'.92,.84,.86',ardK:'.14',ardF:'.38',ard:'.98,.88,.92',bnc:1,pal:{m:[.92,.54,.36,.75,.90],n:[.62,.30,.22,.82,.84]},
      bio:{canyonMatin:{hemiS:[.50,.50,.60],cyF:[1.053,0.66,0.436],cyZ:[.04,.36,.62],jZen:[.04,.36,.62]},canyonMidi:{cyZ:[.03,.34,.66],jZen:[.03,.34,.66],cyF:[0.998,0.751,0.6]},canyonSoir:{hemiS:[.38,.36,.50],rtT:[.78,.98,1.0],cyF:[0.98,0.551,0.4]}}}};
 const CY_PISTE=(function(){if(/[?&]sans=([^&]*,)?cyfinal(,|&|$)/.test(location.search))return '0';const m=/[?&]cypiste=([^&]*)/.exec(location.search);return m?m[1]:'A';})(),CY_LOOK=Object.prototype.hasOwnProperty.call(CY_LOOKS,CY_PISTE)?CY_LOOKS[CY_PISTE]:null;
+/* ===== LE CANYON FINI (2026-11-18, finition des maps : « le plus jolies possible tout en restant aussi optimisées qu'elles le sont ») =====
+   Sur la piste A (« grès doré équilibré par des froids », le choix de Sacha du 17/11), des NOMBRES d'ambiance seulement, posés avec les retouches de la piste (lumiere-design.js,
+   après l'équilibre et le plan de feu) : zéro instruction de shader, zéro texture, zéro appel, zéro triangle. `?sans=canyonfini` = l'image d'avant. Valeurs et mesures : CY_FINI_R. Nuit, pluie et orage seulement. */
+const CY_FINI=!/[?&]sans=([^&]*,)?canyonfini(,|&|$)/.test(location.search);
+const CY_FINI_R={
+  /* LE SOIR n'est PAS dans le lot (20/11) : six essais pour le rendre moins rouge ont tous été refusés au banc (roche délavée, puis kaki, puis ombres vert mousse sur g17).
+     Le soir reste donc celui d'avant ; les jeux de nombres essayés et leurs mesures sont dans passation/photos/finition-maps/canyon/NOTE.md et sur la branche finition-maps-canyon. */
+  /* LA NUIT : la route bleu électrique est GARDÉE (rtT d'avant). Seuls l'ombre (hemiS [.28,.32,.64] → [.30,.27,.66]) et le remplissage glissent du bleu vers le bleu-violet,
+     à luminance égale (le tour 1 assombrissait la nuit de 20 % : retiré). */
+  canyonNuit:{hemiS:[.30,.27,.66],fillC:[.34,.28,.74]},
+  /* LA PLUIE (hors tirage) : le ciel gris bleu passe au bleu canard, la brume ardoise turquoise, les nuages un cran plus froids, le rebond de la roche mouillée terre cuite.
+     Tour 3 (« plus fun ») : la route mouillée prend le bleu (rtT [1.05,1,.86] → [.82,1,1.14]) au lieu du gris ; tour 4 : vers le CANARD, plus vert ([.76,1.04,1.10]).
+     Chroma Lab de la route (bas de l'image) : avant → tour 4, 7,8 → 24,5 en course, 10,9 → 29,3 vue figée. */
+  canyonPluie:{fog:[.34,.46,.52],fogCj:[.46,.52,.56],fogIn:[.50,.58,.62],hemiS:[.44,.56,.70],cyF:[.42,.54,.60],cyL:[.72,.46,.36],rtT:[.76,1.04,1.10],sat:1.12,
+    cyZ:[.10,.24,.36],jZen:[.10,.24,.36],cyM:[.20,.36,.44],jMid:[.20,.36,.44],cyC:[.46,.52,.58],cyD:[.15,.20,.27]},
+  /* L'ORAGE (hors tirage) : la nuit d'orage bleu-noir passe à l'indigo-violet, à luminance d'avant (l'ombre [.28,.36,.54] → [.30,.28,.60]), le ciel et les mesas au violet. */
+  canyonOrage:{fog:[.07,.07,.17],fogCj:[.20,.16,.34],fogIn:[.22,.20,.36],hemiS:[.30,.28,.60],fillC:[.38,.32,.74],cyF:[.17,.16,.30],
+    cyZ:[.03,.02,.09],jZen:[.03,.02,.09],cyM:[.08,.05,.15],jMid:[.08,.05,.15],cyH:[.16,.10,.24],jHor:[.16,.10,.24],cyC:[.18,.15,.28],cyR:[.10,.08,.17]}};
+if(CY_FINI&&CY_PISTE==='A')for(const k in CY_FINI_R)CY_LOOK.bio[k]=Object.assign(CY_LOOK.bio[k]||{},CY_FINI_R[k]);
 function cyFS(CYD){return ['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uBnc,uRkT,uWS,uWD,uSkH,uSkZ,uMist,uMud,uPhP,uPhD,uPhC;uniform vec4 uQ;uniform float uTime,uFlash,uWet;',
   'varying vec3 vW,vN;varying vec4 vA,vB;varying float vWL;','#include <fog_pars_fragment>',
   'float gCs;', /* (2026-10-25, Sacha : « retravaille les textures, inspire-toi de la forêt : des gros pixels, mais lisses ») LES GROS PIXELS DE LA ROCHE : gCs = la case sous ce pixel (~10 px d'écran, par paliers doublés fondus l'un dans l'autre) */

@@ -1,0 +1,43 @@
+== g11-roule-paysage
+  avant haut L 129.8   0%  C 67.3   0%  R-B  162  ov   76  rouge 91.4  or    0  vert    0  brule 0  | tout L 95.8   0% C 42.5   0% brule 0
+  lot   haut L 132.1   2%  C 64.7  -4%  R-B  154  ov 59.3  rouge 66.3  or 24.4  vert    0  brule 0  | tout L 95.6  -0% C 48.4  14% brule 0  ✗RmB ✗ov
+== g11-roule-portrait
+  avant haut L 133.2   0%  C 70.1   0%  R-B  153  ov 77.7  rouge 80.2  or    0  vert    0  brule 0  | tout L 109.5   0% C 43.4   0% brule 0
+  lot   haut L 136.6   3%  C 72.8   4%  R-B  142  ov 72.3  rouge 49.1  or   30  vert    0  brule 0  | tout L 109.3  -0% C 49.7  15% brule 0  ✗RmB ✗ov
+== g11-v900-paysage
+  avant haut L  92.4   0%  C 44.1   0%  R-B   93  ov  5.8  rouge 62.5  or  0.1  vert    0  brule 0  | tout L 105.3   0% C 37   0% brule 0
+  lot   haut L  92.4   0%  C 40.4  -8%  R-B   88  ov  1.9  rouge 37.6  or 10.3  vert    0  brule 0  | tout L 105  -0% C 38.2   3% brule 0  
+  sans  haut L  92.4   0%  C 44.1   0%  R-B   93  ov  5.8  rouge 62.5  or  0.1  vert    0  brule 0  | tout L 105.3   0% C 37   0% brule 0  
+== g11-v900-portrait
+  avant haut L  95.6   0%  C 48.2   0%  R-B  103  ov 17.3  rouge 69.5  or  0.1  vert    0  brule 0  | tout L 97.1   0% C 29.3   0% brule 0
+  lot   haut L    95  -1%  C   44  -9%  R-B   96  ov 15.5  rouge 60.2  or  0.2  vert    0  brule 0  | tout L 96.2  -1% C 34.1  16% brule 0  
+== g3-roule-paysage
+  avant haut L 111.6   0%  C 58.3   0%  R-B  125  ov 46.9  rouge 82.1  or    0  vert    0  brule 0  | tout L 112.8   0% C 41.1   0% brule 0
+  lot   haut L 110.1  -1%  C 55.6  -5%  R-B  104  ov 24.8  rouge 62.3  or 10.5  vert    0  brule 0  | tout L 114.3   1% C 39.7  -3% brule 0  ✗RmB
+== g3-roule-portrait
+  avant haut L 110.7   0%  C 66.6   0%  R-B  160  ov 68.7  rouge   88  or    0  vert    0  brule 0  | tout L 126.9   0% C 43.9   0% brule 0
+  lot   haut L 108.7  -2%  C 60.4  -9%  R-B  151  ov 42.1  rouge 85.2  or  0.9  vert  0.1  brule 0  | tout L 124.4  -2% C 41.6  -5% brule 0  ✗RmB
+== g3-v900-paysage
+  avant haut L  92.4   0%  C   42   0%  R-B   89  ov  5.3  rouge 58.4  or  0.1  vert    0  brule 0  | tout L 100.3   0% C 37.5   0% brule 0
+  lot   haut L  92.2  -0%  C 38.1  -9%  R-B   84  ov  1.8  rouge 22.1  or 18.7  vert    0  brule 0  | tout L 99.8  -0% C 40.7   9% brule 0  
+  sans  haut L  92.3  -0%  C   42   0%  R-B   89  ov  5.3  rouge 58.4  or  0.1  vert    0  brule 0  | tout L 100.2  -0% C 37.5   0% brule 0  
+== g3-v900-portrait
+  avant haut L  91.4   0%  C 39.4   0%  R-B   87  ov  4.9  rouge 53.8  or  0.1  vert    0  brule 0  | tout L 89.4   0% C 27.6   0% brule 0
+  lot   haut L  89.4  -2%  C 34.1 -13%  R-B   77  ov  0.8  rouge 18.3  or 17.6  vert    0  brule 0  | tout L 87.9  -2% C 35.5  29% brule 0  ✗C
+== g7-roule-paysage
+  avant haut L 122.6   0%  C 68.1   0%  R-B  167  ov 75.8  rouge 96.1  or    0  vert    0  brule 0  | tout L 106.8   0% C 38.4   0% brule 0
+  lot   haut L 122.2  -0%  C 62.9  -8%  R-B  160  ov 51.2  rouge 65.9  or 27.2  vert  0.3  brule 0  | tout L 105.9  -1% C 40.7   6% brule 0  ✗RmB ✗ov
+== g7-roule-portrait
+  avant haut L 132.6   0%  C 59.1   0%  R-B  148  ov   72  rouge   86  or    0  vert  0.1  brule 0  | tout L 130.2   0% C 40.5   0% brule 0
+  lot   haut L 117.7 -11%  C 62.9   6%  R-B  150  ov 45.6  rouge 73.7  or 10.9  vert  0.8  brule 0  | tout L 127  -2% C 41.6   3% brule 0  ✗L ✗RmB
+== g7-v900-paysage
+  avant haut L  87.9   0%  C 46.6   0%  R-B   96  ov  8.5  rouge 59.1  or  0.1  vert    0  brule 0  | tout L 86.5   0% C 40.2   0% brule 0
+  lot   haut L  89.1   1%  C 43.6  -6%  R-B   93  ov  3.6  rouge 41.4  or  6.5  vert    0  brule 0  | tout L 85.9  -1% C 44.2  10% brule 0  
+  sans  haut L  87.9   0%  C 46.6   0%  R-B   97  ov  8.5  rouge 59.1  or  0.1  vert    0  brule 0  | tout L 86.7   0% C 40.3   0% brule 0  
+== g7-v900-portrait
+  avant haut L 102.7   0%  C 58.5   0%  R-B  132  ov 45.6  rouge 79.4  or  0.1  vert    0  brule 0  | tout L 81.7   0% C 38   0% brule 0
+  lot   haut L 106.1   3%  C 55.3  -5%  R-B  132  ov 38.6  rouge 72.5  or    3  vert    0  brule 0  | tout L 81  -1% C 45.3  19% brule 0  ✗L
+
+== BILAN (cas tenus / cas ; écart de chroma et de luminance du haut, min..max)
+  lot   C 11/12  L 10/12  R-B 6/12  ov 9/12  vert 12/12   dC -13..6 %   dL -11..3 %
+  sans  C 3/3  L 3/3  R-B 3/3  ov 3/3  vert 3/3   dC 0..0 %   dL -0..0 %

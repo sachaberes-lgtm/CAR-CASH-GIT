@@ -1,0 +1,21 @@
+verrou pris par finition-canyon
+début 06:42:59
+empreinte avant 1/0:9001:b6930069:canyon 1/2:9001:6feb1e92:canyon 2/0:9001:b6930069:canyon 2/2:9001:6feb1e92:canyon
+avant soir:3 {"appels":108,"triangles":519945,"programmes":154,"geometries":581,"textures":124,"amb":{"hemiS":[0.36,0.42,0.56],"fog":[0.92,0.52,0.34],"sunC":[1,0.56,0.3],"sat":0.81},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+empreinte lot 1/0:9001:b6930069:canyon 1/2:9001:6feb1e92:canyon 2/0:9001:b6930069:canyon 2/2:9001:6feb1e92:canyon
+lot soir:3 {"appels":108,"triangles":519417,"programmes":154,"geometries":583,"textures":124,"amb":{"hemiS":[0.34,0.4,0.66],"fog":[0.84,0.5,0.5],"sunC":[1,0.6,0.36],"sat":0.81},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+sans soir:3 {"appels":108,"triangles":519633,"programmes":154,"geometries":583,"textures":124,"amb":{"hemiS":[0.36,0.42,0.56],"fog":[0.92,0.52,0.34],"sunC":[1,0.56,0.3],"sat":0.81},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+avant soir:11 {"appels":123,"triangles":567505,"programmes":154,"geometries":594,"textures":126,"amb":{"hemiS":[0.36,0.42,0.56],"fog":[0.92,0.52,0.34],"sunC":[1,0.56,0.3],"sat":0.81},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+lot soir:11 {"appels":131,"triangles":568017,"programmes":154,"geometries":594,"textures":126,"amb":{"hemiS":[0.34,0.4,0.66],"fog":[0.84,0.5,0.5],"sunC":[1,0.6,0.36],"sat":0.81},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+sans soir:11 {"appels":123,"triangles":567217,"programmes":154,"geometries":594,"textures":126,"amb":{"hemiS":[0.36,0.42,0.56],"fog":[0.92,0.52,0.34],"sunC":[1,0.56,0.3],"sat":0.81},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+avant nuit:7 {"appels":144,"triangles":528331,"programmes":154,"geometries":604,"textures":124,"amb":{"hemiS":[0.28,0.32,0.64],"fog":[0.05,0.045,0.12],"sunC":[0.5,0.62,1],"sat":1},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+lot nuit:7 {"appels":144,"triangles":528355,"programmes":154,"geometries":612,"textures":124,"amb":{"hemiS":[0.3,0.27,0.66],"fog":[0.05,0.045,0.12],"sunC":[0.5,0.62,1],"sat":1},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+sans nuit:7 {"appels":152,"triangles":529347,"programmes":154,"geometries":612,"textures":124,"amb":{"hemiS":[0.28,0.32,0.64],"fog":[0.05,0.045,0.12],"sunC":[0.5,0.62,1],"sat":1},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+avant pluie:11 {"appels":116,"triangles":529603,"programmes":154,"geometries":594,"textures":126,"amb":{"hemiS":[0.49205,0.56105,0.67605],"fog":[0.39481000000000005,0.44081,0.50981],"sunC":[0.665,0.73,0.823],"sat":0.828},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+lot pluie:11 {"appels":116,"triangles":529771,"programmes":154,"geometries":594,"textures":126,"amb":{"hemiS":[0.44,0.56,0.7],"fog":[0.34,0.46,0.52],"sunC":[0.665,0.73,0.823],"sat":0.927},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+sans pluie:11 {"appels":116,"triangles":529459,"programmes":154,"geometries":592,"textures":126,"amb":{"hemiS":[0.49205,0.56105,0.67605],"fog":[0.39481000000000005,0.44081,0.50981],"sunC":[0.665,0.73,0.823],"sat":0.828},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+avant orage:7 {"appels":139,"triangles":516109,"programmes":154,"geometries":612,"textures":124,"amb":{"hemiS":[0.28278,0.36078,0.54278],"fog":[0.04724708611999999,0.07661616612,0.14718323411999998],"sunC":[0.27223316,0.37078856,0.5834929],"sat":1.056},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+lot orage:7 {"appels":147,"triangles":517149,"programmes":154,"geometries":612,"textures":124,"amb":{"hemiS":[0.3,0.28,0.6],"fog":[0.07,0.07,0.17],"sunC":[0.27223316,0.37078856,0.5834929],"sat":1.056},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+sans orage:7 {"appels":147,"triangles":517245,"programmes":154,"geometries":594,"textures":124,"amb":{"hemiS":[0.28278,0.36078,0.54278],"fog":[0.04724708611999999,0.07661616612,0.14718323411999998],"sunC":[0.27223316,0.37078856,0.5834929],"sat":1.056},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+fin 06:47:40 code 0
+verrou rendu

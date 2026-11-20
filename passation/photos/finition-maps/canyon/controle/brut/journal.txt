@@ -1,0 +1,22 @@
+verrou pris par finition-canyon
+début 05:15:53
+avant soir:3 {"appels":108,"triangles":519417,"programmes":154,"geometries":543,"textures":124,"amb":{"hemiS":[0.36,0.42,0.56],"fog":[0.92,0.52,0.34],"sunC":[1,0.56,0.3],"sat":0.81},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+lot soir:3 {"appels":108,"triangles":519537,"programmes":154,"geometries":547,"textures":124,"amb":{"hemiS":[0.34,0.4,0.66],"fog":[0.84,0.5,0.5],"sunC":[1,0.6,0.36],"sat":0.745},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+sans soir:3 {"appels":108,"triangles":519537,"programmes":154,"geometries":551,"textures":124,"amb":{"hemiS":[0.36,0.42,0.56],"fog":[0.92,0.52,0.34],"sunC":[1,0.56,0.3],"sat":0.81},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+avant soir:11 {"appels":123,"triangles":568229,"programmes":154,"geometries":564,"textures":126,"amb":{"hemiS":[0.36,0.42,0.56],"fog":[0.92,0.52,0.34],"sunC":[1,0.56,0.3],"sat":0.81},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+lot soir:11 {"appels":123,"triangles":567241,"programmes":154,"geometries":568,"textures":126,"amb":{"hemiS":[0.34,0.4,0.66],"fog":[0.84,0.5,0.5],"sunC":[1,0.6,0.36],"sat":0.745},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+sans soir:11 {"appels":123,"triangles":567653,"programmes":154,"geometries":566,"textures":126,"amb":{"hemiS":[0.36,0.42,0.56],"fog":[0.92,0.52,0.34],"sunC":[1,0.56,0.3],"sat":0.81},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+avant nuit:7 {"appels":144,"triangles":528723,"programmes":154,"geometries":584,"textures":124,"amb":{"hemiS":[0.28,0.32,0.64],"fog":[0.05,0.045,0.12],"sunC":[0.5,0.62,1],"sat":1},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+lot nuit:7 {"appels":144,"triangles":528091,"programmes":154,"geometries":584,"textures":124,"amb":{"hemiS":[0.14,0.13,0.34],"fog":[0.05,0.045,0.12],"sunC":[0.52,0.54,0.92],"sat":1},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+sans nuit:7 {"appels":144,"triangles":530867,"programmes":154,"geometries":584,"textures":124,"amb":{"hemiS":[0.28,0.32,0.64],"fog":[0.05,0.045,0.12],"sunC":[0.5,0.62,1],"sat":1},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+avant pluie:7 {"appels":146,"triangles":508585,"programmes":154,"geometries":580,"textures":124,"amb":{"hemiS":[0.49205,0.56105,0.67605],"fog":[0.39481000000000005,0.44081,0.50981],"sunC":[0.665,0.73,0.823],"sat":0.828},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+lot pluie:7 {"appels":138,"triangles":507881,"programmes":154,"geometries":586,"textures":124,"amb":{"hemiS":[0.44,0.54,0.68],"fog":[0.36,0.45,0.52],"sunC":[0.665,0.73,0.823],"sat":0.894},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+sans pluie:7 {"appels":138,"triangles":507545,"programmes":154,"geometries":576,"textures":124,"amb":{"hemiS":[0.49205,0.56105,0.67605],"fog":[0.39481000000000005,0.44081,0.50981],"sunC":[0.665,0.73,0.823],"sat":0.828},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+avant orage:3 {"appels":103,"triangles":489695,"programmes":154,"geometries":555,"textures":124,"amb":{"hemiS":[0.28278,0.36078,0.54278],"fog":[0.04724708611999999,0.07661616612,0.14718323411999998],"sunC":[0.27223316,0.37078856,0.5834929],"sat":1.056},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+lot orage:3 {"appels":101,"triangles":489863,"programmes":154,"geometries":549,"textures":124,"amb":{"hemiS":[0.22,0.22,0.4],"fog":[0.07,0.07,0.16],"sunC":[0.27223316,0.37078856,0.5834929],"sat":1.056},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+sans orage:3 {"appels":101,"triangles":489671,"programmes":154,"geometries":555,"textures":124,"amb":{"hemiS":[0.28278,0.36078,0.54278],"fog":[0.04724708611999999,0.07661616612,0.14718323411999998],"sunC":[0.27223316,0.37078856,0.5834929],"sat":1.056},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+avant soir:7 {"appels":151,"triangles":550191,"programmes":154,"geometries":580,"textures":124,"amb":{"hemiS":[0.36,0.42,0.56],"fog":[0.92,0.52,0.34],"sunC":[1,0.56,0.3],"sat":0.81},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+lot soir:7 {"appels":151,"triangles":549879,"programmes":154,"geometries":586,"textures":124,"amb":{"hemiS":[0.34,0.4,0.66],"fog":[0.84,0.5,0.5],"sunC":[1,0.6,0.36],"sat":0.745},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+sans soir:7 {"appels":151,"triangles":549927,"programmes":154,"geometries":578,"textures":124,"amb":{"hemiS":[0.36,0.42,0.56],"fog":[0.92,0.52,0.34],"sunC":[1,0.56,0.3],"sat":0.81},"etat":"","warn":[],"erreurs":[],"warn2":[]}
+fin 05:21:48 code 0
+verrou rendu

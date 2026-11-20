@@ -1,0 +1,9 @@
+{"cas":["soir:3","soir:7","soir:11","pluie:11"],
+ "jeux":{
+  "avant":{"chemin":"avant/VERSION%20PRINCIPALE"},
+  "sans":{"chemin":"canyon/VERSION%20PRINCIPALE","q":"sans=canyonfini"},
+  "W1":{"chemin":"canyon/VERSION%20PRINCIPALE","meteo":"soir","essai":{"canyonSoir":{"sunC":[1,0.68,0.44],"cyT":[0.96,1.05,0.95]}}},
+  "W2":{"chemin":"canyon/VERSION%20PRINCIPALE","meteo":"soir","essai":{"canyonSoir":{"sunC":[0.97,0.66,0.43],"cyT":[0.95,1.04,0.94]}}},
+  "W3":{"chemin":"canyon/VERSION%20PRINCIPALE","meteo":"soir","essai":{"canyonSoir":{"sunC":[0.97,0.70,0.42],"cyT":[0.94,1.06,0.92],"cyH":[1,0.64,0.36]}}},
+  "Q1":{"chemin":"canyon/VERSION%20PRINCIPALE","meteo":"pluie","essai":{"canyonPluie":{"rtT":[0.76,1.04,1.10]}}}
+ }}

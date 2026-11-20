@@ -1,0 +1,22 @@
+verrou pris par finition-canyon
+début 17:57:40
+avant soir:3 {"appels":108,"triangles":519585,"programmes":149,"geometries":551,"textures":124,"amb":{"sunC":[1,0.56,0.3],"fog":[0.92,0.52,0.34],"cyT":[1,0.95,0.93],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+sans soir:3 {"appels":108,"triangles":519633,"programmes":149,"geometries":541,"textures":124,"amb":{"sunC":[1,0.56,0.3],"fog":[0.92,0.52,0.34],"cyT":[1,0.95,0.93],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+W1 soir:3 {"appels":108,"triangles":519513,"programmes":149,"geometries":539,"textures":124,"amb":{"sunC":[1,0.68,0.44],"fog":[0.82,0.52,0.58],"cyT":[0.96,1.05,0.95],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+W2 soir:3 {"appels":108,"triangles":519369,"programmes":149,"geometries":537,"textures":124,"amb":{"sunC":[0.97,0.66,0.43],"fog":[0.82,0.52,0.58],"cyT":[0.95,1.04,0.94],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+W3 soir:3 {"appels":108,"triangles":519321,"programmes":149,"geometries":535,"textures":124,"amb":{"sunC":[0.97,0.7,0.42],"fog":[0.82,0.52,0.58],"cyT":[0.94,1.06,0.92],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+avant soir:7 {"appels":159,"triangles":553359,"programmes":149,"geometries":568,"textures":124,"amb":{"sunC":[1,0.56,0.3],"fog":[0.92,0.52,0.34],"cyT":[1,0.95,0.93],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+sans soir:7 {"appels":159,"triangles":551799,"programmes":149,"geometries":570,"textures":124,"amb":{"sunC":[1,0.56,0.3],"fog":[0.92,0.52,0.34],"cyT":[1,0.95,0.93],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+W1 soir:7 {"appels":151,"triangles":550271,"programmes":149,"geometries":560,"textures":124,"amb":{"sunC":[1,0.68,0.44],"fog":[0.82,0.52,0.58],"cyT":[0.96,1.05,0.95],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+W2 soir:7 {"appels":151,"triangles":551431,"programmes":149,"geometries":568,"textures":124,"amb":{"sunC":[0.97,0.66,0.43],"fog":[0.82,0.52,0.58],"cyT":[0.95,1.04,0.94],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+W3 soir:7 {"appels":159,"triangles":551287,"programmes":149,"geometries":570,"textures":124,"amb":{"sunC":[0.97,0.7,0.42],"fog":[0.82,0.52,0.58],"cyT":[0.94,1.06,0.92],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+avant soir:11 {"appels":123,"triangles":567241,"programmes":149,"geometries":548,"textures":126,"amb":{"sunC":[1,0.56,0.3],"fog":[0.92,0.52,0.34],"cyT":[1,0.95,0.93],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+sans soir:11 {"appels":123,"triangles":567749,"programmes":149,"geometries":552,"textures":126,"amb":{"sunC":[1,0.56,0.3],"fog":[0.92,0.52,0.34],"cyT":[1,0.95,0.93],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+W1 soir:11 {"appels":123,"triangles":567677,"programmes":149,"geometries":544,"textures":126,"amb":{"sunC":[1,0.68,0.44],"fog":[0.82,0.52,0.58],"cyT":[0.96,1.05,0.95],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+W2 soir:11 {"appels":123,"triangles":567485,"programmes":149,"geometries":558,"textures":126,"amb":{"sunC":[0.97,0.66,0.43],"fog":[0.82,0.52,0.58],"cyT":[0.95,1.04,0.94],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+W3 soir:11 {"appels":123,"triangles":567241,"programmes":149,"geometries":560,"textures":126,"amb":{"sunC":[0.97,0.7,0.42],"fog":[0.82,0.52,0.58],"cyT":[0.94,1.06,0.92],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+avant pluie:11 {"appels":116,"triangles":529943,"programmes":149,"geometries":556,"textures":126,"amb":{"sunC":[0.665,0.73,0.823],"fog":[0.39481000000000005,0.44081,0.50981],"cyT":[0.9,0.86,0.86],"rtT":[1.05,1,0.86]},"warn":[],"erreurs":[],"warn2":[]}
+sans pluie:11 {"appels":116,"triangles":529771,"programmes":149,"geometries":556,"textures":126,"amb":{"sunC":[0.665,0.73,0.823],"fog":[0.39481000000000005,0.44081,0.50981],"cyT":[0.9,0.86,0.86],"rtT":[1.05,1,0.86]},"warn":[],"erreurs":[],"warn2":[]}
+Q1 pluie:11 {"appels":116,"triangles":529459,"programmes":149,"geometries":556,"textures":126,"amb":{"sunC":[0.665,0.73,0.823],"fog":[0.34,0.46,0.52],"cyT":[0.9,0.86,0.86],"rtT":[0.76,1.04,1.1]},"warn":[],"erreurs":[],"warn2":[]}
+fin 18:03:31 code 0
+verrou rendu

@@ -1,0 +1,13 @@
+mutex du groupe pris 15:12:36
+verrou pris par finition-canyon (place 1)
+début 15:16:21
+comptes avant soir 11 {"appels":123,"triangles":567989,"programmes":149,"geometries":554,"textures":126,"warn":[],"erreurs":[]}
+comptes lot soir 11 {"appels":123,"triangles":568301,"programmes":149,"geometries":546,"textures":126,"warn":[],"erreurs":[]}
+comptes sans soir 11 {"appels":123,"triangles":567217,"programmes":149,"geometries":580,"textures":126,"warn":[],"erreurs":[]}
+comptes avant soir 3 {"appels":108,"triangles":519561,"programmes":149,"geometries":535,"textures":124,"warn":[],"erreurs":[]}
+comptes lot soir 3 {"appels":108,"triangles":519681,"programmes":149,"geometries":577,"textures":124,"warn":[],"erreurs":[]}
+comptes sans soir 3 {"appels":108,"triangles":519609,"programmes":149,"geometries":543,"textures":124,"warn":[],"erreurs":[]}
+comptes avant soir 7 {"appels":151,"triangles":550143,"programmes":149,"geometries":596,"textures":124,"warn":[],"erreurs":[]}
+comptes lot soir 7 {"appels":151,"triangles":550759,"programmes":149,"geometries":508,"textures":124,"warn":[],"erreurs":[]}
+comptes sans soir 7 {"appels":159,"triangles":551015,"programmes":149,"geometries":544,"textures":124,"warn":[],"erreurs":[]}
+fin 15:19:10 code 0

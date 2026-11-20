@@ -1,0 +1,29 @@
+mutex du groupe pris 13:59:10
+verrou pris par finition-canyon (place 2)
+début 14:04:11
+comptes avant soir 11 {"appels":123,"triangles":567725,"programmes":149,"geometries":586,"textures":126,"warn":[],"erreurs":[]}
+comptes lot soir 11 {"appels":123,"triangles":567545,"programmes":149,"geometries":578,"textures":126,"warn":[],"erreurs":[]}
+comptes AV soir 11 {"appels":145,"triangles":561981,"programmes":149,"geometries":578,"textures":126,"warn":[],"erreurs":[]}
+variante AV g11 ok
+comptes Y1 soir 11 {"appels":145,"triangles":562709,"programmes":149,"geometries":578,"textures":126,"warn":[],"erreurs":[]}
+variante Y1 g11 ok
+comptes X1 soir 11 {"appels":145,"triangles":562709,"programmes":149,"geometries":578,"textures":126,"warn":[],"erreurs":[]}
+variante X1 g11 ok
+comptes Y4 soir 11 {"appels":145,"triangles":561469,"programmes":149,"geometries":578,"textures":126,"warn":[],"erreurs":[]}
+variante Y4 g11 ok
+comptes Y7 soir 11 {"appels":145,"triangles":561721,"programmes":149,"geometries":578,"textures":126,"warn":[],"erreurs":[]}
+variante Y7 g11 ok
+comptes avant soir 3 {"appels":108,"triangles":519465,"programmes":149,"geometries":577,"textures":124,"warn":[],"erreurs":[]}
+comptes lot soir 3 {"appels":108,"triangles":519561,"programmes":149,"geometries":575,"textures":124,"warn":[],"erreurs":[]}
+variante Y1 g3 ok
+variante X1 g3 ok
+variante Y4 g3 ok
+variante Y7 g3 ok
+comptes sans soir 3 {"appels":108,"triangles":519585,"programmes":149,"geometries":577,"textures":124,"warn":[],"erreurs":[]}
+comptes avant soir 7 {"appels":151,"triangles":550071,"programmes":149,"geometries":606,"textures":124,"warn":[],"erreurs":[]}
+comptes lot soir 7 {"appels":159,"triangles":550847,"programmes":149,"geometries":606,"textures":124,"warn":[],"erreurs":[]}
+variante Y1 g7 ok
+variante X1 g7 ok
+variante Y4 g7 ok
+variante Y7 g7 ok
+fin 14:07:48 code 0

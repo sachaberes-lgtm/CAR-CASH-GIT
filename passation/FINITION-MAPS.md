@@ -7,7 +7,7 @@ Ni `VERSION PRINCIPALE/index.html` ni `sw.js` ne sont commités ici : à la livr
 Méthode : un lot par map, un auteur puis un contrôle adverse qui exécute le lot au banc (image, comptes `renderer.info`, console, route au bit près). Seuls les lots déclarés FUSIONNABLES sont sur la branche. Chaque lot a son interrupteur `?sans=<nom>` qui rend l'image d'avant.
 Planches avant/après et note détaillée de chaque lot (mesures, tous les tours de contrôle) : `passation/photos/finition-maps/<lot>/` et son `NOTE.md`.
 
-Tout couper d'un coup : `?sans=nappes,couleursfinies,espacefini,jadefini`.
+Tout couper d'un coup : `?sans=nappes,couleursfinies,espacefini,jadefini,canyonfini`.
 
 ## État
 
@@ -17,10 +17,11 @@ Tout couper d'un coup : `?sans=nappes,couleursfinies,espacefini,jadefini`.
 | Couleurs (nuages, ville jaune) | oui | `?sans=couleursfinies` | fusionnable, 19/11 |
 | Espace | oui | `?sans=espacefini` | fusionnable, 20/11 |
 | Pic de Jade | oui | `?sans=jadefini` | fusionnable, 20/11 |
-| Canyon | NON (branche `finition-maps-canyon`) | `?sans=canyonfini` | à corriger au 19/11, correction en cours le 20/11 |
+| Canyon : nuit, pluie, orage | oui | `?sans=canyonfini` | jugés bons au banc les 19 et 20/11 |
+| Canyon : le soir trop rouge | NON (essais sur `finition-maps-canyon`) | — | refusé six fois, dernier contrôle le 20/11 |
 | Modules de l'espace | abandonné | — | Sacha a retiré les géants (41285daf1) |
 
-Coût, pour les quatre lots fusionnés : aucune texture, aucun maillage, aucun programme, aucune instruction GLSL en plus (l'espace en retire une). Au banc : 149 programmes avant = après partout, textures égales, appels et triangles dans le bruit du banc (les écarts existent aussi entre « avant » et « sans », qui sont le même code). Routes identiques au bit près sur ≥ 20 graines × 2 paliers pour chaque lot.
+Coût, pour les lots fusionnés : aucune texture, aucun maillage, aucun programme, aucune instruction GLSL en plus (l'espace en retire une). Au banc : 149 programmes avant = après partout, textures égales, appels et triangles dans le bruit du banc (les écarts existent aussi entre « avant » et « sans », qui sont le même code). Routes identiques au bit près sur ≥ 20 graines × 2 paliers pour chaque lot.
 
 ## 1. Grotte — les nappes de lave et d'eau
 
@@ -66,12 +67,14 @@ Audit mesuré des maps au tirage du téléphone hors des autres lots. Rien de br
 - Non vérifié : matin, midi, orage et astre en portrait ; les fondus entre météos ; l'ordinateur.
 - Décisions pour Sacha : (1) le milieu de l'image au soir est un pêche plus pâle (plus clair, un peu moins saturé) : si c'est délavé, `jdM [1,.72,.54] → [1,.70,.50]` ; (2) vers le soleil du soir, le ciel derrière l'astre est une lavande assez saturée : question de goût ; (3) sous la pluie la route perd 5-6 points de chroma, sans être moins lisible.
 
-## 5. Canyon — le soir trop rouge (PAS sur la branche)
+## 5. Canyon — nuit, pluie, orage (le soir n'est PAS fait)
 
-Branche `finition-maps-canyon`, fichier `code/maps/canyon-relief.js` (bloc `CY_FINI_R`).
-- Bon et jugé au banc : la nuit (chroma +7 à +25 %), la pluie (route bleu canard, chroma 7 → 23-29), l'orage (chroma +60 %), 0 % brûlé, coût nul.
-- Refusé au 19/11 : le soir. Moins de braise, mais la roche tournait au kaki délavé (chroma −27 à −40 %), une graine restait trop rouge et l'image était 5 à 9 % trop claire.
-- Une correction mesurée est en cours le 20/11 ; elle n'entre sur la branche que si son contrôle au banc la déclare fusionnable. Voir la fin de `passation/photos/finition-maps/canyon/NOTE.md`.
+- Fichier : `code/maps/canyon-relief.js` (bloc `CY_FINI_R`, des nombres d'ambiance) ; banc `outils/banc-routes/canyon-finition/`.
+- Sur la branche : la nuit (ombre et remplissage du bleu vers le bleu-violet, luminance −1 à −2 %, chroma +6 à +25 %), la pluie (route bleu canard au lieu du gris, chroma de la route 7-10 → 23-33) et l'orage (indigo-violet, chroma +60 %). Pluie et orage sont hors tirage. 0 % de pixels brûlés, coût nul, routes au même md5.
+- **Le soir trop rouge n'est pas corrigé.** Six jeux de nombres ont été refusés au banc, chacun pour un défaut différent : roche délavée, puis kaki (chroma −27 à −40 %), puis, à la dernière correction, ombres vert mousse sur une graine (g17 : 0,5 → 26 % de pixels verdâtres) et un soir pas moins rouge en course sur deux graines sur trois. J'ai donc retiré le soir du lot : sur la branche il est celui d'avant, au caractère près (la clé `canyonSoir` n'est plus dans `CY_FINI_R`).
+- Ce que les essais ont appris : par les seuls nombres d'ambiance, on ne tient pas à la fois « nettement moins rouge » et « roche aussi saturée » ; baisser le rouge de la roche la grise ou la verdit. Le dernier essai (ocre doré, joli sur deux graines) est sur `finition-maps-canyon` (aee197455), planches `soir-*` et `controle/ctl6-*` dans `passation/photos/finition-maps/canyon/`.
+- Décision pour Sacha : regarder ces planches du soir. Soit le soir d'avant te va tel quel, soit il faut toucher à la couleur de la roche elle-même (palette du grès), ce qui sort d'une simple finition.
+- Non vérifié : la fusion sans le soir n'a pas été rephotographiée (nuit, pluie et orage ont les nombres jugés au banc ; le soir est celui d'avant par construction) ; pluie et orage en portrait sur une seule graine.
 
 ## Pour livrer
 
@@ -79,4 +82,4 @@ Branche `finition-maps-canyon`, fichier `code/maps/canyon-relief.js` (bloc `CY_F
 2. Compiler les `<script>` d'index.html (`vm.Script`) : un seul échec attendu, le script 5, qui échoue pareil sur `main` (l'extracteur coupe dans un commentaire).
 3. `node outils/garde-demarrage.cjs && sh garde-allege.sh && sh garde-charte.sh`.
 4. Monter `cashcar-vNNN` dans `sw.js`, committer `code/` et index.html ensemble.
-5. Sur le vrai iPhone, regarder d'abord : la nuit de Jade, le soir de Jade, la nuit des nuages, Mars de nuit (OLED), une grotte avec de l'eau.
+5. Sur le vrai iPhone, regarder d'abord : la nuit de Jade, le soir de Jade, la nuit des nuages, Mars de nuit (OLED), une grotte avec de l'eau, la nuit du canyon.

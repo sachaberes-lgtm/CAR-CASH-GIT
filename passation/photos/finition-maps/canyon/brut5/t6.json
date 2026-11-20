@@ -1,0 +1,388 @@
+{
+ "comptes": [
+  {
+   "jeu": "avant",
+   "graine": 11,
+   "meteo": "soir",
+   "appels": 123,
+   "triangles": 567725,
+   "programmes": 149,
+   "geometries": 586,
+   "textures": 126,
+   "warn": [],
+   "erreurs": []
+  },
+  {
+   "jeu": "lot",
+   "graine": 11,
+   "meteo": "soir",
+   "appels": 123,
+   "triangles": 567545,
+   "programmes": 149,
+   "geometries": 578,
+   "textures": 126,
+   "warn": [],
+   "erreurs": []
+  },
+  {
+   "jeu": "AV",
+   "graine": 11,
+   "meteo": "soir",
+   "appels": 145,
+   "triangles": 561981,
+   "programmes": 149,
+   "geometries": 578,
+   "textures": 126,
+   "warn": [],
+   "erreurs": []
+  },
+  {
+   "jeu": "Y1",
+   "graine": 11,
+   "meteo": "soir",
+   "appels": 145,
+   "triangles": 562709,
+   "programmes": 149,
+   "geometries": 578,
+   "textures": 126,
+   "warn": [],
+   "erreurs": []
+  },
+  {
+   "jeu": "X1",
+   "graine": 11,
+   "meteo": "soir",
+   "appels": 145,
+   "triangles": 562709,
+   "programmes": 149,
+   "geometries": 578,
+   "textures": 126,
+   "warn": [],
+   "erreurs": []
+  },
+  {
+   "jeu": "Y4",
+   "graine": 11,
+   "meteo": "soir",
+   "appels": 145,
+   "triangles": 561469,
+   "programmes": 149,
+   "geometries": 578,
+   "textures": 126,
+   "warn": [],
+   "erreurs": []
+  },
+  {
+   "jeu": "Y7",
+   "graine": 11,
+   "meteo": "soir",
+   "appels": 145,
+   "triangles": 561721,
+   "programmes": 149,
+   "geometries": 578,
+   "textures": 126,
+   "warn": [],
+   "erreurs": []
+  },
+  {
+   "jeu": "avant",
+   "graine": 3,
+   "meteo": "soir",
+   "appels": 108,
+   "triangles": 519465,
+   "programmes": 149,
+   "geometries": 577,
+   "textures": 124,
+   "warn": [],
+   "erreurs": []
+  },
+  {
+   "jeu": "lot",
+   "graine": 3,
+   "meteo": "soir",
+   "appels": 108,
+   "triangles": 519561,
+   "programmes": 149,
+   "geometries": 575,
+   "textures": 124,
+   "warn": [],
+   "erreurs": []
+  },
+  {
+   "jeu": "sans",
+   "graine": 3,
+   "meteo": "soir",
+   "appels": 108,
+   "triangles": 519585,
+   "programmes": 149,
+   "geometries": 577,
+   "textures": 124,
+   "warn": [],
+   "erreurs": []
+  },
+  {
+   "jeu": "avant",
+   "graine": 7,
+   "meteo": "soir",
+   "appels": 151,
+   "triangles": 550071,
+   "programmes": 149,
+   "geometries": 606,
+   "textures": 124,
+   "warn": [],
+   "erreurs": []
+  },
+  {
+   "jeu": "lot",
+   "graine": 7,
+   "meteo": "soir",
+   "appels": 159,
+   "triangles": 550847,
+   "programmes": 149,
+   "geometries": 606,
+   "textures": 124,
+   "warn": [],
+   "erreurs": []
+  }
+ ],
+ "amb": {
+  "avant-g11": {
+   "sat": 0.81,
+   "sunI": 1.782,
+   "hemiI": 0.67,
+   "fillI": 0.41,
+   "sunC": [
+    1,
+    0.56,
+    0.3
+   ],
+   "cyT": [
+    1,
+    0.95,
+    0.93
+   ]
+  },
+  "lot-g11": {
+   "sat": 0.81,
+   "sunI": 1.782,
+   "sunC": [
+    0.97,
+    0.7,
+    0.42
+   ],
+   "cyT": [
+    0.94,
+    1.06,
+    0.92
+   ]
+  },
+  "avant-g3": {
+   "sat": 0.81,
+   "sunI": 1.782,
+   "hemiI": 0.67,
+   "fillI": 0.41,
+   "sunC": [
+    1,
+    0.56,
+    0.3
+   ],
+   "cyT": [
+    1,
+    0.95,
+    0.93
+   ]
+  },
+  "lot-g3": {
+   "sat": 0.81,
+   "sunI": 1.782,
+   "sunC": [
+    0.97,
+    0.7,
+    0.42
+   ],
+   "cyT": [
+    0.94,
+    1.06,
+    0.92
+   ]
+  },
+  "avant-g7": {
+   "sat": 0.81,
+   "sunI": 1.782,
+   "hemiI": 0.67,
+   "fillI": 0.41,
+   "sunC": [
+    1,
+    0.56,
+    0.3
+   ],
+   "cyT": [
+    1,
+    0.95,
+    0.93
+   ]
+  },
+  "lot-g7": {
+   "sat": 0.81,
+   "sunI": 1.782,
+   "sunC": [
+    0.97,
+    0.7,
+    0.42
+   ],
+   "cyT": [
+    0.94,
+    1.06,
+    0.92
+   ]
+  }
+ },
+ "vars": {
+  "AV": "avant entier",
+  "Y1": {
+   "cyT": [
+    1,
+    0.98,
+    0.8
+   ],
+   "fog": [
+    0.88,
+    0.58,
+    0.4
+   ],
+   "fogIn": [
+    0.96,
+    0.8,
+    0.66
+   ],
+   "sunI": 1.657
+  },
+  "X1": {
+   "cyT": [
+    1,
+    0.98,
+    0.8
+   ],
+   "fog": [
+    0.88,
+    0.58,
+    0.4
+   ],
+   "fogIn": [
+    0.96,
+    0.8,
+    0.66
+   ],
+   "sunI": 1.657,
+   "sunC": [
+    0.95,
+    0.64,
+    0.32
+   ],
+   "sat": 0.875
+  },
+  "Y4": {
+   "cyT": [
+    1,
+    0.98,
+    0.8
+   ],
+   "fog": [
+    0.88,
+    0.58,
+    0.4
+   ],
+   "fogIn": [
+    0.96,
+    0.8,
+    0.66
+   ],
+   "sunI": 1.657,
+   "sunC": [
+    0.97,
+    0.68,
+    0.38
+   ],
+   "cyL": [
+    0.95,
+    0.58,
+    0.36
+   ],
+   "hemiG": [
+    0.38,
+    0.27,
+    0.24
+   ],
+   "sat": 0.891
+  },
+  "Y7": {
+   "cyT": [
+    1.02,
+    0.96,
+    0.74
+   ],
+   "fog": [
+    0.88,
+    0.58,
+    0.4
+   ],
+   "fogIn": [
+    0.96,
+    0.8,
+    0.66
+   ],
+   "sunI": 1.604,
+   "sunC": [
+    0.97,
+    0.68,
+    0.38
+   ],
+   "cyL": [
+    0.95,
+    0.58,
+    0.36
+   ],
+   "hemiG": [
+    0.38,
+    0.27,
+    0.24
+   ],
+   "sat": 0.94,
+   "cyH": [
+    0.98,
+    0.62,
+    0.46
+   ],
+   "jHor": [
+    0.98,
+    0.62,
+    0.46
+   ],
+   "cyM": [
+    0.38,
+    0.28,
+    0.6
+   ],
+   "jMid": [
+    0.38,
+    0.28,
+    0.6
+   ],
+   "fillC": [
+    0.46,
+    0.4,
+    0.78
+   ],
+   "hemiS": [
+    0.38,
+    0.36,
+    0.66
+   ],
+   "cyF": [
+    0.82,
+    0.66,
+    0.66
+   ]
+  }
+ }
+}

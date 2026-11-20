@@ -1,0 +1,18 @@
+verrou pris par finition-canyon
+début 07:14:33
+avant soir:3 {"appels":108,"triangles":519369,"programmes":154,"geometries":565,"textures":124,"amb":{"sunC":[1,0.56,0.3],"fog":[0.92,0.52,0.34],"cyT":[1,0.95,0.93],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+lot2 soir:3 {"appels":108,"triangles":519609,"programmes":154,"geometries":569,"textures":124,"amb":{"sunC":[1,0.6,0.36],"fog":[0.84,0.5,0.5],"cyT":[1,0.95,0.93],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+V1 soir:3 {"appels":108,"triangles":519489,"programmes":154,"geometries":583,"textures":124,"amb":{"sunC":[1,0.66,0.42],"fog":[0.82,0.52,0.58],"cyT":[1,0.95,0.93],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+V2 soir:3 {"appels":108,"triangles":519345,"programmes":154,"geometries":581,"textures":124,"amb":{"sunC":[1,0.66,0.42],"fog":[0.82,0.52,0.58],"cyT":[0.93,0.97,1.12],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+V3 soir:3 {"appels":108,"triangles":519441,"programmes":154,"geometries":583,"textures":124,"amb":{"sunC":[1,0.7,0.5],"fog":[0.8,0.54,0.62],"cyT":[0.9,0.96,1.16],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+avant soir:11 {"appels":123,"triangles":567025,"programmes":154,"geometries":592,"textures":126,"amb":{"sunC":[1,0.56,0.3],"fog":[0.92,0.52,0.34],"cyT":[1,0.95,0.93],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+lot2 soir:11 {"appels":123,"triangles":566929,"programmes":154,"geometries":576,"textures":126,"amb":{"sunC":[1,0.6,0.36],"fog":[0.84,0.5,0.5],"cyT":[1,0.95,0.93],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+V1 soir:11 {"appels":123,"triangles":567653,"programmes":154,"geometries":576,"textures":126,"amb":{"sunC":[1,0.66,0.42],"fog":[0.82,0.52,0.58],"cyT":[1,0.95,0.93],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+V2 soir:11 {"appels":123,"triangles":567001,"programmes":154,"geometries":594,"textures":126,"amb":{"sunC":[1,0.66,0.42],"fog":[0.82,0.52,0.58],"cyT":[0.93,0.97,1.12],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+V3 soir:11 {"appels":123,"triangles":567289,"programmes":154,"geometries":568,"textures":126,"amb":{"sunC":[1,0.7,0.5],"fog":[0.8,0.54,0.62],"cyT":[0.9,0.96,1.16],"rtT":[0.78,0.98,1]},"warn":[],"erreurs":[],"warn2":[]}
+avant pluie:11 {"appels":116,"triangles":529627,"programmes":154,"geometries":568,"textures":126,"amb":{"sunC":[0.665,0.73,0.823],"fog":[0.39481000000000005,0.44081,0.50981],"cyT":[0.9,0.86,0.86],"rtT":[1.05,1,0.86]},"warn":[],"erreurs":[],"warn2":[]}
+lot2 pluie:11 {"appels":116,"triangles":529603,"programmes":154,"geometries":570,"textures":126,"amb":{"sunC":[0.665,0.73,0.823],"fog":[0.34,0.46,0.52],"cyT":[0.9,0.86,0.86],"rtT":[1.05,1,0.86]},"warn":[],"erreurs":[],"warn2":[]}
+P1 pluie:11 {"appels":116,"triangles":529819,"programmes":154,"geometries":568,"textures":126,"amb":{"sunC":[0.665,0.73,0.823],"fog":[0.34,0.46,0.52],"cyT":[0.9,0.86,0.86],"rtT":[0.82,1,1.14]},"warn":[],"erreurs":[],"warn2":[]}
+P2 pluie:11 {"appels":116,"triangles":530039,"programmes":154,"geometries":568,"textures":126,"amb":{"sunC":[0.665,0.73,0.823],"fog":[0.34,0.46,0.52],"cyT":[1.04,0.98,0.96],"rtT":[0.78,1.02,1.18]},"warn":[],"erreurs":[],"warn2":[]}
+fin 07:18:28 code 0
+verrou rendu
