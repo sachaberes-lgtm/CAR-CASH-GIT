@@ -327,3 +327,106 @@ Toutes les courses roulent en `dbgAuto`, sans nitro. Résultats :
 - La vitrée.
 - L'iPhone.
 - Les objectifs du lot E : pas re-mesurés, égaux par construction.
+
+## Tour 3 — verdict : REFUSÉ
+
+Contrôle du 20/11 sur `.lots/d` (non commité, fichiers du lot datés du 19/11 20:35-20:56 : c'est l'état décrit dans LOT-D.md « tour 2 »). Rien corrigé dans le code de l'auteur.
+Bancs et sorties : `lot-d/controle/t3c/` (sous le scratchpad de la session). Graines neuves : **2301-2380** (décor, Node), **2301-2360** (vols, Node), **1506** (844×390) et **1509** (390×844) en Chrome (choisies dans `t3/dn-wt.json` pour leur densité de pendues).
+
+### En bref
+- **Identités : toutes tenues** (routes, décor du socle au bit près sur 2301-2380, gardes vertes).
+- **Génération : saine** (dans 0, frôle 0, air mini 60 / 90 / 91 m, plus aucun rail en l'air sous la route à étages, budget de tours tenu, moitié sous ALLEGE).
+- **Coût : tenu en comptes** (appels, triangles, programmes égaux en Chrome).
+- **Sauts : aucune mort imputable aux pendues** trouvée (Node et Chrome), mais le banc de sauts du jeu tue autant sur HEAD.
+- **Bloquant, toujours : l'effet ne se voit pas.** Sur 19 paires de photos avant/après à la même abscisse, 18 sont identiques à l'œil ; la 19e montre un peu plus de façades en haut de l'image. Le 3/11, lui, se voit tout de suite (photos prises ce tour-ci).
+
+### 1. Identités et périmètre
+- `empreinte.cjs graines=1-12` (`t3c/emp.txt`) :
+  - `?sans=villeetages` : ville 17b89297a6b8 / 9dc6766ea34f ✔ ;
+  - `?sans=villeetages,villecyber` : d63b36e2af8b / fb378a8c6756 ✔ ;
+  - sans drapeau : ville 77f22cbf4933 / 7aec17e77c92 (= ff6a3a14d : D1 ne touche pas la route ✔) ; crypto 5447610bd8f2 / eae97981f833, nuages 469d52aff855 / 2e1661d8fe93, espace 9c99fae61d38 / ea2d9e750351 ✔ (et pareil avec les deux drapeaux).
+  - vitrée : non tirable par le banc (`VIT_SOL is not defined`, comme à HEAD).
+- Décor du socle (`decor.cjs`, vrai `buildVoxCity`, `SEARCH='?sans=villeetages'`, graines 2301-2380) : HEAD (`controle/ref`, vérifié égal à `git show HEAD` sur code/ et outils/) **`af76f8dc873e` = lot `af76f8dc873e`** aux paliers 0/10/20 ; sous ALLEGE (0/10) **`2590104a3b0a` = `2590104a3b0a`** ✔. Le hachage couvre les volumes et les néons ; les couleurs (PCT9) et le shader sont gardés par `veActif()` / `VILLE_ETAGES` (lu dans le code).
+- `git diff` : `jade-balade.js`, `ville-entree.js` (commentaire), `ville-etages.js`, `ville-scenes.js`, `ville-v3.js` + index. Rien d'autre (ni sw.js, ni Crypto City, ni rendu partagé). `ville-v3.js` touche `villeMatTours` et `villePiedSP` (shader des tours de la ville), seulement sous `VILLE_ETAGES`.
+- Noms neufs (`PCT9`, `VE_PEND_*`, `vePendVolG/A`, `nPV`, `VED`, `RN9`, `dalle`) : une déclaration chacun dans l'index.
+- `garde-demarrage` OK (21 scripts), `garde-allege` ✔, `garde-charte` OK, `--verifier` ✔ (349 morceaux). La moitié des pendues est gardée sur `ALLEGE`.
+
+### 2. Génération (Node, graines 2301-2380, sans drapeau, HEAD → lot)
+| | palier 0 | palier 10 | palier 20 |
+|---|---|---|---|
+| tours / volumes | 779 / 2280 → 779 / 2274 | 969 / 2830 → 970 / 2828 | 1251 / 3844 → 1253 / 3848 |
+| pendues exprès par route | 15,0 (ALLEGE 7,6) | 14,8 (7,5) | 12,4 |
+| route sous une pendue | 10,9 → 21,8 % | 9,4 → 15,8 % | 5,9 → 9,3 % |
+| route « entre » | 25,1 → 40,1 % | 21,1 → 29,5 % | 13,2 → 17,4 % |
+| dans / frôle | 0 / 0 | 0 / 0 | 0 / 0 |
+| air mini sous une pendue exprès | 60 m | 90 m | 91 m |
+| rails en l'air (portés < 50 %) | 58 → **0** | 64 → **0** | 6 → **0** |
+| bâti médian (vm) | 30 → 51 ms | 44 → 77 ms | 39 → 96 ms |
+
+- Règle des 14 m hors SP9 : 55 / 62 / 19, **égale à HEAD** (aucune due aux pendues).
+- Le bâti plus lent en Node vient du `vm` (mesuré au tour 2 : ×40 sur `vePendVolG`) ; en Chrome, voir plus bas.
+- **Vols** (`vols.cjs`, 2301-2360) : au naturel et au nitro +40, **0 vol dans une pendue** aux trois paliers ; vols contre les autres tours **égaux à HEAD** (0 / 6 / 54 et 290 / 853 / 997).
+- Au-delà du modèle de l'auteur (+55 m/s, plus haut que le plafond du jeu `volPlafU` 70 × SPD) : 25 / 19 / 0 départs finissent dans une pendue (5 / 4 / 0 routes sur 60), contre 1429 / 2727 / 1623 dans les autres tours. Marge d'un modèle, pas un défaut.
+- **Lot E** : route égale à ff6a3a14d (empreinte), objectifs donc ceux du lot E ; pas re-mesurés.
+- **D2 : non fait** (`suites.cjs`, 2301-2380) : la suite la plus fréquente pèse 14 / 23 / **81 %** (« parking > slalomtours » au palier 20) ; angles de rue, slalom, double corde, carrefour en S, pont : **0 %** aux trois paliers ; slalom des tours 3 / 1 / 81 %, russes 0 / 4 / 9 %. Permis par la consigne (D1 d'abord), noté.
+
+### 3. Coût (Chrome, `?tel=1`, même route, HEAD → lot)
+| | appels moyens / max | triangles moyens / max | programmes départ → fin |
+|---|---|---|---|
+| g1506, 844×390, violet | 113 / 143 → 113 / 145 | 283 k / 348 k → 282 k / 346 k | 154 → 154 ; 157 → 157 |
+| g1509, 390×844, violet | 105 / 137 → 104 / 140 | 240 k / 332 k → 239 k / 343 k | 153 → 153 ; 154 → 154 |
+
+- 0 programme compilé en course, des deux côtés. Le compte de départ varie d'une course à l'autre (154 ou 157 sur HEAD comme sur le lot).
+- Plus longue tâche pendant le bâti (longtask) : HEAD 790-1294 ms, lot 772-1469 ms sur 13 courses. Mac chargé (deux bancs à la fois) : **pas de hausse nette lisible**, mais pas de preuve fine non plus.
+- Le 3/11 dans le même banc : 244-261 appels, 620-740 k triangles en moyenne, 232 programmes.
+
+### 4. Le vrai jeu (Chrome, verrou « ville-cyber-d »)
+Quatre prises : 14:13:28 → 14:17:12, 14:21:24 → 14:23:04, 14:38:11 → 14:41:05, 14:41:59 → 14:43:34. Toutes rendues, Chrome tués par groupe, profils `cc-banc-t3c-*` supprimés, `--mute-audio` et sfx/mus/vox coupés. Attente du verrou : 25 min la première fois.
+
+**Courses sans saut** (`dbgAuto(1,0,{nit:0})`, 60 s) :
+- **aucune erreur console, aucune mort** (HEAD, lot violet, lot teinte libre, 844 et 390) ;
+- `dbgVilleAudit` lot : 0 / 0 / 0 partout. HEAD g1509 : flotte 2 (deux enseignes), le lot les supprime.
+- Rayon vers le haut, part du temps avec une tour au-dessus de la caisse : 2,2 → 2,9 % (844), 1,1 → 0,5 % (390). Le 3/11 : 0,7 % et 0 %. Les tours trouvées à 44-52 m au-dessus de la caisse (`toursV7fnge`, `toursVerreNeon2`) sont les mêmes boîtes sur HEAD : ce sont des tours du socle, pas des pendues.
+
+**Sauts joués** (`dbgAuto` avec `saut`, déclenchés à partir de s 1350, sous les pendues de Node) :
+
+| course | HEAD | lot |
+|---|---|---|
+| g1506 844, imp 21 (le saut nitro) | vit jusqu'à 3285 ; « vide » 2864 ; vit (3461) | « vide » 1633, « vide » 1638, « vide » 2861 |
+| g1506 844, imp 42 | « tour » à 1398 | « tour » à 1398 (même endroit) |
+| g1509 390, imp 21 | vit (2942) ; « tour » à 2127 (tour du socle, boîte 583/964, y −1075…−462) | « tour » à 2145 ; « vide » 2387 |
+
+- Le pilote saute sans viser la pose : HEAD meurt autant. La mort « tour » du lot à 2145 tombe à 18 m de celle de HEAD à 2127, contre une tour du socle.
+- Aucune mort n'a été rattachée à une pendue (sonde des boîtes autour de la caisse à la mort : aucune boîte, ou une boîte du socle).
+- Les deux « vide » du lot vers 1635 (HEAD passe là deux fois) ne sont **pas expliqués**, mais ce sont des chutes, pas un heurt. Le banc est trop aléatoire pour conclure. **Pas de défaut retenu, doute faible.**
+
+**Les photos, regardées** (`planches/controle-t3-844.jpg`, `controle-t3-844-s2784.jpg`, `controle-t3-390.jpg` ; colonnes : 3/11, avant, après, après en teinte libre) :
+- **Le 3/11 se photographie enfin** (lancé par `dbgAudit('aller',…)`, ville violette sous l'orage, photos toutes les 4 s). Image nette, caméra basse. Des tours hautes à fenêtres allumées remplissent le haut de l'écran des deux côtés. On s'y sent dans la ville.
+- **Avant / après, violet, même abscisse :**
+  - en 844×390, 9 paires sur 10 sont **identiques à l'œil** ;
+  - à s 2784, l'après montre en plus des façades à fenêtres en haut à gauche et à droite, et une tour juste au-dessus. C'est le seul « mur » visible, et il reste discret sous le flou ;
+  - en 390×844, les 9 paires sont **identiques à l'œil**.
+- **Teinte libre (ambre)** : plus de blocs bruns à fond plat (le défaut du tour 2 est corrigé), mais rien de violet ni de translucide. L'image est la même qu'avant, en jaune.
+- **On ne retrouve pas l'effet du 3/11** (« enclavé sous et entre des immeubles violets translucides, pied fondu »). La route reste lisible et la voiture visible ✔.
+
+### Défauts
+**Bloquant :**
+1. **Effet absent à l'image** (défaut 1 des tours 1 et 2, toujours ouvert).
+   - Les pendues existent en nombre (route sous une pendue ×2 en Node) et sont maintenant propres : pas d'aplat, pas de fond plat.
+   - Mais 18 paires de photos sur 19 sont indiscernables de HEAD, en 844×390 comme en 390×844, alors que le 3/11 se reconnaît au premier coup d'œil.
+   - L'auteur l'attribue à la caméra et au flou de vitesse, hors périmètre. C'est plausible au vu des photos du 3/11, mais ce lot ne livre donc pas ce que Sacha demande. C'est à décider avec lui avant d'aller plus loin dans les tours.
+
+**Mineurs :**
+2. D2 non fait (permis) : 81 % « parking > slalomtours » au palier 20, cinq modules du 3/11 à 0 %.
+3. Les tours « au loin » (`villeMatToursLoin`, sans couleur d'instance) gardent le fondu de 280 m. Au passage loin → près, une pendue change de fondu sous la pluie, d'où un saut possible à la limite du brouillard. Théorique, **non vu en photo**.
+4. Le socle (`?sans=villeetages`) garde ses rails en l'air : 40 routes sur 80 sous ALLEGE (prix de l'identité, signalé par l'auteur).
+5. Le commit emportera les ~3 300 lignes d'index en retard de HEAD (inchangé).
+6. Deux chutes « vide » du lot vers s 1635 (g1506, saut 21) sans équivalent sur HEAD : banc aléatoire, non expliquées (voir plus haut).
+
+### Ce que je n'ai pas vérifié
+- Les paliers 10 et 20 en Chrome (les sauts et les photos sont au palier 0).
+- La vitrée (ni empreinte, ni jeu).
+- L'iPhone réel.
+- Les objectifs du lot E (égaux par construction, pas re-mesurés).
+- La plus longue tranche du bâti au propre : Mac chargé, longtasks bruitées.
+- Le saut de fondu loin → près (défaut 3) en image.
