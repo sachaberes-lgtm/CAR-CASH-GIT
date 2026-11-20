@@ -20,6 +20,21 @@
     {
       "displayPrice": "1.61",
       "familyShareable": false,
+      "internalID": "6340622410",
+      "localizations": [
+        {
+          "description": "La caisse L'AIGLE DE FEU, à toi pour toujours dans CASH CAR.",
+          "displayName": "L'AIGLE DE FEU",
+          "locale": "fr_FR"
+        }
+      ],
+      "productID": "cashcar.car.e_aigle",
+      "referenceName": "Caisse L'AIGLE DE FEU",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "1.61",
+      "familyShareable": false,
       "internalID": "6303308831",
       "localizations": [
         {
@@ -105,6 +120,21 @@
       ],
       "productID": "cashcar.car.squale",
       "referenceName": "Caisse SQUALE",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "0.80",
+      "familyShareable": false,
+      "internalID": "6666862976",
+      "localizations": [
+        {
+          "description": "La caisse L'ICEBERG, à toi pour toujours dans CASH CAR.",
+          "displayName": "L'ICEBERG",
+          "locale": "fr_FR"
+        }
+      ],
+      "productID": "cashcar.car.iceberg",
+      "referenceName": "Caisse L'ICEBERG",
       "type": "NonConsumable"
     },
     {

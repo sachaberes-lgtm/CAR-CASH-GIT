@@ -91,7 +91,7 @@ function ccConstr(etape,ms){try{document.dispatchEvent(new CustomEvent('cc:const
    de PISTE_TRANCHE ms (`chargeTranches`, vignette-moteur.js). */
 function* newTrackG(){
   if(PVE.ph&&!PVE.dedans)pveFinit(); /* (lot portv) un passage étalé en cours finit d'abord, d'un trait */
-  const t0NT=performance.now();ccConstr('debut');pvDebut();try{yield* newTrack0G();}finally{pvFin();ccConstr('fin',Math.round(performance.now()-t0NT));}}
+  const t0NT=performance.now();ccConstr('debut');try{pilConstr(1);}catch(e){} /* (5e tour, M2) construction en cours : ni gels ni ratés ne comptent */pvDebut();try{yield* newTrack0G();}finally{pvFin();ccConstr('fin',Math.round(performance.now()-t0NT));try{pilConstr(0);}catch(e){}try{if(started&&!gameOver)pilMoment('piste');}catch(e){} /* (2026-11-17, LE PILOTE DE QUALITÉ) un changement de carte : le jeton du portail est consommé ; sans jeton (dbgSaut), un moment invisible (crans 0-8) ; sous resetGame, rien */}}
 function newTrack(){const g=newTrackG();while(!g.next().done);}
 function* newTrack0G(){
   PORTV.paye=0; // (audit p8) une piste neuve est bâtie : son portail paiera de nouveau

@@ -244,6 +244,7 @@ function ecranWipe(fn,apres){
   try{uiGarde(520);}catch(e){} // (2026-10-12, passe qualité) le VOLET arme le verrou du double-tap : le 2e tap d'un HOME du garage tombait sur le JOUER de l'accueil (~200-350 ms) et lançait une course
   w.className='in';const px=wipePxOk();if(px)wipePxStart(w,'in');try{if(SONV2)sfx('ui.volet');else noiseBurst(.18,.05,1800);}catch(e){} // (2026-09-28) le son du volet : session SON
   setTimeout(function(){
+    try{mchVolet();}catch(e){} /* (2026-11-18, LE MENU AU CHAUD, nettete-qualite.js) le volet couvre l'écran : l'ombre et le halo de la vitrine suivent l'état du téléphone ici, jamais sous les yeux */
     let r9=null;try{r9=fn();}catch(e){console.error(e);}
     /* (2026-10-31) `fn` peut rendre une PROMESSE : le volet reste baissé jusqu'à ce qu'elle tienne (le REJOUER finit d'y bâtir son départ — voir rejoueAttend) */
     const suite9=function(){

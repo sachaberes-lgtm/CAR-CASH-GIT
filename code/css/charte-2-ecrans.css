@@ -187,6 +187,10 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
 .shUneBas s{font-size:var(--f2);color:var(--tx2);text-decoration-color:var(--neoM);text-decoration-thickness:2px}
 .shUneBas s{text-decoration:none;position:relative}.shUneBas s::after{content:'';position:absolute;left:-3px;right:-3px;top:calc(50% - 1px);height:2px;background:var(--neoM)} /* (2026-09-30, revue) le trait passe AU MILIEU des chiffres : le line-through de la police pixel tombait dessous, on lisait un souligné */
 .shUneBas em{font-style:normal;font-size:var(--f6);color:var(--au1);transform:skewX(var(--sk));text-shadow:0 3px 0 var(--auO),0 0 14px var(--auG)}
+.shOffre{align-self:flex-start;font-family:var(--pix);font-style:normal;font-size:var(--f0);letter-spacing:1px;line-height:1.4;padding:4px 7px;color:#06121c;background:#bfeaff;box-shadow:0 0 14px rgba(120,210,255,.55);transform:skewX(var(--sk))} /* (2026-11-18) L'OFFRE DE L'HIVER : le bandeau glacé de la grande boîte (L'ICEBERG) */
+html #mShop .shUneBoite .shOffre{align-self:center}
+#mShop .shBxP s{position:relative;color:var(--tx3);text-decoration:none;font-size:.85em}#mShop .shBxP s::after{content:'';position:absolute;left:-2px;right:-2px;top:calc(50% - 1px);height:2px;background:var(--neoM)}
+.spOffre{display:block;margin-top:6px;font-family:var(--pix);font-style:normal;font-size:var(--f0);letter-spacing:1px;color:#bfeaff;text-shadow:0 0 10px rgba(120,210,255,.6)}
 .shBtn{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
 .shBtn .pxi{--pxs:1;color:var(--tx3)}
 .shBtn.aToi{color:var(--neoV)}

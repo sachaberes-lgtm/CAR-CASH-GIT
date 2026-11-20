@@ -310,6 +310,7 @@ if(MG.on)mgTs(6); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 6
   if((started&&!gameOver)||lierPassesPretes()){ /* (2026-10-27) LA LIAISON EN ARRIÈRE-PLAN : hors course, tant qu'une passe de l'image se lie, l'image d'avant reste (voir interface/vignette-moteur.js) */
   if(POST_ON&&composer)try{if(MG.on)mgSt('rendu composer');composer.render();}catch(e){loopWarnN('rendu',e);} // ACES + bloom
   else try{if(MG.on)mgSt('rendu direct');renderer.render(scene,camera);}catch(e){loopWarnN('rendu (repli)',e);}
+  flushTot(); /* (2026-11-18, lot flushtot) l'image part à la puce tout de suite, pas à la fin du rappel — voir moteur/flushtot.js ; ?sans=flushtot = comme avant */
   window.__imagesJeu=(window.__imagesJeu|0)+1;} /* (2026-11-05, Sacha : « des fois ce bug visuel sur Vercel » : le menu sur un écran NOIR) les images 3D vraiment dessinées : le voile de l'intro attend qu'il y en ait (voir `ouvreQuandPret`, moteur/intro-161.js) */     // repli si le post n'a pas pu se charger
   if(MG.on)mgApresRendu(); /* (lot GELS) après le rendu */
   if(MG.on)mgSt('après : copies (intro, fenêtre, ciel du menu)');if(window.__introPrise){const f9=window.__introPrise;window.__introPrise=null;try{f9(renderer.domElement);}catch(e){}} // (2026-10-22) l'intro du studio demande une photo de la scène 3D, prise ici, juste après son rendu (le tampon est encore plein) : les éclats de l'écran en font des loupes — voir moteur/intro-161.js

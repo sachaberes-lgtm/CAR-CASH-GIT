@@ -1,0 +1,61 @@
+{
+ "carte": "nuages",
+ "qs": "",
+ "charge0": "3.2",
+ "fige": {
+  "tout": {
+   "images": 30,
+   "partVol": 0.73,
+   "appels": 139.17,
+   "tri": 471810,
+   "rendu": 8.713,
+   "boucle": 15.963
+  },
+  "sansDerriere": {
+   "images": 30,
+   "partVol": 0.73,
+   "appels": 138.7,
+   "tri": 471756,
+   "rendu": 8.383,
+   "boucle": 15.793
+  },
+  "sansJumeaux": {
+   "images": 30,
+   "partVol": 0.73,
+   "appels": 138.9,
+   "tri": 485178,
+   "rendu": 8.2,
+   "boucle": 14.71
+  },
+  "sansDessinsLoin": {
+   "images": 30,
+   "partVol": 0.73,
+   "appels": 139.8,
+   "tri": 471747,
+   "rendu": 8.313,
+   "boucle": 15.38
+  },
+  "rien": {
+   "images": 30,
+   "partVol": 0.73,
+   "appels": 140.03,
+   "tri": 485175,
+   "rendu": 8.087,
+   "boucle": 14.953
+  }
+ },
+ "etat": {
+  "s": 1641,
+  "zone": {
+   "carte": "nuages",
+   "meteo": "matin",
+   "teinte": null,
+   "ciel": "nuagesMatinCC",
+   "pluie": 0,
+   "nuit": 0,
+   "orage": false
+  }
+ },
+ "exc": [],
+ "charge1": "2.9"
+}

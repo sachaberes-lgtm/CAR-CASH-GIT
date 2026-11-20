@@ -213,6 +213,7 @@ voitures/buildcar.js                 # buildCar : construire une voiture
 voitures/plaque.js                   # la plaque d'immatriculation, le profil
 interface/vignette-moteur.js         # vignette moteur, étapes de chauffe
 rendu/ciel2.js                       # le ciel en deux temps (CIEL2)
+rendu/brume-loin.js                  # au téléphone, ce que la brume a mangé (au-delà de fog.far) n'est plus envoyé (?sans=brume)
 gameplay/pickups-fruits.js           # pièces pixel, l'étal de fruits
 gameplay/fruits-nouveaux.js           # les nouveaux fruits : 9 normaux + formes des 5 fruits-pouvoirs, les 13 anciens rangés dans FRUIT_EXO
 voitures/deblocage.js                # moteurs, déblocage, conditions des 50
@@ -331,8 +332,10 @@ moteur/cadence.js                    # la cadence stable (CAD)
 moteur/poste-juge.js                 # le juge du régime de l'ordinateur (POSTE) : baisse / remonte d'une visite à l'autre, dbgPoste
 moteur/gouverneur-thermique.js        # le gouverneur thermique MOB_G : dose de chaleur sans capteur, état iOS (cc:thermique), calage sur 30
 moteur/gouverneur-paliers.js           # le gouverneur pilote le coût GPU par paliers de dose (résolution, halo, ombre, ciel lisse, vent, émission)
+moteur/pilote-qualite.js               # LE PILOTE DE QUALITÉ (17/11) : un seul décideur, le cran K 0-12, départ lu sur les conditions, pose aux moments invisibles, dbgPilote
 moteur/mobh-regime-chaud.js            # MOBH_ : le régime chaud (?mobh_chaud=1), effets décoratifs allégés quand mobChaud()
 moteur/profil-juge.js                  # LE JUGE DU PROFIL de l'iPhone : la classe tenue en course (deux courses lentes → un cran plus bas, mur 1-2-4-8 j), le témoin en vol, dbgJuge
+moteur/flushtot.js                   # l'image envoyée tôt à la puce (gl.flush juste après le rendu, ?sans=flushtot) — FLUSHT, dbgFlushtot
 moteur/boucle-1.js                   # loop() : LA BOUCLE DE JEU — début, overdrive, pouvoirs, turbo, pilote auto
 moteur/boucle-2-conduite.js          # loop() — en course : anti-idle, momentum, drift, bord, portail, flaques
 moteur/boucle-3-physique.js          # loop() — en course : la conduite (physique au sol et en vol)

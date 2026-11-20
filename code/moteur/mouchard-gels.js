@@ -22,6 +22,9 @@ const MG=(function(){let on=false;
     sec:{hS:0,nL:0,nR:0,acH:-1,acT:0,gc:0,gcA:-1,fMax:0,lMax:0},
     fTs:-1,fN:0,fL:0,pT:0,pDue:0,pDeb:0,pMax:-1,pOn:false,pArm:false,sT:null,pc:null, /* (lot RETOURPIVOT) rappels rAF dans l'image d'écran en cours (tous, loop) · le POULS : dernier battement, plus long silence depuis l'image calculée d'avant */
     sen:false,senV:-1,ref:null,senT:0,mgt:false,gcT:0,lourde:null};})();
+/* (2026-11-18, lot sondecalme) l'interrupteur de la mesure corrigée : `?sans=sondecalme` = la boîte de vol d'avant (ni CAD.rN remis à zéro au départ, ni horodatage des
+   battements natifs, ni étiquette des readPixels) ; voir aussi natif.js et JeuViewController.swift (SondeNatif) */
+const SDCALME=(function(){try{return !/[?&]sans=[^&]*sondecalme/.test(location.search);}catch(e){return true;}})();
 /* (lot MESURE-RAFALES, 2026-11-17) l'état des rafales — voir « LES RAFALES » en fin de morceau. on : avec le mouchard, sauf `?sans=rafales` */
 const MGR={on:false,senDOn:false,dwM:16.7,senDv:-1,senR:-1,senF:-1,mes:0,senDAv:-1,senRAv:-1,senFAv:-1,hCur:-1,hAv:-1,
   spN:[''],spI:{},sd:new Float64Array(96),spP:[],spPn:0,sk:0,s0:0,nPas:-1,
@@ -223,9 +226,29 @@ function mgYPose(){const q=location.search,env=!/[?&]sans=[^&]*glenvois/.test(q)
     if(!d||typeof d.value!=='function'||!d.writable||d.value.__mg)return; /* (3e tour) déjà enveloppé par nous : rien (mgYGarde repose sans doubler) */
     const fam=deux?(c2.test(nm)?1:-1):sync.test(nm)?0:(env&&envoi.test(nm))?2:-1;if(fam<0)return;
     const id=mgYId(nm,fam),g=d.value;
-    const w=function(){const t=performance.now();try{return g.apply(this,arguments);}finally{mgY(id,fam,performance.now()-t);}};w.__mg=1;P[nm]=w;});};
+    const w=(SDCALME&&nm==='readPixels')? /* (lot sondecalme) readPixels : aussi compté PAR APPELANT (c.Y « gl readPixels ← qui »), après le chrono ; « gl readPixels » reste le total */
+      function(){const t=performance.now();try{return g.apply(this,arguments);}finally{const d9=performance.now()-t;mgY(id,fam,d9);mgYParQui(nm,fam,d9);}}:
+      function(){const t=performance.now();try{return g.apply(this,arguments);}finally{mgY(id,fam,performance.now()-t);}};w.__mg=1;P[nm]=w;});};
   fait(window.WebGLRenderingContext&&WebGLRenderingContext.prototype,false);fait(window.WebGL2RenderingContext&&WebGL2RenderingContext.prototype,false);
   fait(window.CanvasRenderingContext2D&&CanvasRenderingContext2D.prototype,true);}
+/* ===== QUI APPELLE readPixels (2026-11-18, lot sondecalme — vol 1118-0416 : 16 à 64 « gl readPixels » synchrones par course, jusqu'à 255 ms, sans savoir qui) =====
+   La pile de l'appel (new Error().stack : quelques dizaines de µs, pour un appel rare), sans nos propres cadres ni ceux de three.js (vendor/) : le premier cadre du JEU
+   donne l'étiquette « nom l.LIGNE » (la ligne d'index.html : `node code/assembler.cjs` dit quel morceau ; un rappel anonyme n'a que sa ligne). 12 étiquettes au plus
+   (les cases de c.Y sont comptées : 96), au-delà « autre ». Seulement le nombre, les ms et le pire, comme les autres lignes de c.Y : rien n'entre dans les familles
+   (mgY l'a déjà fait). `?sans=sondecalme` : plus d'étiquette. */
+function mgYQui(){let s='';try{s=String(new Error().stack||'');}catch(e){return '?';}
+  const L=s.split('\n');let k=0;
+  for(let i=0;i<L.length;i++){const l=L[i].trim();if(!l||/^Error\b/.test(l))continue;
+    const m=/^at (?:(.+?) \()?(.+?):(\d+):\d+\)?$/.exec(l)||/^(?:(.*?)@)?(.+?):(\d+):\d+$/.exec(l);if(!m)continue;
+    if(k++<3)continue; /* mgYQui, mgYParQui, l’enveloppe */
+    if(/vendor\/|three[^\/]*\.js/.test(m[2]))continue;
+    const nm=(m[1]||'').replace(/^(?:Object\.|new |async )/,'');
+    return (nm&&nm!=='anonymous'&&nm!=='<anonymous>'?nm+' ':'')+'l.'+m[3];}
+  return '?';}
+function mgYParQui(nm,fam,d){const R=MGR;let q=mgYQui(),k=fam+nm+' ← '+q;
+  if(R.yI[k]===undefined&&(R.quiN|0)>=12){q='autre';k=fam+nm+' ← autre';}
+  if(R.yI[k]===undefined)R.quiN=(R.quiN|0)+1;
+  const i=mgYId(nm+' ← '+q,fam);if(i<0)return;R.yMs[i]+=d;R.yC[i]++;if(d>R.yMx[i])R.yMx[i]=d;}
 if(MG.on)try{const q=location.search;
   if(!/[?&]sans=[^&]*rafales/.test(q)){MGR.on=true;MGR.senDOn=MG.sen&&!/[?&]sans=[^&]*sendebut/.test(q);mgYPose();}
 }catch(e){MGR.on=false;MGR.senDOn=false;}

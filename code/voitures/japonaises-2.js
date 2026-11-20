@@ -120,7 +120,7 @@ function japRuban(P,w){const n=P.length,h=w/2,G=[],D=[];for(let i=0;i<n;i++){con
 function japEchelle(P,k){let cx=0,cy=0;for(const p of P){cx+=p[0];cy+=p[1];}cx/=P.length;cy/=P.length;return P.map(p=>[cx+(p[0]-cx)*k,cy+(p[1]-cy)*k]);}
 /* LA PRÉCHAUFFE (comme `perleTraits`) : la tôle de chaque japonaise découpée au plan une fois, pendant la préchauffe du menu (`chauffeDivers`) —
    le gabarit tourne dans un chantier muet (`K.muet` : il s'arrête après la tôle) et garde sa découpe sur sa fonction (`_tole`). Une caisse par appel. */
-function japChauffe(){for(const n of ['mx5rf','mx5na','ae86','corolla','pikes']){const F=typeof SHAPES==='object'&&SHAPES[n];if(!F||F._tole)continue;
+function japChauffe(){for(const n of ['mx5rf','mx5na','ae86','pikes']){ /* (2026-11-18) 'corolla' sorti : LA FIDÈLE est retirée du jeu, plus rien ne la montre */const F=typeof SHAPES==='object'&&SHAPES[n];if(!F||F._tole)continue;
     const nA=(typeof BLING==='object'&&BLING&&BLING.anim)?BLING.anim.length:-1;
     try{F({kit:pal=>lpKit(typeof peintPal==='function'?peintPal(pal):pal),commit:kt=>{const gs=kt.done();for(const g in gs)gs[g].dispose();},mats:{},add:o=>o,muet:1});}catch(e){console.warn('japChauffe',n,e);}
     if(!F._tole)F._tole=1;   /* (27/10) un gabarit taillé à la main (la Lame, la Cerise…) ne pose jamais `_tole` : sans cette marque la préchauffe le rejouait à chaque appel et n'arrivait plus jamais à l'AE86, à la Corolla ni à la Pikes */

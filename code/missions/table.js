@@ -17,9 +17,9 @@ const M2=[
   /* (2026-11-10, Sacha : « on gagne toutes les missions trop vite dès le début du jeu, rends-les plus longues et plus dures ») seuils relevés ; l'id est une clé de sauvegarde, il GARDE son ancien nombre : fig2 2→4 · fig5 5→8 · air5 5→8 s · parf10 10→15 · fren30 30→45 s · kmh1000 1000→1500 · vie5min 5→8 min · tours5 5→8 · aura10k 10 000→20 000 · aura20k 20 000→40 000 · eng10 10→14 · eng20 20→25 ; les récompenses ne bougent pas ; celles qui sont déjà réussies le restent (SAVE.d.m2.ok) */
   // EXPLOITS — à réussir en une seule partie
   {id:'fig2',f:'exploit',k:'fig',v:6,u:'',r:{cash:1000},t:'FAIS {v} FIGURES DANS UN SEUL SAUT',en:'LAND {v} TRICKS IN A SINGLE JUMP'},
-  {id:'fig5',f:'exploit',k:'fig',v:12,u:'',r:{car:'LE SCARABÉE'},t:'FAIS {v} FIGURES DANS UN SEUL SAUT',en:'LAND {v} TRICKS IN A SINGLE JUMP'},
+  {id:'fig5',f:'exploit',k:'fig',v:12,u:'',r:{cash:15000},t:'FAIS {v} FIGURES DANS UN SEUL SAUT',en:'LAND {v} TRICKS IN A SINGLE JUMP'}, /* (2026-11-18, Sacha) avant : LE SCARABÉE — retiré du jeu, l'argent à la place — montant posé par Claude, À VALIDER PAR SACHA */
   {id:'air5',f:'exploit',k:'airP',v:12,u:'s',r:{cash:2000},t:'RESTE {v} S EN L\'AIR, PUIS POSE-TOI EN PARFAIT',en:'STAY {v} S IN THE AIR, THEN LAND A PERFECT'},
-  {id:'parf10',f:'exploit',k:'parf',v:25,u:'',r:{car:'LE COMBI'},t:'FAIS {v} POSES PARFAITES D\'AFFILÉE',en:'LAND {v} PERFECTS IN A ROW'},
+  {id:'parf10',f:'exploit',k:'parf',v:25,u:'',r:{cash:25000},t:'FAIS {v} POSES PARFAITES D\'AFFILÉE',en:'LAND {v} PERFECTS IN A ROW'}, /* (2026-11-18, Sacha) avant : LE COMBI — il devient la secrète `nuages10`, l'argent à la place — montant posé par Claude, À VALIDER PAR SACHA */
   {id:'fren',f:'exploit',k:'frenT',v:15,u:'s',r:{cash:10000},t:'TIENS LA FRÉNÉSIE {v} S',en:'HOLD FRENZY FOR {v} S'}, /* (2026-11-11) avant : ATTEINS LA FRÉNÉSIE (oui/non), tombée dès la 1re partie */
   {id:'fren30',f:'exploit',k:'frenT',v:60,u:'s',r:{cash:25000},t:'TIENS LA FRÉNÉSIE {v} S',en:'HOLD FRENZY FOR {v} S'}, // (2026-10-19, Sacha) avant : traînée sang — absente du garage, l'argent à la place
   {id:'kmh1000',f:'exploit',k:'kmh',v:1800,u:'kmh',r:{cash:20000},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
@@ -45,7 +45,7 @@ const M2=[
   {id:'car20',f:'collection',k:'cars',v:20,u:'',r:{cash:300000},t:'COLLECTE {v} VOITURES',en:'COLLECT {v} CARS'},
   {id:'carall',f:'collection',k:'carsT',v:'tot',u:'',r:{car:'LE TRÔNE CENTRAL'},t:'COLLECTE TOUTES LES VOITURES',en:'COLLECT EVERY CAR'},
   /* (2026-10-22, Sacha : « tableau des voitures ») LA DOLORÈS : « débloque toutes les voitures rares » (celles qui s'achètent : les rares gagnées par mission ne comptent pas, sinon elle se bloquerait elle-même) ; l'ancienne mission « DÉPASSE 1000 KM/H » paie 20 000 $ à la place (À VALIDER PAR SACHA) */
-  {id:'rares',f:'collection',k:'raresT',v:'tot',u:'',r:{car:'LA DOLORÈS'},t:'DÉBLOQUE TOUTES LES VOITURES RARES',en:'UNLOCK EVERY RARE CAR'},
+  {id:'rares',f:'collection',k:'raresT',v:'tot',u:'',r:{cash:150000}, /* (2026-11-18, Sacha) avant : LA DOLORÈS — elle devient la secrète `mois1`, l'argent à la place — montant posé par Claude, À VALIDER PAR SACHA */t:'DÉBLOQUE TOUTES LES VOITURES RARES',en:'UNLOCK EVERY RARE CAR'},
   /* (2026-10-22, Sacha) LE CHARGEUR : « réussir 10 missions » — secrète, comme dans le tableau */
   /* (2026-10-22, Sacha : « tableau des voitures ») les caisses à compteur À VIE (m2Val : pu, nitS, nmaxS, figs, airS, revives, glace) */
   {id:'pu100',f:'exploit',k:'pu',v:250,u:'',r:{car:'LE DÉFIEUR'},t:'RAMASSE {v} POWER-UPS',en:'PICK UP {v} POWER-UPS'},
@@ -53,8 +53,8 @@ const M2=[
   {id:'figs500',f:'exploit',k:'figs',v:1000,u:'',r:{car:'ATCHOUM'},t:'FAIS {v} FIGURES',en:'LAND {v} TRICKS'},
   {id:'nit2000',f:'exploit',k:'nitS',v:4000,u:'s',r:{car:'LA TAURINE'},t:'BRÛLE {v} S DE NITRO',en:'BURN {v} S OF NITRO'},
   {id:'air1000',f:'exploit',k:'airS',v:2000,u:'s',r:{car:'LE MASTODONTE'},t:'PASSE {v} S EN L\'AIR',en:'SPEND {v} S IN THE AIR'},
-  {id:'verglas100',f:'exploit',k:'verglasKm',v:200,u:'km',r:{car:'L\'ICEBERG'},t:'ROULE {v} KM SUR LE VERGLAS (GLACIER)',en:'DRIVE {v} KM ON THE BLACK ICE (THE GLACIER)'},
-  {id:'km100k',f:'exploit',k:'kmTot',v:20000, /* (2026-11-05, Opus : jury ECO-06) 100 000 km = 250 h de conduite : 10 000 km (~25-30 h), l'ordre des autres compteurs à vie */u:'km',r:{car:'LA QUEUE DE CANARD'},t:'ROULE {v} KM',en:'DRIVE {v} KM'},
+  {id:'verglas100',f:'exploit',k:'verglasKm',v:200,u:'km',r:{cash:30000}, /* (2026-11-18, Sacha) avant : L'ICEBERG — elle passe en boutique (l'offre de l'hiver), l'argent à la place — montant posé par Claude, À VALIDER PAR SACHA */t:'ROULE {v} KM SUR LE VERGLAS (GLACIER)',en:'DRIVE {v} KM ON THE BLACK ICE (THE GLACIER)'},
+  {id:'km100k',f:'exploit',k:'kmTot',v:20000, /* (2026-11-05, Opus : jury ECO-06) 100 000 km = 250 h de conduite : 10 000 km (~25-30 h), l'ordre des autres compteurs à vie */u:'km',r:{cash:100000},t:'ROULE {v} KM',en:'DRIVE {v} KM'}, /* (2026-11-18, Sacha) avant : LA QUEUE DE CANARD — retirée du jeu, l'argent à la place — montant posé par Claude, À VALIDER PAR SACHA */
   {id:'meteo',f:'exploration',k:'meteoMap',v:'tot',u:'',r:{car:'LA STRATOS'},t:'JOUE UNE MAP SOUS TOUTES SES MÉTÉOS',en:'PLAY ONE MAP IN EVERY WEATHER'},
   {id:'silence',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA SILENCIEUSE'},t:'FAIS UNE PARTIE SANS SON NI MUSIQUE',en:'PLAY A WHOLE RUN WITH SOUND AND MUSIC OFF (SETTINGS)'},
   /* (2026-10-22, Sacha : « HOT ROD : atteindre le palier 10 du moteur avec la musique activée ») secrète : `m2Tick` pose le drapeau `palier10` (engTier + 1 ≥ 10, SND.music allumé) */
@@ -86,7 +86,7 @@ const M2=[
   {id:'nitplein',f:'secret',k:'flag',v:1,u:'b',r:{cash:10000},t:'MEURS LA JAUGE DE NITRO PLEINE',en:'DIE WITH A FULL NITRO TANK'}, // (2026-10-19, Sacha) avant : LA BOULE — absente du garage, l'argent à la place
   {id:'air0',f:'secret',k:'flag',v:1,u:'b',r:{cash:20000},t:'MEURS PILE À 0 S DE VOL RESTANT',en:'DIE WITH EXACTLY 0 S OF AIRTIME LEFT'}, /* (2026-10-22, Sacha : « tableau des voitures » : LE SPECTRE passe à l'argent ; avant : LE SPECTRE — À VALIDER */
   {id:'kmh2000',f:'secret',k:'kmh',v:2000,u:'kmh',r:{cash:25000},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'}, /* (2026-10-22, Sacha : « tableau des voitures » : LE MUR DU SON passe en boutique ; avant : LE MUR DU SON — À VALIDER */
-  {id:'lave',f:'secret',k:'flag',v:1,u:'b',r:{car:'L\'AIGLE DE FEU'},t:'ROULE DANS LA LAVE',en:'DRIVE INTO THE LAVA'},
+  {id:'lave',f:'secret',k:'flag',v:1,u:'b',r:{cash:20000},t:'ROULE DANS LA LAVE',en:'DRIVE INTO THE LAVA'}, /* (2026-11-18, Sacha) avant : L'AIGLE DE FEU — elle passe en boutique (1,61 €), l'argent à la place — montant posé par Claude, À VALIDER PAR SACHA */
   {id:'abysse',f:'secret',k:'prof',v:'prof',u:'',r:{cash:15000},t:'DESCENDS 400 M DANS LES PICS DE JADE',en:'DROP 400 M IN THE JADE PEAKS'} /* (2026-11-12) la mer de Jade est retirée : l'abysse devient la descente entre les pics flottants */, // (2026-10-20, Sacha : LE SQUALE passe à la boutique payante, 1,61 €) avant : LE SQUALE — il ne se gagne plus, l'argent à la place (15 000 $ : comme LE GLACIER et LA DEUCHE, À VALIDER PAR SACHA)
   {id:'nuage30',f:'secret',k:'vol',v:45,u:'s',r:{cash:20000},t:'RESTE {v} S EN L\'AIR AU-DESSUS DES NUAGES',en:'STAY {v} S IN THE AIR ABOVE THE CLOUDS'}, /* (2026-10-22, Sacha : « tableau des voitures » : LA CAISSE-NUAGE retirée ; avant : LA CAISSE-NUAGE — À VALIDER */
   {id:'terre',f:'secret',k:'flag',v:1,u:'b',r:{car:'COMÈTE'},t:'FAIS UN SALTO DEVANT LA TERRE',en:'FLIP IN FRONT OF THE EARTH'},
@@ -96,7 +96,15 @@ const M2=[
   {id:'rejoue10',f:'secret',k:'rejoue',v:15,u:'',r:{car:'LE SHIBA'},t:'REJOUE {v} FOIS DE SUITE SANS REVENIR AU MENU',en:'REPLAY {v} TIMES IN A ROW WITHOUT THE MENU'},
   {id:'nuit3h',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA NOCTAMBULE'},t:'JOUE À 3 H DU MATIN',en:'PLAY AT 3 AM'},
   {id:'jours7',f:'secret',k:'jours',v:10,u:'',r:{cash:25000},t:'JOUE {v} JOURS DIFFÉRENTS',en:'PLAY ON {v} DIFFERENT DAYS'}, // (2026-10-19, Sacha) avant : LA DÉESSE — absente du garage, l'argent à la place
-  {id:'jours30',f:'secret',k:'jours',v:30,u:'',r:{cash:25000},t:'JOUE {v} JOURS DIFFÉRENTS',en:'PLAY ON {v} DIFFERENT DAYS'}]; /* (2026-10-22, Sacha : « tableau des voitures » : L'ÉTERNELLE passe en boutique ; avant : L\'ÉTERNELLE — À VALIDER */
+  {id:'jours30',f:'secret',k:'jours',v:30,u:'',r:{cash:25000},t:'JOUE {v} JOURS DIFFÉRENTS',en:'PLAY ON {v} DIFFERENT DAYS'},
+  /* ===== LES DEUX SECRÈTES DU TRI DES VOITURES (2026-11-18, Sacha : « La combi, mets-la en voiture secrète, qui se débloque après avoir passé 10 niveaux dans les nuages. La Dolores aussi […]
+     C'est après avoir téléchargé le jeu depuis 1 mois. Pas avoir joué tous les jours depuis 1 mois, mais avoir téléchargé le jeu depuis 1 mois ») =====
+     `nuagesPasse` : les PORTAILS franchis en sortant d'un niveau de la mer de nuages (carte 'nuages', toutes météos), comptés à vie dans `m2.c.sc.nuages_passes` par secPorte
+     (defis-moteur.js) — un compteur NEUF : il part de 0 pour tout le monde à cette version (aucun compteur d'avant ne disait les niveaux FINIS par map).
+     `installJ` : les jours entiers depuis la naissance du compte (`SAVE.d.prof.ne`, posé au tout premier lancement ; une sauvegarde d'avant le 17/10 l'a reçu ce jour-là).
+     Une fois réussie, une mission le reste (`m2.ok`) : reculer l'horloge ne reverrouille rien. */
+  {id:'nuages10',f:'secret',k:'nuagesPasse',v:10,u:'',r:{car:'LE COMBI'},t:'PASSE {v} NIVEAUX DANS LES NUAGES',en:'CLEAR {v} LEVELS IN THE CLOUDS'},
+  {id:'mois1',f:'secret',k:'installJ',v:30,u:'',r:{car:'LA DOLORÈS'},t:'GARDE LE JEU {v} JOURS',en:'KEEP THE GAME FOR {v} DAYS'}]; /* (2026-10-22, Sacha : « tableau des voitures » : L'ÉTERNELLE passe en boutique ; avant : L\'ÉTERNELLE — À VALIDER */
 /* les réglages des détections (mesurés : voir le journal) — `partie` : une « partie entière » dure au moins ça (s de conduite), sinon trois
    caisses tombaient en mourant à la 2e seconde ; `frole` : la distance (m) d'un flanc de tour qui compte comme frôlé ; `prof` : le fond de
    la mer de Jade (m sous la surface) — EAU.fond n'est jamais atteint (la poussée ramène avant), le seuil est le fond qu'on atteint vraiment. */

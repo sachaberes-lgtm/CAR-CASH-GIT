@@ -430,10 +430,10 @@ function shopRender(){
     if(!im)shopPhotoVeut(big?'u'+i:i); /* (revue GAMEPLAY) jamais d'image EN SYNCHRONE : la file les prend une par une ('u' : la grande boîte) */
     if(big){ /* L'OFFRE À LA UNE : la grande boîte, dans le cadre qui scintille (`.shUne`) */
       hU='<div class="shUneCadre shUneBoite b-'+ri.id+'" style="--rc:'+ri.c+'">'+bx
-        +'<div class="shUneTx"><b>'+nom+'</b>'+shArcHtml(i,a)+'</div>' /* (2026-10-15 soir, Sacha : « enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien ») plus de phrase sous le nom : la fenêtre d'achat la garde */
-        +'<div class="shUneBas"><em>'+prixTxt(i,u.eur)+'</em><span class="shBtn">'+pxi('panier')+TR('ACHETER')+'</span></div></div>';
+        +'<div class="shUneTx">'+promoBandeau(i)+'<b>'+nom+'</b>'+shArcHtml(i,a)+'</div>' /* (2026-10-15 soir, Sacha : « enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien ») plus de phrase sous le nom : la fenêtre d'achat la garde */
+        +'<div class="shUneBas">'+prixBarreHtml(i)+'<em>'+prixTxt(i,u.eur)+'</em><span class="shBtn">'+pxi('panier')+TR('ACHETER')+'</span></div></div>';
       une.setAttribute('data-car',i);return;}
-    const px=a?pxi('coche')+sansAcc(TR('À TOI')):prixTxt(i,u.eur),
+    const px=a?pxi('coche')+sansAcc(TR('À TOI')):prixBarreHtml(i)+prixTxt(i,u.eur), /* (2026-11-18) l'offre de l'hiver : le prix d'avant barré, si la caisse n'est pas à la une */
       lg=Math.max.apply(null,sansAcc(TR(CARS[i].name)).split(/\s+/).map(function(w){return w.length;}))>=10; /* un mot de 10 lettres et plus (L'ÉTERNELLE) : la plaque l'écrit plus petit quand la boîte est étroite, au lieu de le couper en deux (achat-boites.css) */
     hG+='<div class="shCase shBoite b-'+ri.id+(a?' aToi':'')+'" data-m="shopSoon" data-car="'+i+'" role="button" style="--rc:'+ri.c+';--i:'+Math.min(n++,8)+'"'
       +' aria-label="'+(nom+' · '+(a?sansAcc(TR('À TOI')):prixTxt(i,u.eur))).replace(/"/g,'')+'">'+bx
