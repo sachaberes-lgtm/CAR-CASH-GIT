@@ -281,44 +281,12 @@ const FLOU_R=[['uniform float uSafe,uRn;','uniform float uSafe,uRn;uniform vec4 
   FLOU_RO=[['ca=dc*amt*0.015*smoothstep(.45,.9,rb);','ca=dc*amt*0.006*smoothstep(.55,.95,rb);']]; // (ordi seul : absente du programme du téléphone)
 function flouFS(f,v){const a=v?0:1,b=v?1:0;for(const r of FLOU_R)if(f.indexOf(r[a])<0)return f; // une ligne retouchée ailleurs : on ne touche à rien
   for(const r of FLOU_R.concat(FLOU_RO))f=f.replace(r[a],r[b]);return f;}
-/* LE FLOU V2 ÉTAIT ÉTEINT DEPUIS LE 17/11 (2026-11-19, lot flouvitesse — Sacha, 18/11 : « sur les côtés […] un effet de flou […] Si c'est un bug, corrige-le ») : C'ÉTAIT UN BUG.
-   « Voiles au tiers » (3df790c92) a ajouté `uSfx` à la ligne `uniform float uSafe,uRn;` → `uSafe,uRn,uSfx;` : la retouche FLOU_R ne trouvait plus sa ligne et ne touchait à
-   rien (sa règle : « une ligne retouchée ailleurs »), NET_NITRO2 non plus. Le jeu rendait donc le flou V1 du 30/09 : dès la croisière rapide (le voile CAM_HEROS, uSpeed .2)
-   tout le tour de l'image filait, de ~8 % de sa largeur au coin (V2 : ~1 %, la croisière reste presque nette) ; tunnel .55 au lieu de .30 ; et entre uSpeed .004 et ~.05
-   le shader floutait sans que flouMips (seuil de la courbe V2) ne fabrique les mips. Vu au banc : planches du 19/11 (passation/qualite/flouvitesse.md).
-   On rend sa ligne à ces retouches (même déclaration, coupée en deux) : flou V2 et cœur des rubans (NET_NITRO2) reviennent. `?sans=flouvitesse` = avant. */
+/* LE FLOU V2 ÉTAIT ÉTEINT DEPUIS LE 17/11 (2026-11-20, lot flouvitesse 2e manche — Sacha, 18/11 : « Si c'est un bug, corrige-le » ; puis « pas de chantier en plus ») : UN BUG, réparé seul.
+   « Voiles au tiers » (3df790c92) a changé `uniform float uSafe,uRn;` en `uSafe,uRn,uSfx;` : la retouche FLOU_R ci-dessus et NET_NITRO2 plus bas ne trouvaient plus leur ligne
+   et ne touchaient à rien. Le jeu rendait le flou V1 du 30/09 (en croisière rapide tout le tour de l'image bavait, tunnel sombre .55) et le cœur des rubans restait flou au nitro.
+   On coupe la ligne en deux (même déclaration) : les deux retouches la retrouvent, le programme redevient celui d'avant le 17/11. `?sans=flouvitesse` = l'avant, bug compris. */
 if(!/[?&]sans=[^&]*\bflouvitesse\b/.test(location.search))ACESShader.fragmentShader=ACESShader.fragmentShader.replace('uniform float uSafe,uRn,uSfx;','uniform float uSfx;uniform float uSafe,uRn;');
 ACESShader.fragmentShader=flouFS(ACESShader.fragmentShader,1);
-/* ===== LE FLOU DE VITESSE EN STRIES (2026-11-19, finition, Sacha : « si ça marche pour l'optimisation, on peut faire un flou un peu plus stylé. Là, il est un peu moche ») =====
-   Le flou V2 rendu, au téléphone chaque prise lit l'image PRÉ-FLOUTÉE (FLOU_MIPS) d'un flou ROND aussi large que l'écart entre deux prises : au nitro le bord s'étale
-   autant DE TRAVERS que dans le sens de la fuite — un voile, pas un filé. Quatre retouches, aucune passe, aucune cible, aucun programme de plus (compilé au chargement) :
-   · STRIES : la longueur du filé varie avec l'ANGLE autour de la caisse (deux ondes de fréquences entières, 640 et 1035 sur le tour, pseudo-angle sans atan) — deux pixels voisins de travers
-     filent de longueurs différentes, l'image se raye dans le sens de la fuite ; le long d'un rayon rien ne change (pas de grain, image stable d'une image à l'autre) ;
-   · PRISES PONDÉRÉES : la prise la plus proche du pixel pèse ~1,4, la plus lointaine ~0,6 (moyenne inchangée) — l'objet reste lisible, sa traînée s'efface vers l'arrière ;
-   · PRÉ-FLOU RÉDUIT d'un demi-niveau (téléphone) : les stries cassent les copies que ce flou rond cachait, moins de voile de travers ;
-   · UNE PRISE DE MOINS (téléphone : 5 lectures au lieu de 6, FLOU_PRISES ; ?prises9=6 = six) : le pré-flou s'élargit d'autant (lodF) — paye les stries. Ordinateur : 8 prises, inchangé.
-   Les stries ne se calculent que là où le flou joue (amt > 0) : rien de plus dans le disque de la caisse.
-   Le disque net de la caisse (ms), le rayon où le flou commence (uFv.x) et la courbe de vitesse (sp) ne bougent pas : caisse et centre aussi nets qu'avant ; montée douce
-   en croisière, nitro plus marqué (sp ×12 entre croisière rapide et nitro).
-   uFz = (force des stries, nombre de stries sur le tour, pente des poids, biais du niveau de mip). `?sans=flouvitesse` = avant ; dbgFlouStyle({on,z}) au banc (outils/banc-flouvitesse). */
-const FLOU_STY=!/[?&]sans=[^&]*\bflouvitesse\b/.test(location.search);
-ACESShader.uniforms.uFz={value:new THREE.Vector4(.9,640,.5,-.5)};
-const FLOU_PRISES=FLOU_MIPS&&ACES_N===6&&!/[?&]prises9=6\b/.test(location.search)?5:ACES_N; /* (téléphone) les prises du filé : 5 au lieu de 6 (le pré-flou des mips s'élargit d'autant, lodF) — paye les stries ; ?prises9=6 = six */
-const FLOU_STY_R=(function(f){const R=[],a='    float amt=sp*uFv.y*e*ms; vec3 acc=vec3(0.0);',i=f.indexOf('      acc+=',f.indexOf(a)),j=i<0?-1:f.indexOf('.rgb; }',i);
-  if(f.split(a).length!==2||j<0||f.split('uniform vec4 uFv;').length!==2)return null; /* une ligne retouchée ailleurs : on ne touche à rien */
-  R.push(['uniform vec4 uFv;','uniform vec4 uFv;uniform vec4 uFz;\nfloat strie9(float a,float n){a*=6.2831853;return 0.5+0.25*(sin(a*n)+sin(a*floor(n*1.618)+1.3));}']); /* deux ondes de fréquences entières (raccord sans couture), sans rapport simple : un motif qui ne se répète pas à l'œil ; ~3× moins d'opérations que le bruit lissé (deux hachages + modulo) essayé d'abord */
-  R.push([a,a+'\n    if(amt>0.0){ vec2 q9=dc/uRes; float p9=q9.y/(abs(q9.x)+abs(q9.y)+1e-6); amt*=1.0+uFz.x*(2.0*strie9((q9.x<0.0?2.0-p9:(q9.y<0.0?4.0+p9:p9))*0.25,uFz.y)-1.0); }']);
-  const N9=FLOU_PRISES,k9=(ACES_N/N9).toFixed(4),L=f.slice(i,j+7);R.push([L,L.replace('.rgb; }','.rgb*('+k9+'+'+k9+'*uFz.z*(1.0-2.0*t)); }')]); /* ×N/prises : x=acc/N reste la moyenne */
-  if(FLOU_MIPS)R.push(['/uRes),1e-4))+0.5,0.0);','/uRes),1e-4))+0.5+uFz.w,0.0);']);
-  if(N9<ACES_N){const t1=' float t=(float(i)+jt)/'+ACES_N+'.0;',l1='(0.62/'+ACES_N+'.0)/uRes)';if(f.split(t1).length!==2||f.split(l1).length!==2)return null;
-    R.push([t1,' if(i>='+N9+')break; float t=(float(i)+jt)/'+N9+'.0;']);R.push([l1,'(0.62/'+N9+'.0)/uRes)']);} /* (téléphone) une prise de moins : l'en-tête de la boucle et x=acc/N ne bougent pas (LA CAISSE NETTE AU NITRO les cherche) */
-  return R;})(ACESShader.fragmentShader);
-function flouSty(f,on){if(!FLOU_STY_R||(f.indexOf('strie9(')>=0)===!!on)return f;const a=on?0:1,b=on?1:0;for(const r of FLOU_STY_R)if(f.split(r[a]).length!==2)return f;for(const r of FLOU_STY_R)f=f.replace(r[a],r[b]);return f;}
-if(FLOU_STY&&FLOU_STY_R){ACESShader.fragmentShader=flouSty(ACESShader.fragmentShader,1);ACESShader._flouSty=1;}
-window.dbgFlouStyle=function(o){o=o||{};if(!acesPass)return null;const M=acesPass.material,U=acesPass.uniforms; /* (banc) on : le programme avec / sans (une recompilation : jamais en course) ; z : les réglages à chaud */
-  if(o.on!=null&&FLOU_STY_R){const g=flouSty(M.fragmentShader,!!o.on);if(g!==M.fragmentShader){M.fragmentShader=g;M.needsUpdate=true;}}
-  if(o.z&&U.uFz)U.uFz.value.fromArray(o.z);
-  return {on:M.fragmentShader.indexOf('strie9(')>=0,pret:!!FLOU_STY_R,z:U.uFz?U.uFz.value.toArray():null,s:+U.uSpeed.value.toFixed(3)};};
 /* ===== LA CAISSE NETTE AU NITRO (2026-11-13, finition iPhone, Sacha : « les traînées et la voiture, ça doit être PARFAIT ») =====
    VU au banc (iPhone 13 Pro émulé, toile 1055×487 agrandie ×2,4, nitro tenue) : dès que le flou de vitesse joue (boost, nitro : `sp` > 0,02), TOUTE l'image
    prenait la branche du flou — et la caisse, au milieu du disque net (là où le flou vaut 0), y recevait 6 prises IDENTIQUES : ni anticrénelage, ni piqué.
