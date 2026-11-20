@@ -571,11 +571,14 @@ function photoTour(){
 }
 /* LA RAFALE SOUS LE VOILE : `ms` de photos d'affilée (les caisses en vue), la caisse regardée rebâtie une seule fois à la fin */
 const PHOTO_RAFALE_MS=300;
-function photoRafale(ms){if(!PHQ.q.length||(started&&!gameOver)||phdbAttend())return 0;
+function photoRafale(ms){if(!PHQ.q.length||(started&&!gameOver)||phdbAttend())return 0;photoHorsChaine(); /* (2026-11-19, boutiquegel) */
   const t0=performance.now(),av=carGroup.userData.lvl;let n=0;PHOTO.chaine=true;PHOTO.avant=av;
-  try{while(performance.now()-t0<ms){const j=photoChoix(true);if(j<0)break;const it=PHQ.q.splice(j,1)[0];
+  let d9=0; /* (2026-11-19, boutiquegel) la durée de la photo d'avant */
+  try{while(performance.now()-t0<ms){if(BQGEL&&n&&performance.now()-t0+d9>ms)break; /* LA RAFALE TIENT SON BUDGET (boutiquegel) : MESURÉ ×4, la 1re ouverture de la boutique 3D figeait le voile 0,77 s (2 à 3 photos de 150 à 260 ms, le budget de 300 ms vérifié AVANT chaque photo, puis la caisse rebâtie) — une photo de plus n'est lancée que si elle tient dans le budget ; les autres viennent par la file (photoTour), une par image au repos. `?sans=boutiquegel` = avant */
+      const j=photoChoix(true);if(j<0)break;const it=PHQ.q.splice(j,1)[0];
       if(PHOTO.cache[it[0]]){it[1](PHOTO.cache[it[0]]);continue;}
-      if(it[2]&&it[2].vt)vitrinePhoto(it[2],function(u9){if(u9)it[1](u9);});else carPhoto(it[0],function(u9){if(u9)it[1](u9);});n++;}}
+      const a9=performance.now();
+      if(it[2]&&it[2].vt)vitrinePhoto(it[2],function(u9){if(u9)it[1](u9);});else carPhoto(it[0],function(u9){if(u9)it[1](u9);});n++;d9=performance.now()-a9;}}
   catch(e){console.warn('photoRafale',e);}
   finally{PHOTO.chaine=false;if(n)try{buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);}catch(e){console.warn('photoRafale',e);}}
   PHQ.pret=performance.now()+120;PHQ.rafale={n:n,ms:Math.round(performance.now()-t0)};return n;}

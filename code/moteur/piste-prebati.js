@@ -157,7 +157,7 @@ function pisteLoin(cam){ // chaque tranche : entière de près, moyenne au-delà
     let et=p9-1>=far?(E.chaud?(ch9&&E.mo&&!PISTE_SANSMOY?1:0):2):(E.mo&&!PISTE_SANSMOY&&(!E.chaud||ch9)&&(pM>=PISTE_MOY_D||hors9))?1:0; /* E.chaud : la tranche moyenne seulement à chaud (rails, nappe) ; pas de maigre — hors9 : LA TRANCHE MOYENNE PAR L'ABSCISSE (les rails et la nappe ne la suivent qu'à chaud, comme le reste de leur moyenne) */ // (1 m de garde au brouillard, comme avant)
     if(et===1&&hors9&&pM<PISTE_MOY_D)nS++;
     if(hz9&&p9>=HZ.d){et=E.lo?2:3;HZ.n++;} /* (L'HORIZON COURT) au loin, la silhouette du bitume seule (et = 3 : rien) */
-    if(et===1&&E.rien&&RLOIN.on&&pM>=PISTE_MOY_D)et=2; /* (2026-11-19, LES DESSINS DU LOIN, voir RLOIN) les motifs peints de la route : rien au-delà de PISTE_MOY_D */
+    if(et===1&&E.rien&&(E.tr||RLOIN.on)&&pM>=E.rien)et=2; /* (2026-11-19, LES DESSINS DU LOIN, voir RLOIN) les motifs peints de la route : rien au-delà de PISTE_MOY_D ; (LES TRAITS DU LOIN, voir TLOIN) les traits et les îlots : au-delà de TLOIN.d */
     if(et!==E.et){E.et=et;E.loin=et===2;E.hi.visible=et===0;if(E.lo)E.lo.visible=et===2;if(E.mo)E.mo.visible=et===1;}}
   if(PISTE_MOYS)PISTE_MOYS.n=nS;
 }

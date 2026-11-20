@@ -3,7 +3,9 @@
 Demande de Sacha (19/11) : « des techniques pour alléger le jeu, des techniques de triche, par exemple supprimer les décors qui sont derrière le joueur. […]
 Si ça peut alléger le jeu, on le fait. Trouve plein de petites techniques comme ça, pour la chauffe, surtout. »
 
-**État (19/11, soir)** : `qa/derriere`, `qa/jumeaux` et `qa/dessinsloin` sont FUSIONNÉES dans `qualite-appareil` (oui de Sacha). `qa/horizon` attend son avis.
+**État (20/11)** : SIX astuces FUSIONNÉES dans `qualite-appareil` (oui de Sacha : « fais tout ce qu'il a dit […] tant que ça ne dommage pas le jeu sérieusement ») :
+`qa/derriere`, `qa/jumeaux`, `qa/dessinsloin` (19/11), `qa/horizon` (546c84f2e), `qa/brume` et `qa/traitsloin` (b86abc0ad, 20/11, chacune passée par un contrôle adverse
+qui a exécuté la course complète au banc : 0 exception). Les autres lignes du tableau sont refusées ou déjà faites par un autre lot (voir « Lot 2 »).
 
 ## En bref (pour Sacha)
 
@@ -47,12 +49,14 @@ Gain = mesuré sur image figée (même image avec / sans), sauf mention. « Appe
 | 1 | **Horizon court** (route) : au-delà de 1,5 km, la route ne garde que la silhouette de son bitume | `piste-prebati.js` (pisteLoin) | canyon −14 appels et **−108 k triangles (−24 %)** ; grotte −3,9 / −31 k ; jade −2,5 / −24 k ; nuages −1,5 ; ville −0,6 | en principe (néons lointains la nuit) ; 0,01-0,16 % de pixels changés sur les clichés, ceux des effets animés | petit | **fait** `qa/horizon` — à montrer à Sacha |
 | 2 | **Jumeaux cachés par la dalle** (fruits, cristaux, pièces) en vol | `boucle-4-effets.js`, `jumVu` (pouvoirs-grisants.js) | voir « Réalisées » | non (caché par la route) | petit | **fait** `qa/jumeaux` |
 | 3 | **Les dessins du loin** : les motifs peints de la route (chevrons, damiers) plus dessinés au-delà de 400 m | `autoroute.js`, pisteLoin | voir « Réalisées » | quasi nul (1-2 pixels) | petit | **fait** `qa/dessinsloin` |
-| 1 bis | Horizon court pour le DÉCOR (34 appels de décor à plus de 1,6 km au canyon) | décors des maps, un par un | non mesuré objet par objet | en principe | moyen | pas fait (suite logique de `qa/horizon`) |
+| 1 bis | **La brume** : ce que la brume a mangé (au-delà de `fog.far` en profondeur de vue) n'est plus envoyé | `rendu/brume-loin.js` | canyon **−18,5 appels, −68 k triangles** ; grotte −12,8 / −35 k ; jade, nuages, ville 0 | non (couleur exacte de la brume) | petit | **fait, fusionné** `qa/brume` |
+| 1 ter | **Les traits du loin** : traits de voie et îlots peints plus dessinés au-delà de 800 m | `autoroute.js`, pisteLoin | jade −2 appels, canyon −0,9, nuages −0,8 | non (un dixième de pixel) | petit | **fait, fusionné** `qa/traitsloin` |
+| 1 quater | Décor du canyon entre 1,6 et 6,5 km (falaises, ouvrages : DANS la brume, pas au-delà) | maps | — | **oui** : les falaises lointaines disparaîtraient | — | refusé (abîme l'image) |
 | 4 | **Le décor dans le dos** : les objets « toujours dessinés » rendus au tri du champ de vision | `instances-segments.js` (derrTri), `canyon-mine.js` | voir « Réalisées » | non | petit | **fait** `qa/derriere` |
-| 5 | Les dessins de la caisse : 24 à 43 appels pour 1 400-6 800 triangles (plaque, feux, pièces mobiles, la loupe) | `voitures/buildcar.js`, `loupe-caisse.js` | jusqu'à ~15 appels en soudant par matière | non si exact, mais touche à la voiture (règle de Sacha) | gros | pas fait |
-| 6 | Les matrices des objets cachés : 920-1 000 objets recalculés à chaque image, dont 550-1 240 cachés | three.js (updateMatrixWorld) | ≤ 0,3-0,8 ms ×4 en tout (grotte au pire) | non | moyen, risqué | pas fait |
-| 7 | L'ombre une image sur deux | `boucle-1.js` (existe déjà en vol loin du sol) | 0,2-0,3 ms ×4 | **oui** : l'ombre traîne de 2-3 m à 300 km/h | petit | déconseillé |
-| 8 | Calculs JS par image à 10 Hz (HUD, effets) | b4 (0,6-1,2 ms), b6 (1,1-1,9 ms) | non mesuré fonction par fonction ici | selon | moyen | à faire avec `outils/banc-jsimage/profil.cjs` |
+| 5 | Les dessins de la caisse : 24 à 43 appels pour 1 400-6 800 triangles (plaque, feux, pièces mobiles, la loupe) | `voitures/buildcar.js`, `loupe-caisse.js` | jusqu'à ~15 appels en soudant par matière | non si exact, mais touche à la voiture (règle de Sacha) | gros | **déjà étudié** (`caisse.md`, 15/11 : gain sûr 0 sur 51 caisses) — refusé |
+| 6 | Les matrices des objets cachés : 920-1 000 objets recalculés à chaque image, dont 550-1 240 cachés | three.js (updateMatrixWorld) | ≤ 0,3-0,8 ms ×4 en tout (grotte au pire) | non | moyen, risqué | refusé (du code lit les matrices d'objets cachés ; gain < 1 ms ×4) |
+| 7 | L'ombre une image sur deux | `boucle-1.js` (existe déjà en vol loin du sol) | 0,2-0,3 ms ×4 | **oui** : l'ombre traîne de 2-3 m à 300 km/h | petit | refusé (l'ombre colle à la caisse : règle « la voiture en dernier ») |
+| 8 | Calculs JS par image à 10 Hz (HUD, effets) | b4 (0,6-1,2 ms), b6 (1,1-1,9 ms) | non mesuré fonction par fonction ici | selon | moyen | **déjà fait** par le lot `jsimage` (16/11, `jsimage.md`) |
 
 ## Réalisées — la mesure exacte
 
@@ -117,3 +121,30 @@ chance, mort, menu, relance, mort, garage : **0 exception, 0 erreur de boucle**.
 Les quatre branches sont indépendantes (`qa/horizon` contient `qa/dessinsloin`). Gain attendu sur le 13 Pro à chaud : quelques appels de dessin par image
 partout, et au canyon ~20 appels et ~130 000 triangles de moins (−12 % d'appels, −28 % de triangles), surtout en vol. À juger au prochain vol (boîte noire) :
 le vrai coût par image au canyon, avant / après.
+
+## Lot 2 (20/11) — la brume et les traits du loin
+
+Mesure sur image figée (`sonde.cjs --etats`, la même image dans chaque état, 10 clichés × 2, édition téléphone), photos comparées pixel à pixel (seuls les effets
+animés diffèrent : anneau, pluie, fruit qui tourne, chevrons du tremplin). Outil nouveau : `outils/banc-astuces/loin.cjs` (chaque objet dessiné au-delà d'une
+distance, avec la brume de la map et le drapeau `fog` de sa matière).
+
+### 5. `qa/brume` — ce que la brume a mangé
+- Quoi : au téléphone (`ALLEGE`), pendant le rendu de la caméra du jeu, un objet dont la matière suit la brume et dont le point le plus proche est au-delà de
+  `fog.far` EN PROFONDEUR DE VUE n'est plus envoyé (le tri de three le jette). La brume linéaire y vaut 1 : il était peint de la couleur exacte de la brume.
+- Contrôle adverse : la 1re version mesurait la DISTANCE (plus grande que la profondeur hors de l'axe) et coupait des objets à 89-93 % de brume (3-4 % de
+  contraste) → corrigé. Vérifié : aucun autre rendu de la scène pendant que la coupe est armée, la passe d'ombre suit (sans effet), brume EXP2 exclue, `fog.far`
+  relu à chaque rendu, PC intact. Course complète : 0 exception, 0 erreur de boucle.
+- Gain : canyon −18,5 appels et −68 000 triangles par image (−12 % / −20 %) ; grotte −12,8 et −35 000 ; jade, nuages, ville : 0 (leur décor s'arrête déjà à la brume).
+- `?sans=brume` ; `?brume=0.8` ; `dbgBrume(on, k)`.
+
+### 6. `qa/traitsloin` — les traits du loin
+- Quoi : la tranche moyenne des « autoroute traits », « pays traits », « autoroute ilots » n'est plus dessinée au-delà de 800 m (téléphone). Les motifs gardent 400 m.
+- Contrôle adverse : traits moyens coupés à 800 m (avant : jusqu'à 1 495 m), bascule indépendante de `dbgDessinsLoin` (corrigé), PC intact, course complète 0 exception.
+  Non vu : une photo de nuit (les plots éclaircis la nuit sont dans les traits ; à 800 m ils font moins d'un pixel).
+- Gain : jade −2 appels, canyon −0,9, nuages −0,8, ville ~0. Petit, mais gratuit.
+- `?sans=traitsloin` ; `?traitsloin=1200` ; `dbgTraitsLoin(on, d)`.
+
+### Le total des six (téléphone, en vol, image figée)
+Canyon : ~−40 appels et ~−200 000 triangles par image (horizon −14 / −108 k, brume −18,5 / −68 k, dessins du loin −4,5, jumeaux et derrière −1,2 / −25 k,
+traits −0,9). Grotte : ~−17 appels, −66 k. Jade : ~−8 appels, −40 k. Nuages, ville : −2 à −3 appels, −13 k. Les gains ne s'additionnent pas exactement
+(l'horizon et la brume coupent parfois la même route lointaine). Rien n'a été essayé sur l'iPhone.

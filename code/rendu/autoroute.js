@@ -237,10 +237,16 @@ function arMaille(nom,g,mat,ordre){sphere9(g);g.boundingSphere.radius+=20;memLib
    `?sans=dessinsloin` = comme avant. */
 const RLOIN={on:!/[?&]sans=[^&]*\bdessinsloin\b/.test(location.search)};
 window.dbgDessinsLoin=function(on){if(on!=null)RLOIN.on=!!on;return RLOIN.on;}; /* (banc) bascule en direct */
+/* ===== LES TRAITS DU LOIN (2026-11-19, astuces-chauffe — Sacha : « fais tout ce qu'il a dit […] Tant que ça ne dommage pas le jeu sérieusement ») =====
+   Même triche que les dessins du loin, pour les TRAITS de voie et les ÎLOTS peints (« autoroute traits », « pays traits », « autoroute ilots ») : au téléphone,
+   leur tranche moyenne n'est plus dessinée au-delà de TLOIN.d (800 m). À 800 m la route fait une dizaine de pixels de large et un trait de 20 cm un dixième de
+   pixel : il ne se voit plus que comme un scintillement. `?sans=traitsloin` = comme avant ; `?traitsloin=1200` = la distance (banc). Bascule : `dbgTraitsLoin(on, d)` (indépendante de `dbgDessinsLoin`). */
+const TLOIN={on:!/[?&]sans=[^&]*\btraitsloin\b/.test(location.search),d:+((/[?&]traitsloin=(\d+)/.exec(location.search)||[])[1])||800};
+window.dbgTraitsLoin=function(on,d){if(on!=null){TLOIN.on=!!on;for(const E of PISTE_LOD)if(E.hi&&/ (traits|ilots)$/.test(E.hi.name))E.rien=ALLEGE&&TLOIN.on?TLOIN.d:0;}if(d){TLOIN.d=+d;for(const E of PISTE_LOD)if(E.rien&&E.hi&&/ (traits|ilots)$/.test(E.hi.name))E.rien=TLOIN.d;}return {on:TLOIN.on,d:TLOIN.d};};
 function arMaille2(nom,gHi,gMo,mat,a,b){ /* a, b (2026-11-13) : ses points de piste — LA TRANCHE MOYENNE PAR L'ABSCISSE (piste-prebati.js) */ /* la tranche fine (de près) et sa MOYENNE (une rangée sur quatre, au-delà de PISTE_MOY_D) : pisteLoin les échange, et cache les deux au-delà du brouillard */
   const fab=function(g,n){sphere9(g);g.boundingSphere.radius+=20;memLibere(g);const m=new THREE.Mesh(g,mat);m.name=n;m.renderOrder=1;m.updateMatrix();m.matrixAutoUpdate=false;trackMeshes.push(m);return m;};
   const hi=fab(gHi,nom);let mo=null;if(gMo){mo=fab(gMo,nom+' moyen');mo.visible=false;mo.userData.moyenne=true;}
-  PISTE_LOD.push({hi:hi,lo:null,mo:mo,s:gHi.boundingSphere,loin:false,et:0,a:a,b:b,rien:ALLEGE&&nom==='pays motifs'});return hi;}
+  PISTE_LOD.push({hi:hi,lo:null,mo:mo,s:gHi.boundingSphere,loin:false,et:0,a:a,b:b,rien:!ALLEGE?0:nom==='pays motifs'?PISTE_MOY_D:TLOIN.on&&/ (traits|ilots)$/.test(nom)?TLOIN.d:0,tr:/ (traits|ilots)$/.test(nom)});return hi;}
 function* arPeint(seed,id,sEnt,force){ /* force (banc) : '' = l'américaine, 'xx' = ce pays ; sinon le tirage de la piste */
   if(!AR_ON)return;
   const pays9=force!=null?(ARP.defs[force]?force:''):LVL.cur&&LVL.cur.piste==='tuto'?'':arpTirage(seed); /* (2026-11-15) LES AUTOROUTES DU MONDE (rendu/autoroute-pays.js) : la piste tire au sort l'américaine ou l'un des pays, à parts égales (l'américaine : 1 piste sur 11 avec dix pays) ; l'auto-école garde l'américaine */

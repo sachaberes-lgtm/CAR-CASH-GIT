@@ -179,19 +179,52 @@ function airPieDraw(fr,sec,flash){
    UN canvas 2D plein écran créé une fois, dessiné au rAF SEULEMENT pendant le balayage, puis `display:none`. Même contrat de temps qu'avant
    (couvert à 150 ms, `fn` à 160 ms, la classe se vide à 460 ms après le lever). Sous « réduire les animations » : l'ancien rideau (ou
    son fondu simple) reste. */
-const WIPEPX={cv:null,cx:null,ph:'',t0:0,raf:0,W:0,H:0,nc:0,nr:0,rn:null};
+const WIPEPX={cv:null,cx:null,ph:'',t0:0,raf:0,W:0,H:0,nc:0,nr:0,rn:null,tv:0,der:0,cov:-1,dq:[]};
+/* ===== LA RELANCE SANS ACCROC (2026-11-18, qualité · lot transitions — Sacha : « quand on relance une partie, il y a une jolie animation, mais elle pourrait être moins buggée ») =====
+   Le balayage est dessiné au rAF sur le fil principal et minuté à l'horloge. Juste après REJOUER (resetGame) ou l'ouverture de l'atelier, les premières images de la scène neuve
+   sont lourdes (la chauffe de la scène, les géométries et textures qui montent à la puce) : le volet se levait 2 images après, en plein dedans, et une image de 150 ms
+   faisait sauter la moitié du balayage d'un coup. Deux gestes, même dessin, même durée quand les images sont régulières :
+   (1) LE LEVER ATTEND UNE IMAGE RÉGULIÈRE : après les 2 images d'avant, le volet attend deux intervalles d'affilée sous le seuil (au plus 450 ms ; filet 700 ms, onglet caché) ;
+   (2) LE BALAYAGE QUI SE RETIRE AVANCE À SON HORLOGE À ELLE : chaque image le fait avancer de son intervalle, plafonné au seuil (50 ms au moins) — une image longue le retarde,
+       elle ne le fait plus sauter. La classe du volet attend la fin du balayage pour se vider.
+   Le seuil = 40 ms, ou 1,3 × la médiane des intervalles pendant que le volet couvrait (un téléphone régulier à 20 i/s : 65 ms — rien n'y change).
+   La phase qui COUVRE reste minutée à l'horloge (elle doit être pleine quand `fn` part à 160 ms). `?sans=transitions` : comme avant. `dbgTransitions()` : le dernier lever. */
+let TRANS_ON=!/[?&]sans=[^&]*transitions/.test(location.search); /* let : le banc alterne avant/après dans la MÊME page (dbgTransitions({on:false})) */
+const TRANS={n:0,attente:0,doigt:0,sortie:'',out:0,outImg:0,outPire:0,outLourdes:0,sautMax:0,coupe:0,seuil:40,pas:20,chauffe:0,inDt:[]};
+/* (2026-11-20, lot transitions, 2e tour) le contrôle du 1er tour : (a) en PORTRAIT aucun gain, (b) le saut borné à 43 % (pas supprimé), (c) le doigt avalé pendant l'attente,
+   (d) dbgTransitions() périmé sous ?sans=transitions. Les causes et les gestes :
+   · (a/b) le seuil et le plafond du balayage suivaient la médiane des intervalles « pendant que le volet couvrait » — or ce relevé courait jusqu'au lever, et sous REJOUER il prenait
+     les tranches de 30 ms de rejoueAttend (images de 40-60 ms) : seuil 50-65 ms, et un pas de 50 ms découvre 45 % d'une grille en portrait (14×30 cases, diagonales pleines).
+     Le relevé ne prend plus que la MONTÉE du volet (150 ms, le rythme du menu) ; le pas du balayage est plafonné à CE rythme (17 ms au moins) : une image lourde avance le balayage
+     exactement comme une image régulière (le saut n'est plus « borné », il n'existe plus : il vaut le pas d'une image ordinaire).
+   · (a) la chauffe du niveau neuf (CHAUFFE_R.t, posée 120 ms après resetGame : le monde dessiné une fois hors écran) tombait pendant le retrait : elle part tout de suite, SOUS le volet plein,
+     et le lever attend qu'elle soit passée (toujours 450 ms au plus).
+   · (c) pendant l'attente, à l'instant où l'ancien code levait (2e image après `fn`), le volet laisse passer le doigt (la course roule déjà).
+   · (d) les relevés (images, pire intervalle, lourdes, saut, coupé, attente) sont faits dans les DEUX modes ; seul le geste dépend de TRANS_ON. */
+/* le rythme d'avant : la médiane des intervalles pendant que le volet COUVRAIT (le même écran, le même téléphone, juste avant `fn`). Un téléphone régulièrement à 20 i/s
+   n'est pas « lourd » : le seuil (lever, plafond du balayage) suit son rythme, ×1,3. */
+function transSeuil(){const a=TRANS.inDt.slice().sort(function(x,y){return x-y;});const m=a.length?a[a.length>>1]:16.7;TRANS.pas=Math.round(Math.max(17,m));return TRANS.seuil=Math.round(Math.max(40,m*1.3));}
+window.dbgTransitions=function(o){if(o&&typeof o.on==='boolean')TRANS_ON=o.on;return Object.assign({on:TRANS_ON},TRANS,{inDt:TRANS.inDt.map(Math.round)});};
 function wipePxOk(){return !REDUCED_MOTION&&document.documentElement.getAttribute('data-reduced-motion')!=='1';}
 function wipePxDraw(now){
   const P=WIPEPX;if(!P.ph)return;const cx=P.cx,nc=P.nc,nr=P.nr,cw=P.W/nc,ch=P.H/nr,out=P.ph==='out';
-  const t=(now-P.t0)/(out?280:150);cx.clearRect(0,0,P.W,P.H);
+  let t=(now-P.t0)/(out?280:150);
+  if(!out){if(P.der&&t<=1.05&&TRANS.inDt.length<24)TRANS.inDt.push(now-P.der);P.der=now;} /* (2e tour) le rythme du MENU : la montée seule, jamais l'attente sous le volet */
+  if(out){const dt9=P.der?Math.max(0,now-P.der):0;if(dt9>TRANS.outPire)TRANS.outPire=Math.round(dt9);if(dt9>50)TRANS.outLourdes++;P.der=now;TRANS.outImg++;
+    if(TRANS_ON){const q9=P.dq.slice().sort(function(x,y){return x-y;}),reg9=q9.length?q9[q9.length>>1]:0;P.tv+=Math.min(Math.max(TRANS.pas,Math.min(34,reg9)),dt9);t=P.tv/280;if(dt9>0){P.dq.push(dt9);if(P.dq.length>5)P.dq.shift();}}}
+    /* (lot transitions) l'horloge du balayage : une image longue n'avance que d'un pas d'image RÉGULIÈRE — le rythme du menu, ou (2e tour) la médiane des 5 dernières images
+       du retrait si la course roule plus lentement (30 i/s : le balayage garde ses 280 ms au lieu de doubler), 34 ms au plus (le pas de la cadence 30 du téléphone : au-delà le balayage ralentit au lieu de sauter) */
+  let n9=0; /* (2e tour) la part de l'écran encore couverte : l'AIRE des cases (le cran compte), pas leur nombre */
+  cx.clearRect(0,0,P.W,P.H);
   for(let j=0;j<nr;j++)for(let i=0;i<nc;i++){
     const d=(i+j)/(nc+nr-2),h=P.rn[j*nc+i];
     let p=out?1-Math.min(1,Math.max(0,(t-(1-d)*.55)/.45)):Math.min(1,Math.max(0,(t-d*.55)/.45));
     if(p<=0)continue;
-    const sc=Math.ceil(p*4)/4; // 4 crans : le pixel POP, il ne grossit pas en douceur
+    const sc=Math.ceil(p*4)/4; /* 4 crans : le pixel POP, il ne grossit pas en douceur */n9+=sc*sc;
     cx.fillStyle=p<.6?(h%9===0?'#fff3b0':'#ffd75e'):(h%3===0?'#0d0a1c':'#07050f');
     const x0=Math.floor(i*cw+cw*(1-sc)/2),y0=Math.floor(j*ch+ch*(1-sc)/2),x1=Math.ceil(i*cw+cw*(1+sc)/2),y1=Math.ceil(j*ch+ch*(1+sc)/2);
     cx.fillRect(x0,y0,x1-x0,y1-y0); }
+  if(out){if(P.cov>=0&&P.cov-n9>TRANS.sautMax)TRANS.sautMax=P.cov-n9;P.cov=n9;} /* le plus grand saut : l'aire découverte d'une image à la suivante */
   if(out&&t>=1.2)wipePxEnd(); }
 function wipePxLoop(now){WIPEPX.raf=0;if(!WIPEPX.ph)return;wipePxDraw(now);if(WIPEPX.ph)WIPEPX.raf=requestAnimationFrame(wipePxLoop);}
 function wipePxStart(w,ph){
@@ -201,9 +234,9 @@ function wipePxStart(w,ph){
   if(ph==='in'){ const W=Math.max(1,innerWidth|0),H=Math.max(1,innerHeight|0),nc=Math.max(2,Math.round(W/28)),nr=Math.max(2,Math.round(H/28));
     if(W!==P.W||H!==P.H||!P.rn){P.W=P.cv.width=W;P.H=P.cv.height=H;P.nc=nc;P.nr=nr;P.rn=new Uint8Array(nc*nr);for(let k=0;k<P.rn.length;k++)P.rn[k]=(k*2654435761>>>13)&255;}
     P.cv.style.display='block'; }
-  P.ph=ph;P.t0=performance.now();w.classList.add('ux8Wipe');
+  P.ph=ph;P.t0=performance.now();P.tv=0;P.der=0;P.cov=-1;P.dq=[];if(ph==='out'){TRANS.outImg=0;TRANS.outPire=0;TRANS.outLourdes=0;TRANS.sautMax=0;TRANS.coupe=0;TRANS.sautPct=null;TRANS.coupePct=null;}else TRANS.inDt.length=0;w.classList.add('ux8Wipe');
   if(!P.raf)P.raf=requestAnimationFrame(wipePxLoop); }
-function wipePxEnd(){const P=WIPEPX;P.ph='';if(P.raf){cancelAnimationFrame(P.raf);P.raf=0;}if(P.cv){P.cx.clearRect(0,0,P.W,P.H);P.cv.style.display='none';}}
+function wipePxEnd(){const P=WIPEPX;if(P.ph==='out'&&P.cov>0){TRANS.coupe=P.cov;if(P.cov>TRANS.sautMax)TRANS.sautMax=P.cov;}if(P.ph==='out'&&P.nc){TRANS.sautPct=Math.round(100*TRANS.sautMax/(P.nc*P.nr));TRANS.coupePct=Math.round(100*TRANS.coupe/(P.nc*P.nr));TRANS.grille=P.nc+'x'+P.nr;}P.cov=-1;P.ph='';if(P.raf){cancelAnimationFrame(P.raf);P.raf=0;}if(P.cv){P.cx.clearRect(0,0,P.W,P.H);P.cv.style.display='none';}}
 /* LE FONDU AU NOIR (2026-09-25, user : « les transitions entre les écrans, niveau App Store ») — remplace le rideau à
    cinq barres en `steps()`. C'est le geste des jeux premium quand le DÉCOR change (atelier, boutique, nouvelle course) :
    le voile MONTE en 200 ms, on bascule DESSOUS — même la première construction de l'atelier, qui fige le fil
@@ -224,7 +257,7 @@ function ecranWipe(fn,apres){
   if(!w){w=document.createElement('div');w.id='wipe';w.setAttribute('aria-hidden','true');document.body.appendChild(w);}
   if(ecranWipe._on)return;ecranWipe._on=true;const id=ecranWipe._id=(ecranWipe._id|0)+1;transUI(400); /* (2026-11-13, transitions-ui) la fenêtre de transition : voir cadence.js */
   try{uiGarde(520);}catch(e){} // (2026-10-12, passe qualité) le VOLET arme le verrou du double-tap : le 2e tap d'un HOME du garage tombait sur le JOUER de l'accueil (~200-350 ms) et lançait une course
-  w.className='in';const px=wipePxOk();if(px)wipePxStart(w,'in');try{if(SONV2)sfx('ui.volet');else noiseBurst(.18,.05,1800);}catch(e){} // (2026-09-28) le son du volet : session SON
+  w.className='in';w.style.pointerEvents='';const px=wipePxOk();if(px)wipePxStart(w,'in');try{if(SONV2)sfx('ui.volet');else noiseBurst(.18,.05,1800);}catch(e){} // (2026-09-28) le son du volet : session SON
   setTimeout(function(){
     try{mchVolet();}catch(e){} /* (2026-11-18, LE MENU AU CHAUD, nettete-qualite.js) le volet couvre l'écran : l'ombre et le halo de la vitrine suivent l'état du téléphone ici, jamais sous les yeux */
     let r9=null;try{r9=fn();}catch(e){console.error(e);}
@@ -232,15 +265,26 @@ function ecranWipe(fn,apres){
     const suite9=function(){
     let leve=false;
     const lever=function(){ if(leve)return;leve=true;clearTimeout(ecranWipe._att);voileSerpent(false);transUI(750); /* (2026-11-13, transitions-ui) le volet se lève (280 ms) et l'écran découvert joue son entrée : 60 i/s, photos après */
-      w.className='out';if(px)wipePxStart(w,'out');ecranWipe._on=false; // la main revient DÈS que l'écran se redécouvre (le voile qui s'efface ne bloque plus rien)
+      w.style.pointerEvents='';w.className='out';if(px)wipePxStart(w,'out');ecranWipe._on=false; // la main revient DÈS que l'écran se redécouvre (le voile qui s'efface ne bloque plus rien)
       try{typeof sfx==='function'&&sfx('ui.voletSort');}catch(e){}
       document.body.classList.add('voletSort');clearTimeout(ecranWipe._vs);ecranWipe._vs=setTimeout(function(){document.body.classList.remove('voletSort');},480); // (charte v4) le contenu est DÉJÀ en place quand le volet le découvre
       if(apres){try{apres();}catch(e){console.error(e);}}
       try{document.dispatchEvent(new Event('cc:revele'));}catch(e){} // la coque rejoue l'entrée de l'écran qu'on découvre
       document.querySelectorAll('#mob .mscr.on').forEach(function(e){e.classList.add('revu');}); // (charte v5) …mais c'est le VOLET qui a fait l'entrée : elle ne se rejouera pas quand il s'en va
-      setTimeout(function(){if(ecranWipe._id===id){w.className='';wipePxEnd();}},REDUCED_MOTION?160:460); }; // un fondu relancé entre-temps garde son voile
-    requestAnimationFrame(function(){requestAnimationFrame(lever);});
-    setTimeout(lever,160); // filet : onglet caché = aucune image, le voile ne doit jamais rester collé
+      const t9=performance.now(),vide=function(){if(ecranWipe._id!==id)return;if(TRANS_ON&&px&&WIPEPX.ph==='out'&&performance.now()-t9<1500){setTimeout(vide,60);return;}TRANS.out=Math.round(performance.now()-t9);w.className='';wipePxEnd();}; /* (lot transitions) le balayage va jusqu'au bout avant que la classe se vide (1,5 s au plus) */
+      setTimeout(vide,REDUCED_MOTION?160:460); }; // un fondu relancé entre-temps garde son voile
+    if(!TRANS_ON||!px){const t0=performance.now();TRANS.n++;TRANS.attente=0;TRANS.sortie='';transSeuil();try{TRANS.chauffe=CHAUFFE_R.t>0?1:0;}catch(e){} /* (2e tour) les relevés aussi sous ?sans=transitions */const lv=function(q){return function(){if(!leve){TRANS.attente=TRANS.doigt=Math.round(performance.now()-t0);TRANS.sortie=q;}lever();};};
+    requestAnimationFrame(function(){requestAnimationFrame(lv('2 images'));});
+    setTimeout(lv('filet'),160);} // filet : onglet caché = aucune image, le voile ne doit jamais rester collé
+    else{ clearTimeout(ecranWipe._att); /* (lot transitions) le travail est fini : le voile blanc du serpent n'a plus à paraître pendant qu'on attend l'image régulière (il clignotait sinon) */
+      /* (lot transitions) au plus tôt la 2e image comme avant, et seulement après deux intervalles réguliers d'affilée (sous le seuil) ; 450 ms au plus après `fn` ; filet 700 ms */
+      const t0=performance.now(),s9=transSeuil();let der=t0,bons=0,k=0;TRANS.n++;TRANS.chauffe=0;TRANS.doigt=-1; /* le 1er intervalle part de la fin de `fn` : il contient la 1re image de la scène neuve */
+      const ch9=function(){try{return CHAUFFE_R.t>0;}catch(e){return false;}};if(ch9()){CHAUFFE_R.t=1;TRANS.chauffe=1;} /* (2e tour) la chauffe du niveau neuf part à la prochaine image, sous le volet plein */
+      const pas=function(){if(leve)return;const now=performance.now();k++;bons=(now-der)<s9?bons+1:0;der=now;const e=now-t0; /* l'heure d'arrivée de l'image (pas l'horodatage du rAF, qui peut précéder la fin de `fn`) */
+        if(k===2){w.style.pointerEvents='none';TRANS.doigt=Math.round(e);} /* (2e tour) l'instant où l'ancien code levait : la course roule, le doigt passe (le volet garde _on : un 2e volet reste ignoré) */
+        if(ch9())bons=0; /* la chauffe pas encore passée : rien n'est régulier */
+        if((k>=2&&bons>=2)||e>=450){TRANS.attente=Math.round(e);TRANS.sortie=e>=450?'450 ms':'régulier';lever();return;}requestAnimationFrame(pas);};
+      requestAnimationFrame(pas);setTimeout(function(){if(!leve){TRANS.attente=Math.round(performance.now()-t0);TRANS.sortie='filet';lever();}},700);}
     };
     if(r9&&typeof r9.then==='function'){clearTimeout(ecranWipe._att);ecranWipe._att=setTimeout(function(){if(ecranWipe._id===id)voileSerpent(true);},350);r9.then(suite9,suite9);}else suite9(); /* (2026-11-07) une attente > 350 ms : voile blanc + serpent noir */
   },REDUCED_MOTION?120:160); // (2026-10-11, passe UX) 210 → 160 ms : le volet entre en 150 ms (voir <style id="uxPasse">), l'écran change dès qu'il couvre
