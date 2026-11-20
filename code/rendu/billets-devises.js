@@ -137,8 +137,10 @@ const MONN_TEX=(function(){
     /* LA FACE EN BISEAU (2026-11-20, Léo : « facetté pas comme ça, pas de point au milieu ») : plus d'éventail. Le glyphe est CISELÉ comme une
        lettre gravée — un plat au centre, et quatre chanfreins de 2 px sur ses bords, chacun sa lumière : le haut blanc, la gauche claire,
        la droite dans l'ombre, le bas sombre. Un chanfrein = le glyphe MOINS le glyphe décalé de 2 px du côté opposé. */
-    q.globalCompositeOperation='source-over';q.clearRect(0,0,S,S);q.fillStyle='rgb(206,206,206)';q.fillText(CURR[i],x,y);c.drawImage(tc,ox,oy); /* le plat */
-    const CH=[[2,0,236],[-2,0,138],[0,2,255],[0,-2,104]]; /* gauche · droite · haut · bas : (décalage du glyphe qu'on retire, gris du pan) */
+    q.globalCompositeOperation='source-over';q.clearRect(0,0,S,S);q.fillStyle='rgb(196,196,196)';q.fillText(CURR[i],x,y);
+    q.globalCompositeOperation='source-atop';q.fillStyle='#ffffff';q.beginPath();q.moveTo(0,S*.50);q.lineTo(S,S*.16);q.lineTo(S,S*.34);q.lineTo(0,S*.68);q.closePath();q.fill(); /* (2026-11-20, Léo : « plus vif, jouet moderne ») LE VERNIS : une bande de reflet en travers du plat, comme sur un plastique brillant */
+    c.drawImage(tc,ox,oy); /* le plat verni */
+    const CH=[[2,0,232],[-2,0,124],[0,2,255],[0,-2,92]]; /* gauche · droite · haut · bas : (décalage du glyphe qu'on retire, gris du pan) */
     for(let k=0;k<4;k++){q.globalCompositeOperation='source-over';q.clearRect(0,0,S,S);q.fillStyle='rgb('+CH[k][2]+','+CH[k][2]+','+CH[k][2]+')';q.fillText(CURR[i],x,y);
       q.globalCompositeOperation='destination-out';q.fillText(CURR[i],x+CH[k][0],y+CH[k][1]);c.drawImage(tc,ox,oy);}
     q.globalCompositeOperation='source-over';}
@@ -201,13 +203,13 @@ function updateMoneyRain(dt,t){
     }else if(h9>=r9){const w9=Math.min(1,(h9-r9)*.5);x+=Math.sin(t*3+MR.ph[i])*1.1*w9*dt;z+=Math.cos(t*2.6+MR.ph[i])*1.1*w9*dt;} /* en l'air : il flotte un peu (rien au ras du sol) */
     MR.x[i]=x;MR.y[i]=y;MR.z[i]=z;MR.vx[i]=vx;MR.vy[i]=vy;MR.vz[i]=vz;
     MR.rot[i]+=MR.rs[i]*dt;
-    const c9=Math.cos(MR.rot[i]),a9=Math.abs(c9),l9=c9>0?.62+.3*a9:.4+.28*a9; /* la face éclate quand elle passe devant l'œil · le dos reste dans l'ombre */
+    const c9=Math.cos(MR.rot[i]),a9=Math.abs(c9),l9=c9>0?.82+.26*a9:.5+.3*a9; /* la face éclate quand elle passe devant l'œil · le dos reste dans l'ombre */
     P[n*3]=x;P[n*3+1]=y;P[n*3+2]=z;
     S[n*4]=MR.sc[i]*(c9<0?-1:1)*Math.max(.16,a9);S[n*4+1]=MR.sc[i];S[n*4+2]=Math.sin(t*2.2+MR.ph[i])*.22;S[n*4+3]=0; /* la largeur = le cos de l'angle (jamais moins que la TRANCHE) · un léger balancement */
     /* LA PLUIE RGB (2026-11-20, Léo : « que la pluie de currencies soit RGB ») : chaque glyphe fait le tour de l'arc-en-ciel (~2,5 s), décalé par sa phase.
        Coût : zéro — la couleur d'instance (`iC`) partait déjà au GPU à chaque image. */
-    const u9=(t*.16+MR.ph[i]/6)%1*6,e9=c9>0?.14*a9*a9*a9*a9*a9*a9*a9*a9:0; /* un tour en ~6 s · e9 : l'éclat du métal, face à l'œil — discret (2026-11-20, Léo : « moins clair, couleurs plus vivantes, les lettres sont trop fantomatiques » : .55 → .14, le bloom ne les noie plus) */
-    C[n*4]=l9*(.14+.86*Math.min(1,Math.max(0,Math.abs(u9-3)-1)))+e9;C[n*4+1]=l9*(.14+.86*Math.min(1,Math.max(0,2-Math.abs(u9-2))))+e9;C[n*4+2]=l9*(.14+.86*Math.min(1,Math.max(0,2-Math.abs(u9-4))))+e9; /* la teinte VIVE et pleine (86 % d'arc-en-ciel, 14 % de blanc : plus de pastel) */
+    const u9=(t*.16+MR.ph[i]/6)%1*6,e9=c9>0?.2*a9*a9*a9*a9*a9*a9*a9*a9:0; /* un tour en ~6 s · e9 : l'éclat du métal, face à l'œil — discret (2026-11-20, Léo : « moins clair, couleurs plus vivantes, les lettres sont trop fantomatiques » : .55 → .14, le bloom ne les noie plus) */
+    C[n*4]=l9*(.05+.95*Math.min(1,Math.max(0,Math.abs(u9-3)-1)))+e9;C[n*4+1]=l9*(.05+.95*Math.min(1,Math.max(0,2-Math.abs(u9-2))))+e9;C[n*4+2]=l9*(.05+.95*Math.min(1,Math.max(0,2-Math.abs(u9-4))))+e9; /* la teinte de JOUET MODERNE : la couleur presque pure (95 %), franche et lumineuse */
     C[n*4+3]=Math.min(1,MR.life[i]);
     F[n*2]=MR.f[i];F[n*2+1]=0;n++;
   }
