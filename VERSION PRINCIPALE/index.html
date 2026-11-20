@@ -73515,8 +73515,8 @@ const MONN_TEX=(function(){
   c.textAlign='center';c.textBaseline='middle';c.font='40px "Press Start 2P",monospace';c.lineJoin='round';
   for(let i=0;i<CURR.length;i++){const x=(i&3)*S+S/2,y=(i>>2)*S+S/2+2;
     c.lineWidth=7;c.strokeStyle='#1c0430';c.strokeText(CURR[i],x,y);                 // le liseré d'encre
-    const g=c.createLinearGradient(0,y-20,0,y+20);g.addColorStop(0,'#fff3b0');g.addColorStop(.5,'#ffd75e');g.addColorStop(1,'#b8860b');
-    c.fillStyle=g;c.fillText(CURR[i],x,y);}                                          // l'or : clair #fff3b0 · or #ffd75e · ombre #b8860b
+    const g=c.createLinearGradient(0,y-20,0,y+20);g.addColorStop(0,'#ffffff');g.addColorStop(.5,'#e6e6e6');g.addColorStop(1,'#8c8c8c');
+    c.fillStyle=g;c.fillText(CURR[i],x,y);}                                          // (2026-11-20, LA PLUIE RGB) un BLANC en relief (clair en haut, ombre en bas) : la couleur vient de l'instance, plus de la toile
   tx.needsUpdate=true;});
   return tx;
 })();
@@ -73560,12 +73560,18 @@ function updateMoneyRain(dt,t){
     MR.rot[i]+=MR.rs[i]*dt;
     P[n*3]=MR.x[i];P[n*3+1]=MR.y[i];P[n*3+2]=MR.z[i];
     S[n*4]=S[n*4+1]=MR.sc[i];S[n*4+2]=MR.rot[i];S[n*4+3]=0;
-    C[n*4]=C[n*4+1]=C[n*4+2]=1;C[n*4+3]=Math.min(1,MR.life[i]);
+    /* ===== LA PLUIE RGB (2026-11-20, Léo : « que la pluie de currencies soit RGB ») =====
+       Chaque glyphe fait le tour de l'arc-en-ciel (un tour en ~2,5 s), décalé par sa phase : l'averse entière scintille comme un clavier RGB.
+       Coût : zéro — même atlas, même appel de dessin, mêmes 600 places ; la couleur d'instance (`iC`) partait déjà au GPU à chaque image. */
+    const h9=(t*.4+MR.ph[i]/6)%1*6;
+    C[n*4]=.12+.88*Math.min(1,Math.max(0,Math.abs(h9-3)-1));C[n*4+1]=.12+.88*Math.min(1,Math.max(0,2-Math.abs(h9-2)));C[n*4+2]=.12+.88*Math.min(1,Math.max(0,2-Math.abs(h9-4)));
+    C[n*4+3]=Math.min(1,MR.life[i]);
     F[n*2]=MR.f[i];F[n*2+1]=0;n++;
   }
   MR.viv=n;MONN.cnt=n;panPousse(MONN);
 }
 function moneyRainClear(){MR.life.fill(0);MR.viv=0;moneyRainT=0;MONN.cnt=0;panPousse(MONN);} // nouvelle partie : l'averse s'arrête net
+window.dbgPluie=function(){startMoneyRain();return 'pluie de devises lancée';}; /* (2026-11-20) le crochet de test de la pluie RGB : en course, `dbgPluie()` */
 // ---------- AUDIO ----------
 let AC=null,osc=null,osc2=null,filt=null,gainN=null,engDose=null,windG=null,windF=null,skidG=null,jetG=null,jetF=null,jetLowG=null,jetOsc=null,jetOscG=null,whF=null,whG=null;
 // LA CHARGE — l'état interne du moteur. ⚠ Ce n'est PAS la position de l'accélérateur : c'est ce
