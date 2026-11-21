@@ -366,7 +366,7 @@ const PEINT_CAT=[ /* [id, nom, rareté, aspect, description, défi] */
   ['carbone','CARBONE','epique',{mot:'carbone'},'Fibre tressée sous un vernis épais. Plus léger, plus rapide, plus cher.',{k:'aura',v:20000,t:"Atteins 20 000 d'aura en une partie."}],
   ['graffiti','GRAFFITI','epique',{mot:'graffiti'},'Le mur du parking, bombé sur ta carrosserie. Signé, daté, illégal.',{k:'tours',v:5,t:'Frôle 5 tours dans un seul saut.'}],
   ['popart','POP ART','epique',{mot:'popart'},"Trames, bulles et BOOM ! Ta caisse sort tout droit d'une BD."],
-  ['vagues','GRANDE VAGUE','epique',{mot:'vagues'},'Les vagues des estampes japonaises, en écailles. Le calme avant ta nitro.',{k:'prof',v:'prof',t:'Descends au fond de la mer de Jade.'}],
+  ['vagues','GRANDE VAGUE','epique',{mot:'vagues'},'Les vagues des estampes japonaises, en écailles. Le calme avant ta nitro.',{k:'prof',v:'prof',t:'Descends 400 m dans les pics de Jade.'}], /* (2026-11-21) la mer de Jade est retirée depuis le 12/11 : la phrase dit la descente que mesure l'abysse (M2K.prof) */
   ['cash','PLEIN AUX AS','epique',{mot:'cash'},"Des euros d'or sur fond vert billet. Discret ? Non.",{k:'gagne',v:1000000,t:'Gagne 1 000 000 € au total.'}],
   /* … les pelages et la nature */
   ['tigre','TIGRE','epique',{mot:'tigre'},'Orange brûlé, rayures noires. Le roi de la jungle a troqué ses griffes contre des pneus.'],
@@ -435,7 +435,7 @@ Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOR","PEINTURE":"PAI
   "CARBONE":"CARBON","Fibre tressée sous un vernis épais. Plus léger, plus rapide, plus cher.":"Woven fibre under thick clear coat. Lighter, faster, pricier.","Atteins 20 000 d'aura en une partie.":"Reach 20,000 aura in one run.",
   "GRAFFITI":"GRAFFITI","Le mur du parking, bombé sur ta carrosserie. Signé, daté, illégal.":"The car-park wall, sprayed on your bodywork. Signed, dated, illegal.","Frôle 5 tours dans un seul saut.":"Skim 5 towers in a single jump.",
   "POP ART":"POP ART","Trames, bulles et BOOM ! Ta caisse sort tout droit d'une BD.":"Halftones, bubbles and BOOM! Your car jumped straight out of a comic.",
-  "GRANDE VAGUE":"GREAT WAVE","Les vagues des estampes japonaises, en écailles. Le calme avant ta nitro.":"The waves of Japanese prints, in scales. The calm before your nitro.","Descends au fond de la mer de Jade.":"Dive to the bottom of the Jade Sea.",
+  "GRANDE VAGUE":"GREAT WAVE","Les vagues des estampes japonaises, en écailles. Le calme avant ta nitro.":"The waves of Japanese prints, in scales. The calm before your nitro.","Descends 400 m dans les pics de Jade.":"Drop 400 m in the Jade peaks.",
   "PLEIN AUX AS":"LOADED","Des euros d'or sur fond vert billet. Discret ? Non.":"Gold euros on cash green. Subtle? No.","Gagne 1 000 000 € au total.":"Earn €1,000,000 in total.",
   "TIGRE":"TIGER","Orange brûlé, rayures noires. Le roi de la jungle a troqué ses griffes contre des pneus.":"Burnt orange, black stripes. The king of the jungle traded his claws for tires.",
   "LÉOPARD":"LEOPARD","Des rosettes noires sur fond doré. Tu ne chasses pas : tu doubles.":"Black rosettes on gold. You don't hunt: you overtake.",

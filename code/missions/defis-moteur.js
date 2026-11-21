@@ -237,7 +237,12 @@ function m2Prend(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.p
    (une caisse retirée, un habillage qui n'existe plus, la récompense « à définir ») n'existe plus pour le joueur : ni dans la liste, ni dans le compte,
    ni suivie, ni réussie en course. Elle revient d'elle-même quand sa récompense revient (une réussie d'avant attend alors, prête). ?sans=missionsvides = avant. */
 const M2DISPO=!/[?&]sans=([^&]*,)?missionsvides(,|&|$)/.test(location.search);
-function m2Dispo(m){if(!M2DISPO)return true;const r=(m&&m.r)||{};if(r.vide)return false;if(r.car){const i=m2CarIdx(r.car);return i>=0&&!carRetiree(i);}
+/* (2026-11-21, lot defispossibles) UNE MISSION QUI NE SE JOUE PLUS : sa mesure ne compte que sur une map que JOUER ne tire plus ici (le glacier, hors du tirage depuis le 30/10) —
+   `M2_CARTES` = ses sources (même forme que DEF_SOURCES, economie/boutique-vitrine.js). Elle quitte la liste, le compte, le pass et l'écran de mort, comme une mission dont la
+   récompense n'est plus au garage ; une mission DÉJÀ réussie reste (sa récompense attend d'être prise). La map revient au tirage : la mission revient. ?sans=defispossibles = avant.
+   (M2_CARTES est déclarée dans missions/table.js, à côté de M2K, avant l'appel de m2Etat du démarrage : voir là) */
+function m2Jouable(m){const S=m&&M2_CARTES[m.id];if(!S||sourceJouable(S))return true;try{const s=SAVE.d&&SAVE.d.m2;if(s&&Array.isArray(s.ok)&&s.ok.indexOf(m.id)>=0)return true;}catch(e){}return false;}
+function m2Dispo(m){if(!M2DISPO)return true;const r=(m&&m.r)||{};if(r.vide)return false;if(!m2Jouable(m))return false;if(r.car){const i=m2CarIdx(r.car);return i>=0&&!carRetiree(i);}
   if(r.cat)return !!(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});return true;}
 function m2Pret(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.pr.indexOf(id)>=0)return false;const r=m.r||{};
   if(r.vide)return false;if(r.car){const i=m2CarIdx(r.car);return i>=0&&!carRetiree(i);}if(r.cat)return !!(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});return true;}
