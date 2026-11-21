@@ -5,6 +5,25 @@
 
 
 
+## LA PLUIE DE DEVISES : JOUET MODERNE, ELLE REBONDIT (2026-11-20, v1625 — Léo : « RGB », « plus 3D, ça tombe sur la route et rebondit », « on fonce dedans »)
+- Ce qui change (`code/rendu/billets-devises.js`) : les glyphes d'or cerclés d'encre deviennent des BLOCS ciselés (un plat verni, quatre chanfreins,
+  une tranche sombre, plus de liseré) teintés par instance d'une couleur presque pure qui fait le tour de l'arc-en-ciel en ~6 s. Ils tournent sur
+  eux-mêmes (largeur du panneau = cos de l'angle), tombent avec une vraie gravité dans le repère de la route (`frameAt` à la naissance), REBONDISSENT
+  sur la chaussée, et la caisse les PERCUTE (sphère de 2,5 m balayée sur son trajet de l'image, une fois par glyphe). Un tiers naît dans notre couloir.
+- Ce qui ne change pas : le déclencheur (`startMoneyRain`, 4 000 € × ECO3.gain puis ×2,6), le son, les 600 panneaux, l'atlas 256 × 256, le programme
+  partagé `PAN_FS` (aucun shader touché), UN appel de dessin.
+- Par appareil : `PAL.B.pluieDens=[.6,.8,1]` (324 / 432 / 540 glyphes). Garde-fous : route illisible ou repère NaN → l'averse s'arrête ; un glyphe NaN
+  ou tombé 60 m sous sa dalle est rangé ; à moins de 9 m de la caméra il s'efface (un glyphe chassé bouchait l'écran).
+- Banc : `dbgPluie()` la lance en course, `dbgPluie('etat')` → `{vivants, rebonds, chocs}`. Mesuré en Chromium logiciel : ~1 000 rebonds et ~90 chocs
+  par averse (téléphone debout) ; départ + course + averse sans erreur debout, couché et dans le cadre de l'ordi. Pas mesuré sur un vrai iPhone.
+- Coût mesuré (micro-banc Node, 540 glyphes, hors GPU) : `updateMoneyRain` 0,020 → 0,054 ms par image en médiane (pire 0,056 → 0,135 ms), pendant
+  les ~6 s d'une averse seulement ; rien quand il ne pleut pas. Côté GPU : rien de plus (mêmes panneaux, même atlas, même programme).
+- PORTÉE SUR LES AUTRES VERSIONS (20/11, Léo : « sur toutes les versions »), le BLOC de la pluie seul, rien d'autre de main : `ios-capacitor`
+  (7a5312af : jeu + `app-ios/www/` resynchronisé, sw.js laissé à v1604 — pas de service worker dans l'app), `maj` (60a50107, cache v1421),
+  `android-capacitor` (a465dc76, cache v1136). Chacune : départ + course + averse sans erreur. Une fusion de main dans ces branches retrouvera
+  le même bloc (pas de conflit attendu sur `billets-devises.js` ; `sw.js` : garder la version de main).
+- ⚠ Le retour à l'averse de glyphes était un choix de Sacha (26/10) : ce sont toujours des glyphes, mais leur allure a changé à la demande de Léo.
+
 ## L'ÉCRAN DE MORT EST MUET (2026-11-08 — Sacha : « il y a la musique alors que je suis mort »)
 - Cause : depuis fin septembre, `endGame` relançait la musique du menu 1,4 s après la mort (`musicMenu` → le lobby lié de Pouce bleu, le morceau de la
   PROCHAINE course, niveau 0,34 à 0,58 au banc). Ce n'était pas la musique de course qui continuait : elle s'éteint bien au crash (`explode`, tape-stop).
