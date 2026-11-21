@@ -116,3 +116,25 @@ Les portraits (12 scènes A/B) donnent la même lecture : programmes égaux (149
 - L'identité au pixel près entre deux chargements : le banc n'est pas déterministe d'un chargement à l'autre. L'identité est prouvée par les empreintes d'ambiance, de shaders et de programmes, et les images sont jugées par tiers.
 - Les vues de la grotte : ce sont celles des lacs (`dbgGrotte('lac')`), en boucle non figée. Elles ne montrent pas une rive comblée de près, et le flou de mouvement change d'un chargement à l'autre.
 - `?plus=geants`.
+
+## Contrôle de démarrage « SANS TOUT CASSER » (21/11, 17 h) : DÉMARRAGE OK
+Contrôle fait dans `finition-lots/integ` (HEAD 4318e8848, `--verifier` d'accord), comparé à `avant-main` (fc1cca055). Chaque essai suit le vrai chemin du menu, sans `?colonne=0` :
+- page → intro (Entrée) → splash (vrais taps) → menu → JOUER, par un vrai clic souris sur l'ordi ou un vrai toucher sur le téléphone, envoyé par `Input.dispatch*` ;
+- ensuite la course roule 10 s au pilote automatique. Le son est coupé (`sfx`/`mus`/`vox` à false lus dans `cashcarSave` avant tout clic) et Chrome est muet.
+
+Le JOUER de l'écran titre a un rectangle de 0×0 dans le DOM. J'ai donc touché sa place à l'écran, relevée sur les captures : (1090, 580) sur l'ordi en 1440×900, (667, 273) en couché, (193, 790) en debout.
+
+| essai | AVANT | APRÈS |
+|---|---|---|
+| ordi 1440×900, cadre `#colonne`, nuages nuit | course OK, 643 m en 10 s, 194 programmes, 133 textures, MAX | course OK, 695 m, 194 programmes, 133 textures, MAX |
+| ordi, Jade nuit (2e passage) | course OK, 676 m, 195 / 130, MAX | course OK, 667 m, 195 / 130, MAX |
+| couché 844×390 `?tel=1`, nuages nuit | course OK, 669 m, 152 / 119 | course OK, 642 m, 152 / 119 |
+| debout 390×844 `?tel=1`, Jade soir | course OK, 614 m, 152 / 120 | course OK, 617 m, 152 / 121 |
+| debout `?tel=1`, map du tirage (sans carte imposée) | ÉCHEC du banc : la course ne part pas au tap fixe (la page d'AVANT, pas le code livré) | course OK, ville d'orage, 669 m, 152 / 121 |
+
+- Exceptions : 0 partout.
+- Console : rien de nouveau. AVANT comme APRÈS ont l'avertissement Canvas2D `willReadFrequently` et, sur l'ordi, « three.min.js preloaded but not used » (la page cadre).
+- `dbgPoste()` vaut MAX (r 3) pour les deux versions. Au premier passage, l'AVANT de Jade était passé en ALLÉGÉ (banc 7,4 ms sur un Mac chargé) et comptait 172 programmes contre 195. Refait au second passage : 195 = 195 en MAX tous les deux.
+- La debout de Jade compte 121 textures contre 120 : un écart de chargement (le banc figé donnait 119 = 119).
+- Capture de la course sur l'ordi : `9-ordinateur-course.jpg`.
+- Non fait : le vrai iPhone ; une première visite sans sauvegarde (auto-école, plaque) ; d'autres tailles de fenêtre d'ordi.
