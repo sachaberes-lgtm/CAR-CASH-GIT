@@ -52,3 +52,24 @@ Pour la session qui reprend. Le journal complet, lot par lot, est dans `passatio
 - Fusion d'un lot : `git merge`, `node code/assembler.cjs --depuis-morceaux`, les trois gardes, `git checkout -- "VERSION PRINCIPALE/index.html"`. Le hook pousse seul ; vérifier avec `git status -sb`.
 - Les prompts des agents doivent citer les mots de Sacha. Worktrees allégés sous `~/cash-car/lots-nuit/` ; retirer ceux des lots finis (disque).
 - Builds gardés sur le Mac : 122, 123, 125, 126 (`~/cash-car/ios-ultime-mesures/builds/`).
+
+## Verdict du contrôle de l'ensemble (21/11, 22h10) : SAIN
+
+Tête contrôlée : `ee62614f2` (les commits suivants ne touchent que la passation). Aucun défaut sérieux. Huit parties complètes au banc (site, paquet de l'app, édition App Store ; sauvegarde du 126 rejouée, neuve FR, neuve EN) : 0 exception, 0 objet ni caisse ni mission perdus, BLANC NEIGE achetée 60 000, pas d'onglet traînées, les quatre interrupteurs `?sans=` agissent. Peintures : pire image du rayon 250 ms contre 792 ms sans le lot. Lobby : relancé après un départ raté provoqué.
+
+Défauts mineurs relevés (aucun traité, rien lancé) :
+1. Sauvegarde du 126 : missions tr5 / tr10 réussies mais pas récupérées → leurs primes (3 000 et 10 000) ne se touchent plus tant que les traînées sont retirées ; eng30 (FOUDRE) cachée, sa récompense attend. Rien n'est effacé.
+2. RÉGLAGES › VERSION affiche `df41561f2` dans le 126 comme dans le 127 (index.html jamais commité sur la branche) : Sacha ne peut pas distinguer les deux builds par cette ligne.
+3. Édition App Store seulement (pas ses builds, qui sont COMPLET=1) : le CHAT POP-TART sort de `owned` sans remboursement. À régler avant une vraie publication.
+4. 404 sur `assets/ciel/mer-cumulus.png` dans le paquet (déjà là au 126).
+5. Coût en course : aucune différence visible avec le 126, mesure bruitée.
+
+Pas vérifié : rien n'a tourné sur un vrai iPhone ; StoreKit réel ; la vraie sauvegarde de Sacha ; relance du lobby après une mort ; mise en page ordinateur de la boutique à 5 onglets.
+
+Relevés : dans le scratchpad de la session (`…/scratchpad/ctl127/`, effaçable). Worktrees `~/cash-car/lots-nuit/ctl-ensemble127` et `ctl127-base` laissés en place : à retirer (disque).
+
+## Build 127 : compilé, PAS installé
+
+`~/cash-car/ios-ultime-mesures/builds/build127.app`, compilé le 21/11 depuis `3dd64e4d5` (COMPLET=1, `&perfrec=2`). **À installer seulement sur le oui de Sacha** :
+`xcrun devicectl device install app --device FE6F8B40-DCFF-5E04-B578-871A79EDCF17 ~/cash-car/ios-ultime-mesures/builds/build127.app`
+Rien d'autre ne tourne : aucun workflow, aucun banc.
