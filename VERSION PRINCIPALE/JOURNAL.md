@@ -5,6 +5,22 @@
 
 
 
+## LA FINITION DES MAPS (2026-11-21, v1626 — Sacha : « le plus jolies possible tout en restant aussi optimisées qu'elles le sont », « ternes la nuit ou quand il pleut », « des fois c'est trop rouge »)
+- Cinq lots, chacun avec son interrupteur qui rend l'image d'avant ; tout couper : `?sans=nappes,couleursfinies,espacefini,jadefini,canyonfini`.
+  - GROTTE (`?sans=nappes`, `code/maps/grottes-1.js`, `grottes-2.js`, `grotte-travailleur.js`) : la génération des NAPPES de lave et d'eau (pas la route). Poches d'air
+    fermées sous le niveau comblées, encoches du plan d'eau refermées, l'eau et la lave ne gardent qu'une lèvre de 12 m sur leur rive. Plus de paroi d'eau debout dans le vide.
+  - COULEURS (`?sans=couleursfinies`, nouveau morceau `code/rendu/couleurs-finies.js`) : nuit des nuages (route violette au lieu de noire), pluie, matin, midi, orage et
+    ville jaune un peu plus colorés. Des nombres d'ambiance seulement.
+  - ESPACE (`?sans=espacefini`, `code/maps/orbite-embellie.js`) : face nuit de Mars et Saturne (plus de trou noir), nébuleuse retenue, matières des amas.
+  - PIC DE JADE (`?sans=jadefini`, `code/rendu/lumiere-design.js`, `scene-ciel.js`) : soir moins rouge (zénith lilas), ciel de nuit plus clair et plus coloré sur le même
+    sol jade, pluie plus verte ; l'astre « Japon » gardé.
+  - CANYON (`?sans=canyonfini`, `code/maps/canyon-relief.js`) : nuit (ombres bleu-violet), pluie (route bleu canard) et orage (indigo-violet). ⚠ Le SOIR n'a PAS changé :
+    huit essais pour le rendre moins rouge ont échoué (le grès est rouge par son albédo, la teinte verdit l'ombre) ; chantier abandonné par Sacha le 20/11.
+- Coût : aucune texture, aucun maillage, aucun programme, aucune instruction GLSL en plus (l'espace en retire une). Routes identiques au bit près (480 empreintes sur 480).
+- Vérifié au banc (Chrome sans fenêtre, `?tel=1`, 844×390 et 390×844) : chaque lot par un contrôle adverse, puis les cinq ensemble contre main (98 chargements, 0 exception).
+  ⚠ Pas vu sur un vrai iPhone ; le calcul des nappes de la grotte (`grtNappesG`, 26 à 258 ms découpés en tranches) n'y est pas mesuré.
+- Tout le détail (mesures, non vérifié, décisions ouvertes) : `passation/FINITION-MAPS.md` ; planches avant/après : `passation/photos/finition-maps/`.
+
 ## LA PLUIE DE DEVISES : JOUET MODERNE, ELLE REBONDIT (2026-11-20, v1625 — Léo : « RGB », « plus 3D, ça tombe sur la route et rebondit », « on fonce dedans »)
 - Ce qui change (`code/rendu/billets-devises.js`) : les glyphes d'or cerclés d'encre deviennent des BLOCS ciselés (un plat verni, quatre chanfreins,
   une tranche sombre, plus de liseré) teintés par instance d'une couleur presque pure qui fait le tour de l'arc-en-ciel en ~6 s. Ils tournent sur

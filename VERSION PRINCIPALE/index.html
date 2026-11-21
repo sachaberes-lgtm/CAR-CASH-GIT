@@ -13953,8 +13953,16 @@ const skyDome=(function(){
       '    float n=vfbm(vec2(p.x*.55,p.y*2.4)+3.7);c=mix(c,mix(uJdH,mix(uJdH,vec3(1.),uJdK.y),.35),smoothstep(.56,.86,n)*.42*smoothstep(.012,.06,y)*(1.-smoothstep(.22,.4,y)));}',
       '  {vec4 lo=jLointain(az,y);c=mix(c,lo.rgb,lo.a);}',                  // (v12) le LOINTAIN, derrière les rangées de piliers
       '  {vec3 sv=normalize(vec3(uSunDir.x,0.,uSunDir.z)*.966+vec3(0.,.259,0.));float sv9=max(dot(d,sv),0.);',               // le SOLEIL vermillon, posé AU-DESSUS des monts (~15°)
-      '   float dk=1.-smoothstep(.99680,.99725,sv9);vec3 ve=mix(vec3(.90,.26,.15),vec3(.97,.42,.22),smoothstep(.99725,.99990,sv9));',
-      (/[?&]jadenuit=0\b/.test(location.search)?'   ve=mix(ve,vec3(.80,.86,.98),uJdK.w);c=mix(c,ve,(1.-dk)*.96*uJdK.x);c+=mix(vec3(.50,.16,.08),vec3(.20,.24,.34),uJdK.w)*pow(sv9,120.)*.22*dk*uJdK.x;}'
+      /* ===== L'ASTRE « JAPON » (2026-11-18, finition des maps : « le soleil / la lune en mode Japon, le garder et le soigner ») =====
+         Les mêmes opérations, d'autres NOMBRES (zéro instruction de plus) : un disque un peu plus grand (rayon 4,4° → 4,9°), un bord plus NET (la bande
+         d'adoucissement 0,35° → 0,16°, ~1 px du ciel du téléphone : le tampon de l'estampe, plus la photo floue), un vermillon plus profond au bord et un cœur
+         plus orangé (le bokashi), un halo plus sobre et doré (0,22 → 0,13) ; la lune : un ivoire plus franc (55 % de blanc), un halo plus serré.
+         `?sans=jadefini` = l'astre d'avant, au caractère près. */
+      (/[?&]sans=([^&]*,)?jadefini(,|&|$)/.test(location.search)?'   float dk=1.-smoothstep(.99680,.99725,sv9);vec3 ve=mix(vec3(.90,.26,.15),vec3(.97,.42,.22),smoothstep(.99725,.99990,sv9));'
+       :'   float dk=1.-smoothstep(.99627,.99652,sv9);vec3 ve=mix(vec3(.82,.13,.10),vec3(.98,.36,.16),smoothstep(.99652,.99990,sv9));'),
+      /* (contrôle, tour 1) `?jadenuit=0` (l'interrupteur de la lune du 13/11) reste vivant avec le lot : il reprend la ligne de lune d'avant le 13/11 */
+      (/[?&]sans=([^&]*,)?jadefini(,|&|$)/.test(location.search)?'':/[?&]jadenuit=0\b/.test(location.search)?'   ve=mix(ve,vec3(.80,.86,.98),uJdK.w);c=mix(c,ve,(1.-dk)*.96*uJdK.x);c+=mix(vec3(.50,.16,.08),vec3(.20,.24,.34),uJdK.w)*pow(sv9,120.)*.22*dk*uJdK.x;}':'   ve=mix(ve,mix(uJdS,vec3(1.),.55),uJdK.w);c=mix(c,ve,(1.-dk)*.97*uJdK.x);c+=mix(vec3(.52,.24,.06)*pow(sv9,120.)*.13,uJdS*(pow(sv9,120.)*.18+pow(sv9,16.)*.05),uJdK.w)*dk*uJdK.x;}')+
+      (!/[?&]sans=([^&]*,)?jadefini(,|&|$)/.test(location.search)?'':/[?&]jadenuit=0\b/.test(location.search)?'   ve=mix(ve,vec3(.80,.86,.98),uJdK.w);c=mix(c,ve,(1.-dk)*.96*uJdK.x);c+=mix(vec3(.50,.16,.08),vec3(.20,.24,.34),uJdK.w)*pow(sv9,120.)*.22*dk*uJdK.x;}'
        :'   ve=mix(ve,mix(uJdS,vec3(1.),.40),uJdK.w);c=mix(c,ve,(1.-dk)*.96*uJdK.x);c+=mix(vec3(.50,.16,.08)*pow(sv9,120.)*.22,uJdS*(pow(sv9,120.)*.26+pow(sv9,16.)*.07),uJdK.w)*dk*uJdK.x;}'), /* (2026-11-13, LA NUIT DE JADE) la LUNE prend la teinte de jdS (ivoire doré) et un halo large, au lieu d un disque lavande codé en dur sans lueur ; le jour (uJdK.w = 0) : le même calcul qu avant ; `?jadenuit=0` = l ancienne ligne */
       '  for(int i=0;i<4;i++){float fi=float(i),hc=.020+fi*.062+.014*sin(az*1.3+fi*2.1),th=.010+.005*fi;',                   // (v17 bis) les KASUMI : bandes d or couchées
       '    float on=smoothstep(.42,.58,vn(vec2(az*(1.1+fi*.35)+fi*7.3,fi*3.1)));float b=(1.-smoothstep(th*.55,th,abs(y-hc)))*on;',
@@ -26575,6 +26583,25 @@ const CY_LOOKS={
   C:{sat:'.92',omb:'.92,.84,.86',ardK:'.14',ardF:'.38',ard:'.98,.88,.92',bnc:1,pal:{m:[.92,.54,.36,.75,.90],n:[.62,.30,.22,.82,.84]},
      bio:{canyonMatin:{hemiS:[.50,.50,.60],cyF:[1.053,0.66,0.436],cyZ:[.04,.36,.62],jZen:[.04,.36,.62]},canyonMidi:{cyZ:[.03,.34,.66],jZen:[.03,.34,.66],cyF:[0.998,0.751,0.6]},canyonSoir:{hemiS:[.38,.36,.50],rtT:[.78,.98,1.0],cyF:[0.98,0.551,0.4]}}}};
 const CY_PISTE=(function(){if(/[?&]sans=([^&]*,)?cyfinal(,|&|$)/.test(location.search))return '0';const m=/[?&]cypiste=([^&]*)/.exec(location.search);return m?m[1]:'A';})(),CY_LOOK=Object.prototype.hasOwnProperty.call(CY_LOOKS,CY_PISTE)?CY_LOOKS[CY_PISTE]:null;
+/* ===== LE CANYON FINI (2026-11-18, finition des maps : « le plus jolies possible tout en restant aussi optimisées qu'elles le sont ») =====
+   Sur la piste A (« grès doré équilibré par des froids », le choix de Sacha du 17/11), des NOMBRES d'ambiance seulement, posés avec les retouches de la piste (lumiere-design.js,
+   après l'équilibre et le plan de feu) : zéro instruction de shader, zéro texture, zéro appel, zéro triangle. `?sans=canyonfini` = l'image d'avant. Valeurs et mesures : CY_FINI_R. Nuit, pluie et orage seulement. */
+const CY_FINI=!/[?&]sans=([^&]*,)?canyonfini(,|&|$)/.test(location.search);
+const CY_FINI_R={
+  /* LE SOIR n'est PAS dans le lot (20/11) : six essais pour le rendre moins rouge ont tous été refusés au banc (roche délavée, puis kaki, puis ombres vert mousse sur g17).
+     Le soir reste donc celui d'avant ; les jeux de nombres essayés et leurs mesures sont dans passation/photos/finition-maps/canyon/NOTE.md et sur la branche finition-maps-canyon. */
+  /* LA NUIT : la route bleu électrique est GARDÉE (rtT d'avant). Seuls l'ombre (hemiS [.28,.32,.64] → [.30,.27,.66]) et le remplissage glissent du bleu vers le bleu-violet,
+     à luminance égale (le tour 1 assombrissait la nuit de 20 % : retiré). */
+  canyonNuit:{hemiS:[.30,.27,.66],fillC:[.34,.28,.74]},
+  /* LA PLUIE (hors tirage) : le ciel gris bleu passe au bleu canard, la brume ardoise turquoise, les nuages un cran plus froids, le rebond de la roche mouillée terre cuite.
+     Tour 3 (« plus fun ») : la route mouillée prend le bleu (rtT [1.05,1,.86] → [.82,1,1.14]) au lieu du gris ; tour 4 : vers le CANARD, plus vert ([.76,1.04,1.10]).
+     Chroma Lab de la route (bas de l'image) : avant → tour 4, 7,8 → 24,5 en course, 10,9 → 29,3 vue figée. */
+  canyonPluie:{fog:[.34,.46,.52],fogCj:[.46,.52,.56],fogIn:[.50,.58,.62],hemiS:[.44,.56,.70],cyF:[.42,.54,.60],cyL:[.72,.46,.36],rtT:[.76,1.04,1.10],sat:1.12,
+    cyZ:[.10,.24,.36],jZen:[.10,.24,.36],cyM:[.20,.36,.44],jMid:[.20,.36,.44],cyC:[.46,.52,.58],cyD:[.15,.20,.27]},
+  /* L'ORAGE (hors tirage) : la nuit d'orage bleu-noir passe à l'indigo-violet, à luminance d'avant (l'ombre [.28,.36,.54] → [.30,.28,.60]), le ciel et les mesas au violet. */
+  canyonOrage:{fog:[.07,.07,.17],fogCj:[.20,.16,.34],fogIn:[.22,.20,.36],hemiS:[.30,.28,.60],fillC:[.38,.32,.74],cyF:[.17,.16,.30],
+    cyZ:[.03,.02,.09],jZen:[.03,.02,.09],cyM:[.08,.05,.15],jMid:[.08,.05,.15],cyH:[.16,.10,.24],jHor:[.16,.10,.24],cyC:[.18,.15,.28],cyR:[.10,.08,.17]}};
+if(CY_FINI&&CY_PISTE==='A')for(const k in CY_FINI_R)CY_LOOK.bio[k]=Object.assign(CY_LOOK.bio[k]||{},CY_FINI_R[k]);
 function cyFS(CYD){return ['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uBnc,uRkT,uWS,uWD,uSkH,uSkZ,uMist,uMud,uPhP,uPhD,uPhC;uniform vec4 uQ;uniform float uTime,uFlash,uWet;',
   'varying vec3 vW,vN;varying vec4 vA,vB;varying float vWL;','#include <fog_pars_fragment>',
   'float gCs;', /* (2026-10-25, Sacha : « retravaille les textures, inspire-toi de la forêt : des gros pixels, mais lisses ») LES GROS PIXELS DE LA ROCHE : gCs = la case sous ce pixel (~10 px d'écran, par paliers doublés fondus l'un dans l'autre) */
@@ -32216,7 +32243,7 @@ function grtLacsBloc(A,DN,SI,R,y0,lac,eau,B,K,V){ /* l'ancien parcours d'UN bloc
   for(let o=0;o<4096;o++){if(DN[o]<=0)continue;const j=(o>>4)&15,cy=y0+(j+.5)*B,q=SI[((o&15)>>2)|((j>>2)<<2)|(((o>>8)>>2)<<4)];if(q<0)continue;const S=R.S[q];
     const L9=lac&&S>=lac.s0&&S<=lac.s1?lac:(eau&&S>=eau.s0&&S<=eau.s1?eau:null);if(!L9||cy>L9.y+2*B)continue;
     const dv=Math.max(-127,Math.round((cy-L9.y)*K));if(dv<DN[o])DN[o]=dv;if(cy<L9.y&&A[o]===1){A[o]=L9===lac?4:5;if(V)V.nAir--;}}}
-function* grtLacsG(V,R){const lac=GROTTE.lac,eau=GROTTE.eau,B=V.B,K=GRT.K;if(!lac&&!eau)return;const yMax=Math.max(lac?lac.y:-1e9,eau?eau.y:-1e9)+2*B,LQ=new Array(64);
+function* grtLacsG(V,R){const lac=GROTTE.lac,eau=GROTTE.eau,B=V.B,K=GRT.K;if(!lac&&!eau)return;const yMax=Math.max(lac?lac.y:-1e9,eau?eau.y:-1e9)+2*B,LQ=new Array(64),LST=GRT_NAP.on&&GRT_LACS_VITE?{a:new Int32Array(65536),n:0}:null; /* (2026-11-19, contrôle : « un tableau JS de 839 k nombres ») LST : les cases remplies, un Int32Array qui double */
   for(let c=0;c<V.pool.length;c++){if((c&7)===7&&performance.now()>JF.lim)yield;const d=V.cle[c],cj=((d/V.CX)|0)%V.CY,y0=V.oy+cj*16*B;if(y0>yMax)continue;const A=V.pool[c],DN=V.dn[c],SI=V.si[c];
     if(!GRT_LACS_VITE){grtLacsBloc(A,DN,SI,R,y0,lac,eau,B,K,V);continue;}
     let nb=0;for(let m=0;m<64;m++){const q=SI[m];let L9=null;if(q>=0){const S=R.S[q];L9=lac&&S>=lac.s0&&S<=lac.s1?lac:(eau&&S>=eau.s0&&S<=eau.s1?eau:null);}LQ[m]=L9;if(L9)nb++;}
@@ -32224,8 +32251,80 @@ function* grtLacsG(V,R){const lac=GROTTE.lac,eau=GROTTE.eau,B=V.B,K=GRT.K;if(!la
     let A0=null,D0=null;if(GRT_LACS_VERIF){A0=A.slice();D0=DN.slice();}
     for(let m=0;m<64;m++){const L9=LQ[m];if(!L9)continue;const i0=(m&3)<<2,j0=((m>>2)&3)<<2,k0=(m>>4)<<2,lim=L9.y+2*B,cas=L9===lac?4:5;
       for(let j=j0;j<j0+4;j++){const cy=y0+(j+.5)*B;if(cy>lim)break;const dv=Math.max(-127,Math.round((cy-L9.y)*K)),noie=cy<L9.y;
-        for(let k=k0;k<k0+4;k++){const ob=(j<<4)|(k<<8);for(let i=i0;i<i0+4;i++){const o=ob|i;if(DN[o]<=0)continue;if(dv<DN[o])DN[o]=dv;if(noie&&A[o]===1){A[o]=cas;V.nAir--;}}}}}
-    if(A0){grtLacsBloc(A0,D0,SI,R,y0,lac,eau,B,K,null);let e9=0;for(let o=0;o<4096;o++)if(A0[o]!==A[o]||D0[o]!==DN[o])e9++;window.__lacsEcarts=(window.__lacsEcarts|0)+e9;window.__lacsBlocs=(window.__lacsBlocs|0)+1;}}}
+        for(let k=k0;k<k0+4;k++){const ob=(j<<4)|(k<<8);for(let i=i0;i<i0+4;i++){const o=ob|i;if(DN[o]<=0)continue;if(dv<DN[o])DN[o]=dv;if(noie&&A[o]===1){A[o]=cas;V.nAir--;if(LST){if(LST.n===LST.a.length){const a9=new Int32Array(LST.a.length*2);a9.set(LST.a);LST.a=a9;}LST.a[LST.n++]=(c<<12)|o;}}}}}}
+    if(A0){grtLacsBloc(A0,D0,SI,R,y0,lac,eau,B,K,null);let e9=0;for(let o=0;o<4096;o++)if(A0[o]!==A[o]||D0[o]!==DN[o])e9++;window.__lacsEcarts=(window.__lacsEcarts|0)+e9;window.__lacsBlocs=(window.__lacsBlocs|0)+1;}}
+  if(LST)yield* grtNappesG(V,R,LST,lac,eau);}
+/* ===== LES NAPPES ONT UNE LIMITE (2026-11-18, finition des maps : « la lave et l'eau sont parfois mal générées, il n'y a pas de limite ») =====
+   MESURÉ (banc Node outils/banc-routes/grotte-nappes.cjs : le vrai champ, le vrai mailleur, 200 graines × 3 paliers) : la portée d'un lac se décide par SOUS-CUBE de 48 m (V.si : l'échantillon de route le plus
+   proche) — un sous-cube dont l'échantillon tombe hors de la portée garde son AIR sous le niveau, à côté (au-dessus, en dessous) d'un sous-cube rempli. Le mailleur peint lave/eau tout triangle qui touche une case
+   du lac sous le niveau (GRT_FS) : des MURS de lave debout dans le vide (la nappe coupée net sur le bord d'un sous-cube), des nappes en GRADINS 10-20 m sous leur niveau, des dessous de lave au plafond d'un creux.
+   LA RIVE : une case de nappe qui touche (26 voisines) de l'air sous le niveau, ou une case de l'AUTRE nappe, devient une case de RIVE (6 : rive de lave, 7 : rive d'eau) — de la roche pour la peinture
+   (lv du mailleur), une case du lac pour tout le reste : même densité, mêmes sommets posés sur le plan, mêmes lacs fondus (Fl), même collision et même mort (grotteHeurt). La nappe se ferme sur une lèvre
+   de roche au lieu d'un mur de lave, et la lave ne touche plus l'eau. Pas un sommet ni un triangle de plus : seule la matière des facettes de la rive change. Seules les cases remplies sont relues (la liste
+   tenue par grtLacsG), pas un balayage. ?sans=nappes : comme avant. */
+const GRT_NAPPES=!/[?&]sans=([^&]*,)?nappes(,|&|$)/.test(location.search),GRT_NAP={on:GRT_NAPPES}; /* on : le banc Node compare avant / après sur le même champ */
+function* grtNappesG(V,R,LST,lac,eau){const B=V.B,CX=V.CX,CY=V.CY,NX=V.NX,NY=V.NY,NZ=V.NZ,rive=[];let ms9=0,t9=performance.now(); /* (2026-11-18, contrôle tour 1) ms : le temps de calcul, pauses ôtées (dbgGrotte().nappes) */
+  const ci=function(e){return (V.cle[e>>12]%CX)*16+(e&15);},cj=function(e){return (((V.cle[e>>12]/CX)|0)%CY)*16+((e>>4)&15);},ck=function(e){return ((V.cle[e>>12]/(CX*CY))|0)*16+((e>>8)&15);};
+  /* LES CUVETTES SE COMBLENT (2026-11-19, contrôle adverse : « la fosse sous le plan d'eau, un bug de génération, n'est pas réglée, seulement remise comme avant »). MESURÉ (banc Node, graines 451-452 ×
+     paliers 0/10) : l'air sous le niveau collé à une nappe est presque toujours UNE poche géante (la grotte d'en dessous, > 4 096 cases) — la remplir noierait des salles entières. Deux passes, sans hasard,
+     la route seulement lue :
+     · la POCHE FERMÉE (3 D, 6 voisines) : moins de 4 096 cases d'air sous le niveau, collée à la nappe, qui ne touche pas l'autre nappe ni ne passe à moins de ROAD_HALF + 3 cases d'un échantillon
+       de route (celui de son sous-cube et des six voisins) — remplie entière, la même densité que la nappe ;
+     · l'ENCOCHE DANS LE PLAN (la couche de cases juste sous le niveau) : une case d'air de cette couche collée à la nappe est remplie quand, sur l'axe x ou sur l'axe z, elle est BORNÉE
+       des deux côtés à moins de 5 cases (la nappe, la roche ; au moins une fois la nappe) — la fermeture du plan à l'échelle d'un sous-cube (48 m, le pas de la portée) : le trou ou l'encoche
+       qu'on voyait d'en haut se referme, le vide dessous reste (le dessous de la couche est une case de RIVE : roche). Mêmes gardes (la route, l'autre nappe), de proche en proche.
+     Une poche ouverte (une salle, la route qui passe sous le niveau) reste telle quelle : sa rive est peinte en roche plus bas. */
+  let nCuv=0,nComb=0,nTrou=0;{const RM=ROAD_HALF+3*B,Q=new Int32Array(4096+8);
+    const cle=function(i,j,k){if(i<0||j<0||k<0||i>=NX||j>=NY||k>=NZ)return -1;const c=V.dir[(i>>4)+CX*((j>>4)+CY*(k>>4))];return c<0?-1:(c<<12)|(i&15)|((j&15)<<4)|((k&15)<<8);};
+    const pres=function(i,j,k){const x=V.ox+(i+.5)*B,y=V.oy+(j+.5)*B,z=V.oz+(k+.5)*B;for(let d=0;d<7;d++){const e=cle(i+(d===1?4:d===2?-4:0),j+(d===3?4:d===4?-4:0),k+(d===5?4:d===6?-4:0));if(e<0)continue;
+        const q=V.si[e>>12][((e&15)>>2)|((((e>>4)&15)>>2)<<2)|(((e>>8)>>2)<<4)];if(q>=0&&Math.hypot(R.X[q]-x,R.Y[q]-y,R.Z[q]-z)<RM)return true;}return false;};
+    const air=function(e,j,L9){return e>=0&&V.pool[e>>12][e&4095]===1&&V.dn[e>>12][e&4095]>0&&V.oy+(j+.5)*B<L9.y;};
+    /* remplir une case : la densité de la nappe (posée sur son plan), les deux cases au-dessus lissées comme grtLacsG, la case ajoutée à la liste */
+    const remplit=function(e,L9,cas){const c=e>>12,o=e&4095,i=ci(e),j=cj(e),k=ck(e),dv=Math.max(-127,Math.round((V.oy+(j+.5)*B-L9.y)*GRT.K));
+      if(dv<V.dn[c][o])V.dn[c][o]=dv;V.pool[c][o]=cas;V.nAir--;if(LST.n===LST.a.length){const a9=new Int32Array(LST.a.length*2);a9.set(LST.a);LST.a=a9;}LST.a[LST.n++]=e;
+      for(let u=1;u<=2;u++){const e3=cle(i,j+u,k);if(e3<0)break;const cy=V.oy+(j+u+.5)*B;if(cy>L9.y+2*B)break;const D3=V.dn[e3>>12],dv3=Math.max(-127,Math.round((cy-L9.y)*GRT.K));if(D3[e3&4095]>0&&dv3<D3[e3&4095])D3[e3&4095]=dv3;}};
+    /* une borne sur la couche, depuis (i,j,k) dans la direction (dx,dz) : 2 la nappe, 1 la roche, 0 ouvert (5 cases d'air), -1 l'autre nappe */
+    const borne=function(i,j,k,dx,dz,L9,cas,autre){for(let s9=1;s9<=5;s9++){const e=cle(i+dx*s9,j,k+dz*s9);if(e<0)return 1;const a=V.pool[e>>12][e&4095];if(a===cas)return 2;if(a===autre)return -1;if(!air(e,j,L9))return 1;}return 0;};
+    /* une poche depuis la case d'air e1 : rend le nombre de cases remplies (0 : ouverte) */
+    const poche=function(e1,j1,L9,cas,autre,vu,cap){let n=0,h=0,ok=true;Q[n++]=e1;vu.set(e1,1);
+      while(h<n&&ok){const e=Q[h++],i=ci(e),j=cj(e),k=ck(e);if(pres(i,j,k)){ok=false;break;}
+        for(let d2=0;d2<6;d2++){const j2=j+(d2===2?1:d2===3?-1:0),e2=cle(i+(d2===0?1:d2===1?-1:0),j2,k+(d2===4?1:d2===5?-1:0));if(e2<0)continue;
+          if(V.pool[e2>>12][e2&4095]===autre){ok=false;break;}if(!air(e2,j2,L9))continue;const v2=vu.get(e2);if(v2!==undefined){if(v2===2){ok=false;break;}continue;}if(n>=cap){ok=false;break;}vu.set(e2,1);Q[n++]=e2;}}
+      if(!ok){for(let q=0;q<n;q++)vu.set(Q[q],2);return 0;}
+      for(let q=0;q<n;q++){remplit(Q[q],L9,cas);vu.set(Q[q],3);}return n;};
+    {const vu=new Map(),n0=LST.n; /* 1 · les poches fermées */
+      for(let f=0;f<n0;f++){if((f&2047)===2047&&performance.now()>JF.lim){ms9+=performance.now()-t9;yield;t9=performance.now();}const e0=LST.a[f],cas=V.pool[e0>>12][e0&4095];if(cas!==4&&cas!==5)continue;
+        const L9=cas===4?lac:eau,autre=cas===4?5:4,i0=ci(e0),j0=cj(e0),k0=ck(e0);
+        for(let d=0;d<6;d++){const j1=j0+(d===2?1:d===3?-1:0),e1=cle(i0+(d===0?1:d===1?-1:0),j1,k0+(d===4?1:d===5?-1:0));if(!air(e1,j1,L9)||vu.has(e1))continue;
+          const n=poche(e1,j1,L9,cas,autre,vu,4096);if(n){nComb+=n;nCuv++;}}}}
+    {const vu=new Set(); /* 2 · les encoches du plan, de proche en proche (la liste grandit) */
+      for(let f=0;f<LST.n;f++){if((f&2047)===2047&&performance.now()>JF.lim){ms9+=performance.now()-t9;yield;t9=performance.now();}const e0=LST.a[f],cas=V.pool[e0>>12][e0&4095];if(cas!==4&&cas!==5)continue;
+        const L9=cas===4?lac:eau,autre=cas===4?5:4,i0=ci(e0),j0=cj(e0),k0=ck(e0);if(V.oy+(j0+.5)*B<L9.y-B)continue;
+        for(let d=0;d<4;d++){const i1=i0+(d===0?1:d===1?-1:0),k1=k0+(d===2?1:d===3?-1:0),e1=cle(i1,j0,k1);if(!air(e1,j0,L9)||vu.has(e1))continue;vu.add(e1);
+          const xa=borne(i1,j0,k1,1,0,L9,cas,autre),xb=borne(i1,j0,k1,-1,0,L9,cas,autre),za=borne(i1,j0,k1,0,1,L9,cas,autre),zb=borne(i1,j0,k1,0,-1,L9,cas,autre);
+          if(xa<0||xb<0||za<0||zb<0)continue;if(!((xa&&xb&&(xa|xb)&2)||(za&&zb&&(za|zb)&2))||pres(i1,j0,k1))continue;remplit(e1,L9,cas);nComb++;nTrou++;}}}}
+  /* la rive : 26 voisines ; une case loin du bord de son tronçon les lit directement dans son tableau (le cas courant, sans V.dir) */
+  for(let f=0;f<LST.n;f++){if((f&2047)===2047&&performance.now()>JF.lim){ms9+=performance.now()-t9;yield;t9=performance.now();}const e=LST.a[f],c0=e>>12,o0=e&4095,A0=V.pool[c0],cas=A0[o0],L9=cas===4?lac:eau,autre=cas===4?5:4;
+    const i0=ci(e),j0=cj(e),k0=ck(e),li=o0&15,lj=(o0>>4)&15,lk=o0>>8;let bord=false;
+    if(li>0&&li<15&&lj>0&&lj<15&&lk>0&&lk<15){const D0=V.dn[c0];for(let dz=-256;dz<=256&&!bord;dz+=256)for(let dy=-16;dy<=16&&!bord;dy+=16)for(let dx=-1;dx<=1;dx++){const o=o0+dx+dy+dz,a=A0[o];
+        if(a===autre||a===autre+2||(a===1&&D0[o]>0&&V.oy+(j0+dy/16+.5)*B<L9.y)){bord=true;break;}}}
+    else for(let dz=-1;dz<=1&&!bord;dz++)for(let dy=-1;dy<=1&&!bord;dy++)for(let dx=-1;dx<=1&&!bord;dx++){const i=i0+dx,j=j0+dy,k=k0+dz;if(i<0||j<0||k<0||i>=NX||j>=NY||k>=NZ)continue;
+      const c=V.dir[(i>>4)+CX*((j>>4)+CY*(k>>4))];if(c<0)continue;const o=(i&15)|((j&15)<<4)|((k&15)<<8),a=V.pool[c][o];
+      if(a===autre||a===autre+2||(a===1&&V.dn[c][o]>0&&V.oy+(j+.5)*B<L9.y))bord=true;}
+    if(bord)rive.push(e);}
+  for(let f=0;f<rive.length;f++){const e=rive[f],A=V.pool[e>>12];A[e&4095]+=2;}
+  GROTTE.nappes={cases:LST.n,rive:rive.length,cuvettes:nCuv,trous:nTrou,comblees:nComb,ms:Math.round(ms9+performance.now()-t9)};}
+/* LA PAROI D'UNE RIVE D'EAU (2026-11-18/19, contrôle adverse : « la cuvette sous le niveau devient un TROU NOIR au milieu du plan d'eau » la nuit) : la roche sous l'eau ne rougeoie pas (seule la lave
+   éclaire sa rive, GRT_FS). MESURÉ (banc Node, graine 1 palier 20) : le creux noir est la paroi d'une fosse à plus de 60 m sous le niveau, vue D'EN HAUT à travers le plan d'eau — de l'eau, pour l'œil
+   (une lueur cuite dans aL, essayée le 19/11, la laissait noire : 4,5 % → 18,5 % de pixels noirs au bas de la vue). Donc une facette de la rive d'eau qui ne regarde PAS vers le bas garde l'eau, à toute
+   profondeur, comme avant ; seul le DESSOUS d'une nappe (l'air sous la facette : la nappe qui flotte) reste de roche. La normale géométrique (b−a)×(c−a) du mailleur pointe dans la roche (banc : 100 %
+   des facettes nettes), l'air est donc vers le bas quand ny > 0,35. Rien qu'un drapeau (2) par triangle, pas un sommet de plus.
+   (2026-11-19, contrôle adverse, reprise) « à toute profondeur » n'est plus vrai : la fosse vue d'en haut était une ENCOCHE de la portée, refermée dans grtNappesG ; l'eau ne garde que sa lèvre (12 m). */
+function grtRiveEau(T,a,b,c,y0){if(!GROTTE.eau||(T.F[a*4+3]!==2&&T.F[b*4+3]!==2&&T.F[c*4+3]!==2))return 0;const P=T.P;if(GRT_NAP.on&&y0+Math.min(P[a*3+1],P[b*3+1],P[c*3+1])<GROTTE.eau.y-12)return 0; /* (2026-11-19, contrôle adverse : « 138 000 à 254 000 m² de paroi d'eau sous le niveau ») les ENCOCHES vues d'en haut sont refermées (grtNappesG) : l'eau ne garde que la LÈVRE de sa rive, une case (12 m) sous le niveau ; plus bas, la paroi et les gradins sont de roche, comme la rive de la lave */
+  const ux=P[b*3]-P[a*3],uy=P[b*3+1]-P[a*3+1],uz=P[b*3+2]-P[a*3+2],vx=P[c*3]-P[a*3],vy=P[c*3+1]-P[a*3+1],vz=P[c*3+2]-P[a*3+2];
+  const nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx,l=Math.hypot(nx,ny,nz);return l>0&&ny<.35*l?2:0;}
+/* (2026-11-19, contrôle adverse : « graine 452 palier 10, dessous −27 % seulement, les blocs fondus gardent T.F ») le DESSOUS d'un bloc fondu (une nappe d'une case d'épaisseur, posée sur le plan des deux côtés) : la facette regarde vers le bas (la normale du mailleur pointe dans la roche, ny > 0,35) — elle prend la peinture de la rive (Fp) comme les autres */
+function grtVersBas(T,a,b,c){const P=T.P,ux=P[b*3]-P[a*3],uy=P[b*3+1]-P[a*3+1],uz=P[b*3+2]-P[a*3+2],vx=P[c*3]-P[a*3],vy=P[c*3+1]-P[a*3+1],vz=P[c*3+2]-P[a*3+2],ny=uz*vx-ux*vz;return ny>.35*Math.hypot(uy*vz-uz*vy,ny,ux*vy-uy*vx);}
 /* LES PILIERS (après les lacs) : des colonnes de BASALTE qui sortent de la lave jusqu'à la voûte, des COLONNES de concrétion (en sablier) dans la
    cathédrale — loin de toutes les routes (règle d'or), dans l'air de la salle. La densité les refait roche (la physique = l'image). */
 function grtPiliers(V,R,fr){return rythmeMene(grtPiliersG(V,R,fr));} /* (2026-11-17, lot portv) d'un trait : le même générateur */
@@ -32305,7 +32404,7 @@ function grtLum(x,y,z,sal,LL,out,nx,ny,nz){ /* (2026-11-14) nx, ny, nz : la norm
    cases autour : les creux s'assombrissent, les arêtes s'éclairent) et la lumière cuite. Un tronçon lit une bordure de 2 cases chez ses voisins. */
 const GRT_ARETES=[[0,1],[2,3],[4,5],[6,7],[0,2],[1,3],[4,6],[5,7],[0,4],[1,5],[2,6],[3,7]];
 const GRT_TMP={lum:[0,0,0,0],loc:null,vid:null,P:null,F:null,Lt:null,I:null};
-function grtTampons(){const T=GRT_TMP;if(!T.loc){T.loc=new Float32Array(20*20*20);T.vid=new Int32Array(17*17*17);const NV=40000;T.P=new Float32Array(NV*3);T.F=new Uint8Array(NV*4);T.Lt=new Uint8Array(NV*4);T.I=new Uint32Array(NV*6);T.Fl=new Uint8Array(NV);T.inc=new Uint8Array(NV);T.inB=new Uint8Array(NV);T.cor=new Uint8Array(NV);}return T;} /* (2026-11-15, LES LACS D'UN SEUL TENANT) Fl : le sommet posé sur le plan d'un lac (1 lave, 2 eau) · inc / inB : ses quads, et ceux qui sont dans un bloc fondu · cor : un coin de bloc */
+function grtTampons(){const T=GRT_TMP;if(!T.loc){T.loc=new Float32Array(20*20*20);T.vid=new Int32Array(17*17*17);const NV=40000;T.P=new Float32Array(NV*3);T.F=new Uint8Array(NV*4);T.Lt=new Uint8Array(NV*4);T.I=new Uint32Array(NV*6);T.Fl=new Uint8Array(NV);T.inc=new Uint8Array(NV);T.inB=new Uint8Array(NV);T.cor=new Uint8Array(NV);T.Fp=new Uint8Array(NV*2);}return T;} /* (2026-11-15, LES LACS D'UN SEUL TENANT) Fl : le sommet posé sur le plan d'un lac (1 lave, 2 eau) · inc / inB : ses quads, et ceux qui sont dans un bloc fondu · cor : un coin de bloc */
 const GT={ROCHE:0,LAVE:1,EAU:2,AMETHYSTE:3,BOIS:4,FLAMME:5,CRISTAL:6,BAIE:7,FEUILLE:8,FLEUR:9,CONCRETION:10,BASALTE:11,SCULK:12,CAPTEUR:13,BRIQUE:14,AME:15,DIAMANT:16,OR:17,MAGMA:18,ROSEC:19,VIOLETC:20,AZURC:21,SOLEILC:22}; /* (2026-10-24, embellir) 19-22 : les CRISTAUX À TEINTES (grottes-embellies.js) — rose, violet, azur, or */
 function grtMatieres(x,y,z,sal,lv){ // la matière d'un sommet de la roche (lv : un coin voisin est de la lave 4 ou de l'eau 5)
   const lac=GROTTE.lac,eau=GROTTE.eau;
@@ -32341,18 +32440,18 @@ function* grtMailleNetsG(V,c,LL){
     // la normale (vers l'air), l'occlusion, la salle, la matière
     const gx=(cv[1]+cv[3]+cv[5]+cv[7])-(cv[0]+cv[2]+cv[4]+cv[6]),gy=(cv[2]+cv[3]+cv[6]+cv[7])-(cv[0]+cv[1]+cv[4]+cv[5]),gz=(cv[4]+cv[5]+cv[6]+cv[7])-(cv[0]+cv[1]+cv[2]+cv[3]),gl=Math.hypot(gx,gy,gz)||1;
     let roc=0;if(VITE){for(let z9=-1;z9<=2;z9++)for(let y9=-1;y9<=2;y9++){const r9=b0+20*y9+400*z9;if(loc[r9-1]<=0)roc++;if(loc[r9]<=0)roc++;if(loc[r9+1]<=0)roc++;if(loc[r9+2]<=0)roc++;}}else for(let z9=-1;z9<=2;z9++)for(let y9=-1;y9<=2;y9++)for(let x9=-1;x9<=2;x9++)if(L(a+x9,b+y9,cc+z9)<=0)roc++;
-    let sal=0,lv=0;{let q9=-1;for(let q=0;q<8&&q9<0;q++){if(cv[q]<=0)continue;const ii=I0+a+(q&1),jj=J0+b+((q>>1)&1),kk=K0+cc+((q>>2)&1),ch=V.dir[(ii>>4)+V.CX*((jj>>4)+V.CY*(kk>>4))];
+    let sal=0,lv=0,lvP=0;{let q9=-1;for(let q=0;q<8&&q9<0;q++){if(cv[q]<=0)continue;const ii=I0+a+(q&1),jj=J0+b+((q>>1)&1),kk=K0+cc+((q>>2)&1),ch=V.dir[(ii>>4)+V.CX*((jj>>4)+V.CY*(kk>>4))];
         if(ch>=0)q9=V.si[ch][((ii&15)>>2)|(((jj&15)>>2)<<2)|(((kk&15)>>2)<<4)];}
       if(q9>=0&&R)sal=R.SAL[q9];
-      for(let q=0;q<8&&!lv;q++){const p=grtLit(V,I0+a+(q&1),J0+b+((q>>1)&1),K0+cc+((q>>2)&1));if(p===4||p===5)lv=p;}}
+      for(let q=0;q<8&&!(lv&&lvP);q++){const p=grtLit(V,I0+a+(q&1),J0+b+((q>>1)&1),K0+cc+((q>>2)&1));if(!lv&&p>=4&&p<=7)lv=p>5?p-2:p;if(!lvP&&(p===4||p===5))lvP=p;}}if(!lvP&&lv){const Y8=lv===4?GROTTE.lac:GROTTE.eau;if(Y8&&wy>Y8.y-B*.5)lvP=lv;} /* (2026-11-18, contrôle adverse tour 1 : « la rive en roche nue fait un aplat noir la nuit ») la LÈVRE de la rive, à moins d'une demi-case sous le niveau, garde la peinture du lac : la nappe va jusqu'à son bord, seule la paroi qui descend plus bas est de roche */ /* (2026-11-18, LES NAPPES ONT UNE LIMITE) lv : une case du lac ou de sa rive (la forme, le plan, les lacs fondus — comme avant) · lvP : du lac seul (la peinture) */
     /* (2026-11-10) LE LAC EST PLAT : un sommet qui touche le lac et qui est à moins de 0,4 case de son niveau est posé EXACTEMENT dessus — l'arrondi de la densité (±0,3 m) bossuait le plan, et le pli entre le lac et une paroi ou le pied d'un pilier (un escalier de cases de 12 m) faisait des dents de 5 m le long de la ligne d'eau */
     const Y9=lv===4?GROTTE.lac:lv===5?GROTTE.eau:null,dd9=Y9?Y9.y-wy:0,dy9=Y9&&Math.abs(dd9)<B*.4&&Math.abs(dd9*gy/gl)<.9?dd9:0; /* (2026-11-10, audit JB-01) le choc lit la densité NON déplacée : sur une berge en pente douce la roche dessinée s'écartait jusqu'à 4,8 m de celle qui tue — le sommet n'est posé sur le lac que si l'écart le long de la normale reste sous 0,9 m (sur une paroi droite, là où la ligne d'eau comptait, rien ne change) */
     const p3=nv*3,p4=nv*4;T.P[p3]=lx;T.P[p3+1]=ly+dy9;T.P[p3+2]=lz;T.Fl[nv]=Y9&&Math.abs(dd9)<B*.4&&Math.abs(dd9*gy/gl)<.9?(lv===4?1:2):0;
-    T.F[p4]=grtMatieres(wx,wy,wz,sal,lv);T.F[p4+1]=sal;T.F[p4+2]=Math.round(Math.max(.3,Math.min(1,1.28-roc/64))*255);T.F[p4+3]=lv===4?1:lv===5?2:0; /* (2026-11-10) 1 : un coin touche la LAVE, 2 : l'EAU (le drapeau du bord d'un lac, voir w4 plus bas) */
+    T.F[p4]=grtMatieres(wx,wy,wz,sal,lv);T.F[p4+1]=sal;T.F[p4+2]=Math.round(Math.max(.3,Math.min(1,1.28-roc/64))*255);T.F[p4+3]=lv===4?1:lv===5?2:0;T.Fp[nv*2]=lvP===lv?T.F[p4]:grtMatieres(wx,wy,wz,sal,lvP);T.Fp[nv*2+1]=lvP===4?1:lvP===5?2:0; /* (2026-11-18, LES NAPPES ONT UNE LIMITE) F : comme avant (les lacs fondus s'y décident) · Fp : la matière et le drapeau peints hors des blocs fondus (la rive en roche) */ /* (2026-11-10) 1 : un coin touche la LAVE, 2 : l'EAU (le drapeau du bord d'un lac, voir w4 plus bas) */
     grtLum(wx+gx/gl*1.5,wy+gy/gl*1.5,wz+gz/gl*1.5,sal,LL,lum,gx/gl,gy/gl,gz/gl);T.Lt[p4]=lum[0]*255;T.Lt[p4+1]=lum[1]*127.5;T.Lt[p4+2]=lum[2]*127.5;T.Lt[p4+3]=lum[3]*127.5;
     vid[(a+1)+17*((b+1)+17*(cc+1))]=nv++;}}}
   // 3 · les quads : chaque arête (points 0 … 15 du tronçon) qui traverse la paroi — tournés vers l'air
-  let ni=0;const V9=function(a,b,cc){return vid[(a+1)+17*((b+1)+17*(cc+1))];},FUS=GRV.lacFus>0,LQ=FUS?[]:null;if(FUS)T.inc.fill(0,0,nv);
+  let ni=0,fA=0,fB=0;const V9=function(a,b,cc){return vid[(a+1)+17*((b+1)+17*(cc+1))];},FUS=GRV.lacFus>0,LQ=FUS?[]:null;if(FUS)T.inc.fill(0,0,nv);
   for(let cc=0;cc<16;cc++){if(performance.now()>JF.lim)yield;for(let b=0;b<16;b++)for(let a=0;a<16;a++){const b1=(a+2)+20*((b+2)+20*(cc+2)),v0=VITE?loc[b1]:L(a,b,cc),s0=v0>0;
     for(let ax=0;ax<3;ax++){const v1=VITE?loc[b1+(ax===0?1:ax===1?20:400)]:ax===0?L(a+1,b,cc):ax===1?L(a,b+1,cc):L(a,b,cc+1);if((v1>0)===s0)continue;
       let q0,q1,q2,q3;
@@ -32408,7 +32507,7 @@ function* grtMailleNetsG(V,c,LL){
             if(!libre)continue;if(s0)TI.push(p,n,c);else TI.push(p,c,n);aire+=Math.abs(cr);L9.splice(i,1);fait=true;}
           if(!fait)break;}
         if(L9.length>2||Math.abs(aire-2*s*s*B*B)>1e-3)bon=false;}
-      if(bon){for(let i=0;i<TI.length;i++)T.I[ni++]=TI[i];}else cov.fill(-1);}
+      if(bon){fA=ni;for(let i=0;i<TI.length;i++)T.I[ni++]=TI[i];fB=ni;}else cov.fill(-1);}
     for(let i=0;i<nq;i++){if(cov[i]>=0)continue;const o=i*8,q0=LQ[o+3],q1=LQ[o+4],q2=LQ[o+5],q3=LQ[o+6];
       if(LQ[o+7]){T.I[ni++]=q0;T.I[ni++]=q1;T.I[ni++]=q2;T.I[ni++]=q0;T.I[ni++]=q2;T.I[ni++]=q3;}else{T.I[ni++]=q0;T.I[ni++]=q2;T.I[ni++]=q1;T.I[ni++]=q0;T.I[ni++]=q3;T.I[ni++]=q2;}}}
   /* 4 · UNE MATIÈRE PAR FACETTE : les sommets sont dédoublés par triangle et la facette prend la matière de la majorité de ses coins (le numéro
@@ -32416,15 +32515,15 @@ function* grtMailleNetsG(V,c,LL){
      banc du 18/10). La lumière et l'occlusion restent celles des coins (fondues sur la facette). */
   /* (2026-11-15, optimisation) LES TRIANGLES SANS AIRE : MESURÉ (dbgGrotte('formes'), graines 5 et 9) ~1 000 par grotte, trois coins alignés EXACTEMENT (un quad debout du rivage
      dont trois sommets sont posés sur le plan du lac) — la carte graphique n'en tire aucun pixel. Ils ne partent plus. ?sans=nuls : comme avant */
-  if(GRV.nuls){let w=0;for(let t=0;t<ni;t+=3){const a=T.I[t]*3,b=T.I[t+1]*3,c=T.I[t+2]*3,ux=T.P[b]-T.P[a],uy=T.P[b+1]-T.P[a+1],uz=T.P[b+2]-T.P[a+2],vx=T.P[c]-T.P[a],vy=T.P[c+1]-T.P[a+1],vz=T.P[c+2]-T.P[a+2];
-    if(uy*vz-uz*vy===0&&uz*vx-ux*vz===0&&ux*vy-uy*vx===0)continue;T.I[w]=T.I[t];T.I[w+1]=T.I[t+1];T.I[w+2]=T.I[t+2];w+=3;}ni=w;}
+  if(GRV.nuls){let w=0,a9=-1,b9=-1;for(let t=0;t<ni;t+=3){if(t===fA)a9=w;if(t===fB)b9=w;const a=T.I[t]*3,b=T.I[t+1]*3,c=T.I[t+2]*3,ux=T.P[b]-T.P[a],uy=T.P[b+1]-T.P[a+1],uz=T.P[b+2]-T.P[a+2],vx=T.P[c]-T.P[a],vy=T.P[c+1]-T.P[a+1],vz=T.P[c+2]-T.P[a+2];
+    if(uy*vz-uz*vy===0&&uz*vx-ux*vz===0&&ux*vy-uy*vx===0)continue;T.I[w]=T.I[t];T.I[w+1]=T.I[t+1];T.I[w+2]=T.I[t+2];w+=3;}if(a9<0)a9=w;if(b9<0)b9=w;fA=a9;fB=b9;ni=w;} /* (fA … fB : les triangles des blocs fondus, après le tri) */
   const nt=ni/3,P=new Float32Array(nt*9),F=new Uint8Array(nt*12),Lt=new Uint8Array(nt*12);
-  for(let t=0;t<nt;t++){if((t&2047)===2047&&performance.now()>JF.lim)yield;const a=T.I[t*3],b=T.I[t*3+1],c9=T.I[t*3+2],ma=T.F[a*4],mb=T.F[b*4],mc=T.F[c9*4],mt=(ma===mb||ma===mc)?ma:(mb===mc?mb:(ma||mb||mc));
+  for(let t=0;t<nt;t++){if((t&2047)===2047&&performance.now()>JF.lim)yield;const a=T.I[t*3],b=T.I[t*3+1],c9=T.I[t*3+2],fu=t*3>=fA&&t*3<fB&&!(GRT_NAP.on&&grtVersBas(T,a,b,c9)),ma=fu?T.F[a*4]:T.Fp[a*2],mb=fu?T.F[b*4]:T.Fp[b*2],mc=fu?T.F[c9*4]:T.Fp[c9*2],mt=(ma===mb||ma===mc)?ma:(mb===mc?mb:(ma||mb||mc));
     /* (2026-11-10, Sacha : « des triangles très visibles sur l'eau et la lave ») w4 = le BORD D'UN LAC (0 aucun · 1 lave · 2 eau : un coin du triangle touche une case du lac) + 4 × le TON de la facette (0-63). La matière
        lave/eau/roche ne se joue plus sur la majorité des coins (des dents de 12 m le long du rivage) : le fragment la décide à la HAUTEUR du lac (uLacW, GRT_FS) — la ligne d'eau est droite, au pixel près. */
-    const lk=Math.max(T.F[a*4+3],T.F[b*4+3],T.F[c9*4+3]),w4=lk+4*grtR6(V.ox+I0*B+(T.P[a*3]+T.P[b*3]+T.P[c9*3])/3,V.oy+J0*B+(T.P[a*3+1]+T.P[b*3+1]+T.P[c9*3+1])/3,V.oz+K0*B+(T.P[a*3+2]+T.P[b*3+2]+T.P[c9*3+2])/3,T.F[a*4+1],GRT_VASTE?.11:.16);
+    const lk=fu?Math.max(T.F[a*4+3],T.F[b*4+3],T.F[c9*4+3]):Math.max(T.Fp[a*2+1],T.Fp[b*2+1],T.Fp[c9*2+1],grtRiveEau(T,a,b,c9,V.oy+J0*B)) /* (LES NAPPES ONT UNE LIMITE) un bloc fondu garde la peinture d'avant : il est sur le plan ; (contrôle tour 1) un sommet de la RIVE de lave (drapeau 1 dans F, pas dans Fp) prend la salle de la lave (4) : la roche sous le niveau y ROUGEOIE (LE RIVAGE ROUGEOIE, GRT_FS) au lieu d'un aplat noir la nuit — son sous-cube, hors portée, portait la salle d'à côté */,w4=lk+4*grtR6(V.ox+I0*B+(T.P[a*3]+T.P[b*3]+T.P[c9*3])/3,V.oy+J0*B+(T.P[a*3+1]+T.P[b*3+1]+T.P[c9*3+1])/3,V.oz+K0*B+(T.P[a*3+2]+T.P[b*3+2]+T.P[c9*3+2])/3,T.F[a*4+1],GRT_VASTE?.11:.16);
     for(let k=0;k<3;k++){const v=k===0?a:k===1?b:c9,o=t*3+k;P[o*3]=T.P[v*3];P[o*3+1]=T.P[v*3+1];P[o*3+2]=T.P[v*3+2];
-      F[o*4]=mt;F[o*4+1]=T.F[v*4+1];F[o*4+2]=T.F[v*4+2];F[o*4+3]=w4;Lt[o*4]=T.Lt[v*4];Lt[o*4+1]=T.Lt[v*4+1];Lt[o*4+2]=T.Lt[v*4+2];Lt[o*4+3]=T.Lt[v*4+3];}}
+      F[o*4]=mt;F[o*4+1]=!fu&&T.F[v*4+3]===1&&T.Fp[v*2+1]!==1&&V.oy+J0*B+T.P[v*3+1]>GROTTE.lac.y-B?4:T.F[v*4+1]; /* (2026-11-19, contrôle adverse : « le rideau de lave devient un pavé orange uni ») la salle de la lave (le rougeoiement, plein sous le niveau dans GRT_FS) seulement sur la LÈVRE de la rive : sa première case (12 m) ; la paroi plus bas garde sa roche */F[o*4+2]=T.F[v*4+2];F[o*4+3]=w4;Lt[o*4]=T.Lt[v*4];Lt[o*4+1]=T.Lt[v*4+1];Lt[o*4+2]=T.Lt[v*4+2];Lt[o*4+3]=T.Lt[v*4+3];}}
   return {P:P,F:F,L:Lt,I:null,nv:nt*3,nt:nt};}
 /* LES DÉCORS : des FORMES low-poly (prismes à n pans qui s'affinent, boîtes orientées, octaèdres), rangées par tronçon, dessinées dans la même
    matière que la roche (matière, lumière cuite à leurs coins). Les grosses entrent aussi dans les COLLISIONS (boîtes orientées, grille de 64 m). */
@@ -32678,7 +32777,7 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
          de la voûte jusqu'à ce qui l'arrête — le lac de lave (de préférence) ou un rebord de roche où elle se répand ; jamais à travers un surplomb ni le sol au-dessus du lac */
       let c9=null;for(let d9=VZ?6:3;d9<w[4]-RHd-24&&!c9;d9+=10){const x=w[0]+w[2]*d9,z=w[1]+w[3]*d9,yc=plafond(x,w[5],z,VZ?R.UP[q]*1.6:140);if(yc==null)continue;
         let yb=null;for(let yy=w[5];yy>lac.y-6;yy-=2)if(grtDensIci(V,x,yy,z)<=0){yb=yy+1;break;}if(yb==null||yc-yb<30)continue;
-        if(!enAir(x,z,yb,yc)||!enAir(x+cw*.9,z+cw*.9,yb+3,yc-6)||!enAir(x-cw*.9,z-cw*.9,yb+3,yc-6)||!grtLibre(R,x,z,yb-4,yc,cw+4))continue;c9={x:x,z:z,yc:yc,yb:grtIci(V,x,yb-3,z)===4?lac.y:yb-2};}
+        if(!enAir(x,z,yb,yc)||!enAir(x+cw*.9,z+cw*.9,yb+3,yc-6)||!enAir(x-cw*.9,z-cw*.9,yb+3,yc-6)||!grtLibre(R,x,z,yb-4,yc,cw+4))continue;c9={x:x,z:z,yc:yc,yb:(grtIci(V,x,yb-3,z)|2)===6?lac.y:yb-2}; /* (4 la lave, 6 la rive de la lave, LES NAPPES ONT UNE LIMITE) */}
       if(!c9||!enSalle(c9.x,c9.z,c9.yb,c9.yc,4))continue;const x=c9.x,z=c9.z,y9=c9.yb,h=(c9.yc+2-y9)/2;grtBoite(D,V,x,y9+h,z,cw,h,cw,GT.LAVE,Math.atan2(w[2],w[3]),'lave');
       for(const u of VZ?[.12,.37,.62,.88]:[.2,.55,.88])lum(x,y9+2*h*u,z,VZ?120:78,[1,.36,.07],1.35);n++;}}nb.chutes=n;}
   if(performance.now()>JF.lim)yield;
@@ -33019,7 +33118,7 @@ function grotteTick(dt){
 function grtDansCone(q,p){const dx=p.x-q[0],dy=p.y-q[1],dz=p.z-q[2],t=dx*q[3]+dy*q[4]+dz*q[5];if(t<-1||t>q[8]+1)return false; /* (2026-10-22, DEBUGGING) dans le prisme d'une concrétion (base q0-2, axe q3-5, rayon q6 → q7 sur q8 m), avec la marge d'1 m des boîtes */
   const r=q[6]+(q[7]-q[6])*Math.max(0,Math.min(1,t/q[8]))+1;return dx*dx+dy*dy+dz*dz-t*t<r*r;}
 function grotteHeurt(p){const V=GROTTE.V;if(!V)return '';
-  if(grtDensIci(V,p.x,p.y,p.z)<=0){const a=grtIci(V,p.x,p.y,p.z),b=grtIci(V,p.x,p.y-V.B*.5,p.z); /* (2026-10-22, DEBUGGING : « 4 m plus bas » datait des cases de 8 m — avec celles de 12 m (LA GROTTE VASTE), quand un centre de case tombe 0 à 2 m au-dessus de la surface d'un lac, le point et ses 4 m plus bas restaient dans cette case non marquée : toute chute dans CE lac (lave, eau, bassin du puits) se lisait « roche » ; une demi-case plus bas est toujours sous la surface) */return a===4||b===4?(GROTTE.met==='glace'?'glace':'lave'):a===5||b===5?'eau':'roche';}
+  if(grtDensIci(V,p.x,p.y,p.z)<=0){const a=grtIci(V,p.x,p.y,p.z),b=grtIci(V,p.x,p.y-V.B*.5,p.z); /* (2026-10-22, DEBUGGING : « 4 m plus bas » datait des cases de 8 m — avec celles de 12 m (LA GROTTE VASTE), quand un centre de case tombe 0 à 2 m au-dessus de la surface d'un lac, le point et ses 4 m plus bas restaient dans cette case non marquée : toute chute dans CE lac (lave, eau, bassin du puits) se lisait « roche » ; une demi-case plus bas est toujours sous la surface) */return a===4||b===4||a===6||b===6?(GROTTE.met==='glace'?'glace':'lave'):a===5||b===5||a===7||b===7?'eau':'roche';} /* (2026-11-18, LES NAPPES ONT UNE LIMITE) 6, 7 : la rive d'un lac — peinte en roche, mais la chute y est la même qu'avant */
   const G=GROTTE.col;if(G){const a=G.G.get(Math.floor(p.x/64)+','+Math.floor(p.z/64));
     if(a)for(let i=0;i<a.length;i++){const o=a[i],dx=p.x-o.x,dz=p.z-o.z,lx=dx*o.c-dz*o.s,lz=dx*o.s+dz*o.c;
       if(Math.abs(lx)<o.hx+1&&Math.abs(p.y-o.y)<o.hy+1&&Math.abs(lz)<o.hz+1&&(!o.cone||grtDansCone(o.cone,p)))return o.k==='lave'&&GROTTE.met==='glace'?'glace':o.k; /* (2026-11-05, Léo : « dans la glace ça donne l'aigle de feu ») la lave repeinte en glace tue en 'glace', pas en 'lave' (la mission ROULE DANS LA LAVE) */}}
@@ -33212,7 +33311,7 @@ window.dbgGrotte=function(k,o){
   return {on:!!GROTTE.root,met:GROTTE.met,salle:GROTTE.salle,ms:GROTTE.ms,msCreuse:GROTTE.msCreuse,msFile:Math.round(GROTTE.msFile||0),pret:GROTTE.pret,tm:GROTTE.tm,
     file:GROTTE.file?GROTTE.file.length-GROTTE.fi:0,lotsRestants:GROTTE.petits?(GROTTE.lotsF?GROTTE.lotsF.length:-1):0,n:GROTTE.n,conflits:GROTTE.conflits,croise:GROTTE.croise,L:Math.round(L),
     salles:GROTTE.R?GROTTE.R.bornes:null,hasard:GROTTE.Q&&GROTTE.Q.hasard||null,roule:grtTordOn(),
-    lac:GROTTE.lac&&Math.round(GROTTE.lac.y),eau:GROTTE.eau&&Math.round(GROTTE.eau.y)};};
+    lac:GROTTE.lac&&Math.round(GROTTE.lac.y),eau:GROTTE.eau&&Math.round(GROTTE.eau.y),nappes:GROTTE.nappes||null};}; /* (2026-11-18, LES NAPPES ONT UNE LIMITE) nappes : cases remplies, cases de rive, ms du calcul (banc) */
 /* ---------------- LES AMBIANCES : une par salle et par météo (appelée après les biomes du volcan, une fois BIOMES né) ----------------
    La grammaire des nuits de la bible (deux températures : la brume froide et sombre, la lumière du lieu chaude ou colorée), la brume est la
    couleur de la grotte AU LOIN (jamais un gris : un teal profond, un violet, un ambre, un pourpre, un noir bleuté). Ciel = brume (on ne le voit
@@ -33285,8 +33384,8 @@ function grwPlat(src){if(!GRW.plat||src.indexOf('function*')!==0)return src;
   if(/\byield\b/.test(t))return src;GRW.platN=(GRW.platN|0)+1;return t;} /* (platN : les fonctions aplaties — 2 attendues, grtCreuse1 et grtMailleNetsG) */
 function grwTravailleur(){
   if(GRW.w!==undefined)return GRW.w;
-  GRW.platN=0;try{const fns=[grtH3,grtN3,grtRoche,grtMonde,grtCh,grtNoyau,grtCreuse1,grtD,grtLit,grtMatieres,grtLum,grtTampons,grtR6,grtGalNoir,grtMailleNetsG].map(function(f){return grwPlat(f.toString());}).join('\n');
-    const code="'use strict';var GRW_PLAT="+(GRW.platN|0)+";function grwFait(x){if(x&&typeof x.next==='function'){var r;do{r=x.next();}while(!r.done);return r.value;}return x;}\nvar GRT={B:12,K:1.6},GRV={nzK:2},GRT_VASTE=true,ROAD_HALF=28,THICK=5.2,JF={lim:Infinity},GRT_ARETES="+JSON.stringify(GRT_ARETES)+",GRT_TMP={lum:[0,0,0,0],loc:null,vid:null,P:null,F:null,Lt:null,I:null},GRT_AMB=[],GROTTE={},GT={},MV=null,MLL=null;\n"+fns+
+  GRW.platN=0;try{const fns=[grtH3,grtN3,grtRoche,grtMonde,grtCh,grtNoyau,grtCreuse1,grtD,grtLit,grtMatieres,grtLum,grtTampons,grtR6,grtRiveEau,grtVersBas,grtGalNoir,grtMailleNetsG].map(function(f){return grwPlat(f.toString());}).join('\n');
+    const code="'use strict';var GRW_PLAT="+(GRW.platN|0)+";function grwFait(x){if(x&&typeof x.next==='function'){var r;do{r=x.next();}while(!r.done);return r.value;}return x;}\nvar GRT={B:12,K:1.6},GRT_NAP={on:"+(GRT_NAP.on?"true":"false")+"},GRV={nzK:2},GRT_VASTE=true,ROAD_HALF=28,THICK=5.2,JF={lim:Infinity},GRT_ARETES="+JSON.stringify(GRT_ARETES)+",GRT_TMP={lum:[0,0,0,0],loc:null,vid:null,P:null,F:null,Lt:null,I:null},GRT_AMB=[],GROTTE={},GT={},MV=null,MLL=null;\n"+fns+
       "\nfunction grwInit(m){var n=m.n,V={B:m.Vb,ox:m.ox,oy:m.oy,oz:m.oz,CX:m.CX,CY:m.CY,CZ:m.CZ,NX:m.NX,NY:m.NY,NZ:m.NZ,dir:m.dir,pool:[],dn:[],si:[],cle:m.cle};for(var c=0;c<n;c++){V.pool.push(m.P.subarray(c*4096,(c+1)*4096));V.dn.push(m.D.subarray(c*4096,(c+1)*4096));V.si.push(m.SI.subarray(c*64,(c+1)*64));}"+
       "GT=m.GT;GRT_AMB=m.AMB;GRV={amb:m.amb,tR2:m.tR2,tF:m.tF,lavL:m.lavL,lumN:m.lumN,lumG:m.lumG,lacFus:m.lacFus,nuls:m.nuls};GROTTE={R:{SAL:m.SAL},lac:m.lac,eau:m.eau,piliers:m.piliers,lavLum:m.lavLum,galeries:m.gal||null};MLL=new Map(m.LL);MV=V;}"+
       "\nfunction grwPull(m){if(!MV)return;for(var i=0;i<m.list.length;i++){var c=m.list[i],q=grwFait(grtMailleNetsG(MV,c,MLL.get(MV.cle[c])||null));postMessage({t:'maille',job:m.job,c:c,P:q.P,F:q.F,L:q.L,nv:q.nv,nt:q.nt},[q.P.buffer,q.F.buffer,q.L.buffer]);}}"+
@@ -42021,6 +42120,55 @@ if(JADE_NUIT2&&BIOMES.jadeNuit)Object.assign(BIOMES.jadeNuit,{
   hemiS:[.14,.36,.40],hemiG:[.03,.09,.08],sunC:[.80,.90,.92],sunI:.75,fillC:[.16,.50,.44],kickC:[.30,.85,.65],
   env:[[0,'#04101c'],[.3,'#0a2630'],[.48,'#1c5a58'],[.58,'#3a8f80'],[.66,'#0e2a2c'],[1,'#04100f']],
   rtK:.78});
+/* ===== LA FINITION DE JADE (2026-11-18, finition des maps : « des couleurs plus fun, plus franches, plus typées par ambiance ; la nuit bleue/violette ») =====
+   Que des NOMBRES d'ambiance (ciel peint jdZ/jdL/jdM/jdH, abîme jdB, lointain jdR, brumes, lumières, env) posés en DERNIER, sur les six temps de Jade
+   (niveaux.js : matin, midi, soir, nuit, pluie, orage). La famille de la marque : zénith azur saturé → horizon pêche le jour, corail·magenta·or au soir,
+   indigo·violet et clair de lune la nuit, le vert jade (#4FE0A8) gardé en accent (le bas du ciel, le liseré). Zéro programme, texture ou appel de dessin de plus.
+   `?sans=jadefini` = les valeurs d'avant (et l'astre d'avant, scene-ciel.js). */
+const JADE_FINI=!/[?&]sans=([^&]*,)?jadefini(,|&|$)/.test(location.search);
+if(JADE_FINI&&BIOMES.jadeNuit){
+  Object.assign(BIOMES.jade,{ /* SOIR : le zénith bleu-violet, une bande rose (au banc : un mauve .80,.52,.74 faisait un aplat lilas, un rose .94,.58,.64 sous la saturation du soir 1,2 virait au fluo), le corail puis l'or à l'horizon (il était gris-beige au milieu).
+    (contrôle, tour 1 : le soleil vermillon se perdait dans la bande rose) la bande rose tire un cran vers le rose de la marque (.92,.64,.64 → .90,.62,.70) et le milieu passe du corail à la pêche dorée (1,.62,.50 → 1,.70,.48) : le disque rouge se découpe sur du chaud clair.
+    (contrôle du 19/11 : le haut tirait au rose-magenta fluo, rouge-orange vif du tiers haut 37 → 42 %, chroma 100-115 → 145) la bande rose rabattue vers le lilas-pêche (.90,.62,.70 → .84,.64,.76), le zénith un cran plus bleu (.36,.38,.64 → .34,.40,.68), l'horizon plus doré (1,.76,.46 → 1,.80,.52).
+    (correction 2 du 19/11 : le haut restait un dégradé violet → rose vif → orange « synthwave », chroma 114-121) la bande vers le pêche-lilas (.84,.64,.76 → .86,.70,.76), le zénith un cran plus clair et doux (.34,.40,.68 → .40,.46,.70)
+    (correction 3 du 20/11 : le rouge-orange vif MONTAIT encore, haut et milieu, chroma du haut 113 ; la brume et l'abîme étaient passés au saumon) trois jeux mesurés
+    au banc en un passage (outils/banc-finition-jade/essais.cjs), gardé le plus calme : zénith bleu .44,.52,.72, bande LILAS .74,.74,.84 (plus de rose), milieu et
+    horizon pêche-or plus clairs (1,.72,.54 ; 1,.84,.62), abîme et brumes rendus au beige-lilas (jdB .86,.82,.80, fog .80,.76,.72, fogIn .86,.82,.78,
+    fogCj .94,.74,.58), lointain .38,.38,.50, soleil d'avant 1,.72,.44 : rouge vif du haut et du milieu SOUS celui d'avant sur g3, g5, g17 et g11 debout */
+    jdZ:[.44,.52,.72],jdL:[.74,.74,.84],jdM:[1,.72,.54],jdH:[1,.84,.62],jdB:[.86,.82,.80],jdR:[.38,.38,.50],jdS:[1,.72,.44],
+    fog:[.80,.76,.72],fogIn:[.86,.82,.78],fogCj:[.94,.74,.58]});
+  Object.assign(BIOMES.jadeMatin,{ /* MATIN : azur plus franc, le céladon du milieu passe au vert jade-menthe, l'horizon pêche-rose ; brume pêche.
+    (contrôle, tour 1 : « presque invisible ») poussé : saturation × 1,08 (sur celle de l'étalonnage et de l'équilibre), la menthe plus franche (.62,.88,.76 → .56,.90,.76 ; .48,.92,.74 virait à l'acide au banc), l'horizon plus rose (1,.76,.62 → 1,.70,.60 ; contrôle du 19/11 : il tirait au saumon, remonté à 1,.76,.62 ;
+    correction 3 du 20/11 : le rouge du milieu restait 2 points au-dessus d'avant) l'horizon or-pêche 1,.80,.64, la brume pêche-crème .86,.82,.74 / .92,.88,.80 */
+    sat:+((BIOMES.jadeMatin.sat||1)*1.08).toFixed(3),jdZ:[.16,.44,.90],jdL:[.40,.70,.90],jdM:[.56,.90,.76],jdH:[1,.80,.64],jdB:[.82,.90,.84],
+    fog:[.86,.82,.74],fogIn:[.92,.88,.80]});
+  Object.assign(BIOMES.jadeMidi,{ /* MIDI : cobalt au zénith, jade au milieu, crème-pêche à l'horizon ; brume bleu ciel.
+    (contrôle, tour 1 : « presque invisible ») poussé : la saturation × 1,07 (l'équilibre l'avait rabattue de × 0,93), le jade du milieu plus franc (.52,.88,.80 → .48,.88,.78 ; .40,.90,.76 virait à l'acide au banc), l'horizon or-pêche (1,.86,.68 → 1,.84,.60 ;
+    correction 3 du 20/11 : rouge du milieu +3,6 à +5 points sur avant → .98,.86,.66, crème dorée) */
+    sat:+((BIOMES.jadeMidi.sat||1)*1.07).toFixed(3),jdZ:[.08,.38,.90],jdL:[.32,.70,.92],jdM:[.48,.88,.78],jdH:[.98,.86,.66],
+    fog:[.62,.80,.86],fogIn:[.78,.90,.92]});
+  Object.assign(BIOMES.jadeNuit,{ /* NUIT (contrôle, tour 1 : le zénith en bleu roi pur tirait à l'électrique : .040,.030,.110 → .062,.034,.098, la bande .062,.056,.175 → .072,.050,.150 : un cran de rouge, l'indigo-violet au lieu du bleu roi) : indigo-violet au zénith, bleu au milieu, la lueur jade gardée au ras de l'horizon ; brume indigo (plus de bleu-vert gris) ; lune or pâle.
+    (contrôle du 19/11 : le vert jade mourait, 30 → 6-12 % au milieu de l'image, et l'image s'assombrissait ; Sacha veut « plus de bleu, plus de vert ») le zénith indigo-violet reste, le bas redevient bleu-JADE et plus clair :
+    jdM .060,.112,.200 → .050,.135,.180, jdB .065,.120,.190 → .060,.160,.185, brume .050,.100,.170 → .045,.130,.160, fogIn .07,.12,.20 → .06,.15,.18, volSky .06,.10,.20 → .06,.14,.18,
+    ciel de l'hémisphère .16,.26,.46 → .14,.32,.44, appoint .22,.36,.60 → .20,.40,.56, reflet du milieu '#243e6a' → '#1e5262'.
+    (correction 2 du 19/11 : encore trop peu, le vert du milieu à 6-15 % au lieu de 34, la route et le sol en bleu marine) seul le CIEL du haut reste au lot
+    (jdZ, jdL indigo-violet, la lune jdS) ; tout ce qui éclaire le sol et l'horizon reprend la nuit jade (JADE_NUIT2 plus haut) : jdM, jdH, jdB, jdR,
+    les brumes, l'hémisphère, l'appoint et le reflet. Ici on ne fait donc que le ciel.
+    (correction 3 du 20/11 : ce zénith indigo rendait le haut PLUS SOMBRE qu'avant, L 17 → 10 debout) trois ciels mesurés au banc, gardé le BLEU-JADE :
+    zénith bleu nuit .040,.070,.150, bande bleu-sarcelle .040,.120,.170 : le haut plus clair et plus coloré qu'avant, le sol et l'horizon jade inchangés */
+    jdZ:[.040,.070,.150],jdL:[.040,.120,.170],jdS:[1,.88,.62]});
+  Object.assign(BIOMES.jadePluie,{ /* PLUIE : ardoise BLEUE au zénith, jade mouillé à l'horizon (il était gris-vert) ; un cran de saturation.
+    (contrôle, tour 1 : « presque invisible ») poussé : saturation 1,14 → 1,16, le zénith plus bleu (.20,.30,.42 → .17,.28,.48), le jade du milieu plus franc (.36,.58,.54 → .32,.58,.56 ; 1,20 et .30,.62,.56 faisaient un beau temps turquoise au banc ;
+    correction 3 du 20/11 : le haut avait perdu son vert pour un azur plus clair que le midi) zénith ardoise-JADE .14,.28,.27, bande .20,.40,.38 : vert jade
+    au haut de l'image (V 92-100 %), plus sombre que le midi, plus coloré qu'avant (le conseil .16,.30,.42 aurait gardé l'azur : teinte 208°) */
+    sat:1.16,jdZ:[.14,.28,.27],jdL:[.20,.40,.38],jdM:[.32,.58,.56],jdH:[.54,.68,.62],jdB:[.38,.52,.52],jdR:[.20,.30,.32],
+    fog:[.38,.50,.52],fogCj:[.48,.58,.62],fogIn:[.50,.62,.62],volSky:[.38,.50,.54]});
+  Object.assign(BIOMES.jadeOrage,{ /* ORAGE : ardoise VIOLETTE au zénith, horizon bleu-vert (il était gris).
+    (contrôle, tour 1 : devenu une seconde NUIT, ciel indigo S 184 V 115) rabattu vers l'ardoise : zénith .12,.10,.20 → .10,.09,.14, bande .14,.15,.24 → .13,.14,.19,
+    milieu .16,.22,.28 → .16,.21,.24, brume .20,.24,.32 → .17,.20,.25, ciel du dessus .34,.38,.54 → .30,.33,.42 ; l'horizon bleu-vert garde l'orage à part de la nuit indigo */
+    jdZ:[.10,.09,.14],jdL:[.13,.14,.19],jdM:[.16,.21,.24],jdH:[.22,.32,.34],jdB:[.22,.28,.32],
+    fog:[.17,.20,.25],fogCj:[.22,.24,.30],fogIn:[.21,.24,.29],hemiS:[.30,.33,.42]});
+}
 /* (2026-11-17, LE RENDU FINAL DU CANYON : CY_LOOKS dans maps/canyon-relief.js) les retouches d'ambiance de la piste choisie, posées en DERNIER (après l'équilibre des maps et le plan de feu) ; sans piste : rien */
 if(CY_LOOK&&CY_LOOK.bio)for(const k in CY_LOOK.bio)if(BIOMES[k])eqApplique(BIOMES[k],CY_LOOK.bio[k]);
 /* ===== L'AUDIT DES PLACEMENTS (2026-10-23, Sacha : « retravaille le système de génération de map, des pics de glace mal imbriqués dans le sol, pareil dans les dunes ») =====
@@ -43448,6 +43596,16 @@ function wowApercu(dt,on){ // au garage (onglet TRAÎNÉES) : la caisse est pos�
    nuages, fil d'air fin : voir le patch du globe). Paliers : orbQ [0,1,1] (l'aube, la 3e octave des nuages ; les nuages à 60 % au palier 0).
    Hooks : `dbgBeau()` (état + réglages à chaud : vid, pl, nua), `dbgBeau('photo',{vid,pl,nua,yaw,pitch,fov,planete})` (UNE image rendue, renvoie le JPEG). */
 PAL.B.orbQ=[0,1,1]; /* (2026-11-12, L'ORBITE FAÇON GRAVITY) les étoiles-vedettes et la poussière cosmique sont retirées : voir plus bas */
+/* ===== LA FINITION DE L'ESPACE (2026-11-18, finition des maps : « le plus jolies possible tout en restant aussi optimisées qu'elles le sont ») =====
+   Des NOMBRES seulement (aucune géométrie, aucune texture, aucun programme, aucune instruction de shader en plus) : voir « LA FINITION DE L'ESPACE, LES NOMBRES » plus bas
+   et le globe de Mars et de Saturne ci-dessous. `?sans=espacefini` = l'image d'avant, au bit près. */
+const ESPACE_FINI=!/[?&]sans=([^&]*,)?espacefini(,|&|$)/.test(location.search);
+/* les nombres du lot ; pour le banc seulement, `?espnuit=r/g/b` (la face nuit de Mars et de Saturne) et `?espneb=k` (les étoiles sous Mars et Saturne) les remplacent */
+function espFiniNb(k,d){const m=new RegExp('[?&]'+k+'=([^&]*)').exec(location.search);const v=m?m[1].split('/').map(Number):null;return v&&v.length===d.length&&v.every(isFinite)?v:d;}
+const ESP_NUIT=espFiniNb('espnuit',[.030,.036,.095]),ESP_NEB=espFiniNb('espneb',[1.25])[0];
+/* (2026-11-19, reprise) les amas à l'écart de la route : [liseré des satellites, Terre sous les satellites, liseré des météorites, planète sur leur face sombre, l'encre de l'ombre
+   des satellites] ; `?espamas=a/b/c/d/e` pour le banc */
+const ESP_AMAS_L=espFiniNb('espamas',[.26,.42,.62,.32,.50]);
 const OBEAU={u:{uOrb:{value:0},uOrbQ:{value:PAL.b('orbQ',1)},uSunO:{value:new THREE.Vector3(-.55,.7,.4).normalize()},uNua:{value:PAL.b('orbQ',1)?1:.6},uTyp:{value:0}},kPl:1,kSol:.6,sunP:new THREE.Vector3(-.55,.7,.4).normalize(),sunOk:false,t2:new THREE.Vector3(),kPous:1,rate:[],cp:new THREE.Vector3(),vel:new THREE.Vector3(),t1:new THREE.Vector3(),ok:false,
   q:new THREE.Quaternion(),fov:0};
 function orbRempl(src,cherche,par,qui){ /* remplace TOUTES les occurrences ; si le texte cherché a bougé (un autre morceau l'a réécrit), on le note : l'effet manque, rien ne casse */
@@ -43495,8 +43653,13 @@ skyU.uVid={value:1};
          SATURNE (uTyp 2) : l'atmosphère épaisse — terminateur doux, l'assombrissement du bord marqué, les bandes crème. Même recette que la Terre, sans ses nuages ni ses villes. */
       '    if(uTyp>.5){bool ma=uTyp<1.5;',
       '      float jr=ma?smoothstep(-.03,.07,ndl):smoothstep(-.18,.32,ndl),lu=dot(c0,vec3(.30,.59,.11));',
-      '      vec3 cj=mix(vec3(lu),c0,ma?.62:.50)*(ma?vec3(1.04,.94,.86):vec3(1.,.97,.90));',
-      '      vec3 ct=mix(c0*vec3(.012,.010,.012),cj,jr);',
+      /* (2026-11-18, LA FINITION DE L'ESPACE) côté jour, la rouille et la crème gardent leur couleur (Mars sortait chocolat à 62 % de saturation) ; côté NUIT, le disque n'est
+         plus un trou plus noir que le ciel : (tour 2) une ombre bleu-violet FIXE, ESP_NUIT, au lieu de c0 × un facteur (Mars n'a presque pas de bleu : c0 × bleu restait noir, mesuré [2,1,3]
+         sRGB pour un ciel à [15,18,42]) — (reprise du 19/11) le tour 2 avait gardé (.045,.054,.140) : [9-10,11-12,28-30] sRGB, juste sous le ciel du HAUT mais 2,5-3× plus clair que le
+         ciel du BAS du cadre ([4,4,12]). Trois essais au banc (Mars g7 portrait, ESP_NUIT .045 / .030 / .022 de rouge) : gardé (.030,.036,.095) = [6,8,20] en haut (70 % du ciel
+         voisin [10,11,28]) et [6,7,19] en bas (1,6× le ciel [4,4,12]) : une nuit bleu marine qui ne se lit plus comme une lueur. Une multiplication de MOINS (`?sans=espacefini` = avant). */
+      '      vec3 cj=mix(vec3(lu),c0,ma?'+(ESPACE_FINI?'.80:.60':'.62:.50')+')*(ma?vec3(1.04,.94,.86):vec3(1.,.97,.90));',
+      '      vec3 ct=mix('+(ESPACE_FINI?'vec3('+ESP_NUIT.map(function(x){return x.toFixed(4);}).join(',')+')':'c0*vec3(.012,.010,.012)')+',cj,jr);',
       '      ct*=ma?.52+.48*smoothstep(0.,.75,nv):.30+.70*pow(nv,.5);',
       '      float fl=pow(1.-nv,ma?10.:6.),sl=smoothstep(-.15,.6,ndl);',
       '      ct+=fl*(ma?vec3(.82,.64,.52):vec3(.90,.82,.62))*(.02+.50*sl);',
@@ -43585,6 +43748,20 @@ if(!/[?&]daorb=0\b/.test(location.search)){
       env:[[0,'#0e0c1c'],[.3,'#241e3c'],[.48,'#4a4060'],[.58,'#ffd08a'],[.66,'#241e3c'],[1,'#08071a']]}}; /* SATURNE : la crème et l'or des anneaux, des ombres lavande */
   for(const k in DA_ORB)if(BIOMES[k])Object.assign(BIOMES[k],DA_ORB[k],{kickC:ROSE});}
 /* ===== fin de LA DA DE L'ORBITE ===== */
+/* ===== LA FINITION DE L'ESPACE, LES NOMBRES (2026-11-18, finition des maps : « ça manque de finition graphique » — sobre, pas d'effet en plus) =====
+   (tour 2) `stars` du biome ne compte pas en orbite (le ciel le multiplie par 1 − uSpace) : les étoiles de l'orbite sont la voûte `pous` × uNeb, réglée dans geantsTick
+   (orbite-geants.js : ESP_NEB sous Mars et Saturne au lieu de 1,7 ; la Terre garde 1,7). Mesuré (pixels > 160/255 dans le haut du cadre) : −10 à −45 %.
+   Essayé puis RETIRÉ : les lumières de Mars et de Saturne (clé plus or, hémisphère plus bas) — au banc la route ne bouge que de 4/255 : la couleur de la dalle n'en vient pas. */
+/* (2026-11-19, reprise : « les amas de satellites et de météorites ne se voient pas nettement ») LES AMAS, À L'ÉCART DE LA ROUTE : cinq LITTÉRAUX changés dans les matières
+   des satellites (SAT_MAT et sa copie SAT_MAT_E) et des météorites (ROCHE_MAT), avant leur 1re compilation — le liseré du côté du soleil, la lumière bleue de la planète et l'encre
+   violette de leur face sombre, un cran plus forts : la silhouette se détache du noir. Aucune instruction, aucun uniforme en plus ; ni leur place ni leur taille ne changent. */
+if(ESPACE_FINI){const A9=ESP_AMAS_L.map(function(x){return x.toFixed(3);});
+  for(const m of [SAT_MAT,SAT_MAT_E]){let f=orbRempl(m.fragmentShader,'*.14*smoothstep(-.2,.5,d)','*'+A9[0]+'*smoothstep(-.2,.5,d)','amas liseré sat');
+    f=orbRempl(f,'*.30*(1.-met*.5)','*'+A9[1]+'*(1.-met*.5)','amas terre sat');
+    m.fragmentShader=orbRempl(f,'*(1.-w)*.22;','*(1.-w)*'+A9[4]+';','amas encre sat');}
+  let f=orbRempl(ROCHE_MAT.fragmentShader,'*.40*smoothstep(-.1,.4,d)','*'+A9[2]+'*smoothstep(-.1,.4,d)','amas liseré roche');
+  ROCHE_MAT.fragmentShader=orbRempl(f,'*.22*(1.-max(d,0.))','*'+A9[3]+'*(1.-max(d,0.))','amas ombre roche');}
+/* ===== fin de LA FINITION DE L'ESPACE, LES NOMBRES ===== */
 window.dbgBeau=function(k,o){o=o||{};
   if(o.vid!=null)skyU.uVid.value=+o.vid;if(o.pl!=null)OBEAU.kPl=+o.pl;if(o.nua!=null)OBEAU.u.uNua.value=+o.nua;
   if(k==='photo'){if(started&&!gameOver&&!paused)togglePause();
@@ -44123,7 +44300,7 @@ function geantsTick(t,dt,vr){
   if(ORB_VOY){const v9=voyTick(!!vr&&ORB.actif);if(v9){R9+=v9[0];G9+=v9[1];B9+=v9[2];}} /* (LES VOYAGES) la jante, la roche ; dans la nébuleuse, l'image prend sa couleur */
   GEANTS.voile=Math.max(R9,G9,B9);GEANTS.rentree=kr;cv.uCol.value.setRGB(R9,G9,B9);cv.uK.value=1;cv.uBord.value=kr*.55;
   GT_VOILE.visible=GEANTS.voile>.004||kr>.004;
-  {const o9=!!vr;skyU.uVid.value=o9?3.4:1;skyU.uNeb.value=o9?1.7:1;} /* (2026-11-14, la supervision : « quand la planète sort du cadre, le fond est un noir presque pur ») LE FOND : le vide indigo ×3,4, les étoiles ×1,7 — uniformes seulement, en orbite seulement (les deux sont × uSpace : ailleurs ×1) */}
+  {const o9=!!vr;skyU.uVid.value=o9?3.4:1;skyU.uNeb.value=o9?(ESPACE_FINI&&GEANTS.typ>0?ESP_NEB:1.7):1;} /* (2026-11-18, LA FINITION DE L'ESPACE) sous Mars et Saturne, la voûte un cran plus bas (ESP_NEB, orbite-embellie.js) : le globe redevient le sujet */ /* (2026-11-14, la supervision : « quand la planète sort du cadre, le fond est un noir presque pur ») LE FOND : le vide indigo ×3,4, les étoiles ×1,7 — uniformes seulement, en orbite seulement (les deux sont × uSpace : ailleurs ×1) */}
 function geantsPlaneteK(){ /* (lvlPlanete) LA PLANÈTE GROSSIT du départ au portail : ×1,28 (×1,45 sous Saturne, plus petite) — la désorbitation */
   if(!ORB.actif||!(L>0)||typeof s!=='number')return 1;const u=Math.max(0,Math.min(1,s/L)),G=GEANTS.typ===2?.45:.28;return 1+G*u*u*(3-2*u);}
 function gtG(lat,up){const V=GT_EP;return Math.pow(Math.abs(lat)/V.A,V.p)+Math.pow(Math.abs(up-V.hc)/V.B,V.p);}
@@ -87960,6 +88137,30 @@ function chuteTapeTick(dt,C,up,sc){ // les deux ressorts, l'éclat, les morceaux
   carGroup.quaternion.premultiply(T.Q);
   T.o.copy(up).multiplyScalar(-.45*sc).applyQuaternion(T.Q);carGroup.position.copy(C).add(T.o).add(T.p);
 }
+/* ===== LES COULEURS FINIES (2026-11-19, finition des maps : « des maps un peu ternes la nuit ou quand il pleut… des fois c'est trop rouge, des fois trop
+   éblouissant, les lumières ; objectif Apple Store : les couleurs vraiment belles, bien équilibrées, pas d'éblouissement ») =====
+   LA MER DE NUAGES et LA VILLE (CRYPTO CITY de nuit), les deux maps au tirage du téléphone hors des lots grotte, espace, Jade et canyon — les deux étalons de Sacha :
+   main légère, seulement ce que la MESURE montre fautif (outils/banc-finition-couleurs/mesure.py : luminance, chroma, % brûlé, % rouge-orange vif, par tiers).
+   Posé APRÈS la chute (chute-menu.js réécrit `sat`/`con`/`fog` des nuages au chargement) : des retouches eqApplique (equilibre-maps.js) sur les ambiances de
+   COURSE, ambiance par ambiance — que des NOMBRES, zéro programme, zéro texture. La ville en hérite dans ses trois teintes (vtBio copie l'ambiance finie).
+   `?sans=couleursfinies` = l'image d'avant au bit près. */
+const COULEURS_FINIES=!/[?&]sans=([^&]*,)?couleursfinies(,|&|$)/.test(location.search);
+/* MESURÉ AVANT (banc du lot, ?tel=1, 844×390, graines 3 et 11, au pas 120 ; L/C 0-255 ; « bas » = le tiers bas de l'image : la route) — rien de brûlé nulle part
+   (0 % > 245), pas de rouge-orange vif hors de la caisse : les défauts sont des TERNES. */
+const CF_RETOUCHES={
+  nuagesMatinCC:{sat:1.05,chr:.15},                       /* C 29,7 : le plus gris du jeu avec le midi — un souffle de couleur, l'air reste clair */
+  nuagesMidiCC:{sat:1.05,chr:.15},                        /* C 34-36 */
+  nuagesNuit:{expo:1.08,lum:1.06,rtK:1.35,lev:[.002,.002,.010],sat:1.06}, /* la route NOIRE : 29-49 % de pixels noirs dans le tiers bas (L 29-35) — la route
+                                                             s'éclaire (rtK 0,45 → 0,61), un plancher indigo dans les ombres, le ciel violet garde sa nuit */
+  nuagesPluie:{sat:1.12,chr:.28},                         /* C 35,5, route C 27 (grise) : l'averse reprend ses couleurs — ciel rose, nuages bleutés */
+  tempete:{sat:1.04,chr:.12}};                            /* l'orage des nuages (C 53-56) : un cran seulement */
+/* LA TEINTE JAUNE DE LA VILLE (VTEINTES.jaune, ville-nuit.js) : un air brun de sodium — C 38-45 contre 71-78 pour la teinte verte, haut de l'image L 32 / C 34,
+   8 % de noirs. Son ambiance d'orage est créée ICI, au chargement (vtBio la crée à son premier emploi, d'après l'ambiance finie : aucune passe ne la touche plus
+   après ce morceau), puis retouchée : l'or plutôt que le brun. La violette (rose, « intouchable ») et la verte ne bougent pas. */
+const CF_TEINTES={jaune:{villeOrage:{sat:1.06,chr:.15,expo:1.05}}};
+if(COULEURS_FINIES){
+  for(const k in CF_RETOUCHES)if(BIOMES[k])eqApplique(BIOMES[k],CF_RETOUCHES[k]);
+  for(const te in CF_TEINTES)for(const n in CF_TEINTES[te]){const k=vtBio(n,te);if(k!==n&&BIOMES[k])eqApplique(BIOMES[k],CF_TEINTES[te][n]);}}
 /* LA PLUIE DE RICHESSE — LA CAISSE QUI CRACHE (2026-10-08, Léo : « des billets (bleu turquoise foncé, léger reflet en dégradé vert clair
    fluo), des pièces comme les euros français, des bitcoins, de l'or (bouts de taille variée, luisants, bling), des diamants (taille variée,
    très beaux), des trèfles à quatre feuilles, des fruits ; le tap trash sur la voiture peut provoquer un petit jet de flamme très léger et
