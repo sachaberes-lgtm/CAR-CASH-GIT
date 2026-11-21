@@ -91,3 +91,13 @@ Sacha : « Oui, rejuge ». Lot rebâti sur da9fe6bb7, contrôle adverse à l'ima
 - Mineurs : en 390×844 le dessous des tours pendues fait un aplat violet à bords nets (lisible comme « transparent » ou comme un trou) ; le plafond téléphone (124 appels / 311 k) est dépassé en pointe AVANT le lot déjà, le lot ajoute jusqu'à +8 % de triangles (390 : 313 → 338 k).
 - Non vérifié : vrai iPhone, sauts et nitro joués, paliers 10/20 en Chrome, ordinateur à ce tour, tranche du bâti dans le jeu.
 Le lot D (tours pendues) reste refusé : le lot F rend déjà des tours pendues ; à ne rejuger que si Sacha en veut plus.
+
+## Preuves finales (21/11) — `ville-cyber/PREUVES-FINALES-TEL.md`, `PREUVES-FINALES-JOUR-PC.md`, planches `final-*.jpg`
+- TÉLÉPHONE, paliers 0 et 10 (12 courses de 63-70 s, sauts et 4 nitros tenues) : 0 mort, 0 traversée, 0 tour ou néon dans la route, 0 erreur, 0 programme compilé en conduite ; décor : +2 à +3 % d'appels, 0 à +5 % de triangles.
+- PALIER 20 : le pilote automatique sort de la route et meurt dans une tour (7 morts avec le décor, 6 sans, aux mêmes endroits ; graine 5257 vers s≈5530 même sans saut ni nitro). Vient de la route à étages (lot E) ou du pilote, pas du décor. À REJOUER À LA MAIN : virage peut-être trop dur à ce palier.
+- CRYPTO CITY DE JOUR sur la route à étages (1 graine, matin/midi/soir) : image propre, coût égal à la nuit, le décor du lot F ne s'y applique pas (prouvé). Midi : route très claire.
+- ORDINATEUR (`poste=max`, 2 graines) : image propre, flou réparé en place (tours nettes), décor 0 à +3,5 % d'appels, −2 à +3 % de triangles. Un bloc sombre non identifié sur 1 photo sur 16 (graine 4119, s 1592), hors route.
+- CORRIGÉ après ces preuves : l'interrupteur du lot F s'appelait `?sans=villedecor`, nom DÉJÀ pris par le décor tiré du 23/10 (`VILLE_DECOR`, ville-v3.js) : il coupait les deux. Il s'appelle maintenant `?sans=villedecor3`. Conséquence : les coûts « lot F contre sans=villedecor » mesurés jusqu'ici comparaient à une ville privée aussi de son décor du 23/10 ; le vrai surcoût du lot F seul est donc inférieur ou égal aux chiffres notés. Non remesuré.
+- Mineurs : à pleine vitesse au téléphone le flou étire les tours sur les bords (netteté du haut −35 à −41 %) ; en saut la caisse est petite, parfois cachée par ses traînées (caméra, pas décor) ; 2 enseignes flottantes ~1 km sous la route (d'avant) ; +1 programme compilé à la première explosion (d'avant).
+- À LA LIVRAISON : l'index.html commité sur cette branche n'est pas réassemblé (voulu : règle de la branche) ; réassembler et monter `sw.js` au moment de fusionner.
+- Non vérifié : vrai iPhone, vrai PC, jour en portrait et sur ordinateur, `?plus=villenoire`, NET_NITRO2 posé, cause exacte des morts du palier 20.

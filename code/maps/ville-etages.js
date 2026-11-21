@@ -69,9 +69,9 @@ function veOrdre(t,MCJ,gr){const f9=(/[?&]villescene=(\w+)/.exec(typeof location
      les tours pendues du 3/11 (une tour rabattue par AIRZ ou par une route dans sa moitié haute reste rabattue, la règle d'or et l'air des sauts passent APRÈS).
    · VE_LIBRE : ce pied relevé laisse 60 m d'air au-dessus de la route d'en bas (44 m au 3/11 et au socle) ;
    · la part de GÉANTES DE VERRE se juge à la hauteur d'avant VE_HAUT (villeVerreTour en prend plus au-dessus de 190 m) : 15,7 % comme au 3/11 (15,5 %), pas 20 %.
-   Carte VILLE de nuit seule (veDecor3 : ni Crypto City de jour — ses météos cj —, ni la vitrée) ; `?sans=villedecor` rend le décor de la route à étages d'avant (lot E) au bit près,
+   Carte VILLE de nuit seule (veDecor3 : ni Crypto City de jour — ses météos cj —, ni la vitrée) ; `?sans=villedecor3` (pas `villedecor` : ce nom est déjà celui du décor tiré du 23/10, ville-v3.js) rend le décor de la route à étages d'avant (lot E) au bit près,
    `?sans=villeetages` celui du socle. */
-const VE_DECOR3=VILLE_ETAGES&&!/[?&]sans=([^&]*,)?villedecor(,|&|$)/.test(location.search);
+const VE_DECOR3=VILLE_ETAGES&&!/[?&]sans=([^&]*,)?villedecor3(,|&|$)/.test(location.search);
 function veDecor3(){const c=typeof LVL!=='undefined'&&LVL.cur;return VE_DECOR3&&veActif()&&!(c&&c.cj);} /* la NUIT de la carte ville seule : ni Crypto City de jour (lot J : météos cjMatin/cjMidi/cjSoir, LVL.cur.cj), ni la vitrée, ni le parc */
 const VE_RANGS=[[24,12,1],[60,30,1],[116,70,.9],[200,120,.5]]; /* [écart au bord de la dalle (m), dispersion (m), part tirée] — le 3/11 : [28,40,.9],[100,60,.7],[190,130,.5] */
 const VE_HAUT=1.5; /* le toit des murs au-dessus de la route (t − yN + 50), × */
