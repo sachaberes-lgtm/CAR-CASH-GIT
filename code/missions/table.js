@@ -109,6 +109,10 @@ const M2=[
    caisses tombaient en mourant à la 2e seconde ; `frole` : la distance (m) d'un flanc de tour qui compte comme frôlé ; `prof` : le fond de
    la mer de Jade (m sous la surface) — EAU.fond n'est jamais atteint (la poussée ramène avant), le seuil est le fond qu'on atteint vraiment. */
 const M2K={partie:60,frole:6,prof:400,debut:3,bete:20}; /* prof : (2026-11-12, plus de mer) les mètres de DESCENTE dans une vallée de Jade (voir l'ABÎME, defis-moteur.js) */ /* bete : la mort à partir de laquelle les secrètes « bêtes » se trouvent (m2Mort) */ // prof : le fond de la mer de Jade (420 m) — mesuré : en tenant la plongée on le passe en ~25 s
+/* (2026-11-21, lot defispossibles) LES MISSIONS QUI NE COMPTENT QUE SUR UNE MAP : leurs sources, comme DEF_SOURCES (economie/boutique-vitrine.js) — `c` les cartes qui comptent.
+   Une map hors du tirage ici (SF_HORS) : la mission quitte la liste tant qu'elle n'est pas réussie (m2Jouable, missions/defis-moteur.js). verglas100 et lac10 : le verglas et
+   les lacs gelés n'existent que sur LE GLACIER (BANQ), hors du JOUER depuis le 30/10. */
+const M2_CARTES={verglas100:{c:['banquise']},lac10:{c:['banquise']}};
 /* (2026-11-05, Sacha : « corrige-le ») M2_METEO_MIN — le nombre de temps à avoir joués sur une map (m2Meteo) — vit ICI, avant l'appel de m2Etat du démarrage :
    déclarée dans defis-moteur.js, elle était lue par la migration (m2MigreV2 → m2Seuil → m2Meteo) AVANT sa ligne — « Cannot access before initialization » à
    chaque chargement, et la migration s'arrêtait net (le même piège que M2_COLK le 18/10). `?meteo=ancien` : l'ancien calcul. */

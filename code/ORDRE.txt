@@ -270,6 +270,7 @@ gameplay/figures-route.js            # figures sur la route
 interface/hud-figures.js             # HUD des figures (v3 à v5)
 interface/fil.js                     # le fil : la pastille unique des annonces de course (popTexte en est l'alias)
 missions/defis-moteur.js             # défis secrets, missions v2 : le moteur
+missions/defis-possibles.js          # (banc) dbgDefisPossibles : le relevé de tout ce qui se gagne, se débloque ou se demande, et des maps tirées ici
 missions/ecran-revelation.js         # missions v2 : l'écran, la vignette, boutique et garage, la révélation
 missions/aujourdhui.js               # la série de sept jours (carte de l'écran MISSIONS) ; le défi du jour, éteint depuis le 22/10 (Léo, 20/10)
 rendu/stries-vent.js                 # les stries de vent
