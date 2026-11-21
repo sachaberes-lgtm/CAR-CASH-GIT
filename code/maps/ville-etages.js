@@ -56,3 +56,23 @@ function veOrdre(t,MCJ,gr){const f9=(/[?&]villescene=(\w+)/.exec(typeof location
      s'il tient) — MESURÉ, tirés au hasard du paquet de 17 cartes, quatre routes sur cinq n'en jouaient aucun (et la route du 3/11 leur devait 69 % de ses passages dessous) ;
      placés après la carte route-ville et le raccourci, ils ne tenaient plus dans la durée de la route */
   if(gr!=null){const E=[];for(let k=0;k<MCJ.length;k++)if(MCJ[k]&&MCJ[k].etage)E.push(k);if(E.length){const e=E[((gr%E.length)+E.length)%E.length],q=t.indexOf(e);if(q>0){t.splice(q,1);t.unshift(e);}}}}
+/* ===== LE DÉCOR DU 3 NOVEMBRE SUR LA ROUTE À ÉTAGES (2026-11-20, Sacha : « c'est exactement celle-là […] des sortes de tunnels formés d'immeubles chelous, ultra conceptuels.
+   C'était magnifique, j'aimerais que tu remettes ça […] tu peux pas simplement récupérer le code sur le git et l'adapter ») — le lot F, passation/ville-cyber/LOT-F.md =====
+   Le canyon de buildVoxCity est, au caractère près, celui d'aa160d07f (jade-balade.js l.109-180 d'alors : mêmes trois rangs, même toit, même pied à min(yLo,yN)−330−vr·120,
+   même `tourLibre` qui relève le pied 44 m au-dessus de la route du dessus, même `villePied` qui le noie dans la brume). MESURÉ (vrai buildVoxCity en Node, graines 1-12,
+   palier 0) : 967 tours au 3/11, 776 aujourd'hui ; 21 tours au pied relevé (« à l'envers, transparentes ») contre 11 ; murs des deux côtés à moins de 100 m sur 77 % de la
+   route contre 59 % ; 8,9 tours au 1er rang contre 6,5. La cause, isolée : L'AIR DES SAUTS (AIRZ, la règle des sauts — intouchable) rabat le toit des tours qui, plus hautes,
+   auraient enjambé la route du dessus et pendu au-dessus d'elle (sans AIRZ : 18,8 pendues) ; les EMPRISES DES SCÈNES en retirent 54 ; et la route est 11 % plus courte.
+   On rend donc au canyon de la route à étages ce que les sauts et les scènes lui prennent, sans toucher ni aux uns ni aux autres :
+   · VE_RANGS : les rangs du 3/11 resserrés et complets (1er et 2e rangs à 100 %), un 4e rang au fond de la rue ;
+   · VE_HAUT : les murs 1,5 fois plus hauts au-dessus de la route — `tourLibre` relève alors le pied de ceux que la route du dessus traverse dans leur moitié basse : ce sont
+     les tours pendues du 3/11 (une tour rabattue par AIRZ ou par une route dans sa moitié haute reste rabattue, la règle d'or et l'air des sauts passent APRÈS).
+   · VE_LIBRE : ce pied relevé laisse 60 m d'air au-dessus de la route d'en bas (44 m au 3/11 et au socle) ;
+   · la part de GÉANTES DE VERRE se juge à la hauteur d'avant VE_HAUT (villeVerreTour en prend plus au-dessus de 190 m) : 15,7 % comme au 3/11 (15,5 %), pas 20 %.
+   Carte VILLE de nuit seule (veDecor3 : ni Crypto City de jour — ses météos cj —, ni la vitrée) ; `?sans=villedecor` rend le décor de la route à étages d'avant (lot E) au bit près,
+   `?sans=villeetages` celui du socle. */
+const VE_DECOR3=VILLE_ETAGES&&!/[?&]sans=([^&]*,)?villedecor(,|&|$)/.test(location.search);
+function veDecor3(){const c=typeof LVL!=='undefined'&&LVL.cur;return VE_DECOR3&&veActif()&&!(c&&c.cj);} /* la NUIT de la carte ville seule : ni Crypto City de jour (lot J : météos cjMatin/cjMidi/cjSoir, LVL.cur.cj), ni la vitrée, ni le parc */
+const VE_RANGS=[[24,12,1],[60,30,1],[116,70,.9],[200,120,.5]]; /* [écart au bord de la dalle (m), dispersion (m), part tirée] — le 3/11 : [28,40,.9],[100,60,.7],[190,130,.5] */
+const VE_HAUT=1.5; /* le toit des murs au-dessus de la route (t − yN + 50), × */
+const VE_LIBRE=60; /* (tourLibre) l'air libre sous le pied relevé d'une tour que la route traverse dans sa moitié basse : au moins 60 m (61 posés ; 44 ailleurs, et au 3/11) */

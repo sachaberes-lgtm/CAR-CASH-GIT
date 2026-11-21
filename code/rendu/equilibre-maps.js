@@ -82,5 +82,11 @@ Object.assign(EQM.A,{
 {for(const k in EQM.A){const a=EQM.A[k],b={};for(const f in a)b[f]=Array.isArray(a[f])?a[f].slice():a[f];
   b.sat=+(((b.sat==null?1:b.sat)*1.1)).toFixed(3);b.con=+(((b.con==null?1:b.con)*1.05)).toFixed(3);b.chr=+(((b.chr||0)+.12)).toFixed(2);
   if(b.lum!=null)b.lum=+((b.lum*1.1)).toFixed(2);if(b.vigK!=null)b.vigK=+(Math.max(.16,b.vigK-.05)).toFixed(2);EQM.B[k]=b;}}
+/* ===== LA NUIT DU 3 NOVEMBRE SUR LA ROUTE À ÉTAGES (2026-11-20, Sacha : « c'est exactement celle-là […] C'était magnifique, j'aimerais que tu remettes ça ») — le lot F =====
+   À ESSAYER SEULEMENT (`?plus=villenoire`) : elle défait, pour la carte ville, la retouche `villeOrage` de l'équilibre doux (Sacha, 06/11 : « trop de maps sont sombres
+   et ternes ») — c'est à Sacha de trancher, planche à l'appui (passation/ville-cyber/LOT-F.md). Sans le drapeau, rien ne change.
+   Ce qu'elle rend : la route noire et mouillée du 3/11 (L* 12-20, 52-75 % de noirs dans le bas de l'image), les néons qui s'y reflètent en traits, les tours sombres
+   à fenêtres. MESURÉ (enquête F) : aujourd'hui route L* 25 et 7-12 % de noirs ; retouche ôtée, L* 18 et 54 %. `villeOrage` ne sert qu'à la nuit de la carte VILLE. */
+if(VILLE_ETAGES&&/[?&]plus=([^&]*,)?villenoire(,|&|$)/.test(location.search)){delete EQM.A.villeOrage;delete EQM.B.villeOrage;}
 {const T=EQM[EQUILIBRE];if(T)for(const k in T){const r=T[k];if(BIOMES[k])eqApplique(BIOMES[k],r);else if(/^grt-/.test(k))for(const n in BIOMES)if(n.indexOf(k+'-')===0)eqApplique(BIOMES[n],r);}}
 window.dbgEquilibre=function(n,r){if(n&&r){const b=BIOMES[n];if(!b)return null;eqApplique(b,r);if(BIO.name===n||BIO.to===b){bioLerp(b,b,1,BIO.cur);bioApply(BIO.cur);}}return {piste:EQUILIBRE,retouches:EQM[EQUILIBRE]};}; /* banc : essayer une retouche à chaud */

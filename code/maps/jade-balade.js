@@ -60,8 +60,8 @@ function* buildVoxCityG(seed,accC){ /* (lot portv) la ville en tranches : rend l
   const tourLibre=(cx,cz,hd,b,t)=>{const clr=hd+ROAD_HALF+24,c2=clr*clr; // (2026-09-26, user : « les immeubles ne doivent JAMAIS toucher la route ») marges élargies
     for(let pass=0;pass<4;pass++){let ok=true;
       proches(cx,cz,clr,function(i){const p=pts[i],dx=p.x-cx,dz=p.z-cz;if(dx*dx+dz*dz>c2)return;
-        if(p.y>t+60||p.y<b-40)return;ok=false;
-        if(p.y>(b+t)*.5)t=Math.min(t,p.y-60);else b=Math.max(b,p.y+44);});
+        if(p.y>t+60||p.y<b-(VED9?VE_LIBRE:40))return;ok=false;
+        if(p.y>(b+t)*.5)t=Math.min(t,p.y-60);else b=Math.max(b,p.y+(VED9?VE_LIBRE+1:44));}); /* VE_LIBRE (2026-11-20, lot F) : sous la route à étages, le pied relevé laisse 61 m d'air au-dessus de la route d'en bas (le point ainsi dégagé sort de la fenêtre b−60 : la passe suivante l'ignore ; 60 m pile, sous les 60 m demandés à l'arrondi, n'y sortait jamais) */
       if(ok)return t-b>=40?[b,t]:null;if(t-b<40)return null;}
     return null;}; // (2026-10-20, Sacha : « le sommet des tours traverse la route ») 4 passes sans solution = pas de tour (avant : elle restait, rognée à moitié)
   const routeAuDessus=(cx,cz,hd,t)=>{let m=1e9;const clr=hd+ROAD_HALF+24,c2=clr*clr; // la route la plus basse au-dessus du toit, sous l'emprise : borne le mât (il montait jusque dans le bitume)
@@ -112,7 +112,7 @@ function* buildVoxCityG(seed,accC){ /* (lot portv) la ville en tranches : rend l
   CITY.entree=iEA<0?null:[iEA,iEB];
   /* (2026-11-13, LA VILLE QUI SE VISITE — voir ville-scenes.js) les SCÈNES : leurs emprises sont réservées AVANT les tours (et avant les pièces ₿) ; leurs volumes se posent APRÈS (vsBatir) ;
      SP9 = les volumes « sans pied » (ils flottent : un plafond, un pont, une tour posée sur la rue — leur pied ne se noie pas dans la brume) */
-  const VAME9=VILLE_AME&&!VI&&!VS,SP9=[],V9=VAME9?{P:pts,pts:pts,dsP:dsP,proches:proches,pasP:pasP,snap:snap,corps:corps,genre:genre,tqC:tqC,neon:neon,neonC:neonC,tqN:tqN,sp:SP9,AIRZ:AIRZ,root:root,NEON:NEON,CR:CR,neonR:new Map()}:null; /* neonR (2026-11-18, LES CADRES PAR MOMENTS) : la matrice des néons qui ne sont pas des boîtes droites (indice → 16 nombres), lue par fam */
+  const VAME9=VILLE_AME&&!VI&&!VS,VED9=VAME9&&!CR&&veDecor3(),SP9=[],V9=VAME9?{P:pts,pts:pts,dsP:dsP,proches:proches,pasP:pasP,snap:snap,corps:corps,genre:genre,tqC:tqC,neon:neon,neonC:neonC,tqN:tqN,sp:SP9,AIRZ:AIRZ,root:root,NEON:NEON,CR:CR,neonR:new Map()}:null; /* neonR (2026-11-18, LES CADRES PAR MOMENTS) : la matrice des néons qui ne sont pas des boîtes droites (indice → 16 nombres), lue par fam */
   if(V9){if(VILLE_CYBER)V9.vcDiff=[];vsReserve(V9);if(V9.vcDiff)for(const d9 of V9.vcDiff)yield* vcReserveG(V9,d9[0],d9[1],d9[2],false,ech9);} /* (2026-11-18, LA VILLE CYBERPUNK, tour 2) les plans des modules route-ville, en tranches (ville-cyber.js) */
   if(CR)cryptoPlace(seed,proches); // (CRYPTOCITY) les pièces géantes, les diamants, les dirigeables se réservent leur place AVANT les tours
   /* (2026-11-13, LES ANCRES DE LA ROUTE — voir plus bas) les géantes des ancres sont connues AVANT les tours : une tour ordinaire qui tomberait sur leur emprise n'est pas bâtie (ses tirages ont eu lieu : la ville d'à côté ne bouge pas) */
@@ -124,7 +124,7 @@ function* buildVoxCityG(seed,accC){ /* (lot portv) la ville en tranches : rend l
     if(VS){if(chev(cx,cz,hd))return;const k=canyon?1-Math.min(1,(d-54)/(R_CAN-54)):0,r1=vr(),r2=vr(); // (AU SOL) LES GÉANTES, posées sur le sol : 170 à 1 300 m au bord de la route (une sur six passe le kilomètre), 90 à 470 m au large
       t=GS+(canyon?170+(840-250*k)*Math.pow(r1,1.5)+(r2<.18?260:0):90+380*r1*r2);if(DZ&&canyon)t=GS+(t-GS)*DZ.haut;} // (le 1er rang un peu moins haut : les géantes de derrière se lisent au-dessus)
     else if(canyon){const k=1-Math.min(1,(d-54)/(R_CAN-54));           // LE CANYON : les murs montent AU-DESSUS de la route
-      t=yN-50+290*Math.pow(vr(),.75)*(.55+.45*k);if(k>.5&&vr()<.22)t+=160;if(DZ)t=yN-50+(t-yN+50)*DZ.haut;}
+      t=yN-50+290*Math.pow(vr(),.75)*(.55+.45*k);if(k>.5&&vr()<.22)t+=160;if(DZ)t=yN-50+(t-yN+50)*DZ.haut;if(VED9)t=yN-50+(t-yN+50)*VE_HAUT;} /* (2026-11-20, LE DÉCOR DU 3 NOVEMBRE — voir ville-etages.js) les murs de la route à étages plus hauts : la route du dessus les traverse dans leur moitié basse, tourLibre relève leur pied */
     else t=yN-230+vr()*vr()*470;                                   // AU LARGE : la forêt du village
     if(VAME9&&canyon&&d<ROAD_HALF+44+Math.hypot(w,p)*.5)t=Math.max(t,yN+30+VS_H(cx,cz)*120); /* (LA VILLE QUI SE VISITE) le 1er rang monte toujours AU-DESSUS de la route : on roule dans le canyon, plus au-dessus des toits (aucun tirage vr) */
     if(eE>0&&!VS){const u9=THREE.MathUtils.clamp((t-yN+50)/450,0,1),tE=yN-VILLE_ENTREE_R.toit-(1-u9)*VILLE_ENTREE_R.etage;t+=(tE-t)*eE;} // (2026-09-29) L'ENTRÉE SURÉLEVÉE : le toit passe SOUS la route (juste sous elle pour les plus hautes : on les voit défiler au ras du bitume)
@@ -134,7 +134,8 @@ function* buildVoxCityG(seed,accC){ /* (lot portv) la ville en tranches : rend l
     const bt=VS?(routePres(cx,cz,hd)?null:[b,t]):(ancPres(cx,cz,hd)?null:tourLibre(cx,cz,hd,b,t));if(!bt)return;b=bt[0];t=bt[1];
     if(VS)chevPose(cx,cz,hd);
     const H=t-b,km=(b+t)/2;nT++;
-    const GV=VV9&&(DZ&&DZ.verre?villeVerreTourD(cx,cz,t-yN,canyon,DZ.verre):villeVerreTour(cx,cz,t-yN,canyon)),VIt=VI||GV;gvDer=GV;if(VV9){VV.n++;if(GV)VV.nv++;} // (NÉON ET VERRE) une GÉANTE DE VERRE : bâtie comme dans la ville vitrée (VIt) — aucun tirage `vr` de plus ni de moins
+    const hV9=VED9&&canyon?(t-yN+50)/VE_HAUT-50:t-yN; /* (2026-11-20, lot F) la part de verre se juge à la hauteur d'avant VE_HAUT : les mêmes géantes qu'au 3/11 (15 % ; sinon 20 %) */
+    const GV=VV9&&(DZ&&DZ.verre?villeVerreTourD(cx,cz,hV9,canyon,DZ.verre):villeVerreTour(cx,cz,hV9,canyon)),VIt=VI||GV;gvDer=GV;if(VV9){VV.n++;if(GV)VV.nv++;} // (NÉON ET VERRE) une GÉANTE DE VERRE : bâtie comme dans la ville vitrée (VIt) — aucun tirage `vr` de plus ni de moins
     const fo=VIt?(VI&&DZ&&DZ.fo?vitreFormeD(cx,cz,H,canyon,DZ.fo):vitreForme(cx,cz,H,canyon)):0; // (VILLE VITRÉE) la FORME de la tour (0 = droite, à retraits empilés)
     // LES RETRAITS : volumes EMBOÎTÉS qui partent tous du pied (la brume se lit pareil sur tous), plus étroits et plus hauts
     const et=H>260?(vr()<.55?3:2):(vr()<.4?2:1);
@@ -158,7 +159,8 @@ function* buildVoxCityG(seed,accC){ /* (lot portv) la ville en tranches : rend l
         corps.push(cx+ox,b+ht/2,cz+oz,tk,ht,tk);genre.push(1);tqC.push(cx,km,cz);}
     }
     // L'ANTENNE et son FEU ROUGE — sinon, parfois, la COURONNE à l'accent de la zone
-    if(H>320&&vr()<dk('ant',.5)){let ha=24+vr()*56;if(VIt){if(fo===5)ha=0;else{corps.push(cx,yV+ha/2,cz,1.4,ha,1.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,yV+ha,cz,2.2,2.2,2.2);neonC.push(5);tqN.push(cx,km,cz);}} // (VILLE VITRÉE) le mât part du TOIT — pas de mât sur une LAME (son toit est en biais) (il ne traverse plus la tour)
+    if(H>320&&vr()<dk('ant',.5)){let ha=24+vr()*56;if(VIt){if(VED9&&fo!==5)ha=Math.min(ha,routeAuDessus(cx,cz,hd,t)-t-12); /* (2026-11-20, lot F) le mât d'une géante de verre s'arrête 12 m sous la route du dessus, comme celui du béton (il entrait dans le bitume : 0 à 2 par 80 routes, au socle aussi) */
+      if(fo===5||ha<8)ha=0;else{corps.push(cx,yV+ha/2,cz,1.4,ha,1.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,yV+ha,cz,2.2,2.2,2.2);neonC.push(5);tqN.push(cx,km,cz);}} // (VILLE VITRÉE) le mât part du TOIT — pas de mât sur une LAME (son toit est en biais) (il ne traverse plus la tour)
       else{ha=Math.min(ha,routeAuDessus(cx,cz,hd,t)-t-12);if(ha>=8){corps.push(cx,(b+yV+ha)/2,cz,2.4,yV-b+ha,2.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,yV+ha,cz,4.5,4.5,4.5) /* (DEBUGGING : ville) au bout du mât posé sur le vrai toit */;neonC.push(5);tqN.push(cx,km,cz);}}}
     else if(vr()<dk('cour',.32)){if(!VIt||(fo===0&&!vitreBiseau(cx,cz))){neon.push(cx,yV-1.4,cz, /* (2026-10-18, DEBUGGING : ville) la COURONNE sur le vrai toit : à t, 5 à 15 % d'entre elles flottaient 95 à 256 m au-dessus de la tour (banc, 16 villes) */wk/.72*1.05,2.8,pk/.72*1.05);neonC.push(6);tqN.push(cx,km,cz);}} // (VILLE VITRÉE) pas de couronne carrée sur une tour biseautée
     if(VIt)VTW.push([l0/6,corps.length/6,ln/6,neon.length/6,yN,fo,t]); // (VILLE VITRÉE) la tour, pour la forme et pour son reflet au plafond
@@ -185,14 +187,14 @@ function* buildVoxCityG(seed,accC){ /* (lot portv) la ville en tranches : rend l
      les autres roulaient dans le vide (capture v3-b du 26/09). Chaque tour se pose par rapport au TRONÇON qu'elle borde : trois
      rangs de chaque côté (le mur, la deuxième ligne, le fond de rue). Les autres étages de route, `tourLibre` s'en charge.
      LE BUDGET (iPhone) : une piste de 30 km ferait 20 000 volumes — au-delà du plafond, on éclaircit au hasard, sans trou régulier. */
-  const pasC=Math.max(1,Math.round(SN/(L/(NP-1)))),ROWS=VAME9?[[24,16,.95],[84,50,.75],[176,120,.55]]:[[28,40,.9],[100,60,.7],[190,130,.5]], /* (LA VILLE QUI SE VISITE) le canyon plus PROCHE : le 1er rang à 24-40 m du bord de la dalle (la règle d'or : 24), plus serré */BUD=ALLEGE?1300:2300;
+  const pasC=Math.max(1,Math.round(SN/(L/(NP-1)))),ROWS=VED9?VE_RANGS:VAME9?[[24,16,.95],[84,50,.75],[176,120,.55]]:[[28,40,.9],[100,60,.7],[190,130,.5]], /* (LA VILLE QUI SE VISITE) le canyon plus PROCHE : le 1er rang à 24-40 m du bord de la dalle (la règle d'or : 24), plus serré */BUD=ALLEGE?1300:2300;
   const kC=Math.min(1,BUD/Math.max(1,(NP/pasC)*2*2.1));
   if(ech9())yield;
   for(let i=0;i<NP;i+=pasC){if(ech9())yield;const T9=T[i],hl=Math.hypot(T9.x,T9.z);if(hl<.5)continue; // haut des loopings : pas de mur
     const px=-T9.z/hl,pz=T9.x/hl,tx=T9.x/hl,tz=T9.z/hl;
     let yLo=pts[i].y;for(let j=Math.max(0,i-pasC*5);j<=Math.min(NP-1,i+pasC*5);j+=pasC)if(pts[j].y<yLo)yLo=pts[j].y; // le pied se noie sous le point le plus bas du tronçon
     for(const sg of [-1,1])for(const rw of ROWS){if(vr()>rw[2]*kC*dk('dens',1))continue;
-      if(DZ&&DZ.trou.length&&rw!==ROWS[2]&&place9(i,sg)){nPl++;continue;} // (DZ) LA PLACE
+      if(DZ&&DZ.trou.length&&(rw===ROWS[0]||rw===ROWS[1])&&place9(i,sg)){nPl++;continue;} // (DZ) LA PLACE
       const w=snap(VS?30+vr()*42:16+vr()*26),p=snap(VS?30+vr()*42:16+vr()*26),hd=Math.hypot(w,p)*.5,lat=ROAD_HALF+rw[0]*(VS?1.7:1)+hd+vr()*rw[1]*(VS?1.6:1),al=(vr()-.5)*SN*.6; // (AU SOL) des géantes : plus larges, plus loin (le ciel et leurs pieds se voient entre elles)
       const nt0=nT,eI=eEnt(i);batir(pts[i].x+px*sg*lat+tx*al,pts[i].z+pz*sg*lat+tz*al,lat,pts[i].y,yLo,true,w,p,rw===ROWS[0]?eI:0); // (2026-10-04) seul le MUR (1er rang) passe sous la route à l'entrée — voir ENTRÉE v2
       // LE PANNEAU : un mur sur quatre du 1er rang porte une réclame, tournée VERS la route, un peu au-dessus d'elle

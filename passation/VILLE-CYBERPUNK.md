@@ -82,3 +82,12 @@ Fichier de rendu réservé : touché sur le oui direct de Sacha, sur cette branc
 Vérifié : les 6 motifs du flou existent une fois chacun dans le shader de base ; gardes vertes ; jeu chargé en `?tel=1` dans le volet : aucune erreur de console, `dbgGfxFin().netNitro` vrai (la caisse nette au nitro se pose toujours par-dessus le flou réparé).
 PAS vérifié : une course photographiée avec le vrai fichier (l'image connue vient de l'essai injecté, planche `refuses/planches-f/controle-f2-t844-net.jpg`) ; `NET_NITRO2` posé (le profil des rubans était éteint dans ce contexte) ; vrai iPhone.
 Suite possible : le lot F (décor du 3/11) et le lot D peuvent maintenant être rejugés à l'image.
+
+## Lot F FUSIONNÉ (21/11) — le décor du 3 novembre sur la route à étages, rejugé avec le flou réparé
+Sacha : « Oui, rejuge ». Lot rebâti sur da9fe6bb7, contrôle adverse à l'image dans le vrai jeu (`ville-cyber/CONTROLE-F-REJUGE.md`, planches `planches/rejuge1-*.jpg`) : FUSIONNABLE.
+- Le décor se voit au téléphone sur 2 graines sur 3 (murs de tours à fenêtres des deux côtés, tours pendues au-dessus de la route) ; à peine sur la 3e. Voiture lisible, rien dans la route, aucun trou.
+- Coût contre `?sans=villedecor` : appels −2 à +5 %, triangles −1 à +8 %, 0 programme compilé en course. Routes au bit près, gardes vertes.
+- Interrupteurs : `?sans=villedecor` (le décor d'avant), `?plus=villenoire` (la route noire du 3/11, GARDÉE EN OPTION : elle assombrit trop le haut sur une graine et défait la demande du 06/11).
+- Mineurs : en 390×844 le dessous des tours pendues fait un aplat violet à bords nets (lisible comme « transparent » ou comme un trou) ; le plafond téléphone (124 appels / 311 k) est dépassé en pointe AVANT le lot déjà, le lot ajoute jusqu'à +8 % de triangles (390 : 313 → 338 k).
+- Non vérifié : vrai iPhone, sauts et nitro joués, paliers 10/20 en Chrome, ordinateur à ce tour, tranche du bâti dans le jeu.
+Le lot D (tours pendues) reste refusé : le lot F rend déjà des tours pendues ; à ne rejuger que si Sacha en veut plus.
