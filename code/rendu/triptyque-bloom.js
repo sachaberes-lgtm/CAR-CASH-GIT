@@ -273,7 +273,15 @@ window.dbgFond=function(o){if(o)Object.assign(FOND_BRUME,o);return {k:fondBrumeK
      .55 → .30 et plus loin du centre.
    Même nombre de lectures, même programme pour tous les paliers (palier 0 : FLOU_OK coupe déjà tout), aucune compilation en course. Banc : dbgFlou({v,s,fv}). */
 ACESShader.uniforms.uFv={value:new THREE.Vector4(.26,2.0,.8,.25)}; // rayon où le flou commence · force · warp · courbe de vitesse (part linéaire)
-const FLOU_R=[['uniform float uSafe,uRn;','uniform float uSafe,uRn;uniform vec4 uFv;'],
+/* ===== LE BOOST SANS FLOU, SUR VERCEL (2026-11-21, Sacha : « supprime l'effet de flou quand on boost ou diminue-le grandement pour qu'on garde un effet de vitesse ») =====
+   Seulement le jeu du navigateur (Vercel : ordinateur et téléphone) — l'app iPhone (EN_APP) garde son flou au bit près. La FORCE du filé radial
+   tombe de 2,0 à 0,3 (−85 % : les bords glissent à peine, plus de traînées), le WARP de .8 à .35 (le monde s'incurve encore, moins) ; l'aberration
+   chromatique suit le filé (même amplitude). La vitesse se lit par ce qui reste net : les TRAITS DE VITESSE (×1,35), le tunnel, le champ de la caméra.
+   Le flou v2 (caisse et route nettes, seuls les bords filent) était éteint depuis le 17/11 (voir FLOU_R) : rebranché ici, sur Vercel. `?flou=plein` = le
+   flou d'avant (v1, celui que l'app garde) ; banc : outils/banc-trainees/flou-boost.cjs, dbgFlou({fv:[…]}). */
+const FLOU_LEGER=!EN_APP&&!/[?&]flou=plein\b/.test(location.search);
+if(FLOU_LEGER){ACESShader.uniforms.uFv.value.y=.3;ACESShader.uniforms.uFv.value.z=.35;ACESShader.uniforms.uTL.value.y*=1.35;}
+const FLOU_R=[['uniform float uSafe,uRn,uSfx;','uniform float uSafe,uRn,uSfx;uniform vec4 uFv;'], /* (2026-11-21) la déclaration est devenue « uSafe,uRn,uSfx » le 17/11 (3df790c92, les voiles au tiers) : la v2 ne trouvait plus sa ligne et ne s'appliquait plus — le flou v1, caisse comprise, tournait partout */
   ['  if(uSpeed>0.004){','  float sp=uSpeed*(uFv.w+(1.0-uFv.w)*uSpeed); if(sp>0.02){'],
   ['    vec2 buv=uCtr+dc*(1.0+uSpeed*0.60*rb*rb*ms);','    float e=max(rb-uFv.x,0.0); e*=e; vec2 buv=uCtr+dc*(1.0+sp*uFv.z*e*ms);'],
   ['    float amt=uSpeed*(0.04+rb*rb*1.7)*ms; vec3 acc=vec3(0.0);','    float amt=sp*uFv.y*e*ms; vec3 acc=vec3(0.0);'],
@@ -281,7 +289,7 @@ const FLOU_R=[['uniform float uSafe,uRn;','uniform float uSafe,uRn;uniform vec4 
   FLOU_RO=[['ca=dc*amt*0.015*smoothstep(.45,.9,rb);','ca=dc*amt*0.006*smoothstep(.55,.95,rb);']]; // (ordi seul : absente du programme du téléphone)
 function flouFS(f,v){const a=v?0:1,b=v?1:0;for(const r of FLOU_R)if(f.indexOf(r[a])<0)return f; // une ligne retouchée ailleurs : on ne touche à rien
   for(const r of FLOU_R.concat(FLOU_RO))f=f.replace(r[a],r[b]);return f;}
-ACESShader.fragmentShader=flouFS(ACESShader.fragmentShader,1);
+if(FLOU_LEGER)ACESShader.fragmentShader=flouFS(ACESShader.fragmentShader,1); /* (2026-11-21) sur Vercel seulement : l'app iPhone garde le programme qu'elle avait (à revoir avec Sacha) */
 /* ===== LA CAISSE NETTE AU NITRO (2026-11-13, finition iPhone, Sacha : « les traînées et la voiture, ça doit être PARFAIT ») =====
    VU au banc (iPhone 13 Pro émulé, toile 1055×487 agrandie ×2,4, nitro tenue) : dès que le flou de vitesse joue (boost, nitro : `sp` > 0,02), TOUTE l'image
    prenait la branche du flou — et la caisse, au milieu du disque net (là où le flou vaut 0), y recevait 6 prises IDENTIQUES : ni anticrénelage, ni piqué.
