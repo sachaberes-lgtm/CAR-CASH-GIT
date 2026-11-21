@@ -75,3 +75,10 @@ Correction : les « 620-740 k triangles du 3/11 » notés plus haut étaient une
 lot J — brume ocre du matin, heures peu distinctes en rue serrée ; socle — 2 volumes dans la route au palier 10 sur 80 graines (avant le chantier aussi).
 **Non fait :** variété du paquet de la route à étages, tirage unique (lot U), finition des immeubles, immeuble traversé.
 **Non vérifié :** vrai iPhone, vrai mode PC, Crypto City de jour photographiée sur la route à étages (égalité prouvée en Node seulement), paliers 10 et 20 en Chrome (Node seulement).
+
+## Le flou de vitesse réparé sur la branche (20/11 au soir, oui de Sacha : « Oui, répare »)
+`code/rendu/triptyque-bloom.js` : les motifs de `FLOU_R` (l.276) et de `NET_NITRO2` (l.308-313) suivent la déclaration `uniform float uSafe,uRn,uSfx;` du 17/11. Deux lignes, rien d'autre.
+Fichier de rendu réservé : touché sur le oui direct de Sacha, sur cette branche seulement ; `origin/main` a toujours le bug (vérifié le 20/11).
+Vérifié : les 6 motifs du flou existent une fois chacun dans le shader de base ; gardes vertes ; jeu chargé en `?tel=1` dans le volet : aucune erreur de console, `dbgGfxFin().netNitro` vrai (la caisse nette au nitro se pose toujours par-dessus le flou réparé).
+PAS vérifié : une course photographiée avec le vrai fichier (l'image connue vient de l'essai injecté, planche `refuses/planches-f/controle-f2-t844-net.jpg`) ; `NET_NITRO2` posé (le profil des rubans était éteint dans ce contexte) ; vrai iPhone.
+Suite possible : le lot F (décor du 3/11) et le lot D peuvent maintenant être rejugés à l'image.
