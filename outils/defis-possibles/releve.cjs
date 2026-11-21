@@ -2,11 +2,11 @@
    Charge VERSION PRINCIPALE/index.html deux fois — en TÉLÉPHONE (?tel=1&appareil=iPhone14,2) et en ORDINATEUR (sans tel) — et écrit le relevé de dbgDefisPossibles()
    (missions/defis-possibles.js) dans <sortie>/releve-tel.json et <sortie>/releve-pc.json. Le jugement est fait par juge.cjs, sans Chrome.
    ⚠ UN Chrome à la fois : lancer sous ~/cash-car/verrou-banc.sh prendre "<qui>" … rendre. Le profil Chrome est effacé à la fin.
-   node outils/defis-possibles/releve.cjs --sortie <dossier> [--http 9971] [--cdp 9972] */
+   node outils/defis-possibles/releve.cjs --sortie <dossier> [--jeu <dossier du jeu>] [--http 9971] [--cdp 9972] */
 const fs = require('fs'), path = require('path');
 const { serveur, portLibre, lanceChrome, tueChrome, CDP, dormir, tmp } = require('../banc-trainees/cdp.cjs');
 const A = {}; for (let i = 2; i < process.argv.length; i += 2) A[process.argv[i].replace(/^--/, '')] = process.argv[i + 1];
-const JEU = path.resolve(path.join(__dirname, '..', '..', 'VERSION PRINCIPALE'));
+const JEU = path.resolve(A.jeu || path.join(__dirname, '..', '..', 'VERSION PRINCIPALE')); /* --jeu <dossier> : un autre jeu, par exemple le www de l'app (app-ios/preparer-www.js --essai --sortie <dossier>) */
 const P_HTTP = +(A.http || 9971), P_CDP = +(A.cdp || 9972), SORTIE = A.sortie || '.';
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
 const MUET = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, bienv: 1 };

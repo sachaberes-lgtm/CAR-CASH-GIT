@@ -136,6 +136,7 @@ function juge(R) {
     let r;
     if (d.def) { const j = defi(d, d.def, cat); r = { voie: 'défi', cond: d.def.t || d.def.k, ok: j.ok, raison: j.raison }; }
     else if (d.mis2) { const m = mission(d.mis2); const j = m ? missionJ(m) : { ok: false, raison: 'mission absente' }; r = { voie: 'mission', cond: d.mis2, ok: j.ok, raison: j.raison }; }
+    else if (d.sec && cat !== 'peinture') r = { voie: 'secrète', cond: d.d || '', ok: false, raison: 'ni prix, ni défi, ni mission : rien ne la donne (la coupe de l\'app pose `sec` sur l\'ARC-EN-CIEL)' };
     else if (d.pack === 'chat') { r = { voie: 'pack', cond: 'avec le CHAT POP-TART', ok: true, raison: 'vient avec la caisse du chat (hors vente depuis le 13/11 : seulement pour qui l\'a)' }; }
     else if (d.eur) r = { voie: 'euros', cond: d.eur, ok: true };
     else if (d.p) r = { voie: 'dollars', cond: d.p + ' $', ok: true };
@@ -178,10 +179,13 @@ let ko = 0;
 for (const f of rel) {
   const R = JSON.parse(fs.readFileSync(f, 'utf8')), J = juge(R), nom = path.basename(f).replace(/\.json$/, '');
   console.log('\n=== ' + nom + ' — maps au tirage : ' + J.tir.join(', ') + ' (' + J.nbMaps + ' maps) ; ' + J.L.length + ' objets jugés');
-  const imp = J.L.filter(x => !x.ok), vus = imp.filter(x => x.affiche);
-  for (const x of imp) console.log((x.affiche ? '  IMPOSSIBLE  ' : '  (hors liste) ') + x.type + ' ' + x.id + ' « ' + x.n + ' » — ' + x.cond + ' — ' + x.raison);
+  /* LES TRAÎNÉES quittent la boutique (branche claude/sans-trainees-fed5f1, pas encore fusionnée) : ce qui ne tient qu'à elles est montré à part et ne compte pas ici */
+  const TR_MIS = ['tr5', 'tr10', 'trall', 'eng30'];
+  for (const x of J.L) if (!x.ok && (x.type === 'trainee' || (x.type === 'mission' && (TR_MIS.indexOf(x.id) >= 0 || /lot : (trainee:[a-z0-9]+(, |$))+$/i.test(x.raison))))) x.trainees = true;
+  const imp = J.L.filter(x => !x.ok), vus = imp.filter(x => x.affiche && !x.trainees);
+  for (const x of imp) console.log((x.trainees ? '  (traînées)  ' : x.affiche ? '  IMPOSSIBLE  ' : '  (hors liste) ') + x.type + ' ' + x.id + ' « ' + x.n + ' » — ' + x.cond + ' — ' + x.raison);
   const conv = J.L.filter(x => x.exDef); for (const x of conv) console.log('  payante     ' + x.type + ' ' + x.id + ' « ' + x.n + ' » — ' + x.cond + ' (défi d\'avant : ' + x.exDef + ')');
-  console.log('  → ' + vus.length + ' impossible(s) affiché(s) au joueur, ' + (imp.length - vus.length) + ' hors liste');
+  console.log('  → ' + vus.length + ' impossible(s) affiché(s) au joueur, ' + imp.filter(x => !x.affiche).length + ' hors liste, ' + imp.filter(x => x.trainees && x.affiche).length + ' qui ne tiennent qu\'aux traînées (lot sans-trainees)');
   ko += vus.length; SORTIES.push({ releve: nom, tir: J.tir, objets: J.L });
 }
 if (opt.json) fs.writeFileSync(opt.json, JSON.stringify(SORTIES, null, 1));
