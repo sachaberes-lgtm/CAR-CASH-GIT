@@ -95,10 +95,12 @@ Chaque lot avait été contrôlé seul, sur un main plus ancien. Le 21/11, un co
 - Trois réserves à juger à l'œil : (1) l'orage du canyon (hors tirage) a des mesas rose-saumon vif, la vue la plus saturée de toutes ; (2) sous la pluie de Jade en portrait le haut est plus sombre (luminance 122 → 111) ; (3) la nuit du canyon en paysage perd un peu plus de lumière qu'annoncé.
 - Non vérifié : le vrai iPhone (OLED, chauffe, temps de `grtNappesG`) ; l'ordinateur sans `?tel=1` ; les fondus entre météos ; Saturne et la Terre ; Jade au matin, au midi et à l'orage dans la branche intégrée.
 
-## Pour livrer
+## LIVRÉ sur main le 21/11 (oui de Sacha : « push sur main »)
 
-1. Refusionner `origin/main` s'il a encore avancé depuis fc1cca055, `node code/assembler.cjs --depuis-morceaux`, puis `--verifier`.
-2. Compiler les `<script>` d'index.html (`vm.Script`) : un seul échec attendu, le script 5, qui échoue pareil sur `main` (l'extracteur coupe dans un commentaire).
-3. `node outils/garde-demarrage.cjs && sh garde-allege.sh && sh garde-charte.sh`.
-4. Monter `cashcar-vNNN` dans `sw.js`, committer `code/` et index.html ensemble.
-5. Sur le vrai iPhone, regarder d'abord : la nuit de Jade, le soir de Jade, la nuit des nuages, Mars de nuit (OLED), une grotte avec de l'eau, la nuit du canyon.
+- `main` : fc1cca055 → 7c004c259, avance rapide, sans force. Cache `cashcar-v1626`. Section en tête de `VERSION PRINCIPALE/JOURNAL.md`.
+- Avant de pousser : 350 morceaux d'accord, gardes vertes (burn-out, charte, allègement, démarrage, essai de l'app iOS), contrôle de démarrage par le vrai chemin (intro → splash → menu → JOUER → 10 s de course) sur l'ordinateur 1440×900 sans `?tel=1`, le téléphone couché 844×390 et debout 390×844 : 0 exception, programmes et textures égaux à main (détail dans `photos/finition-maps/integration/NOTE.md`).
+- Publié : https://car-cash-git.vercel.app/jouer/ sert `cashcar-v1626`, `version.json` porte le commit 7c004c259, et `jeu.903fbd19b5.js` contient les cinq interrupteurs.
+- Revenir en arrière sans rien défaire : `?sans=nappes,couleursfinies,espacefini,jadefini,canyonfini` (un ou plusieurs).
+- PAS vu : le vrai iPhone (OLED, chauffe, temps de `grtNappesG`), une première visite sans sauvegarde, les fondus de météo. L'app iOS n'a pas été refabriquée ni installée.
+- À regarder d'abord sur le vrai iPhone : la nuit de Jade, le soir de Jade, la nuit des nuages, Mars de nuit, une grotte avec de l'eau, la nuit du canyon. Réserves à l'œil : l'orage du canyon rose-saumon vif, la pluie de Jade debout plus sombre en haut.
+- Ne pas rouvrir : le soir du canyon et le chantier « roche du canyon » (abandonnés sur décision de Sacha).
