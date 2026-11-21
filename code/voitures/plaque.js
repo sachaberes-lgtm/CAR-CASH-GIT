@@ -322,7 +322,7 @@ function plqGuette(){if(PLQ.iv)return;PLQ.iv=setInterval(function(){try{
   if(performance.now()-PLQ.t0>2600){clearInterval(PLQ.iv);PLQ.fait=true;plqOuvre('premier');try{typeof sfx==='function'&&sfx('ui.banniere');}catch(_){}}}catch(e){}},250);} /* (2026-10-24, Léo : « laisse le temps d'apprécier, ça ne doit pas couper ») l'accueil et sa musique respirent 2,6 s avant que l'atelier ne se lève (avant : 0,6 s) */
 /* LE PROFIL */
 function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for(const k in (ex.temps||{}))tc+=+ex.temps[k]||0;}catch(e){}
-  let own=0,tot=0;try{for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;tot++;if(i===0||carOwned(i))own++;}}catch(e){}
+  let own=0,tot=0;try{for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const a9=i===0||carOwned(i);if(a9)own++;if(a9||carAtteignable(i))tot++;}}catch(e){} /* (2026-11-21, qa/coherence) le total = ce qu'on peut encore avoir (carAtteignable) */
   let mis=0,misT=0;try{const c9=m2Compte();mis=c9.ok;misT=c9.tot;}catch(e){} /* (2026-11-08, chasse) le MÊME compte que l'écran Missions et la mort (1 / 68 contre 2 / 50 contre 3 / 51) */
   let rang='';try{rang=auraRankName();}catch(e){}
   return [

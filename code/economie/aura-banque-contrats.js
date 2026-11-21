@@ -43,6 +43,18 @@ function carStat(k){
 }
 function carRetiree(i){const c=CARS[i];return !!(c&&c.retire);} // (2026-10-02) une caisse RETIRÉE de la gamme (sa ligne reste : les index de sauvegarde ne bougent pas)
 function carEnVente(i){const u=CAR_UNLOCK[i];return !carRetiree(i)&&!(u&&u.horsVente);} // (2026-11-13) la caisse se VEND-elle encore (boutique, produit App Store) ? `horsVente` la sort des étals sans toucher à qui l'a déjà
+/* ===== CE QU'ON PEUT ENCORE AVOIR (2026-11-21, lot qa/coherence — Sacha : « ce genre de détail, c'est pas admissible […] il faut que tu cherches d'autres détails du genre ») =====
+   Les TOTAUX montrés au joueur (inventaire « x / y », ses cases à découvrir, le profil « CAISSES x / y ») comptaient ce qu'on ne peut plus obtenir : le CHAT POP-TART
+   (hors vente depuis le 13/11), et, sur le SITE (pas de StoreKit : window.ccAchat n'existe que dans l'app), toutes les caisses et peintures en euros. Un total ne compte
+   plus que ce qui est à toi OU s'obtient encore ICI. `?sans=coherence` = comme avant. */
+const COHERENCE=!/[?&]sans=[^&]*coherence/.test(location.search);
+function achatsPossibles(){return !!(window.ccAchat&&typeof window.ccAchat.payer==='function');} /* le vrai argent s'encaisse-t-il ici (l'app et son pont StoreKit) ? */
+function carAtteignable(i){if(carRetiree(i))return false;if(!COHERENCE)return true;
+  try{if(carUnlockedVrai(i)||carOwned(i))return true;}catch(e){}
+  if(!carEnVente(i))return false;return !carEuros(i)||achatsPossibles();}
+function habAtteignable(cat,d){if(!COHERENCE||!d)return true;try{if(shopOwned(cat,d.id))return true;}catch(e){}
+  if(d.pack==='chat'){const i=chatPackI();return i>=0&&carEnVente(i)&&(!carEuros(i)||achatsPossibles());} /* l'ARC-EN-CIEL ne vient qu'avec le chat */
+  return !(d.eur&&!d.def&&!achatsPossibles());} /* une peinture en € sans défi : seulement là où l'App Store encaisse */
 function carPrice(i){const u=CAR_UNLOCK[i];return (!carRetiree(i)&&u&&u.p)||0;} // 0 = pas à vendre (une caisse retirée ne se vend plus)
 /* LES CINQ FAMILLES (2026-09-26) — une caisse porte sa famille (`rar` dans sa fiche) ; les 16 d'origine la déduisent de leur
    condition : boutique = LÉGENDAIRE, contrat/rang d'aura = DÉFI, prix ≥ 1 M = ÉPIQUE, ≥ 20 000 = RARE, sinon COMMUNE.
@@ -70,7 +82,7 @@ function carOrdre(i){const c9=CARS[i];if(c9&&c9.ordre!=null)return c9.ordre;retu
 function carPrixOrdre(i){ // blanche, `ordre` sur la fiche) passe devant le prix ; une liste qui MÉLANGE les familles reste au prix (carPrixOrdre)
   const u=CAR_UNLOCK[i];if(!u)return -1;if(u.p)return u.p;if(u.eur)return parseFloat(String(u.eur).replace(',','.'))||0;
   if(u.k==='carnet')return u.v;if(u.k==='aura')return 100+u.v;return 1e9;} // dans une famille : du plus accessible au plus dur
-function rarListe(r){const L=[];for(let i=0;i<CARS.length;i++)if(carRar(i)===r&&!carRetiree(i))L.push(i);return L.sort(function(a,b){return carOrdre(a)-carOrdre(b);});}
+function rarListe(r){const L=[];for(let i=0;i<CARS.length;i++)if(carRar(i)===r&&!carRetiree(i)&&!(COHERENCE&&!carEnVente(i)&&!(function(){try{return carUnlockedVrai(i);}catch(e){return false;}})()))L.push(i); /* (2026-11-21, qa/coherence) une caisse qui ne se vend plus (le CHAT POP-TART) quitte les familles du garage, sauf pour qui l'a */return L.sort(function(a,b){return carOrdre(a)-carOrdre(b);});}
 const RAR_LOGO={commun:'rond',rare:'gemme',exotique:'palmier',epique:'flamme',legendaire:'couronne',mythique:'dragon',infini:'infini',defi:'cible'}; // (2026-10-10, Léo : « trouve les pictogrammes adaptés pour que les gens comprennent exactement ce que c'est ») COMMUNE un simple rond · RARE la gemme · LÉGENDAIRE la couronne · MYTHIQUE le dragon · INFINI le signe ∞ (la roue et la cible étaient le même dessin) // (2026-10-09, Léo : « enlève les nombres de voitures dans chaque rareté, fais des logotypes ») — DÉFI : la cible des missions
 function rarInfo(r){return RARETES.find(function(x){return x.id===r;})||RARETES[0];}
 function carOwned(i){return !!(SAVE.d.owned&&SAVE.d.owned.indexOf(i)>=0);}

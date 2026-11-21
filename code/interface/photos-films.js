@@ -432,7 +432,7 @@ window.dbgEssaiCaisse=function(src,fiche,vues){
 /* (2026-10-20, Sacha : « il faut que ça soit plus clair que Pop-Tart-Cat est vendu avec la traînée arc-en-ciel ») LA PASTILLE ARC-EN-CIEL : le CHAT POP-TART
    s'achète AVEC la traînée arc-en-ciel (voir chatPackI) ; la vitrine et la fenêtre d'achat le disent par une pastille aux couleurs de la traînée, « INCLUSE »
    (le prix couvre les deux). Rien tant qu'on a déjà le chat. Le style : `.shArc` dans <style id="achatPop">. */
-function shArcHtml(i,a){return (i===chatPackI()&&!a)?'<i class="shArc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL INCLUSE')))+'</i>':'';}
+function shArcHtml(i,a){return (i===chatPackI()&&!a&&(!COHERENCE||carEnVente(i)))?'<i class="shArc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL INCLUSE')))+'</i>':'';} /* (2026-11-21, qa/coherence) plus d'offre « incluse » sur une caisse qui ne se vend plus */
 /* ===== LA PAGE ACHAT EN BOÎTES (2026-11-07, Sacha : « la boutique du début avec le bouton achat est un peu en dessous du reste, retravaille-la et ajoute les boîtes qu'on a déjà mises dans la boutique » · « pas dans la boutique blanche : dans le bouton de l'écran d'accueil ») =====
    La page ACHAT de l'accueil garde sa nuit violette, mais ses caisses sont rangées comme dans la boutique : chacune dans SA BOÎTE de verre, la
    même image que le rayon ACHAT (vitrinePhoto de vitrine-miniature.js : socle, caisse, capot de verre), posée dans une niche éclairée à la couleur

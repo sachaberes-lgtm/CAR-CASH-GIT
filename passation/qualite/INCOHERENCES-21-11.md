@@ -131,3 +131,46 @@ Ce que les quatre angles n'ont pas couvert :
 (6) Les images et icônes d'objets disparus (tr_arc dans atelier-ferme.js:735, BQ_TR_PHOTO arcenciel), le CSS et ROBLOX/ : non audités.
 (7) La musique (« chaque musique » au palier 10) face aux morceaux réellement présents : non vérifiée.
 (8) Je n'ai pas relu ligne à ligne les défis « dans la ville » des peintures (boutique.js:355/358, livrees.js:218) : grep ne montre que des descriptions, pas forcément des défis.
+
+
+## Corrigé le 21/11 — lot `qa/coherence` (branche `qa/coherence`, rien sur main)
+
+Interrupteur : `?sans=coherence` remet l'ancien comportement (totaux, compteurs du rayon, familles du garage, pastille « INCLUSE »). Les simples textes n'en ont pas.
+Aucune ligne ajoutée, retirée ou déplacée dans CARS, CAR_UNLOCK, PEINT_CAT ni M2 : la sauvegarde ne bouge pas.
+
+### Fait (ligne de la liste → ce que j'ai fait)
+- **V2** TAXI JAUNE → clé anglaise de sa phrase dans `voitures/retour-deuche-taxi.js` (« The meter runs in millions. Get in, hold on, don't haggle over the fare. »). Banc : `TR` la rend en anglais.
+- **V3** chat retiré dans les totaux → `carAtteignable(i)` / `habAtteignable(cat,d)` (economie/aura-banque-contrats.js) : un total ne compte que ce qui est à toi OU s'obtient encore ici. Branchés dans `invTotal` (inventaire « x / y »), `ivAbsents` (cases fantômes), `profChiffres` (profil « CAISSES x / y »), `rarListe` (le CHAT hors vente quitte les familles du garage, sauf pour qui l'a), `shArcHtml` (plus de « + TRAÎNÉE ARC-EN-CIEL INCLUSE » sur une caisse qui ne se vend plus).
+- **Pas couvert (1)** objets en euros sur le site → même fonction : sans pont StoreKit (`window.ccAchat.payer`, l'app seulement), les caisses et peintures en € ne comptent plus dans les totaux. Sur le site : voitures 47 → 36, peintures 83 → 54, traînées 13 → 12 (l'arc-en-ciel du chat). Dans l'app, les euros comptent (ils s'achètent).
+- **V4** compteurs « 0/8 » du rayon VOITURES → `bqVoitRail` compte sur toutes les caisses du rayon (mêmes règles que bqPieces), celles déjà à toi comprises. Banc, sauvegarde à 9 caisses : avant `commun 0/2, rare 0/8, epique 0/8, legendaire 0/2` ; après `commun 1/3, rare 3/11, epique 3/11, legendaire 1/3`.
+- **V5** maps de la fiche App Store → « nuages, Crypto City, pics de jade, orbite, profondeurs, canyon… » / « clouds, Crypto City, jade peaks, orbit, the depths, canyon… ».
+- **M2** nombres de la fiche → notes au testeur « 10 cars and 29 paint jobs » (= app-ios/outils/produits.csv : 10 car + 29 peintures) ; « 46 voitures » / « 46 cars » (47 caisses non retirées sur le site, le CHAT retiré de l'app) ; « 82 peintures » / « 82 paint jobs » (COSM.peinture sans D'ORIGINE). Nombres lus dans le jeu au banc (`tables` du banc).
+- **V6 + M1** page d'assistance (app-ios/fiche/assistance.html et pages-app/assistance.html, les deux copies) → « BASSE » / « LOW », « COPIER MA SAUVEGARDE » / « COPY MY SAVE », « ENTRER UN CODE » / « ENTER A CODE », « SON et MUSIQUE » / « SOUND and MUSIC » (les mots du réglage du téléphone, relus au banc). ⚠ pages-app n'est PAS publiée : à faire avec Sacha.
+- **M5** LA VILLE → mission tours5 « (CRYPTO CITY) » FR et EN ; défis des peintures NUIT DE GOTHAM, LAMPADAIRE, TOKYO DRIFT « dans Crypto City » / « in Crypto City » (le point (8) de « Pas couvert » : ce sont bien des défis, pas seulement des descriptions ; les descriptions « la ville » restent, ce n'est pas un nom de map).
+- **M6** « Copier ma sauvegarde » → le bouton a déjà sa clé sans émoji ; le banc lit « Copy my save » en anglais (RÉGLAGES classiques, #saveExp).
+- **M7** MYTHIQUES / INFINIS → les boutons existent bien dans `#gRar` (banc « avant » : 6 familles dont mythique et infini) ; une famille sans caisse n'a plus de bouton (banc « après » : 4 familles). Dans les modes vus au banc (téléphone et ordinateur), la barre est cachée : je n'ai pas VU la bande vide à l'écran, la correction est sans risque.
+- **Pas couvert (2)** noms et phrases des figures → la phrase de chaque figure (figDesc) a maintenant sa clé anglaise (elle passait par TR sans clé dans la boutique et l'inventaire). Les noms WOW, TAIL WHIP, SHIMMY, RODEO sont les mêmes dans les deux langues (pas une faute).
+- **Pas couvert (2)** aria-label posés en JS (« Boutique », « Achat », « Levier », « Final spin », « Garage ») → tous ont leur clé, et applyLangDOM les traduit. Le banc anglais ne trouve aucun mot français à l'écran ni dans les aria-label visibles (réglages, boutique, inventaire ×5, profil, missions, course).
+- **Pas couvert (4)** compteurs de météo et de maps → vérifié dans le code : `m2Cartes` et `m2Meteo` sautent `SF_HORS` (glacier, dunes) et regroupent Crypto City avec la ville (`sfMapDe`) : rien d'impossible sur iPhone. Rien à corriger.
+
+### Laissé (et pourquoi)
+- **M4** prix barré de l'ICEBERG, **M8** les deux missions qui mesurent la même chose, **M9** le testeur qui avait le CHAT : décisions de Sacha, rien changé.
+- **B1, B2, B3, M3** [traînées] : branche sans-trainees d'une autre session. **B4, B5, V1** : lot defispossibles, déjà fusionné.
+- Sur le site, le bouton ACHETER d'une caisse en € affiche son prix puis « INDISPONIBLE · L'achat est indisponible pour le moment. » au toucher : c'est la décision de Sacha du 05/11 (« remet le, c'est tout »). Les totaux ne la comptent plus ; l'étal, lui, la montre toujours.
+- Textes morts gardés : la cause de mort « ENCASTRE DANS UN ARBRE » / « ECRASE DANS LES FOUGERES » et les bannières de la FORÊT NOIRE (« LA FORET EST HANTEE ») : plus rien ne les déclenche sur main (aucune affectation de ces causes) ; les clés restent pour la branche `maj`.
+- Les noms de niveaux « AU-DESSUS DE LA VILLE » / « MINUIT EN VILLE » (maps/niveaux.js, NIVEAUX) ne s'affichent qu'en `?classique=cycle` ou `?play=sansfin` (outils de test) : le jeu dit CRYPTO CITY (SF_CARTES).
+- Révélation, auto-école, machine à sous (final spin), fil des annonces, astuces : relus par grep (aucune mention de glacier, forêt, dunes, volcan ni de caisse retirée dans leurs textes ; toutes les chaînes `TR('…')` littérales du jeu ont une clé — balayage statique d'index.html, 393 appels). Non vus à l'écran.
+
+### Nouvelles trouvailles
+- Les phrases des figures (FIG) passaient par TR sans clé : en anglais, la boutique et l'inventaire des figures les montraient en français. Corrigé (voir plus haut).
+- Sur le site, 10 caisses et 29 peintures en euros ne s'achètent pas : c'était la plus grosse part des totaux « jamais pleins » (11 voitures sur 47 avec le chat).
+- `PLAY`, `SOUND`, `nitro`, `FLOW`, « Langue · Language » passent par TR sans clé : identiques dans les deux langues, pas une faute.
+- Sur le téléphone, l'intertitre de rareté du rayon VOITURES est replié en un filet de couleur (8 px de large) : le compteur « à toi / total » est dans la page mais ne se lit pas à l'écran (photo `apres-boutique-intertitre.jpg`). Le compte est juste maintenant ; s'il doit se VOIR sur iPhone, c'est une question de mise en page.
+- Même chose pour le « x / y » de l'onglet de l'inventaire : juste dans la page (banc), pas visible sur la photo du téléphone (l'en-tête dit « 14 OBJETS »).
+- Sur la photo de l'inventaire ouvert depuis la boutique (`apres-inventaire-voiture.jpg`, et pareil en `avant-`), le rail des caisses de la boutique passe PAR-DESSUS le panneau INVENTAIRE. Le banc ouvre l'inventaire par programme : à vérifier au doigt avant d'en faire un défaut.
+- Deux clés anglaises pour « LE GLACIER » : `interface/traductions.js:217` (« ICE CREAM TRUCK », la caisse retirée) et `gameplay/evenements-rares.js:277` (« THE GLACIER », la map) ; la dernière chargée gagne. Ni la caisse (retirée) ni la map (hors tirage) ne se voient sur main : laissé.
+
+### Preuves
+- Banc : `outils/banc-coherence/banc.cjs` (Chrome sans fenêtre, muet, ?tel=1&appareil=iPhone14,2 ; sous verrou-banc). Dernier passage (21/11 19 h 26, sur l'index assemblé du lot) : BANC OK, 0 exception sur accueil, réglages, garage, boutique, inventaire (5 onglets), profil, missions FR et EN, une course de 6 s, ordinateur avant/après. Journal : `passation/qualite/photos/coherence/banc.log`.
+- Photos (`passation/qualite/photos/coherence/`) : `en-reglages.jpg` (SETTINGS : LOW / HIGH, COPY MY SAVE, ENTER A CODE), `fr-missions.jpg` / `en-missions.jpg`, `apres-*` / `avant-*` (sauvegarde à 9 caisses, avec et sans `?sans=coherence`), `course.jpg`, `pc-*-garage.jpg`.
+- Gardes : `node outils/garde-demarrage.cjs && sh garde-allege.sh && sh garde-charte.sh` : OK ; assembleur : 351 morceaux d'accord.

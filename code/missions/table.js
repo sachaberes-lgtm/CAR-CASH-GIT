@@ -24,7 +24,7 @@ const M2=[
   {id:'fren30',f:'exploit',k:'frenT',v:60,u:'s',r:{cash:25000},t:'TIENS LA FRÉNÉSIE {v} S',en:'HOLD FRENZY FOR {v} S'}, // (2026-10-19, Sacha) avant : traînée sang — absente du garage, l'argent à la place
   {id:'kmh1000',f:'exploit',k:'kmh',v:1800,u:'kmh',r:{cash:20000},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
   {id:'vie5min',f:'exploit',k:'vie',v:720,u:'mn',r:{cash:30000},t:'TIENS 12 MIN SANS MOURIR',en:'SURVIVE 12 MIN WITHOUT DYING'}, // (2026-10-19, Sacha) avant : LA JEEP — absente du garage, l'argent à la place
-  {id:'tours5',f:'exploit',k:'tours',v:12,u:'',r:{cash:20000},t:'FRÔLE {v} TOURS EN UN SAUT (LA VILLE)',en:'SKIM {v} TOWERS IN ONE JUMP (THE CITY)'}, // (2026-10-19, Sacha) avant : LE TAXI JAUNE — absente du garage, l'argent à la place
+  {id:'tours5',f:'exploit',k:'tours',v:12,u:'',r:{cash:20000},t:'FRÔLE {v} TOURS EN UN SAUT (CRYPTO CITY)',en:'SKIM {v} TOWERS IN ONE JUMP (CRYPTO CITY)'}, // (2026-10-19, Sacha) avant : LE TAXI JAUNE — absente du garage, l'argent à la place
   {id:'parfmaps',f:'exploit',k:'cartesP',v:'tot',u:'',r:{cash:15000},t:'POSE-TOI EN PARFAIT SUR CHAQUE MAP',en:'LAND A PERFECT ON EVERY MAP'}, // (proposition de la demande : LA STRATOS, à valider par Sacha) /* (2026-10-22, Sacha : « tableau des voitures » : LA STRATOS a sa nouvelle mission (météo) ; avant : LA STRATOS — À VALIDER */
   // AURA — le record d'une partie
   {id:'aura10k',f:'aura',k:'aura',v:40000,u:'aura',r:{cash:15000},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},

@@ -17,8 +17,8 @@ function ivNoms(st){st.querySelectorAll('.ivNom').forEach(function(b){const w=b.
    plus un trou : derrière les objets à toi, des CASES FANTÔMES verrouillées montrent ce qui reste à gagner (« 8 / 83 » devient visible). Jamais plus que
    ce qui existe vraiment, jamais une caisse secrète ; la dernière rangée est complétée. Ce ne sont pas des .gT : pas de data-cos, aucun toucher. */
 function ivAbsents(cat){let n=0;
-  if(cat==='voiture'){const eq=SAVE.d.equipped|0;for(let i=0;i<CARS.length;i++)if(!carRetiree(i)&&i!==eq&&!carUnlockedVrai(i)&&!m2Secrete(i))n++;return n;}
-  const L=COSM[cat]||[];for(const d of L)if(!shopOwned(cat,d.id)&&!(cat==='peinture'&&peintCachee(d)))n++;return n;}
+  if(cat==='voiture'){const eq=SAVE.d.equipped|0;for(let i=0;i<CARS.length;i++)if(carAtteignable(i)&&i!==eq&&!carUnlockedVrai(i)&&!m2Secrete(i))n++;return n;} /* (2026-11-21, qa/coherence) une case à découvrir = une caisse qu'on peut encore avoir (carAtteignable) */
+  const L=COSM[cat]||[];for(const d of L)if(!shopOwned(cat,d.id)&&!(cat==='peinture'&&peintCachee(d))&&habAtteignable(cat,d))n++;return n;}
 function ivFantomes(st,cat){if(!st)return;st.querySelectorAll('.gFant').forEach(function(e){e.remove();});
   const deux=st.classList.contains('ivDeux'),cols=deux?2:3,vrai=st.querySelectorAll('.gT').length,abs=ivAbsents(cat);if(!vrai||!abs)return;
   let n=Math.min(abs,Math.max(cols,(deux?6:18)-vrai));n=Math.min(abs,Math.ceil((vrai+n)/cols)*cols-vrai);if(n<=0)return;

@@ -51,13 +51,13 @@ DU STYLE, PAS SEULEMENT DE LA VITESSE
 • Enchaîne sans faute et déclenche la FRÉNÉSIE.
 
 UN GARAGE À REMPLIR
-• Une cinquantaine de voitures à gagner, de l'épave aux légendes.
-• Peintures, ailes et traînées à essayer en 3D sur ta voiture.
+• 46 voitures, de l'épave aux légendes.
+• 82 peintures, des ailes et des traînées à essayer en 3D sur ta voiture.
 • Presque tout se gagne en jouant, avec l'argent ramassé en course.
 
 MISSIONS ET MONDES
 • Des missions à remplir pour débloquer des voitures.
-• Des mondes qui s'enchaînent : nuages, forêt, canyon, glacier, volcan, villes…
+• Des mondes qui s'enchaînent : nuages, Crypto City, pics de jade, orbite, profondeurs, canyon…
 
 SANS RIEN AUTOUR
 • 100 % hors ligne : joue dans le métro, en avion, partout.
@@ -107,13 +107,13 @@ STYLE, NOT JUST SPEED
 • Chain them without a mistake to trigger the FRENZY.
 
 A GARAGE TO FILL
-• Around fifty cars to earn, from the wreck to the legends.
-• Paints, wings and trails to try in 3D on your car.
+• 46 cars, from the wreck to the legends.
+• 82 paint jobs, wings and trails to try in 3D on your car.
 • Almost everything is earned by playing, with the cash you collect on the road.
 
 MISSIONS AND WORLDS
 • Missions to complete to unlock cars.
-• Worlds that keep coming: clouds, forest, canyon, glacier, volcano, cities…
+• Worlds that keep coming: clouds, Crypto City, jade peaks, orbit, the depths, canyon…
 
 NOTHING IN THE WAY
 • Fully offline: play on the subway, on a plane, anywhere.
@@ -174,7 +174,7 @@ les musiques, les voix et les images ont été faites avec Claude (11/11 : plus 
 Coordonnées : ⚠ ton prénom, ton nom, ton téléphone, ton e-mail. Connexion requise : **Non** (pas de compte).
 
 <!-- notes-revue -->
-CASH CAR is a single-player arcade racing game, fully playable offline. No account, no login, no ads. It offers optional one-time in-app purchases (8 cars and 29 paint jobs, non-consumable, handled entirely by Apple's StoreKit) and a RESTORE PURCHASES button on the purchase page (the shop tile on the home screen). Its only network access is an optional check for new versions of the game content (public files, no personal data or identifier sent).
+CASH CAR is a single-player arcade racing game, fully playable offline. No account, no login, no ads. It offers optional one-time in-app purchases (10 cars and 29 paint jobs, non-consumable, handled entirely by Apple's StoreKit) and a RESTORE PURCHASES button on the purchase page (the shop tile on the home screen). Its only network access is an optional check for new versions of the game content (public files, no personal data or identifier sent).
 
 How to reach the gameplay:
 1. Launch the app and tap the CASH CAR logo.

@@ -1,0 +1,92 @@
+— audit (anglais)
+  ok  audit (anglais) : le jeu arrive à l'accueil
+  tables : {"cartes":["nuages=MER DE NUAGES","ville=CRYPTO CITY","jade=PICS DE JADE","banquise=LE GLACIER (HORS)","crypto=CRYPTO CITY (HORS)","espace=EN ORBITE","grotte=LES PROFONDEURS","canyon=CANYON DES GÉANTS","dunes=LES DUNES D'OR (HORS)"],"voitures":47,"chatPresent":true,"voituresEnEurosEnVente":10,"peintures":83,"peinturesSansOrigine":82,"peinturesEnEuros":29,"ailes":15,"trainees":13,"figures":12}
+  (textes des tables sans anglais : 4)
+     · trainee:wow n : WOW
+     · figure:tailwhip n : TAIL WHIP
+     · figure:shimmy n : SHIMMY
+     · figure:rodeo n : RODEO
+  ok  TAXI JAUNE en anglais : nom et phrase — ["THE YELLOW CAB","The meter runs in millions. Get in, hold on, don't haggle over the fare."]
+  ok  la mission tours5 dit CRYPTO CITY (FR et EN) — ["FRÔLE {v} TOURS EN UN SAUT (CRYPTO CITY)","SKIM {v} TOWERS IN ONE JUMP (CRYPTO CITY)"]
+  ok  RÉGLAGES classiques : « Copy my save » — "Copy my save"
+  ok  toucher SETTINGS
+  (réglages : lignes à relire, mots français : 0)
+  réglages : SETTINGS AUDIO SOUND OFF 100% MUSIC OFF 62% VIBRATION ON SAVE DATA COPY MY SAVE ENTER A CODE GAME GRAPHICS LOW HIGH Smoothness first LANGUAGE EN THUMB UP CLIMB TRICKS 2 TAPS HAND RIGHTY HELP DRIVING SCHOOL REPLAY PRIVACY READ ERASE MY PROGRESS VERSION LOCAL · ⚠ BACK
+  ok  en : le garage s'ouvre
+  ok  en : toucher SHOP
+  (boutique : lignes à relire, mots français : 0)
+  (inventaire-voiture : lignes à relire, mots français : 0)
+  (inventaire-peinture : lignes à relire, mots français : 0)
+  (inventaire-aile : lignes à relire, mots français : 0)
+  (inventaire-trainee : lignes à relire, mots français : 0)
+  (inventaire-figure : lignes à relire, mots français : 0)
+  (profil : lignes à relire, mots français : 0)
+  en : ["commun 0/3","rare 0/11","epique 0/11","legendaire 0/3","secret 0/7"] | {"voiture":"1 / 36","peinture":"1 / 54","aile":"1 / 15","trainee":"1 / 12","figure":"2 / 12"}
+  (textes passés à TR sans clé pendant la visite : 8)
+     · PLAY
+     · SOUND
+     · Langue · Language
+     · nitro
+     · WOW
+     · TAIL WHIP
+     · SHIMMY
+     · RODEO
+  ok  audit (anglais) : aucune exception ni erreur console — []
+— missions (anglais)
+  ok  missions (anglais) : le jeu arrive à l'accueil
+  ok  en : le garage s'ouvre
+  ok  en : toucher MISSIONS
+  (missions : lignes à relire, mots français : 0)
+  ok  écran MISSIONS en anglais sans « (THE CITY) » — "MISSIONS 1 / 49 MISSIONS DONE TO CLAIM 1 SECRET · KEEP THE GAME FOR 30 DAYS CLAIM FEATS 0 / 16 GO PAST 1,800 KM/H €20k 300 / 1,800 KM/H LAND 6 TRICKS IN A SINGLE JUMP €1k 0 / 6 LAND 12 TRICKS IN A SINGLE JUMP €15k 0 / 12 STAY 12 S IN THE AIR, THEN LAND A PERFECT €2k 0.0 / 12 S LAND 25 PERFECTS IN A
+  (textes passés à TR sans clé : 4)
+     · PLAY
+     · SOUND
+     · Langue · Language
+     · nitro
+  ok  missions (anglais) : aucune exception ni erreur console — []
+— missions (français)
+  ok  missions (français) : le jeu arrive à l'accueil
+  ok  fr : le garage s'ouvre
+  ok  fr : toucher MISSIONS
+  ok  écran MISSIONS sans « (LA VILLE) » — "MISSIONS 1 / 49 MISSIONS REUSSIES A RECUPERER 1 SECRETE · GARDE LE JEU 30 JOURS RECUPERE EXPLOITS 0 / 16 DEPASSE 1 800 KM/H € 20 k 300 / 1 800 KM/H FAIS 6 FIGURES DANS UN SEUL SAUT € 1 k 0 / 6 FAIS 12 FIGURES DANS UN SEUL SAUT € 15 k 0 / 12 RESTE 12 S EN L'AIR, PUIS POSE-TOI EN PARFAIT € 2 k 0,0 / 
+  ok  missions (français) : aucune exception ni erreur console — []
+— course (anglais)
+  ok  course (anglais) : le jeu arrive à l'accueil
+  ok  course : le garage s'ouvre
+  ok  toucher JOUER — "gJouer"
+  ok  la course part
+  ok  la course roule encore après 6 s
+  (course : lignes à relire, mots français : 0)
+  (textes passés à TR sans clé : 5)
+     · PLAY
+     · SOUND
+     · Langue · Language
+     · nitro
+     · FLOW
+  ok  course (anglais) : aucune exception ni erreur console — []
+— ordinateur (pc-apres)
+  ok  ordinateur (pc-apres) : le jeu arrive à l'accueil
+  familles du garage : ["commun(caché)","rare(caché)","epique(caché)","legendaire(caché)"]
+  ok  ordinateur : pas de MYTHIQUES ni d'INFINIS dans la barre — ["commun(caché)","rare(caché)","epique(caché)","legendaire(caché)"]
+  ok  ordinateur (pc-apres) : aucune exception ni erreur console — []
+— ordinateur (pc-avant)
+  ok  ordinateur (pc-avant) : le jeu arrive à l'accueil
+  familles du garage : ["commun(caché)","rare(caché)","epique(caché)","legendaire(caché)","mythique(caché)","infini(caché)"]
+  ok  ordinateur (pc-avant) : aucune exception ni erreur console — []
+— possède 9 caisses (apres)
+  ok  possède 9 caisses (apres) : le jeu arrive à l'accueil
+  ok  apres : le garage s'ouvre
+  ok  apres : toucher BOUTIQUE
+  apres : ["commun(caché)","rare(caché)","epique(caché)","legendaire(caché)"] | ["commun 1/3","rare 3/11","epique 3/11","legendaire 1/3","secret 0/7"] | {"voiture":"9 / 36","peinture":"1 / 54","aile":"1 / 15","trainee":"1 / 12","figure":"2 / 12"} | atteignable {"voiture":36,"peinture":54,"aile":15,"trainee":12} | ["CAISSES : 9 / 36","MISSIONS : 6 / 49"] | intertitre à l'écran {"txt":"","l":34,"t":569,"w":8,"h":131,"vis":"visible","op":"1","disp":"flex"}
+  ok  la barre des familles n'a plus MYTHIQUES ni INFINIS — ["commun(caché)","rare(caché)","epique(caché)","legendaire(caché)"]
+  ok  les intertitres du rayon VOITURES comptent les caisses à toi — ["commun 1/3","rare 3/11","epique 3/11","legendaire 1/3","secret 0/7"]
+  ok  inventaire VOITURES : le total = ce qui s'obtient encore — ["9 / 36",{"voiture":36,"peinture":54,"aile":15,"trainee":12}]
+  ok  profil : CAISSES x / total atteignable — ["CAISSES : 9 / 36",36]
+  ok  possède 9 caisses (apres) : aucune exception ni erreur console — []
+— possède 9 caisses (avant)
+  ok  possède 9 caisses (avant) : le jeu arrive à l'accueil
+  ok  avant : le garage s'ouvre
+  ok  avant : toucher BOUTIQUE
+  avant : ["commun(caché)","rare(caché)","epique(caché)","legendaire(caché)","mythique(caché)","infini(caché)"] | ["commun 0/2","rare 0/8","epique 0/8","legendaire 0/2","secret 0/7"] | {"voiture":"9 / 47","peinture":"1 / 83","aile":"1 / 15","trainee":"1 / 13","figure":"2 / 12"} | atteignable {"voiture":47,"peinture":83,"aile":15,"trainee":13} | ["CAISSES : 9 / 47","MISSIONS : 6 / 49"] | intertitre à l'écran {"txt":"","l":34,"t":569,"w":8,"h":131,"vis":"visible","op":"1","disp":"flex"}
+  ok  possède 9 caisses (avant) : aucune exception ni erreur console — []
+BANC OK
