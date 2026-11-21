@@ -182,8 +182,32 @@ function echSortie(t,o,q){ // la direction où regarde une bouche (vers le DEHOR
   if(t==='lateral')return [Math.sign(q[0])||1,0,0];
   if(o.rx||o.ry||o.rz){const v=new THREE.Vector3(0,0,-1).applyEuler(new THREE.Euler(o.rx||0,o.ry||0,o.rz||0));if(v.z<-.7)return [0,0,-1];return [v.x,v.y,v.z];} // un tube à peine biais (PIZZA, GROUPE B : 26°) se règle comme les autres, le long de z : tels que Léo les a validés (v468)
   return [0,0,-1];}
+/* ===== LES POTS ENCASTRÉS SE SOUVIENNENT (2026-11-21, lot « boutiquefluide », Sacha : « refait un truc d'optimisation de la boutique qui galère toujour un peu ») =====
+   MESURÉ (banc ×4, iPhone 13 Pro émulé) : en boutique, chaque caisse regardée est rebâtie (buildCar) — en faisant défiler la bande, en touchant une carte, en sortant ;
+   dans ce bâti, l'encastrement des pots lance des dizaines de rayons sur toute la carrosserie (echEncastre → intersectObjects : ~25 ms sur ~100 pour une caisse).
+   Le résultat ne dépend QUE de ce que les rayons voient : les pièces du pot (P) et les maillages de la caisse à ce moment (leur géométrie, leur place dans la caisse,
+   la face de leur matière). Ces entrées sont résumées dans une clé (le nombre de sommets, une somme pondérée de toutes les positions et des indices, la matrice dans le
+   repère de la caisse, la face) ; la même clé redonne le même résultat (une copie), sans tirer un seul rayon. Une caisse revue (on revient sur une carte, on ressort)
+   ne paie donc plus ses rayons ; la 1re fois, rien ne change. 60 caisses au plus en mémoire. `dbgEchMemo()` : coups gagnés / ratés. `?sans=boutiquefluide` = toujours tirer. */
+const ECH_MEMO={on:!/[?&]sans=[^&]*boutiquefluide/.test(location.search),m:new Map(),oui:0,non:0,inv:null,mm:null};
+function echCle(P){const T=ECH_RC;let s;try{s=JSON.stringify(P);}catch(e){return null;}s+='#'+T.m.length;
+  const inv=ECH_MEMO.inv||(ECH_MEMO.inv=new THREE.Matrix4()),mm=ECH_MEMO.mm||(ECH_MEMO.mm=new THREE.Matrix4());inv.copy(carGroup.matrixWorld).invert();
+  for(const o of T.m){const g=o.geometry,pa=g&&g.attributes&&g.attributes.position;if(!pa||!pa.array)return null;const a=pa.array,ix=g.index&&g.index.array,mt=Array.isArray(o.material)?o.material[0]:o.material;
+    let h=0;for(let i=0;i<a.length;i++)h+=a[i]*((i%13)+1);let hi=0;if(ix)for(let i=0;i<ix.length;i++)hi+=ix[i]*((i%7)+1);
+    mm.multiplyMatrices(inv,o.matrixWorld);const e=mm.elements;let em='';for(let k=0;k<16;k++)em+=(Math.round(e[k]*1e5)/1e5)+',';
+    s+='|'+pa.count+':'+(ix?ix.length:-1)+':'+h.toPrecision(12)+':'+hi+':'+(mt?mt.side:'')+':'+(g.drawRange?g.drawRange.start+'-'+g.drawRange.count:'')+':'+em;}
+  return s;}
+window.dbgCaisseEmpreinte=function(){let n=0,v=0,h=0;carGroup.traverse(function(o){const g=o.isMesh&&o.geometry,pa=g&&g.attributes&&g.attributes.position;if(!pa||!pa.array)return;n++;v+=pa.count;const a=pa.array;for(let i=0;i<a.length;i++)h+=a[i]*((i%13)+1);});return {maillages:n,sommets:v,somme:h.toPrecision(14)};}; /* (banc) la caisse posée : sa géométrie résumée (pour vérifier qu'un pot gardé donne la même caisse) */
+window.dbgEchMemo=function(){return {actif:ECH_MEMO.on,gardes:ECH_MEMO.m.size,gagnes:ECH_MEMO.oui,tires:ECH_MEMO.non};}; /* (banc) */
 function echEncastre(P){
-  echPrep();const J=ECH_ENC,out=[],N=[];let dzPrec=0;
+  echPrep();let cle=null;
+  if(ECH_MEMO.on&&typeof structuredClone==='function'){try{cle=echCle(P);}catch(e){cle=null;}
+    if(cle!=null){const v=ECH_MEMO.m.get(cle);if(v){ECH_MEMO.oui++;ECH_MEMO.m.delete(cle);ECH_MEMO.m.set(cle,v);try{return structuredClone(v);}catch(e){}}}}
+  const out=echEncastreTire(P);
+  if(cle!=null){ECH_MEMO.non++;try{ECH_MEMO.m.set(cle,structuredClone(out));while(ECH_MEMO.m.size>60)ECH_MEMO.m.delete(ECH_MEMO.m.keys().next().value);}catch(e){}}
+  return out;}
+function echEncastreTire(P){
+  const J=ECH_ENC,out=[],N=[];let dzPrec=0;
   for(const pc of P){
     if(pc.t==='plaque'){const z=echTole(pc.x||0,pc.y);out.push(z!=null&&z-pc.z<J.portee&&z-pc.z>-.3?Object.assign({},pc,{z:z-.004}):pc);continue;}
     // LES CHEMINÉES : elles montent à travers une encoche percée dans ce qui est dessous (elles y plongent de 8 cm)
