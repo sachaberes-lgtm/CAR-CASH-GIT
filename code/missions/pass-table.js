@@ -121,27 +121,27 @@ const PASS_POOL_DEF=[
   // départ : une à deux parties chacune (les trois premières missions sont toujours là)
   ['ps01',{c:'km',n:1},'auto'],['ps02',{c:'fig',n:3},'auto'],['ps03',{r:[1,1]},'auto'],['fig2',{r:[2,1]},'auto'],['ps07',{r:[2,1]},'auto'],['ps09',{r:[2,1]},'auto'],['eng10',{r:[2,1]},'auto'],
   ['ps04',{c:'nit',n:30},{cat:'peinture',id:'lagon'},{tr:1}],           // la petite peinture de base (point 9), garantie dans les premiers tirages
-  ['ps05',{g:5000},'auto'],['ps06',{c:'air',n:30},'auto'],['ps08',{c:'pu',n:8},'auto'],['air5',{r:[6,2]},'auto'],['ps11',{c:'fig',n:30},{cat:'trainee',id:'rose'}],
+  ['ps05',{g:5000},'auto'],['ps06',{c:'air',n:30},'auto'],['ps08',{c:'pu',n:8},'auto'],['air5',{r:[6,2]},'auto'],['ps11',{c:'fig',n:30},'auto'],
   // un peu plus loin
   ['fig5',{r:[8,2]},null],['fig3',{g:7500},'auto',{k:'figureT'}],['ps10',{c:'nit',n:60},'auto'],['ps12',{c:'pu',n:20},'auto'],['fren',{r:[7,2]},'auto'],['ps13',{c:'km',n:50},'auto'],
   ['aura10k',{r:[12,3]},'auto'],['kmh1000',{r:[4,1]},'auto'],['ps14',{c:'air',n:90},'auto'],['ps15',{c:'fig',n:60},'auto'],['ps16',{c:'pu',n:36},'auto'],['ps17',{r:[11,3]},'auto'],
   ['ps18',{c:'nit',n:100},'auto'],['ps19',{r:[11,2]},'auto'],['ps20',{r:[10,3]},'auto'],['ps21',{r:[12,3]},'auto'],['ps22',{c:'air',n:140},'auto'],['ps23',{c:'km',n:90},'auto'],
-  ['ps24',{r:[12,4]},'auto'],['ps47',{g:25000},'auto'],['ps48',{g:50000},'auto'],['eng20',{r:[12,3]},{cat:'trainee',id:'sakura'}],
+  ['ps24',{r:[12,4]},'auto'],['ps47',{g:25000},'auto'],['ps48',{g:50000},'auto'],['eng20',{r:[12,3]},'auto'],
   // la montée : une dizaine de parties, puis plusieurs dizaines
   ['parf10',{r:[14,4]},null],['maps',{r:[15,8]},null],['verglas100',{c:'verg',n:100},null,{tr:5}],['ps25',{r:[14,3]},'auto'],['ps26',{c:'km',n:150},'auto'],['ps27',{c:'fig',n:100},'auto'],
   ['ps28',{c:'pu',n:50},'auto'],['ps29',{c:'nit',n:180},'auto'],['ps30',{c:'air',n:250},'auto'],['tours5',{r:[20,6]},'auto'],['vie5min',{r:[22,5]},'auto'],
   ['aura20k',{r:[30,6]},null],['ps31',{r:[25,4]},{cat:'peinture',id:'couchant'}],['ps32',{r:[25,6]},'auto'],['ps33',{r:[28,8]},'auto'],['ps34',{r:[24,5]},'auto'],['ps36',{r:[28,6]},'auto'],
   ['pu100',{c:'pu',n:100},null],['meteo',{r:[35,12]},null],['nmax100',{c:'nmax',n:100},null],['fren30',{r:[40,8]},'auto'],['parfmaps',{r:[40,14]},'auto'],['ps38',{r:[40,9]},'auto'],
-  ['cash100k',{g:100000},'auto'],['fig8',{g:85000},'auto',{k:'figureT'}],['car5',{g:250000},'auto',{k:'carsT'}],['col5',{g:560000},'auto',{k:'peintT'}],['tr5',{g:380000},'auto',{k:'traineeT'}],
+  ['cash100k',{g:100000},'auto'],['fig8',{g:85000},'auto',{k:'figureT'}],['car5',{g:250000},'auto',{k:'carsT'}],['col5',{g:560000},'auto',{k:'peintT'}],
   ['ps35',{r:[55,10]},'auto'],['ps37',{r:[55,12]},'auto'],['eng30',{r:[60,12]},null],['ps39',{c:'km',n:400},'auto'],['ps40',{c:'fig',n:250},'auto'],
   // le fond : des centaines de parties
   ['aura50k',{r:[120,22]},null],['ps41',{c:'nit',n:600},'auto'],['ps42',{c:'air',n:500},'auto'],['ps43',{r:[90,12]},'auto'],['ps44',{r:[90,15]},'auto'],['ps45',{r:[250,40]},'auto'],
   ['morts100',{c:'mort',n:100},null],['figs500',{c:'fig',n:500},null],['cash500k',{g:500000},'auto'],['car10',{g:1200000},'auto',{k:'carsT'}],['figall',{g:300000},'auto'],
   ['km100k',{c:'km',n:3000},null,{v:3000}],['air1000',{c:'air',n:1000},null],['cash1m',{g:1000000},{cat:'peinture',id:'vaporwave'}],['ps46',{c:'km',n:1500},'auto'],
-  ['nit2000',{c:'nit',n:2000},null],['tr10',{g:4200000},'auto',{k:'traineeT'}],['cash2m',{g:2000000},'auto'],['car20',{g:6000000},'auto',{k:'carsT'}],['rares',{g:6000000},null],
+  ['nit2000',{c:'nit',n:2000},null],['cash2m',{g:2000000},'auto'],['car20',{g:6000000},'auto',{k:'carsT'}],['rares',{g:6000000},null],
   ['col10',{g:7000000},'auto',{k:'peintT'}],['ai5',{g:3000000},'auto',{k:'aileT'}],
   // hors de portée sans le pack (0,99 €) ou sans des dizaines de millions : l'horizon du chapitre
-  ['ai10',{g:23000000},'auto',{k:'aileT'}],['trall',{g:9200000},'auto'],['colall',{inf:1},'auto'],['aiall',{inf:1},'auto'],['carall',{inf:1},null],['toutall',{inf:1},{cash:1000000}]];
+  ['ai10',{g:23000000},'auto',{k:'aileT'}],['colall',{inf:1},'auto'],['aiall',{inf:1},'auto'],['carall',{inf:1},null],['toutall',{inf:1},{cash:1000000}]];
 /* ---- LES CALCULS (purs : le moteur et le générateur du tableau les partagent) ---- */
 function passGainCumul(P,n){const g=GAIN_PARTIE[P],c=PASS_CROIS[P];return g*(n+n*n/(2*c));} // $ gagnés en n parties
 function passPartiesArgent(P,G){const g=GAIN_PARTIE[P],c=PASS_CROIS[P];return c*(-1+Math.sqrt(1+2*G/(g*c)));} // n tel que passGainCumul(P,n)=G

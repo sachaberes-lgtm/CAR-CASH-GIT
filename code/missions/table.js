@@ -38,7 +38,7 @@ const M2=[
   // MOTEUR — le record d'une partie (le palier affiché = index + 1)
   {id:'eng10',f:'moteur',k:'eng',v:18,u:'',r:{cash:5000},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
   {id:'eng20',f:'moteur',k:'eng',v:28,u:'',r:{cash:15000},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
-  {id:'eng30',f:'moteur',k:'eng',v:30,u:'',r:{cat:'trainee',id:'foudre'},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
+  {id:'eng30',f:'moteur',k:'eng',v:30,u:'',r:{cash:50000},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'}, /* (2026-11-21, Sacha : traînées retirées pour l'instant) avant : la traînée FOUDRE DIVINE — l'argent à la place, montant posé par Claude, À VALIDER PAR SACHA */
   // COLLECTION — ce que le joueur possède (« toutes » : sans les objets gagnés par mission)
   {id:'car5',f:'collection',k:'cars',v:8,u:'',r:{cash:50000},t:'COLLECTE {v} VOITURES',en:'COLLECT {v} CARS'},
   {id:'car10',f:'collection',k:'cars',v:15,u:'',r:{cash:150000},t:'COLLECTE {v} VOITURES',en:'COLLECT {v} CARS'},
@@ -65,9 +65,6 @@ const M2=[
   {id:'col5',f:'collection',k:'peint',v:8,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
   {id:'col10',f:'collection',k:'peint',v:15,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
   {id:'colall',f:'collection',k:'peintT',v:'tot',u:'',r:{cash:50000},t:'COLLECTE TOUTES LES COULEURS',en:'COLLECT EVERY PAINT'}, /* (2026-10-22, Sacha : « tableau des peintures ») SUPER GUERRIER devient une peinture secrète (palier 24) ; la collection paie de l'argent — À VALIDER */
-  {id:'tr5',f:'collection',k:'trainee',v:8,u:'',r:{cash:3000},t:'COLLECTE {v} TRAÎNÉES',en:'COLLECT {v} TRAILS'},
-  {id:'tr10',f:'collection',k:'trainee',v:10,u:'',r:{cash:10000},t:'COLLECTE {v} TRAÎNÉES',en:'COLLECT {v} TRAILS'},
-  {id:'trall',f:'collection',k:'traineeT',v:'tot',u:'',r:{cash:50000},t:'COLLECTE TOUTES LES TRAÎNÉES',en:'COLLECT EVERY TRAIL'},
   {id:'ai5',f:'collection',k:'aile',v:8,u:'',r:{cash:3000},t:'COLLECTE {v} AILES',en:'COLLECT {v} WINGS'},
   {id:'ai10',f:'collection',k:'aile',v:12,u:'',r:{cash:10000},t:'COLLECTE {v} AILES',en:'COLLECT {v} WINGS'},
   {id:'aiall',f:'collection',k:'aileT',v:'tot',u:'',r:{cash:50000},t:'COLLECTE TOUTES LES AILES',en:'COLLECT EVERY WING'},
