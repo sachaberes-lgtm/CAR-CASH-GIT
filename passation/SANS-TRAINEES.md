@@ -82,3 +82,11 @@ Gardes : `garde-demarrage`, `garde-allege`, `garde-charte` OK.
 3. **Le chat et le DOGE** gardent leur arc-en-ciel et leurs mots (c'est leur effet de base). On les garde ?
 4. **Le moteur de rendu** des traînées reste dans le code, éteint. Veux-tu qu'on le supprime vraiment (plus long, et plus dur à remettre) ?
 5. Les primes des missions « COLLECTE … TRAÎNÉES » non réclamées : on les verse d'office ?
+
+## Fusion de qualite-appareil du 21/11 au soir (d5c2c6341 : lots defispossibles et coherence)
+
+Un seul conflit (`code/economie/boutique-vitrine.js`, `SHOP_CATS`) : gardé sans `trainee`, avec la traduction des figures du lot coherence.
+Rejoué après fusion : assemblage (351 morceaux), les trois gardes ; `outils/defis-possibles/juge.cjs` = **JUGE OK** sur le jeu web ET sur le jeu de l'app
+(`preparer-www --essai`, crochet du relevé remis à la main dans la copie) : 0 impossible, « 0 qui ne tiennent qu'aux traînées » (l'ARC-EN-CIEL en `sec` n'existe plus,
+`trall` non plus ; `toutall` compte 101 objets atteignables). Banc (sauvegarde qui possède 3 traînées et porte LA GRILLE) : boutique 5 onglets, 0 carte ni texte de traînée ;
+inventaire 4 onglets, compteurs 1/46 · 1/83 · 1/15 · 1/12 ; profil ; une course, une mort ; 0 exception ; la sauvegarde garde ses traînées.

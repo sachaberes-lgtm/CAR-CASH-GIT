@@ -339,10 +339,10 @@ const PEINT_CAT=[ /* [id, nom, rareté, aspect, description, défi] */
   ['nacre','NACRE','rare',{grad:[0xe6dcef,0xfbf8f2,0xdcefff],g:'n'},"L'intérieur d'un coquillage, poli par cinq vagues parfaites.",{k:'parf',v:5,t:"Fais 5 poses parfaites d'affilée."}],
   ['fantome','FANTÔME','rare',{grad:[0xc9d3e4,0xf2f6fc,0xffffff],g:'n'},"Blanc nacré, presque transparent. Personne ne t'a vu passer.",{k:'b',t:'Roule 2 minutes sans toucher un bord.'}],
   /* … l'ombre… */
-  ['gotham','NUIT DE GOTHAM','rare',{grad:[0x05060a,0x161b2b,0x3c4a72],g:'g'},'Noir laqué, la ville qui brille dedans. Les toits sont à toi.',{k:'sc:ville',v:10,t:'Joue 10 niveaux dans la ville.'}],
+  ['gotham','NUIT DE GOTHAM','rare',{grad:[0x05060a,0x161b2b,0x3c4a72],g:'g'},'Noir laqué, la ville qui brille dedans. Les toits sont à toi.',{k:'sc:ville',v:10,t:'Joue 10 niveaux dans Crypto City.'}],
   ['orage',"CIEL D'ORAGE",'rare',{grad:[0x11151e,0x2e3646,0xaab1c4],g:'k'},'Ardoise en bas, éclair en haut. Le ciel quand il se fâche.',{k:'sc:pluie',v:10,t:'Joue 10 niveaux sous la pluie.'}],
   ['lunaire','LUNAIRE','rare',{grad:[0x2a2c34,0x9a9da6,0xf2f2f6],g:'s'},"Poussière de cratère, sans un grain d'atmosphère.",{k:'sc:espace',v:10,t:'Joue 10 niveaux en orbite.'}],
-  ['lampadaire','LAMPADAIRE','rare',{grad:[0x101422,0x2a3a6a,0xffc85a],g:'g'},"La nuit en bas, le réverbère sur le toit. La ville t'éclaire.",{k:'b',t:'Fais 25 figures dans la ville en une partie.'}],
+  ['lampadaire','LAMPADAIRE','rare',{grad:[0x101422,0x2a3a6a,0xffc85a],g:'g'},"La nuit en bas, le réverbère sur le toit. La ville t'éclaire.",{k:'b',t:'Fais 25 figures dans Crypto City en une partie.'}],
   /* … la pop */
   ['banana','BANANA','rare',{grad:[0x2a5cb8,0xffd21f,0xffe45c]},'Salopette en bas, jaune en haut. Elle dit « banana » à chaque virage.'],
   ['sorbet','SORBET','rare',{grad:[0xffb38a,0xff8fc0,0xb9a6ff]},"Pêche, framboise, violette : trois boules qui ne fondent pas à 900 à l'heure."],
@@ -353,7 +353,7 @@ const PEINT_CAT=[ /* [id, nom, rareté, aspect, description, défi] */
   ['carbone','CARBONE','epique',{mot:'carbone'},'Fibre tressée sous un vernis épais. Plus léger, plus rapide, plus cher.',{k:'aura',v:20000,t:"Atteins 20 000 d'aura en une partie."}],
   ['graffiti','GRAFFITI','epique',{mot:'graffiti'},'Le mur du parking, bombé sur ta carrosserie. Signé, daté, illégal.',{k:'tours',v:5,t:'Frôle 5 tours dans un seul saut.'}],
   ['popart','POP ART','epique',{mot:'popart'},"Trames, bulles et BOOM ! Ta caisse sort tout droit d'une BD."],
-  ['vagues','GRANDE VAGUE','epique',{mot:'vagues'},'Les vagues des estampes japonaises, en écailles. Le calme avant ta nitro.',{k:'prof',v:'prof',t:'Descends au fond de la mer de Jade.'}],
+  ['vagues','GRANDE VAGUE','epique',{mot:'vagues'},'Les vagues des estampes japonaises, en écailles. Le calme avant ta nitro.',{k:'prof',v:'prof',t:'Descends 400 m dans les pics de Jade.'}], /* (2026-11-21) la mer de Jade est retirée depuis le 12/11 : la phrase dit la descente que mesure l'abysse (M2K.prof) */
   ['cash','PLEIN AUX AS','epique',{mot:'cash'},"Des euros d'or sur fond vert billet. Discret ? Non.",{k:'gagne',v:1000000,t:'Gagne 1 000 000 € au total.'}],
   /* … les pelages et la nature */
   ['tigre','TIGRE','epique',{mot:'tigre'},'Orange brûlé, rayures noires. Le roi de la jungle a troqué ses griffes contre des pneus.'],
@@ -410,10 +410,10 @@ Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOR","PEINTURE":"PAI
   "HOLOGRAMME":"HOLOGRAM","Chrome irisé qui change de couleur à chaque angle. Une carte rare… en voiture.":"Iridescent chrome that changes color at every angle. A rare card… on wheels.",
   "NACRE":"PEARL","L'intérieur d'un coquillage, poli par cinq vagues parfaites.":"The inside of a shell, polished by five perfect waves.","Fais 5 poses parfaites d'affilée.":"Land 5 perfects in a row.",
   "FANTÔME":"GHOST","Blanc nacré, presque transparent. Personne ne t'a vu passer.":"Pearl white, almost see-through. Nobody saw you pass.","Roule 2 minutes sans toucher un bord.":"Drive 2 minutes without touching an edge.",
-  "NUIT DE GOTHAM":"GOTHAM NIGHT","Noir laqué, la ville qui brille dedans. Les toits sont à toi.":"Gloss black, the city shining in it. The rooftops are yours.","Joue 10 niveaux dans la ville.":"Play 10 levels in the city.",
+  "NUIT DE GOTHAM":"GOTHAM NIGHT","Noir laqué, la ville qui brille dedans. Les toits sont à toi.":"Gloss black, the city shining in it. The rooftops are yours.","Joue 10 niveaux dans Crypto City.":"Play 10 levels in Crypto City.",
   "CIEL D'ORAGE":"STORM SKY","Ardoise en bas, éclair en haut. Le ciel quand il se fâche.":"Slate below, lightning above. The sky when it's angry.","Joue 10 niveaux sous la pluie.":"Play 10 levels in the rain.",
   "LUNAIRE":"LUNAR","Poussière de cratère, sans un grain d'atmosphère.":"Crater dust, without a grain of atmosphere.","Joue 10 niveaux en orbite.":"Play 10 levels in orbit.",
-  "LAMPADAIRE":"STREETLIGHT","La nuit en bas, le réverbère sur le toit. La ville t'éclaire.":"Night below, the lamp on the roof. The city lights you up.","Fais 25 figures dans la ville en une partie.":"Land 25 tricks in the city in one run.",
+  "LAMPADAIRE":"STREETLIGHT","La nuit en bas, le réverbère sur le toit. La ville t'éclaire.":"Night below, the lamp on the roof. The city lights you up.","Fais 25 figures dans Crypto City en une partie.":"Land 25 tricks in Crypto City in one run.",
   "BANANA":"BANANA","Salopette en bas, jaune en haut. Elle dit « banana » à chaque virage.":"Overalls below, yellow above. It says \"banana\" at every turn.",
   "SORBET":"SORBET","Pêche, framboise, violette : trois boules qui ne fondent pas à 900 à l'heure.":"Peach, raspberry, violet: three scoops that won't melt at 900 km/h.",
   "TOXIQUE":"TOXIC","Du noir au vert fluo. Ne touche pas : ça brille dans le noir.":"Black to neon green. Don't touch: it glows in the dark.",
@@ -422,7 +422,7 @@ Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOR","PEINTURE":"PAI
   "CARBONE":"CARBON","Fibre tressée sous un vernis épais. Plus léger, plus rapide, plus cher.":"Woven fibre under thick clear coat. Lighter, faster, pricier.","Atteins 20 000 d'aura en une partie.":"Reach 20,000 aura in one run.",
   "GRAFFITI":"GRAFFITI","Le mur du parking, bombé sur ta carrosserie. Signé, daté, illégal.":"The car-park wall, sprayed on your bodywork. Signed, dated, illegal.","Frôle 5 tours dans un seul saut.":"Skim 5 towers in a single jump.",
   "POP ART":"POP ART","Trames, bulles et BOOM ! Ta caisse sort tout droit d'une BD.":"Halftones, bubbles and BOOM! Your car jumped straight out of a comic.",
-  "GRANDE VAGUE":"GREAT WAVE","Les vagues des estampes japonaises, en écailles. Le calme avant ta nitro.":"The waves of Japanese prints, in scales. The calm before your nitro.","Descends au fond de la mer de Jade.":"Dive to the bottom of the Jade Sea.",
+  "GRANDE VAGUE":"GREAT WAVE","Les vagues des estampes japonaises, en écailles. Le calme avant ta nitro.":"The waves of Japanese prints, in scales. The calm before your nitro.","Descends 400 m dans les pics de Jade.":"Drop 400 m in the Jade Peaks.",
   "PLEIN AUX AS":"LOADED","Des euros d'or sur fond vert billet. Discret ? Non.":"Gold euros on cash green. Subtle? No.","Gagne 1 000 000 € au total.":"Earn €1,000,000 in total.",
   "TIGRE":"TIGER","Orange brûlé, rayures noires. Le roi de la jungle a troqué ses griffes contre des pneus.":"Burnt orange, black stripes. The king of the jungle traded his claws for tires.",
   "LÉOPARD":"LEOPARD","Des rosettes noires sur fond doré. Tu ne chasses pas : tu doubles.":"Black rosettes on gold. You don't hunt: you overtake.",

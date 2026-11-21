@@ -64,3 +64,4 @@ SHAPES.a_taxi=function(K){
   return {hl:[.72,.80,2.64],tl:[.70,.86,-2.64],wx:.83,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.24,style:'enjoliveur',jante:0xd6dade}};
 };
+Object.assign(I18N,{"Le compteur tourne en millions. Tu montes, tu t'accroches, tu ne négocies pas le prix.":"The meter runs in millions. Get in, hold on, don't haggle over the fare."}); /* (2026-11-21, qa/coherence) la phrase du TAXI JAUNE restait en français en anglais (garage, fenêtre d'achat) */

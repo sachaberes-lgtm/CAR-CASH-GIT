@@ -1,8 +1,26 @@
 /* LE NUANCIER v3 EN VITRINE (2026-11-05) : D'ORIGINE, puis PEINT_CAT dans son ordre — la rareté (`r`), le prix (`eur`), le motif (`mot`, sa teinte de
    fond `c`), l'animation (`anim`), le défi (`def`, et `ind` : sa phrase, que l'écran des missions affiche pour une peinture gagnée) */
+/* ===== LES DÉFIS QUI NE SE JOUENT PLUS (2026-11-21, Sacha : « le blanc de neige, il faut que tu le remettes payant parce qu'il n'y a plus de niveau sur les glaciers.
+   Donc, tu peux plus la gagner en jouant sur les glaciers ») =====
+   Un défi `sc:<compteur>` qui ne compte que sur des maps ou des météos que JOUER ne tire plus ICI (SF_HORS, météo de poids 0) — ou que plus rien ne compte (la forêt a quitté
+   le code le 10/11) — ne peut plus se gagner : sa peinture passe à l'ARGENT DU JEU, au prix de sa rareté (`PEINT_PRIX_JEU`), et s'achète comme une aile (shopBuy).
+   Le défi d'avant reste dans `exDef` (le relevé dbgDefisPossibles le montre) et sa phrase dans `ind` (l'écran des missions raconte les peintures déjà gagnées) ;
+   qui l'avait déjà gagnée la GARDE (elle est dans shop.own) ; un compteur commencé reste dans la sauvegarde, rien n'est repris. La map revient au tirage (`?carte=banquise`,
+   la branche `maj`) : le défi revient de lui-même. `DEF_SOURCES` suit m2Niveau (missions/defis-moteur.js) : `c` = les cartes qui comptent, `m` = les météos qui comptent ;
+   un compteur absent d'ici ne dépend d'aucune map (les fruits, les pouvoirs, la route du dessous). Aucun produit App Store : ce sont des dollars du jeu.
+   LES PRIX (posés par Claude, À CONFIRMER PAR SACHA) : aucune peinture ne se vend en dollars ; le modèle est la boutique des FIGURES, les seuls habillages vendus en dollars
+   qui restent tous en vitrine — commune 60 000 $ (le SALTO AVANT, la figure commune), épique 180 000 $ (L'HÉLICO, le milieu des trois figures épiques : 140 / 180 / 220 000).
+   Une rareté sans prix ici garde son défi : le juge du relevé (outils/defis-possibles/juge.cjs) la signale. `?sans=defispossibles` : comme avant. */
+const DEF_POSSIBLES=!/[?&]sans=[^&]*defispossibles/.test(location.search);
+const DEF_SOURCES={glacier:{c:['banquise']},neige:{m:['neige','blizzard']},foret:{c:[]},nuit:{m:['nuit']},matin:{m:['matin']},midi:{m:['midi']},pluie:{m:['pluie','orage']},
+  ville:{c:['ville','crypto','vitree']},espace:{c:['espace']},nuages:{c:['nuages']}};
+const PEINT_PRIX_JEU={commun:60000,epique:180000};
+function sourceJouable(S){if(!S||!DEF_POSSIBLES)return true;for(const c of Object.keys(SF_CARTES)){if(SF_HORS[c]||(S.c&&S.c.indexOf(c)<0))continue;if(!S.m)return true;
+  const M=SF_CARTES[c].m||{};for(const x of S.m)if(M[x]&&M[x].p!==0)return true;}return false;} /* une carte au tirage ici (et, s'il le faut, une de ses météos qui sort) */
+function defJouable(f){return !f||typeof f.k!=='string'||f.k.indexOf('sc:')!==0||sourceJouable(DEF_SOURCES[f.k.slice(3)]);}
 for(const e of PEINT_CAT){const o=Object.assign({id:e[0],n:e[1],r:e[2],d:e[4]},e[3]);
   if(o.mot){o.c=MOTIFS[o.mot].c;if(MOTIFS[o.mot].anim)o.anim=1;}
-  o.eur=PEINT_EUR[o.r];if(e[5]){o.def=e[5];o.ind=e[5].t;delete o.eur;}COSM.peinture.push(o);} /* (2026-11-07, Sacha : « les couleurs qu'on gagne avec des missions ne peuvent pas s'acheter ») une peinture à défi n'a plus de prix : elle se gagne ; shopOwned la tient pour non possédée tant que le défi n'est pas rempli */
+  o.eur=PEINT_EUR[o.r];if(e[5]){o.def=e[5];o.ind=e[5].t;delete o.eur;if(!defJouable(e[5])&&PEINT_PRIX_JEU[o.r]){o.exDef=o.def;delete o.def;o.p=PEINT_PRIX_JEU[o.r];}}COSM.peinture.push(o);} /* (2026-11-07, Sacha : « les couleurs qu'on gagne avec des missions ne peuvent pas s'acheter ») une peinture à défi n'a plus de prix : elle se gagne ; shopOwned la tient pour non possédée tant que le défi n'est pas rempli */
 Object.assign(I18N,{"SANS AILES":"NO WINGS","Les ailes, c'est pour les pigeons. Dix buses à air comprimé planquées dans la carrosserie : elle crache des bouffées blanches, pivote sur elle-même et s'envole. Bon. Ça a marché.":"Wings are for pigeons. Ten compressed-air nozzles hidden in the bodywork: it spits white puffs, spins on the spot and takes off. Well. It worked."}); /* (l'aile SANS AILES : sa traduction vivait ici, avec les motifs) */
 /* LES MISSIONS v2 — LES HABILLAGES QUI SE GAGNENT (2026-10-16, Sacha : « un objet donné par une mission ne s'achète plus : la boutique
    affiche à la place la mission qui le débloque ») : `mis2` = l'id de la mission ; plus de prix (ni dollars ni euros), plus de carnet.
@@ -103,7 +121,8 @@ function figDesc(f,lg){const en=lg==='en'||lg==='zh'; // (2026-10-14, textes) BI
   const av=D.indexOf('avant')>=0,ar=D.indexOf('arriere')>=0;
   return f.m.map(tx).join(' + ')+(en?'. Thumb '+(av&&ar?'FORWARD or BACK':av?'FORWARD':'BACK')+' + double-tap NITRO'+(av&&ar?': the flip goes that way.':'.')
                                     :'. Pouce '+(av&&ar?'en AVANT ou en ARRIÈRE':av?'en AVANT':'en ARRIÈRE')+' + double-tape NITRO'+(av&&ar?' : le salto part dans ce sens.':'.'));}
-COSM.figure=(window.FIG?FIG.liste:[]).map(function(f){return {id:f.id,n:f.n,p:f.p,r:f.r,d:figDesc(f,'fr'),fig:1};}); /* (2026-11-08, Sacha : « ça doit être gris pas bleu ») `r` suivi : le SALTO AVANT est COMMUN (figures.js) ; sans lui cosmRar le recalculait d'après le prix (60 k → rare → bleu) */
+COSM.figure=(window.FIG?FIG.liste:[]).map(function(f){return {id:f.id,n:f.n,p:f.p,r:f.r,d:figDesc(f,'fr'),fig:1};});
+try{for(const f of (window.FIG?FIG.liste:[]))I18N[figDesc(f,'fr')]=figDesc(f,'en');}catch(e){} /* (2026-11-21, qa/coherence) la phrase d'une figure passe aussi par TR (boutique, inventaire) : en anglais elle restait en français — sa clé, composée comme elle */ /* (2026-11-08, Sacha : « ça doit être gris pas bleu ») `r` suivi : le SALTO AVANT est COMMUN (figures.js) ; sans lui cosmRar le recalculait d'après le prix (60 k → rare → bleu) */
 const SHOP_CATS=['voiture','peinture','aile','figure']; /* (2026-11-21, Sacha) sans 'trainee' : le rayon des traînées est retiré pour l'instant (passation/SANS-TRAINEES.md) */
 const SHOP={tab:'voiture',i:{peinture:0,aile:0,trainee:0},prev:null}; // prev : l'article ESSAYÉ (pas forcément à toi)
 function shopOwned(cat,id){if(cat==='figure')return figPossede(id);if(cousin()){const c9=COSM[cat].find(x=>x.id===id);if(c9&&((!c9.eur&&!c9.def&&(!c9.pack||c9.sec))||cousinTout()))return true;} /* (2026-10-14) LE CODE COUSIN : tous les habillages — (2026-10-24) SAUF ce qui se paie en EUROS (peintures en €, packs PALETTE et CHAT), la règle de Sacha du 14/10 (carEuros) ; les secrètes, gagnables par leur défi, restent offertes ; le reste suit la possession réelle */
