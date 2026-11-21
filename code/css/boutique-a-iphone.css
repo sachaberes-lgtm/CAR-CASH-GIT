@@ -267,4 +267,17 @@ html.bqHorsOn #gBqPan .bqRail .lg.bqHors::after,html.bqHorsOn #gBqPan .bqRail .b
    héritait du même reflet or : un pseudo-élément de 100 × 0 px (invisible) en lgShine infini, sur 12 cartes du rayon VOITURES — avec une couche GPU chacune sur
    iPhone (html.ifReflets : will-change). Rien ne change à l'écran. */
 #gBqPan .bqKp.lg::after{content:none}
+/* ===== LA TEINTE QUI GLISSE SEULE (2026-11-21, lot « boutiquefluide », Sacha : « refait un truc d'optimisation de la boutique qui galère toujour un peu ») =====
+   MESURÉ (trace Chrome, banc ×4, iPhone 13 Pro émulé) : --bqaRar (la couleur de la rareté qui passe, posée par bqaTeinte sur #gBq) est une propriété ENREGISTRÉE,
+   HÉRITÉE, et c'est #gBq qui la fait glisser (.45 s) : pendant tout le glissé, chaque image change une valeur héritée à la racine de la boutique, et le navigateur
+   recalcule le style de TOUT ce qu'elle contient (les rayons, la tête, la bande et ses ~600 éléments) — 30 à 60 ms par image au banc, à l'ouverture (la 1re teinte),
+   à chaque rayon et à chaque changement de famille en faisant défiler. Désormais #gBq reçoit la couleur SANS glisser (un seul recalcul) et c'est #gBqPan, seul à
+   peindre cette couleur (son fond, son liseré, ses deux bords ::before / ::after), qui fait glisser une copie NON héritée (--bqaRarT) : les mêmes couleurs aux mêmes
+   instants (même durée, même courbe, même départ), sans toucher au style des cartes. Les barres des familles gardent var(--rc, var(--bqaRar)) : elles ont
+   toujours leur --rc. `?sans=boutiquefluide` = l'avant (pas de html.bqFluide). */
+@property --bqaRarT{syntax:"<color>";inherits:false;initial-value:#b9c4d6}
+html.bqFluide.bqA body #gBq{transition:none}
+html.bqFluide.bqA body #garage #gBq #gBqPan{--bqaRarT:var(--bqaRar);transition:--bqaRarT .45s ease;background:linear-gradient(180deg,color-mix(in srgb,var(--bqaRarT) 16%,transparent),color-mix(in srgb,var(--bqaRarT) 42%,transparent));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--bqaRarT) 40%,transparent)}
+html.bqFluide.bqA body #garage #gBq #gBqPan.bqaB::before{--bqaRarT:inherit;background:linear-gradient(90deg,color-mix(in srgb,var(--bqaRarT) 26%,#eef1f6),transparent)}
+html.bqFluide.bqA body #garage #gBq #gBqPan.bqaB::after{--bqaRarT:inherit;background:linear-gradient(270deg,color-mix(in srgb,var(--bqaRarT) 26%,#eef1f6),transparent)}
 </style>

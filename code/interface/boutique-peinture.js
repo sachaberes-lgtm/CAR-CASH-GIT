@@ -38,7 +38,18 @@ function bqPeintFile(id,cb,el){const j=COSM.peinture.findIndex(function(d){retur
   const k='p1:'+id+':'+c+':'+a;if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}
   PHQ.q.push([k,cb,{k:k,j:j,peint:1,avec:1},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 function bqPeintPhotos(rail){rail=rail||document.querySelector('#gBqPan .bqRail');if(!rail)return;
-  if(bqaPalette()){rail.querySelectorAll('.pN[data-k]:not([data-sw])').forEach(function(c){c.setAttribute('data-sw','1');const d=bqCos(c.getAttribute('data-k')).d,s=c.querySelector('.pCsw');if(d&&s)try{s.style.background=peintFond(d);}catch(e){}});return;} /* la palette : la couleur (ou le dégradé, le motif) de la peinture, sans photo */
+  if(bqaPalette()){const pose=function(c){c.setAttribute('data-sw','1');const d=bqCos(c.getAttribute('data-k')).d,s=c.querySelector('.pCsw');if(d&&s)try{s.style.background=peintFond(d);}catch(e){}};
+    if(!BQFLUIDE){rail.querySelectorAll('.pN[data-k]:not([data-sw])').forEach(pose);return;}
+    /* (2026-11-21, boutiquefluide) LES PASTILLES EN VUE D'ABORD : une pastille à motif pas encore prête (voir LES MOTIFS PRÉPARÉS EN DOUCE, boutique.js) et hors de la vue
+       attend les images suivantes, par tranches de ~8 ms (au moins une), dans l'ordre de la palette ; toutes les positions sont lues AVANT la 1re écriture (une seule mise en page) */
+    const L=Array.from(rail.querySelectorAll('.pN[data-k]:not([data-sw])')),rb=rail.getBoundingClientRect(),B=L.map(function(c){return c.getBoundingClientRect();}),apres=[];
+    L.forEach(function(c,n){const d=bqCos(c.getAttribute('data-k')).d,b=B[n],vue=b.width>0&&b.bottom>rb.top-60&&b.top<rb.bottom+60&&b.right>rb.left-60&&b.left<rb.right+60;
+      if(d&&d.mot&&MOT_URL[d.mot]==null&&!vue)apres.push(c);else pose(c);});
+    if(!apres.length)return;const jeton=rail._pnT=(rail._pnT|0)+1;
+    requestAnimationFrame(function tranche(){if(rail._pnT!==jeton||!rail.isConnected)return;const t0=performance.now();let k=0;
+      while(apres.length&&(k===0||performance.now()-t0<8)){const c=apres.shift();if(c.isConnected&&!c.hasAttribute('data-sw'))pose(c);k++;}
+      if(apres.length)requestAnimationFrame(tranche);});
+    return;} /* la palette : la couleur (ou le dégradé, le motif) de la peinture, sans photo */
   rail.querySelectorAll('[data-bcp]:not(.ok):not(.dem)').forEach(function(x){x.classList.add('dem');bqPeintFile(x.getAttribute('data-bcp'),function(url){if(!url||x.classList.contains('ok'))return;
     const im=document.createElement('img');im.alt='';im.className='pCim';im.decoding='async';im.draggable=false;im.src=url;x.textContent='';x.appendChild(im);x.classList.add('ok');},x);});}
 /* LE RAYON : la barre des familles, puis une section par famille (son intertitre d'une ligne, sa grille de pastilles) */

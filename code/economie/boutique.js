@@ -679,6 +679,32 @@ function motToile(id,w){const M=MOTIFS[id];if(!M)return null;const cv=document.c
 function motTex(id){if(MOT_TX[id])return MOT_TX[id];const cv=motToile(id,MOT_W);if(!cv)return null;const t=texLibere(new THREE.CanvasTexture(cv));t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return MOT_TX[id]=t;} /* (2026-11-13, finition · mémoire) texLibere : la toile 512² du cache n'est jamais relue, rendue après l'envoi sur téléphone */
 function motUrl(id){if(MOT_URL[id]!=null)return MOT_URL[id];let u='';try{const cv=motToile(id,192);u=cv?cv.toDataURL('image/jpeg',.86):'';}catch(e){}return MOT_URL[id]=u;} /* (2026-11-05) 192 px : la grande pastille des cartes de la boutique reste nette */
 function motFond(d){const c='#'+((d.c||0)>>>0).toString(16).padStart(6,'0'),u=motUrl(d.mot);return u?'url('+u+') center/'+(MOTIFS[d.mot]&&MOTIFS[d.mot].liv?'cover':'200% auto')+','+c:c;} // la PASTILLE d'un motif (le fond CSS des listes)
+/* ===== LES MOTIFS PRÉPARÉS EN DOUCE (2026-11-21, lot « boutiquefluide », Sacha : « refait un truc d'optimisation de la boutique qui galère toujour un peu ») =====
+   MESURÉ (banc ×4, iPhone 13 Pro émulé) : la 1re visite du rayon PEINTURES de chaque lancement figeait UNE image 0,8 à 1,5 s — la palette dessinait d'un bloc les
+   39 pastilles à motif (motToile 192 px puis toDataURL JPEG : la toile ~20 ms, l'encodage ~12 ms chacune), rien n'étant gardé d'un lancement à l'autre. Désormais :
+   · au garage (menu ou boutique hors rayon PEINTURES), au calme (photoCalme : ni geste, ni défilement, ni volet ; rien en course ; la chauffe finie ;
+     l'encodage d'avant fini), UNE pastille toutes les 200 ms au plus (MESURÉ ×4 : 2 à 15 ms chacune), dans l'ordre de la palette : la même toile (motToile, même tirage, même taille), encodée par toBlob (le même
+     encodeur JPEG, même qualité .86 : les mêmes octets ; Chrome encode hors du fil) et rangée sous une adresse blob: au lieu d'une data: — la même image ;
+   · motUrl reste le chemin d'avant pour tout ce qui n'est pas prêt (rien ne change à l'écran) ;
+   · le rayon PEINTURES pose tout de suite les pastilles EN VUE, les autres par tranches de ~8 ms aux images suivantes (bqPeintPhotos, boutique-peinture.js).
+   `dbgMotPre()` : l'état (banc). `?sans=boutiquefluide` = l'avant (tout dessiné d'un bloc à l'ouverture du rayon, en data:). */
+const BQFLUIDE=!/[?&]sans=[^&]*boutiquefluide/.test(location.search);
+if(BQFLUIDE)try{document.documentElement.classList.add('bqFluide');}catch(e){} /* html.bqFluide : les règles CSS du lot (LA TEINTE QUI GLISSE SEULE, boutique-a-iphone.css) */
+const MOT_PRE={L:null,i:0,n:0,ms:[],pq:'',enCours:0};
+function motPrepare(){if(!MOT_PRE.L){const V={};MOT_PRE.L=[];try{peintOrdre().forEach(function(j){const d=COSM.peinture[j];if(d&&d.mot&&MOTIFS[d.mot]&&!V[d.mot]){V[d.mot]=1;MOT_PRE.L.push(d.mot);}});}catch(e){}}
+  while(MOT_PRE.i<MOT_PRE.L.length&&MOT_URL[MOT_PRE.L[MOT_PRE.i]]!=null)MOT_PRE.i++;if(MOT_PRE.i>=MOT_PRE.L.length)return false;
+  const id=MOT_PRE.L[MOT_PRE.i++],t0=performance.now();let cv=null;try{cv=motToile(id,192);}catch(e){}if(!cv){MOT_URL[id]='';return true;}
+  if(!cv.toBlob||!window.URL||!URL.createObjectURL){try{MOT_URL[id]=cv.toDataURL('image/jpeg',.86);}catch(e){MOT_URL[id]='';}MOT_PRE.n++;MOT_PRE.ms.push(Math.round(performance.now()-t0));return true;}
+  MOT_PRE.enCours++;try{cv.toBlob(function(b){MOT_PRE.enCours--;if(!b||MOT_URL[id]!=null)return;try{MOT_URL[id]=URL.createObjectURL(b);MOT_PRE.n++;}catch(e){}},'image/jpeg',.86);}catch(e){MOT_PRE.enCours--;}
+  MOT_PRE.ms.push(Math.round(performance.now()-t0));return true;}
+setInterval(function(){try{if(!BQFLUIDE||MOT_PRE.fini)return;const t=performance.now();
+  const pq=document.hidden?'cache':(started&&!gameOver)?'course':!garageOn?'garage':!CHAUFFE_R.fait?'chauffe':ecranWipe._on?'volet':(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))?'garage':
+    (typeof GBQ!=='undefined'&&GBQ.on&&SHOP.tab==='peinture')?'rayon':MOT_PRE.enCours?'encode':!photoCalme()?'calme':'';
+  MOT_PRE.pq=pq;if(pq)return;if(!motPrepare())MOT_PRE.fini=true;}catch(e){MOT_PRE.pq=String(e);}},200);
+window.dbgMotEgal=function(){ /* (banc) chaque motif : la data: d'avant (toDataURL) et le blob: d'après (toBlob) ont-ils les mêmes octets ? */
+  const L=[];try{peintOrdre().forEach(function(j){const d=COSM.peinture[j];if(d&&d.mot&&MOTIFS[d.mot]&&L.indexOf(d.mot)<0)L.push(d.mot);});}catch(e){}
+  return Promise.all(L.map(function(id){return new Promise(function(ok){const cv=motToile(id,192),a=cv.toDataURL('image/jpeg',.86);cv.toBlob(function(b){const r=new FileReader();r.onload=function(){ok({id:id,egal:r.result===a,o:b.size});};r.readAsDataURL(b);},'image/jpeg',.86);});})).then(function(R){return {motifs:R.length,egaux:R.filter(function(x){return x.egal;}).length,differents:R.filter(function(x){return !x.egal;}).map(function(x){return x.id;})};});};
+window.dbgMotPre=function(){return {prets:MOT_PRE.L?MOT_PRE.L.filter(function(id){return MOT_URL[id]!=null;}).length:0,total:MOT_PRE.L?MOT_PRE.L.length:null,doux:MOT_PRE.n,ms:MOT_PRE.ms.slice(),attend:MOT_PRE.pq,fini:!!MOT_PRE.fini};};
 /* la projection : chaque face prend la toile du plan qui lui fait face (pondérée par sa normale ^12 : un pan en biais prend surtout le plan le plus proche — à ^6 le damier virait au gris en fondant deux plans),
    retournée là où il faut pour se lire À L'ENDROIT de l'extérieur — dans le repère de la caisse : le motif colle à la tôle quand elle roule */
 const MOT_GLSL='vec3 mN9=normalize(vMotN),mA9=pow(abs(mN9),vec3(12.));mA9/=max(1e-4,mA9.x+mA9.y+mA9.z);vec3 mP9=vMotP*uMotS;\n'+
