@@ -38,7 +38,7 @@ const M2=[
   // MOTEUR — le record d'une partie (le palier affiché = index + 1)
   {id:'eng10',f:'moteur',k:'eng',v:18,u:'',r:{cash:5000},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
   {id:'eng20',f:'moteur',k:'eng',v:28,u:'',r:{cash:15000},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
-  {id:'eng30',f:'moteur',k:'eng',v:30,u:'',r:{cash:50000},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'}, /* (2026-11-21, Sacha : traînées retirées pour l'instant) avant : la traînée FOUDRE DIVINE — l'argent à la place, montant posé par Claude, À VALIDER PAR SACHA */
+  {id:'eng30',f:'moteur',k:'eng',v:30,u:'',r:{cat:'trainee',id:'foudre'},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'}, /* (2026-11-21, Sacha : traînées retirées pour l'instant) la FOUDRE DIVINE n'existe plus dans COSM : m2Dispo cache la mission et m2Prend la fait attendre — elle revient, avec sa traînée, quand on remet les traînées */
   // COLLECTION — ce que le joueur possède (« toutes » : sans les objets gagnés par mission)
   {id:'car5',f:'collection',k:'cars',v:8,u:'',r:{cash:50000},t:'COLLECTE {v} VOITURES',en:'COLLECT {v} CARS'},
   {id:'car10',f:'collection',k:'cars',v:15,u:'',r:{cash:150000},t:'COLLECTE {v} VOITURES',en:'COLLECT {v} CARS'},

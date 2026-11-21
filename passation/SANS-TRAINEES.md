@@ -6,7 +6,7 @@ Branche : `claude/sans-trainees-fed5f1` (partie de `qualite-appareil`). Rien sur
 
 ## Pour tout remettre
 
-`git revert <le commit « Sans traînées »>` puis `node code/assembler.cjs --depuis-morceaux`. Rien d'autre à faire :
+`git revert` des deux commits « Sans traînées » (`a22563831` et le suivant, même titre) puis `node code/assembler.cjs --depuis-morceaux`. Rien d'autre à faire :
 la sauvegarde des joueurs n'a pas été touchée (voir plus bas), ils retrouvent leurs traînées et celle qu'ils portaient.
 
 ## Ce qui est retiré
@@ -32,7 +32,7 @@ la sauvegarde des joueurs n'a pas été touchée (voir plus bas), ils retrouvent
 2. **L'onglet TRAÎNÉES de la boutique** (`BQ_CATS`, `code/interface/boutique-scene-1.js`) et la catégorie dans `SHOP_CATS` (`code/economie/boutique-vitrine.js`).
 3. **L'onglet TRAÎNÉES de l'inventaire** du garage : les deux boutons de `code/page/ecrans-garage.html` (`.gTab` et `.ivTab`).
 4. **Les récompenses qui donnaient une traînée** :
-   - mission `eng30` (palier 30 du moteur) : FOUDRE DIVINE → **50 000 d'argent** (montant posé par Claude, à valider) ;
+   - mission `eng30` (palier 30 du moteur, récompense FOUDRE DIVINE) : **cachée** tant que la traînée n'existe pas (règle déjà écrite : `m2Dispo`). Elle n'est pas soldée en argent, exprès : qui la réussit pendant le retrait recevra sa FOUDRE au retour des traînées ;
    - série de connexion, jour 5 : la règle déjà écrite s'applique seule (plus de traînée à gagner → **2 jetons**) ;
    - pass (`?pass=1` seulement) : `ps11` (ROSE NÉON) et `eng20` (SAKURA) → la prime normale de leur tranche.
 5. **Les trois missions de collection** `tr5`, `tr10`, `trall` (« COLLECTE … TRAÎNÉES »), dans `code/missions/table.js` et dans le réservoir du pass (`code/missions/pass-table.js`).
@@ -57,12 +57,12 @@ la sauvegarde des joueurs n'a pas été touchée (voir plus bas), ils retrouvent
 ## Effets de bord à connaître
 
 - Qui avait réussi `tr5` / `tr10` / `trall` sans toucher la prime (3 000 / 10 000 / 50 000) ne peut plus la récupérer tant que les traînées sont retirées.
-- `ecoDebutPrix` (« la première chose qui s'achète ») : la moins chère était ROSE NÉON (40 000) ; c'est maintenant le moins cher du reste (caisses, ailes).
 - Les pastilles « + TRAÎNÉE ARC-EN-CIEL INCLUSE » du chat existent encore dans le code, mais le chat n'est plus en vente : elles ne s'affichent pas.
-- Compte des missions : 70 → 67 (les trois collections en moins).
+- Table des missions : 70 → 67 lignes (les trois collections en moins), et `eng30` cachée.
 
 ## Vérifié au banc (Chrome sans fenêtre, muet, téléphone émulé 844×390)
 
+Relu et rejoué par un agent de contrôle indépendant (7 traînées possédées, portées tour à tour : grille, wow, arcenciel, billets ; chat et Doge au nitro ; série jour 5 versée ; pass simulé ; revert à sec sans conflit).
 Deux sauvegardes : NEUVE, et une qui POSSÈDE cinq traînées et porte HYPERESPACE (+ `tr5` et `eng30` réussies non réclamées).
 Pour chacune : démarrage, boutique ouverte (5 onglets : voitures, achat, peintures, ailes, figures ; chaque rayon parcouru, 0 carte de traînée),
 inventaire (4 onglets, chacun parcouru), une course au pilote auto, une mort, l'écran de série (jour 5 = 2 jetons). 0 exception, `__loopErr` et `__banqErr` vides.
@@ -78,7 +78,7 @@ Gardes : `garde-demarrage`, `garde-allege`, `garde-charte` OK.
 ## Questions pour Sacha
 
 1. **Remboursement** : rend-on l'argent des traînées achetées (prix du tableau) ? Rien n'est remboursé pour l'instant, et les joueurs les retrouvent si on les remet.
-2. **FOUDRE DIVINE** : la mission du palier 30 paie 50 000 à la place. Bon montant ?
+2. **FOUDRE DIVINE** : la mission du palier 30 du moteur est cachée pendant le retrait. Préfères-tu qu'elle reste visible et paie de l'argent (combien) ? Dans ce cas la FOUDRE serait perdue pour qui la réclame avant le retour des traînées.
 3. **Le chat et le DOGE** gardent leur arc-en-ciel et leurs mots (c'est leur effet de base). On les garde ?
 4. **Le moteur de rendu** des traînées reste dans le code, éteint. Veux-tu qu'on le supprime vraiment (plus long, et plus dur à remettre) ?
 5. Les primes des missions « COLLECTE … TRAÎNÉES » non réclamées : on les verse d'office ?
