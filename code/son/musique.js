@@ -528,6 +528,28 @@ function pbjLance(vite,meme){if(!pbjActif()||!SND.music)return;
    Le niveau du lobby suit le mixage du menu (musicTick : le ciel derrière le vent, le garage, l'intro) ; l'élément <audio> ne joue plus au menu. `?lobby=ancien` = le lobby d'avant (un fichier fixe, MENU_MUS). Repli : si le morceau ne part pas, le fichier fixe joue, faute de mieux. */
 const LOBBY_LIE=!/[?&]lobby=ancien\b/.test(location.search);
 let LOBBY_KO=0;
+/* ===== LE LOBBY QUI RATE UN DÉPART (2026-11-21, lot qualité « musiquegarage », Sacha au build 126 : « Dans mon build, j'ai plus la musique dans le garage. La musique version lobby, elle est plus là. ») =====
+   Avant : un seul départ raté du lobby lié (liste de Pouce bleu illisible, fichier ou décodage refusé, phase « erreur » ou « vide ») posait LOBBY_KO pour TOUTE la séance, et le repli
+   (musicMenuAncien) jouait MENU_MUS = paliers/rendus/nuit-de-velours/p1.m4a… que l'app n'embarque pas (app-ios/preparer-www.js le retire) : le garage restait muet jusqu'à la fermeture du jeu.
+   Maintenant : (a) un départ raté n'est plus qu'une attente : le lobby est RETENTÉ à chaque retour vers un lieu où la musique s'entend (le garage, après le ciel, la boutique ou une course)
+   et à chaque musicMenu (après une mort, MUSIQUE rallumée) ; borné : 4 s au moins entre deux essais, 8 essais par séance, jamais pendant qu'un départ charge (PB.lobby ne lance qu'un
+   chargement à la fois, et rien d'autre ne décode au menu) ; (b) plus de repli sur un fichier : c'est le seul sûr dans l'app (le fichier n'y est pas) et un repli qui joue pendant
+   qu'un nouvel essai part ferait deux musiques. Chaque départ raté et chaque nouvel essai s'écrivent dans la boîte noire (RÉGLAGES › VERSION › COPIER, genre « musique »).
+   `?sans=musiquegarage` = exactement l'ancien (condamné pour la séance, repli sur le fichier). */
+const SANS_MG=/[?&]sans=[^&#]*\bmusiquegarage\b/.test(location.search);
+const LOBBY_RE={n:0,t:-1e9,MAX:8,ECART:4000};
+function lobbyAttend(){return !SANS_MG&&LOBBY_LIE&&!!LOBBY_KO;} /* le lobby a raté un départ et attend son prochain essai : aucun fichier ne le remplace */
+function lobbyRelance(ou){ /* un nouvel essai du lobby lié, si son dernier départ a raté ; vrai si l'essai est permis (LOBBY_KO remis à 0) */
+  if(!lobbyAttend()||!SND.music||musicMode!=='menu')return false;
+  const P=window.POUCE_JEU,t=performance.now();if(!P||P.phase==='charge'||P.phase==='lobby')return false; /* un départ en route (PB.lobby n'en charge qu'un à la fois) ou le lobby joue déjà ; « course » est permis : au menu la course est finie, pbjLobby part de là aussi */
+  if(LOBBY_RE.n>=LOBBY_RE.MAX||t-LOBBY_RE.t<LOBBY_RE.ECART)return false;
+  LOBBY_RE.n++;LOBBY_RE.t=t;LOBBY_KO=0;
+  try{window.__ccNote('musique','lobby lié relancé ('+ou+')');}catch(e){}
+  return true;}
+function lobbyRate(err){ /* un départ du lobby lié a raté */
+  LOBBY_KO=1;console.warn('Lobby lié : '+err);
+  if(SANS_MG){if(musicMode==='menu')musicMenuAncien();return;}
+  try{window.__ccNote('musique','lobby lié raté : '+String(err).slice(0,120)+(LOBBY_RE.n>=LOBBY_RE.MAX?' (plus d\'essai)':''));}catch(e){}}
 /* (2026-11-02, Léo : « pour chaque musique une version lobby avec une transition quand on appuie sur JOUER, puis le palier 1 jusqu'à 30 ; le début, pour rendre le jeu plus smooth » puis « attention que les musiques ne soient pas buggées en mode ça commence direct avec plein d'instruments »)
    LE PALIER DU LOBBY, UN PAR MORCEAU, ET JAMAIS « TOUT D'UN COUP ». MESURÉ sur les 19 morceaux de Pouce bleu (niveau brut RMS, le morceau DÉMARRÉ directement à ce palier) : un morceau du générateur passe souvent d'un palier clairsemé (−31 à −51 dB, une ou deux notes) à un palier « plein » (−12 à −16 dB, tous les instruments)
    en UN cran (1→2, ou 2→3 selon le morceau) ; démarré ou monté jusque-là, il « explose ». Le lobby joue donc le DERNIER PALIER ENCORE CLAIRSEMÉ de chaque morceau (celui dont le niveau brut reste ≤ −20 dB, le plus fort des paliers 1 à 3) : ambiance calme, jamais tout l'orchestre ; il y ENTRE par un fondu de 4 s depuis le palier 1 (PB.lobby) ;
@@ -562,14 +584,14 @@ function leconAmbiance(dt){ // appelé à chaque image (musicTick) : l'ambiance 
   else if(LECON_AMB.on){LECON_AMB.on=false;try{if(!(typeof GBQ!=='undefined'&&GBQ.on))bqSonCoupe(.6);}catch(e){} if(musicMode==='menu'&&!started)try{musicMenu();}catch(e){}} /* (2/11 nuit) au menu (« J'AI DÉJÀ JOUÉ », ou la leçon passée) : la musique du ciel prend le relais */
 }
 function lobbyPeut(){return LOBBY_LIE&&!LOBBY_KO&&!(LECON_MUSIQUE&&leconAVenir())&&pbjActif();} /* (2/11 soir) le lobby lié joue AUSSI au menu d'un joueur neuf : seule la leçon elle-même est sans musique (voir leconSilence) */
-window.dbgLobby=function(){try{const P=window.POUCE_JEU;return {lobbyLie:LOBBY_LIE,ko:LOBBY_KO,leconAVenir:leconAVenir(),leconSilence:leconSilence(),ambiance:LECON_AMB.on,tuto:pbjTuto(),pbjActif:pbjActif(),peut:lobbyPeut(),phase:P&&P.phase,morceau:P&&P.E&&P.E.titre,palier:P&&P.tier0,mode:musicMode,musicEl:musicEl?{src:(musicEl.src||'').split('/').pop(),pause:musicEl.paused,vol:+musicEl.volume.toFixed(3)}:null,intro:INTROSON.on};}catch(e){return {erreur:String(e)};}};
+window.dbgLobby=function(){try{const P=window.POUCE_JEU;return {lobbyLie:LOBBY_LIE,ko:LOBBY_KO,leconAVenir:leconAVenir(),leconSilence:leconSilence(),ambiance:LECON_AMB.on,tuto:pbjTuto(),pbjActif:pbjActif(),peut:lobbyPeut(),phase:P&&P.phase,morceau:P&&P.E&&P.E.titre,palier:P&&P.tier0,mode:musicMode,musicEl:musicEl?{src:(musicEl.src||'').split('/').pop(),pause:musicEl.paused,vol:+musicEl.volume.toFixed(3)}:null,intro:INTROSON.on,relances:LOBBY_RE.n};}catch(e){return {erreur:String(e)};}};
 function lobbyActif(){return !!window.POUCE_JEU&&POUCE_JEU.phase==='lobby';}
 function pbjLobby(){
   if(!lobbyPeut()||!SND.music)return;
   const P=POUCE_JEU;if(P.phase==='lobby'||P.phase==='charge')return;
   const fixes=INTROSON.on&&!INTROSON.t0&&!/[?&]lobby=tout\b/.test(location.search); // pendant « PRESENTS » le jeu gèle dessous (sur un Mac lent : images de 0,2 à 1,3 s) : seuls les morceaux à paliers figés (des fichiers) tiennent, les autres (le générateur joue en direct) attendent l'accueil ; ?lobby=tout les laisse tous partir
   try{const p=P.lobby(AC,MASTER._lim,{brut:BASSES_BRUT,fixes:fixes,tier:LOBBY_TIER||1,tiers:LOBBY_TIER?null:LOBBY_PALIERS,doux:PBJ_DOUX});
-    if(p&&p.then)p.then(function(E){if(E||P.attente)return;if(P.phase==='erreur'||P.phase==='vide'){LOBBY_KO=1;console.warn('Lobby lié : '+(P.err||'liste vide'));if(musicMode==='menu')musicMenuAncien();}});}catch(e){LOBBY_KO=1;}}
+    if(p&&p.then)p.then(function(E){if(E||P.attente)return;if(P.phase==='erreur'||P.phase==='vide')lobbyRate(P.err||'liste vide');});}catch(e){if(SANS_MG)LOBBY_KO=1;else lobbyRate(e&&e.message||e);}}
 function pbjDepart(vite,meme){if(!vite&&!meme){PBJ_KO=0;PBJ_ESSAI=0;if(pbjTuto()){try{ecoleMusPique();}catch(e){}return;}}pbjLance(vite,meme);} // (sans argument = un JOUER : on réessaie) — (2026-10-16) le JOUER de la LEÇON lance la musique de la leçon
 function ecoleMusPique(){ // (2026-10-16) le JOUER de la leçon : SA musique part pendant le piqué, en fondu (DEPMUS), et la course la GARDE (musicStartRun)
   if(!SND.music)return;
@@ -621,6 +643,8 @@ function musicMenu(){
   if(!SND.music)return;
   musicMode='menu';
   if(leconSilence())return; // la leçon et son menu : pas de musique, l'ambiance de la boutique (leconAmbiance)
+  lobbyRelance('menu'); /* (21/11, musiquegarage) un départ raté avant : on réessaie */
+  if(lobbyAttend()){try{if(musicEl&&!musicEl.paused)stopMusic();}catch(e){}return;} /* (21/11, musiquegarage) essai refusé (trop tôt, ou plus d'essai) : le silence, pas un fichier que l'app n'a pas */
   if(lobbyPeut()){try{if(musicEl&&!musicEl.paused)stopMusic();}catch(e){} pbjLobby();return;} // la musique du niveau tiré, en ambiance (le fichier fixe d'avant ne joue plus : voir musicMenuAncien) ; un morceau d'<audio> encore en route (la leçon vient de finir) s'éteint
   musicMenuAncien();
 }

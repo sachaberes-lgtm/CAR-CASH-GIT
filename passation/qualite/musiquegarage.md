@@ -2,7 +2,64 @@
 
 Sacha, après le build 126 : « Dans mon build, j'ai plus la musique dans le garage. La musique version lobby, elle est plus là. »
 
-## Verdict : PAS reproduit au banc, aucune correction
+## 2e manche (21/11 soir) : le trou PROVOQUÉ au banc, et corrigé
+
+### Le défaut, provoqué sur le paquet de l'app
+Le banc fait rater UN départ du lobby lié (`--rate charge:1` : le premier fetch de `musique-moteur.json` échoue, comme une lecture refusée sur un téléphone chaud). Sur le www de l'app
+construit avec `app-ios/preparer-www.js --essai --sortie` depuis le dépôt AVANT le lot : le garage est muet À CHAQUE retour jusqu'à la fin de la séance (garage froid, 60 s, boutique 3D,
+après la boutique, avant JOUER, après une vraie mort, mort + 20 s : tous à −200 dB, phase « erreur » puis « repos »). La console dit pourquoi :
+« Lobby lié : … » puis « musique : fichier illisible …/paliers/rendus/nuit-de-velours/p1.m4a » : le repli (`musicMenuAncien`, `MENU_MUS`) vise un fichier que l'app n'embarque pas.
+La musique de course, elle, part normalement au JOUER (−20 dB) : c'est exactement « plus la musique du lobby dans le garage ».
+
+### La correction (`code/son/musique.js`, `code/son/musique-frenesie.js`, interrupteur `?sans=musiquegarage` = l'ancien à l'identique)
+- (a) Un départ raté n'est plus une condamnation : `LOBBY_KO` reste le signe « en attente », et le lobby lié est RETENTÉ (`lobbyRelance`) à chaque retour vers un lieu où la musique
+  s'entend (le garage depuis le ciel, la boutique 3D, l'écran de mort : la bascule `MUS_TAIT` vrai → faux, ou `garageOn` faux → vrai, dans `musicTick`) et à chaque `musicMenu` (après une
+  mort, MUSIQUE rallumée). Borné : 4 s au moins entre deux essais, 8 essais par séance, jamais pendant qu'un départ charge (phase « charge » : `PB.lobby` n'en charge qu'un, rien d'autre ne
+  décode au menu, le garde « un seul décodage » du régime calme est donc respecté), jamais si le lobby joue déjà.
+- (b) Plus de repli sur un fichier quand le lobby lié attend : c'est le choix le plus sûr. Dans l'app le fichier n'existe pas ; et un fichier qui jouerait pendant qu'un nouvel essai part
+  ferait deux musiques à la fois (le défaut de l'écran de mort du 5/11). Le bloc « musique du lieu » de `musicTick` ne relance plus `MENU_MUS` tant que le lobby attend (`lobbyAttend()`).
+  `?lobby=ancien` (pas de lobby lié) garde le fichier fixe, inchangé.
+- Boîte noire (RÉGLAGES › VERSION › COPIER), genre `musique` : « lobby lié raté : <raison> » à chaque départ raté (« (plus d'essai) » au 8e), « lobby lié relancé (garage|menu) » à chaque
+  nouvel essai. Si Sacha revoit un garage muet, ces deux lignes (ou leur absence) disent si c'est ce chemin.
+
+### Les mesures (iPhone 13 Pro émulé, www de l'app, sauvegarde riche, sortie lue par AnalyserNode, rien ne sort du Mac)
+dB = RMS max de la sortie ; « −200 » = rien ne sort. AVANT = www de l'app fait depuis le dépôt sans le lot ; APRÈS = avec le lot. Vraie course (`--course 1`) sauf la dernière colonne.
+
+| étape | AVANT, 1 départ raté | APRÈS, 1 départ raté | `?sans=musiquegarage`, 1 raté | AVANT, sans échec | APRÈS, sans échec | parcours court, avant / après |
+|---|---|---|---|---|---|---|
+| ciel / accueil / boutique de l'accueil (silence voulu) | −200 | −200 | −200 | −200 | −200 | −200 / −200 |
+| garage froid | **−200 (erreur)** | lobby −26,5 | **−200** | lobby −27,5 | lobby −26,5 | −30 / −25 |
+| garage 60 s, boutique 3D, retour, après la boutique, avant JOUER | **−200** | lobby −26 à −27 | **−200** | lobby −23 à −27 | lobby −25 à −27 | −23 à −30 / −25 à −37 |
+| JOUER → 9 s (relevé 0,6 s) | intro puis course, −21 à −41 | course, −16 à −30 | intro puis course, −19 à −36 | course, −16 à −28 | course, −16 à −28 | — |
+| course 15 s | −20 | −14 | −22 | −15 | −15 | (raccourci) −200 / −200 |
+| écran de mort (relevé 0,6 s) | −200 | −200 | −200 | −200 | −200 | −200 / −200 |
+| GARAGE depuis la mort → 9 s | **−200 (repos)** | lobby, −52 → −29 (fondu) | **−200** | lobby, −72 → −24 | lobby, −50 → −26 | — |
+| garage après la mort, +20 s | **−200** | lobby −28 / −23 | **−200** | lobby −36 / −25 | lobby −25 / −25 | −22 −25 / −26 −27 |
+| boîte noire | rien | « lobby lié raté : banc : fetch raté musique-moteur.json » ×1, « lobby lié relancé (garage) » ×1 | rien | rien | rien | rien |
+
+- 0 exception de page sur les 9 passes. Aucun « fichier illisible » après le lot (avant : celui de `nuit-de-velours/p1.m4a` à chaque fois).
+- `?sans=musiquegarage` redonne l'ancien au décibel près (muet partout au garage, même console).
+- Sans échec, les niveaux du lobby et de la course sont les mêmes qu'avant (écarts de ±5 dB d'un morceau tiré à l'autre, comme entre deux passes d'avant).
+- `outils/banc-musiquecalme/sim.cjs` par défaut et avec `FAILT=60000 FAILN=2` : sorties identiques octet pour octet avant et après (le lecteur `pouce-bleu-jeu.js` n'est pas touché).
+- Gardes : `garde-demarrage`, `garde-allege`, `garde-charte` OK ; `assembler --verifier` OK.
+- Un essai `--rate musique:1 --armer mort` (un fichier de musique refusé juste avant JOUER) n'a PAS fait rater le lobby : le fichier refusé était celui de la course (`piano-31`, `pal-aura-30/p1`),
+  que le lecteur rattrape tout seul. Le chemin « relance au `musicMenu` après la mort » n'est donc pas montré au banc (seul celui du retour au garage l'est).
+- Résultats bruts : `/private/tmp/claude-501/-Users-sachaberes-cash-car-qualite/f73d43a5-a4c1-4f2f-92ad-78d3cc403908/scratchpad/m2/r3/` (temporaire).
+
+### Non vérifié (2e manche)
+- Rien sur le téléphone : on ne sait toujours pas si c'est CE chemin que Sacha a entendu. La boîte noire du prochain build le dira (« lobby lié raté » présent ou non).
+- Le départ raté est provoqué par un fetch refusé, pas par un vrai `decodeAudioData` qui échoue ou un délai dépassé sur WebKit ; le code les traite de la même façon (phase « erreur »).
+- L'écran de mort est muet avant comme après (la musique de course s'arrête, le lobby repart au GARAGE) : pas touché.
+- La piste `__ccAutreSon` (une autre app a pris le son) n'est pas traitée : ce n'est pas un défaut du jeu.
+
+### Le banc étendu (outils/banc-musiquegarage/garage.cjs)
+- `--rate charge:N|musique:N` : les N premiers fetch de la liste (ou des fichiers de musique) échouent ; `--armer mort` : armé juste avant le JOUER au lieu du chargement.
+- `--course 1` : la VRAIE course. JOUER touché au garage (`#gJouer`), niveau et phase relevés toutes les 0,6 s pendant 9 s (lobby → course), 15 s d'auto-pilote, puis mains libres jusqu'à
+  la vraie mort (la caisse tombe), l'offre de seconde chance refusée, GARAGE touché sur l'écran de mort (réessayé, au clic au besoin), relevé toutes les 0,6 s (course → lobby).
+- Le relevé des pannes lit `cashcarErr` (les crochets `dbg*` n'existent pas dans le paquet de l'app) ; `R.boite` = les lignes `musique` du lobby.
+- `passe.sh` : `QUI` réglable. ⚠ Sous zsh, des options mises dans UNE variable ne se coupent pas en mots : passer les options en clair ou par un tableau bash.
+
+## 1re manche : PAS reproduit au banc, aucune correction
 
 Le lobby lié joue dans le garage, et il y revient, dans tous les cas essayés. C'est vrai pour le 126 comme pour le 122, et pour le code du dépôt comme pour les VRAIS paquets web des apps installées
 (`~/cash-car/ios-ultime-mesures/builds/build126.app/public` et `build122.app/public`). Je n'ai pas fabriqué de correction au hasard : rien n'est changé dans le jeu.
