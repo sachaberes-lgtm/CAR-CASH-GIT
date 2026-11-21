@@ -12,7 +12,7 @@ Pour la session qui reprend. Le journal complet, lot par lot, est dans `passatio
 
 ## Où on en est
 
-- **Sur le téléphone** : build 126 (commit `a260ce85c`), installé le 21/11 à 15h01.
+- **Sur le téléphone** : build 127 (commit `3dd64e4d5`), installé le 21/11 à 22h32 par-dessus le 126 (voir en bas).
 - **Branche `qualite-appareil`** : tête `ee62614f2` (+ ce fichier). Depuis le 126, six lots fusionnés, tous contrôlés seuls :
   - `qa/defispossibles` : BLANC NEIGE 60 000, MONTE-CARLO / CAMOUFLAGE / BLOC D'HERBE 180 000 en argent du jeu ; missions du glacier cachées.
   - `qa/coherence` : totaux d'inventaire atteignables, compteurs du rayon voitures, CRYPTO CITY, textes anglais, fiche App Store et assistance du dépôt (non publiées).
@@ -68,8 +68,10 @@ Pas vérifié : rien n'a tourné sur un vrai iPhone ; StoreKit réel ; la vraie 
 
 Relevés : dans le scratchpad de la session (`…/scratchpad/ctl127/`, effaçable). Worktrees `~/cash-car/lots-nuit/ctl-ensemble127` et `ctl127-base` laissés en place : à retirer (disque).
 
-## Build 127 : compilé, PAS installé
+## Build 127 : INSTALLÉ le 21/11 à 22h32 (oui de Sacha)
 
 `~/cash-car/ios-ultime-mesures/builds/build127.app`, compilé le 21/11 depuis `3dd64e4d5` (COMPLET=1, `&perfrec=2`). **À installer seulement sur le oui de Sacha** :
 `xcrun devicectl device install app --device FE6F8B40-DCFF-5E04-B578-871A79EDCF17 ~/cash-car/ios-ultime-mesures/builds/build127.app`
 Rien d'autre ne tourne : aucun workflow, aucun banc.
+
+Installé par mise à jour (app non supprimée, sauvegarde gardée). Suite : attendre le retour de Sacha, puis lire le vol (point 2 de « À faire ensuite »).
