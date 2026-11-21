@@ -1,6 +1,6 @@
 # FINITION GRAPHIQUE DES MAPS (18 → 20/11/2026)
 
-Branche : `claude/finition-maps-dee281`, partie de `origin/main` dbc5f1d54 (livraison du 19/11).
+Branche : `claude/finition-maps-dee281`, partie de `origin/main` dbc5f1d54 (livraison du 19/11), puis remise à jour sur `main` fc1cca055 (pluie de devises, cache v1625) le 21/11.
 **Rien n'est sur `main`, rien dans `qualite-appareil`, aucun build installé. Le vrai téléphone n'a rien vu** : tout est jugé dans Chrome sans fenêtre en `?tel=1`, aux formats iPhone 844×390 et 390×844.
 Ni `VERSION PRINCIPALE/index.html` ni `sw.js` ne sont commités ici : à la livraison, assembler (`node code/assembler.cjs --depuis-morceaux`) et monter `cashcar-vNNN`.
 
@@ -82,9 +82,22 @@ Audit mesuré des maps au tirage du téléphone hors des autres lots. Rien de br
 - Décision de Sacha (20/11) : le chantier « roche du canyon » est abandonné, le soir reste tel quel. Rien de ce chantier n'est dans le code.
 - Non vérifié : la fusion sans le soir n'a pas été rephotographiée (nuit, pluie et orage ont les nombres jugés au banc ; le soir est celui d'avant par construction) ; pluie et orage en portrait sur une seule graine.
 
+## 6. Les cinq lots ensemble, sur le main du 21/11 (vérification d'intégration)
+
+Chaque lot avait été contrôlé seul, sur un main plus ancien. Le 21/11, un contrôle adverse a passé la branche entière (4318e8848) au banc contre `main` fc1cca055 : 98 chargements, 844×390 et 390×844. Verdict : **intégration saine**, aucun défaut. Note et 8 planches : `passation/photos/finition-maps/integration/`.
+- Démarrage : la course a démarré 98 fois sur 98, 0 exception ; console identique à celle de main.
+- Routes : 480 empreintes sur 480 égales dans le vrai jeu (12 cartes × 20 graines × 2 paliers), plus les bancs Node.
+- Les cinq interrupteurs coupés ensemble rendent l'ambiance, les shaders et les programmes de main (empreintes égales).
+- Coût : jamais plus de programmes que main (148-149), textures égales, appels et triangles dans le bruit.
+- Les lots ne débordent pas l'un sur l'autre : couper le lot couleurs ne change rien à Jade, au canyon, à Mars ni à la grotte ; couper le lot Jade ne change rien aux nuages ni à la ville.
+- Canyon : le soir est celui de main au bit près ; la nuit a bien les ombres plus violettes du lot (luminance −1,2 % en portrait, −2,6 % en paysage).
+- La pluie de devises de main s'affiche comme dans main (142 billets, même dessin).
+- Trois réserves à juger à l'œil : (1) l'orage du canyon (hors tirage) a des mesas rose-saumon vif, la vue la plus saturée de toutes ; (2) sous la pluie de Jade en portrait le haut est plus sombre (luminance 122 → 111) ; (3) la nuit du canyon en paysage perd un peu plus de lumière qu'annoncé.
+- Non vérifié : le vrai iPhone (OLED, chauffe, temps de `grtNappesG`) ; l'ordinateur sans `?tel=1` ; les fondus entre météos ; Saturne et la Terre ; Jade au matin, au midi et à l'orage dans la branche intégrée.
+
 ## Pour livrer
 
-1. Fusionner `origin/main` dans la branche, `node code/assembler.cjs --depuis-morceaux`, puis `--verifier`.
+1. Refusionner `origin/main` s'il a encore avancé depuis fc1cca055, `node code/assembler.cjs --depuis-morceaux`, puis `--verifier`.
 2. Compiler les `<script>` d'index.html (`vm.Script`) : un seul échec attendu, le script 5, qui échoue pareil sur `main` (l'extracteur coupe dans un commentaire).
 3. `node outils/garde-demarrage.cjs && sh garde-allege.sh && sh garde-charte.sh`.
 4. Monter `cashcar-vNNN` dans `sw.js`, committer `code/` et index.html ensemble.
