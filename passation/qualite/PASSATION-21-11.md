@@ -90,7 +90,7 @@ Demande de Sacha : refonte du tuto (« plein écran », « pouces en pixels », 
 
 Compiler (Sacha, ou sur son oui), dans `~/cash-car/finition-build` : la recette de `NUIT-18-11.md` avec `origin/qa/tuto-finitions` à la place de `origin/qualite-appareil` et `CURRENT_PROJECT_VERSION=128`.
 
-### Build 128 : COMPILÉ le 22/11 (oui de Sacha), PAS installé
+### Build 128 : INSTALLÉ le 22/11 à 20h33 (oui de Sacha), par mise à jour, app non supprimée
 
 `~/cash-car/ios-ultime-mesures/builds/build128.app`, depuis `373ee0b15` (`qa/tuto-finitions`, COMPLET=1, `&perfrec=2`). **À installer seulement sur le oui de Sacha** :
 `xcrun devicectl device install app --device FE6F8B40-DCFF-5E04-B578-871A79EDCF17 ~/cash-car/ios-ultime-mesures/builds/build128.app`
