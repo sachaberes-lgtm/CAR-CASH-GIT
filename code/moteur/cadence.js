@@ -162,7 +162,7 @@ const JSI={ok:!/[?&]sans=[^&]*jsimage/.test(location.search)};
    · CALG.was suit le calme tel que la boucle des objets l'a vu (le ramassage peut passer avant elle dans l'image : rien ne surgit entre les deux) ; une partie neuve le remet à zéro (spawnPickups).
    · à la sortie, ce qui est entré pendant le calme et se trouve encore LOIN devant (plus de la moitié du couloir) GRANDIT en 0,5 s (p.cap) ; le reste, trop près pour naître sans se voir, ne vient plus (p.cgo) : pas de paquet d'un coup sous le nez. */
 /* (2026-11-15, contrôle adverse) CALG.on = LE CALME DE LA GARDE, tenu par hudCalmeTick : il tombe avec le HUD calme, mais ne se lève qu'au NITRO repris (ou au vol critique qui rallume le HUD)
-   EN COURSE — une pause, l'écran de mort, une réanimation, le 3-2-1 de la reprise et les 0,9 s qui suivent ne le lèvent pas : rien n'est jeté, on retrouve l'état d'avant. Partie neuve : calgRaz (resetGame, start).
+   EN COURSE — une pause, l'écran de mort, une réanimation, le 3-2-1 de la reprise et le délai du calme qui suit (HUD_CALME_MS : 3 s depuis le 2026-11-22, 0,9 s avant) ne le lèvent pas : rien n'est jeté, on retrouve l'état d'avant. Partie neuve : calgRaz (resetGame, start).
    À la sortie, seul le TRÈS PROCHE (moins de 0,5 s de route à la vitesse du moment, borné 60-150 m : CALG_PRES) ne vient plus ; tout le reste GRANDIT en 0,4 s. */
 const CALG={ok:!/[?&]sans=[^&]*calmegarde/.test(location.search),on:false,id:0,was:false,sortie:false,vus:0,caches:0,neufs:0,perdus:0,pres:0,ret:{f0:0,f1:0,p0:0,p1:0}};
 function CALG_PRES(){return Math.min(150,Math.max(60,.5*Math.abs(vA)));}
@@ -178,14 +178,15 @@ window.dbgCalmeSuivi=function(op,a,b,c){
   if(op==='fruit'){let m=null;for(const p of pickups)if(!p.taken&&p.nitro&&p.face===1&&p.s-s>40&&p.s-s<400&&(!m||p.s<m.s))m=p;if(m)CALG_S[a]=m;return !!m;}
   return {calme:HUD_CALME.on,garde:CALG.on,paused:!!paused,g:window.dbgCalmeGarde(),o:Object.keys(CALG_S).map(function(k){const p=CALG_S[k];return {k:k,ds:Math.round(p.s-s),vu:!!p.mesh.visible,pris:!!p.taken,cok:p.cok,cgo:!!p.cgo,cap:p.cap==null?null:+p.cap.toFixed(2),sc:+p.mesh.scale.x.toFixed(2)};})};};
 if(TEL_NATIF&&!/[?&]sans=[^&]*gvfixe/.test(location.search))try{document.documentElement.classList.add('gvFixe');}catch(e){} /* (2026-11-13) le bouton MISSIONS du garage sans son animation d'entrée, dès la lecture du script : voir css/interface-opti.css §4 */
+const HUD_CALME_MS=3000; /* (2026-11-22, Sacha : « le mode HUD calme se déclenche trop rapidement. Faudrait qu'il se déclenche plutôt au bout de 3 secondes sans toucher le nitro ») avant : 0,9 s */
 function hudCalmeTick(now){if(!TEL_NATIF)return;
   if(!HUD_CALME.pose){HUD_CALME.pose=true;if(HUD_CALME.leger)document.documentElement.classList.add('ecrLeger');}
   if(!HUD_CALME.ok)return;
   const course=started&&running&&!gameOver&&!paused&&!garageOn&&!(typeof TUTO!=='undefined'&&TUTO.on)&&mode!=='boom';
   if(!course||nitroOn||keys.Space||keys.ShiftLeft||keys.ShiftRight)HUD_CALME.t=now; /* (2026-11-12, chasse aux bugs du HUD) « quand le joueur RELÂCHE le nitro » : le bouton tenu compte, pas seulement la poussée — réserve à sec, le doigt appuyé, le HUD s'effaçait (et la jauge vide avec lui) */
-  let h=course&&now-HUD_CALME.t>900;
+  let h=course&&now-HUD_CALME.t>HUD_CALME_MS;
   if(h&&mode==='fall'&&HUDV==='d'){const a=HUD_CALME.air||(HUD_CALME.air=document.getElementById('airHud'));if(a&&a.dataset.k==='urgent')h=false;}
-  if(CALG.ok){if(h)CALG.on=true;else if(CALG.on&&course&&(nitroOn||keys.Space||keys.ShiftLeft||keys.ShiftRight||now-HUD_CALME.t>900))CALG.on=false;} /* (garde du calme) voir CALG.on : hors course (pause, mort) et pendant la reprise sans nitro, la garde reste calme */
+  if(CALG.ok){if(h)CALG.on=true;else if(CALG.on&&course&&(nitroOn||keys.Space||keys.ShiftLeft||keys.ShiftRight||now-HUD_CALME.t>HUD_CALME_MS))CALG.on=false;} /* (garde du calme) voir CALG.on : hors course (pause, mort) et pendant la reprise sans nitro, la garde reste calme */
   if(h!==HUD_CALME.on){HUD_CALME.on=h;document.body.classList.toggle('hudCalme',h);sonCalme(h);}}
 /* (2026-11-13, Sacha : « en mode HUD calme on doit même plus voir les pièces ou les ramasser… pareil pour les pouvoirs et tout, les sons seule la musique reste ») LE SON DU CALME.
    Les effets, les moteurs et les voix passent TOUS par MASTER → MASTER._vol → MASTER._limIn → le limiteur ; la musique (l'<audio> branché, Pouce bleu) entre dans le limiteur À CÔTÉ de _limIn

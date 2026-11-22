@@ -227,7 +227,7 @@ function chaineEncaisse(){
 function chainePerdue(parMort){ // exploser la chaîne ouverte : tout part avec la caisse · parMort : appelée par explode (l'explosion couvre tout)
   if(!CHA.n)return;const g=Math.round(CHA.pts*Math.max(1,CHA.x));
   if(SONV2&&!parMort)sfx('aura.perdue'); // (console de son)
-  slam('CHAÎNE PERDUE','-'+fmtAura(g)+' AURA','#ff5e7a','#b0102a',24,2); // (HUD v4) elle se BRISE sous les yeux, et le couloir dit combien — (2026-09-29) 30 → 24
+  if(!TUTO.on)slam('CHAÎNE PERDUE','-'+fmtAura(g)+' AURA','#ff5e7a','#b0102a',24,2); /* (2026-11-22) pas pendant l'auto-école : « ici, impossible de perdre » */ // (HUD v4) elle se BRISE sous les yeux, et le couloir dit combien — (2026-09-29) 30 → 24
   {const c9=avE('avCh');if(c9){c9.classList.remove('vole','perdu');void c9.offsetWidth;c9.classList.add('perdu');}}chaReset();
 }
 function chaReset(){CHA.pts=0;CHA.x=0;CHA.fam={};CHA.n=0;CHA.t=0;CHA.age=0;CHA.liste.length=0;if(CHA.urg){CHA.urg=false;const b9=avE('avBarF');if(b9&&b9.parentNode)b9.parentNode.classList.remove('urg');}chaHud(true,false);}

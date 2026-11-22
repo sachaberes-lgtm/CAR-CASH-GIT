@@ -25,7 +25,7 @@ css/garage-hub-bas.css               # hubGarage : garage replié, JOUER, missio
 css/ux-nitro-aura.css                # uxPasse, nitroEclair, auraJauge, passeMobile
 css/figures.css                      # pagesPixel, figuresV2, figuresHud
 css/fil.css                          # le fil : la pastille unique des annonces de course
-css/ecole.css                        # ecoleV2 (auto-école), sansCarriere
+css/ecole.css                        # ecoleV3 (l'auto-école plein écran : le calque #ecole, le permis #ecPermis), #figGl, sansCarriere
 css/final-spin.css                   # finalSpin (la machine à sous de fin)
 css/ux8.css                          # ux8 (menus, partie, mouvement), clarté de la boutique, pub récompense, cadeau, HUD allégé
 css/accueil-boutique.css             # accueilDoigt, bqFigHex, policeUnique
@@ -229,7 +229,7 @@ economie/boutique.js                 # LA BOUTIQUE : fenêtre d'achat, SHOP, sho
 economie/achats-store.js             # LE CATALOGUE DES ACHATS : produitsStore, produitDe (caisses premium + peintures à prix)
 economie/livrees.js                  # LES LIVRÉES : le moteur des épiques placées sur la caisse (rallye, F1, pop) et leurs dessins
 economie/boutique-vitrine.js         # la suite de la boutique : la vitrine des peintures, le rangement, les défis, les habillages
-interface/auto-ecole.js              # l'auto-école, la main fantôme
+interface/auto-ecole.js              # l'auto-école v3 plein écran (le calque #ecole, le grand pouce en pixels, le permis), la gerbe de pixels
 economie/achat-carte-moteur.js       # carBuy (l'achat), carte moteur, monnaie du moteur
 voitures/matieres-forme.js           # l'atelier de matières, outils de forme, squelette
 voitures/moteurs-originaux.js         # la boîte à formes des moteurs : kit poli + les dessins originaux

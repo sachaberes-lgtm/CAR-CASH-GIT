@@ -68,8 +68,8 @@ function controle(s, nom) {
 const MOMENTS = CALME ? [
   { n: 'calme-0-nitro', js: 'dbgAuto(true,0,{nit:1});dbgPwr("n");dbgPwr("a");dbgHud("flow",60)', att: 1500, tout: 1 },
   { n: 'calme-1-lache-0s5', js: 'dbgAuto(true,0,{nit:0})', att: 500, tout: 1 },
-  { n: 'calme-2-lache-1s6', att: 1100, vide: 1 },
-  { n: 'calme-3-lache-4s', att: 2400, vide: 1 },
+  { n: 'calme-2-lache-3s8', att: 3300, vide: 1 }, /* (2026-11-22) le calme tombe à 3 s (HUD_CALME_MS), plus 0,9 s */
+  { n: 'calme-3-lache-6s', att: 2400, vide: 1 },
   { n: 'calme-4-nitro-revient', js: 'dbgAuto(true,0,{nit:1})', att: 500, tout: 1 },
   { n: 'calme-5-pause', js: 'dbgAuto(true,0,{nit:0});setTimeout(function(){window.__panBascule()},1500)', att: 3000 },
 ] : [
@@ -137,7 +137,7 @@ if (require.main === module) (async () => {
         if (m.js) { try { await c.ev(m.js + ';1'); } catch (e) { ok += ' js:' + e.message.slice(0, 160); } }
         await dormir(m.att);
         let s = null; try { s = JSON.parse(await c.ev(SONDE)); } catch (e) { ok += ' sonde:' + e.message.slice(0, 120); }
-        await photo(m.n); /* la sonde AVANT la photo : une capture prend jusqu'à 0,6 s sur une machine chargée, et le HUD calme tombe à 0,9 s */
+        await photo(m.n); /* la sonde AVANT la photo : une capture prend jusqu'à 0,6 s sur une machine chargée, et le HUD calme tombe à 3 s (0,9 s avant le 2026-11-22) */
         const r = { ok, sonde: s, pb: [] };
         if (s && !m.sansControle) {
           const k = controle(s, fmt + '-' + m.n); r.blocs = k.blocs; r.pb = k.pb;

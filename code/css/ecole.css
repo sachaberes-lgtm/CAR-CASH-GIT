@@ -1,250 +1,391 @@
-<style id="ecoleV2">
+<style id="ecoleV3">
 /* ==============================================================================================================
-   L'AUTO-ÉCOLE v2 (2026-10-14, Sacha : « le tutoriel est un peu intimidant, pas très beau — plus d'animation, plus de trucs clairs ; les carrés
-   qui donnent les instructions pourraient être plus animés, plus clean ; et un truc pour apprendre les figures »)
-   La carte n'est plus un rectangle de texte. UN MOT (le geste, en or, qui arrive lettre par lettre), UNE ligne courte (les mots à retenir
-   surlignés), à gauche un PETIT FILM du geste en pixels qui tourne en boucle, en haut six pastilles. Sur l'écran, une MAIN FANTÔME
-   (`#ecMain`) fait le geste LÀ où il se fait : sur le volant, sur le bouton NITRO. Réussite : la carte vire au vert, le mot devient « BIEN ! »
-   (le seul rebond : c'est une célébration), la pastille se remplit, les confettis partent, puis la carte s'efface et la suivante descend.
-   Un raté : la carte tremble, l'en-tête dit pourquoi en rouge. Sélecteurs doublés (`#coach.v2.v2`) : la carte d'avant a dix couches de
-   règles, celle-ci passe devant toutes sans les toucher.
+   L'AUTO-ÉCOLE v3, PLEIN ÉCRAN (2026-11-22, Sacha : « il faut une refonte ultra poussée du tuto […] des trucs qui prennent tout l'écran, des jolies
+   animations 3D avec des pouces en pixels […] un grand truc sur l'écran en transparent avec un pouce, plus immersif, plus intuitif »)
+   Le calque #ecole (interface/auto-ecole.js) couvre l'écran, TRANSPARENT, et ne prend jamais un doigt (pointer-events:none partout). Son état :
+     data-ph = accueil · titre (la carte-titre) · geste (on fait le geste) · bravo · rate · fin ;   data-g = la mise en scène du geste
+     (glisse · fleches · nitro · bord · vole · pose · double · glisseN) ;   .pc = au clavier (les touches à la place du pouce) ;   .joue = le joueur agit (le pouce
+     s'estompe) ;   .relance = il n'y arrive pas (le pouce se remontre en grand) ;   --k = la taille d'un pixel du pouce, --a / --pw = l'amplitude du glissé et la
+     largeur de la piste du volant, --nw = la largeur du bouton NITRO.
+   ⚠ iPhone chaud, mode économie : on n'anime QUE transform et opacity ; pas de filter, pas de backdrop-filter, pas d'ombre floue animée — les ombres sont des
+   pixels (box-shadow / text-shadow fixes, une copie d'encre du pouce). Chaque animation n'est déclarée QUE dans la phase qui la montre : la phase change, elle s'arrête.
    ===================================================================================================================== */
-html body #coach.v2.v2{
-  --ecC:var(--neoC,var(--neoC));
-  left:50%;top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 56px);width:min(410px,calc(100vw - 24px));box-sizing:border-box;
-  display:grid;grid-template-columns:76px minmax(0,1fr);grid-template-rows:auto auto 1fr; /* (24/10, débogage sortie iOS) minmax(0,…) : un 1fr ne descend jamais sous son contenu le plus long — le message rouge d un raté (« ENCORE ! NITRO EN L AIR », sur une ligne) élargissait la colonne à 385 px dans une carte de 351 : consigne coupée, message sous PASSER, sur tous les iPhone */column-gap:12px;row-gap:3px;align-items:center;
-  padding:10px 12px 11px 10px;border:0!important;border-radius:0!important;overflow:visible;font-family:var(--pix);color:#fff;
-  background:linear-gradient(100deg,#150e33 0%,#22165a 58%,#150e33 100%)!important;
-  clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
-  box-shadow:inset 0 0 0 2px rgba(0,234,255,.42),inset 0 3px 0 rgba(255,255,255,.10),inset 0 -3px 0 rgba(0,0,0,.35)!important;
-  transform:translate(-50%,-16px) scale(.94);opacity:0;pointer-events:none;
-  transition:transform var(--t-slow) var(--ease),opacity var(--t-slow) var(--ease);animation:none}
-html body #coach.v2.v2.on{transform:translate(-50%,0) scale(1);opacity:1;pointer-events:auto}
-html body #coach.v2.v2.sort{transform:translate(-50%,-12px) scale(.96);opacity:0;transition-duration:var(--t-fast)}
-html body #coach.v2.v2::before{content:'';position:absolute;inset:0;pointer-events:none;  /* le reflet qui passe : la carte VIT */
-  background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.10) 45%,transparent 60%) no-repeat;background-size:250% 100%;
-  animation:ecReflet 3.2s var(--ease) infinite}
-@keyframes ecReflet{0%,55%{background-position:120% 0}100%{background-position:-60% 0}}
-/* LE BRAVO : vert franc, le mot devient l'éloge */
-html body #coach.v2.v2.bravo{background:linear-gradient(100deg,#0d3a1d 0%,#167a37 58%,#0d3a1d 100%)!important;
-  box-shadow:inset 0 0 0 2px rgba(125,255,155,.75),inset 0 3px 0 rgba(255,255,255,.18),inset 0 -3px 0 rgba(0,0,0,.35)!important}
-/* LE RATÉ : elle tremble, l'en-tête parle rouge */
-html body #coach.v2.v2.rate{animation:ecTremble .42s steps(6)}
-@keyframes ecTremble{0%,100%{translate:0 0}20%{translate:-7px 0}40%{translate:6px 0}60%{translate:-4px 0}80%{translate:3px 0}}
-/* — l'en-tête : six pastilles, et PASSER au coin — */
-html body #coach.v2 .ecH{grid-column:2;display:flex;align-items:center;gap:8px;min-height:14px;padding-right:0} /* (la place de PASSER, au coin) */
-html body #coach.v2 .ecPips{display:flex;gap:5px}
-html body #coach.v2 .ecPips i{width:10px;height:10px;background:#2a2158;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);transform:skewX(-11deg)}
-html body #coach.v2 .ecPips i.ok{background:var(--neoV,var(--neoV));box-shadow:0 0 6px rgba(94,227,122,.6)}
-html body #coach.v2 .ecPips i.on{background:var(--or);animation:ecPip 1s steps(2) infinite}
-@keyframes ecPip{50%{background:#fff4b8;box-shadow:0 0 8px rgba(255,215,94,.9)}}
-html body #coach.v2 .ecPips i.vient{animation:ecPipOk .5s var(--ease)}
-@keyframes ecPipOk{0%{transform:skewX(-11deg) scale(2.2);background:#fff}100%{transform:skewX(-11deg) scale(1)}}
-html body #coach.v2 .coN{flex:1;min-width:0;font-size:9px;letter-spacing:1px;color:var(--neoR,var(--neoR));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-html body #coach.v2.passe .coN{color:var(--or)}
-html body #coach.v2 .coSkip{grid-column:1/-1;display:block;width:100%;min-height:48px;padding:12px;margin:10px 0 0;border:0;
-  font:10px var(--pix);letter-spacing:2px;color:#2a1700;background:var(--or);box-shadow:inset 0 -3px 0 var(--orS),0 3px 0 rgba(0,0,0,.35);cursor:pointer} /* PASSER : un gros bouton or pleine largeur, impossible à rater */
-html body #coach.v2 .coSkip:active{transform:translateY(2px)}
-html body #coach.v2 .coSkip.sur{color:var(--neoR,var(--neoR));opacity:1}
-/* — LE MOT : en or, il arrive lettre par lettre — */
-html body #coach.v2 .ecT{grid-column:2;position:relative;display:block;margin:2px 0 1px;white-space:nowrap;line-height:1.15;
-  font-size:min(22px,calc((min(410px,100vw - 24px) - 116px) / var(--n,8)));letter-spacing:1px;color:var(--or);
-  text-shadow:0 3px 0 var(--orF),0 0 16px rgba(255,215,94,.35)}
-html body #coach.v2 .ecT .l{display:inline-block;animation:ecLettre .38s var(--ease) both;animation-delay:calc(var(--i) * 32ms)}
-@keyframes ecLettre{from{opacity:0;transform:translateY(12px) scale(.6)}to{opacity:1;transform:none}}
-html body #coach.v2.bravo .ecT{color:#fff;text-shadow:0 3px 0 #0b5a24,0 0 18px rgba(125,255,155,.6)}
-html body #coach.v2.bravo .ecT .l{animation:ecHourra .5s cubic-bezier(.3,1.7,.5,1) both;animation-delay:calc(var(--i) * 26ms)} /* la célébration : seul rebond de la carte */
-@keyframes ecHourra{from{opacity:0;transform:translateY(-14px) scale(1.8)}to{opacity:1;transform:none}}
-/* — LA LIGNE : courte, les mots à retenir surlignés — */
-html body #coach.v2 .ecD{grid-column:2;align-self:start;font:var(--f1)/1.6 var(--pix);letter-spacing:0;color:#eae6ff;animation:ecLigne .5s var(--ease) .18s both}
-html body #coach.v2 .ecD em{font-style:normal;color:var(--txO);background:var(--or);padding:0 4px;margin:0 1px;box-shadow:0 2px 0 var(--orF);white-space:nowrap}
-html body #coach.v2 .ecD em.long{white-space:normal;-webkit-box-decoration-break:clone;box-decoration-break:clone} /* (2026-11-13) trop large pour sa colonne (tutoLong) : il passe à la ligne au lieu de glisser sous PASSER */
-html body #coach.v2 .ecD kbd{font:9px var(--pix);color:var(--txO);background:#fff;padding:3px 5px 2px;margin:0 1px;box-shadow:0 2px 0 #8a83b8;white-space:nowrap}
-@keyframes ecLigne{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
-html body #coach.v2.bravo .ecD{visibility:hidden} /* le bravo parle seul */
-/* — LE PETIT FILM du geste (76 × 76) : une scène en pixels qui tourne en boucle — */
-html body #coach.v2 .ecScene{grid-column:1;grid-row:1/4;position:relative;width:76px;height:76px;overflow:hidden;
-  background:radial-gradient(120% 70% at 50% 112%,rgba(0,234,255,.30),rgba(0,234,255,0) 62%),linear-gradient(180deg,#1d1450,#0a0720);
-  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);box-shadow:inset 0 0 0 2px rgba(0,234,255,.30)}
-html body #coach.v2 .ecScene i{position:absolute;display:block;background:currentColor;
-  -webkit-mask:var(--m) center/100% 100% no-repeat;mask:var(--m) center/100% 100% no-repeat}
-html body #coach.v2 .ecScene i.nm{-webkit-mask:none;mask:none}
-html body #coach.v2 .ecScene .car{--m:var(--pxi-voiture);width:30px;height:30px;color:var(--nP)}
-html body #coach.v2 .ecScene .main{--m:var(--pxi-pouce);width:22px;height:22px;color:#fff}
-html body #coach.v2 .ecScene .flam{--m:var(--pxi-flamme);width:13px;height:13px;color:#ffb02a;transform:rotate(-90deg)}
-html body #coach.v2 .ecScene .cible{--m:var(--pxi-cible);width:26px;height:26px;color:var(--cash)}
-html body #coach.v2 .ecScene .ok{--m:var(--pxi-coche);width:40px;height:40px;left:18px;top:18px;color:var(--cash);opacity:0}
-html body #coach.v2 .ecScene .btn{width:20px;height:20px;background:linear-gradient(180deg,#ffe58a,#ff9a1a);box-shadow:inset 0 -3px 0 #a14c00,0 0 0 2px var(--txO)}
-html body #coach.v2 .ecScene .btn::after{content:'';position:absolute;inset:3px;background:var(--txO);-webkit-mask:var(--pxi-eclair) center/100% 100% no-repeat;mask:var(--pxi-eclair) center/100% 100% no-repeat}
-html body #coach.v2 .ecScene .sol{left:0;right:0;bottom:0;height:16px;background:var(--k4);box-shadow:inset 0 2px 0 rgba(0,234,255,.55)}
-html body #coach.v2 .ecScene .tirets{left:0;right:0;bottom:7px;height:2px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.6) 0 6px,transparent 6px 14px);animation:ecTirets .42s steps(7) infinite}
-@keyframes ecTirets{to{background-position:-14px 0}}
-html body #coach.v2 .ecScene .vit{height:2px;width:14px;background:rgba(255,255,255,.65);animation:ecVit .5s steps(5) infinite}
-@keyframes ecVit{from{transform:translateX(14px);opacity:1}to{transform:translateX(-26px);opacity:0}}
-html body #coach.v2 .ecScene .x2{left:44px;top:30px;font:9px var(--pix);color:var(--txO);background:var(--or);padding:3px 3px 2px;-webkit-mask:none;mask:none;opacity:0}
-html body #coach.v2.bravo .ecScene>*{animation-play-state:paused}
-html body #coach.v2.bravo .ecScene .ok{opacity:1;animation:ecOk .5s cubic-bezier(.3,1.7,.5,1) both!important;animation-play-state:running!important}
-@keyframes ecOk{from{transform:scale(2.4) rotate(-12deg);opacity:0}to{transform:none;opacity:1}}
-/* 1 · TOURNE — la route file en perspective, la caisse va et vient, le pouce la mène */
-html body #coach.v2 .f-glisse .route{left:4px;right:4px;bottom:0;height:46px;background:var(--k4);clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);box-shadow:none}
-html body #coach.v2 .f-glisse .axe{left:36px;width:4px;bottom:0;height:46px;background:repeating-linear-gradient(180deg,rgba(255,255,255,.7) 0 6px,transparent 6px 12px);animation:ecAxe .4s steps(6) infinite}
-@keyframes ecAxe{to{background-position:0 12px}}
-html body #coach.v2 .f-glisse .car{left:23px;bottom:14px;animation:ecVire 1.8s steps(18) infinite}
-html body #coach.v2 .f-glisse .main{left:27px;bottom:-3px;animation:ecVireM 1.8s steps(18) infinite}
-@keyframes ecVire{0%,100%{transform:translateX(-13px) rotate(-8deg)}50%{transform:translateX(13px) rotate(8deg)}}
-@keyframes ecVireM{0%,100%{transform:translateX(-17px)}50%{transform:translateX(17px)}}
-/* 2 · NITRO — le doigt reste sur le bouton, la caisse crache le feu et file */
-html body #coach.v2 .f-nitro .car{left:24px;bottom:15px;animation:ecTremblote .12s steps(2) infinite}
-html body #coach.v2 .f-nitro .flam{left:13px;bottom:21px;animation:ecFeu .2s steps(2) infinite}
-html body #coach.v2 .f-nitro .vit.v1{left:40px;top:12px}html body #coach.v2 .f-nitro .vit.v2{left:50px;top:24px;animation-delay:.2s}
-html body #coach.v2 .f-nitro .btn{right:6px;top:6px;animation:ecTenu 1.6s steps(8) infinite}
-html body #coach.v2 .f-nitro .main{right:3px;top:16px;animation:ecTenuM 1.6s steps(8) infinite}
-@keyframes ecTremblote{50%{transform:translate(1px,-1px)}}
-@keyframes ecFeu{0%{transform:rotate(-90deg) scale(1)}50%{transform:rotate(-90deg) scale(1.35,1.1)}}
-@keyframes ecTenu{0%,8%{transform:none}14%,88%{transform:translateY(2px) scale(.88);filter:brightness(1.3)}}
-@keyframes ecTenuM{0%{transform:translateY(8px);opacity:0}10%{transform:none;opacity:1}14%,88%{transform:translateY(2px)}100%{transform:translateY(8px);opacity:0}}
-/* 3 · DÉCOLLE — la route s'arrête net : la caisse fonce au bord et part en l'air */
-html body #coach.v2 .f-bord .sol{right:30px}
-html body #coach.v2 .f-bord .car{left:0;bottom:15px;animation:ecBord 1.9s steps(19) infinite}
-@keyframes ecBord{0%{transform:translateX(-24px);opacity:1}45%{transform:translateX(26px)}70%{transform:translate(42px,-18px) rotate(-14deg)}
-  92%{transform:translate(54px,6px) rotate(10deg);opacity:1}100%{transform:translate(58px,14px) rotate(16deg);opacity:0}}
-html body #coach.v2 .f-bord .fleche{--m:var(--pxi-droite);width:14px;height:14px;left:52px;top:12px;color:var(--or);animation:ecFleche .6s steps(2) infinite}
-@keyframes ecFleche{50%{transform:translateX(4px);opacity:.4}}
-/* 4 · VOLE — en l'air, le doigt sur NITRO : la caisse remonte sur sa flamme */
-html body #coach.v2 .f-vole .car{left:20px;top:22px;animation:ecPlane 1.6s steps(16) infinite}
-html body #coach.v2 .f-vole .flam{left:9px;top:31px;animation:ecPlane 1.6s steps(16) infinite,ecFeu .2s steps(2) infinite}
-@keyframes ecPlane{0%,100%{translate:0 6px}50%{translate:0 -6px}}
-html body #coach.v2 .f-vole .route{left:18px;right:10px;bottom:4px;height:6px;background:var(--k4);box-shadow:inset 0 2px 0 rgba(0,234,255,.55)}
-html body #coach.v2 .f-vole .btn{right:5px;top:5px;transform:translateY(2px) scale(.88);filter:brightness(1.3)}
-html body #coach.v2 .f-vole .main{right:2px;top:15px}
-/* 5 · POSE-TOI — la caisse descend en arc et se pose pile dans l'anneau, qui flambe en or */
-html body #coach.v2 .f-pose .cible{left:38px;bottom:8px;animation:ecCible 2s steps(2) infinite}
-html body #coach.v2 .f-pose .car{left:0;top:0;animation:ecPose 2s steps(20) infinite}
-@keyframes ecPose{0%{transform:translate(-6px,4px) rotate(10deg);opacity:0}10%{opacity:1}60%{transform:translate(34px,30px) rotate(0)}
-  64%{transform:translate(36px,33px)}68%,88%{transform:translate(36px,31px);opacity:1}100%{transform:translate(36px,31px);opacity:0}}
-@keyframes ecCible{0%,60%{color:var(--cash);transform:none}64%,90%{color:var(--or);transform:scale(1.3)}}
-/* 6 · FIGURE — deux tapes sur NITRO (×2) : la caisse saute et fait un tonneau */
-html body #coach.v2 .f-figure .btn{right:6px;top:6px;animation:ecDouble 2.2s steps(22) infinite}
-html body #coach.v2 .f-figure .main{right:3px;top:16px;animation:ecDoubleM 2.2s steps(22) infinite}
-html body #coach.v2 .f-figure .x2{animation:ecX2 2.2s steps(22) infinite}
-html body #coach.v2 .f-figure .car{left:16px;bottom:15px;animation:ecSalto 2.2s steps(22) infinite}
-@keyframes ecDouble{0%,6%,14%,22%,100%{transform:none;filter:none}9%,18%{transform:translateY(2px) scale(.86);filter:brightness(1.4)}}
-@keyframes ecDoubleM{0%,6%,14%,22%,100%{transform:none}9%,18%{transform:translateY(3px)}}
-@keyframes ecX2{0%,16%{opacity:0;transform:scale(.4)}20%,46%{opacity:1;transform:none}52%,100%{opacity:0}}
-@keyframes ecSalto{0%,24%{transform:none}38%{transform:translateY(-22px) rotate(-180deg)}52%{transform:translateY(-22px) rotate(-360deg)}66%,100%{transform:none}}
-/* L'ACCUEIL — « six gestes, impossible de perdre » : la caisse roule tranquille */
-html body #coach.v2 .f-accueil .car{left:22px;bottom:15px;animation:ecTremblote .5s steps(2) infinite}
-html body #coach.v2 .f-accueil .coeur{--m:var(--pxi-coeur);width:16px;height:16px;left:46px;top:8px;color:var(--neoM,var(--neoM));animation:ecPip 1s steps(2) infinite}
-/* — LA MAIN FANTÔME : le geste montré SUR la commande (le volant, le bouton NITRO) — */
-#ecMain{position:fixed;left:0;top:0;width:46px;height:46px;z-index:67;pointer-events:none;opacity:0;transition:opacity var(--t-slow) var(--ease)}
-#ecMain.on{opacity:1}
-#ecMain .p{position:absolute;inset:0}
-#ecMain .m,#ecMain .o{position:absolute;inset:0;-webkit-mask:var(--pxi-pouce) center/100% 100% no-repeat;mask:var(--pxi-pouce) center/100% 100% no-repeat}
-#ecMain .o{background:var(--txO);transform:translate(3px,3px);opacity:.7}
-#ecMain .m{background:#fff}
-#ecMain .r{position:absolute;left:23px;top:5px;width:18px;height:18px;margin:-9px 0 0 -9px;border:3px solid var(--or);opacity:0}
-#ecMain .fg,#ecMain .fd{position:absolute;top:10px;width:18px;height:18px;background:var(--or);opacity:0;
-  -webkit-mask:var(--pxi-gauche) center/100% 100% no-repeat;mask:var(--pxi-gauche) center/100% 100% no-repeat}
-#ecMain .fd{-webkit-mask-image:var(--pxi-droite);mask-image:var(--pxi-droite)}
-#ecMain .x2{position:absolute;left:-34px;top:-14px;font:10px var(--pix);color:var(--txO);background:var(--or);padding:4px 4px 3px;opacity:0;box-shadow:0 2px 0 var(--orF)}
-#ecMain.glisse .p{animation:ecMGlisse 1.8s var(--ease) infinite}
-#ecMain.glisse .fg{left:-44px;opacity:1;animation:ecFleche .6s steps(2) infinite}
-#ecMain.glisse .fd{left:72px;opacity:1;animation:ecFleche .6s steps(2) infinite .3s}
-@keyframes ecMGlisse{0%,100%{transform:translateX(-40px)}45%,55%{transform:translateX(40px)}}
-#ecMain.pousse .p{animation:ecMPousse 1.6s var(--ease) infinite}
-#ecMain.pousse .fd{left:84px;opacity:1;animation:ecFleche .6s steps(2) infinite}
-@keyframes ecMPousse{0%{transform:none;opacity:0}12%{opacity:1}45%,85%{transform:translateX(46px);opacity:1}100%{transform:translateX(46px);opacity:0}}
-#ecMain.appui .p{animation:ecMAppui 1.6s var(--ease) infinite}
-#ecMain.appui .r{animation:ecMOnde 1.6s var(--ease) infinite}
-@keyframes ecMAppui{0%{transform:translateY(-14px);opacity:0}14%{transform:none;opacity:1}20%,84%{transform:translateY(4px) scale(.9);opacity:1}100%{transform:translateY(-10px);opacity:0}}
-@keyframes ecMOnde{0%,18%{opacity:0;transform:scale(.4)}22%{opacity:1;transform:scale(.6)}60%{opacity:0;transform:scale(3.4)}61%,100%{opacity:0}}
-#ecMain.double .p{animation:ecMDouble 1.8s steps(18) infinite}
-#ecMain.double .r{animation:ecMOnde2 1.8s var(--ease) infinite}
-#ecMain.double .x2{animation:ecX2 1.8s steps(18) infinite}
-/* (2026-10-15) LA FIGURE AU GLISSÉ : le pouce se pose sur NITRO, glisse vers la gauche, se lève */
-#ecMain.glisseN .p{animation:ecMGlisseN 1.7s var(--ease) infinite}
-#ecMain.glisseN .fg{left:-46px;opacity:1;animation:ecFleche .6s steps(2) infinite}
-@keyframes ecMGlisseN{0%,14%{transform:none;opacity:1}22%{transform:translateY(3px)}62%{transform:translate(-58px,3px)}70%,100%{transform:translate(-58px,-6px);opacity:0}}
+#ecole{position:fixed;inset:0;z-index:66;display:none;overflow:hidden;pointer-events:none;font-family:var(--pix);color:#fff;-webkit-font-smoothing:none;
+  --k:6;--a:90px;--pw:240px;--nw:96px;--dx:100px;--dy:0px;--hT:calc(var(--ccT,env(safe-area-inset-top,0px)) + 48px);
+  --ink:#190d35;--orE:#b87400;--orP:#7a4400;--vert:#5ee37a;--vertE:#0f6427;--chaud:#ff9a3c;--chaudE:#9c3d00}
+#ecole.on{display:block}
+#ecole *{pointer-events:none!important;box-sizing:border-box}
+#ecole .pxi{background:currentColor}
+/* — les couches : visibles selon la phase (un fondu d'opacité ; cachées, elles ne peignent plus) — */
+#ecole .e3Voile,#ecole .e3Haut,#ecole .e3Prog,#ecole .e3Scene,#ecole .e3Rappel,#ecole .e3Carte,#ecole .e3Acc,#ecole .e3Fete{position:absolute;opacity:0;visibility:hidden;
+  transition:opacity .32s var(--ease,ease),visibility 0s linear .32s,transform .42s var(--ease,ease)}
+#ecole:is([data-ph=accueil],[data-ph=titre],[data-ph=bravo],[data-ph=rate]) .e3Voile,
+#ecole:is([data-ph=geste],[data-ph=rate],[data-ph=fin],[data-ph=titre]) .e3Haut,
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=bravo],[data-ph=rate],[data-ph=fin]) .e3Prog,
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate]) .e3Scene,
+#ecole[data-ph=geste] .e3Rappel,
+#ecole[data-ph=titre] .e3Carte,#ecole[data-ph=accueil] .e3Acc,#ecole:is([data-ph=bravo],[data-ph=rate]) .e3Fete{opacity:1;visibility:visible;transition:opacity .32s var(--ease,ease),visibility 0s,transform .42s var(--ease,ease)}
+/* (2026-11-22, finitions) LE RAPPEL ET LA FÊTE NE SE LISENT JAMAIS L'UN SUR L'AUTRE (ils occupent le même ciel) : celui qui part s'efface en 0,12 s, celui qui arrive attend ces 0,12 s —
+   en vol le bravo et la consigne suivante se superposaient 0,3 s, au raté l'ancien mot restait un instant sous le cœur. Le geste, lui, est demandé au même instant qu'avant. */
+#ecole :is(.e3Rappel,.e3Fete){transition:opacity .12s linear,visibility 0s linear .12s,transform .42s var(--ease,ease)}
+#ecole[data-ph=geste] .e3Rappel,#ecole:is([data-ph=bravo],[data-ph=rate]) .e3Fete{transition:opacity .2s var(--ease,ease) .12s,visibility 0s,transform .42s var(--ease,ease)}
+/* LE VOILE : l'encre du ciel de nuit en haut, la route laissée claire en bas (on voit toujours la caisse) */
+#ecole .e3Voile{inset:0;background:linear-gradient(180deg,rgba(14,8,40,.86) 0%,rgba(14,8,40,.66) 30%,rgba(14,8,40,.22) 52%,rgba(14,8,40,0) 66%)}
+#ecole[data-ph=rate] .e3Voile{opacity:.75}
+#ecole .e3Haut{left:0;right:0;top:0;height:calc(var(--hT) + 150px);background:linear-gradient(180deg,rgba(14,8,40,.72) 0%,rgba(14,8,40,.42) 55%,rgba(14,8,40,0) 100%)}
+/* — LA PROGRESSION : six tuiles (le dessin de chaque geste), discrètes, en haut au milieu — */
+#ecole .e3Prog{left:50%;top:var(--hT);display:flex;gap:6px;transform:translateX(-50%)}
+#ecole .e3Pp{position:relative;display:flex;align-items:center;justify-content:center;width:26px;height:26px;color:rgba(255,255,255,.5);
+  background:rgba(25,13,53,.78);box-shadow:inset 0 0 0 2px rgba(255,255,255,.16),0 3px 0 rgba(0,0,0,.3)}
+#ecole .e3Pp .pxi{--pxs:2;width:18px;height:18px}
+#ecole .e3Pp.on{color:var(--ink);background:var(--or);box-shadow:inset 0 -3px 0 var(--orE),0 3px 0 var(--ink);transform:translateY(-2px) scale(1.12)}
+#ecole .e3Pp.ok{color:#fff;background:var(--vert);box-shadow:inset 0 -3px 0 var(--vertE),0 3px 0 var(--ink)}
+#ecole .e3Pp.on::after{content:'';position:absolute;inset:-5px;box-shadow:0 0 0 2px var(--or);opacity:0}
+#ecole:is([data-ph=titre],[data-ph=geste]) .e3Pp.on::after{animation:e3PpBat 1.2s steps(6) infinite}
+@keyframes e3PpBat{0%{opacity:.9;transform:scale(.85)}100%{opacity:0;transform:scale(1.35)}}
+#ecole .e3Pp.vient{animation:e3PpVient .55s cubic-bezier(.3,1.7,.5,1) both}
+@keyframes e3PpVient{0%{transform:scale(2.2) rotate(-12deg)}100%{transform:none}}
+/* — LE RAPPEL, pendant le geste : le mot et la phrase, en haut, dans le ciel — */
+#ecole .e3Rappel{left:50%;top:calc(var(--hT) + 40px);width:min(94vw,520px);display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;transform:translateX(-50%)}
+#ecole .e3RMot{display:block;white-space:nowrap;line-height:1;color:var(--or);letter-spacing:1px;
+  text-shadow:0 -2px 0 var(--ink),2px 0 0 var(--ink),-2px 0 0 var(--ink),0 3px 0 var(--orE),0 5px 0 var(--ink)}
+#ecole .e3RMot .l{display:inline-block}
+#ecole .e3RPh,#ecole .e3Ph,#ecole .e3FPh,#ecole .e3ASous,#ecole .e3APh{display:block;font-size:12px;line-height:1.75;color:#fff;letter-spacing:0;
+  text-shadow:0 2px 0 var(--ink),2px 0 0 var(--ink),-2px 0 0 var(--ink),0 -2px 0 var(--ink)}
+#ecole em{font-style:normal;color:var(--ink);background:var(--or);padding:1px 5px 0;margin:0 1px;box-shadow:0 3px 0 var(--orE);text-shadow:none;white-space:nowrap}
+#ecole kbd{font:inherit;font-size:.9em;color:var(--ink);background:#fff;padding:2px 6px 1px;margin:0 2px;box-shadow:0 3px 0 #8a83b8,0 0 0 2px var(--ink);text-shadow:none;white-space:nowrap}
+#ecole.relance .e3Rappel .e3RMot{animation:e3Saut .6s cubic-bezier(.3,1.7,.5,1)}
+/* (2026-11-22) une étape atteinte EN VOL (VOLE, POSE-TOI) n'a pas de carte-titre : son mot arrive en grand dans le rappel, puis se range */
+#ecole.annonce[data-ph=geste] .e3RMot{animation:e3Annonce .8s cubic-bezier(.2,1.25,.4,1) .12s both;transform-origin:50% 100%} /* .22 s : le bravo d'avant finit de s'effacer */
+@keyframes e3Annonce{0%{opacity:0;transform:scale(1.9)}30%{opacity:1;transform:scale(1.4)}70%{transform:scale(1.4)}100%{transform:none}}
+/* (2026-11-22) la caisse explose pendant la leçon : le pouce, la jauge, les chevrons et le rappel se retirent le temps de l'explosion */
+#ecole.boom.boom :is(.e3Scene,.e3Rappel){opacity:0}
+@keyframes e3Saut{0%{transform:none}35%{transform:translateY(-8px) scale(1.12)}100%{transform:none}}
+/* — LA CARTE-TITRE : « 1/6 », la tuile du geste qui pivote, LE MOT géant en relief, la phrase — elle bascule en 3D en arrivant, puis s'envole vers le rappel — */
+#ecole .e3Carte{left:50%;top:calc(var(--hT) + 46px);width:min(94vw,600px);display:flex;flex-direction:column;align-items:center;text-align:center;
+  transform:translateX(-50%) translateY(-34px) scale(.5);transform-origin:50% 0}
+#ecole[data-ph=titre] .e3Carte{transform:translateX(-50%);animation:e3Bascule .55s cubic-bezier(.2,1.25,.4,1) both}
+@keyframes e3Bascule{0%{opacity:0;transform:translateX(-50%) perspective(700px) rotateX(-75deg) translateY(-40px)}100%{opacity:1;transform:translateX(-50%) perspective(700px) rotateX(0)}}
+#ecole .e3Tuile{position:relative;width:72px;height:72px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;color:var(--ink);
+  background:linear-gradient(180deg,#fff0a0 0%,var(--or) 45%,#f2b400 100%);box-shadow:inset 0 0 0 3px var(--ink),inset 0 -6px 0 var(--orE),0 6px 0 var(--orP),0 10px 0 var(--ink)}
+#ecole .e3Tuile .pxi{--pxs:5;width:45px;height:45px}
+#ecole[data-ph=titre] .e3Tuile{animation:e3Pivote .8s cubic-bezier(.25,1.3,.45,1) .08s both}
+@keyframes e3Pivote{0%{opacity:0;transform:perspective(500px) rotateY(-200deg) scale(.4)}60%{opacity:1}100%{transform:perspective(500px) rotateY(0) scale(1)}}
+#ecole .e3Num{display:block;margin-bottom:12px;padding:6px 10px 4px;font-size:11px;letter-spacing:2px;color:var(--or);background:rgba(25,13,53,.9);box-shadow:inset 0 0 0 2px var(--or),0 3px 0 var(--ink)}
+#ecole .e3Mot,#ecole .e3AMot,#ecole .e3FMot{display:block;white-space:nowrap;line-height:1;letter-spacing:2px;color:var(--or);
+  text-shadow:0 -3px 0 var(--ink),3px 0 0 var(--ink),-3px 0 0 var(--ink),3px -3px 0 var(--ink),-3px -3px 0 var(--ink),0 3px 0 var(--orE),3px 3px 0 var(--ink),-3px 3px 0 var(--ink),0 6px 0 var(--orE),0 9px 0 var(--orP),0 12px 0 var(--ink),0 18px 0 rgba(10,5,30,.3)}
+#ecole .e3Mot{transform:perspective(600px) rotateX(16deg);margin:2px 0 22px}
+#ecole .e3Mot .l,#ecole .e3AMot .l,#ecole .e3FMot .l{display:inline-block}
+#ecole .l.e,#ecPermis .l.e{width:.5em} /* l'espace d'un mot géant (« BIEN ! ») : une demi-lettre, pas une lettre entière */
+#ecole[data-ph=titre] .e3Mot .l,#ecole[data-ph=accueil] .e3AMot .l{animation:e3Lettre .5s cubic-bezier(.25,1.5,.45,1) both;animation-delay:calc(.12s + var(--i) * 45ms)}
+@keyframes e3Lettre{0%{opacity:0;transform:translateY(50px) scale(.3) rotate(-14deg)}100%{opacity:1;transform:none}}
+#ecole .e3Ph{max-width:min(92vw,440px);font-size:13px}
+#ecole[data-ph=titre] .e3Ph{animation:e3Monte .45s var(--ease,ease) .4s both}
+@keyframes e3Monte{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:none}}
+/* — L'ACCUEIL : « AUTO-ÉCOLE », les six gestes en tuiles qui arrivent une à une, « ici, impossible de perdre » — */
+#ecole .e3Acc{left:50%;top:calc(var(--hT) + 34px);width:min(94vw,600px);display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;transform:translateX(-50%)}
+#ecole .e3AMot{transform:perspective(600px) rotateX(16deg);margin-bottom:8px}
+#ecole .e3ASous{font-size:13px}
+#ecole .e3ATu{display:flex;gap:8px;margin:6px 0}
+#ecole .e3At{position:relative;display:flex;align-items:center;justify-content:center;width:46px;height:46px;color:#fff;background:rgba(25,13,53,.9);
+  box-shadow:inset 0 0 0 3px var(--neoC,#00eaff),0 4px 0 var(--ink)}
+#ecole .e3At .pxi{--pxs:3;width:27px;height:27px}
+#ecole .e3At b{position:absolute;left:-5px;top:-7px;padding:3px 3px 2px;font:8px var(--pix);font-weight:400;color:var(--ink);background:var(--or);box-shadow:0 2px 0 var(--ink)}
+/* (2026-11-22, finitions) tout est là à 1,1 s (les tuiles finissaient d'arriver à 1,6 s, la phrase à 1,65 s, pour une fermeture à 2,6 s) : il reste 2,2 s de lecture complète */
+#ecole[data-ph=accueil] .e3At{animation:e3Pivote .5s cubic-bezier(.25,1.3,.45,1) both;animation-delay:calc(.2s + var(--i) * 70ms)}
+#ecole .e3APh{font-size:12px}
+#ecole .e3APh em{background:var(--vert);box-shadow:0 3px 0 var(--vertE)}
+#ecole[data-ph=accueil] .e3APh{animation:e3Monte .4s var(--ease,ease) .65s both}
+/* — LA FÊTE (bravo) et LE RATÉ (gentil) : au milieu du ciel, en grand — */
+#ecole .e3Fete{left:0;right:0;top:calc(var(--hT) + 46px);display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
+#ecole .e3Badge{position:relative;width:92px;height:92px;display:flex;align-items:center;justify-content:center;color:#fff;
+  background:linear-gradient(180deg,#9dffb2 0%,var(--vert) 40%,#2fb14e 100%);box-shadow:inset 0 0 0 3px var(--ink),inset 0 -7px 0 var(--vertE),0 7px 0 #0a4a1b,0 11px 0 var(--ink)}
+#ecole .e3Badge .pxi{--pxs:6;width:54px;height:54px}
+#ecole[data-ph=rate] .e3Badge{background:linear-gradient(180deg,#ffd0a0 0%,var(--chaud) 45%,#e5741a 100%);box-shadow:inset 0 0 0 3px var(--ink),inset 0 -7px 0 var(--chaudE),0 7px 0 #6a2a00,0 11px 0 var(--ink)}
+#ecole[data-ph=bravo] .e3Badge{animation:e3Pivote .6s cubic-bezier(.25,1.4,.45,1) both}
+#ecole[data-ph=rate] .e3Badge{animation:e3Tremble .5s steps(6) both}
+@keyframes e3Tremble{0%{transform:scale(.6);opacity:0}20%{transform:translateX(-8px);opacity:1}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}100%{transform:none;opacity:1}}
+#ecole .e3FMot{color:#fff;text-shadow:0 -3px 0 var(--ink),3px 0 0 var(--ink),-3px 0 0 var(--ink),3px -3px 0 var(--ink),-3px -3px 0 var(--ink),0 3px 0 #1faa47,3px 3px 0 var(--ink),-3px 3px 0 var(--ink),0 6px 0 #1faa47,0 9px 0 var(--vertE),0 12px 0 var(--ink),0 18px 0 rgba(10,5,30,.3)}
+#ecole[data-ph=rate] .e3FMot{color:#ffe2b8;text-shadow:0 -3px 0 var(--ink),3px 0 0 var(--ink),-3px 0 0 var(--ink),3px -3px 0 var(--ink),-3px -3px 0 var(--ink),0 3px 0 var(--chaud),3px 3px 0 var(--ink),-3px 3px 0 var(--ink),0 6px 0 var(--chaud),0 9px 0 var(--chaudE),0 12px 0 var(--ink),0 18px 0 rgba(10,5,30,.3)}
+#ecole:is([data-ph=bravo],[data-ph=rate]) .e3FMot .l{animation:e3Hourra .5s cubic-bezier(.3,1.7,.5,1) both;animation-delay:calc(.08s + var(--i) * 30ms)}
+@keyframes e3Hourra{0%{opacity:0;transform:translateY(-26px) scale(2)}100%{opacity:1;transform:none}}
+#ecole .e3FPh{max-width:min(92vw,440px);font-size:13px}
+#ecole .e3FPh:empty{display:none}
+#ecole[data-ph=rate] .e3FPh{animation:e3Monte .45s var(--ease,ease) .25s both}
+/* les rayons du bravo : huit barres qui jaillissent derrière la coche (des dégradés FIXES ; seuls transform et opacity bougent) */
+#ecole .e3Rayons{position:absolute;left:50%;top:46px;width:0;height:0}
+#ecole .e3Rayons i{position:absolute;left:-7px;top:0;width:14px;height:min(46vh,300px);transform-origin:50% 0;opacity:0;
+  background:linear-gradient(180deg,rgba(157,255,178,.7),rgba(157,255,178,0) 85%)}
+#ecole .e3Rayons i:nth-child(1){--r:0deg}#ecole .e3Rayons i:nth-child(2){--r:45deg}#ecole .e3Rayons i:nth-child(3){--r:90deg}#ecole .e3Rayons i:nth-child(4){--r:135deg}
+#ecole .e3Rayons i:nth-child(5){--r:180deg}#ecole .e3Rayons i:nth-child(6){--r:225deg}#ecole .e3Rayons i:nth-child(7){--r:270deg}#ecole .e3Rayons i:nth-child(8){--r:315deg}
+#ecole[data-ph=bravo] .e3Rayons i{animation:e3Rayon .9s var(--ease,ease) both}
+@keyframes e3Rayon{0%{opacity:0;transform:rotate(var(--r)) translateY(30px) scaleY(.1)}25%{opacity:1}100%{opacity:0;transform:rotate(var(--r)) translateY(70px) scaleY(1)}}
+#ecole .e3Px,#ecPermis .e3Px{position:absolute;width:8px;height:8px;margin:-4px 0 0 -4px;box-shadow:0 2px 0 rgba(25,13,53,.5);animation:e3Gerbe .9s cubic-bezier(.2,.8,.4,1) forwards}
+@keyframes e3Gerbe{0%{opacity:1;transform:translate(0,0) scale(1.3)}75%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.5)}}
+/* ====== LA SCÈNE DU GESTE ====== */
+#ecole .e3Scene{inset:0}
+#ecole .e3Piste,#ecole .e3Chevs,#ecole .e3Nit,#ecole .e3Main{position:absolute;left:0;top:0;width:0;height:0;will-change:transform}
+/* — LE POUCE GÉANT : le bout du doigt sur la commande ; incliné en 3D (perspective), son ombre d'encre en dessous : il s'en rapproche quand il appuie — */
+#ecole .e3Main{transition:opacity .28s var(--ease,ease)}
+#ecole .e3Mvt{position:absolute;left:0;top:0;perspective:520px}
+#ecole .e3Pose{position:absolute;left:0;top:0;transform-style:preserve-3d;transform:rotateX(22deg) rotateY(-10deg) rotateZ(var(--rz,-22deg));transform-origin:0 0}
+/* (2026-11-22, Sacha : « des pouces en pixels ») le pouce penche vers l'intérieur de l'écran, la paume vers le bord d'où vient la main : main à gauche (.mG), le dessin
+   se retourne autour du bout du doigt et penche de l'autre côté */
+#ecole.mG{--rz:22deg}
+#ecole.mG .e3Sv{transform:scaleX(-1);transform-origin:calc(var(--k) * 9px) 0}
+/* sur NITRO (en bas, sur le côté), le pouce arrive en biais depuis le milieu de l'écran : on voit la main entière, pas seulement le bout du doigt */
+#ecole.nD:is([data-g=nitro],[data-g=vole],[data-g=double],[data-g=glisseN]){--rz:58deg}
+#ecole.nG:is([data-g=nitro],[data-g=vole],[data-g=double],[data-g=glisseN]){--rz:-58deg}
+#ecole .e3Doigt,#ecole .e3Ombre{position:absolute;left:0;top:0}
+#ecole .e3Sv{position:absolute;left:calc(var(--k) * -9px);top:calc(var(--k) * -.6px);width:calc(var(--k) * 24px);height:calc(var(--k) * 28px);display:block} /* (2026-11-22, finitions) le pouce en relief, 24 × 28 : son bout reste au même point */
+#ecole .e3Ombre{opacity:.36;transform:translate(calc(var(--k) * 1.7px),calc(var(--k) * 2.4px))}
+#ecole .e3Doigt{transform:translate(0,calc(var(--k) * -1.2px))}
+#ecole .e3Tap{position:absolute;left:calc(var(--k) * -3.5px);top:calc(var(--k) * -3.5px);width:calc(var(--k) * 7px);height:calc(var(--k) * 7px);border:4px solid var(--or);opacity:0}
+#ecole .e3Mvt.f1,#ecole .e3Mvt.f2{display:none}
+#ecole .e3Mvt.f1 .e3Pose{opacity:.3}#ecole .e3Mvt.f2 .e3Pose{opacity:.14}
+#ecole:is([data-g=glisse],[data-g=bord],[data-g=glisseN]) .e3Mvt:is(.f1,.f2){display:block}
+#ecole.pc.pc .e3Main,#ecole.pc.pc .e3Piste,#ecole.pc.pc .e3Nit{display:none}
+#ecole:not([data-g]) .e3Main,#ecole[data-g=""] .e3Main{display:none}
+/* pendant que le joueur agit, le pouce s'efface (on voit la route), la piste et les ondes se font discrètes ; il revient 0,8 s après */
+#ecole.joue .e3Main{opacity:.1}
+#ecole.joue .e3Piste,#ecole.joue .e3Onde{opacity:.28}
+#ecole.joue .e3Kbd{opacity:.4}
+#ecole .e3Piste,#ecole .e3Onde,#ecole .e3Kbd{transition:opacity .28s var(--ease,ease)}
+#ecole.relance .e3Main{opacity:1}
+#ecole.relance .e3Pose{animation:e3Relance .7s cubic-bezier(.3,1.6,.5,1)}
+@keyframes e3Relance{0%,100%{transform:rotateX(22deg) rotateY(-10deg) rotateZ(var(--rz,-22deg)) scale(1)}40%{transform:rotateX(22deg) rotateY(-10deg) rotateZ(var(--rz,-22deg)) scale(1.3)}}
+/* les gestes en mouvement — (P) les phases qui jouent la scène */
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=glisse] .e3Mvt{animation:e3Glisse 2s cubic-bezier(.45,0,.55,1) infinite}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=glisse] .e3Mvt.f1{animation-delay:-1.91s}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=glisse] .e3Mvt.f2{animation-delay:-1.82s}
+@keyframes e3Glisse{0%,8%{transform:translateX(calc(var(--a) * -1))}42%,58%{transform:translateX(var(--a))}92%,100%{transform:translateX(calc(var(--a) * -1))}}
+#ecole[data-g=glisse] .e3Doigt,#ecole[data-g=bord] .e3Doigt,#ecole[data-g=pose] .e3Doigt{transform:translate(calc(var(--k) * .9px),calc(var(--k) * 1.3px)) scale(.94)}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=bord] .e3Mvt{animation:e3Pousse 1.8s cubic-bezier(.45,0,.55,1) infinite}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=bord] .e3Mvt.f1{animation-delay:-1.72s}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=bord] .e3Mvt.f2{animation-delay:-1.64s}
+@keyframes e3Pousse{0%{transform:translateX(calc(var(--a) * -.6 * var(--sgn,1)));opacity:0}10%{opacity:1}45%,85%{transform:translateX(calc(var(--a) * var(--sgn,1)));opacity:1}100%{transform:translateX(calc(var(--a) * var(--sgn,1)));opacity:0}}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=pose] .e3Mvt{animation:e3Guide 2.6s cubic-bezier(.45,0,.55,1) infinite}
+@keyframes e3Guide{0%,100%{transform:translateX(calc(var(--a) * -.35))}50%{transform:translateX(calc(var(--a) * .35))}}
+/* NITRO et VOLE : le pouce arrive, se POSE sur le bouton et y RESTE (les ondes partent tant qu'il appuie) */
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate]):is([data-g=nitro],[data-g=vole]) .e3Mvt{animation:e3Arrive 3.2s var(--ease,ease) infinite}
+@keyframes e3Arrive{0%{transform:translate(40px,80px);opacity:0}12%{transform:none;opacity:1}90%{transform:none;opacity:1}100%{transform:translate(20px,40px);opacity:0}}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate]):is([data-g=nitro],[data-g=vole]) .e3Doigt{animation:e3Tient 3.2s var(--ease,ease) infinite}
+@keyframes e3Tient{0%,14%{transform:translate(0,calc(var(--k) * -1.2px))}20%,88%{transform:translate(calc(var(--k) * .9px),calc(var(--k) * 1.3px)) scale(.93)}100%{transform:translate(0,calc(var(--k) * -1.2px))}}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate]):is([data-g=nitro],[data-g=vole]) .e3Tap{animation:e3TapT 3.2s var(--ease,ease) infinite}
+@keyframes e3TapT{0%,18%{opacity:0;transform:scale(.4)}22%{opacity:1;transform:scale(.7)}45%{opacity:0;transform:scale(2.6)}100%{opacity:0}}
+/* FIGURE : deux tapes, vite (×2) */
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=double] .e3Doigt{animation:e3Double 2.2s steps(22) infinite}
+@keyframes e3Double{0%,4%,16%,26%,100%{transform:translate(0,calc(var(--k) * -2px))}9%,21%{transform:translate(calc(var(--k) * .9px),calc(var(--k) * 1.3px)) scale(.92)}}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=double] .e3Tap{animation:e3TapD 2.2s var(--ease,ease) infinite}
+@keyframes e3TapD{0%,8%{opacity:0;transform:scale(.4)}10%{opacity:1;transform:scale(.7)}18%{opacity:0;transform:scale(2)}20%{opacity:0;transform:scale(.4)}22%{opacity:1;transform:scale(.7)}36%{opacity:0;transform:scale(2.8)}100%{opacity:0}}
+/* FIGURE › GLISSER : le pouce se pose sur NITRO, glisse vers la gauche, se lève */
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=glisseN] .e3Mvt{animation:e3GlisseN 2.2s var(--ease,ease) infinite}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=glisseN] .e3Mvt.f1{animation-delay:-2.12s}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=glisseN] .e3Mvt.f2{animation-delay:-2.03s}
+@keyframes e3GlisseN{0%,16%{transform:none;opacity:1}60%{transform:translateX(calc(110px * var(--gs,-1)));opacity:1}72%,100%{transform:translate(calc(110px * var(--gs,-1)),-30px);opacity:0}}
+#ecole.nG{--gs:1} /* (2026-11-22) main gauche : NITRO est à gauche, le glissé part vers la DROITE (il sortait de l'écran) */
+#ecole[data-g=glisseN] .e3Doigt{transform:translate(calc(var(--k) * .9px),calc(var(--k) * 1.3px)) scale(.94)}
+/* COMMANDES = FLÈCHES : une tape sur ◄, puis sur ► */
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=fleches] .e3Mvt{animation:e3Fleches 2.4s var(--ease,ease) infinite}
+@keyframes e3Fleches{0%,38%{transform:none}50%,88%{transform:translate(var(--dx),var(--dy))}100%{transform:none}}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=fleches] .e3Doigt{animation:e3FlT 2.4s var(--ease,ease) infinite}
+@keyframes e3FlT{0%,8%,36%,58%,86%,100%{transform:translate(0,calc(var(--k) * -1.5px))}14%,30%,64%,80%{transform:translate(calc(var(--k) * .9px),calc(var(--k) * 1.3px)) scale(.93)}}
+/* — LA PISTE DU VOLANT : une grande bande translucide ◄ · · · ►, le pouce glisse dessus ; chaque côté réussi se coche en vert — */
+#ecole .e3Piste{display:none}
+#ecole:is([data-g=glisse],[data-g=bord]) .e3Piste{display:block}
+#ecole .e3Rail{position:absolute;left:calc(var(--pw) / -2);top:calc(var(--k) * -2px);width:var(--pw);height:calc(var(--k) * 4px);
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.55) 0 12px,transparent 12px 22px) center/100% 4px no-repeat,rgba(25,13,53,.34);box-shadow:inset 0 0 0 3px rgba(0,234,255,.6),0 4px 0 rgba(25,13,53,.35)}
+#ecole .e3Fl{position:absolute;top:calc(var(--k) * -4.5px);width:calc(var(--k) * 10px);height:calc(var(--k) * 9px)}
+#ecole .e3Fl.g{left:calc(var(--pw) / -2 - var(--k) * 9px)}
+#ecole .e3Fl.d{left:calc(var(--pw) / 2 - var(--k) * 1px)}
+#ecole[data-g=bord]:not(.bG) .e3Fl.g,#ecole[data-g=bord].bG .e3Fl.d{display:none}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate]):is([data-g=glisse],[data-g=bord]) .e3Fl.g{animation:e3FlG .5s steps(2) infinite alternate}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate]):is([data-g=glisse],[data-g=bord]) .e3Fl.d{animation:e3FlD .5s steps(2) infinite alternate}
+@keyframes e3FlG{to{transform:translateX(-8px)}}@keyframes e3FlD{to{transform:translateX(8px)}}
+#ecole .e3Piste::before,#ecole .e3Piste::after{content:'';position:absolute;top:calc(var(--k) * -9.5px);width:36px;height:36px;opacity:0;background:var(--vert);
+  -webkit-mask:var(--pxi-coche) center/100% 100% no-repeat;mask:var(--pxi-coche) center/100% 100% no-repeat;transform:scale(.3);transition:opacity .2s,transform .35s cubic-bezier(.3,1.7,.5,1)}
+#ecole .e3Piste::before{left:calc(var(--pw) / -2 - var(--k) * 6px)}
+#ecole .e3Piste::after{left:calc(var(--pw) / 2 + var(--k) * 1px)}
+#ecole.okL .e3Piste::before,#ecole.okR .e3Piste::after{opacity:1;transform:none}
+/* — LES GRANDES TRAÎNÉES : trois chevrons qui coulent depuis la caisse (DÉCOLLE : vers le bord ; VOLE : vers le haut ; POSE-TOI : vers la route) — */
+#ecole .e3Chevs{display:none}
+#ecole:is([data-g=bord],[data-g=vole],[data-g=pose]) .e3Chevs{display:block}
+#ecole .e3Cw{position:absolute;left:0;top:0}
+#ecole[data-g=vole] .e3Cw{transform:rotate(-90deg)}
+#ecole.bG[data-g=bord] .e3Cw{transform:scaleX(-1)}
+#ecole[data-g=pose] .e3Cw{transform:rotate(var(--ang,90deg));transition:transform .25s linear} /* (2026-11-22) vers la route (ecPlace), plus seulement vers le bas */
+#ecole[data-ph=titre]:is([data-g=vole],[data-g=pose]) .e3Chevs{display:none} /* (2026-11-22) sur la carte-titre ils tombaient sur le mot géant */
+#ecole .e3C{position:absolute;top:calc(var(--k) * -5.25px);width:calc(var(--k) * 6.5px);height:calc(var(--k) * 10.5px);opacity:0}
+#ecole .e3C .e3Ch{width:100%;height:100%;display:block}
+#ecole .e3C.c1{left:70px}#ecole .e3C.c2{left:120px}#ecole .e3C.c3{left:170px}
+#ecole[data-g=vole] .e3C.c1{left:60px}#ecole[data-g=vole] .e3C.c2{left:105px}#ecole[data-g=vole] .e3C.c3{left:150px}
+#ecole[data-g=pose] .e3C.c1{left:-210px}#ecole[data-g=pose] .e3C.c2{left:-165px}#ecole[data-g=pose] .e3C.c3{left:-120px}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate]) .e3C{animation:e3Flux 1.2s linear infinite}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate]) .e3C.c2{animation-delay:.2s}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate]) .e3C.c3{animation-delay:.4s}
+@keyframes e3Flux{0%{opacity:0;transform:translateX(-16px)}30%,60%{opacity:.92}100%{opacity:0;transform:translateX(18px)}}
+/* — LE BOUTON NITRO : les ondes qui partent sous le pouce, la jauge du geste TENU, le ×2 de la figure — */
+#ecole .e3Nit{display:none}
+#ecole:is([data-g=nitro],[data-g=vole],[data-g=double],[data-g=glisseN]) .e3Nit{display:block}
+#ecole .e3Onde{position:absolute;left:calc(var(--nw) / -2);top:calc(var(--nw) / -2);width:var(--nw);height:var(--nw);border-radius:24%;box-shadow:0 0 0 5px rgba(255,215,94,.85),inset 0 0 0 2px rgba(25,13,53,.5);opacity:0}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate]) .e3Onde{animation:e3Onde 1.5s cubic-bezier(.2,.6,.4,1) infinite}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate]) .e3Onde.o2{animation-delay:.5s}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate]) .e3Onde.o3{animation-delay:1s}
+@keyframes e3Onde{0%{opacity:0;transform:scale(.85)}15%{opacity:.95}100%{opacity:0;transform:scale(2.1)}}
+#ecole .e3Jauge{position:absolute;left:var(--jx,-62px);top:calc(var(--nw) / -2 - 52px);width:124px;height:18px;background:var(--ink);box-shadow:0 0 0 3px #fff,0 6px 0 rgba(25,13,53,.5);display:none}
+#ecole:is([data-g=nitro],[data-g=vole]):is([data-ph=geste],[data-ph=rate]) .e3Jauge{display:block}
+#ecole .e3JF{position:absolute;inset:3px;transform-origin:0 50%;transform:scaleX(0);transition:transform .12s linear;
+  background:repeating-linear-gradient(90deg,var(--or) 0 9px,var(--orE) 9px 11px)}
+#ecole.jPleine .e3JF{background:repeating-linear-gradient(90deg,var(--vert) 0 9px,var(--vertE) 9px 11px)}
+#ecole .e3JL{position:absolute;left:0;right:0;bottom:calc(100% + 8px);text-align:center;font-size:10px;letter-spacing:1px;color:#fff;
+  text-shadow:0 2px 0 var(--ink),2px 0 0 var(--ink),-2px 0 0 var(--ink),0 -2px 0 var(--ink)}
+#ecole .e3X2{position:absolute;left:calc(var(--nw) / -2 - 58px);top:calc(var(--nw) / -2 - 30px);padding:8px 8px 6px;font-size:20px;color:var(--ink);background:var(--or);
+  box-shadow:inset 0 -4px 0 var(--orE),0 0 0 3px var(--ink),0 6px 0 var(--ink);opacity:0;display:none}
+#ecole[data-g=double] .e3X2{display:block}
+#ecole.nG .e3X2{left:calc(var(--nw) / 2 + 8px)}
+#ecole:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=double] .e3X2{animation:e3X2 2.2s steps(22) infinite}
+@keyframes e3X2{0%,20%{opacity:0;transform:scale(.4) rotate(-10deg)}24%,52%{opacity:1;transform:rotate(-6deg)}58%,100%{opacity:0}}
+#ecole .e3Gl{position:absolute;left:-104px;top:calc(var(--k) * -5.25px);width:calc(var(--k) * 6.5px);height:calc(var(--k) * 10.5px);transform:scaleX(-1);display:none;opacity:.8}
+#ecole .e3Gl .e3Ch{width:100%;height:100%;display:block}
+#ecole[data-g=glisseN] .e3Gl{display:block}
+#ecole.nG .e3Gl{left:calc(104px - var(--k) * 6.5px);transform:none}
+/* — AU CLAVIER (l'ordinateur) : de grandes touches en pixels, inclinées comme un clavier posé, qui s'enfoncent au rythme du geste — */
+#ecole .e3Kbd{display:none}
+#ecole.pc .e3Kbd{display:block;position:absolute;inset:0}
+#ecole .e3Fle,#ecole .e3Esp{position:absolute;bottom:calc(var(--ccB,0px) + 9%);display:flex;gap:14px;perspective:600px}
+#ecole .e3Fle{left:calc(var(--ccL,0px) + 7%)}
+#ecole .e3Esp{right:calc(var(--hudD,16px) + 7%)}
+#ecole[data-g=glisse] .e3Esp,#ecole[data-g=nitro] .e3Fle,#ecole[data-g=double] .e3Fle,#ecole[data-g=bord] .e3Esp,#ecole[data-g=pose] .e3Esp,#ecole:not([data-g]) .e3Kbd,#ecole[data-g=""] .e3Kbd{display:none}
+#ecole .e3K{position:relative;display:block;width:76px;height:72px;background:var(--ink);transform:rotateX(26deg);transform-origin:50% 100%;box-shadow:0 10px 0 rgba(25,13,53,.35)}
+#ecole .e3K.esp{width:230px}
+#ecole .e3Kc{position:absolute;left:0;right:0;top:0;height:62px;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--ink);
+  background:linear-gradient(180deg,#fff 0%,#e9e4fb 60%,#cfc6ee 100%);box-shadow:inset 0 0 0 3px var(--ink),inset 0 -5px 0 #a89ed2;overflow:hidden}
+#ecole .e3K.esp .e3Kc{font-size:18px;letter-spacing:2px}
+#ecole .e3Kc{z-index:0}
+#ecole .e3Kc::after{content:'';position:absolute;inset:3px;z-index:-1;background:var(--or);opacity:0} /* l'éclat de la touche enfoncée passe SOUS son signe */
+#ecole .e3K.esp .e3Kc::after{background:var(--nP,#ff8d2e)}
+/* qui appuie quoi : TOURNE ◄ puis ► · NITRO / VOLE : ESPACE tenu · DÉCOLLE : ► tenu · POSE-TOI : ◄ ► doucement · FIGURE : ESPACE ×2 */
+#ecole.pc:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=glisse] .e3K.l .e3Kc,#ecole.pc:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=pose] .e3K.l .e3Kc{animation:e3KL 2s steps(20) infinite}
+#ecole.pc:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=glisse] .e3K.r .e3Kc,#ecole.pc:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=pose] .e3K.r .e3Kc{animation:e3KL 2s steps(20) -1s infinite}
+#ecole.pc:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=glisse] .e3K.l .e3Kc::after,#ecole.pc:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=pose] .e3K.l .e3Kc::after{animation:e3KLa 2s steps(20) infinite}
+#ecole.pc:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=glisse] .e3K.r .e3Kc::after,#ecole.pc:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=pose] .e3K.r .e3Kc::after{animation:e3KLa 2s steps(20) -1s infinite}
+@keyframes e3KL{0%,5%,45%,100%{transform:none}10%,40%{transform:translateY(8px)}}
+@keyframes e3KLa{0%,5%,45%,100%{opacity:0}10%,40%{opacity:.85}}
+#ecole.pc:is([data-ph=titre],[data-ph=geste],[data-ph=rate]):is([data-g=nitro],[data-g=vole]) .e3K.esp .e3Kc,#ecole.pc:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=bord] .e3K.r .e3Kc{animation:e3KT 3s steps(30) infinite}
+#ecole.pc:is([data-ph=titre],[data-ph=geste],[data-ph=rate]):is([data-g=nitro],[data-g=vole]) .e3K.esp .e3Kc::after,#ecole.pc:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=bord] .e3K.r .e3Kc::after{animation:e3KTa 3s steps(30) infinite}
+@keyframes e3KT{0%,6%,94%,100%{transform:none}12%,88%{transform:translateY(8px)}}
+@keyframes e3KTa{0%,6%,94%,100%{opacity:0}12%,88%{opacity:.85}}
+#ecole.pc:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=double] .e3K.esp .e3Kc{animation:e3KD 2.2s steps(22) infinite}
+#ecole.pc:is([data-ph=titre],[data-ph=geste],[data-ph=rate])[data-g=double] .e3K.esp .e3Kc::after{animation:e3KDa 2.2s steps(22) infinite}
+@keyframes e3KD{0%,4%,16%,26%,100%{transform:none}9%,21%{transform:translateY(8px)}}
+@keyframes e3KDa{0%,4%,16%,26%,100%{opacity:0}9%,21%{opacity:.9}}
+#ecole.pc .e3Nit{display:none}
+#ecole.pc[data-g=double] .e3X2{display:none}
+/* ====== COUCHÉ SUR UN TÉLÉPHONE (≤ 540 px de haut) : tout tient dans le ciel, au-dessus de l'horizon ====== */
+@media (orientation:landscape) and (max-height:540px){
+  #ecole{--hT:calc(var(--ccT,env(safe-area-inset-top,0px)) + 10px)}
+  #ecole .e3Haut{height:calc(var(--hT) + 110px)}
+  #ecole .e3Pp{width:22px;height:22px}#ecole .e3Pp .pxi{--pxs:1.6;width:14px;height:14px}
+  /* la jauge NITRO du HUD occupe le haut à gauche jusqu'au milieu : couché, les six tuiles passent à droite, devant le ⏸ */
+  #ecole .e3Prog{left:auto;right:calc(var(--hudD,16px) + env(safe-area-inset-right,0px) + 84px);transform:none}
+  #ecole .e3Rappel{top:calc(var(--hT) + 32px);gap:6px}
+  #ecole .e3RPh{font-size:10px}
+  #ecole .e3Carte{top:calc(var(--hT) + 30px)}
+  #ecole .e3Tuile{display:none} /* couché, la tuile du geste est déjà dans la progression : la place va au ciel */
+  #ecole .e3Num{margin-bottom:8px;font-size:9px}
+  #ecole .e3Mot{margin-bottom:16px}
+  #ecole .e3Ph{font-size:11px;max-width:min(92vw,640px)}
+  #ecole .e3Acc{top:calc(var(--hT) + 12px);gap:9px}
+  #ecole .e3At{width:38px;height:38px}#ecole .e3At .pxi{--pxs:2.4;width:22px;height:22px}
+  /* (2026-11-22, finitions) couché, la coche et le mot du bravo CÔTE À CÔTE, sur une ligne : empilés (jusqu'à y 184), le mot couvrait la caisse en vol. La phrase d'un raté passe dessous. */
+  #ecole .e3Fete{top:calc(var(--hT) + 30px);flex-direction:row;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px 20px}
+  #ecole .e3FPh{flex:0 0 100%;max-width:none}
+  #ecole .e3Badge{width:68px;height:68px}#ecole .e3Badge .pxi{--pxs:4.4;width:40px;height:40px}
+  #ecole .e3Rayons{top:34px}
+  #ecole .e3FPh{font-size:11px}
+  #ecole .e3K{width:60px;height:58px}#ecole .e3K.esp{width:180px}#ecole .e3Kc{height:50px;font-size:20px}
+}
+/* L'ORDINATEUR (une fenêtre de 600 px de haut et plus) : les textes, les tuiles et les touches grandissent avec la fenêtre (zoom sur les couches de texte
+   seulement : la scène, elle, reste au pixel de l'écran — ses chevrons suivent la caisse en coordonnées réelles) */
+html.pcClavier #ecole .e3Fle,html.pcClavier #ecole .e3Esp{bottom:calc(var(--ccB,0px) + 7%)}
+@media (min-height:600px) and (min-width:900px){html.pcClavier :is(#ecole .e3Prog,#ecole .e3Rappel,#ecole .e3Carte,#ecole .e3Acc,#ecole .e3Fete,#ecole .e3Fle,#ecole .e3Esp,#ecPermis .epBloc){zoom:1.3}}
+@media (min-height:880px) and (min-width:1300px){html.pcClavier :is(#ecole .e3Prog,#ecole .e3Rappel,#ecole .e3Carte,#ecole .e3Acc,#ecole .e3Fete,#ecole .e3Fle,#ecole .e3Esp,#ecPermis .epBloc){zoom:1.7}}
+/* ====== LE PERMIS, EN PLEIN ÉCRAN ====== */
+#ecPermis{position:fixed;inset:0;z-index:67;pointer-events:none;font-family:var(--pix);color:#fff;-webkit-font-smoothing:none;overflow:hidden;
+  --ink:#190d35;--hT:calc(var(--ccT,env(safe-area-inset-top,0px)) + 72px)}
+#ecPermis *{pointer-events:none!important;box-sizing:border-box}
+#ecPermis .pxi{background:currentColor}
+#ecPermis .epVoile{position:absolute;inset:0;opacity:0;transition:opacity .4s var(--ease,ease);
+  background:linear-gradient(180deg,rgba(14,8,40,.88) 0%,rgba(14,8,40,.7) 34%,rgba(14,8,40,.2) 56%,rgba(14,8,40,0) 68%)}
+#ecPermis.on .epVoile{opacity:1}
+#ecPermis.sort .epVoile,#ecPermis.sort .epBloc{opacity:0;transition:opacity .5s var(--ease,ease),transform .5s var(--ease,ease)}
+#ecPermis.sort .epBloc{transform:translateX(-50%) translateY(-40px) scale(.9)}
+#ecPermis .epBloc{position:absolute;left:50%;top:var(--hT);width:min(94vw,560px);display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;transform:translateX(-50%)}
+#ecPermis .epTitre{display:block;white-space:nowrap;line-height:1;letter-spacing:2px;color:var(--or);
+  text-shadow:0 -3px 0 var(--ink),3px 0 0 var(--ink),-3px 0 0 var(--ink),3px -3px 0 var(--ink),-3px -3px 0 var(--ink),0 3px 0 #b87400,3px 3px 0 var(--ink),-3px 3px 0 var(--ink),0 6px 0 #b87400,0 9px 0 #7a4400,0 12px 0 var(--ink)}
+#ecPermis .epTitre .l{display:inline-block;opacity:0}
+#ecPermis.on .epTitre .l{animation:e3Lettre .5s cubic-bezier(.25,1.5,.45,1) both;animation-delay:calc(.1s + var(--i) * 40ms)}
+#ecPermis .epCarte{perspective:800px;width:min(76vw,290px)}
+#ecPermis .epFace{position:relative;overflow:hidden;width:100%;aspect-ratio:1.6;text-align:left;
+  background:linear-gradient(135deg,#2a1d6e 0%,#3b2a8f 45%,#22175c 100%);box-shadow:inset 0 0 0 3px var(--or),inset 0 0 0 6px var(--ink),0 8px 0 #7a4400,0 12px 0 var(--ink);
+  transform:rotateY(-100deg) rotateX(20deg) scale(.6);opacity:0}
+#ecPermis.on .epFace{animation:epArrive 1s cubic-bezier(.2,1.2,.35,1) .15s both}
+@keyframes epArrive{0%{opacity:0;transform:rotateY(-100deg) rotateX(20deg) scale(.6)}40%{opacity:1}75%{transform:rotateY(8deg) rotateX(-4deg) scale(1.04)}100%{opacity:1;transform:rotateY(-6deg) rotateX(8deg) scale(1)}}
+#ecPermis .epBande{padding:9px 12px 7px;font-size:9px;letter-spacing:2px;color:var(--ink);background:var(--or);box-shadow:inset 0 -3px 0 #b87400}
+#ecPermis .epCorps{display:flex;gap:12px;padding:12px}
+#ecPermis .epPhoto{flex:none;width:30%;aspect-ratio:.85;display:flex;align-items:center;justify-content:center;color:#ff8d2e;background:linear-gradient(180deg,#9fe8ff,#5ec9ea);box-shadow:inset 0 0 0 3px var(--ink)}
+#ecPermis .epPhoto .pxi{--pxs:5;width:45px;height:45px}
+#ecPermis .epInfos{display:flex;flex-direction:column;gap:8px;min-width:0}
+#ecPermis .epInfos b{font-weight:400;font-size:14px;color:#fff;text-shadow:0 2px 0 var(--ink)}
+#ecPermis .epInfos span{font-size:8px;line-height:1.3;letter-spacing:1px;color:#c9c2ff;white-space:nowrap}
+#ecPermis .epBande{white-space:nowrap;line-height:1.3}
+#ecPermis .epPlq{align-self:flex-start;padding:4px 6px 3px;color:var(--ink)!important;background:#fff;box-shadow:inset 0 0 0 2px var(--ink),inset 4px 0 0 #2e5bff}
+#ecPermis .epIcos{display:flex;gap:4px;color:#7dff9b!important}
+#ecPermis .epIcos .pxi{--pxs:1.6;width:14px;height:14px}
+#ecPermis .epTampon{position:absolute;right:10px;bottom:12px;padding:8px 10px 6px;font-size:13px;letter-spacing:2px;color:#ff4d6d;
+  box-shadow:inset 0 0 0 3px #ff4d6d;transform:rotate(-14deg) scale(2.6);opacity:0}
+#ecPermis.on .epTampon{animation:epTampon .35s cubic-bezier(.5,0,.75,0) .95s both}
+@keyframes epTampon{0%{opacity:0;transform:rotate(-24deg) scale(2.8)}100%{opacity:.95;transform:rotate(-14deg) scale(1)}}
+#ecPermis .epReflet{position:absolute;top:-20%;left:0;width:26%;height:140%;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.28),rgba(255,255,255,0));transform:translateX(-140%) skewX(-18deg)}
+#ecPermis.on .epReflet{animation:epReflet .9s var(--ease,ease) 1.25s both}
+@keyframes epReflet{to{transform:translateX(480%) skewX(-18deg)}}
+#ecPermis .epPrime{display:flex;align-items:baseline;gap:10px;padding:10px 14px 8px;background:rgba(25,13,53,.9);box-shadow:inset 0 0 0 3px var(--cash,#7dff9b),0 5px 0 var(--ink);opacity:0}
+#ecPermis.on .epPrime{animation:e3Hourra .5s cubic-bezier(.3,1.7,.5,1) 1.2s both}
+#ecPermis .epPrime small{font-size:9px;letter-spacing:2px;color:#c9c2ff}
+#ecPermis .epPrime b{font-weight:400;font-size:22px;color:var(--cash,#7dff9b);text-shadow:0 3px 0 #0a4a1b}
+#ecPermis .epSous{font-size:11px;line-height:1.7;color:#fff;text-shadow:0 2px 0 var(--ink),2px 0 0 var(--ink),-2px 0 0 var(--ink);opacity:0}
+#ecPermis.on .epSous{animation:e3Monte .45s var(--ease,ease) 1.6s both}
+@media (orientation:landscape) and (max-height:540px){
+  /* couché : la carte à gauche, la prime à droite, le MILIEU libre — la route devant la caisse file entre les deux */
+  #ecPermis{--hT:calc(var(--ccT,env(safe-area-inset-top,0px)) + 50px)}
+  #ecPermis .epBloc{width:min(96vw,800px);display:grid;grid-template-columns:minmax(0,1fr) min(30vw,250px) minmax(0,1fr);grid-template-areas:'t t t' 'c . p' 'c . s';column-gap:10px;row-gap:8px;align-items:center}
+  #ecPermis .epTitre{grid-area:t;justify-self:center}#ecPermis .epCarte{grid-area:c;width:250px;justify-self:end}
+  #ecPermis .epBande{font-size:8px;letter-spacing:1px;padding:7px 10px 5px}#ecPermis .epInfos span{font-size:7px}#ecPermis .epIcos .pxi{--pxs:1.3;width:12px;height:12px}
+  #ecPermis .epTampon{font-size:10px;padding:6px 8px 4px;right:8px;bottom:8px}#ecPermis .epPrime{grid-area:p;align-self:end;justify-self:start}#ecPermis .epSous{grid-area:s;align-self:start;justify-self:start;max-width:220px;text-align:left}
+  #ecPermis .epCorps{padding:8px;gap:8px}#ecPermis .epPhoto .pxi{--pxs:4;width:36px;height:36px}#ecPermis .epInfos{gap:5px}#ecPermis .epInfos b{font-size:12px}
+}
+/* ====== LA PAUSE, LES RÉGLAGES, LA FENÊTRE QUITTER PASSENT DEVANT ; la mort et la balade le cachent ====== */
+html body:is(.hTp,.setPause,.setPauseSort) #ecole,html body:is(.hTp,.setPause,.setPauseSort) #ecPermis,#modale.on~#ecole,#modale.on~#ecPermis{visibility:hidden!important}
+html body:is(.hTp,.setPause,.setPauseSort) #ecole *,#modale.on~#ecole *{animation-play-state:paused!important;visibility:hidden!important}
+body.dead #ecole,html.balade #ecole,html.balade #ecPermis{display:none!important}
+/* ====== RÉDUIRE LES ANIMATIONS (iOS) : tout est posé, rien ne bouge — le pouce à mi-geste, appuyé ====== */
+@media (prefers-reduced-motion:reduce){#ecole *,#ecole *::before,#ecole *::after,#ecPermis *{animation:none!important;transition:none!important}
+  #ecole .e3Mvt.f1,#ecole .e3Mvt.f2{display:none!important}#ecole .e3C{opacity:.8}#ecole .e3Onde.o1{opacity:.8;transform:scale(1.3)}
+  #ecole[data-g=double] .e3X2{opacity:1;transform:rotate(-6deg)}#ecole:is([data-g=double],[data-g=nitro],[data-g=vole]) .e3Tap{opacity:.9;transform:scale(1.5)} /* (2026-11-22) le « ×2 » et l'anneau de la tape ne vivaient que par leur animation : posés */
+  #ecPermis .epFace,#ecPermis .epTampon,#ecPermis .epPrime,#ecPermis .epSous,#ecPermis .epTitre .l{opacity:1;transform:none}#ecPermis .epTampon{transform:rotate(-14deg)}}
+html[data-reduced-motion="1"] #ecole *,html[data-reduced-motion="1"] #ecPermis *{animation:none!important}
+/* (2026-11-22) le réglage du jeu (sans celui d'iOS) pose les mêmes choses : sans animation, elles restaient à opacité 0 */
+html[data-reduced-motion="1"] #ecole :is(.e3Mvt.f1,.e3Mvt.f2){display:none!important}
+html[data-reduced-motion="1"] #ecole .e3C{opacity:.8}html[data-reduced-motion="1"] #ecole .e3Onde.o1{opacity:.8;transform:scale(1.3)}
+html[data-reduced-motion="1"] #ecole[data-g=double] .e3X2{opacity:1;transform:rotate(-6deg)}html[data-reduced-motion="1"] #ecole:is([data-g=double],[data-g=nitro],[data-g=vole]) .e3Tap{opacity:.9;transform:scale(1.5)}
+html[data-reduced-motion="1"] #ecPermis :is(.epFace,.epTampon,.epPrime,.epSous,.epTitre .l){opacity:1;transform:none}html[data-reduced-motion="1"] #ecPermis .epTampon{transform:rotate(-14deg)}
+/* FIGURES › GLISSER (2026-10-15) : la plaque qui suit le pouce pendant le glissé depuis NITRO (gameplay/figures-physique.js) */
 #figGl{position:fixed;left:0;top:0;z-index:66;display:none;align-items:center;gap:7px;padding:7px 10px 6px;pointer-events:none;white-space:nowrap;
   font:10px/1 var(--pix);letter-spacing:1px;color:#fff;background:rgba(10,6,22,.86);border:2px solid var(--or,var(--or));box-shadow:0 3px 0 var(--encre)}
 #figGl.on{display:flex}
 #figGl .pxi{--pxs:2;background:var(--or,var(--or))}
 body.dead #figGl,body:not(.play) #figGl{display:none}
 html body.figGlisse #fhLeg{display:none!important} /* en GLISSER, le rappel du double-tap au joystick se tait */
-@keyframes ecMDouble{0%,100%{transform:translateY(-10px);opacity:.4}10%,22%{transform:none;opacity:1}14%,28%{transform:translateY(5px) scale(.88);opacity:1}34%{transform:none;opacity:1}}
-@keyframes ecMOnde2{0%,12%{opacity:0;transform:scale(.4)}15%{opacity:1;transform:scale(.6)}26%{opacity:1;transform:scale(.6)}50%{opacity:0;transform:scale(3.4)}51%,100%{opacity:0}}
-body.hTp:not(#ccH) #ecMain,html.balade #ecMain,body.dead #ecMain{display:none}
-/* (2026-10-14, INTERFACE l'a vu au banc) LA PAUSE ET LES RÉGLAGES PASSENT DEVANT : la carte restait au-dessus du titre PAUSE (couché) et de la page
-   RÉGLAGES ouverte depuis la pause. hTp = la pause ouverte (HAS_D), setPause = RÉGLAGES depuis la pause. */
-html body:is(.hTp,.setPause,.setPauseSort) #coach.v2.v2,html body:is(.hTp,.setPause,.setPauseSort) #ecMain,
-#modale.on~#coach.v2.v2,#modale.on~#ecMain{visibility:hidden!important;transition:none!important;animation:none!important} /* …et sous la fenêtre QUITTER : #coach et #ecMain naissent en fin de <body>, APRÈS #modale — un voisin, pas un body:has() (la charte) */
-@media (prefers-reduced-motion:reduce){html body #coach.v2.v2,html body #coach.v2 *,#ecMain *{animation:none!important;transition:none!important}html body #coach.v2.v2::before{display:none}}
-html[data-reduced-motion="1"] body #coach.v2.v2 *,html[data-reduced-motion="1"] #ecMain *{animation:none!important}
-/* ===== LA FIORITURE (2026-10-31, Sacha : « rendre le tutoriel encore plus clair, avec plus de florilège, de floriture ») =====
-   Trois petites touches, légères, sur ce qui existe déjà — rien de nouveau en JS, tout est accroché aux classes posées par le code :
-   1) un losange doré qui respire dans le coin biseauté de la carte (le découpage du cadre, enfin souligné) ;
-   2) un éclat radial derrière le mot au moment du BRAVO, en plus des confettis (la réussite claque un peu plus) ;
-   3) une traînée (une ombre floutée qui suit avec un léger retard) derrière le pouce fantôme en GLISSE/POUSSE, pour mieux accrocher l'œil
-      sur le mouvement du geste. */
-html body #coach.v2.v2::after{content:'';position:absolute;left:4px;top:4px;width:9px;height:9px;background:var(--or);
-  transform:rotate(45deg);box-shadow:0 0 8px rgba(255,215,94,.8);animation:ecCoin 1.6s var(--ease) infinite;pointer-events:none}
-@keyframes ecCoin{0%,100%{opacity:.55;transform:rotate(45deg) scale(.8)}50%{opacity:1;transform:rotate(45deg) scale(1.05)}}
-html body #coach.v2.v2.bravo::after{background:#fff;box-shadow:0 0 10px rgba(125,255,155,.9)}
-html body #coach.v2 .ecT::before{content:'';position:absolute;inset:-12px -16px;z-index:-1;border-radius:50%;opacity:0;pointer-events:none;
-  background:radial-gradient(circle,rgba(125,255,155,.55),rgba(125,255,155,0) 60%)}
-html body #coach.v2.bravo .ecT::before{animation:ecFlash .6s var(--ease) both}
-@keyframes ecFlash{0%{opacity:0;transform:scale(.4)}35%{opacity:1;transform:scale(1.15)}100%{opacity:0;transform:scale(1.5)}}
-#ecMain.glisse .p::after,#ecMain.pousse .p::after{content:'';position:absolute;inset:0;background:#fff;opacity:.32;filter:blur(2px);z-index:-1;
-  -webkit-mask:var(--pxi-pouce) center/100% 100% no-repeat;mask:var(--pxi-pouce) center/100% 100% no-repeat}
-#ecMain.glisse .p::after{animation:ecMGlisse 1.8s var(--ease) infinite;animation-delay:-.12s}
-#ecMain.pousse .p::after{animation:ecMPousse 1.6s var(--ease) infinite;animation-delay:-.1s}
-@media (prefers-reduced-motion:reduce){html body #coach.v2.v2::after,html body #coach.v2 .ecT::before,#ecMain .p::after{display:none}}
-html[data-reduced-motion="1"] body #coach.v2.v2::after,html[data-reduced-motion="1"] #ecMain .p::after{display:none}
-/* ===== LA CARTE NE BARRE PLUS LA ROUTE (2026-11-06, Sacha : « en version mobile la fenêtre de tuto empêche de conduire ») =====
-   Deux causes, mesurées au banc mobile (844 × 390 couché) : 1) la carte (z-index 66, pointer-events:auto) est AU-DESSUS du volant flottant
-   (#tSteer plein écran) : tout pouce posé sur elle était avalé, la caisse n'obéissait plus ; 2) couchée elle faisait 162 px de haut sur 390 et
-   descendait jusqu'à l'horizon (218 px) — la route devant la caisse était cachée. Maintenant : la carte laisse passer TOUS les doigts (seul
-   PASSER reste cliquable), et couchée elle se range en bandeau bas (PASSER en colonne à droite) qui finit AU-DESSUS de l'horizon, dans le ciel. */
-html body #coach.v2.v2,html body #coach.v2.v2.on,html body #coach.v2.v2.sort{pointer-events:none}
-html body #coach.v2 .coSkip{pointer-events:auto}
-@media (orientation:landscape) and (max-height:540px){
-  html body #coach.v2.v2{width:min(560px,calc(100vw - 24px));top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 50px);
-    grid-template-columns:76px minmax(0,1fr) 88px;column-gap:10px;padding:8px 8px 8px 8px}
-  html body #coach.v2 .ecT{font-size:min(20px,calc((min(560px,100vw - 24px) - 204px) / var(--n,8) - 1px))} /* (2026-11-13, passe des détails) la colonne du mot = carte − 204 px (marges 16, film 76, PASSER 92, deux écarts 20) ; « − 1px » : l'espacement de 1 px de CHAQUE lettre */
-  html body #coach.v2 .coSkip{grid-column:3;grid-row:1/4;align-self:stretch;width:auto;min-height:44px;margin:0;padding:6px 4px;
-    font-size:9px;line-height:1.6;letter-spacing:1px;white-space:normal}
-}
-/* ===== LA CARTE COMPACTE, DEBOUT COMME COUCHÉ, ET ELLE S'EFFACE PENDANT LE GESTE (2026-11-07, Sacha : « le tutoriel est pas jouable parce que la fenêtre de tuto
-   masque la voiture ») Debout, la carte faisait 162 px de haut (MESURÉ 390 × 844 : de 56 à 218) à cause du gros bouton PASSER pleine largeur sous le texte ; elle prend
-   maintenant la forme du bandeau couché : le petit film à gauche, le mot et la ligne au milieu, PASSER en colonne à droite (≥ 44 px) — environ 94 px au lieu de 162.
-   Et dès que le pouce touche le volant ou NITRO (.joue, posé par tutoTick), la carte s'estompe à 38 % : on voit la route et la caisse pendant qu'on fait le geste ;
-   elle revient à pleine force quand le pouce se lève. Seul PASSER reste cliquable, comme avant (la carte laisse passer tous les doigts). */
-@media (orientation:portrait){
-  html body #coach.v2.v2{width:min(430px,calc(100vw - 20px));top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 52px);
-    grid-template-columns:76px minmax(0,1fr) 84px;column-gap:10px;padding:8px}
-  html body #coach.v2 .ecT{font-size:min(20px,calc((min(430px,100vw - 20px) - 204px) / var(--n,8) - 1px))} /* (2026-11-13, passe des détails) même calcul que couché : « DRIVING SCHOOL » (14 lettres) débordait de 4 px sous PASSER, « ÇA DÉCOLLE ! » de 2 */
-  html body #coach.v2 .coSkip{grid-column:3;grid-row:1/4;align-self:stretch;width:auto;min-height:44px;margin:0;padding:6px 4px;
-    font-size:9px;line-height:1.6;letter-spacing:1px;white-space:normal;text-wrap:balance}
-}
-/* le bouton PASSER : une colonne de 92 px, le mot en 8 px — « PASSER LE / TUTO › » sur deux lignes (trois avant : le « LE » seul) */
-@media (orientation:portrait),(orientation:landscape) and (max-height:540px){
-  html body #coach.v2.v2{grid-template-columns:76px minmax(0,1fr) 92px}
-  html body #coach.v2 .coSkip{font-size:8px;letter-spacing:.5px;text-wrap:balance}
-}
-html body #coach.v2.v2.on.joue:not(.bravo){opacity:.38;transition-duration:var(--t-fast)}
-html body #coach.v2.v2.on.joue .coSkip{opacity:1}
-/* ===== LE RATÉ SE LIT EN ENTIER (2026-11-09, audit visuel debout : « ENCORE ! NITRO EN L'AIR » devenait « ENCORE !… », « RATÉ ! ON RECOMMENCE » « RATÉ !… ») =====
-   Le message vit dans la ligne des six pastilles, dans ce qu'elles lui laissent : 73 px à 390 de large (58 à 375) pour un texte de 200 à 280 px,
-   et `text-overflow:ellipsis` le coupait au premier mot — l'instruction (« NITRO EN L'AIR ») se perdait. Partout, le raté passe à la ligne au lieu d'être
-   coupé (couché, la colonne de 263 px coupait encore « RATÉ ! NITRO, VISE LE DES… » et « MISSED! NITRO, AIM ABOVE IT » : 270 à 280 px de texte).
-   Debout, et sur un écran de plus de 540 px de haut (l'ordinateur : la colonne du milieu fait 300 px, 207 à côté des pastilles), le raté prend aussi la place
-   des pastilles pendant les 2,6 s qu'il dure : toute la colonne (166 px à 390, 151 à 375, 206 à 430), sur deux lignes au besoin. Couché sur un téléphone
-   (≤ 540 px de haut) les pastilles restent, le message tient à côté. Elles reviennent avec la consigne (tutoAffiche vide `.coN` et ôte `.rate`). */
-html body #coach.v2.rate .coN{white-space:normal;text-wrap:balance}
-@media (orientation:portrait),(orientation:landscape) and (min-height:541px){
-  html body #coach.v2.rate .ecPips{display:none}
-  html body #coach.v2.rate .coN{line-height:1.3} /* (deux lignes : le pas par défaut de la police, 9 px, les collerait) — couché on n'y touche pas : une ligne seule garde sa place au pixel près */
-}
 </style>
 <style id="sansCarriere">
 /* (2026-10-14, Sacha : « supprime complètement de main le mode challenge pour l'instant » ; la carrière est retirée le 2026-10-18) : sur l'accueil,

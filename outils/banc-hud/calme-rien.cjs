@@ -60,9 +60,9 @@ const SAVE = { v: 2, sfx: true, mus: MUS, vox: true, tuto: 1, permis: 1, bank: 4
     await photo('1-nitro');
 
     console.log('2. NITRO LÂCHÉ — CALME');
-    await c.ev('dbgAuto(true,0,{nit:0});1'); await dormir(1900);
+    await c.ev('dbgAuto(true,0,{nit:0});1'); await dormir(3800); /* (2026-11-22) le calme tombe à 3 s (HUD_CALME_MS), plus 0,9 s */
     const c0 = await etat();
-    verifie(c0.h.on, 'le HUD calme est allumé 1,9 s après le nitro');
+    verifie(c0.h.on, 'le HUD calme est allumé 3,8 s après le nitro');
     verifie(c0.h.effets !== null && c0.h.effets < .02, 'effets FERMÉS au calme (' + c0.h.effets + ')');
     await c.ev('dbgPwr("v");dbgPwr("m");dbgPwr("x");1'); /* citron (éclairs), pomme dorée, dragon : pris au calme */
     await dormir(4500);
@@ -83,7 +83,7 @@ const SAVE = { v: 2, sfx: true, mus: MUS, vox: true, tuto: 1, permis: 1, bank: 4
     await photo('3-nitro');
 
     console.log('4. PAUSE AU CALME');
-    await c.ev('dbgAuto(true,0,{nit:0});1'); await dormir(1800);
+    await c.ev('dbgAuto(true,0,{nit:0});1'); await dormir(3800);
     const p0 = await etat(); verifie(p0.h.on && p0.h.effets < .02, 'recalme (' + p0.h.effets + ')');
     await c.ev('window.__panBascule();1'); await dormir(800);
     const p1 = await etat(); verifie(!p1.h.on && p1.h.effets > .9, 'la pause rend le son (' + p1.h.effets + ')');

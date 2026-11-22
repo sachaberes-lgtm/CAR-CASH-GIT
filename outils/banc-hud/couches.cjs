@@ -146,7 +146,7 @@ function diff(b1, b2) { const a = png(b1), b = png(b2); if (a.w !== b.w || a.h !
     for (let i = 0; i < 40; i++) { await pas(1); await dormir(60); }   /* le HUD entre (l'argent, la flamme), la boucle passe en pas à pas */
     await etat('1-course');
     await c.ev('dbgAuto(true,0,{vol:true,nit:0});1');
-    for (let i = 0; i < 25; i++) { await dormir(100); await pas(1); }
+    for (let i = 0; i < 46; i++) { await dormir(100); await pas(1); } /* (2026-11-22) le calme tombe à 3 s (HUD_CALME_MS), plus 0,9 s */
     for (let i = 0; i < 8; i++) { await dormir(100); await pas(1); }   /* fondu du calme (0,45 s) puis le HUD endormi (0,6 s) */
     await etat('2-calme');
     await c.ev('dbgAuto(true,0,{vol:true,nit:1});1');

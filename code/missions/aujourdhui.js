@@ -140,10 +140,10 @@ document.addEventListener('keydown',function(e){if(!MVW.on)return;if(e.code==='E
    dans un écran en plus quand tu meurs, ta 1re partie de la journée, stylé et bien travaillé ») =====
    La série de sept jours (SERIE7) ne vit plus dans MISSIONS. Le jour où la 1re partie COMPTÉE est finie (jourCommit a versé la case : J.fin.s), l'écran de mort arrive, puis
    1 s plus tard L'ÉCRAN DES MISSIONS CI-DESSUS, qui enchaîne sur cet écran (z-index 96) : l'œilleton s'ouvre, sept marches montent (150 → 1 300 $), la case du jour se
-   remplit d'or et le gain s'égrène ; au 7e jour la marche est un PORTAIL vert d'où sort la voiture épique gagnée (silhouette qui se remplit, nom, rareté). Toucher avant
-   la fin = aller au bout ; CONTINUER ferme.
+   remplit d'or et le gain s'égrène ; au 7e jour la marche est un PORTAIL vert d'où sort la voiture épique gagnée (silhouette qui se remplit, nom, rareté). (2026-11-22) Toucher
+   avant la fin ne fait plus rien ; seul CONTINUER ferme (voir serieWFerme).
    Il attend l'offre de seconde chance, la révélation d'une secrète et la machine FINAL SPIN (qui, elle, l'attend). Console : dbgSerie('ecran', n) l'ouvre sur le jour n sans rien verser. */
-const SERIEW={on:false,vu:null,t0:0,id:0};
+const SERIEW={on:false,vu:null,t0:0,id:0,btT:0};
 function serieWAttend(){try{const f=JOUR.fin;return !!(SERIEW.on||MVW.on||(f&&f.s&&(SERIEW.vu!==f||MVW.vu!==f)&&started&&gameOver));}catch(e){return false;}}
 /* (2026-11-11, Sacha : « cet écran est minable, rends-le plus beau, plus fun, améliore les récompenses : une voiture épique après 7 jours, plus d'argent ») L'ÉCRAN DE SÉRIE REFAIT :
    des RAYONS d'or qui tournent et des étincelles derrière ; six CARTES (J1 … J6) dont la pile de billets grossit et change de couleur (gris · bleu · orange · vert · jaune · violet), avec les
@@ -181,7 +181,7 @@ function swMonte(el,V,id,fin){ /* le gain qui s'égrène : « + € 0 » → « 
     if(u<1&&now-last>70){last=now;try{if(SONV2)sfx('spin.piece');}catch(e){}}if(u<1)requestAnimationFrame(m);else fin();})(T0);}
 function serieWOuvre(fin){ // fin = ce que jourCommit a versé ({n, casse, s:{c,cash,jeton,car}}) ; sans paramètre : la dernière fin de partie
   const f=fin||JOUR.fin;if(!f||!f.s||SERIEW.on)return false;
-  SERIEW.on=true;SERIEW.vu=f;const id=++SERIEW.id,o=f.s,c=o.c||serieCase(f.n),L=serieVu(o),J=(LANG==='en'?'D':'J'); /* (2026-11-14) L = ce qui a été VERSÉ (la traînée et la couleur tirées), pas le lot de la table */
+  SERIEW.on=true;SERIEW.vu=f;SERIEW.t0=performance.now();SERIEW.btT=0;const id=++SERIEW.id,o=f.s,c=o.c||serieCase(f.n),L=serieVu(o),J=(LANG==='en'?'D':'J'); /* (2026-11-14) L = ce qui a été VERSÉ (la traînée et la couleur tirées), pas le lot de la table */
   const car=o.car>=0?o.car:(c<7?serieVoiture():-1),jourCar=o.car>=0;
   let el=document.getElementById('serieW');if(!el){el=document.createElement('div');el.id='serieW';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');document.body.appendChild(el);}
   el.setAttribute('aria-label',sansAcc(TR('SÉRIE DE CONNEXION')));
@@ -205,7 +205,7 @@ function serieWOuvre(fin){ // fin = ce que jourCommit a versé ({n, casse, s:{c,
   const b=el.querySelector('.swGain b'),V=L.cash|0,nomEl=el.querySelector('.swNom'),rien=jourCar&&!V&&!L.jeton; /* le 7e jour : la voiture seule, pas de case de gain vide */
   if(rien)el.classList.add('seule');
   if(nomEl)nomEl.textContent=sansAcc(TR(jourCar?CARS[car].name:'VOITURE ÉPIQUE'));
-  SERIEW.fini=function(){el.classList.add('plein','gain','nom','bt');if(b)b.textContent=V?'+'+fmtC(V):sansAcc(jourCar?'+'+swJetTxt(L.jeton|0):serieLotTxt(L));};
+  SERIEW.fini=function(){SERIEW.btT=performance.now();el.classList.add('plein','gain','nom','bt');if(b)b.textContent=V?'+'+fmtC(V):sansAcc(jourCar?'+'+swJetTxt(L.jeton|0):serieLotTxt(L));};
   const gain=function(){el.classList.add('plein','gain');
     if(rien)return;if(!V){b.textContent=sansAcc(jourCar?'+'+swJetTxt(L.jeton):serieLotTxt(L));el.classList.add('bons');try{if(SONV2)sfx('ui.achat');}catch(e){}hap([12,40,12]);try{pixBurst(b,12);}catch(e){}return;}
     swMonte(b,V,id,function(){try{if(SONV2)sfx('ui.achat');}catch(e){}hap([12,40,12]);try{pixBurst(b,12);}catch(e){}el.classList.add('bons');
@@ -216,18 +216,26 @@ function serieWOuvre(fin){ // fin = ce que jourCommit a versé ({n, casse, s:{c,
       if(jourCar){
         T(function(){el.classList.add('plein');try{if(SONV2)sfx('ui.debloque');}catch(e){}hap([20,60,20,60,60]);},1900);
         T(function(){el.classList.add('nom');try{pixBurst(el.querySelector('.swNom'),12);}catch(e){}},3400);
-        T(function(){gain();},3900);T(function(){el.classList.add('bt');},5500);}
-      else{T(function(){gain();},400);T(function(){el.classList.add('bt');},2100);}};
+        T(function(){gain();},3900);T(function(){el.classList.add('bt');SERIEW.btT=performance.now();},5500);}
+      else{T(function(){gain();},400);T(function(){el.classList.add('bt');SERIEW.btT=performance.now();},2100);}};
     T(function(){try{carPhoto(car,go);}catch(e){go(null);}},jourCar?1100:900);
-  }else{T(gain,1300);T(function(){el.classList.add('bt');},2900);}
+  }else{T(gain,1300);T(function(){el.classList.add('bt');SERIEW.btT=performance.now();},2900);}
   if(!jourCar&&car>=0)T(function(){el.classList.add('plein');},1500); /* la carte du jour se remplit d'or avec le gain */
   return true;}
-function serieWFerme(){const el=document.getElementById('serieW');if(!SERIEW.on||!el)return;
-  if(!el.classList.contains('bt')){if(SERIEW.fini)SERIEW.fini();el.classList.add('bons');return;} // pas fini : au bout
+/* (2026-11-22, Sacha : « quand on a des séries de connexions quotidiennes et qu'on gagne de l'argent, quand on tape sur l'écran en boucle, on peut skip trop rapidement, du coup on peut rater l'information »)
+   L'ÉCRAN DE SÉRIE NE SE ZAPPE PLUS : un toucher pendant que le gain s'égrène ne fait rien ; il se ferme par le bouton CONTINUER seulement (ou le clavier), pas avant 0,7 s après son apparition.
+   Secours : si le bouton n'est jamais venu au bout de 9 s (photo de la voiture qui n'arrive pas), un toucher pose tout. */
+function boutonVu(b){try{if(!b)return false;const r=b.getBoundingClientRect();return r.height>4&&r.top>=0&&r.bottom<=innerHeight&&r.left>=0&&r.right<=innerWidth;}catch(_){return false;}} /* le bouton est-il ENTIER dans l'écran ? (lu aussi par m2RevFerme) */
+function serieWFerme(e){const el=document.getElementById('serieW');if(!SERIEW.on||!el)return;const now9=performance.now();
+  if(!el.classList.contains('bt')){if(now9-SERIEW.t0>9000){if(SERIEW.fini)SERIEW.fini();el.classList.add('bons');}return;} // pas fini : on regarde
+  if(now9-(SERIEW.btT||SERIEW.t0)<700)return;
+  if(REDUCED_MOTION&&now9-SERIEW.t0<2500)return; /* (2026-11-22) « réduire les animations » : tout est posé d'un coup, le bouton avec — l'écran reste quand même 2,5 s (il se zappait en 0,8 s) */
+  /* à côté du bouton : il se signale — SAUF s'il n'est pas entier à l'écran (petit écran : 320 × 568, Safari et ses barres) : sans cela plus rien ne fermait, n'importe quel toucher ferme alors */
+  if(e&&e.target&&e.target.closest&&!e.target.closest('.swBt')&&boutonVu(el.querySelector('.swBt'))){try{gSecoue(el.querySelector('.swBt'));}catch(_){}return;}
   try{if(SONV2)sfx('ui.tampon');else uiClic('ok');}catch(e){}hap(10);
   try{carSnapshot();}catch(e){}
   el.classList.add('fin');SERIEW.on=false;setTimeout(function(){if(!SERIEW.on){el.className='';el.innerHTML='';}},REDUCED_MOTION?0:420);}
-document.addEventListener('click',function(e){const el=document.getElementById('serieW');if(!el||!SERIEW.on||!el.contains(e.target))return;e.stopPropagation();e.preventDefault();serieWFerme();},true);
+document.addEventListener('click',function(e){const el=document.getElementById('serieW');if(!el||!SERIEW.on||!el.contains(e.target))return;e.stopPropagation();e.preventDefault();serieWFerme(e);},true);
 document.addEventListener('keydown',function(e){if(!SERIEW.on)return;if(e.code==='Enter'||e.code==='Space'||e.code==='Escape'){e.preventDefault();e.stopPropagation();serieWFerme();}},true);
 setInterval(function(){try{ // le guetteur : l'écran de mort est là, la série du jour a été versée → 0,9 s plus tard, l'écran des missions, qui enchaîne sur celui de série
   const f=JOUR.fin;if(MVW.on||SERIEW.on||!f||!f.s||MVW.vu===f){MVW.t0=0;return;}

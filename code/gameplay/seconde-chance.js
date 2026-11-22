@@ -583,7 +583,7 @@ function endGame(){
   nitroOn=false;nitroBlue=false; // (2026-10-14, revue des idées de Léo) mort nitro tenue : nitroOn restait vrai au garage et au ciel — le DOGE gardait sa gueule de nitro, grande ouverte, jusqu'à la partie suivante
   try{busPlein();}catch(e){} // (2026-09-28) même filet : QUITTER depuis la pause (sortie en fondu) ne doit pas rendre le menu muet
   if(SANDBOX&&started&&!gameOver){ sandRevive(); return; } // ENTRAÎNEMENT : la mort n'est qu'un replacement — aucun score n'est enregistré
-  if(TUTO.on&&started&&!gameOver){ sandRevive(); if(TUTO.i>=TUTO_ETAPES.length)return; if(TUTO.i>=3&&TUTO.i<5){TUTO.i=2;TUTO.air=0;} tutoAffiche('RATÉ ! ON RECOMMENCE'); return; } /* (2026-10-14) à l'étape FIGURE on reste à la FIGURE */ // AUTO-ÉCOLE : on ne meurt pas en apprenant
+  if(TUTO.on&&started&&!gameOver){ sandRevive(); tutoMort(); return; } /* (2026-11-22) tutoMort (auto-ecole.js) : à VOLE / POSE-TOI la mort compte comme un raté, accordé au 2e */ // AUTO-ÉCOLE : on ne meurt pas en apprenant
   try{if(window.CCSON)window.CCSON.finCourse();}catch(e){} /* (2026-11-07, Perf 3 P1) la course est un paquet de sons : rendus 4 s après la mort (voir sfx.js, LA COURSE EST UN PAQUET) */
   try{mortsVerse();}catch(e){} // (2026-09-30) le temps du dernier niveau rejoint la sauvegarde (flush plus bas)
   if(FLOW.lv===4)frenFin(true); // (v3) une frénésie encore en cours (QUITTER, fin de campagne) compte pour l'écran de fin et le record

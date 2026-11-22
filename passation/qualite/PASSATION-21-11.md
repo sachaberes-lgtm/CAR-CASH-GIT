@@ -75,3 +75,17 @@ Relevés : dans le scratchpad de la session (`…/scratchpad/ctl127/`, effaçabl
 Rien d'autre ne tourne : aucun workflow, aucun banc.
 
 Installé par mise à jour (app non supprimée, sauvegarde gardée). Suite : attendre le retour de Sacha, puis lire le vol (point 2 de « À faire ensuite »).
+
+## 22/11 : lot « tuto et finitions » (branche `qa/tuto-finitions`, PAS installé, PAS compilé)
+
+Demande de Sacha : refonte du tuto (« plein écran », « pouces en pixels », « faudra pas qu'on puisse le skip »), série et voitures de mission qu'on ne zappe plus, HUD calme « au bout de 3 secondes sans toucher le nitro », plus de titre de map. Il a dit ensuite : « fais pas la compilation x code toi meme ».
+
+- Tuto : `code/interface/auto-ecole.js`, `code/css/ecole.css`, détail et points fragiles dans `passation/qualite/tuto.md`, photos dans `passation/qualite/photos/tuto/`. Plus de PASSER ; une mort à VOLE / POSE-TOI compte comme un raté, l'étape est accordée au 2e.
+- Série (`missions/aujourdhui.js`) et révélation (`missions/ecran-revelation.js`) : rien ne ferme avant le bouton, puis 0,7 s, puis seulement le bouton (n'importe où si le bouton est hors écran ; secours 9 s / 12 s).
+- HUD calme : `HUD_CALME_MS=3000` (`moteur/cadence.js`). Titre de map : coupé (`maps/continuite.js`, `?titremap=1` le remet).
+- `preparer-www.js` : plus de 404 sur mer-cumulus dans les builds COMPLET. Fiche App Store : la note au testeur ne dit plus que le tuto se saute (**à recoller dans App Store Connect par Sacha**).
+- Optimisation : mesurée, aucun gain sûr trouvé, rien touché.
+- Contrôlé au banc Chrome seulement (4 formats, 0 exception, permis obtenu). Rien sur un vrai iPhone. Avis du contrôleur sur le pouce : 7,5/10.
+- Pas fait : fusion dans `qualite-appareil`, `cashcar-vNNN` (resté v1616), compilation. Décision en attente : CHAT POP-TART retiré sans remboursement dans l'édition App Store.
+
+Compiler (Sacha, ou sur son oui), dans `~/cash-car/finition-build` : la recette de `NUIT-18-11.md` avec `origin/qa/tuto-finitions` à la place de `origin/qualite-appareil` et `CURRENT_PROJECT_VERSION=128`.

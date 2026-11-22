@@ -178,8 +178,8 @@ CASH CAR is a single-player arcade racing game, fully playable offline. No accou
 
 How to reach the gameplay:
 1. Launch the app and tap the CASH CAR logo.
-2. On the first launch, a short driving school (tutorial) starts; it can be skipped.
-3. From the home screen, tap JOUER / PLAY. Left thumb steers, right thumb fires the NITRO. The game plays in portrait and landscape.
+2. From the home screen, tap JOUER / PLAY. On the first launch this starts a one-minute guided driving school: six gestures, each shown on screen by a large thumb. It cannot be failed (a mistake simply replays the step) and when it ends the same run continues as a normal game.
+3. Left thumb steers, right thumb fires the NITRO. The game plays in portrait and landscape.
 
 About the € amounts collected on the road (coins and bills): this is a fictional in-game currency earned only by playing. It is not the real-money price of anything; the real prices of the optional purchases are the ones shown by StoreKit on the purchase page. This in-game currency cannot be bought, sold or exchanged for real money. Cars and paint jobs are unlocked with it, by completing missions, or, for the optional ones, with a one-time non-consumable in-app purchase (shown in euros or in the local currency by Apple). The "crates" are direct purchases of a known car: there is no random draw and no loot box. Likewise, the FINAL SPIN slot machine at the end screen uses free tokens collected on the road and in daily missions: they cannot be bought, and nothing won can be cashed out (simulated gambling, rare, declared in the age rating).
 
