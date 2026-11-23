@@ -126,3 +126,4 @@ Reste à faire :
 - À la livraison : `cashcar-vNNN` +1, commit de `code/` et d'index.html ensemble.
 
 - 23/11 : build 129 COMPILÉ depuis `3ac5364aa` (`--qs "&perfrec=2&sans=radiopause"`), copie `~/cash-car/ios-ultime-mesures/builds/build129.app`. PAS installé (attend le oui de Sacha).
+- 23/11 17h36 : build 129 INSTALLÉ sur l'iPhone (oui de Sacha), app remplacée sans suppression. À lire après ses parties : `sh outils/banc-perf/lire-vol.sh`.
