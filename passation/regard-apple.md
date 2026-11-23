@@ -3,6 +3,8 @@
 > intégrés = **Oui** (tableau du § 4 mis à jour), confidentialité inchangée (§ 5), et les lignes 3.1.1 ci-dessous sur le code « inatteignable » ne
 > décrivent plus ce build. Détail et liste pour Sacha : `passation/ACHATS-APP-STORE.md`. Rien n'a été encaissé ni testé en vrai.
 
+> **23/11 (Sacha)** : CHAT POP-TART et LA PIZZA EXPRESS RETIRÉS du jeu ; LE SPECTRE → LE REVENANT dans l'app ; les sons `kaching`, `compteuse`, `cash`, `compteur`, `wow` ont été faits par Léo avec GarageBand (droits réglés). Détail : `passation/qualite/voitures-tri.md`.
+
 > **DÉCISIONS DE SACHA (14/10, 3 h 15 – 3 h 27) — elles PRIMENT sur les propositions ci-dessous :**
 > - **Le CHAT POP-TART RESTE** (« le chat reste, on prend le risque ») → NE PAS appliquer la coupe C1, ne pas le renommer.
 > - **Les deux voitures « Batman » sont RENOMMÉES, pas retirées** (fait sur `assemblage`, commit `7f5c4cd`) : LA CHAUVE-SOURIS → LA NOCTAMBULE,

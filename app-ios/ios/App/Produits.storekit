@@ -3,21 +3,6 @@
   "nonRenewingSubscriptions": [],
   "products": [
     {
-      "displayPrice": "161.00",
-      "familyShareable": false,
-      "internalID": "6127937940",
-      "localizations": [
-        {
-          "description": "La caisse LA PIZZA EXPRESS, à toi pour toujours dans CASH CAR.",
-          "displayName": "LA PIZZA EXPRESS",
-          "locale": "fr_FR"
-        }
-      ],
-      "productID": "cashcar.car.b_pizza",
-      "referenceName": "Caisse LA PIZZA EXPRESS",
-      "type": "NonConsumable"
-    },
-    {
       "displayPrice": "1.61",
       "familyShareable": false,
       "internalID": "6340622410",

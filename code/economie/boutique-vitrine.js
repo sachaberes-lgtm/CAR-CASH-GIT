@@ -29,7 +29,7 @@ Object.assign(I18N,{"SANS AILES":"NO WINGS","Les ailes, c'est pour les pigeons. 
 {const H9={};for(const m of M2)if(m.r&&m.r.cat)H9[m.r.cat+':'+m.r.id]=m.id;
   for(const cat of ['peinture','aile','trainee'])for(const d of COSM[cat]){const id=H9[cat+':'+d.id];
     if(id){d.mis2=id;delete d.mis;delete d.p;delete d.eur;if(/relevant des défis/.test(d.d||''))d.d="Ne s'achète pas : elle se gagne par une mission.";}
-    else if(d.mis){delete d.mis;if(d.id==='arcenciel'){d.pack='chat';d.d="Ne s'achète pas : elle vient avec le CHAT POP-TART.";}}}}
+    else if(d.mis){delete d.mis;if(d.id==='arcenciel'){d.sec=1;d.d="Ne s'achète pas.";} /* (2026-11-23, Sacha : « CHAT POP-TART ça fait longtemps qu'on en veut plus » · « enlève la voiture pizza ») le chat est retiré : la traînée ARC-EN-CIEL qui « venait avec lui » devient secrète, comme dans l'app depuis le 11/11 */}}}
 /* LE RANGEMENT DES PEINTURES (2026-11-05, le nuancier v3) : D'ORIGINE, puis l'ordre de PEINT_CAT — COMMUNES (le cercle chromatique, puis les pastels),
    RARES (feu, froid, néon, métal, ombre, pop), ÉPIQUES (les livrées, puis les pelages), LÉGENDAIRES. L'ordre des listes EST l'ordre à l'écran.
    Plus rien de caché : `peintCachee` reste (la bande du garage l'appelle) et répond toujours non. */
