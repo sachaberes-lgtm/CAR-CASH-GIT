@@ -552,6 +552,15 @@ function cyStrates(){
    de la palette À LUMINANCE ÉGALE — m : les grès massifs, n : les lits minces ; [r, g, b, part, gain]. `classique` (null) = les octets d'avant, au bit près. */
 const CY_PALS={classique:null,sedona:{m:[.90,.46,.30,.36,.96],n:[.72,.28,.20,.4,.92]},zion:{m:[1,.93,.82,.55,1.06],n:[.86,.42,.28,.42,.95]},
   peint:{m:[.94,.64,.54,.35,1],n:[.62,.54,.80,.72,1.02]},bryce:{m:[.99,.66,.36,.38,1],n:[.97,.84,.68,.4,1.05]}};
+/* ===== LES LITS SOMBRES ADOUCIS (2026-11-23, Sacha : « la map canyon est toujour assez bugger sur les paroie et tout », puis « Oui, adoucis ») =====
+   MESURÉ (enquête du 23/11, planches 8 à 13) : la falaise sort en grands pans tournés autrement que leurs voisins ; les lits horizontaux y cassent d'un pan à l'autre, et
+   deux lits très foncés de la colonne (le brun et le lie-de-vin : clarté 93 et 104 sur 255 dans la texture de la piste A contre ~200 pour les grès ; à l'ombre, 20-55 à l'écran contre ~150)
+   rendaient chaque cassure et chaque rectangle très visibles. On GARDE ces lits et leur TEINTE (les trois octets multipliés par le même facteur), on remonte seulement leur clarté :
+   un lit plus sombre que le seuil (80 % de la clarté moyenne des grès massifs de la colonne) fait `CY_DOUX` du chemin vers cette clarté des grès, sans jamais dépasser le seuil
+   (l'ordre des lits ne s'inverse pas ; rien au-dessus du seuil ne bouge ; le test ne regarde que la clarté : 41 à 48 % des texels de la colonne changent, dont quelques texels « massifs » sombres — contrôle du 23/11). Posé en DERNIER dans cyStratesDonnees : vaut pour les cinq palettes tirées par graine et pour
+   les pistes A, B, C et 0. Ce sont des OCTETS de la texture 1×1024 : zéro instruction de shader, zéro texture, zéro uniforme, zéro triangle en plus.
+   `?cydoux=0..1` : la force · `?sans=cydoux` (ou `?cydoux=0`) : la colonne d'avant, à l'octet près. */
+const CY_DOUX=(function(){if(/[?&]sans=([^&]*,)?cydoux(,|&|$)/.test(location.search))return 0;const m=/[?&]cydoux=([0-9.]+)/.exec(location.search);return m?Math.max(0,Math.min(1,+m[1]||0)):.5;})();
 function cyStratesTeinte(nm){if(!CY.tStr)return;cyStratesDonnees(CY.tStr.image.data,CY_PALS[nm]||null);CY.tStr.needsUpdate=true;}
 function cyStratesDonnees(d,T){
   const N=1024,r=mulberry32(0x57A7A),te=(L9,mas)=>{if(!T)return L9;const q=mas?T.m:T.n,l=L9[0]*.3+L9[1]*.55+L9[2]*.15,n=q[0]*.3+q[1]*.55+q[2]*.15,g=l*q[4]/n,k=q[3];
@@ -571,6 +580,10 @@ function cyStratesDonnees(d,T){
   if(CY_LOOK&&CY_LOOK.pal){const Q=CY_LOOK.pal; /* (2026-11-17, le rendu final) la palette de la piste par-dessus celle de la graine, à luminance égale — la variété des cinq palettes reste, la famille de teintes est tenue */
     for(let o=0;o<N*4;o+=4){const R9=d[o],G9=d[o+1],B9=d[o+2],q=d[o+3]>127?Q.m:(Q.f&&B9>R9*.98?Q.f:Q.n), /* un lit mince déjà froid (le gris-violet) devient le lit FROID de la piste */g=(R9*.3+G9*.55+B9*.15)*q[4]/(q[0]*.3+q[1]*.55+q[2]*.15),k=q[3];
       d[o]=Math.min(255,Math.round(R9+(q[0]*g-R9)*k));d[o+1]=Math.min(255,Math.round(G9+(q[1]*g-G9)*k));d[o+2]=Math.min(255,Math.round(B9+(q[2]*g-B9)*k));}}
+  if(CY_DOUX>0){let sm=0,nm=0;for(let o=0;o<N*4;o+=4)if(d[o+3]>127){sm+=d[o]*.3+d[o+1]*.55+d[o+2]*.15;nm++;} /* (2026-11-23, LES LITS SOMBRES ADOUCIS) la clarté moyenne des grès massifs de CETTE colonne (palette de la graine et piste comprises) */
+    const G9=sm/Math.max(1,nm),S9=.8*G9;
+    for(let o=0;o<N*4;o+=4){const l=d[o]*.3+d[o+1]*.55+d[o+2]*.15;if(l>=S9||l<1)continue;const f=Math.min(S9,l+CY_DOUX*(G9-l))/l; /* le même facteur sur les trois octets : la teinte du lit ne bouge pas */
+      d[o]=Math.min(255,Math.round(d[o]*f));d[o+1]=Math.min(255,Math.round(d[o+1]*f));d[o+2]=Math.min(255,Math.round(d[o+2]*f));}}
   return d;}
 /* LE TIRAGE DU DÉCOR DU CANYON (2026-10-20) : des choix INDÉPENDANTS, dans un flux né de la graine de la piste (ni `rnd`, ni `r`, ni le tracé) — un objet simple
    (il part au travailleur) */

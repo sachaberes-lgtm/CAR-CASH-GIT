@@ -63,4 +63,10 @@ html.voilesOmbres #flowGlow,html.voilesOmbres #pwrFx{inset:0 auto auto 0;width:c
 html.voilesOmbres #flowGlow{box-shadow:inset 0 0 20px color-mix(in srgb,var(--fc) 55%,transparent),inset 0 0 6px color-mix(in srgb,var(--fc) 40%,transparent)}
 html.voilesGl #speedFx{visibility:hidden!important} /* piste d (?plus=voilesgl) : la vignette de vitesse est dessinée par la passe de sortie WebGL (posé seulement si elle tourne) */
 html.voilesOmbres #pwrFx{box-shadow:inset 0 0 calc(50px / 3) calc(8px / 3) var(--pf),inset 0 0 50px calc(28px / 3) var(--pf2)}
+/* 8. LA BARRE DE NITRO FIGÉE, TÉLÉPHONE BRÛLANT (2026-11-23, Sacha : « des gros gros freez […] et de la chauffe regle ca » ; body.hudBrule, posé par hudBruleTick, moteur/cadence.js,
+      en course à l'état thermique critique ; ?sans=hudbrule). Barre PLEINE et nitro lâché : ses cinq boucles (nitroPlein, hmPlein, hmEclairPret, nbReflet) s'arrêtent où elles sont.
+      `animation-play-state` seulement : la classe retirée, tout repart, rien ne rejoue. Pas pendant le boost, ni « à sec », ni pendant l'éclat d'un gain (une animation à un coup
+      resterait figée à sa 1re image). MESURÉ dans Chrome : −28 % de fil principal par image d'écran au processeur ×4, +20 % d'images au ×8. */
+html body.hudBrule #nitroBar.plein:not(.boost):not(.gain):not(.bas),html body.hudBrule #nitroBar.plein:not(.boost):not(.gain):not(.bas)::before,html body.hudBrule #nitroBar.plein:not(.boost):not(.gain):not(.bas)::after,
+html body.hudBrule #nitroBar.plein:not(.boost):not(.gain):not(.bas) #nitroR,html body.hudBrule #nitroBar.plein:not(.boost):not(.gain):not(.bas) #nitroX{animation-play-state:paused!important}
 </style>

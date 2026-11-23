@@ -168,6 +168,7 @@ function signatureBoom(lvl){
     new THREE.Vector3((Math.random()-.5)*20,7+Math.random()*15,(Math.random()-.5)*20),1.8+Math.random()*1.6);
   if(lvl===1){toss(mkCaneS(),9);toss(mkPipeS(),8);}           // ELDORADO : la canne et la pipe du parrain
   if(lvl===2)toss(mkPhoneS(),10);                             // LE CAÏD : le téléphone
+  /* (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») LE CAÏD est retiré : `lvl` (la caisse équipée) ne vaut plus jamais 2, comme 3 (SA MAJESTÉ) depuis le 6/10 ; ces lignes dorment, on n'y touche pas */
   if(lvl===1||lvl===3||lvl===4||lvl===5){                     // lingots : l'Eldorado (la cité d'or), la Rolls, la Ferrari, le poster
     const n=lvl===5?5:(lvl===3?4:3);
     for(let k=0;k<n;k++)toss(mkIngotS(),11);

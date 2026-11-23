@@ -138,3 +138,6 @@ Comment ça marche dans le jeu : toute caisse `k:'premium'` en vente devient un 
 - La mise en page du bandeau sur petit écran (320 pt) n'a pas été regardée.
 - L'écran de révélation des deux nouvelles secrètes n'a pas été joué.
 - Les paliers de prix exacts d'Apple (0,80 € existe-t-il ?).
+
+## 23/11 : quatre voitures retirées de plus
+- (23/11, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») LE CAÏD (2), LA DOLCE VITA (80), LE BAROUDEUR (82) et LA ZAGAIE (88) sont retirées, par la même règle que le 18/11 : `{retire:1,name}` au même index, prix gardés dans `CAR_UNLOCK` (600 000, 30 000, 80 000, 3 500 000 $) pour le remboursement, équipée → LA HONTE, dessins gardés dans `SHAPES`. Banc : `outils/banc-voitures-tri/banc.cjs` (297 vérifications, section 5) et `page-23-11.cjs` (Chrome). Détail, points délicats et questions : `PASSATION-21-11.md`, section « 23/11 : quatre voitures retirées ».

@@ -186,3 +186,11 @@ Même route des deux côtés (correctifs de génération allumés) ; avant = `?s
 - **NON VÉRIFIÉ : la course à ~900 km/h.** Le banc dépasse (2 200-3 200 km/h) en montant les paliers du moteur ; la rampe a été ralentie (un palier toutes les 90 images)
   mais pas relancée (verrou des bancs saturé). À refaire avant de publier.
 - Les planches du réglage final n'ont pas repassé le lot de 40 graines ni la table des coûts (mêmes instructions, nombres différents).
+
+## 23/11 : les lits sombres adoucis (Sacha : « Oui, adoucis »)
+Sacha : « la map canyon est toujour assez bugger sur les paroie et tout ». L'enquête a montré que deux lits très foncés (brun, lie-de-vin) rendaient chaque cassure de paroi très visible ; il a dit oui à « les garder, mais moins foncées ».
+- `cyStratesDonnees` (canyon-route.js) finit par une passe : un lit sous 80 % de la clarté moyenne des grès fait `CY_DOUX` (0,5) du chemin vers les grès, plafonné à ce seuil, à teinte égale. Toutes palettes, toutes pistes.
+- `?sans=cydoux` = l'avant à l'octet près ; `?cydoux=0..1` = la force.
+- Lit le plus foncé de la colonne, piste A : clarté 90-95 → 142-148 sur 255. À l'écran, l'écart lit foncé / grès voisin tombe d'environ la moitié (65 → 40, 64 → 32, 53 → 22…).
+- Prix à l'image : les parois où ce lit domine sont plus claires et plus rouges (g3 s 600 : clarté +12 sur 255, saturation 0,61 → 0,65). Le soir, déjà très rouge, l'est un peu plus.
+- Mesures, planches et non-vérifié : `passation/qualite/PASSATION-21-11.md`, « 23/11 (suite) ».

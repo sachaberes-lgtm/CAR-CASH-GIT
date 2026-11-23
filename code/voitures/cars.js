@@ -21,8 +21,7 @@ const CARS=[
  // parce que les flaques de lumière, les traînées et la plume s'y calent.
  {name:'ELDORADO',        shape:'eldorado',color:0xff6fae,accent:0xe8ebef,maxKmh:232,accel:26,turn:2.6, h:1.30,w:2.02,l:5.70,spoiler:0,rar:'rare', /* (2026-10-14) à 10 000 $, carRar l'aurait classée COMMUNE */
   desc:'Rose bonbon, ailerons de requin et une banquette pour trois avocats.'},
- {name:'LE CAÏD',         shape:'caid',    color:0xbec2c8,accent:0x16171b,maxKmh:275,accel:31,turn:2.7, h:2.01,w:2.20,l:5.51,spoiler:0, /* (2026-10-19, Léo : « sans le toit, comme sur la photo exactement ») le pick-up blanc nacré de sa photo (avant : 0x7cb83f, le SUV 1,98 × 5,00) */
-  desc:'Trois tonnes de cube. Personne ne t\'a jamais demandé de te pousser.'},
+ {retire:1,name:'LE CAÏD'}, /* (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») RETIRÉE : sa ligne reste (index 2 de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement ; qui roulait avec repart en LA HONTE ; ses dessins `caid` restent dans SHAPES (shapes-1.js, caid.js), plus rien ne les montre */
  {retire:1,name:'SA MAJESTÉ'},
  {name:'LÉONIE',         shape:'rosso',   color:0xe8121c,accent:0x131417,maxKmh:420,accel:48,turn:3.05,h:1.12,w:1.98,l:4.36,spoiler:0,rar:'epique', /* (2026-10-22, Sacha : « tableau des voitures » ROSSO 40 épique à 400 000 $ : sans cette ligne le prix la ferait RARE) */
   desc:'Rouge course, aileron plateau. La caisse de rêve, et chaque euro se voit.'},
@@ -209,8 +208,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LA DOLCE VITA',shape:'cinq',color:0x4a7599,accent:0x9d998e,maxKmh:200,accel:22,turn:2.9,h:1.50,w:1.63,l:3.43,spoiler:0,rar:'commun', // 80 — discussion RONDES : la 500 (2007) en finition « 1957 » de la photo de Léo — bleu ciel, toit blanc, rétros blancs, jantes à cercle crème (SHAPES.cinq, sur le plan coté)
-  desc:'Toit blanc, robe céleste, moustache chromée. Elle se gare dans un mouchoir de poche, et elle repart avec le mouchoir.'},
+ {retire:1,name:'LA DOLCE VITA'}, /* 80 — (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») RETIRÉE : sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement ; son dessin `cinq` reste dans SHAPES (rondes-2.js), plus rien ne le montre */
  /* · */
  /* · */
  /* · */
@@ -218,8 +216,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LE BAROUDEUR',shape:'wrangler',color:0x464950,accent:0x141414,maxKmh:210,accel:23,turn:2.4,h:1.85,w:1.89,l:4.59,spoiler:0,rar:'commun', // 82 — discussion BOITES : Jeep Wrangler JL 4 portes (2018), relevée sur son élévation (SHAPES.wrangler)
-  desc:'Sept fentes, quatre roues motrices, zéro route nécessaire. Il ne contourne pas les obstacles : il monte dessus.'},
+ {retire:1,name:'LE BAROUDEUR'}, /* 82 — (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») RETIRÉE : sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement ; son dessin `wrangler` reste dans SHAPES (wrangler.js, fermé dans simpson.js), plus rien ne le montre */
  /* · */
  /* · */
  /* · */
@@ -247,8 +244,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LA ZAGAIE',shape:'zagato',color:0xc7753c,accent:0x2a2c31,maxKmh:500,accel:58,turn:3.1,h:1.17,w:1.93,l:4.22,spoiler:0,rar:'epique', // 88 — (2026-10-22, Léo : « zagato imite exactement la forme de la voiture orange ») la 5-95 de Zagato (2014, un exemplaire) : gueule creuse, vitrage noir qui s'enroule, nacelle de toit, queue coupée net, cuivre mat (SHAPES.zagato)
-  desc:'Une pièce unique, taillée comme une lance : la gueule grande ouverte, le toit noir qui s\'enroule, la queue coupée net.'},
+ {retire:1,name:'LA ZAGAIE'}, /* 88 — (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») RETIRÉE : sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement (qui l'avait reçue de la machine à sous ou de la série de sept jours est remboursé aussi : la sauvegarde ne dit pas comment elle est venue) ; son dessin `zagato` reste dans SHAPES (zagato.js ; ses outils de travail-caisse.js servent au LOUP) */
  /* · */
  /* · */
  /* · */

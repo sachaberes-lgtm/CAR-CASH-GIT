@@ -36,7 +36,7 @@ const SAVE = { v: 2, sfx: true, mus: MUS, vox: true, tuto: 1, permis: 1, bank: 4
     await c.send('Emulation.setUserAgentOverride', { userAgent: UA, platform: 'iPhone' });
     await c.send('Emulation.setEmulatedMedia', { features: [{ name: 'hover', value: 'none' }, { name: 'pointer', value: 'coarse' }] });
     await c.send('Page.addScriptToEvaluateOnNewDocument', { source: 'try{localStorage.setItem("cashcarSave",' + JSON.stringify(JSON.stringify(SAVE)) + ')}catch(e){}' });
-    await c.send('Page.navigate', { url: `http://127.0.0.1:${P_HTTP}/index.html?colonne=0&tel=1&garde=1&intro=ancien&attente=0` + (A.q ? '&' + A.q : '') });
+    await c.send('Page.navigate', { url: `http://127.0.0.1:${P_HTTP}/index.html?colonne=0&tel=1&garde=1&intro=ancien&attente=0&hudcalme=1` /* (2026-11-23) le HUD calme est éteint de base depuis le code « uhd » : ce banc l'allume */ + (A.q ? '&' + A.q : '') });
     let pret = false;
     for (let i = 0; i < 300; i++) { await dormir(500); try { if (await c.ev("!!window.__gameReady&&typeof dbgJouer==='function'", 8000)) { pret = true; break; } } catch (e) {} }
     if (!pret) { let d = ''; try { d = await c.ev('document.readyState+" "+typeof dbgJouer+" "+!!window.__gameReady', 5000); } catch (e) { d = String(e).slice(0, 100); } throw new Error('le jeu ne démarre pas : ' + d + ' · ' + erreurs.slice(0, 3).join(' / ')); }

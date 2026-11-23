@@ -12155,6 +12155,12 @@ html.voilesOmbres #flowGlow,html.voilesOmbres #pwrFx{inset:0 auto auto 0;width:c
 html.voilesOmbres #flowGlow{box-shadow:inset 0 0 20px color-mix(in srgb,var(--fc) 55%,transparent),inset 0 0 6px color-mix(in srgb,var(--fc) 40%,transparent)}
 html.voilesGl #speedFx{visibility:hidden!important} /* piste d (?plus=voilesgl) : la vignette de vitesse est dessinée par la passe de sortie WebGL (posé seulement si elle tourne) */
 html.voilesOmbres #pwrFx{box-shadow:inset 0 0 calc(50px / 3) calc(8px / 3) var(--pf),inset 0 0 50px calc(28px / 3) var(--pf2)}
+/* 8. LA BARRE DE NITRO FIGÉE, TÉLÉPHONE BRÛLANT (2026-11-23, Sacha : « des gros gros freez […] et de la chauffe regle ca » ; body.hudBrule, posé par hudBruleTick, moteur/cadence.js,
+      en course à l'état thermique critique ; ?sans=hudbrule). Barre PLEINE et nitro lâché : ses cinq boucles (nitroPlein, hmPlein, hmEclairPret, nbReflet) s'arrêtent où elles sont.
+      `animation-play-state` seulement : la classe retirée, tout repart, rien ne rejoue. Pas pendant le boost, ni « à sec », ni pendant l'éclat d'un gain (une animation à un coup
+      resterait figée à sa 1re image). MESURÉ dans Chrome : −28 % de fil principal par image d'écran au processeur ×4, +20 % d'images au ×8. */
+html body.hudBrule #nitroBar.plein:not(.boost):not(.gain):not(.bas),html body.hudBrule #nitroBar.plein:not(.boost):not(.gain):not(.bas)::before,html body.hudBrule #nitroBar.plein:not(.boost):not(.gain):not(.bas)::after,
+html body.hudBrule #nitroBar.plein:not(.boost):not(.gain):not(.bas) #nitroR,html body.hudBrule #nitroBar.plein:not(.boost):not(.gain):not(.bas) #nitroX{animation-play-state:paused!important}
 </style>
 <style id="etalonnage">
 /* ===== L'ÉTALONNAGE (2026-11-07, Sacha : « fais une session de finition d'étalonnage pour que toutes les couleurs soient jolies entre elles et forment un jeu complet pensé pour mobile ») =====
@@ -26254,6 +26260,15 @@ function cyStrates(){
    de la palette À LUMINANCE ÉGALE — m : les grès massifs, n : les lits minces ; [r, g, b, part, gain]. `classique` (null) = les octets d'avant, au bit près. */
 const CY_PALS={classique:null,sedona:{m:[.90,.46,.30,.36,.96],n:[.72,.28,.20,.4,.92]},zion:{m:[1,.93,.82,.55,1.06],n:[.86,.42,.28,.42,.95]},
   peint:{m:[.94,.64,.54,.35,1],n:[.62,.54,.80,.72,1.02]},bryce:{m:[.99,.66,.36,.38,1],n:[.97,.84,.68,.4,1.05]}};
+/* ===== LES LITS SOMBRES ADOUCIS (2026-11-23, Sacha : « la map canyon est toujour assez bugger sur les paroie et tout », puis « Oui, adoucis ») =====
+   MESURÉ (enquête du 23/11, planches 8 à 13) : la falaise sort en grands pans tournés autrement que leurs voisins ; les lits horizontaux y cassent d'un pan à l'autre, et
+   deux lits très foncés de la colonne (le brun et le lie-de-vin : clarté 93 et 104 sur 255 dans la texture de la piste A contre ~200 pour les grès ; à l'ombre, 20-55 à l'écran contre ~150)
+   rendaient chaque cassure et chaque rectangle très visibles. On GARDE ces lits et leur TEINTE (les trois octets multipliés par le même facteur), on remonte seulement leur clarté :
+   un lit plus sombre que le seuil (80 % de la clarté moyenne des grès massifs de la colonne) fait `CY_DOUX` du chemin vers cette clarté des grès, sans jamais dépasser le seuil
+   (l'ordre des lits ne s'inverse pas ; rien au-dessus du seuil ne bouge ; le test ne regarde que la clarté : 41 à 48 % des texels de la colonne changent, dont quelques texels « massifs » sombres — contrôle du 23/11). Posé en DERNIER dans cyStratesDonnees : vaut pour les cinq palettes tirées par graine et pour
+   les pistes A, B, C et 0. Ce sont des OCTETS de la texture 1×1024 : zéro instruction de shader, zéro texture, zéro uniforme, zéro triangle en plus.
+   `?cydoux=0..1` : la force · `?sans=cydoux` (ou `?cydoux=0`) : la colonne d'avant, à l'octet près. */
+const CY_DOUX=(function(){if(/[?&]sans=([^&]*,)?cydoux(,|&|$)/.test(location.search))return 0;const m=/[?&]cydoux=([0-9.]+)/.exec(location.search);return m?Math.max(0,Math.min(1,+m[1]||0)):.5;})();
 function cyStratesTeinte(nm){if(!CY.tStr)return;cyStratesDonnees(CY.tStr.image.data,CY_PALS[nm]||null);CY.tStr.needsUpdate=true;}
 function cyStratesDonnees(d,T){
   const N=1024,r=mulberry32(0x57A7A),te=(L9,mas)=>{if(!T)return L9;const q=mas?T.m:T.n,l=L9[0]*.3+L9[1]*.55+L9[2]*.15,n=q[0]*.3+q[1]*.55+q[2]*.15,g=l*q[4]/n,k=q[3];
@@ -26273,6 +26288,10 @@ function cyStratesDonnees(d,T){
   if(CY_LOOK&&CY_LOOK.pal){const Q=CY_LOOK.pal; /* (2026-11-17, le rendu final) la palette de la piste par-dessus celle de la graine, à luminance égale — la variété des cinq palettes reste, la famille de teintes est tenue */
     for(let o=0;o<N*4;o+=4){const R9=d[o],G9=d[o+1],B9=d[o+2],q=d[o+3]>127?Q.m:(Q.f&&B9>R9*.98?Q.f:Q.n), /* un lit mince déjà froid (le gris-violet) devient le lit FROID de la piste */g=(R9*.3+G9*.55+B9*.15)*q[4]/(q[0]*.3+q[1]*.55+q[2]*.15),k=q[3];
       d[o]=Math.min(255,Math.round(R9+(q[0]*g-R9)*k));d[o+1]=Math.min(255,Math.round(G9+(q[1]*g-G9)*k));d[o+2]=Math.min(255,Math.round(B9+(q[2]*g-B9)*k));}}
+  if(CY_DOUX>0){let sm=0,nm=0;for(let o=0;o<N*4;o+=4)if(d[o+3]>127){sm+=d[o]*.3+d[o+1]*.55+d[o+2]*.15;nm++;} /* (2026-11-23, LES LITS SOMBRES ADOUCIS) la clarté moyenne des grès massifs de CETTE colonne (palette de la graine et piste comprises) */
+    const G9=sm/Math.max(1,nm),S9=.8*G9;
+    for(let o=0;o<N*4;o+=4){const l=d[o]*.3+d[o+1]*.55+d[o+2]*.15;if(l>=S9||l<1)continue;const f=Math.min(S9,l+CY_DOUX*(G9-l))/l; /* le même facteur sur les trois octets : la teinte du lit ne bouge pas */
+      d[o]=Math.min(255,Math.round(d[o]*f));d[o+1]=Math.min(255,Math.round(d[o+1]*f));d[o+2]=Math.min(255,Math.round(d[o+2]*f));}}
   return d;}
 /* LE TIRAGE DU DÉCOR DU CANYON (2026-10-20) : des choix INDÉPENDANTS, dans un flux né de la graine de la piste (ni `rnd`, ni `r`, ni le tracé) — un objet simple
    (il part au travailleur) */
@@ -39659,8 +39678,7 @@ const CARS=[
  // parce que les flaques de lumière, les traînées et la plume s'y calent.
  {name:'ELDORADO',        shape:'eldorado',color:0xff6fae,accent:0xe8ebef,maxKmh:232,accel:26,turn:2.6, h:1.30,w:2.02,l:5.70,spoiler:0,rar:'rare', /* (2026-10-14) à 10 000 $, carRar l'aurait classée COMMUNE */
   desc:'Rose bonbon, ailerons de requin et une banquette pour trois avocats.'},
- {name:'LE CAÏD',         shape:'caid',    color:0xbec2c8,accent:0x16171b,maxKmh:275,accel:31,turn:2.7, h:2.01,w:2.20,l:5.51,spoiler:0, /* (2026-10-19, Léo : « sans le toit, comme sur la photo exactement ») le pick-up blanc nacré de sa photo (avant : 0x7cb83f, le SUV 1,98 × 5,00) */
-  desc:'Trois tonnes de cube. Personne ne t\'a jamais demandé de te pousser.'},
+ {retire:1,name:'LE CAÏD'}, /* (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») RETIRÉE : sa ligne reste (index 2 de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement ; qui roulait avec repart en LA HONTE ; ses dessins `caid` restent dans SHAPES (shapes-1.js, caid.js), plus rien ne les montre */
  {retire:1,name:'SA MAJESTÉ'},
  {name:'LÉONIE',         shape:'rosso',   color:0xe8121c,accent:0x131417,maxKmh:420,accel:48,turn:3.05,h:1.12,w:1.98,l:4.36,spoiler:0,rar:'epique', /* (2026-10-22, Sacha : « tableau des voitures » ROSSO 40 épique à 400 000 $ : sans cette ligne le prix la ferait RARE) */
   desc:'Rouge course, aileron plateau. La caisse de rêve, et chaque euro se voit.'},
@@ -39847,8 +39865,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LA DOLCE VITA',shape:'cinq',color:0x4a7599,accent:0x9d998e,maxKmh:200,accel:22,turn:2.9,h:1.50,w:1.63,l:3.43,spoiler:0,rar:'commun', // 80 — discussion RONDES : la 500 (2007) en finition « 1957 » de la photo de Léo — bleu ciel, toit blanc, rétros blancs, jantes à cercle crème (SHAPES.cinq, sur le plan coté)
-  desc:'Toit blanc, robe céleste, moustache chromée. Elle se gare dans un mouchoir de poche, et elle repart avec le mouchoir.'},
+ {retire:1,name:'LA DOLCE VITA'}, /* 80 — (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») RETIRÉE : sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement ; son dessin `cinq` reste dans SHAPES (rondes-2.js), plus rien ne le montre */
  /* · */
  /* · */
  /* · */
@@ -39856,8 +39873,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LE BAROUDEUR',shape:'wrangler',color:0x464950,accent:0x141414,maxKmh:210,accel:23,turn:2.4,h:1.85,w:1.89,l:4.59,spoiler:0,rar:'commun', // 82 — discussion BOITES : Jeep Wrangler JL 4 portes (2018), relevée sur son élévation (SHAPES.wrangler)
-  desc:'Sept fentes, quatre roues motrices, zéro route nécessaire. Il ne contourne pas les obstacles : il monte dessus.'},
+ {retire:1,name:'LE BAROUDEUR'}, /* 82 — (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») RETIRÉE : sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement ; son dessin `wrangler` reste dans SHAPES (wrangler.js, fermé dans simpson.js), plus rien ne le montre */
  /* · */
  /* · */
  /* · */
@@ -39885,8 +39901,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LA ZAGAIE',shape:'zagato',color:0xc7753c,accent:0x2a2c31,maxKmh:500,accel:58,turn:3.1,h:1.17,w:1.93,l:4.22,spoiler:0,rar:'epique', // 88 — (2026-10-22, Léo : « zagato imite exactement la forme de la voiture orange ») la 5-95 de Zagato (2014, un exemplaire) : gueule creuse, vitrage noir qui s'enroule, nacelle de toit, queue coupée net, cuivre mat (SHAPES.zagato)
-  desc:'Une pièce unique, taillée comme une lance : la gueule grande ouverte, le toit noir qui s\'enroule, la queue coupée net.'},
+ {retire:1,name:'LA ZAGAIE'}, /* 88 — (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») RETIRÉE : sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement (qui l'avait reçue de la machine à sous ou de la série de sept jours est remboursé aussi : la sauvegarde ne dit pas comment elle est venue) ; son dessin `zagato` reste dans SHAPES (zagato.js ; ses outils de travail-caisse.js servent au LOUP) */
  /* · */
  /* · */
  /* · */
@@ -41715,8 +41730,8 @@ const SF_CARTES={
   nuages:{nm:'MER DE NUAGES',base:'nuages',m:{matin:{bio:'matin'},midi:{bio:'midi'},soir:{bio:'nuagesSoir'},nuit:{bio:'nuagesNuit',nuit:1},
     pluie:{bio:'nuagesPluie',pluie:.75,route:.18,sheen:.16},orage:{niv:'orage',orage:1}}},
   ville:{nm:'CRYPTO CITY',base:'ville',teintes:['violet','vert','jaune'],m:{orage:{bio:'villeOrage',pluie:1,orage:1,route:.5,sheen:.2,p:3.5}}}, // (2026-10-25, Léo, revue des maps : « vire la nuit simple, la pluie, le brouillard et la couleur bleue ») LA VILLE de CRYPTOVILLE = la NUIT d'ORAGE (violet, vert ou jaune) ; p 3,5 = le poids des trois temps de Crypto City : la journée et la nuit de la map à égalité sur PC
-  jade:{nm:'PICS DE JADE',base:'jade',m:{matin:{bio:'jadeMatin'},midi:{bio:'jadeMidi'},soir:{bio:'jade'},nuit:{bio:'jadeNuit',nuit:1},
-    pluie:{bio:'jadePluie',pluie:.75,sheen:.2},orage:{bio:'jadeOrage',pluie:1,orage:1,sheen:.2}}},
+  jade:{nm:'PICS DE JADE',base:'jade',m:{matin:{bio:'jadeMatin'},midi:{bio:'jadeMidi'},soir:{bio:'jade'},nuit:{bio:'jadeNuit',nuit:1,p:0}, /* (2026-11-22, Sacha : « supprime la map jade nuit plus pluie ») hors du tirage ; `?carte=jade&meteo=nuit` la joue encore */
+    pluie:{bio:'jadePluie',pluie:.75,sheen:.2,p:0}, /* (2026-11-22, Sacha) hors du tirage aussi ; `?carte=jade&meteo=pluie` */ orage:{bio:'jadeOrage',pluie:1,orage:1,sheen:.2}}},
   /* (2026-10-14, Sacha) LE GLACIER (ex-LA BANQUISE, renommé à 20 h 40 : « ça devrait plutôt s'appeler GLACIER et être une MONTAGNE, comme dans STEEP ») :
      le matin rose, le midi bleu profond, le soir où les pics s'embrasent, la NUIT des aurores boréales, la NEIGE, le BLIZZARD (plus rare). Ni pluie ni
      éclairs. La promesse est la même à toute heure : le RACCOURCI (genBanq : les lacets superposés). Voir « LE GLACIER » au JOURNAL. L'id reste 'banquise'. */
@@ -61924,7 +61939,7 @@ const CAR_UNLOCK=[
      un débutant fait 200 à 1 000 $. L'ancien 25 000 $ demandait donc ~30 parties pour la 1re caisse :
      un mur. Cible : la 1re caisse en 10-15 min de jeu (parties + primes de contrat), puis ×6-7 par marche. */
   {p:500e3},/* (2026-10-22, Sacha : « tableau des voitures » 40 000 → 50 000) */// ELDORADO — (2026-10-17, Sacha : « pas 3 000 dollars, elle doit coûter 40 000 dollars » — 3 000 → 40 000, juste sous LE CAÏD (50 000) ; le même jour LE CHARGEUR (60 000), LA BAVAROISE (100 000) et LE DÉFIEUR (120 000) montent aussi : l'ELDORADO reste la 1re caisse à l'argent) — (2026-10-14 soir, Sacha : option A de passation/ECONOMIE.md — 10 000 → 3 000 : la 1re caisse en 3-4 parties de joueur moyen, aucun gain ne change) — (2026-10-14, équilibrage : 24 000 → 10 000 — la 1re caisse à l'argent depuis le retrait des communes : un débutant l'avait en ~58 parties, ~22 désormais) — (2026-09-26) RARE : les 14 COMMUNES (1 500 → 15 000 $) prennent le rôle de « première caisse »
-  {p:600e3},/* (2026-10-22, Sacha : « tableau des voitures » 180 000 → 60 000) */ // LE CAÏD — RARE (2026-10-06 : 60 000 → 50 000) ; 50 000 → 180 000 : c'est le HUMMER EV désormais ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
+  {p:600e3}, /* (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») RETIRÉE (voir CARS) : la ligne reste pour l'index ; son prix ne sert plus qu'au REMBOURSEMENT de qui l'avait payée (SAVE.san) *//* (2026-10-22, Sacha : « tableau des voitures » 180 000 → 60 000) */ // LE CAÏD — RARE (2026-10-06 : 60 000 → 50 000) ; 50 000 → 180 000 : c'est le HUMMER EV désormais ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
   {p:180e3},            // (2026-10-06 : RETIRÉE, le prix sert au remboursement) SA MAJESTÉ — RARE, la plus chère des rares : l'argent achète la Rolls, c'est même à ça qu'il sert
   {p:4e6},/* (2026-10-22, Sacha : « tableau des voitures » 4 000 000 → 400 000) */ // (2026-10-19 : 2,5 M → 4 M, la plus chère des caisses à l'argent du jeu ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) (2026-10-06 : 1,5 M → 2,5 M) ROSSO 40 — (2026-09-25 : le mode Survivant est retiré, un seul mode de jeu) la caisse de RÊVE, à 1,5 M
   {p:132e5},/* (2026-11-05, Sacha : « poster 84 doit coûter 13200000 ») : 3 200 000 → 13 200 000 $ ; (2026-10-26, Sacha : « la POSTER 84 ne doit plus être en boutique ni à vendre en vrai argent : 20 % moins chère que la ROSSO 40 ») : 4 000 000 × 0,8 = 3 200 000 $ au garage ; avant : premium 1,61 € (2026-10-22, « tableau des voitures »), avant encore : rang d'aura MYTHE */
@@ -62012,7 +62027,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:30000}, // 80 — COMMUNE : Fiat 500 (2007), finition « 1957 »
+  {p:30000}, /* (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») RETIRÉE (voir CARS) : la ligne reste pour l'index ; son prix ne sert plus qu'au REMBOURSEMENT de qui l'avait payée (SAVE.san) */ // 80 — COMMUNE : Fiat 500 (2007), finition « 1957 »
   /* · */
   /* · */
   /* · */
@@ -62020,7 +62035,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:80000}, // 82 — COMMUNE : Jeep Wrangler JL (2018)
+  {p:80000}, /* (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») RETIRÉE (voir CARS) : la ligne reste pour l'index ; son prix ne sert plus qu'au REMBOURSEMENT de qui l'avait payée (SAVE.san) */ // 82 — COMMUNE : Jeep Wrangler JL (2018)
   /* · */
   /* · */
   /* · */
@@ -62044,7 +62059,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:3500000}, // 88 — ÉPIQUE : LA ZAGAIE, la 5-95 de Zagato (2026-10-22, Léo : « zagato imite exactement la forme de la voiture orange ») — prix provisoire (entre L'ICEBERG et ROSSO 40, la caisse de rêve à 4 M : un exemplaire unique)
+  {p:3500000}, /* (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») RETIRÉE (voir CARS) : la ligne reste pour l'index ; son prix ne sert plus qu'au REMBOURSEMENT de qui l'avait payée (SAVE.san) */ // 88 — ÉPIQUE : LA ZAGAIE, la 5-95 de Zagato (2026-10-22, Léo : « zagato imite exactement la forme de la voiture orange ») — prix provisoire (entre L'ICEBERG et ROSSO 40, la caisse de rêve à 4 M : un exemplaire unique)
   /* · */
   /* · */
   /* · */
@@ -72135,6 +72150,7 @@ function signatureBoom(lvl){
     new THREE.Vector3((Math.random()-.5)*20,7+Math.random()*15,(Math.random()-.5)*20),1.8+Math.random()*1.6);
   if(lvl===1){toss(mkCaneS(),9);toss(mkPipeS(),8);}           // ELDORADO : la canne et la pipe du parrain
   if(lvl===2)toss(mkPhoneS(),10);                             // LE CAÏD : le téléphone
+  /* (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») LE CAÏD est retiré : `lvl` (la caisse équipée) ne vaut plus jamais 2, comme 3 (SA MAJESTÉ) depuis le 6/10 ; ces lignes dorment, on n'y touche pas */
   if(lvl===1||lvl===3||lvl===4||lvl===5){                     // lingots : l'Eldorado (la cité d'or), la Rolls, la Ferrari, le poster
     const n=lvl===5?5:(lvl===3?4:3);
     for(let k=0;k<n;k++)toss(mkIngotS(),11);
@@ -96052,7 +96068,7 @@ function cadSaute(now){ // en tête de loop : rend true si cette image d'écran 
    `?sans=crit20` = 30 i/s visées comme avant. ESSAI à une variable pour les watts : `?cadfps=20` (ou 24) impose cette cadence à TOUT état — rien sans le paramètre. */
 const CAD_CRIT20=TEL_NATIF&&!/[?&]sans=[^&]*crit20/.test(location.search),CAD_FPS_ESSAI=+((/[?&]cadfps=(\d+)\b/.exec(location.search)||[])[1])||0;
 function cadPer(){if(CAD_FPS_ESSAI>=10&&CAD_FPS_ESSAI<30)return 1000/CAD_FPS_ESSAI;
-  if(CAD_CRIT20){try{if(MOB_S.capteur&&MOB_S.thermo>=3&&(!pilOn()||!PIL_CAD||pilTic()<20))return 50;}catch(e){}} /* (2026-11-17, LE PILOTE DE QUALITÉ, étape 2) 50 ms = 3 tics réguliers d'un écran à 60 ; sur un écran à 30 (économie, mitigation thermique de WebKit : CAD.eM ≥ 24) 50 ms donnait 33 / 66 en alternance : on garde 33, régulier. `?sans=crit20` garde son sens ; (3e tour, S3) la mesure sur téléphone n'est pas faite : le DÉFAUT redevient celui de la base (50 visés) ; le 33 régulier ne vit plus que derrière `?plus=pilcad33` */
+  if(CAD_CRIT20){try{if(MOB_S.capteur&&MOB_S.thermo>=3&&(!PIL_ON||!PIL_CAD||pilTic()<20))return 50;}catch(e){}} /* (2026-11-17, LE PILOTE DE QUALITÉ, étape 2) 50 ms = 3 tics réguliers d'un écran à 60 ; sur un écran à 30 (économie, mitigation thermique de WebKit : CAD.eM ≥ 24) 50 ms donnait 33 / 66 en alternance : on garde 33, régulier. `?sans=crit20` garde son sens ; (3e tour, S3) la mesure sur téléphone n'est pas faite : le DÉFAUT redevient celui de la base (50 visés) ; le 33 régulier ne vit plus que derrière `?plus=pilcad33` ; (2026-11-22) mesure faite (vol-1122-2042) : le 33 régulier est le défaut, `?sans=pilcad33` rend les 50 visés ; (2026-11-23, banc Chrome, écran émulé à 30) la garde lisait `pilOn()` : un téléphone HORS PROFIL (pilote inactif) gardait les 50 visés, donc 17,5 images/s hachées (33 / 66) au lieu de 30 ; elle lit l'interrupteur `PIL_ON` : tout téléphone à l'écran à 30 a le 33 régulier, `?sans=pilote` rend toujours l'avant */
   return CAD.per;}
 function cadPose(v,now,pq){if(v===CAD.on)return;CAD.on=v;if(v)CAD.pq=pq||'?'; /* (2026-11-14, LE JUGE DU PROFIL) pourquoi on est calé : 'chaud' (gouverneur), 'reactif' (60 ne tenait pas), 'depart', 'force' — voir moteur/profil-juge.js */if(v&&MOB_GOUV)mobReactif();CAD.gel=v&&((!PAL.b('cadenceMonte',1)&&!CAD.eco)||(MOB_GOUV&&mobChaud()));/* (2026-11-12, ios-ultime) en économie d'énergie (CAD.eco) être calé ne veut rien dire — l'écran est à 30 de toute façon : l'échelle de qualité reste libre de remonter, sauf téléphone chaud */CAD.der=now;CAD.lT=0;CAD.calT=now;
   QLR.i=0;QLR.n=0; // l'anneau repart : les centiles ne mélangent pas des durées vraies et des durées ramenées
@@ -96126,8 +96142,17 @@ function cadSauteH(now){
   return r;}
 window.dbgHorloge=function(){const H=CADH;return {ok:CAD_HORLOGE,reg:H.reg,med:+H.med.toFixed(1),p90:+H.p90.toFixed(1),max:+H.max.toFixed(1),sauts:H.sauts,refus:H.refus};};
 /* ===== LE HUD CONTEMPLATIF + L'ÉCRITURE ALLÉGÉE (2026-11-12, Sacha) — voir css/hud-da.css. hudCalmeTick est appelé à chaque image de loop. Vrai téléphone seulement (TEL_NATIF, donc aussi ?tel=1 au banc).
-   Le HUD s'efface quand le nitro est relâché depuis 0,9 s, en course, hors leçon d'auto-école ; il revient au nitro, en pause, à la mort, et quand le chrono de vol passe à l'urgence (on ne meurt pas sans l'avoir vu). */
-const HUD_CALME={ok:!/[?&]sans=[^&]*hudcalme/.test(location.search),leger:!/[?&]sans=[^&]*ecrleger/.test(location.search),on:false,t:0,pose:false,air:null};
+   Le HUD s'efface quand le nitro est relâché depuis 3 s (0,9 s avant le 22/11), en course, hors leçon d'auto-école ; il revient au nitro, en pause, à la mort, et quand le chrono de vol passe à l'urgence (on ne meurt pas sans l'avoir vu). */
+/* ===== LE HUD CALME ÉTEINT DE BASE, LE CODE « UHD » (2026-11-22, Sacha : « met l'hud calme desactiver de base et activable avec un code : uhd ») =====
+   RÉGLAGES › ENTRER UN CODE › « uhd » (ou « hud ») l'allume ; le retaper l'éteint. Gardé sur l'appareil (localStorage `ccHudCalme`), hors de la sauvegarde.
+   `?hudcalme=1` l'allume pour un banc ; `?sans=hudcalme` le coupe toujours. L'écran léger (`ecrLeger`) ne change pas. */
+let HUD_CALME_CODE=/[?&]hudcalme=1\b/.test(location.search);try{if(localStorage.getItem('ccHudCalme')==='1')HUD_CALME_CODE=true;}catch(e){}
+function codeUhd(t){const k=String(t||'').toLowerCase().replace(/[^a-z0-9]/g,'');if(k!=='uhd'&&k!=='hud')return 0;
+  HUD_CALME_CODE=!HUD_CALME_CODE;try{if(HUD_CALME_CODE)localStorage.setItem('ccHudCalme','1');else localStorage.removeItem('ccHudCalme');}catch(e){}
+  HUD_CALME.ok=HUD_CALME_CODE&&!/[?&]sans=[^&]*hudcalme/.test(location.search);
+  if(!HUD_CALME.ok){if(HUD_CALME.on){HUD_CALME.on=false;document.body.classList.remove('hudCalme');try{sonCalme(false);}catch(e){}}CALG.on=false;}
+  return HUD_CALME_CODE?1:2;}
+const HUD_CALME={ok:HUD_CALME_CODE&&!/[?&]sans=[^&]*hudcalme/.test(location.search),leger:!/[?&]sans=[^&]*ecrleger/.test(location.search),on:false,t:0,pose:false,air:null};
 /* ===== LE JS PAR IMAGE (2026-11-16, lot jsimage — Sacha : « beaucoup de lag » sur le build 118 ; téléphone chaud, TOUT le fil ralentit ×8 : chaque ms de JS par image en coûte huit) =====
    Rien ne change à l'écran : le même résultat, moins de calcul. `?sans=jsimage` = exactement l'avant. Banc : outils/banc-jsimage ; journal : passation/qualite/jsimage.md.
    · LA FLAMME DU POUCE NITRO (nxfDessine, interface/boost-icones.js — le plus gros poste du HUD : ≈ 1,5 ms par image au processeur ×6) : chaque case de la boîte essayait les
@@ -96178,6 +96203,8 @@ function sonCalme(h){
   try{const p=MASTER._limIn.gain,t=AC.currentTime,ouvert=(musGraphe()&&!SND.sfx)?0:.937;
     p.cancelScheduledValues(t);p.setTargetAtTime(h?0:ouvert,t,h?.08:.03);}catch(e){}}
 /* (2026-11-12, chasse aux bugs du HUD) le vol critique ne rallume le HUD qu'avec l'anneau de vol (?hud=d) : par défaut aucun temps de vol ne s'affiche (HUD léger), le HUD revenait sans rien montrer. */
+Object.assign(I18N,{'HUD CALME ALLUMÉ':'CALM HUD ON','HUD CALME ÉTEINT':'CALM HUD OFF'});
+window.dbgCodeUhd=function(v){if(v!=null&&!!v!==HUD_CALME_CODE)codeUhd('uhd');return {code:HUD_CALME_CODE,ok:HUD_CALME.ok};};
 window.dbgHudCalme=function(){return {on:HUD_CALME.on,ok:HUD_CALME.ok,leger:document.documentElement.classList.contains('ecrLeger'),nitro:!!nitroOn,depuis:Math.round(performance.now()-HUD_CALME.t),effets:(AC&&MASTER&&MASTER._limIn)?+MASTER._limIn.gain.value.toFixed(3):null};};
 /* ===== LE HUD ENDORMI (2026-11-12, interface-opti — « baisser le coût de l'interface sur iPhone, sans que rien ne se voie ») =====
    MESURÉ (banc outils/banc-interface, Chrome sans fenêtre 390×844, ?tel=1) : les animations EN BOUCLE du HUD (barre de nitro : nitroPlein, hmEclairPret, nbReflet, nbRaye,
@@ -96208,6 +96235,17 @@ function hudDortTick(now){if(!TEL_NATIF||!HUD_DORT.ok)return;
     for(let i=0;i<an.length;i++){const a=an[i];if(a.playState!=='running')continue;const t=a.effect&&a.effect.target;if(!t||t.classList.contains('hudDortP'))continue;
       let boucles=true;const to=t.getAnimations();for(let j=0;j<to.length;j++){if(!to[j].animationName)continue;const tm=to[j].effect&&to[j].effect.getTiming();if(!tm||tm.iterations!==Infinity){boucles=false;break;}} /* les transitions (largeur de la jauge…) ne comptent pas : animation-play-state ne les touche pas */
       if(!boucles||hudDortVis(t)||(cle==='c'&&!hudDortSousCalme(t)))continue;t.classList.add('hudDortP');HUD_DORT.l.push(t);HUD_DORT.n++;}}}
+/* ===== LA BARRE DE NITRO FIGÉE, TÉLÉPHONE BRÛLANT (2026-11-23, Sacha : « des gros gros freez des le debut […] des gros freez et de la chauffe regle ca », « Fluidité d'abord, puis qualité ») =====
+   À l'état thermique CRITIQUE iOS bride tout le fil principal : chaque boucle CSS du HUD refait les styles et repeint à CHAQUE image d'écran. Barre PLEINE, nitro lâché, cinq boucles
+   tournent sans rien dire de neuf (nitroPlein, hmPlein ×2, hmEclairPret, nbReflet). MESURÉ au banc Chrome (grotte, HUD calme éteint, fenêtres de 6 s alternées, injection de la règle) :
+   processeur ×4 : 11,7 → 8,4 ms de fil principal par image d'écran nitro lâché (−28 %) ; ×8, fil saturé : 96 → 115 images calculées en 6 s (+20 %). Nitro TENU : rien (−9 % à 0), donc
+   rien n'y est touché : la flamme du bout, l'alerte « à sec » et les éclats de gain (animations à un coup) tournent comme avant. Pas mesuré sur un vrai iPhone.
+   La classe `body.hudBrule` est posée EN COURSE quand le capteur dit critique, retirée sinon ; css/interface-opti.css §8 ne fait que `animation-play-state` (jamais `animation:none` :
+   rien ne rejoue au retour). `?sans=hudbrule` = l'avant. Banc : `dbgHudBrule(1|0)` force, `dbgHudBrule(null)` rend la main. */
+const HUD_BRULE={ok:TEL_NATIF&&!/[?&]sans=[^&]*hudbrule/.test(location.search),on:false,force:null};
+function hudBruleTick(){if(!HUD_BRULE.ok)return;let v=false;try{v=HUD_BRULE.force!=null?!!HUD_BRULE.force:!!(started&&!gameOver&&!garageOn&&MOB_S.capteur&&MOB_S.thermo>=3);}catch(e){}
+  if(v!==HUD_BRULE.on){HUD_BRULE.on=v;document.body.classList.toggle('hudBrule',v);}}
+window.dbgHudBrule=function(v){if(v!==undefined){HUD_BRULE.force=v;hudBruleTick();}return {ok:HUD_BRULE.ok,on:HUD_BRULE.on,force:HUD_BRULE.force};};
 /* ===== L'INTERFACE ALLÉGÉE SUR iOS (2026-11-12, interface-opti) — deux réglages de css/interface-opti.css, posés sur un vrai iPhone/iPad seulement (WebKit : vérifiés
    identiques au pixel ; dans Chrome l'antialiasing bouge de quelques niveaux) : §2 LES REFLETS SUR LEUR COUCHE (html.ifReflets, ?sans=reflets) ; §3 LA TRAME DE
    MISSIONS DÉPLACÉE PAR LA PUCE (html.ifTrame, ?sans=trame). */
@@ -96968,7 +97006,7 @@ window.dbgGouvLong=function(s){if(s!=null)MOB_LONG.n=Math.max(0,+s||0);return MO
    avec le moment) ; enregistreur (?perfrec=2) : colonne `PL` par seconde, histogramme `H` des intervalles d'écran par cases de 8 ms.
    Téléphone profilé seulement (`MOB_PALS && PRF.on` : TEL_NATIF, palier 2, classe connue). L'ordinateur ne voit rien.
    `?sans=pilote` = le jeu d'avant · `?pilote=N2` (niveau forcé, K0) · `?pilote=K5` · `?pilote=ultime` (K0) · `?pilote=survie` (K12) · `?pilote=fige` (le départ, puis plus rien) · `?pilote=gel` (mesure seule) ·
-   `?sans=pilauto` · `?sans=pilanticipe` · `?sans=pilgels` (tout tic raté = charge, comme avant) · `?sans=pilurgence` · `?sans=pilhyst` · `?plus=pilcad33` (33 régulier au critique ; défaut = 50 visés, la base) · `?sans=pilborne` (sans la borne S3) · `?sans=pilsonde` · `?pilcible=0.7` (le budget) · `dbgPilote()` · `dbgPiloteSim({t,B,E,bat,vrai,rates,eM,K,Kv})` (simule les capteurs ; eM = la médiane des images d'écran, ms ; K = un cran posé en course, Kv = le visé). */
+   `?sans=pilauto` · `?sans=pilanticipe` · `?sans=pilgels` (tout tic raté = charge, comme avant) · `?sans=pilurgence` · `?sans=pilhyst` · `?sans=pilcad33` (au critique, 50 ms visés comme avant le 22/11 ; défaut = 33 régulier sur un écran à 30) · `?sans=pilborne` (sans la borne S3) · `?sans=pilsonde` · `?pilcible=0.7` (le budget) · `dbgPilote()` · `dbgPiloteSim({t,B,E,bat,vrai,rates,eM,K,Kv})` (simule les capteurs ; eM = la médiane des images d'écran, ms ; K = un cran posé en course, Kv = le visé). */
 const PIL_Q=location.search,PIL_ON=!/[?&]sans=[^&]*\bpilote\b/.test(PIL_Q),PIL_AUTO=!/[?&]sans=[^&]*\bpilauto\b/.test(PIL_Q),PIL_ANT=!/[?&]sans=[^&]*\bpilanticipe\b/.test(PIL_Q),PIL_SONDE=!/[?&]sans=[^&]*\bpilsonde\b/.test(PIL_Q);
 const PIL_F=(function(){const m=/[?&]pilote=([a-z0-9]+)/i.exec(PIL_Q);return m?m[1].toLowerCase():'';})();
 const PIL_NF=/^n[1-4]$/.test(PIL_F)?+PIL_F[1]:0,PIL_KF=/^k(\d|1[0-3])$/.test(PIL_F)?Math.min(/^k13$/.test(PIL_F)&&!/[?&]sans=[^&]*\b(pilotevoiture|voituredabord)\b/.test(PIL_Q)?13:12,+PIL_F.slice(1)):PIL_F==='ultime'||PIL_NF?0:PIL_F==='survie'?12:-1,PIL_FIGE=PIL_F==='fige',PIL_GEL=PIL_F==='gel';
@@ -96997,7 +97035,7 @@ const PILO={K:0,Kv:0,N0:0,capN:0,src:'',cle:'',c:null,tPrev:-9,mom:'',depT:-1e9,
   h:new Uint16Array(16),per:1000/30,lastImg:0,nI:0,nR:0,nT:0,wDer:0,gels:0,gelsC:0,gelMax:0,gelNT:0,fen:[],vrai:0,vraiT:0,vT:0,sondeT:0,rougeT:-1e9,rgT0:0,cT:-1e9,oT:-1e9,bleuS:0,bleuT:-9,zone:'',monte:null,mur:{},sess:{},seg:{},
   urg:null,urgFait:false,bleuC:{},bleuK:'',nEchec:0,jetonT:0,nUrg:0,cand:'',candT:0,nPort:0,portIgn:0,nDep:0,depIgn:0,jeton:false,raz:false,razIgn:0,consT:-1e9,nCons:0,consC:0,consMax:0,gS:0,geleux:false,glS:0,orT0:0,mortT:0,spinVu:false,nBorne:0,borne:null,
   dDpr:0,dBloom:0,lpOff:false,nRet:{},nBloom:{},nOmb:{},jr:[],sim:null,chg:0};
-const PIL_CAD=/[?&]plus=[^&]*\bpilcad33\b/.test(PIL_Q); /* (cadPer, cadence.js) (3e tour, S3) au critique : le comportement de la base (50 ms visés) par défaut, la mesure sur téléphone n'étant pas faite ; ?plus=pilcad33 = 33 régulier sur un écran à 30 */
+const PIL_CAD=!/[?&]sans=[^&]*\bpilcad33\b/.test(PIL_Q); /* (2026-11-22, Sacha : « des gros gros freez des le debut […] regle ca ») LA MESURE SUR TÉLÉPHONE EST FAITE (vol-1122-2042, build 128, téléphone critique + mode économie : 30 tops d'écran par seconde mais 18,4 images calculées, 704 images à 33 ms pour 1468 entre 50 et 100 ms ; le même téléphone nominal : 29,7 images/s) : le 33 régulier devient le défaut sur un écran à 30 ; `?sans=pilcad33` = les 50 ms visés d'avant. · (cadPer, cadence.js) (3e tour, S3) au critique : le comportement de la base (50 ms visés) par défaut, la mesure sur téléphone n'étant pas faite ; ?plus=pilcad33 = 33 régulier sur un écran à 30 */
 const PIL_GELS=!/[?&]sans=[^&]*\bpilgels\b/.test(PIL_Q); /* ?sans=pilgels = tout tic raté est une charge, comme avant (banc A-B) */
 const PIL_URG=!/[?&]sans=[^&]*\bpilurgence\b/.test(PIL_Q),PIL_HYST=!/[?&]sans=[^&]*\bpilhyst\b/.test(PIL_Q),PIL_WC=.7,PIL_GEL_MS=80;
 function pilOn(){try{return PIL_ON&&MOB_PALS&&!!PRF.on;}catch(e){return false;}}
@@ -99527,6 +99565,7 @@ if(MG.on)mgTs(6); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 6
   if(MG.on)mgSt('mesure (bvImage)');if(BV.on)bvImage(now,speedKmh); /* (2026-11-12, ios-ultime) LA BOÎTE DE VOL : chaque image calculée de course, par phase et par vitesse — voir BV (enregistreur-perf.js) ; éteinte : ce test, rien d'autre */
   if(MG.on)mgSt('HUD calme, endormi, couches');hudCalmeTick(now); /* (2026-11-12, Sacha) le HUD contemplatif et l'écriture allégée — voir cadence.js */
   hudDortTick(now); /* (2026-11-12, interface-opti) LE HUD ENDORMI : ses boucles CSS gelées tant qu'il est invisible — voir cadence.js */
+  hudBruleTick(); /* (2026-11-23) LA BARRE DE NITRO FIGÉE à l'état thermique critique — voir cadence.js */
   hccTick(now); /* (2026-11-17, qualité · hudcouches) LE VOILE DES COUCHES : un élément du HUD à opacité 0 ne garde ni couche ni peinture — voir cadence.js */
   if(MG.on)mgSt('cadFin, fin');if(CAD.ok)cadFin(now); // (2026-10-14, passe perf mobile) LA CADENCE STABLE : le travail de l'image et la décision 30/60 — voir CAD
   if(COUT.on)coutFin(); // (banc perf-iphone7)
@@ -102601,6 +102640,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
         if(t9&&SAVE.neuf){let s9=false;try{s9=typeof JSON.parse(decodeURIComponent(escape(atob(t9)))).v==='number';}catch(e){}if(s9){toast(pxi('croix')+' '+TR('LE SITE NE RESTAURE PAS LES SAUVEGARDES'));return;}} /* (2026-10-24, chasse aux bugs) le site ne garde rien (SAVE.neuf) : importer puis recharger rendait un compte VIDE, et la session en cours partait avec */
         if(t9&&SAVE.import(t9)){SAVE.natif=2; /* (24/10, relecture : « restaurer un code depuis la pause ») plus AUCUNE écriture jusqu'au rechargement, comme l'EFFACEMENT : la page cachée par ce rechargement posait la partie en pause (enCoursPose) dans la sauvegarde restaurée, qui recevait au lancement suivant l'argent et l'aura d'un autre profil */toast(pxi('coche')+' '+TR('RESTAURE — RECHARGE…'));setTimeout(function(){location.reload();},900);return;}
         {const ct9=codeTest(r.texte);if(ct9){toast(pxi('coche')+' '+TR(ct9===1?'CODE TEST : MOTEUR 15 AU DÉPART':'CODE TEST ÉTEINT'),true);hap([20,40,20]);return;}} /* (2026-11-13) le code « test » : voir codeTest */
+        {const cu9=codeUhd(r.texte);if(cu9){toast(pxi('coche')+' '+TR(cu9===1?'HUD CALME ALLUMÉ':'HUD CALME ÉTEINT'),true);hap([20,40,20]);return;}} /* (2026-11-22) le code « uhd » : voir codeUhd (moteur/cadence.js) */
         if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'),true);try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
         else toast(pxi('croix')+' '+TR('CODE INCONNU')); }); }
     else if(a==='wipe'){

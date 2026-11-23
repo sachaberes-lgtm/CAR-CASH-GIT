@@ -1,0 +1,96 @@
+sans=cashfit2,vpfrais · calme debout      999 froid 20 (anim 0, calme) frappe 18.5 € 16 chV [233,69,314,89] repos [233,81] nitro [48,65,224,79] x0 226 xmin 232
+sans=cashfit2,vpfrais · calme debout     9999 froid 12.5 (anim 0, calme) frappe 12.5 € 9 chV [238,73,314,85] repos [238,77] nitro [48,65,224,79] x0 226 xmin 232
+sans=cashfit2,vpfrais · calme debout    99999 froid 11 (anim 0, calme) frappe 9.5 € 8 chV [235,74,314,85] repos [235,79] nitro [48,65,224,79] x0 226 xmin 232
+sans=cashfit2,vpfrais · calme debout   999999 froid 9.5 (anim 0, calme) frappe 8 € 6 chV [237,74,314,84] repos [237,78] nitro [48,65,224,79] x0 226 xmin 232
+sans=cashfit2,vpfrais · calme debout  9999999 froid 7 (anim 0, calme) frappe 7 € 6 chV [240,76,314,83] repos [240,74] nitro [48,65,224,79] x0 226 xmin 232
+sans=cashfit2,vpfrais · calme couche      999 froid 16 (anim 0, calme) frappe 16 € 12 chV [647,24,712,40] repos [647,65] nitro [95,18,483,32] x0 552 xmin 491
+sans=cashfit2,vpfrais · calme couche     9999 froid 16 (anim 0, calme) frappe 16 € 12 chV [615,24,712,40] repos [615,97] nitro [95,18,483,32] x0 552 xmin 491
+sans=cashfit2,vpfrais · calme couche    99999 froid 16 (anim 0, calme) frappe 16 € 12 chV [599,24,712,40] repos [599,113] nitro [95,18,483,32] x0 552 xmin 491
+sans=cashfit2,vpfrais · calme couche   999999 froid 16 (anim 0, calme) frappe 16 € 12 chV [583,24,712,40] repos [583,129] nitro [95,18,483,32] x0 552 xmin 491
+sans=cashfit2,vpfrais · calme couche  9999999 froid 16 (anim 0, calme) frappe 14.5 € 11 chV [552,24,712,40] repos [552,160] nitro [95,18,483,32] x0 552 xmin 491
+sans=cashfit2,vpfrais · calme pivot 20/552 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 | retour {"running":true,"paused":false,"body":"post figDir bvF touch play hudCalme"} en pause 11 reprise 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226
+sans=cashfit2,vpfrais · calme vue périmée 7 → 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 | reprise 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 | départ 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490
+sans=cashfit2,vpfrais · sans=hudcalme debout      999 froid 20 (anim 0) frappe 18.5 € 16 chV [233,69,314,89] repos [233,81] nitro [48,65,224,79] x0 226 xmin 232
+sans=cashfit2,vpfrais · sans=hudcalme debout     9999 froid 12.5 (anim 0) frappe 12.5 € 9 chV [238,73,314,85] repos [238,77] nitro [48,65,224,79] x0 226 xmin 232
+sans=cashfit2,vpfrais · sans=hudcalme debout    99999 froid 11 (anim 0) frappe 9.5 € 8 chV [235,74,314,85] repos [235,79] nitro [48,65,224,79] x0 226 xmin 232
+sans=cashfit2,vpfrais · sans=hudcalme debout   999999 froid 9.5 (anim 0) frappe 8 € 6 chV [237,74,314,84] repos [237,78] nitro [48,65,224,79] x0 226 xmin 232
+sans=cashfit2,vpfrais · sans=hudcalme debout  9999999 froid 7 (anim 0) frappe 7 € 6 chV [240,76,314,83] repos [240,74] nitro [48,65,224,79] x0 226 xmin 232
+sans=cashfit2,vpfrais · sans=hudcalme couche      999 froid 16 (anim 0) frappe 16 € 12 chV [647,24,712,40] repos [647,65] nitro [95,18,483,32] x0 552 xmin 491
+sans=cashfit2,vpfrais · sans=hudcalme couche     9999 froid 16 (anim 0) frappe 16 € 12 chV [615,24,712,40] repos [615,97] nitro [95,18,483,32] x0 552 xmin 491
+sans=cashfit2,vpfrais · sans=hudcalme couche    99999 froid 16 (anim 0) frappe 16 € 12 chV [599,24,712,40] repos [599,113] nitro [95,18,483,32] x0 552 xmin 491
+sans=cashfit2,vpfrais · sans=hudcalme couche   999999 froid 16 (anim 0) frappe 16 € 12 chV [583,24,712,40] repos [583,129] nitro [95,18,483,32] x0 552 xmin 491
+sans=cashfit2,vpfrais · sans=hudcalme couche  9999999 froid 16 (anim 0) frappe 14.5 € 11 chV [552,24,712,40] repos [552,160] nitro [95,18,483,32] x0 552 xmin 491
+sans=cashfit2,vpfrais · sans=hudcalme pivot 20/552 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 | retour {"running":true,"paused":false,"body":"post figDir bvF touch play m2Lon"} en pause 11 reprise 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226
+sans=cashfit2,vpfrais · sans=hudcalme vue périmée 7 → 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 | reprise 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 | départ 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490
+sans=vpfrais · calme debout      999 froid 20 (anim 0, calme) frappe 20 € 16 chV [233,69,314,89] repos [233,81] nitro [48,65,224,79] x0 226 xmin 232
+sans=vpfrais · calme debout     9999 froid 12.5 (anim 0, calme) frappe 12.5 € 9 chV [238,73,314,85] repos [238,77] nitro [48,65,224,79] x0 226 xmin 232
+sans=vpfrais · calme debout    99999 froid 11 (anim 0, calme) frappe 11 € 8 chV [235,74,314,85] repos [235,79] nitro [48,65,224,79] x0 226 xmin 232
+sans=vpfrais · calme debout   999999 froid 9.5 (anim 0, calme) frappe 9.5 € 6 chV [237,74,314,84] repos [237,78] nitro [48,65,224,79] x0 226 xmin 232
+sans=vpfrais · calme debout  9999999 froid 7 (anim 0, calme) frappe 7 € 6 chV [240,76,314,83] repos [240,74] nitro [48,65,224,79] x0 226 xmin 232
+sans=vpfrais · calme couche      999 froid 16 (anim 0, calme) frappe 16 € 12 chV [647,24,712,40] repos [647,65] nitro [95,18,483,32] x0 552 xmin 491
+sans=vpfrais · calme couche     9999 froid 16 (anim 0, calme) frappe 16 € 12 chV [615,24,712,40] repos [615,97] nitro [95,18,483,32] x0 552 xmin 491
+sans=vpfrais · calme couche    99999 froid 16 (anim 0, calme) frappe 16 € 12 chV [599,24,712,40] repos [599,113] nitro [95,18,483,32] x0 552 xmin 491
+sans=vpfrais · calme couche   999999 froid 16 (anim 0, calme) frappe 16 € 12 chV [583,24,712,40] repos [583,129] nitro [95,18,483,32] x0 552 xmin 491
+sans=vpfrais · calme couche  9999999 froid 16 (anim 0, calme) frappe 16 € 11 chV [552,24,712,40] repos [552,160] nitro [95,18,483,32] x0 552 xmin 491
+sans=vpfrais · calme pivot 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 | retour {"running":true,"paused":false,"body":"post figDir bvF touch play hudCalme"} en pause 11 reprise 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226
+sans=vpfrais · calme vue périmée 7 → 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 | reprise 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 | départ 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490
+sans=vpfrais · sans=hudcalme debout      999 froid 20 (anim 0) frappe 20 € 16 chV [233,69,314,89] repos [233,81] nitro [48,65,224,79] x0 226 xmin 232
+sans=vpfrais · sans=hudcalme debout     9999 froid 12.5 (anim 0) frappe 12.5 € 9 chV [238,73,314,85] repos [238,77] nitro [48,65,224,79] x0 226 xmin 232
+sans=vpfrais · sans=hudcalme debout    99999 froid 11 (anim 0) frappe 11 € 8 chV [235,74,314,85] repos [235,79] nitro [48,65,224,79] x0 226 xmin 232
+sans=vpfrais · sans=hudcalme debout   999999 froid 9.5 (anim 0) frappe 9.5 € 6 chV [237,74,314,84] repos [237,78] nitro [48,65,224,79] x0 226 xmin 232
+sans=vpfrais · sans=hudcalme debout  9999999 froid 7 (anim 0) frappe 7 € 6 chV [240,76,314,83] repos [240,74] nitro [48,65,224,79] x0 226 xmin 232
+sans=vpfrais · sans=hudcalme couche      999 froid 16 (anim 0) frappe 16 € 12 chV [647,24,712,40] repos [647,65] nitro [95,18,483,32] x0 552 xmin 491
+sans=vpfrais · sans=hudcalme couche     9999 froid 16 (anim 0) frappe 16 € 12 chV [615,24,712,40] repos [615,97] nitro [95,18,483,32] x0 552 xmin 491
+sans=vpfrais · sans=hudcalme couche    99999 froid 16 (anim 0) frappe 16 € 12 chV [599,24,712,40] repos [599,113] nitro [95,18,483,32] x0 552 xmin 491
+sans=vpfrais · sans=hudcalme couche   999999 froid 16 (anim 0) frappe 16 € 12 chV [583,24,712,40] repos [583,129] nitro [95,18,483,32] x0 552 xmin 491
+sans=vpfrais · sans=hudcalme couche  9999999 froid 16 (anim 0) frappe 16 € 11 chV [552,24,712,40] repos [552,160] nitro [95,18,483,32] x0 552 xmin 491
+sans=vpfrais · sans=hudcalme pivot 20/552 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 | retour {"running":true,"paused":false,"body":"post figDir bvF touch play figVol hAirPie"} en pause 11 reprise 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226
+sans=vpfrais · sans=hudcalme vue périmée 7 → 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 | reprise 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 | départ 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490 7/490
+nouveau · calme debout      999 froid 20 (anim 0, calme) frappe 20 € 16 chV [233,69,314,89] repos [233,81] nitro [48,65,224,79] x0 226 xmin 232
+nouveau · calme debout     9999 froid 12.5 (anim 0, calme) frappe 12.5 € 9 chV [238,73,314,85] repos [238,77] nitro [48,65,224,79] x0 226 xmin 232
+nouveau · calme debout    99999 froid 11 (anim 0, calme) frappe 11 € 8 chV [235,74,314,85] repos [235,79] nitro [48,65,224,79] x0 226 xmin 232
+nouveau · calme debout   999999 froid 9.5 (anim 0, calme) frappe 9.5 € 6 chV [237,74,314,84] repos [237,78] nitro [48,65,224,79] x0 226 xmin 232
+nouveau · calme debout  9999999 froid 7 (anim 0, calme) frappe 7 € 6 chV [240,76,314,83] repos [240,74] nitro [48,65,224,79] x0 226 xmin 232
+nouveau · calme couche      999 froid 16 (anim 0, calme) frappe 16 € 12 chV [647,24,712,40] repos [647,65] nitro [95,18,483,32] x0 552 xmin 491
+nouveau · calme couche     9999 froid 16 (anim 0, calme) frappe 16 € 12 chV [615,24,712,40] repos [615,97] nitro [95,18,483,32] x0 552 xmin 491
+nouveau · calme couche    99999 froid 16 (anim 0, calme) frappe 16 € 12 chV [599,24,712,40] repos [599,113] nitro [95,18,483,32] x0 552 xmin 491
+nouveau · calme couche   999999 froid 16 (anim 0, calme) frappe 16 € 12 chV [583,24,712,40] repos [583,129] nitro [95,18,483,32] x0 552 xmin 491
+nouveau · calme couche  9999999 froid 16 (anim 0, calme) frappe 16 € 11 chV [552,24,712,40] repos [552,160] nitro [95,18,483,32] x0 552 xmin 491
+nouveau · calme pivot 20/552 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 | retour {"running":true,"paused":false,"body":"post figDir bvF touch play hudCalme"} en pause 11 reprise 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226
+nouveau · calme vue périmée 7 → 7/490 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 | reprise 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 | départ 7/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226
+nouveau · sans=hudcalme debout      999 froid 20 (anim 0) frappe 20 € 16 chV [233,69,314,89] repos [233,81] nitro [48,65,224,79] x0 226 xmin 232
+nouveau · sans=hudcalme debout     9999 froid 12.5 (anim 0) frappe 12.5 € 9 chV [238,73,314,85] repos [238,77] nitro [48,65,224,79] x0 226 xmin 232
+nouveau · sans=hudcalme debout    99999 froid 11 (anim 0) frappe 11 € 8 chV [235,74,314,85] repos [235,79] nitro [48,65,224,79] x0 226 xmin 232
+nouveau · sans=hudcalme debout   999999 froid 9.5 (anim 0) frappe 9.5 € 6 chV [237,74,314,84] repos [237,78] nitro [48,65,224,79] x0 226 xmin 232
+nouveau · sans=hudcalme debout  9999999 froid 7 (anim 0) frappe 7 € 6 chV [240,76,314,83] repos [240,74] nitro [48,65,224,79] x0 226 xmin 232
+nouveau · sans=hudcalme couche      999 froid 16 (anim 0) frappe 16 € 12 chV [647,24,712,40] repos [647,65] nitro [95,18,483,32] x0 552 xmin 491
+nouveau · sans=hudcalme couche     9999 froid 16 (anim 0) frappe 16 € 12 chV [615,24,712,40] repos [615,97] nitro [95,18,483,32] x0 552 xmin 491
+nouveau · sans=hudcalme couche    99999 froid 16 (anim 0) frappe 16 € 12 chV [599,24,712,40] repos [599,113] nitro [95,18,483,32] x0 552 xmin 491
+nouveau · sans=hudcalme couche   999999 froid 16 (anim 0) frappe 16 € 12 chV [583,24,712,40] repos [583,129] nitro [95,18,483,32] x0 552 xmin 491
+nouveau · sans=hudcalme couche  9999999 froid 16 (anim 0) frappe 16 € 11 chV [552,24,712,40] repos [552,160] nitro [95,18,483,32] x0 552 xmin 491
+nouveau · sans=hudcalme pivot 20/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 | retour {"running":true,"paused":false,"body":"post figDir bvF touch play"} en pause 11 reprise 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226
+nouveau · sans=hudcalme vue périmée 7 → 7/490 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 | reprise 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 | départ 7/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226
+plus=tjmarges · calme debout      999 froid 20 (anim 0, calme) frappe 20 € 16 chV [233,69,314,89] repos [233,81] nitro [48,65,224,79] x0 226 xmin 232
+plus=tjmarges · calme debout     9999 froid 12.5 (anim 0, calme) frappe 12.5 € 9 chV [238,73,314,85] repos [238,77] nitro [48,65,224,79] x0 226 xmin 232
+plus=tjmarges · calme debout    99999 froid 11 (anim 0, calme) frappe 11 € 8 chV [235,74,314,85] repos [235,79] nitro [48,65,224,79] x0 226 xmin 232
+plus=tjmarges · calme debout   999999 froid 9.5 (anim 0, calme) frappe 9.5 € 6 chV [237,74,314,84] repos [237,78] nitro [48,65,224,79] x0 226 xmin 232
+plus=tjmarges · calme debout  9999999 froid 7 (anim 0, calme) frappe 7 € 6 chV [240,76,314,83] repos [240,74] nitro [48,65,224,79] x0 226 xmin 232
+plus=tjmarges · calme couche      999 froid 16 (anim 0, calme) frappe 16 € 12 chV [647,24,712,40] repos [647,65] nitro [95,18,483,32] x0 599 xmin 491
+plus=tjmarges · calme couche     9999 froid 16 (anim 0, calme) frappe 16 € 12 chV [615,24,712,40] repos [615,97] nitro [95,18,483,32] x0 599 xmin 491
+plus=tjmarges · calme couche    99999 froid 16 (anim 0, calme) frappe 16 € 12 chV [599,24,712,40] repos [599,113] nitro [95,18,483,32] x0 599 xmin 491
+plus=tjmarges · calme couche   999999 froid 13 (anim 0, calme) frappe 13 € 10 chV [606,26,712,39] repos [606,106] nitro [95,18,483,32] x0 599 xmin 491
+plus=tjmarges · calme couche  9999999 froid 10 (anim 0, calme) frappe 10 € 8 chV [609,27,712,37] repos [609,103] nitro [95,18,483,32] x0 599 xmin 491
+plus=tjmarges · calme pivot 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 | retour {"running":true,"paused":false,"body":"post figDir bvF touch play hudCalme ebPlonge"} en pause 11 reprise 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226
+plus=tjmarges · calme vue périmée 7 → 7/490 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 | reprise 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 | départ 7/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226
+plus=tjmarges · sans=hudcalme debout      999 froid 20 (anim 0) frappe 20 € 16 chV [233,69,314,89] repos [233,81] nitro [48,65,224,79] x0 226 xmin 232
+plus=tjmarges · sans=hudcalme debout     9999 froid 12.5 (anim 0) frappe 12.5 € 9 chV [238,73,314,85] repos [238,77] nitro [48,65,224,79] x0 226 xmin 232
+plus=tjmarges · sans=hudcalme debout    99999 froid 11 (anim 0) frappe 11 € 8 chV [235,74,314,85] repos [235,79] nitro [48,65,224,79] x0 226 xmin 232
+plus=tjmarges · sans=hudcalme debout   999999 froid 9.5 (anim 0) frappe 9.5 € 6 chV [237,74,314,84] repos [237,78] nitro [48,65,224,79] x0 226 xmin 232
+plus=tjmarges · sans=hudcalme debout  9999999 froid 7 (anim 0) frappe 7 € 6 chV [240,76,314,83] repos [240,74] nitro [48,65,224,79] x0 226 xmin 232
+plus=tjmarges · sans=hudcalme couche      999 froid 16 (anim 0) frappe 16 € 12 chV [647,24,712,40] repos [647,65] nitro [95,18,483,32] x0 599 xmin 491
+plus=tjmarges · sans=hudcalme couche     9999 froid 16 (anim 0) frappe 16 € 12 chV [615,24,712,40] repos [615,97] nitro [95,18,483,32] x0 599 xmin 491
+plus=tjmarges · sans=hudcalme couche    99999 froid 16 (anim 0) frappe 16 € 12 chV [599,24,712,40] repos [599,113] nitro [95,18,483,32] x0 599 xmin 491
+plus=tjmarges · sans=hudcalme couche   999999 froid 13 (anim 0) frappe 13 € 10 chV [606,26,712,39] repos [606,106] nitro [95,18,483,32] x0 599 xmin 491
+plus=tjmarges · sans=hudcalme couche  9999999 froid 10 (anim 0) frappe 10 € 8 chV [609,27,712,37] repos [609,103] nitro [95,18,483,32] x0 599 xmin 491
+plus=tjmarges · sans=hudcalme pivot 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 | retour {"running":true,"paused":false,"body":"post figDir bvF touch play m2Lon"} en pause 11 reprise 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226
+plus=tjmarges · sans=hudcalme vue périmée 7 → 7/490 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 | reprise 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 7/226 | départ 7/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226 11/226

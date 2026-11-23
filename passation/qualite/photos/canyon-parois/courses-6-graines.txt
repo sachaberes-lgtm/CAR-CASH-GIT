@@ -1,0 +1,8 @@
+verrou pris par canyon-parois
+3:matin:paysage {"n":3385,"apMoy":114,"apMax":253,"trMoy":318368,"trMax":532998,"vmax":1295,"vol":0,"mort":null,"fini":1,"sMax":14203,"L":14222,"decor":[],"npop":74,"err":[],"secondes":122,"photos":89,"cause":"\"\" \"drive\""}
+7:orage:paysage {"n":3614,"apMoy":99,"apMax":153,"trMoy":266718,"trMax":527688,"vmax":1226,"vol":0,"mort":null,"fini":1,"sMax":14513,"L":14537,"decor":[],"npop":99,"err":[],"secondes":130,"photos":94,"cause":"\"\" \"drive\""}
+12:matin:portrait {"n":3485,"apMoy":110,"apMax":240,"trMoy":312823,"trMax":499137,"vmax":1306,"vol":0,"mort":null,"fini":1,"sMax":14010,"L":14030,"decor":[],"npop":70,"err":[],"secondes":126,"photos":91,"cause":"\"\" \"drive\""}
+25:nuit:paysage {"n":3964,"apMoy":117,"apMax":178,"trMoy":324759,"trMax":633525,"vmax":1140,"vol":0,"mort":null,"fini":1,"sMax":14401,"L":14422,"decor":[],"npop":115,"err":[],"secondes":141,"photos":103,"cause":"\"\" \"drive\""}
+2:matin:paysage {"n":3868,"apMoy":112,"apMax":191,"trMoy":320844,"trMax":579304,"vmax":1250,"vol":0,"mort":null,"fini":1,"sMax":15277,"L":15297,"decor":[],"npop":95,"err":[],"secondes":139,"photos":101,"cause":"\"\" \"drive\""}
+6:orage:portrait {"n":3983,"apMoy":96,"apMax":167,"trMoy":255146,"trMax":413645,"vmax":1185,"vol":0,"mort":null,"fini":1,"sMax":15077,"L":15101,"decor":[],"npop":106,"err":[],"secondes":141,"photos":102,"cause":"\"\" \"drive\""}
+verrou rendu
