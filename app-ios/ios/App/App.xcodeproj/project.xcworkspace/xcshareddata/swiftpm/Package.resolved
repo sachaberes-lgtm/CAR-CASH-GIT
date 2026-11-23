@@ -1,5 +1,5 @@
 {
-  "originHash" : "a1dcaa9bfd1f8fff5de85d499f28a3eb486debd727d81f79ef254a9d440a7f72",
+  "originHash" : "4d2643ff15d19fa25e40817e63595d047abc4749d11b3fbcad2546f188a9856b",
   "pins" : [
     {
       "identity" : "capacitor-swift-pm",
@@ -8,6 +8,33 @@
       "state" : {
         "revision" : "4c7f346d16196e21fbe23d4a7a6fc7af62af6742",
         "version" : "8.5.3"
+      }
+    },
+    {
+      "identity" : "engine",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/webview-native-ui/engine.git",
+      "state" : {
+        "revision" : "9817d1ef0302b5a09a4aff5b6e67352293176a0f",
+        "version" : "1.0.11"
+      }
+    },
+    {
+      "identity" : "swift-package-manager-google-mobile-ads",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/googleads/swift-package-manager-google-mobile-ads.git",
+      "state" : {
+        "revision" : "d1fa1f5c1dfe3b43d56c73f4de388ad3316618bc",
+        "version" : "13.11.0"
+      }
+    },
+    {
+      "identity" : "swift-package-manager-google-user-messaging-platform",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/googleads/swift-package-manager-google-user-messaging-platform.git",
+      "state" : {
+        "revision" : "13b248eaa73b7826f0efb1bcf455e251d65ecb1b",
+        "version" : "3.1.0"
       }
     }
   ],

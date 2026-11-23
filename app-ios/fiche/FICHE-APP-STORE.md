@@ -1,7 +1,7 @@
 # CASH CAR — la fiche App Store (à recopier dans App Store Connect)
 
 Tout ce qu'App Store Connect demande pour la version 1.0.0, prêt à coller. Les textes ne promettent **que** ce que
-l'app iPhone contient vraiment (pas de boutique en argent réel, pas de pubs, pas de compte). Les longueurs sont
+l'app iPhone contient vraiment (pas de compte ; des achats intégrés en option ; depuis le 23/11, des pubs de Google AdMob). Les longueurs sont
 vérifiées par `node verifier-fiche.js` (les limites d'Apple : nom 30, sous-titre 30, promo 170, mots-clés 100).
 
 ⚠ = une décision qui revient à Sacha. Le reste se colle tel quel.
@@ -28,7 +28,7 @@ Runner arcade 3D dans le ciel
 <!-- /sous-titre-fr -->
 
 <!-- promo-fr -->
-Une route dans le ciel, une seule vie. Fonce, drifte, lâche la NITRO et amasse une fortune avant la chute. 100 % hors ligne, sans pub.
+Une route dans le ciel, une seule vie. Fonce, drifte, lâche la NITRO et amasse une fortune avant la chute. Se joue même hors ligne.
 <!-- /promo-fr -->
 
 <!-- description-fr -->
@@ -59,10 +59,11 @@ MISSIONS ET MONDES
 • Des missions à remplir pour débloquer des voitures.
 • Des mondes qui s'enchaînent : nuages, Crypto City, pics de jade, orbite, profondeurs, canyon…
 
-SANS RIEN AUTOUR
-• 100 % hors ligne : joue dans le métro, en avion, partout.
-• Aucune publicité. Aucun compte. Tout se joue sans payer ; des voitures et des peintures en option s'achètent une fois, pour toujours.
-• Aucune donnée collectée : ta sauvegarde reste sur ton iPhone.
+JOUE PARTOUT
+• Se joue même hors ligne : dans le métro, en avion, partout.
+• Gratuit, avec des pubs : une vidéo que tu choisis de regarder pour CONTINUER ou doubler ton gain, et de temps en temps une pub entre deux courses.
+• Aucun compte. Des voitures et des peintures en option s'achètent une fois, pour toujours.
+• Ta sauvegarde reste sur ton iPhone.
 <!-- /description-fr -->
 
 <!-- mots-cles-fr -->
@@ -84,7 +85,7 @@ CASH CAR
 <!-- /sous-titre-en -->
 
 <!-- promo-en -->
-A road in the sky and a single life. Speed, drift, hit the NITRO and stack up a fortune before you fall. Fully offline, no ads.
+A road in the sky and a single life. Speed, drift, hit the NITRO and stack up a fortune before you fall. Plays offline too.
 <!-- /promo-en -->
 
 <!-- description-en -->
@@ -115,10 +116,11 @@ MISSIONS AND WORLDS
 • Missions to complete to unlock cars.
 • Worlds that keep coming: clouds, Crypto City, jade peaks, orbit, the depths, canyon…
 
-NOTHING IN THE WAY
-• Fully offline: play on the subway, on a plane, anywhere.
-• No ads. No account. The game is free to play; optional cars and paint jobs are one-time purchases, yours forever.
-• No data collected: your save stays on your iPhone.
+PLAY ANYWHERE
+• Plays offline too: on the subway, on a plane, anywhere.
+• Free, with ads: a video you choose to watch to CONTINUE or double your winnings, and now and then an ad between two runs.
+• No account. Optional cars and paint jobs are one-time purchases, yours forever.
+• Your save stays on your iPhone.
 <!-- /description-en -->
 
 <!-- mots-cles-en -->
@@ -140,16 +142,28 @@ First release of CASH CAR. Enjoy the ride!
 | Copyright | `2026 Sacha Beres` (Apple ajoute le © tout seul) |
 | URL de l'assistance (obligatoire) | `https://car-cash-git.vercel.app/assistance.html` |
 | URL de la politique de confidentialité (obligatoire) | `https://car-cash-git.vercel.app/confidentialite.html` |
-| URL marketing | (laisser vide) |
-| Version | `1.0.0` — build `1` |
+| URL marketing | ⚠ `https://car-cash-git.vercel.app/` — **obligatoire depuis la pub** : AdMob lit CE champ (pas l'URL d'assistance) pour trouver `app-ads.txt` à la racine du site (support.google.com/admob/answer/9363762) |
+| Version | ⚠ `1.1.0` conseillé pour le premier binaire avec la pub (module natif AdMob) — puis `publier-maj.js --natif-min 1.1.0` |
 | Appareils | iPhone uniquement, iOS 15 ou plus récent |
 
 ## 5. Les questionnaires d'Apple
 
-**Confidentialité de l'app** (App Privacy) : répondre **« Non, nous ne collectons pas de données »**. C'est exact : l'app
-n'envoie rien, n'a ni compte, ni pub, ni mesure d'audience. Sa seule connexion (depuis le build 2) : lire les nouvelles versions
-du jeu sur la branche publique `app-maj` (raw.githubusercontent.com), sans identifiant — les statistiques du module Capgo sont
-COUPÉES (`statsUrl` vide), et preparer-www.js refuse toute autre adresse réseau. La fiche affichera « Aucune donnée collectée ».
+**Confidentialité de l'app** (App Privacy) — ⚠ CHANGÉ le 23/11 (la pub AdMob) : répondre **« Oui, nous collectons des données »**.
+Le jeu lui-même n'envoie toujours rien (ni compte, ni serveur, ni mesure d'audience ; les mises à jour en direct lisent des fichiers
+publics sans identifiant), mais le kit de pub de Google collecte, d'après sa page (developers.google.com/admob/ios/privacy/data-disclosure) :
+
+| Type de données (App Store Connect) | Usages à cocher | Liées à l'identité | Pistage |
+|---|---|---|---|
+| Localisation › Localisation approximative (tirée de l'adresse IP) | Publicité tierce, Analyses | Non | Non |
+| Identifiants › Identifiant de l'appareil (IDFA si suivi autorisé) | Publicité tierce, Analyses | Non | **Oui** |
+| Données d'utilisation › Interactions avec le produit (vues, touchers) | Publicité tierce, Analyses | Non | Non |
+| Données d'utilisation › Données publicitaires (pubs vues) | Publicité tierce, Analyses | Non | **Oui** |
+| Diagnostics › Données de plantage | Analyses | Non | Non |
+| Diagnostics › Données de performances | Publicité tierce, Analyses | Non | Non |
+| Diagnostics › Autres données de diagnostic | Publicité tierce, Analyses | Non | Non |
+
+« Liées à l'identité : Non » : l'app n'a ni compte ni nom ; ⚠ à relire par Sacha avec la page de Google au moment de remplir.
+Le même contenu est dans `ios/App/App/PrivacyInfo.xcprivacy`. La fiche affichera « Données utilisées pour vous suivre » et « Données non liées à vous ».
 
 **Chiffrement** (Export Compliance) : déjà réglé dans l'app (`ITSAppUsesNonExemptEncryption = NO`) : aucune question à l'envoi.
 
@@ -157,7 +171,7 @@ COUPÉES (`statsUrl` vide), et preparer-www.js refuse toute autre adresse résea
 les musiques, les voix et les images ont été faites avec Claude (11/11 : plus aucun morceau ni voix d'un autre service dans le jeu). Les sons `kaching`, `compteuse`, `cash` et
 `compteur` : ⚠ origine à confirmer par Sacha (voir `passation/APP-STORE.md`).
 
-**Identifiant publicitaire (IDFA)** : Non.
+**Identifiant publicitaire (IDFA)** : **Oui** (depuis le 23/11) — pour la publicité tierce (pubs de Google AdMob), seulement si le joueur autorise le suivi (fenêtre ATT).
 
 **Classification d'âge** — toutes les réponses sont « Aucun / Non », sauf la violence de dessin animé et les jeux d'argent simulés (détail et preuves : `pilotage/notes/regard-apple.md`, § 4) :
 
@@ -166,7 +180,8 @@ les musiques, les voix et les images ont été faites avec Claude (11/11 : plus 
 | Violence de dessin animé ou fantastique | **Rare / légère** — les voitures s'écrasent et explosent (en mode SURVIVANT, « le dernier explose ») ; aucun personnage, aucun sang. La note attendue est alors **9+**, relevée à **13+** par la ligne « Jeux d'argent simulés » ci-dessous. ⚠ Répondre « Aucune » donnerait 4+, mais l'audit du 14/10 juge cette réponse discutable : mieux vaut la réponse honnête |
 | Violence réaliste, contenu sexuel, nudité, grossièretés, alcool/tabac/drogues, horreur, contenu médical | Aucun |
 | Jeux d'argent simulés, concours, paris | **Rare / peu fréquent** — la machine à sous FINAL SPIN (levier, rouleaux, trois 7 = JACKPOT) tire un lot au hasard à l'écran de fin ; ses jetons se ramassent en course et dans les missions du jour, aucun achat ne les donne, aucune mise en vrai argent, aucun gain en vrai argent. Concours, paris : Aucun. La note attendue passe alors à **13+** (au barème actuel d'Apple) |
-| Navigation web libre, contenu généré par les utilisateurs, messagerie, pubs | Non |
+| Navigation web libre, contenu généré par les utilisateurs, messagerie | Non |
+| **Publicité** (capacités de l'app) | **Oui** (depuis le 23/11) — pubs de Google AdMob : vidéo récompensée au choix du joueur, pub plein écran entre deux courses |
 | Achats intégrés | **Oui** — 39 produits non consommables (10 voitures + 29 peintures ; CHAT POP-TART est hors vente ; L'AIGLE DE FEU et L'ICEBERG ajoutées le 18/11, à créer dans App Store Connect), achetés une fois ; « caisse » = achat direct d'une voiture connue, jamais de tirage aléatoire (boîtes à butin : Non) |
 
 ## 6. Notes pour le testeur d'Apple (App Review Information)
@@ -174,7 +189,7 @@ les musiques, les voix et les images ont été faites avec Claude (11/11 : plus 
 Coordonnées : ⚠ ton prénom, ton nom, ton téléphone, ton e-mail. Connexion requise : **Non** (pas de compte).
 
 <!-- notes-revue -->
-CASH CAR is a single-player arcade racing game, fully playable offline. No account, no login, no ads. It offers optional one-time in-app purchases (10 cars and 29 paint jobs, non-consumable, handled entirely by Apple's StoreKit) and a RESTORE PURCHASES button on the purchase page (the shop tile on the home screen). Its only network access is an optional check for new versions of the game content (public files, no personal data or identifier sent).
+CASH CAR is a single-player arcade racing game, fully playable offline. No account, no login. It shows Google AdMob ads (details below). It offers optional one-time in-app purchases (10 cars and 29 paint jobs, non-consumable, handled entirely by Apple's StoreKit) and a RESTORE PURCHASES button on the purchase page (the shop tile on the home screen). Its only network access is an optional check for new versions of the game content (public files, no personal data or identifier sent).
 
 How to reach the gameplay:
 1. Launch the app and tap the CASH CAR logo.
@@ -182,6 +197,8 @@ How to reach the gameplay:
 3. Left thumb steers, right thumb fires the NITRO. The game plays in portrait and landscape.
 
 About the € amounts collected on the road (coins and bills): this is a fictional in-game currency earned only by playing. It is not the real-money price of anything; the real prices of the optional purchases are the ones shown by StoreKit on the purchase page. This in-game currency cannot be bought, sold or exchanged for real money. Cars and paint jobs are unlocked with it, by completing missions, or, for the optional ones, with a one-time non-consumable in-app purchase (shown in euros or in the local currency by Apple). The "crates" are direct purchases of a known car: there is no random draw and no loot box. Likewise, the FINAL SPIN slot machine at the end screen uses free tokens collected on the road and in daily missions: they cannot be bought, and nothing won can be cashed out (simulated gambling, rare, declared in the age rating).
+
+About the ads (Google AdMob): on first launch, in the EEA/UK, Google's consent form (UMP) appears, then Apple's App Tracking Transparency prompt (tracking is optional; refusing changes nothing in the game). Ads appear in two places only: (1) after a crash, an optional rewarded video (CONTINUE ▶ AD, or ×2 ▶ AD to double the run's winnings), the reward being granted only if the video is watched to the end; (2) now and then a full-screen interstitial when tapping PLAY AGAIN after a run (one run in three, or after any run longer than two minutes), never during a run. Without network the game remains fully playable and the two rewarded buttons are greyed out ("NO AD"). Users in the EEA/UK can review their ad choices at any time in Settings › Help › AD CHOICES.
 
 The game language follows the device language (French or English) and can be changed in Settings (the gear icon).
 <!-- /notes-revue -->

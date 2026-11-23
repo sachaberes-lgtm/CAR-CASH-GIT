@@ -15,7 +15,10 @@
                                              ⚠ seulement sur le OUI de Sacha, écrit dans la session, juste avant.
    node publier-maj.js --jeu "<dossier>"     le jeu d'un autre dossier VERSION PRINCIPALE (défaut : celui de cette branche)
    node publier-maj.js --natif-min 1.1.0     la version de l'app native qu'il faut au moins (défaut : celle du projet Xcode ;
-                                             ⚠ OBLIGATOIRE tant que l'édition contient les achats (achats.js) : la version du premier binaire avec le plugin)
+                                             ⚠ OBLIGATOIRE tant que l'édition contient les achats (achats.js) : la version du premier binaire avec le plugin
+                                            (2026-11-23) la pub AdMob est NATIVE elle aussi : donner la version du premier binaire qui a
+                                            les DEUX modules (achats + AdMob ; 1.1.0 conseillé). Un binaire sans le module AdMob reste sûr
+                                            (seconde chance gratuite, pas de pub) mais ne montre aucune pub.)
    node publier-maj.js --local <dossier> --maj http://localhost:8765/
                                              ESSAI : écrit latest.json et f/ dans un dossier à servir sur le Mac (simulateur),
                                              avec une app fabriquée par « node preparer-www.js --maj http://localhost:8765/ ».
@@ -50,6 +53,9 @@ if(info.complet)meurt('l\'édition fabriquée est COMPLÈTE (jeu non coupé, COM
 /* (2026-11-07, achats App Store, passe finale : R14) UNE ÉDITION AVEC LES ACHATS (achats.js) NE VISE JAMAIS PAR DÉFAUT UN BINAIRE SANS LE PLUGIN : le build 1 de
    l'App Store n'a pas le plugin Achats ; lui servir un jeu où le vrai argent n'est plus converti en argent du jeu serait une boutique en € sans caisse.
    natifMin par défaut = MARKETING_VERSION (1.0.0 = build sans plugin) : trop bas. On exige donc --natif-min <x.y.z> écrit à la main = la version du PREMIER binaire qui contient le plugin. */
+/* (2026-11-23, la pub AdMob) une édition qui porte la régie AdMob le dit : sur un binaire SANS le module, elle tourne sans pub (seconde chance gratuite, comme avant). */
+try{const ix9=fs.readFileSync(path.join(TMP,'index.html'),'utf8');if(ix9.indexOf('CC_PUB_ENTRE')>=0||fs.readdirSync(TMP).some(function(f){return /^jeu\..*\.js$/.test(f)&&fs.readFileSync(path.join(TMP,f),'utf8').indexOf('CC_PUB_ENTRE')>=0;}))
+  console.log('ℹ édition avec la pub AdMob : app native ≥ '+natifMin+' (les binaires sans le module AdMob la jouent sans pub)');}catch(e){}
 if(fs.existsSync(path.join(TMP,'achats.js'))&&!arg('--natif-min',null))
   meurt('cette édition contient les achats (achats.js) : indiquer --natif-min <x.y.z>, la version du PREMIER binaire App Store qui contient le plugin Achats\n(sans lui, les iPhone du build sans plugin recevraient une boutique en € qui ne peut rien vendre). Voir passation/ACHATS-APP-STORE.md, §b et §e.');
 

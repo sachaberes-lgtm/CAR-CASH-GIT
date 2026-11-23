@@ -1,0 +1,6 @@
+# MODÈLE de app-ads.txt pour CASH CAR (AdMob). NE PAS publier tel quel.
+# Sacha : remplacer pub-0000000000000000 par TON identifiant d'éditeur AdMob (AdMob › Applications › app-ads.txt :
+# Google donne la ligne exacte à copier), enlever ces lignes de commentaire, puis enregistrer le fichier sous
+# pages-app/app-ads.txt sur main (oui de Sacha) : vercel-build.sh le pose alors à la racine du site,
+# https://car-cash-git.vercel.app/app-ads.txt — et l'URL MARKETING de la fiche App Store doit être https://car-cash-git.vercel.app/
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0

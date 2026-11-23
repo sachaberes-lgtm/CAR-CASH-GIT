@@ -9,8 +9,11 @@
    (2026-11-07, achats App Store) LA BOUTIQUE EN € EST DE RETOUR DANS L'APP : plus aucune coupe ne transforme le vrai argent en argent du jeu
    (caisses premium, peintures à prix, page OFFRES / ACHAT et ses portes) ; elle passe par StoreKit, via le pont window.ccAchat (natif/achats.js,
    copié et chargé juste après natif.js) que la fabrication pose à côté du jeu. Le drapeau ACHAT_EUR du jeu (icones-fenetre.js) allume la page
-   dès que ce pont existe et la garde cachée sans lui. Les coupes qui RESTENT : mode TEST, ENTRER UN CODE (code cousin), plus de pub (ni texte
-   ni maison), plus de « BIENTÔT », noms de marques, ancien panneau RÉGLAGES, adresses réseau.
+   dès que ce pont existe et la garde cachée sans lui. Les coupes qui RESTENT : mode TEST, ENTRER UN CODE (code cousin), plus de « BIENTÔT », noms
+   de marques, ancien panneau RÉGLAGES, adresses réseau.
+   (2026-11-23, Sacha : « mettre de la VRAIE pub dans l'app iPhone ») LA PUB EST DE RETOUR DANS L'APP : les coupes « PUB / AD » du 05/11 (décision D1)
+   et leur contrôle sont ôtés ; les pubs sont celles de Google (module natif @capacitor-community/admob), réglées par app-ios/admob.json (plus bas :
+   « LA RÉGIE ADMOB DE L'APP »). La pub maison du site dort dans l'app (le jeu ne l'ouvre jamais sous EN_APP, html.ccApp #pubR caché).
    Trois retouches de la page, chacune vérifiée (le script REFUSE si le texte attendu n'est pas trouvé une fois exactement) :
    1. natif.js chargé en TOUT PREMIER (juste après <meta charset>) ;
    2. la version gravée (le jeton __CC_BUILD__ → le commit du jeu) : RÉGLAGES affiche « VERSION xxxxxxx » au lieu de « LOCALE » ;
@@ -130,6 +133,37 @@ for(const u of['https://game-cdn.poki.com/scripts/v2/poki-sdk.js','https://sdk.c
 /* (2026-11-22) la référence suit le FICHIER dans les deux éditions : le PNG est remplacé par le webp plus haut, hors de l'édition App Store — dans le build de mesure
    (COMPLET=1) le jeu demandait encore le PNG supprimé (404, la mer de nuages du menu ne se chargeait pas). */
 if(MC_WEBP)une("im.src='assets/ciel/mer-cumulus.png'","im.src='assets/ciel/mer-cumulus.webp'",'mer de nuages en webp');
+/* LA RÉGIE ADMOB DE L'APP (2026-11-23, Sacha : « mettre de la VRAIE pub dans l'app iPhone ») — dans les DEUX éditions (App Store et COMPLET=1) :
+   CC_ADMOB (l'en-tête du jeu, code/page/tete.html) prend les réglages de app-ios/admob.json, la seule source :
+   · test:true (le défaut, et TOUT le développement) : les blocs de TEST de Google, quels que soient les identifiants — jamais une vraie pub ;
+   · test:false (seulement pour l'archive envoyée à Apple, sur le OUI de Sacha) : les vrais blocs ; ils doivent alors être de vrais identifiants
+     (pas ceux de test de Google, ca-app-pub-3940256099942544) et l'App ID AdMob aussi.
+   L'App ID va aussi dans Info.plist (GADApplicationIdentifier, lu par le kit de Google au lancement : sans lui l'app plante) : recopié ici
+   depuis admob.json (sauf à l'essai, qui le vérifie seulement). Le jeu (rendu/traces-pneus.js, LA RÉGIE ADMOB, CÔTÉ JEU) fait le reste. */
+{const stopPub=m=>{console.error('\n✗ preparer-www (pub) : '+m+'\n');process.exit(1);}; /* ici, même COMPLET=1 s'arrête : une erreur de réglage de la pub ne passe jamais */
+  const fA=path.join(ICI,'admob.json');if(!fs.existsSync(fA))stopPub('manque app-ios/admob.json (les réglages de la pub)');
+  let A9=null;try{A9=JSON.parse(fs.readFileSync(fA,'utf8'));}catch(e){stopPub('app-ios/admob.json illisible : '+e.message);}
+  const TEST_PUB='3940256099942544',BLOC=/^ca-app-pub-\d{10,20}\/\d{6,14}$/,APPID=/^ca-app-pub-\d{10,20}~\d{6,14}$/;
+  if(typeof A9.test!=='boolean')stopPub('admob.json : « test » doit valoir true ou false');
+  if(!APPID.test(String(A9.appId||'')))stopPub('admob.json : appId « '+A9.appId+' » n\'est pas un App ID AdMob (ca-app-pub-…~…)');
+  for(const k of ['recompense','interstitiel'])if(A9[k]&&!BLOC.test(A9[k]))stopPub('admob.json : '+k+' « '+A9[k]+' » n\'est pas un bloc AdMob (ca-app-pub-…/…)');
+  if(A9.test===false){
+    for(const k of ['appId','recompense','interstitiel'])if(!A9[k]||String(A9[k]).indexOf(TEST_PUB)>=0)stopPub('admob.json : test:false (vraies pubs) mais '+k+' est vide ou celui de TEST de Google');
+    if(process.env.COMPLET)stopPub('admob.json : test:false interdit dans l\'app de mesure (COMPLET=1) — elle va sur l\'iPhone de Sacha : jamais de vraies pubs');}
+  une("var CC_ADMOB={recompense:''};","var CC_ADMOB="+JSON.stringify({test:A9.test,recompense:A9.recompense||'',interstitiel:A9.interstitiel||''})+";",'régie AdMob de l\'app (admob.json)');
+  const fP=path.join(ICI,'ios','App','App','Info.plist');let P9=fs.readFileSync(fP,'utf8');
+  const mP=P9.match(/<key>GADApplicationIdentifier<\/key>\s*<string>([^<]*)<\/string>/);
+  if(!mP)stopPub('Info.plist : la clé GADApplicationIdentifier manque (le kit de Google en a besoin au lancement)');
+  else if(mP[1]!==A9.appId){
+    if(ESSAI)console.warn('⚠ Info.plist : GADApplicationIdentifier ('+mP[1]+') ≠ admob.json ('+A9.appId+') — la vraie fabrication le recopiera');
+    else{P9=P9.replace(mP[0],mP[0].replace('<string>'+mP[1]+'</string>','<string>'+A9.appId+'</string>'));fs.writeFileSync(fP,P9);console.log('  Info.plist : GADApplicationIdentifier ← '+A9.appId+' (admob.json)');}}
+  console.log('  pub AdMob : '+(A9.test?'blocs de TEST de Google (jamais de vraie pub)':'⚠ VRAIES PUBS ('+A9.recompense+', '+A9.interstitiel+')'));
+  /* TÉMOINS DE LA PUB : ce que le jeu doit encore avoir pour que la pub marche dans l'app. Un nom qui change = l'arrêt (à revoir au banc outils/banc-pub/). */
+  for(const[t,quoi]of[['const AMOB={','la régie AdMob côté jeu (AMOB)'],['window.CC_PUB_RECOMPENSE=function','la vidéo récompensée (CC_PUB_RECOMPENSE)'],
+    ['window.CC_PUB_ENTRE=function','la pub entre les courses (CC_PUB_ENTRE)'],['window.CC_PUB_PRETE=function','la vidéo prête ou non (CC_PUB_PRETE)'],
+    ['app:EN_APP&&AMOB.on','la pub de l\'app branchée sur la régie (PUBR.app)'],['pubEntre(r9)','la pub entre les courses sur REJOUER'],
+    ["'PAS DE PUB':'NO AD'",'les plaques grises « PAS DE PUB »'],['data-m="pubchoix"','RÉGLAGES › CHOIX DES PUBS']])
+    if(h.indexOf(t)<0)meurt('témoin de la pub perdu — '+quoi+' : « '+t+' » n\'existe plus dans le jeu.');}
 if(!process.env.COMPLET){ /* (2026-11-12, ios-ultime) COMPLET=1 : l'app de MESURE garde le jeu complet de main (aucune coupe de l'édition App Store) — jamais pour une archive */
 /* L'ÉDITION APP STORE (2026-10-13, Sacha : « couper dans l'app seulement ») — le jeu web de main n'est pas touché.
    · plus de mode TEST : les caisses et la carrière se GAGNENT (Apple refuse une version de test) ;
@@ -201,7 +235,7 @@ une("const TEST_PAL={on:false,n:15};try{TEST_PAL.on=localStorage.getItem('ccTest
 /* (2026-10-27) les deux adresses OpenGameArt citées en crédit dans un commentaire des bêtes CC0 : retirées pour que l'inventaire reste à 0 adresse réseau. */
 une(' https://opengameart.org/content/5-low-poly-animals · https://opengameart.org/content/animated-animales-low-poly',' (source : OpenGameArt)','crédit des bêtes CC0 (adresses en commentaire)');
 /* (2026-10-24) LA RÉGIE ADSENSE du site (19/10) : déjà inerte dans l'app (elle sort sous window.Capacitor), son adresse est vidée pour que
-   l'inventaire reste à 0 adresse réseau. L'emplacement AdMob de l'app (CC_ADMOB.recompense) est VIDE = éteint, et le module n'est pas installé. */
+   l'inventaire reste à 0 adresse réseau. (La pub de l'app, AdMob, est un module NATIF : aucune adresse dans www/, voir « LA RÉGIE ADMOB DE L'APP ».) */
 une("s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client='+","s.src=''+",'régie AdSense du site (adresse)');
 /* (2026-11-07, LES PETITES POLITESSES) l'APERÇU DE LIEN du site (Open Graph / Twitter) cite l'icône par son adresse complète : un lien
    collé dans un message n'a pas d'autre moyen de la trouver. Dans l'app il ne sert à rien : les deux balises sont retirées pour que
@@ -213,7 +247,6 @@ une('<link rel="manifest" href="manifest.webmanifest">\n','','manifeste PWA');
 une('<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-180.png">\n','','icône d\'écran d\'accueil (PWA)');
 une('<meta property="og:image" content="https://car-cash-git.vercel.app/jouer/assets/icons/icon-512.png">','','aperçu de lien du site (og:image)');
 une('<meta name="twitter:image" content="https://car-cash-git.vercel.app/jouer/assets/icons/icon-512.png">','','aperçu de lien du site (twitter:image)');
-une("var CC_ADMOB={recompense:''};","var CC_ADMOB={recompense:''}; /* (app iOS) aucune régie : ni AdMob ni AdSense */",'emplacement AdMob éteint');
 /* (2026-11-07) LES PEINTURES EN EUROS reviennent aussi (PEINT_EUR, par shopPaye / StoreKit) : les deux coupes qui les passaient à l'argent du jeu
    (60 000 par euro) sont ôtées. RESTE, par prudence, l'article du pack LA PALETTE : le pack n'est plus vendu (PALETTE_PACK, aucun produit) ;
    un article « pack » encore posé dirait 0,99 € sans rien à acheter, il dit SECRÈTE (la coupe est sans effet si plus aucun article n'est un pack). */
@@ -221,18 +254,8 @@ une("d.pack?eurTxt(PALETTE_PACK.eur):","d.pack?sansAcc(TR('SECRÈTE')):",'prix d
 /* (2026-10-24) la fenêtre ENTRER UN CODE ne parle plus de « code secret » (le code COUSIN est coupé plus haut) : elle restaure une sauvegarde. */
 toutes('Colle un code de sauvegarde, ou un code secret.','Colle un code de sauvegarde.',2,'fenêtre ENTRER UN CODE (texte + clé de traduction)');
 une('Paste a save code, or a secret code.','Paste a save code.','fenêtre ENTRER UN CODE en anglais');
-/* (2026-11-05, Opus : jury IOS-04 / DIR-29, décision D1) PAS UN MOT « PUB » / « AD » DANS L'APP. Le jeu, sous EN_APP, n'ouvre déjà ni la pub maison ni le ×2
-   (seconde-chance.js) et la seconde chance s'annonce GRATUITE ; ici on retire en plus les TEXTES de ces écrans jamais montrés, pour qu'aucun mot de pub
-   ne reste dans le binaire (le contrôle « PUB / AD » plus bas le vérifie). */
-une("Object.assign(I18N,{'PUB':'AD','EN BOUTIQUE':'IN THE SHOP','TA COURSE REPREND APRÈS LA PUB':'YOUR RUN RESUMES AFTER THE AD','TON GAIN ×2 APRÈS LA PUB':'YOUR WINNINGS ×2 AFTER THE AD'});",
-  "Object.assign(I18N,{'EN BOUTIQUE':'IN THE SHOP'}); /* (app iOS) pas de pub */",'textes de la pub maison (traductions)');
-une("'<i class=\"prTag\" data-fr=\"PUB\">'+TR('PUB')+'</i>","'<i class=\"prTag\"></i>",'étiquette de la pub maison');
-une("<span class=\"prPied\" data-fr=\"TA COURSE REPREND APRÈS LA PUB\">'+TR('TA COURSE REPREND APRÈS LA PUB')+'</span>","<span class=\"prPied\"></span>",'pied de la pub maison');
-une("el.setAttribute('aria-label',TR('PUB'));","el.setAttribute('aria-label','');",'nom de la pub maison (VoiceOver)');
-une("k9=nom==='double-gain'?'TON GAIN ×2 APRÈS LA PUB':'TA COURSE REPREND APRÈS LA PUB';","k9='';",'pied de la pub maison (×2 ou reprise)');
-une("pxi('lecture')+'<span>'+TR('PUB')+'</span>'","(LANG==='en'?'FREE':'GRATUIT')",'CONTINUER ▶ PUB');
-une("<b class=\"dbP\">'+pxi('lecture')+'<span data-fr=\"PUB\">'+TR('PUB')+'</span></b>","<b class=\"dbP\"></b>",'×2 ▶ PUB');
-une("el.setAttribute('aria-label','×2 '+s9+' '+TR('PUB'));","el.setAttribute('aria-label','×2 '+s9);",'×2 ▶ PUB (VoiceOver)');
+/* (2026-11-05 → 2026-11-23) LES COUPES « PUB / AD » (décision D1 : « pas un mot PUB dans l'app ») sont ÔTÉES : l'app montre de vraies pubs (AdMob,
+   décision de Sacha du 23/11). Les textes de CONTINUER ▶ PUB, ×2 ▶ PUB, PAS DE PUB passent tels quels ; leurs témoins sont plus haut (« TÉMOINS DE LA PUB »). */
 /* (2026-11-07) la page OFFRES et ses portes ne sont plus masquées ici : c'est le jeu qui décide (ACHAT_EUR, icones-fenetre.js : allumée avec le pont ccAchat,
    cachée sans lui, par sa propre feuille #sansAchat). */
 une('</head>','<style id="appStore">/* le vieux panneau RÉGLAGES de l\'écran-titre d\'ordinateur (déjà caché au doigt) : ses boutons de sauvegarde ouvrent un prompt() du système */\n'+
@@ -330,11 +353,7 @@ if(process.argv.includes('--jeu-fichier')){
   if(!/ jeu\.[0-9a-f]{10}\.js /.test(r))meurt('--jeu-fichier demandé mais le script est resté en ligne : '+r);
   console.log('  '+r);
   relit('après la sortie du script en fichier');}
-/* PAS DE « PUB » NI DE « AD » DANS UN TEXTE DE L'APP (2026-11-05, Opus : jury IOS-04) : aucune chaîne entre guillemets ne contient le MOT PUB ou AD
-   (les noms de variables comme `PUB`, le tableau des enseignes des villes, ne s'affichent pas). Les fichiers de sons (base64) ne sont pas lus. */
-{const re=/(['"`])(?:(?!\1)[^\n\\]|\\.){0,200}?\b(PUB|AD)\b(?:(?!\1)[^\n\\]|\\.){0,200}?\1/g,vus=[];
-  const f=d=>{for(const x of fs.readdirSync(d)){const p=path.join(d,x);if(fs.statSync(p).isDirectory())f(p);else if(/\.(html|js)$/i.test(x)&&!/^sons-banque/.test(x)){const t=fs.readFileSync(p,'utf8');let m;while((m=re.exec(t)))vus.push(path.relative(WWW,p)+' : '+m[0].slice(0,90));}}};f(WWW);
-  if(vus.length)meurt('le mot PUB ou AD reste dans un texte de l\'app (règle « aucune publicité ») :\n  '+vus.slice(0,20).join('\n  '));}
+/* (2026-11-23) le contrôle « PAS DE PUB NI DE AD DANS UN TEXTE DE L'APP » (05/11, jury IOS-04) est ôté : l'app montre de vraies pubs (AdMob). */
 /* PLUS AUCUNE MARQUE D'AUTRUI DANS LE TEXTE LIVRÉ (2026-11-05, Opus : jury IOS-11 / IOS-18) : après l'allègement, ces mots ne doivent plus
    apparaître dans aucun fichier texte de www/ (ils n'existaient plus que dans des commentaires). Un mot qui revient = l'arrêt, avec le fichier. */
 /* (les clés internes nyan, simpson, poptart restent : ce sont des identifiants de sauvegarde, jamais affichés ; le nom CHAT POP-TART est le choix de Sacha) */
