@@ -151,3 +151,4 @@ Comment ça marche dans le jeu : toute caisse `k:'premium'` en vente devient un 
 - Sons `kaching`, `compteuse`, `cash`, `compteur`, `wow` : faits par Léo avec GarageBand (Sacha, 23/11) → droits réglés.
 - Contrôles : assembleur OK, gardes démarrage / allégé / charte / burn-out OK, `preparer-www.js --essai` réussi (LE REVENANT ×3, LE SPECTRE ×0 dans l'app), banc `outils/banc-voitures-tri/page-23-11-chat-pizza.cjs` : **BANC OK** (joueur neuf : ni l'une ni l'autre nulle part ; joueur qui roulait en chat avec la pizza : LA HONTE, banque inchangée, aucun message de remboursement, 30 s de course, 0 exception). Cache v1617.
 - Pas fait : rien sur le vrai iPhone ; `cashcar.car.poptart` n'a jamais été dans `produits.csv`.
+- (23/11, Sacha : « Non, garde-le ») le prix barré 1,61 € de L'ICEBERG est GARDÉ, malgré la règle européenne des 30 jours (risque connu, écrit plus haut). Kit App Store à copier-coller : https://claude.ai/artifact/Ko8onhNZ2JYAvGEPJcmC5a
