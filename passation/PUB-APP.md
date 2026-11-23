@@ -40,7 +40,10 @@ Rien sur `main`, rien d'envoyé à Apple, rien d'installé sur l'iPhone sans le 
   rien ne change aujourd'hui) ; `publier-maj.js` (rappel) ; banc `outils/banc-pub/` (faux module AdMob, Chrome muet).
 - ⚠ GOOGLE (support.google.com/admob/answer/9363762) lit le champ **URL marketing** de la fiche App Store (pas l'URL d'assistance) et
   cherche `https://<ce domaine>/app-ads.txt`. La fiche disait « laisser vide » : à remplir avec `https://car-cash-git.vercel.app/`.
-- RESTE : compiler au simulateur (place disque), tester sur le simulateur (vraies pubs de test de Google).
+- 23/11, nuit (16 Go libérés par Sacha) : `npm run sync` puis compilation SIMULATEUR Debug sans signature : **BUILD SUCCEEDED**. L'app
+  construite contient GoogleMobileAds.framework, UserMessagingPlatform.framework, le module AdMob, GADApplicationIdentifier (test), 50
+  SKAdNetworkItems, fr.lproj / en.lproj, et la régie dans le jeu. Rien d'installé sur l'iPhone, rien d'envoyé à Apple.
+- RESTE : lancer au simulateur et regarder les vraies pubs de TEST de Google (CONTINUER vu jusqu'au bout, double appui, le son qui se coupe).
 
 ## LE BANC (`node outils/banc-pub/banc.cjs`, Chrome sans fenêtre et muet, faux module AdMob ; `--sonde` : l'écran de fin toutes les 400 ms)
 Il tourne sur le jeu du dépôt avec un faux Capacitor (l'édition de l'app retire les crochets dbg* à la fabrication). Quatre passages le 23/11,
