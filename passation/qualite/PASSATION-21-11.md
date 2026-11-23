@@ -127,3 +127,34 @@ Reste à faire :
 
 - 23/11 : build 129 COMPILÉ depuis `3ac5364aa` (`--qs "&perfrec=2&sans=radiopause"`), copie `~/cash-car/ios-ultime-mesures/builds/build129.app`. PAS installé (attend le oui de Sacha).
 - 23/11 17h36 : build 129 INSTALLÉ sur l'iPhone (oui de Sacha), app remplacée sans suppression. À lire après ses parties : `sh outils/banc-perf/lire-vol.sh`.
+
+## 23/11 : parois du canyon
+
+Sacha, après avoir joué : « la map canyon est toujour assez bugger sur les paroie et tout ». Il a dit oui à : les parois en pans décalés, le ciel sous la route penchée.
+
+**Résultat : trois causes trouvées, AUCUN correctif posé.** `code/` est intact (diff vide). Aucun des trois ne se corrige en petit sans toucher au relief, aux triangles ou aux couleurs choisies le 17/11.
+
+Méthode : un point de vue figé (`dbgCanyonVoute('vueS', s)`), le shader de la roche remplacé à chaud, une variante à la fois. Les crochets d'essai ont été retirés. `?tel=1&palier=2`, 390×844 et 844×390.
+
+**A. Pans décalés, rectangles sombres** (graine 12 s 1001 et 1703, graine 2 s 9358 et 10483, graine 25 nuit s 1282)
+- Cause : ce n'est pas la lecture des strates. Des bandes tracées sur la SEULE hauteur du monde (ni texture, ni bruit, ni normale, ni case, ni ombre) cassent aux mêmes endroits, du même décalage. Les strates sont bien horizontales et au même repère partout (rochers posés et plan des murs sont dans la même grille de hauteur, même shader). Ce qui saute, c'est la paroi : à 85°, chaque case du relief est un pan de 8 à 16 m de large pour ~100 m de haut, tourné autrement que son voisin et qui le masque en partie. Vus de près, d'en bas, caméra penchée, des lits horizontaux sortent décalés d'un pan à l'autre.
+- Écartés, un par un, image inchangée : l'ombre par sommet (ces vues sont entièrement à l'ombre, `lit` = 0 partout), `?sans=cyombre`, la normale dans le mélange des plans, la case des gros pixels, le gondolage des lits, le texel fin à 6 m au lieu de 12.
+- La grille : à 32 et 64 les pans changent de forme (à 16 un morceau de paroi manque à s 1703, on voit le ciel), le décalage reste.
+- Rectangles sombres : deux lits de la colonne (ardoise foncé, brun foncé). À l'ombre ils sortent à 20-55 sur 255 contre ~150 pour le grès voisin. Restent aussi des pans sombres avec des lits unis : l'éclairage selon la normale du pan.
+- Photos : `photos/canyon-parois/8-…`, `9-…`, `10-…`, `11-…`.
+- Laissé : (1) adoucir la paroi demande un relief plus fin ou filtré au loin (triangles ou textures en plus, à mesurer) ; (2) remonter les deux lits sombres est un choix de couleur, à Sacha.
+
+**B. Ciel sous la route penchée** (graine 12, s 3900-4050, caméra de course)
+- C'est la dalle couchée sans roche derrière, dans la pièce `boucle` (s 3144-4608). Mesuré tous les 10 m : roche à 6-12 m sous la dalle de s 3810 à 3900 (roulis 83° → 60°), puis plus rien à moins de 99 m de s 3920 à 4120 (roulis 54° → 1°), sol 160 à 190 m plus bas.
+- Deux mécanismes : le plan de roche recule de (1 − mu)² × 700 m sous 66° de roulis (`cyProfil`) ; et ici il manque même quand on le rapproche.
+- Essai (retiré) : plan ramené à la dalle dès ~43° de roulis. Sur ce passage la roche n'arrive que sous UN bord (12 m), centre et autre bord toujours vides, image de course identique. Hypothèse non prouvée : la taille fine garde le profil le plus BAS des deux bras de route voisins (`if(prof.C<best)`), ce qui efface le plan près de l'autre bras de la boucle.
+- Compte sur 10 graines (1-10, points tous les 8 m, roulis > 30°, hors tubes, vide > 24 m sous le centre ou un bord) : 109 passages, 7 à 14 par graine. 77 sont des rampes d'entrée ou de sortie de dévers (30-62°, ~96 m), 14 des fonds de boucle ou grands murs (jusqu'à 86°, 250-520 m), 18 des dévers faibles (30-35°). Par roulis : 30-49° 100 % sans roche, 50-59° 85 %, 60-89° 18 %.
+- Photo : `12-…`. Laissé : c'est une reprise du relief (loi du plan + règle des deux bras), avec risque sur la règle d'or et les vols.
+
+**C. Roche en longues bandes le long de la route penchée** (graine 12, s 3837)
+- Pas une projection dans le mauvais axe. Les bandes de hauteur pure donnent les mêmes rayures. La dalle est à 77° sur un plan de roche lisse, exactement parallèle à elle, et la caméra roule avec la dalle : des lits horizontaux y courent le long de la route et montent à l'écran.
+- Photo : `13-…`. Laissé : casser le plan par du relief, ou baisser le contraste des lits sur ce plan (choix de couleur).
+
+Contrôles (code inchangé, index.html réassemblé depuis les morceaux) : gardes démarrage, allégé, charte OK. Course canyon complète graine 12 en 390×844 et graine 2 en 844×390 : arrivée, pas de mort, pas d'exception. Mer de nuages 45 s : 0 exception.
+
+Non vérifié : `lot.mjs` et `cout.mjs` non relancés (aucun correctif) ; rien sur le vrai iPhone ; A vu sur trois graines seulement ; la partie « nuages » a été lancée par `carte=nuages` sans relire le nom de la carte dans la page.

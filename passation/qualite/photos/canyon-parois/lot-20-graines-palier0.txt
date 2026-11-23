@@ -1,0 +1,23 @@
+verrou pris par canyon-parois
+g1   L 15035 ang 0.94°/m n 0.89°/m tubes 1 ouvr 2 pièces 1672 · dalle couchée sans roche à moins de 60 m 41/185 ✔
+g2   L 15297 ang 0.78°/m n 0.76°/m tubes 1 ouvr 1 pièces 1748 · dalle couchée sans roche à moins de 60 m 28/151 ✘ regle 0/1 [D12096d(0.6)] · relief 3
+g3   L 14222 ang 0.86°/m n 0.86°/m tubes 1 ouvr 1 pièces 1588 · dalle couchée sans roche à moins de 60 m 35/213 ✘ couloir 2 [2334/-27/0.8/canyon 2339/-27/0.8/paroi] · regle 0/3 [D2250g(0.6) D2334g(-1.0) D2340g(-3.1)] · relief 1 · murs dans la roche 1 [2339,-26,-0.1]
+g4   L 15467 ang 0.83°/m n 0.75°/m tubes 1 ouvr 1 pièces 1718 · dalle couchée sans roche à moins de 60 m 37/179 ✔
+g5   L 14550 ang 0.93°/m n 0.75°/m tubes 1 ouvr 1 pièces 1594 · dalle couchée sans roche à moins de 60 m 35/177 ✘ regle 0/4 [D10386g(1.4) D10392g(0.8) D13164g(0.0) D13236g(1.1)]
+g6   L 15101 ang 0.84°/m n 0.84°/m tubes 1 ouvr 2 pièces 1676 · dalle couchée sans roche à moins de 60 m 23/174 ✘ page gel 1.1 s
+g7   L 14537 ang 0.88°/m n 0.76°/m tubes 1 ouvr 2 pièces 1616 · dalle couchée sans roche à moins de 60 m 33/235 ✘ couloir 5 [3490/-27/0.8/paroi 3494/-27/0.8/canyon 3497/-27/0.8/canyon 3500/-27/0.8/canyon] · regle 0/4 [D3354g(0.7) D3492g(-3.2) D3498g(-4.0) D3504g(0.2)] · relief 2 · murs dans la roche 3 [3496,-26,-0.2]
+g8   L 14187 ang 0.93°/m n 0.89°/m tubes 1 ouvr 2 pièces 1562 · dalle couchée sans roche à moins de 60 m 60/260 ✘ page gel 1.1 s
+g9   L 14722 ang 0.84°/m n 0.76°/m tubes 1 ouvr 2 pièces 1618 · dalle couchée sans roche à moins de 60 m 30/171 ✘ regle 0/3 [D9954g(-2.2) D11526g(1.2) D11532g(0.1)] · murs dans la roche 1 [9952,-26,-0.1]
+g10  L 14847 ang 0.89°/m n 0.75°/m tubes 1 ouvr 1 pièces 1642 · dalle couchée sans roche à moins de 60 m 32/201 ✘ regle 0/2 [D7608g(0.3) D9318d(0.9)] · relief 1
+g11  L 15105 ang 1.04°/m n 0.86°/m tubes 1 ouvr 1 pièces 1654 · dalle couchée sans roche à moins de 60 m 36/247 ✘ couloir 7 [6821/27/0.8/canyon 6824/27/0.8/canyon 6831/27/0.8/canyon 6834/27/0.8/canyon] · regle 0/9 [D6744d(-0.5) D6750d(-3.3) D6816d(-1.0) D6822d(-4.2) D6828d(-2.4) D6834d(-4.1) D6] · murs dans la roche 7 [6918,26,-0.3]
+g12  L 14030 ang 0.87°/m n 0.85°/m tubes 1 ouvr 2 pièces 1544 · dalle couchée sans roche à moins de 60 m 28/222 ✘ couloir 3 [12484/-27/0.8/canyon 12488/-27/0.8/canyon 12638/-27/0.8/canyon] · regle 0/9 [D12294g(1.5) D12300g(0.1) D12372g(1.0) D12480g(0.7) D12486g(-3.1) D12492g(-3.4) ] · murs dans la roche 5 [12487,-26,-0.1]
+g13  L 15708 ang 0.93°/m n 0.76°/m tubes 1 ouvr 2 pièces 1752 · dalle couchée sans roche à moins de 60 m 26/195 ✘ regle 0/4 [D8202g(0.4) D8208g(-1.3) D8214g(-0.3) D9546g(1.0)] · relief 3 · murs dans la roche 1 [8208,-26,0]
+g14  L 14811 ang 0.82°/m n 0.83°/m tubes 1 ouvr 1 pièces 1648 · dalle couchée sans roche à moins de 60 m 52/283 ✘ couloir 2 [4002/-27/6/paroi 4006/-27/6/paroi] · regle 0/2 [D4650g(-0.3) D5814g(0.7)] · relief 5
+g15  L 13431 ang 0.78°/m n 0.78°/m tubes 1 ouvr 2 pièces 1466 · dalle couchée sans roche à moins de 60 m 58/242 ✘ relief 2
+g16  L 14472 ang 0.85°/m n 0.85°/m tubes 1 ouvr 2 pièces 1604 · dalle couchée sans roche à moins de 60 m 65/256 ✔
+g17  L 14949 ang 0.88°/m n 0.76°/m tubes 1 ouvr 1 pièces 1646 · dalle couchée sans roche à moins de 60 m 24/150 ✔
+g18  L 15417 ang 0.75°/m n 0.75°/m tubes 1 ouvr 2 pièces 1708 · dalle couchée sans roche à moins de 60 m 36/132 ✔
+g19  L 14675 ang 0.85°/m n 0.85°/m tubes 1 ouvr 1 pièces 1600 · dalle couchée sans roche à moins de 60 m 0/243 ✘ regle 0/5 [D9732d(-0.4) D9738d(-1.7) D9744d(1.0) D9810d(1.5) D10386d(0.3)] · relief 1 · murs dans la roche 1 [9734,26,0]
+g20  L 14154 ang 0.82°/m n 0.76°/m tubes 1 ouvr 2 pièces 1564 · dalle couchée sans roche à moins de 60 m 79/223 ✘ couloir 6 [13118/27/0.8/paroi 13122/27/0.8/paroi 13127/27/0.8/paroi 13132/27/0.8/paroi] · regle 2/7 [D12684d(0.7) D13116d(-3.2) D13122d(-5.6) D13128d(-7.3) 13128d D13134d(-7.6) 1313] · relief 10
+BILAN 15 graine(s) en défaut sur 20
+verrou rendu

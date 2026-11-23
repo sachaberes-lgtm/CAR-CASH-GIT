@@ -1,0 +1,23 @@
+verrou pris par canyon-parois
+g1   L 15035 ang 0.94°/m n 0.89°/m tubes 1 ouvr 2 pièces 1672 · dalle couchée sans roche à moins de 60 m 39/185 ✔
+g2   L 15297 ang 0.78°/m n 0.76°/m tubes 1 ouvr 1 pièces 1748 · dalle couchée sans roche à moins de 60 m 27/151 ✔
+g3   L 14222 ang 0.86°/m n 0.86°/m tubes 1 ouvr 1 pièces 1588 · dalle couchée sans roche à moins de 60 m 35/213 ✔
+g4   L 15467 ang 0.83°/m n 0.75°/m tubes 1 ouvr 1 pièces 1716 · dalle couchée sans roche à moins de 60 m 37/179 ✔
+g5   L 14550 ang 0.93°/m n 0.75°/m tubes 1 ouvr 1 pièces 1594 · dalle couchée sans roche à moins de 60 m 34/177 ✔
+g6   L 15101 ang 0.84°/m n 0.84°/m tubes 1 ouvr 2 pièces 1674 · dalle couchée sans roche à moins de 60 m 22/174 ✔
+g7   L 14537 ang 0.88°/m n 0.76°/m tubes 1 ouvr 2 pièces 1614 · dalle couchée sans roche à moins de 60 m 33/235 ✔
+g8   L 14187 ang 0.93°/m n 0.89°/m tubes 1 ouvr 2 pièces 1562 · dalle couchée sans roche à moins de 60 m 58/260 ✔
+g9   L 14722 ang 0.84°/m n 0.76°/m tubes 1 ouvr 2 pièces 1618 · dalle couchée sans roche à moins de 60 m 30/171 ✔
+g10  L 14847 ang 0.89°/m n 0.75°/m tubes 1 ouvr 1 pièces 1642 · dalle couchée sans roche à moins de 60 m 33/201 ✔
+g11  L 15105 ang 1.04°/m n 0.86°/m tubes 1 ouvr 1 pièces 1652 · dalle couchée sans roche à moins de 60 m 37/247 ✔
+g12  L 14030 ang 0.87°/m n 0.85°/m tubes 1 ouvr 2 pièces 1546 · dalle couchée sans roche à moins de 60 m 27/222 ✔
+g13  L 15708 ang 0.93°/m n 0.76°/m tubes 1 ouvr 2 pièces 1752 · dalle couchée sans roche à moins de 60 m 26/195 ✔
+g14  L 14811 ang 0.82°/m n 0.83°/m tubes 1 ouvr 1 pièces 1648 · dalle couchée sans roche à moins de 60 m 52/283 ✔
+g15  L 13431 ang 0.78°/m n 0.78°/m tubes 1 ouvr 2 pièces 1466 · dalle couchée sans roche à moins de 60 m 57/242 ✔
+g16  L 14472 ang 0.85°/m n 0.85°/m tubes 1 ouvr 2 pièces 1602 · dalle couchée sans roche à moins de 60 m 65/256 ✔
+g17  L 14949 ang 0.88°/m n 0.76°/m tubes 1 ouvr 1 pièces 1644 · dalle couchée sans roche à moins de 60 m 23/150 ✔
+g18  L 15417 ang 0.75°/m n 0.75°/m tubes 1 ouvr 2 pièces 1706 · dalle couchée sans roche à moins de 60 m 36/132 ✔
+g19  L 14675 ang 0.85°/m n 0.85°/m tubes 1 ouvr 1 pièces 1600 · dalle couchée sans roche à moins de 60 m 0/243 ✔
+g20  L 14154 ang 0.82°/m n 0.76°/m tubes 1 ouvr 2 pièces 1566 · dalle couchée sans roche à moins de 60 m 79/223 ✔
+BILAN 0 graine(s) en défaut sur 20
+verrou rendu
