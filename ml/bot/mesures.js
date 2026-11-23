@@ -28,7 +28,8 @@ function mesures(c){
   const figPayees=par('figure_payee').reduce((a,e)=>a+(e[2]|0),0),moy=A=>A.length?A.reduce((a,b)=>a+b,0)/A.length:0;
   return {
     duree_s:+duree.toFixed(1),cause:fin.cause||'?',cartes:(c.routes||[]).map(r=>r.carte),routes:(c.routes||[]).length,voiture:c.voiture||null,
-    appareil:c.ecran?(c.ecran.tel?'telephone':'ordinateur'):(c.bot?'bot':'?'),
+    appareil:c.ecran?(c.ecran.app?'app iPhone':c.ecran.tel?'version allegee (telephone ou PC lent)':'ordinateur'):(c.bot?'bot':'?'), /* ecran.tel = ALLEGE, vrai aussi sur un PC lent */
+    clavier:(E.length&&col.doigt!=null)?!E.some(e=>g(e,'doigt')):null,chances:c.chances|0,
     argent:fin.argent||0,argent_min:+((fin.argent||0)/min).toFixed(1),
     pieces:fin.pieces|0,pieces_min:+((fin.pieces|0)/min).toFixed(1),
     figures_lancees:par('fig').length,figures_payees:figPayees,figures_min:+(figPayees/min).toFixed(2),
