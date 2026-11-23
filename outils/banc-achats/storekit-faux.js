@@ -36,9 +36,15 @@
     if(N.ecoute){note('achatRecu PERDU (écouteur d\'une page morte)',id);return;} /* le natif croit avoir un écouteur : celui de la page d'avant */
     retenus.push(id);note('achatRecu retenu',id);};
 
+  /* (2026-11-23, Sacha : « remboursement […] Non, on la reprend ») l'événement « achatRepris », retenu comme achatRecu */
+  var ecRepris=[],retenusR=[];
+  var notifieRepris=function(id){
+    if(ecRepris.length){ecRepris.slice().forEach(function(cb){try{cb({id:id});}catch(e){}});note('achatRepris',id);return;}
+    retenusR.push(id);note('achatRepris retenu',id);};
   /* ---- Transaction.updates → recoit / livre (Achats.swift) ---- */
-  var livre=function(t){if(!t.revoquee)notifie(t.pid);else note('remboursée, rien à donner',t.pid);finis(t);};
+  var livre=function(t){if(!t.revoquee)notifie(t.pid);else{note('remboursée : le jeu reprend',t.pid);notifieRepris(t.pid);}finis(t);};
   var recoit=function(t){
+    if(t.revoquee){livre(t);return;} /* (2026-11-23, Sacha : « remboursement […] Non, on la reprend ») un remboursement va toujours à livre() (même identifiant que l'achat d'origine) */
     if(N.tenues.indexOf(t.tid)>=0){finis(t);return;}
     if(N.enVol===t.pid){if(N.differees.indexOf(t.tid)<0){N.differees.push(t.tid);ecrisN();}note('différée',t.pid);return;}
     livre(t);};
@@ -74,6 +80,7 @@
   var appel=function(){var c={};c.p=new Promise(function(ok,non){c.resolve=ok;c.reject=non;});return c;};
   var Achats={
     addListener:function(nom,cb){
+      if(nom==='achatRepris'){ecRepris.push(cb);var qr=retenusR;retenusR=[];qr.forEach(function(id){setTimeout(function(){try{cb({id:id});}catch(e){}},0);});}
       if(nom==='achatRecu'){ecouteurs.push(cb);N.ecoute=true;ecrisN();var q=retenus;retenus=[];q.forEach(function(id){setTimeout(function(){try{cb({id:id});}catch(e){}},0);});}
       return Promise.resolve({remove:function(){}});},
     produits:function(a){return tard(function(){
@@ -88,6 +95,8 @@
         return achete(id,c).then(relache);});
       return c.p;},
     possedes:function(){return tard(function(){return {ids:droits()};},12);},
+    repris:function(){return tard(function(){ /* (2026-11-23, Sacha : « remboursement […] Non, on la reprend ») Transaction.all : vérifiées ET remboursées, moins les droits (rachetées depuis) */
+      if(!AS.local)return {ids:[]};var g=droits(),s={};AS.tx.forEach(function(t){if(t.etat==='payee'&&t.revoquee&&g.indexOf(t.pid)<0)s[t.pid]=1;});return {ids:Object.keys(s).sort()};},14);},
     restaurer:function(){return tard(function(){
       AS.nRestaurer=(AS.nRestaurer||0)+1;
       if(!AS.regle.reseau||AS.regle.restaurerEchoue)throw rejet('restauration impossible');
@@ -123,6 +132,8 @@
     refuse:function(pid){AS.tx=AS.tx.filter(function(x){return !(x.pid===pid&&x.etat==='attente');});ecrisAS();return true;},
     rembourse:function(pid){var t=null;AS.tx.forEach(function(x){if(x.pid===pid&&x.etat==='payee'&&!x.revoquee)t=x;});if(!t)return false;
       t.revoquee=true;t.finie=false;ecrisAS();recoit(t);return true;},
+    remboursementFerme:function(pid){ /* (2026-11-23, Sacha : « remboursement […] Non, on la reprend ») Apple rembourse pendant que l'app est FERMÉE (le banc la tue juste après) : personne n'écoute, la liste repris() le dira au lancement */
+      var t=null;AS.tx.forEach(function(x){if(x.pid===pid&&x.etat==='payee'&&!x.revoquee)t=x;});if(!t)return false;t.revoquee=true;t.finie=true;ecrisAS();note('remboursée, app fermée',pid);return true;},
     reseauRevient:function(){AS.regle.reseau=true;ecrisAS();AS.tx.slice().forEach(function(t){if(t.etat==='payee'&&!t.finie)recoit(t);});},
     paye:function(pid){return AS.tx.some(function(t){return t.pid===pid&&t.etat==='payee'&&!t.revoquee;});},
     etat:function(){return {tx:AS.tx.slice(),debits:AS.debits||0,local:AS.local,regle:AS.regle,natif:N,nRestaurer:AS.nRestaurer||0,journal:journal.slice()};}

@@ -1,5 +1,7 @@
 # ACHATS EN VRAI ARGENT DANS L'APP — ce que Sacha doit faire (07/11/2026)
 
+> **23/11 (Sacha : « remboursement […] Non, on la reprend »), branche `qa/voitures-noms`** : un achat REMBOURSÉ par Apple est maintenant **REPRIS** (caisse hors du garage et retour à LA HONTE si on roulait avec ; peinture retirée et retour à la peinture d'usine). Seulement sur un signal sûr d'Apple : l'événement natif `achatRepris` (Transaction.updates avec `revocationDate`) ou la nouvelle méthode `repris()` du plugin (Transaction.all remboursées, moins ce qui a été racheté), lue au démarrage et au retour au premier plan. Jamais sur une simple absence (hors ligne, autre identifiant Apple). Jamais en course : la reprise attend l'accueil, le garage ou l'écran ACHAT ; un toast « ACHAT REMBOURSÉ : … » le dit. Fichiers : `Achats.swift`, `app-ios/natif/achats.js`, `code/economie/achats-store.js`. Il faut un NOUVEAU binaire (méthode native) ; un ancien binaire qui reçoit ce jeu par mise à jour en direct ne reprend rien (`repris()` rend []). Les lignes ci-dessous qui disent « l'objet reste » décrivent l'avant. **Pas vérifié sur un vrai StoreKit** : à tester au Transaction Manager (point c.4) et en TestFlight. Aussi : CHAT POP-TART et LA PIZZA EXPRESS retirés du jeu, `produits.csv` = **38 produits**.
+
 > **18/11 (lot « tri des voitures », branche `qa/voitures-tri`)** : deux caisses de plus à créer, `cashcar.car.e_aigle` (L'AIGLE DE FEU, 1,61 €) et `cashcar.car.iceberg` (L'ICEBERG, 0,80 €, l'offre de l'hiver). `produits.csv` en a 39 (10 caisses + 29 peintures). Détail et risque du prix barré : `passation/qualite/voitures-tri.md`.
 
 Branche `boutique-affichage` (locale : rien n'est poussé, rien n'est envoyé à Apple). Le plan et les choix sont dans
@@ -45,7 +47,7 @@ Branche `boutique-affichage` (locale : rien n'est poussé, rien n'est envoyé à
    - [ ] quitter l'app puis la rouvrir : les achats sont toujours là ;
    - [ ] **désinstaller l'app puis la réinstaller** (▶ de nouveau), ouvrir ACHAT › **RESTAURER MES ACHATS** : les achats reviennent ;
    - [ ] Xcode › Debug › StoreKit › **Manage Transactions** (Transaction Manager) : activer « Ask to Buy » puis acheter : le jeu doit afficher « EN ATTENTE D'ACCORD » et ne rien donner ; approuver la demande dans le Transaction Manager : l'objet arrive ;
-   - [ ] toujours dans le Transaction Manager : **rembourser** un achat : en v1.0 l'objet **reste** (choix fait, à revoir si abus) ;
+   - [ ] toujours dans le Transaction Manager : **rembourser** un achat : l'objet est **repris** (23/11), avec le toast « ACHAT REMBOURSÉ » ; app fermée pendant le remboursement : repris au lancement suivant ;
    - [ ] en mode avion : l'app démarre et se joue normalement.
 5. Puis **TestFlight avec un compte bac à sable** (App Store Connect › Utilisateurs et accès › Bac à sable) pour un vrai flux Apple : un achat, une restauration, un refus. C'est la seule façon de voir un vrai encaissement de test.
 

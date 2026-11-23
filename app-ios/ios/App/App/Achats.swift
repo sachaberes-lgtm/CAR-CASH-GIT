@@ -12,6 +12,9 @@ import StoreKit
 ///   acheter({id})    → {etat:'ok'|'annule'|'attente'}    (un seul achat à la fois : un second pendant le premier est rejeté)
 ///   possedes()       → {ids:[…]}                          (les droits en cours : vérifiés, non remboursés)
 ///   restaurer()      → {ids:[…]}                          (AppStore.sync() puis possedes)
+///   repris()         → {ids:[…]}                          (2026-11-23, Sacha : « remboursement […] Non, on la reprend ») les produits REMBOURSÉS par Apple (revocationDate)
+///                                                          et pas rachetés depuis : le jeu les reprend
+///   événement « achatRepris » {id} : Apple vient de rembourser cet achat (Transaction.updates, revocationDate posée).
 ///   événement « achatRecu » {id} : une transaction vérifiée arrivée hors d'un acheter() (demande d'achat approuvée plus tard par un
 ///   parent, achat fait sur un autre appareil, achat resté inachevé au lancement précédent).
 /// transaction.finish() n'est appelé qu'APRÈS avoir répondu au jeu (ou émis l'événement) : si l'app meurt entre les deux, StoreKit
@@ -24,7 +27,8 @@ class Achats: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "produits", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "acheter", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "possedes", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "restaurer", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "restaurer", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "repris", returnType: CAPPluginReturnPromise)
     ]
 
     private let registre = RegistreAchats()
@@ -135,6 +139,22 @@ class Achats: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
+    /// (2026-11-23, Sacha : « remboursement […] Non, on la reprend ») LES ACHATS REPRIS : un produit dont une transaction vérifiée porte une revocationDate (remboursé par Apple,
+    /// ou retiré du partage familial) et qui n'est plus dans les droits (pas racheté depuis). Seul un signal SÛR d'Apple reprend un objet :
+    /// hors ligne, Transaction.all ne rend que ce que l'appareil sait déjà, il ne fabrique jamais de remboursement.
+    @objc func repris(_ call: CAPPluginCall) {
+        Task {
+            let garde = Set(await Achats.droits())
+            var ids = Set<String>()
+            for await resultat in Transaction.all {
+                if case .verified(let t) = resultat, t.revocationDate != nil, !garde.contains(t.productID) {
+                    ids.insert(t.productID)
+                }
+            }
+            call.resolve(["ids": ids.sorted()])
+        }
+    }
+
     /// Les produits que le joueur possède selon l'App Store : seulement les transactions vérifiées et non remboursées.
     private static func droits() async -> [String] {
         var ids = Set<String>()
@@ -155,6 +175,12 @@ class Achats: CAPPlugin, CAPBridgedPlugin {
             }
             return
         }
+        /* (2026-11-23, Sacha : « remboursement […] Non, on la reprend ») un REMBOURSEMENT porte le même identifiant que l'achat d'origine : le registre le croirait « déjà livré »
+           (achat fait dans cette même session) et le terminerait sans rien dire au jeu. Il va donc toujours à livre(). */
+        if transaction.revocationDate != nil {
+            await livre(transaction)
+            return
+        }
         switch await registre.arrivee(transaction) {
         case .dejaLivree:
             await transaction.finish()   // celle d'un acheter() qui a déjà répondu au jeu : rien à rejouer
@@ -165,13 +191,14 @@ class Achats: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
-    /// Une transaction vérifiée venue d'ailleurs : l'événement au jeu, puis finish(). Remboursée = terminée sans rien donner.
+    /// Une transaction vérifiée venue d'ailleurs : l'événement au jeu, puis finish(). Remboursée = « achatRepris » : le jeu reprend l'objet.
     private func livre(_ transaction: Transaction) async {
         if transaction.revocationDate == nil {
             // retainUntilConsumed : si le jeu n'a pas encore posé son écouteur (lancement), Capacitor garde l'événement pour lui
             notifyListeners("achatRecu", data: ["id": transaction.productID], retainUntilConsumed: true)
         } else {
-            CAPLog.print("⚡️  [natif] transaction remboursée (\(transaction.productID)) : rien à donner")
+            CAPLog.print("⚡️  [natif] transaction remboursée (\(transaction.productID)) : le jeu reprend l'objet")
+            notifyListeners("achatRepris", data: ["id": transaction.productID], retainUntilConsumed: true)
         }
         await transaction.finish()
     }
