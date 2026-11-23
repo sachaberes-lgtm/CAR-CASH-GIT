@@ -1,0 +1,172 @@
+{
+ "date": "2026-11-23T18:45:22.155Z",
+ "graine": 910000,
+ "tmax": 150,
+ "humain": {
+  "decision": 6,
+  "appui": 4,
+  "repos": 4,
+  "tap": 5,
+  "entre": 5,
+  "gestes": 30,
+  "seul": 27
+ },
+ "gestes": [
+  {
+   "geste": "figure sur la route · avant",
+   "ok": true,
+   "vu": {
+    "route": "salto/avant",
+    "vol": false,
+    "enVol": [],
+    "redresse": 0
+   }
+  },
+  {
+   "geste": "figure sur la route · arriere",
+   "ok": true,
+   "vu": {
+    "route": "salto/arriere",
+    "vol": false,
+    "enVol": [],
+    "redresse": 0
+   }
+  },
+  {
+   "geste": "figure sur la route · gauche",
+   "ok": true,
+   "vu": {
+    "route": "tailwhip/",
+    "vol": false,
+    "enVol": [],
+    "redresse": 0
+   }
+  },
+  {
+   "geste": "figure sur la route · droite",
+   "ok": true,
+   "vu": {
+    "route": "tailwhip/",
+    "vol": false,
+    "enVol": [],
+    "redresse": 0
+   }
+  },
+  {
+   "geste": "saut",
+   "ok": true,
+   "vu": {
+    "route": "salto/avant",
+    "vol": true,
+    "enVol": [
+     "salto/avant"
+    ],
+    "redresse": 0
+   }
+  },
+  {
+   "geste": "figure en vol · avant",
+   "ok": true,
+   "vu": {
+    "route": "tailwhip/",
+    "vol": true,
+    "enVol": [
+     "tailwhip/",
+     "salto/avant"
+    ],
+    "redresse": 0
+   }
+  },
+  {
+   "geste": "figure en vol · arriere",
+   "ok": true,
+   "vu": {
+    "route": "tailwhip/",
+    "vol": true,
+    "enVol": [
+     "tailwhip/",
+     "salto/arriere"
+    ],
+    "redresse": 0
+   }
+  },
+  {
+   "geste": "figure en vol · gauche",
+   "ok": true,
+   "vu": {
+    "route": "salto/avant",
+    "vol": true,
+    "enVol": [
+     "salto/avant",
+     "tailwhip/"
+    ],
+    "redresse": 0
+   }
+  },
+  {
+   "geste": "figure en vol · droite",
+   "ok": true,
+   "vu": {
+    "route": "salto/avant",
+    "vol": true,
+    "enVol": [
+     "salto/avant",
+     "tailwhip/"
+    ],
+    "redresse": 0
+   }
+  },
+  {
+   "geste": "redresser",
+   "ok": true,
+   "vu": {
+    "route": "salto/avant",
+    "vol": true,
+    "enVol": [
+     "salto/avant"
+    ],
+    "redresse": 1
+   }
+  }
+ ],
+ "doigts": {
+  "appuis": 545,
+  "appuiLePlusCourt_images": 4,
+  "reposLePlusCourt_images": 4,
+  "appuisParSecondeMax": 6,
+  "problemes": [],
+  "ok": true
+ },
+ "course": {
+  "cartes": [
+   "espace",
+   "nuages",
+   "grotte"
+  ],
+  "duree": 150,
+  "cause": "temps",
+  "argent": 6895.91,
+  "figures": 19,
+  "decisions": 1500
+ },
+ "repetable": {
+  "a": {
+   "empreinte": "a7b3171768ca",
+   "touches": "6195695442b6",
+   "images": 9000
+  },
+  "b": {
+   "empreinte": "a7b3171768ca",
+   "touches": "6195695442b6",
+   "images": 9000
+  },
+  "ok": true
+ },
+ "sansEnregistreur": {
+  "ok": true
+ },
+ "yeuxEnPlus": {
+  "ok": true
+ },
+ "ok": true
+}

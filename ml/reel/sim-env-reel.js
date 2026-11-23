@@ -75,11 +75,18 @@ function loadGame(search,graineChargement){
      des milliers de fois dans la meme image (MESURE : 60 images en 86 s). Un navigateur ne la passe que quelques fois par image. */
   function tick(){ const id0=TIM.id; for(let n=0;n<5000;n++){ let b=null; for(const x of TIM.q) if(x.t<=CLK.t&&x.id<id0&&(!b||x.t<b.t||(x.t===b.t&&x.id<b.id))) b=x; if(!b) return;
       if(b.rep){ b.t+=b.ms; if(b.t<=CLK.t) b.t=CLK.t+b.ms; } else TIM.q.splice(TIM.q.indexOf(b),1); try{ b.f.apply(null,b.a); }catch(e){} } }
+  /* ===== L'IMAGE D'ECRAN, SEULEMENT QUAND LE JEU EN A BESOIN POUR AVANCER (2026-11-23, etape 1 BOTS-ML) =====
+     requestAnimationFrame ne bat pas ici (c'est jeu-reel qui appelle loop()). Mais au PORTAIL de fin de piste, le jeu attend deux images
+     d'ecran avant de bâtir la piste suivante (portPasseNiveau) : sans elles la caisse restait tenue a la bouche du portail, pour toujours
+     (MESURE : plus un metre ni un sou apres ~110 s de course ; l'etape 0 s'arretait a 60 s). `RAF.porte(f)` (pose par jeu-reel) dit quand
+     une demande compte : elle part alors a l'image de jeu suivante, comme une minuterie. Hors de ce cas : rien, comme avant. */
+  const RAF={porte:null};
+  const vRaf=f=>{ if(typeof f!=='function'||!RAF.porte)return 0; let ok=false; try{ok=!!RAF.porte(f);}catch(e){} return ok?vPose(()=>f(CLK.t),0,[],false):0; };
   const windowStub={
     innerWidth:1280,innerHeight:720,devicePixelRatio:1,
     addEventListener(t,f,o){(LISTENERS[t]=LISTENERS[t]||[]).push(f);},removeEventListener(){},dispatchEvent(){return true;},
     matchMedia(){return{matches:false,addListener(){},removeListener(){},addEventListener(){},removeEventListener(){}};},
-    requestAnimationFrame(){return 0;},cancelAnimationFrame(){},
+    requestAnimationFrame:vRaf,cancelAnimationFrame(){},
     getComputedStyle(){return{display:'block',opacity:1};},
     location:{search:'?train=1&sim=1',href:'http://localhost/train.html?train=1&sim=1'},
     navigator:{hardwareConcurrency:8,maxTouchPoints:0,userAgent:'sim'},
@@ -111,7 +118,7 @@ function loadGame(search,graineChargement){
     localStorage:{getItem(){return null;},setItem(){},removeItem(){}},
     sessionStorage:{getItem(){return null;},setItem(){},removeItem(){}},
     location:windowStub.location,performance:windowStub.performance,
-    addEventListener(t,f,o){(LISTENERS[t]=LISTENERS[t]||[]).push(f);},removeEventListener(){},requestAnimationFrame(){return 0;},cancelAnimationFrame(){},
+    addEventListener(t,f,o){(LISTENERS[t]=LISTENERS[t]||[]).push(f);},removeEventListener(){},requestAnimationFrame:vRaf,cancelAnimationFrame(){},
     matchMedia:windowStub.matchMedia,AudioContext:windowStub.AudioContext,webkitAudioContext:windowStub.AudioContext,
     atob:(s)=>Buffer.from(s,'base64').toString('binary'),btoa:(s)=>Buffer.from(s,'binary').toString('base64'),
     // HEADLESS : pas de serveur d'enregistrement. `fetch('/train-save', POST)` est intercepté ici et
@@ -173,7 +180,7 @@ function loadGame(search,graineChargement){
     sandbox:sandbox, THREE:THREE,
     get:function(expr){ return vm.runInContext(expr,sandbox); },
     ev:function(expr){ return sandbox.__EV(expr); },
-    clk:CLK, tick:tick, minuteries:TIM,
+    clk:CLK, tick:tick, minuteries:TIM, raf:RAF,
     fire:function(type,evt){ const e=Object.assign({preventDefault(){},stopPropagation(){},repeat:false},evt); for(const f of (LISTENERS[type]||[])){ try{f(e);}catch(x){} } },
     seed:function(n){ vm.runInContext(SEED_CODE(n),sandbox); }
   };

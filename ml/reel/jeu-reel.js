@@ -101,7 +101,9 @@ function creer(opts){
   /* (2026-11-22, etape 0 BOTS-ML) `intro=ancien` : l'intro du studio (moteur/intro-161.js) partait a la 1re touche du bot et posait
      window.__introCouvre=true -> loop() ne calculait plus rien (son film avance par requestAnimationFrame, qui ne bat jamais ici).
      L'ancienne intro (init.js) s'efface d'elle-meme sans #splash (voir sim-env-reel.js). */
-  const g=loadGame('?sim=1&fps=0&intro=ancien&prebati=0'+(opts.query||''),opts.graineChargement);
+  /* (2026-11-23, etape 1 BOTS-ML) `grotteworker=0` : au PORTAIL, la grotte se creuse dans un Worker ; celui d'ici ne repond jamais (sim-env-reel.js) et la
+     construction attendait sans fin, la caisse tenue au portail (MESURE : 3e course d'une serie, 2e portail). L'interrupteur du jeu la creuse sur place. */
+  const g=loadGame('?sim=1&fps=0&intro=ancien&prebati=0&grotteworker=0'+(opts.query||''),opts.graineChargement);
   const d0=g.sandbox.document, gi=d0.getElementById.bind(d0);
   d0.getElementById=id=>id==='splash'?null:gi(id);          /* start() refuse de partir tant qu'un #splash existe */
   const ce=g.sandbox.console.error;
@@ -109,6 +111,9 @@ function creer(opts){
   const ev=g.ev;
   ev('CAD.ok=false');
   const loop=ev('loop'), keys=ev('keys');
+  /* (2026-11-23, etape 1 BOTS-ML) LE PORTAIL : pendant qu'il attend (PORTV.att), ses demandes d'image d'ecran comptent — sauf loop(), que l'on appelle nous-memes (voir sim-env-reel.js) */
+  const PORTV9=ev('PORTV');
+  g.raf.porte=function(f){ return f!==loop&&PORTV9.att>0; };
   const J={g:g, ev:ev, keys:keys, partie:0};
   J.etat=function(){ return g.sandbox.__S(); };
   J.image=function(){ g.clk.t+=1000/60; g.tick(); loop(g.clk.t); }; /* les minuteries du jeu partent a l'heure du jeu, avant l'image (sim-env-reel.js) */

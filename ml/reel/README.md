@@ -22,6 +22,21 @@ Rien du jeu n'est modifié ; chaque mise à jour du jeu est reprise automatiquem
 Le jeu tourne environ 3 à 4 fois plus vite que le temps réel (certaines maps lourdes, moins). Les scripts décoratifs
 `creatures/singe.js`, `dauphin.js`, `vitrail.js` ne sont pas chargés : ils coûtaient 70 % du temps pour rien.
 
+## Depuis le 23/11/2026 — étape 1 : les bots vivent dans `ml/bot`
+
+Le contrat du bot (ses yeux, ses gestes, ses doigts, sa note) est dans **`ml/bot/README.md`**. `cerveau.js`, `worker.js` et `entrainer.js`
+(le petit réseau d'octobre) restent pour mémoire et pour `etape0.js` / `repetable.js`.
+
+Deux réparations du simulateur ce jour-là, trouvées dès que les courses ont dépassé 110 s (celles de l'étape 0 faisaient 60 s) :
+- **Le portail de fin de piste ne passait pas.** Le jeu attend deux images d'écran (`requestAnimationFrame`) avant de bâtir la piste suivante ;
+  ici elles ne battaient jamais, la caisse restait tenue à la bouche du portail. `sim-env-reel.js` laisse maintenant passer ces demandes
+  pendant l'attente du portail (`PORTV.att`), et seulement là — `loop()` exclue, c'est `jeu-reel` qui l'appelle.
+- **La grotte bâtie à un portail n'arrivait jamais** : elle se creuse dans un Worker, et celui du simulateur ne répond pas. `jeu-reel.js`
+  passe `grotteworker=0`, l'interrupteur du jeu qui la creuse sur place.
+
+Une course enchaîne donc les maps comme une vraie partie. La vitesse baisse sur les maps lourdes bâties en route (jade, grotte) :
+compter 2 à 4 × le temps réel sur une course de plusieurs minutes, contre 6,8 × sur la première piste seule.
+
 ## État au 22/11/2026 — étape 0 du plan BOTS-ML (`passation/BOTS-ML.md`)
 
 **Vitesse** (`node etape0.js`, 3 graines × 60 s, PC de Sacha, Node 24) : **411 images/s = 6,8 × le temps réel** en course

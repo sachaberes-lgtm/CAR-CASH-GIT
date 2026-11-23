@@ -2,7 +2,8 @@
 
 Statut : **proposé, pas encore validé par Sacha. Étape 0 faite le 22/11** (`ml/reel` tourne sur le jeu actuel : 6,8 × le temps réel ;
 même graine = même course au bit près dans un processus neuf, presque dans le même processus — détails et limites dans `ml/reel/README.md`).
-Le reste n'est pas codé.
+**Étape 1 faite le 23/11, sauf les 20 parties de Sacha, qui restent à enregistrer** (le contrat du bot, le bot de référence et l'outil
+de l'étalon : `ml/bot/README.md` ; le compte rendu est à la fin de la section 3). Le reste n'est pas codé.
 Demande : des bots qui jouent vraiment à CASH CAR (rouler, voler, figures, raccourcis), un plan qui dépense surtout les ~200 € de crédit API, et un projet qui sert au portfolio (RCA — je suppose Royal College of Art, à confirmer).
 
 ---
@@ -13,6 +14,7 @@ Demande : des bots qui jouent vraiment à CASH CAR (rouler, voler, figures, racc
 |---|---|---|
 | `ml/train/` (juillet → septembre) | 24 voitures à petit réseau, mutées au hasard, dans une **copie** du jeu | La copie a divergé du vrai jeu. Après 300 générations : 0 figure, 9 % de poses réussies. Le champion ne finissait aucune course alors que les totaux du run étaient bons. |
 | `ml/reel/` (20 octobre) | Le **vrai jeu publié** tourne sans écran dans Node, piloté par les touches du clavier, horloge à 1/60 s | Cerveau de 16 neurones, noté à la distance seule. 3 à 4 fois le temps réel d'après son README (pas remesuré depuis). |
+| `ml/bot/` (23 novembre, étape 1) | Le **contrat du bot** : yeux, gestes, doigts, pilote, mesures, bot de référence, outil de l'étalon | Les 20 parties de Sacha. |
 
 À lire avant tout : `ml/reel/README.md`, `ml/train/README.md` (les quatre règles de travail y sont toujours valables).
 
@@ -60,6 +62,53 @@ Deux pièces rendent ça possible :
 **Budget.** Estimation : 0,07 à 0,14 $ par candidat avec Opus 5.5 en traitement par lot (moitié prix). L'étape 2 mesure le vrai coût avant de dépenser le reste. Tarifs en dollars, comptés 1 € = 1 $ pour garder de la marge.
 
 **Cibles.** Pas de chiffres inventés : les figures par minute, le temps en l'air et l'argent par minute de Sacha (étape 1) sont la barre. Test final : le bot contre Sacha sur les mêmes graines.
+
+### Étape 1 — ce qui est sorti (23/11/2026)
+
+Tout est dans `ml/bot/` (mode d'emploi : `ml/bot/README.md`). Le jeu n'a pas été modifié.
+
+**Le contrat.** Un cerveau est un fichier `decide(vue, memoire) → ordre`, appelé 10 fois par seconde, chargé dans un bac fermé.
+- *Ce qu'il voit* (`yeux.js`) : la route devant (virage, montée, dévers, trous), pièces, plaques, fruits, orbes, flaques, jauges ; en vol
+  l'anneau de pose, le temps d'air restant, la figure en cours, la route la plus proche ; au sol comme en vol, les tronçons en contrebas avec leur gain.
+- *Ses gestes* (`doigts.js`) : volant, manche, nitro, figure (4 directions), saut, redresser ; deux aides (tenir une ligne, viser un tronçon).
+- *Ses doigts* : les cinq touches du clavier, jamais plus vite qu'une main (67 ms par appui, 7,5 appuis par seconde, 2 gestes par seconde).
+
+**Contrôlé dans le vrai jeu** (`node verifier.js`, tout passe) : les 10 gestes font ce que leur nom dit ; 545 appuis en 150 s, aucun sous la
+limite ; deux processus neufs sur la même graine donnent la même course et les mêmes touches ; regarder (yeux, enregistreur) ne change rien.
+
+**La mesure commune.** Le pilote fait tourner l'enregistreur du jeu (celui des parties de Sacha) pendant les courses des bots :
+mêmes chiffres, même format, comptés par le même code (`mesures.js`).
+
+**Le bot de référence** (`reference.js`, écrit à la main, rien d'appris), 20 graines, 300 s au plus, jeu `cashcar-v1627` :
+
+| mesure | référence |
+|---|---|
+| survie médiane | 143 s |
+| argent par minute | 17 383 |
+| pièces par minute | 391 |
+| figures posées par minute | 5,9 |
+| temps en l'air | 9,6 % (3,7 vols par minute, 1,6 s en moyenne) |
+| raccourcis par minute | 0,04 (il n'en cherche pas) |
+| fins | vide 12, roche 5, air 2, pic 1 |
+
+Il traverse 7 maps (nuages, grotte, jade, espace, crypto, canyon, ville). Il meurt surtout en vol, après un saut ou une sortie de route.
+C'est le point de départ à battre, pas un bon joueur.
+
+**Ce que la lecture du jeu a corrigé dans ce plan.**
+- Au sol, le double appui lance une figure qui **reste sur la route** (un petit bond). Pour voler exprès il faut un geste de plus :
+  manche vers soi et un nouvel appui NITRO pendant le bond. Le « saut nitro » simple n'existe que si la direction n'a pas de figure.
+- La figure dépend de la direction tenue au second appui (avant, arrière, côté), au sol comme en vol.
+- Tenir la NITRO pendant une figure en vol la redresse : planer et tourner ne vont pas ensemble.
+
+**Deux pannes de `ml/reel` réparées** (détail dans `ml/reel/README.md`) : la caisse restait bloquée au portail de fin de piste, et une
+grotte bâtie à un portail n'arrivait jamais. L'étape 0 ne les avait pas vues : ses courses duraient 60 s.
+
+**Vitesse réelle.** Sur des courses de plusieurs minutes (maps bâties en route), 4 cœurs jouent environ 6 fois le temps réel au total :
+47 min de jeu en 8 min. Un tour de boucle (50 cerveaux × 20 graines) tient en une nuit, comme prévu.
+
+**Ce qui reste pour clore l'étape 1 : les 20 parties de Sacha.** Mode d'emploi dans `ml/bot/README.md`, section 5. En bref :
+allumer l'enregistreur (`?jeurec=1`), jouer, exporter **toutes les 8 parties au plus** (il n'en garde que 8), déposer les fichiers dans
+`ml/bot/etalon/`, lancer `node ml/bot/etalon.js`. Le tableau « Sacha contre la référence » sort tout seul.
 
 ---
 
@@ -132,6 +181,10 @@ Le fil : deux tentatives ratées, un changement de méthode, puis des cerveaux q
 1. **Bots dans le jeu** : fantômes (courses calculées d'avance sur la piste du jour, rejouées chez le joueur — recommandé) ou rivaux en direct (demande de refaire la physique pour plusieurs voitures) ?
 2. **Ses parties** : étalon seulement (sa décision de septembre) ou aussi point de départ à imiter ?
 3. **RCA** : confirmer l'école et le programme visé, pour régler le format des pièces (vidéo, page, imprimé).
+4. **L'étalon, sur quel appareil ?** (né de l'étape 1) Le bot joue au clavier. Si Sacha enregistre au téléphone (pouce analogique), la
+   comparaison mélange deux façons de jouer ; s'il enregistre sur l'ordinateur, elle est à armes égales. L'enregistrement note l'appareil.
+5. **Quelle sauvegarde pour le bot ?** (né de l'étape 1) Il joue une sauvegarde neuve : première voiture, deux figures (salto, tail whip),
+   premier palier de moteur au départ. Sacha joue la sienne. À égaliser, ou à assumer.
 
 ---
 
