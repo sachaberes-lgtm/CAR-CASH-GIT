@@ -51,7 +51,7 @@ const SAUF = "(function(){var s=dbgState();return !!(s.started&&s.running&&!s.ga
       const q = [q0, cq].filter(Boolean).join('&');
       const nomV = (q0 || 'nouveau') + (cq ? ' · ' + cq : ' · calme'), R = rapport[nomV] = { debout: {}, couche: {} };
       await taille(390, 844);
-      await c.send('Page.navigate', { url: `http://127.0.0.1:${P_HTTP}/index.html?colonne=0&tel=1&app=1&garde=1&intro=ancien&attente=0` + (q ? '&' + q : '') });
+      await c.send('Page.navigate', { url: `http://127.0.0.1:${P_HTTP}/index.html?colonne=0&tel=1&app=1&garde=1&intro=ancien&attente=0&hudcalme=1` /* (2026-11-23) le HUD calme est éteint de base depuis le code « uhd » : ce banc l'allume */ + (q ? '&' + q : '') });
       let pret = false;
       for (let i = 0; i < 300; i++) { await dormir(500); try { if (await c.ev("!!window.__gameReady&&typeof dbgJouer==='function'", 8000)) { pret = true; break; } } catch (e) {} }
       if (!pret) { R.echec = 'le jeu ne démarre pas'; console.log(nomV, R.echec); continue; }

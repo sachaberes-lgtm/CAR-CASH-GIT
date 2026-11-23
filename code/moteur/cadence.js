@@ -72,7 +72,7 @@ function cadSaute(now){ // en tête de loop : rend true si cette image d'écran 
    `?sans=crit20` = 30 i/s visées comme avant. ESSAI à une variable pour les watts : `?cadfps=20` (ou 24) impose cette cadence à TOUT état — rien sans le paramètre. */
 const CAD_CRIT20=TEL_NATIF&&!/[?&]sans=[^&]*crit20/.test(location.search),CAD_FPS_ESSAI=+((/[?&]cadfps=(\d+)\b/.exec(location.search)||[])[1])||0;
 function cadPer(){if(CAD_FPS_ESSAI>=10&&CAD_FPS_ESSAI<30)return 1000/CAD_FPS_ESSAI;
-  if(CAD_CRIT20){try{if(MOB_S.capteur&&MOB_S.thermo>=3&&(!pilOn()||!PIL_CAD||pilTic()<20))return 50;}catch(e){}} /* (2026-11-17, LE PILOTE DE QUALITÉ, étape 2) 50 ms = 3 tics réguliers d'un écran à 60 ; sur un écran à 30 (économie, mitigation thermique de WebKit : CAD.eM ≥ 24) 50 ms donnait 33 / 66 en alternance : on garde 33, régulier. `?sans=crit20` garde son sens ; (3e tour, S3) la mesure sur téléphone n'est pas faite : le DÉFAUT redevient celui de la base (50 visés) ; le 33 régulier ne vit plus que derrière `?plus=pilcad33` */
+  if(CAD_CRIT20){try{if(MOB_S.capteur&&MOB_S.thermo>=3&&(!PIL_ON||!PIL_CAD||pilTic()<20))return 50;}catch(e){}} /* (2026-11-17, LE PILOTE DE QUALITÉ, étape 2) 50 ms = 3 tics réguliers d'un écran à 60 ; sur un écran à 30 (économie, mitigation thermique de WebKit : CAD.eM ≥ 24) 50 ms donnait 33 / 66 en alternance : on garde 33, régulier. `?sans=crit20` garde son sens ; (3e tour, S3) la mesure sur téléphone n'est pas faite : le DÉFAUT redevient celui de la base (50 visés) ; le 33 régulier ne vit plus que derrière `?plus=pilcad33` ; (2026-11-22) mesure faite (vol-1122-2042) : le 33 régulier est le défaut, `?sans=pilcad33` rend les 50 visés ; (2026-11-23, banc Chrome, écran émulé à 30) la garde lisait `pilOn()` : un téléphone HORS PROFIL (pilote inactif) gardait les 50 visés, donc 17,5 images/s hachées (33 / 66) au lieu de 30 ; elle lit l'interrupteur `PIL_ON` : tout téléphone à l'écran à 30 a le 33 régulier, `?sans=pilote` rend toujours l'avant */
   return CAD.per;}
 function cadPose(v,now,pq){if(v===CAD.on)return;CAD.on=v;if(v)CAD.pq=pq||'?'; /* (2026-11-14, LE JUGE DU PROFIL) pourquoi on est calé : 'chaud' (gouverneur), 'reactif' (60 ne tenait pas), 'depart', 'force' — voir moteur/profil-juge.js */if(v&&MOB_GOUV)mobReactif();CAD.gel=v&&((!PAL.b('cadenceMonte',1)&&!CAD.eco)||(MOB_GOUV&&mobChaud()));/* (2026-11-12, ios-ultime) en économie d'énergie (CAD.eco) être calé ne veut rien dire — l'écran est à 30 de toute façon : l'échelle de qualité reste libre de remonter, sauf téléphone chaud */CAD.der=now;CAD.lT=0;CAD.calT=now;
   QLR.i=0;QLR.n=0; // l'anneau repart : les centiles ne mélangent pas des durées vraies et des durées ramenées
@@ -146,8 +146,17 @@ function cadSauteH(now){
   return r;}
 window.dbgHorloge=function(){const H=CADH;return {ok:CAD_HORLOGE,reg:H.reg,med:+H.med.toFixed(1),p90:+H.p90.toFixed(1),max:+H.max.toFixed(1),sauts:H.sauts,refus:H.refus};};
 /* ===== LE HUD CONTEMPLATIF + L'ÉCRITURE ALLÉGÉE (2026-11-12, Sacha) — voir css/hud-da.css. hudCalmeTick est appelé à chaque image de loop. Vrai téléphone seulement (TEL_NATIF, donc aussi ?tel=1 au banc).
-   Le HUD s'efface quand le nitro est relâché depuis 0,9 s, en course, hors leçon d'auto-école ; il revient au nitro, en pause, à la mort, et quand le chrono de vol passe à l'urgence (on ne meurt pas sans l'avoir vu). */
-const HUD_CALME={ok:!/[?&]sans=[^&]*hudcalme/.test(location.search),leger:!/[?&]sans=[^&]*ecrleger/.test(location.search),on:false,t:0,pose:false,air:null};
+   Le HUD s'efface quand le nitro est relâché depuis 3 s (0,9 s avant le 22/11), en course, hors leçon d'auto-école ; il revient au nitro, en pause, à la mort, et quand le chrono de vol passe à l'urgence (on ne meurt pas sans l'avoir vu). */
+/* ===== LE HUD CALME ÉTEINT DE BASE, LE CODE « UHD » (2026-11-22, Sacha : « met l'hud calme desactiver de base et activable avec un code : uhd ») =====
+   RÉGLAGES › ENTRER UN CODE › « uhd » (ou « hud ») l'allume ; le retaper l'éteint. Gardé sur l'appareil (localStorage `ccHudCalme`), hors de la sauvegarde.
+   `?hudcalme=1` l'allume pour un banc ; `?sans=hudcalme` le coupe toujours. L'écran léger (`ecrLeger`) ne change pas. */
+let HUD_CALME_CODE=/[?&]hudcalme=1\b/.test(location.search);try{if(localStorage.getItem('ccHudCalme')==='1')HUD_CALME_CODE=true;}catch(e){}
+function codeUhd(t){const k=String(t||'').toLowerCase().replace(/[^a-z0-9]/g,'');if(k!=='uhd'&&k!=='hud')return 0;
+  HUD_CALME_CODE=!HUD_CALME_CODE;try{if(HUD_CALME_CODE)localStorage.setItem('ccHudCalme','1');else localStorage.removeItem('ccHudCalme');}catch(e){}
+  HUD_CALME.ok=HUD_CALME_CODE&&!/[?&]sans=[^&]*hudcalme/.test(location.search);
+  if(!HUD_CALME.ok){if(HUD_CALME.on){HUD_CALME.on=false;document.body.classList.remove('hudCalme');try{sonCalme(false);}catch(e){}}CALG.on=false;}
+  return HUD_CALME_CODE?1:2;}
+const HUD_CALME={ok:HUD_CALME_CODE&&!/[?&]sans=[^&]*hudcalme/.test(location.search),leger:!/[?&]sans=[^&]*ecrleger/.test(location.search),on:false,t:0,pose:false,air:null};
 /* ===== LE JS PAR IMAGE (2026-11-16, lot jsimage — Sacha : « beaucoup de lag » sur le build 118 ; téléphone chaud, TOUT le fil ralentit ×8 : chaque ms de JS par image en coûte huit) =====
    Rien ne change à l'écran : le même résultat, moins de calcul. `?sans=jsimage` = exactement l'avant. Banc : outils/banc-jsimage ; journal : passation/qualite/jsimage.md.
    · LA FLAMME DU POUCE NITRO (nxfDessine, interface/boost-icones.js — le plus gros poste du HUD : ≈ 1,5 ms par image au processeur ×6) : chaque case de la boîte essayait les
@@ -198,6 +207,8 @@ function sonCalme(h){
   try{const p=MASTER._limIn.gain,t=AC.currentTime,ouvert=(musGraphe()&&!SND.sfx)?0:.937;
     p.cancelScheduledValues(t);p.setTargetAtTime(h?0:ouvert,t,h?.08:.03);}catch(e){}}
 /* (2026-11-12, chasse aux bugs du HUD) le vol critique ne rallume le HUD qu'avec l'anneau de vol (?hud=d) : par défaut aucun temps de vol ne s'affiche (HUD léger), le HUD revenait sans rien montrer. */
+Object.assign(I18N,{'HUD CALME ALLUMÉ':'CALM HUD ON','HUD CALME ÉTEINT':'CALM HUD OFF'});
+window.dbgCodeUhd=function(v){if(v!=null&&!!v!==HUD_CALME_CODE)codeUhd('uhd');return {code:HUD_CALME_CODE,ok:HUD_CALME.ok};};
 window.dbgHudCalme=function(){return {on:HUD_CALME.on,ok:HUD_CALME.ok,leger:document.documentElement.classList.contains('ecrLeger'),nitro:!!nitroOn,depuis:Math.round(performance.now()-HUD_CALME.t),effets:(AC&&MASTER&&MASTER._limIn)?+MASTER._limIn.gain.value.toFixed(3):null};};
 /* ===== LE HUD ENDORMI (2026-11-12, interface-opti — « baisser le coût de l'interface sur iPhone, sans que rien ne se voie ») =====
    MESURÉ (banc outils/banc-interface, Chrome sans fenêtre 390×844, ?tel=1) : les animations EN BOUCLE du HUD (barre de nitro : nitroPlein, hmEclairPret, nbReflet, nbRaye,
@@ -228,6 +239,17 @@ function hudDortTick(now){if(!TEL_NATIF||!HUD_DORT.ok)return;
     for(let i=0;i<an.length;i++){const a=an[i];if(a.playState!=='running')continue;const t=a.effect&&a.effect.target;if(!t||t.classList.contains('hudDortP'))continue;
       let boucles=true;const to=t.getAnimations();for(let j=0;j<to.length;j++){if(!to[j].animationName)continue;const tm=to[j].effect&&to[j].effect.getTiming();if(!tm||tm.iterations!==Infinity){boucles=false;break;}} /* les transitions (largeur de la jauge…) ne comptent pas : animation-play-state ne les touche pas */
       if(!boucles||hudDortVis(t)||(cle==='c'&&!hudDortSousCalme(t)))continue;t.classList.add('hudDortP');HUD_DORT.l.push(t);HUD_DORT.n++;}}}
+/* ===== LA BARRE DE NITRO FIGÉE, TÉLÉPHONE BRÛLANT (2026-11-23, Sacha : « des gros gros freez des le debut […] des gros freez et de la chauffe regle ca », « Fluidité d'abord, puis qualité ») =====
+   À l'état thermique CRITIQUE iOS bride tout le fil principal : chaque boucle CSS du HUD refait les styles et repeint à CHAQUE image d'écran. Barre PLEINE, nitro lâché, cinq boucles
+   tournent sans rien dire de neuf (nitroPlein, hmPlein ×2, hmEclairPret, nbReflet). MESURÉ au banc Chrome (grotte, HUD calme éteint, fenêtres de 6 s alternées, injection de la règle) :
+   processeur ×4 : 11,7 → 8,4 ms de fil principal par image d'écran nitro lâché (−28 %) ; ×8, fil saturé : 96 → 115 images calculées en 6 s (+20 %). Nitro TENU : rien (−9 % à 0), donc
+   rien n'y est touché : la flamme du bout, l'alerte « à sec » et les éclats de gain (animations à un coup) tournent comme avant. Pas mesuré sur un vrai iPhone.
+   La classe `body.hudBrule` est posée EN COURSE quand le capteur dit critique, retirée sinon ; css/interface-opti.css §8 ne fait que `animation-play-state` (jamais `animation:none` :
+   rien ne rejoue au retour). `?sans=hudbrule` = l'avant. Banc : `dbgHudBrule(1|0)` force, `dbgHudBrule(null)` rend la main. */
+const HUD_BRULE={ok:TEL_NATIF&&!/[?&]sans=[^&]*hudbrule/.test(location.search),on:false,force:null};
+function hudBruleTick(){if(!HUD_BRULE.ok)return;let v=false;try{v=HUD_BRULE.force!=null?!!HUD_BRULE.force:!!(started&&!gameOver&&!garageOn&&MOB_S.capteur&&MOB_S.thermo>=3);}catch(e){}
+  if(v!==HUD_BRULE.on){HUD_BRULE.on=v;document.body.classList.toggle('hudBrule',v);}}
+window.dbgHudBrule=function(v){if(v!==undefined){HUD_BRULE.force=v;hudBruleTick();}return {ok:HUD_BRULE.ok,on:HUD_BRULE.on,force:HUD_BRULE.force};};
 /* ===== L'INTERFACE ALLÉGÉE SUR iOS (2026-11-12, interface-opti) — deux réglages de css/interface-opti.css, posés sur un vrai iPhone/iPad seulement (WebKit : vérifiés
    identiques au pixel ; dans Chrome l'antialiasing bouge de quelques niveaux) : §2 LES REFLETS SUR LEUR COUCHE (html.ifReflets, ?sans=reflets) ; §3 LA TRAME DE
    MISSIONS DÉPLACÉE PAR LA PUCE (html.ifTrame, ?sans=trame). */

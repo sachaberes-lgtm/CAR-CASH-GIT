@@ -94,3 +94,33 @@ Compiler (Sacha, ou sur son oui), dans `~/cash-car/finition-build` : la recette 
 
 `~/cash-car/ios-ultime-mesures/builds/build128.app`, depuis `373ee0b15` (`qa/tuto-finitions`, COMPLET=1, `&perfrec=2`). **À installer seulement sur le oui de Sacha** :
 `xcrun devicectl device install app --device FE6F8B40-DCFF-5E04-B578-871A79EDCF17 ~/cash-car/ios-ultime-mesures/builds/build128.app`
+
+## 22/11, nuit : gels téléphone brûlant (PAS commité, PAS compilé, rien sur le téléphone)
+
+Sacha, après le build 128 : « la j'ai eu des gros gros freez des le debut […] c'est horible des gros freez et de la chauffe regle ca c'est pas du tout publiable ».
+
+Diagnostic (vol `vol-1122-2042.json`) :
+1. Son téléphone était à l'état thermique CRITIQUE avant de jouer, en mode économie : l'écran ne donne que 30 tops par seconde.
+2. À critique le jeu visait une image toutes les 50 ms (`cadPer`, `code/moteur/cadence.js`). C'est régulier sur un écran à 60, pas sur un écran à 30.
+3. Sur un écran à 30, 50 ms tombe entre deux tops : les images sortent à 33 / 66 ms en alternance.
+4. Résultat sur son téléphone : 18,4 images par seconde, hachées, au lieu de 30 régulières (704 images à 33 ms pour 1468 entre 50 et 100 ms).
+5. S'y ajoutent de gros gels isolés (140 à 670 ms : portail, pré-bâti, shaders). Ceux-là ne sont PAS traités.
+
+Fait (fichiers modifiés, non commités ; `cashcar-vNNN` pas touché) :
+- **Cadence** : `PIL_CAD` vrai par défaut (`code/moteur/pilote-qualite.js`) : à critique, sur un écran à 30, le jeu vise 33 ms. `?sans=pilcad33` rend les 50 ms. La garde de `cadPer` lit maintenant l'interrupteur `PIL_ON` et plus `pilOn()` : un téléphone hors profil gardait les 50 ms hachées. `?sans=pilote` rend toujours l'avant.
+- **Barre de nitro figée à critique** : `body.hudBrule` (posée par `hudBruleTick`, `cadence.js`, en course quand `TEL_NATIF`, capteur, thermique ≥ 3), règle §8 de `code/css/interface-opti.css`, `animation-play-state` seulement. Seulement barre pleine, nitro lâché ; pas pendant le boost, ni « à sec », ni pendant l'éclat d'un gain. `?sans=hudbrule`, `dbgHudBrule(1|0|null)`. Photo : `photos/hudbrule-critique.png`.
+- **HUD calme éteint de base**, code « uhd » dans RÉGLAGES (`?hudcalme=1` pour un banc) ; **Jade nuit et pluie hors tirage**. Les bancs qui supposaient le calme allumé ont reçu `&hudcalme=1` (`outils/banc-hud/calme-rien, calme-garde, sonde-calme, vie, leger, compteur` ; `outils/banc-pause/pause`).
+
+Mesuré dans Chrome seulement (écran à 30 émulé en ne servant qu'un top sur deux, `dbgThermique(3)`, `?tel=1&app=1&eco=1&appareil=iPhone14,2`, courses de 60 s) :
+- Avec la correction : 30,0 images/s, 1800 intervalles sur 1802 à 33 ms. Avec `?sans=pilcad33` : 17,3 images/s, 274 à 33 ms et 763 à 66 ms.
+- Processeur bridé ×4 : 29,7 images/s (1729 à 33 ms, 47 à 50 ms) contre 17,9. Le pilote descend au cran 8 vers 40 s dans les deux cas (il vise 10 à critique) : la correction n'y change rien.
+- Inchangé : thermique 2 (30 régulières) ; écran à 60 à critique (20 images/s régulières, 50 ms). Hors profil à critique sur écran à 30 : 17,7 avant la garde `PIL_ON`, 30,0 après.
+- Barre figée (grotte, HUD calme éteint, fenêtres de 6 s alternées) : nitro lâché, ×4 : 12,0 → 8,1 ms de fil principal par image d'écran (−31 %) ; ×8 : 105 → 134 images en 6 s. Nitro tenu : aucun gain (rien n'y est figé). ⚠ Chrome sert les animations à 60 tops quand le jeu calcule 20 à 30 images : le gain ×4 est flatté ; le ×8 (une animation par image, comme sur le téléphone) est le plus honnête.
+- Gardes démarrage, allégé, charte : OK. Partie 390×844 `?tel=1` de 40 s : 0 exception.
+- `calme-rien.cjs` relancé : 14 contrôles bons, 2 faux (« rien ne se ramasse au calme », « aucune pièce ne vole ») : ces deux contrôles sont périmés depuis `0be027803` (le ramassage au calme a été rétabli), pas depuis ce soir ; ils échouent aussi avec `?sans=calmegarde`. Non corrigés.
+
+Reste à faire :
+- Lire un vol sur le vrai téléphone, critique + économie, après un build (sur le oui de Sacha) : rien de ceci n'a tourné sur un iPhone.
+- Les gros gels isolés de 140 à 670 ms (portail, pré-bâti, shaders) : non traités.
+- La barre figée peut s'arrêter au milieu du passage du reflet (un trait clair immobile) : à juger sur le téléphone.
+- À la livraison : `cashcar-vNNN` +1, commit de `code/` et d'index.html ensemble.

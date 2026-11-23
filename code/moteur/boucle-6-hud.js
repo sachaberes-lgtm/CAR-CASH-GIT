@@ -327,6 +327,7 @@ if(MG.on)mgTs(6); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 6
   if(MG.on)mgSt('mesure (bvImage)');if(BV.on)bvImage(now,speedKmh); /* (2026-11-12, ios-ultime) LA BOÎTE DE VOL : chaque image calculée de course, par phase et par vitesse — voir BV (enregistreur-perf.js) ; éteinte : ce test, rien d'autre */
   if(MG.on)mgSt('HUD calme, endormi, couches');hudCalmeTick(now); /* (2026-11-12, Sacha) le HUD contemplatif et l'écriture allégée — voir cadence.js */
   hudDortTick(now); /* (2026-11-12, interface-opti) LE HUD ENDORMI : ses boucles CSS gelées tant qu'il est invisible — voir cadence.js */
+  hudBruleTick(); /* (2026-11-23) LA BARRE DE NITRO FIGÉE à l'état thermique critique — voir cadence.js */
   hccTick(now); /* (2026-11-17, qualité · hudcouches) LE VOILE DES COUCHES : un élément du HUD à opacité 0 ne garde ni couche ni peinture — voir cadence.js */
   if(MG.on)mgSt('cadFin, fin');if(CAD.ok)cadFin(now); // (2026-10-14, passe perf mobile) LA CADENCE STABLE : le travail de l'image et la décision 30/60 — voir CAD
   if(COUT.on)coutFin(); // (banc perf-iphone7)
