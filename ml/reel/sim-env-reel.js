@@ -5,9 +5,12 @@
 const fs=require('fs');
 const path=require('path');
 const vm=require('vm');
-const THREE=require('../sim/node_modules/three');
+/* three : celui de ml/sim s'il est installe, sinon LA COPIE DU JEU (vendor/three.min.js, meme r128) — rien a telecharger (2026-11-22, etape 0 BOTS-ML) */
+const THREE=(function(){ try{ return require('../sim/node_modules/three'); }catch(e){ return require(path.join(__dirname,'..','..','VERSION PRINCIPALE','vendor','three.min.js')); } })();
 
-function loadGame(search){
+const SEED_CODE=n=>'(function(a){Math.random=function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};})('+(n|0)+')';
+/* graineChargement (2026-11-22) : le hasard du CHARGEMENT (decors, boutique du jour...) est tire lui aussi d'une graine fixe : deux processus = le meme jeu */
+function loadGame(search,graineChargement){
   const html=fs.readFileSync(path.join(__dirname,'..','..','VERSION PRINCIPALE','index.html'),'utf8');
   const blocks=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
   const code=blocks.find(b=>b.includes('survTick')&&b.includes('buildTrack'));
@@ -45,7 +48,7 @@ function loadGame(search){
     body:fakeEl('body'),head:fakeEl('head'),documentElement:fakeEl('html'),
     createTreeWalker(){return{nextNode(){return null;}};},createTextNode(t){return fakeEl('text');},createDocumentFragment(){return fakeEl('frag');},createRange(){return{selectNodeContents(){},getBoundingClientRect(){return{left:0,top:0,width:1,height:1};}};},
     createElement(tag){return fakeEl(tag);},
-    getElementById(id){if(!els[id])els[id]=fakeEl(id);return els[id];},
+    getElementById(id){if(id==='splash')return null; /* (2026-11-22) pas d'ecran titre, des le chargement : l'intro ne guette aucune touche */ if(!els[id])els[id]=fakeEl(id);return els[id];},
     querySelector(sel){return null;},
     querySelectorAll(){return [];},
     addEventListener(){},removeEventListener(){},
@@ -59,6 +62,19 @@ function loadGame(search){
   };
   const LISTENERS={};
   const CLK={t:1000};
+  /* ===== L'HORLOGE VIRTUELLE (2026-11-22, etape 0 BOTS-ML : « meme graine = meme course ») =====
+     Le jeu ne lit AUCUNE horloge de l'ordinateur : Date suit l'horloge du jeu (une image = 1/60 s), et les minuteries
+     (setTimeout / setInterval) partent a l'heure DU JEU, dans l'ordre, a chaque image (tick, appele par jeu-reel avant loop). */
+  const DATE0=Date.UTC(2026,10,22,12,0,0);
+  const VDate=class extends Date{ constructor(...a){ if(a.length) super(...a); else super(DATE0+CLK.t); } static now(){ return DATE0+CLK.t; } };
+  const TIM={q:[],id:1};
+  const vPose=(f,ms,a,rep)=>{ if(typeof f!=='function') return 0; ms=Math.max(0,+ms||0); const id=TIM.id++; TIM.q.push({id:id,f:f,a:a,ms:rep?Math.max(ms,1000/60):ms,t:CLK.t+ms,rep:rep}); return id; };
+  const vSetTimeout=(f,ms,...a)=>vPose(f,ms,a,false), vSetInterval=(f,ms,...a)=>vPose(f,ms,a,true);
+  const vClear=id=>{ const i=TIM.q.findIndex(x=>x.id===id); if(i>=0) TIM.q.splice(i,1); };
+  /* une minuterie posee PENDANT ce tick (une chaine setTimeout(f,0) qui se relance) attend l'image suivante : sinon elle tournait
+     des milliers de fois dans la meme image (MESURE : 60 images en 86 s). Un navigateur ne la passe que quelques fois par image. */
+  function tick(){ const id0=TIM.id; for(let n=0;n<5000;n++){ let b=null; for(const x of TIM.q) if(x.t<=CLK.t&&x.id<id0&&(!b||x.t<b.t||(x.t===b.t&&x.id<b.id))) b=x; if(!b) return;
+      if(b.rep){ b.t+=b.ms; if(b.t<=CLK.t) b.t=CLK.t+b.ms; } else TIM.q.splice(TIM.q.indexOf(b),1); try{ b.f.apply(null,b.a); }catch(e){} } }
   const windowStub={
     innerWidth:1280,innerHeight:720,devicePixelRatio:1,
     addEventListener(t,f,o){(LISTENERS[t]=LISTENERS[t]||[]).push(f);},removeEventListener(){},dispatchEvent(){return true;},
@@ -68,7 +84,7 @@ function loadGame(search){
     location:{search:'?train=1&sim=1',href:'http://localhost/train.html?train=1&sim=1'},
     navigator:{hardwareConcurrency:8,maxTouchPoints:0,userAgent:'sim'},
     AudioContext:function(){return{currentTime:0,state:'running',createGain(){return fakeNode();},createOscillator(){return fakeNode();},createBufferSource(){return fakeNode();},createDelay(){return fakeNode();},createFilter(){return fakeNode();},createPanner(){return fakeNode();},createStereoPanner(){return fakeNode();},createAnalyser(){return fakeNode();},createConvolver(){return fakeNode();},createBuffer(){return{getChannelData(){return new Float32Array(2);}};},destination:fakeNode(),resume(){return Promise.resolve();}};},
-    setTimeout,clearTimeout,setInterval,clearInterval,
+    setTimeout:vSetTimeout,clearTimeout:vClear,setInterval:vSetInterval,clearInterval:vClear,
     performance:{now:()=>CLK.t,mark(){},measure(){},timeOrigin:0},
     requestIdleCallback(){return 0;},cancelIdleCallback(){},
     scrollTo(){},alert(){},confirm(){return true;},prompt(){return null;},
@@ -85,11 +101,11 @@ function loadGame(search){
 
   // ---------- contexte ----------
   const sandbox={
-    console,THREE,Math,JSON,Date,Array,Object,String,Number,Boolean,
+    console,THREE,Math:Object.create(Math)/* (2026-11-22) le jeu a SON Math : la graine ne se partage plus avec three.js (4 tirages par objet cree, pour ses identifiants) */,JSON,Date:VDate,Array,Object,String,Number,Boolean,
     Promise,RegExp,Error,Uint8Array,Uint16Array,Uint32Array,Int8Array,Int16Array,Int32Array,
     Float32Array,Float64Array,ArrayBuffer,Map,Set,WeakMap,WeakSet,Symbol,Proxy,Reflect,
     parseInt,parseFloat,isNaN,isFinite,encodeURIComponent,decodeURIComponent,encodeURI,decodeURI,
-    TextDecoder,TextEncoder,setTimeout,clearTimeout,setInterval,clearInterval,queueMicrotask,
+    TextDecoder,TextEncoder,setTimeout:vSetTimeout,clearTimeout:vClear,setInterval:vSetInterval,clearInterval:vClear,queueMicrotask,
     document:documentStub,window:windowStub,navigator:windowStub.navigator,
     innerWidth:1280,innerHeight:720,devicePixelRatio:1,screen:{width:1280,height:720},
     localStorage:{getItem(){return null;},setItem(){},removeItem(){}},
@@ -129,13 +145,19 @@ function loadGame(search){
   sandbox.window=new Proxy(sandbox,{get(t,p){ if(p in t)return t[p]; return windowStub[p]; },set(t,p,v){ t[p]=v; return true; }});
   sandbox.location=windowStub.location={search:search,href:'http://localhost/train.html'+search};
   for(const n of ['MutationObserver','ResizeObserver','IntersectionObserver','PerformanceObserver']) if(!sandbox[n]) sandbox[n]=function(){return{observe(){},disconnect(){},unobserve(){},takeRecords(){return[];}};};
+  /* (2026-11-22) UN OUVRIER QUI NE REPOND JAMAIS : dans un navigateur, le modele des nuages (nuage8Calc, pur decor) part dans un Web Worker.
+     Sans Worker, le jeu le calcule par tranches de « 8 ms » sur le fil principal — et l'horloge ne bouge pas pendant une image : 82 s d'un bloc
+     (MESURE, cotonTrancheSuite). Ici l'ouvrier prend le travail et ne rend rien : les nuages gardent leur ebauche, comme avant l'horloge virtuelle. */
+  sandbox.Worker=function(){ return {postMessage(){},terminate(){},addEventListener(){},removeEventListener(){},onmessage:null,onerror:null}; };
+  sandbox.Blob=Blob; sandbox.URL=URL;
   if(!sandbox['requestIdleCallback']) sandbox['requestIdleCallback']=new Proxy(function(){},{get:(t,k)=>k===Symbol.toPrimitive?()=>0:(typeof k==='symbol'?undefined:t[k]||function(){return{};}),construct:()=>({observe(){},disconnect(){}}),apply:()=>({})});
   if(!sandbox['apresPolice']) sandbox['apresPolice']=new Proxy(function(){},{get:(t,k)=>k===Symbol.toPrimitive?()=>0:(typeof k==='symbol'?undefined:t[k]||function(){return{};}),construct:()=>({observe(){},disconnect(){}}),apply:()=>({})});
   if(!sandbox['Image']) sandbox['Image']=new Proxy(function(){},{get:(t,k)=>k===Symbol.toPrimitive?()=>0:(typeof k==='symbol'?undefined:t[k]||function(){return{};}),construct:()=>({observe(){},disconnect(){}}),apply:()=>({})});
   if(!sandbox['NodeFilter']) sandbox['NodeFilter']=new Proxy(function(){},{get:(t,k)=>k===Symbol.toPrimitive?()=>0:(typeof k==='symbol'?undefined:t[k]||function(){return{};}),construct:()=>({observe(){},disconnect(){}}),apply:()=>({})});
   if(!sandbox.getComputedStyle) sandbox.getComputedStyle=()=>new Proxy({},{get:(t,k)=>k==='getPropertyValue'?()=>'':''});
-  if(!sandbox.requestIdleCallback) sandbox.requestIdleCallback=f=>setTimeout(f,0);
+  if(!sandbox.requestIdleCallback) sandbox.requestIdleCallback=f=>vSetTimeout(f,0);
   vm.createContext(sandbox);
+  vm.runInContext(SEED_CODE(graineChargement==null?1:graineChargement),sandbox);
   try{
     const RP=path.join(__dirname,'..','..','VERSION PRINCIPALE')+path.sep;
     for(const b of blocks){ if(b===code)continue; try{ vm.runInContext(b,sandbox,{filename:'preambule'}); }catch(e){ console.error('preambule:',e.message); } }
@@ -151,9 +173,9 @@ function loadGame(search){
     sandbox:sandbox, THREE:THREE,
     get:function(expr){ return vm.runInContext(expr,sandbox); },
     ev:function(expr){ return sandbox.__EV(expr); },
-    clk:CLK,
+    clk:CLK, tick:tick, minuteries:TIM,
     fire:function(type,evt){ const e=Object.assign({preventDefault(){},stopPropagation(){},repeat:false},evt); for(const f of (LISTENERS[type]||[])){ try{f(e);}catch(x){} } },
-    seed:function(n){ vm.runInContext('(function(a){Math.random=function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};})('+(n|0)+')',sandbox); }
+    seed:function(n){ vm.runInContext(SEED_CODE(n),sandbox); }
   };
 }
 module.exports={loadGame:loadGame,THREE:THREE};

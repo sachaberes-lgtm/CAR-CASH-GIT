@@ -1,0 +1,161 @@
+{
+ "date": "2026-11-23T16:42:43.480Z",
+ "node": "v24.22.3",
+ "chargeMs": 5180,
+ "tmax": 60,
+ "imgParS": 411,
+ "foisTempsReel": 6.84,
+ "repetable_memeProcessus": false,
+ "repetable_processusNeuf": true,
+ "courses": [
+  {
+   "graine": 900000,
+   "images": 636,
+   "ms": 4379,
+   "imgParS": 145,
+   "foisTempsReel": 2.42,
+   "dist": 610,
+   "mort": true,
+   "air_s": 0.9,
+   "empreinte": "12bab3398aff"
+  },
+  {
+   "graine": 900037,
+   "images": 2190,
+   "ms": 7576,
+   "imgParS": 289,
+   "foisTempsReel": 4.82,
+   "dist": 3287,
+   "mort": true,
+   "air_s": 0.6,
+   "empreinte": "ecc688c3cc36"
+  },
+  {
+   "graine": 900074,
+   "images": 3600,
+   "ms": 5421,
+   "imgParS": 664,
+   "foisTempsReel": 11.07,
+   "dist": 5297,
+   "mort": false,
+   "air_s": 0.7,
+   "empreinte": "2f87ef9c3885"
+  },
+  {
+   "graine": 900000,
+   "images": 678,
+   "ms": 3259,
+   "imgParS": 208,
+   "foisTempsReel": 3.47,
+   "dist": 610,
+   "mort": true,
+   "air_s": 1.6,
+   "empreinte": "d7aa84b833e8"
+  },
+  {
+   "graine": 900037,
+   "images": 2232,
+   "ms": 5464,
+   "imgParS": 408,
+   "foisTempsReel": 6.81,
+   "dist": 3289,
+   "mort": true,
+   "air_s": 1.3,
+   "empreinte": "fdd15a7d6a79"
+  },
+  {
+   "graine": 900074,
+   "images": 3600,
+   "ms": 5405,
+   "imgParS": 666,
+   "foisTempsReel": 11.1,
+   "dist": 6051,
+   "mort": false,
+   "air_s": 0.8,
+   "empreinte": "fbaaedda2e6a"
+  }
+ ],
+ "memeProc": [
+  {
+   "graine": 900000,
+   "identique": false,
+   "ecart": {
+    "image": 594,
+    "a": [
+     594,
+     "fall",
+     610.120591,
+     28.09283,
+     0.169555,
+     192.938667,
+     0.416667
+    ],
+    "b": [
+     594,
+     "fall",
+     610.120591,
+     28.09283,
+     0.169555,
+     192.938667,
+     0.656667
+    ]
+   }
+  },
+  {
+   "graine": 900037,
+   "identique": false,
+   "ecart": {
+    "image": 2046,
+    "a": [
+     2046,
+     "drive",
+     2945.853302,
+     5.007344,
+     -0.001575,
+     205.548535,
+     0.213333
+    ],
+    "b": [
+     2046,
+     "drive",
+     2945.865791,
+     5.007323,
+     -0.001574,
+     206.064128,
+     0.196667
+    ]
+   }
+  },
+  {
+   "graine": 900074,
+   "identique": false,
+   "ecart": {
+    "image": 1488,
+    "a": [
+     1488,
+     "drive",
+     2061.301163,
+     18.18572,
+     0.109458,
+     205.897994,
+     0.01
+    ],
+    "b": [
+     1488,
+     "drive",
+     2061.326975,
+     18.188538,
+     0.109458,
+     207.515429,
+     0
+    ]
+   }
+  }
+ ],
+ "neuf": {
+  "graine": 900000,
+  "identique": true,
+  "ecart": null,
+  "empreinte": "12bab3398aff"
+ }
+}

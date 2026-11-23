@@ -1,6 +1,8 @@
 # BOTS ML — le plan (2026-11-21)
 
-Statut : **proposé, pas encore validé par Sacha. Rien n'est codé.**
+Statut : **proposé, pas encore validé par Sacha. Étape 0 faite le 22/11** (`ml/reel` tourne sur le jeu actuel : 6,8 × le temps réel ;
+même graine = même course au bit près dans un processus neuf, presque dans le même processus — détails et limites dans `ml/reel/README.md`).
+Le reste n'est pas codé.
 Demande : des bots qui jouent vraiment à CASH CAR (rouler, voler, figures, raccourcis), un plan qui dépense surtout les ~200 € de crédit API, et un projet qui sert au portfolio (RCA — je suppose Royal College of Art, à confirmer).
 
 ---
