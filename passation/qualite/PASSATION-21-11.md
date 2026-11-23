@@ -124,3 +124,5 @@ Reste à faire :
 - Les gros gels isolés de 140 à 670 ms (portail, pré-bâti, shaders) : non traités.
 - La barre figée peut s'arrêter au milieu du passage du reflet (un trait clair immobile) : à juger sur le téléphone.
 - À la livraison : `cashcar-vNNN` +1, commit de `code/` et d'index.html ensemble.
+
+- 23/11 : build 129 COMPILÉ depuis `3ac5364aa` (`--qs "&perfrec=2&sans=radiopause"`), copie `~/cash-car/ios-ultime-mesures/builds/build129.app`. PAS installé (attend le oui de Sacha).
