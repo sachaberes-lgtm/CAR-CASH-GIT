@@ -158,3 +158,33 @@ Méthode : un point de vue figé (`dbgCanyonVoute('vueS', s)`), le shader de la 
 Contrôles (code inchangé, index.html réassemblé depuis les morceaux) : gardes démarrage, allégé, charte OK. Course canyon complète graine 12 en 390×844 et graine 2 en 844×390 : arrivée, pas de mort, pas d'exception. Mer de nuages 45 s : 0 exception.
 
 Non vérifié : `lot.mjs` et `cout.mjs` non relancés (aucun correctif) ; rien sur le vrai iPhone ; A vu sur trois graines seulement ; la partie « nuages » a été lancée par `carte=nuages` sans relire le nom de la carte dans la page.
+
+### 23/11 (suite) : les lits sombres adoucis — POSÉ (Sacha : « Oui, adoucis »)
+
+Sacha a vu la planche 11 et a répondu « Oui, adoucis » à « J'adoucis les bandes sombres de la roche du canyon ? (les garder, mais moins foncées) ». Cela traite la partie « rectangles sombres » de A. Les pans eux-mêmes (le relief), B et C ne sont pas touchés.
+
+- **Quoi** : `code/maps/canyon-route.js`, section « LES LITS SOMBRES ADOUCIS », une passe en fin de `cyStratesDonnees`. Un lit plus sombre que le seuil (80 % de la clarté moyenne des grès massifs de la colonne) fait `CY_DOUX` du chemin vers la clarté des grès, plafonné au seuil ; les trois octets sont multipliés par le même facteur (la teinte reste). Grès et lits clairs : inchangés.
+- **Interrupteurs** : `?sans=cydoux` (ou `?cydoux=0`) = la colonne d'avant, à l'octet près (la passe ne s'exécute pas) ; `?cydoux=0..1` = la force. Défaut : **0,5**.
+- **Vaut pour** les cinq palettes tirées par graine et les pistes A, B, C et 0 (même fonction). Dans la texture (clarté 0-255), lit le plus foncé : piste A 90-95 → 142-148 ; piste 0 99-105 → 148-155 ; B 96-101 → 148-154 ; C 86-91 → 132-138. Teinte du lit : écart ≤ 1,4° (4,6° sur un lit presque gris de la palette « peint », arrondi des octets).
+- **Pourquoi 0,5** (essais 0,4 / 0,5 / 0,6, planches `doux-2`, `doux-3`) : à 0,4 les rectangles noirs de g12 s 1001 restent bien visibles (écart lit/grès 65 → 47) ; à 0,6 le lit disparaît la nuit (écart 25 → 0) et les parois « sedona » de la graine 2 deviennent rouge presque uni. 0,5 est entre les deux : l'écart tombe d'environ la moitié.
+- **Mesuré à l'image** (`?tel=1`, vues figées `vueS`, clarté de l'écran 0-255 ; lit foncé = pixels que la force 0,6 éclaircit de plus de 12, grès voisin = anneau de 15 px autour) :
+
+| vue | lit foncé avant → après | grès voisin | écart avant → après |
+|---|---|---|---|
+| g12 matin s 1001 (ombre, portrait) | 55 → 81 | 120 | 65 → 40 |
+| g12 matin s 1703 (ombre, portrait) | 57 → 88 | 121 | 64 → 32 |
+| g2 matin s 9358 (paysage) | 47 → 79 | 101 | 53 → 22 |
+| g2 matin s 10483 (paysage) | 39 → 66 | 92 | 52 → 26 |
+| g25 nuit s 1282 | 57 → 77 | 82 | 25 → 6 |
+| g3 matin s 600, paroi éclairée (cadre de gauche) | 62 → 98 | 136 | 74 → 38 |
+| g12 soir s 1001 / s 1703 | 48 → 74 / 51 → 83 | 89 / 91 | 41 → 16 / 40 → 8 |
+| g12 pluie s 1001 / s 1703 | 41 → 59 / 71 → 91 | 101 / 111 | 60 → 42 / 40 → 20 |
+| g12 orage s 1001 / s 1703 | 102 → 130 / 99 → 126 | 155 | 53 → 26 / 55 → 29 |
+| g2 nuit s 9358 / s 10483 | 24 → 43 / 25 → 42 | 64 / 56 | 40 → 22 / 31 → 15 |
+
+- **Dérive d'ensemble des parois** (moyenne de la zone de roche du cadre, matin) : clarté +2 à +7 sur 255, teinte −0,1 à −2,0°, saturation +0,006 à +0,03. **Le pire : g3 s 600** (un lit brun couvre 19 % de l'image) : clarté 95,7 → 107,9 le matin, 80,7 → 92,9 le soir, saturation 0,61 → 0,65 ; le grand pan brun foncé devient rouge brique. Pixels saturés (> 250) : inchangés à ±0,1 point. Rien de délavé ni de fluo sur matin, soir, nuit, pluie, orage (`doux-4`).
+- **g12 s 3837 (C)** : image inchangée, la bande grise y est le lit ardoise, plus clair que le seuil.
+- **Coût** (`cout.mjs`, graines 3 et 12, avant ×3, après ×2) : appels identiques (g12 943 = 943 ; g3 957 = 957, un premier passage « avant » à 1013), programmes 149 / 148, textures 124, relief 32 256 / 25 600 triangles : identiques. **Une différence : la façade du tunnel perd 280 triangles** (g12 : 8 262 → 7 982 ; même écart sur le total du décor de g3) : elle découpe ses tranches là où la couleur du lit change, et il y a moins de sauts. Aucun triangle en plus. `canyon-relief.js` (le shader) n'est pas modifié : ce sont des octets de la texture 1×1024.
+- **Contrôles** : `assembler --depuis-morceaux` puis `--verifier` OK ; gardes démarrage, allégé, charte OK. Course canyon complète graine 12 en 390×844 `?tel=1` : arrivée au portail en 114 s, pas de mort, aucun décor apparu, 0 exception. Autre map (`carte=ville`, 45 s, `dbgCanyon().on` = false relu dans la page) : 0 exception, 0 erreur au mouchard.
+- **Planches** (`photos/canyon-parois/`) : `doux-1-POUR-SACHA-…` (gauche avant, droite après, quatre vues), `doux-2-forces-…`, `doux-3-paysage-forces-…`, `doux-4-meteos-…`.
+- **Non vérifié** : rien sur le vrai iPhone ; `lot.mjs` non relancé (seules des couleurs changent) ; pistes B, C, 0 et palettes zion / bryce mesurées dans la colonne seulement, pas photographiées (photos : classique, sedona, peint, piste A) ; midi non photographié (`meteo=midi` a donné une autre météo au banc) ; `palier=2` n'a pas été passé dans l'URL (le pilote met `?tel=1` seul) ; l'intérieur du tunnel et de la voûte lisent la même colonne, donc adoucis aussi, pas photographiés ; le verrou a été pris par le pilote sous son nom « canyon-final », pas « canyon-doux ». Rien de committé, `sw.js` non touché.
