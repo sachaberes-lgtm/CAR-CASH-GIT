@@ -205,9 +205,9 @@ function invNoms(g){
     let fs=Math.floor(base);while(fs>5&&nomLignes(b.textContent,Math.floor(av/fs))>2)fs--;
     if(fs<base)b.style.fontSize=fs+'px';});}
 function invTotal(cat){ // (2026-10-20) tout ce qui existe dans l'onglet (le dénominateur de la progression)
-  if(cat==='voiture'){let n=0;for(let i=0;i<CARS.length;i++)if(!carRetiree(i))n++;return n;}
+  if(cat==='voiture'){let n=0;for(let i=0;i<CARS.length;i++)if(carAtteignable(i))n++;return n;} /* (2026-11-21, qa/coherence) ce qui s'obtient encore ici (carAtteignable) : plus le CHAT hors vente, ni les euros du site */
   if(cat==='figure')return window.FIG?FIG.liste.length:0;
-  return COSM[cat]?COSM[cat].length:0;}
+  return COSM[cat]?COSM[cat].filter(function(d){return habAtteignable(cat,d);}).length:0;}
 function invRgba(hex,a){const n=parseInt(String(hex).slice(1),16)||0;return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a.toFixed(2)+')';}
 function invRender(){
   const g=$('ivGrille');if(!g)return;let tot=0;g.dataset.cat=INV.cat; // (2026-10-26) la grille sait son onglet (les peintures, de petits nuanciers, tiennent une colonne de plus)

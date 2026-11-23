@@ -204,7 +204,11 @@ function bqPieces(){if(GBQ.vide)return [];const L=[];for(let i=0;i<CARS.length;i
 function bqRarSec(r,n,a,sous){const cpt='<em><i>'+a+'</i>/'+n+'</em>'; /* (2026-11-05) sous : la ligne qui dit la famille (UNIES · 1 €) */ /* (2026-10-20) « ceux à toi / le total » de la famille */
   if(r==='secret')return '<div class="bqSec bqRarS" data-rar="secret" style="--rc:#ff3ec8"><span class="bqRl">'+pxi('verrou')+'</span><b>'+sansAcc(TR('MISSIONS SECRÈTES'))+'</b><s></s>'+cpt+'</div>';
   const ri=rarInfo(r);return '<div class="bqSec bqRarS" data-rar="'+r+'" style="--rc:'+ri.c+'"><span class="bqRl">'+pxi(RAR_LOGO[r]||'etoile')+'</span><b>'+sansAcc(TR(ri.n))+'</b>'+(sous?'<i class="bqSecSous">'+sous+'</i>':'')+'<s></s>'+cpt+'</div>';}
-function bqVoitRail(L){const fam=function(k){const i=+k.slice(2);return m2Secrete(i)?'secret':carRar(i);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
+function bqVoitRail(L){const fam=function(k){const i=+k.slice(2);return m2Secrete(i)?'secret':carRar(i);},nb={},ok={};
+  /* (2026-11-21, qa/coherence) LE COMPTE « à toi / total » : une caisse à toi QUITTE le rayon (bqPieces, 11/11) — compté sur la liste, il restait « 0/8 » avec cinq caisses de la
+     famille au garage. Il se compte donc sur TOUTES les caisses du rayon, celles déjà à toi comprises (les mêmes règles que bqPieces). `?sans=coherence` = l'ancien compte. */
+  if(COHERENCE){for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(carRetiree(i)||!u||!((u.p>0&&u.k!=='premium')||u.k==='mis'))continue;const f=fam('v:'+i);nb[f]=(nb[f]|0)+1;if(bqA('v:'+i))ok[f]=(ok[f]|0)+1;}}
+  else L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
   return L.map(function(k,n){const f=fam(k);return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0))+bqCarteHtml(k,n,false);});} /* (2026-10-16) LES MISSIONS v2 : après les caisses à pièces, celles des missions, puis les secrètes en silhouette */
 /* LE RAYON DES PEINTURES (2026-11-05, le nuancier v3) : un intertitre par RARETÉ, comme les voitures — son logo, son nom, ce qu'elle est et son prix
    (UNIES · 1 €, DÉGRADÉS · 1 €, MOTIFS · 2 €, ANIMÉES · 3 €), le compte « à toi / total » ; D'ORIGINE ouvre les communes. */
@@ -235,7 +239,7 @@ function bqPrixCaisse(i){const u=CAR_UNLOCK[i]||{};if(bqA('v:'+i))return {t:sans
    · onglets : le 1er dit la CATÉGORIE (VOITURES · PEINTURES · AILES · TRAÎNÉES) — retouché, il ouvre le choix (#gBqPan .bqMenu) —, le 2e les OFFRES ;
    · la colonne de gauche, qui défile : CETTE SEMAINE — trois caisses et trois habillages tirés sur la semaine (bqSemaine). */
 /* (2026-10-15, Sacha) ACHAT : à la place de l'onglet OFFRES — TOUTES les caisses payantes (bqAchat), plus seulement les quatre de la semaine */
-const BQ_CATS=[['voiture','VOITURES','voiture'],['achat','ACHAT','panier'],['peinture','PEINTURES','pinceau'],['aile','AILES','aile'],['trainee','TRAÎNÉES','trainee'],['figure','FIGURES','rotation']].filter(function(c){return ACHAT_EUR||c[0]!=='achat';}); /* (2026-11-05, Opus : D3) plus de rayon ACHAT (en €) */ // (2026-10-14) FIGURES : les tricks du double-tap nitro (figures.js)
+const BQ_CATS=[['voiture','VOITURES','voiture'],['achat','ACHAT','panier'],['peinture','PEINTURES','pinceau'],['aile','AILES','aile'],['figure','FIGURES','rotation']].filter(function(c){return ACHAT_EUR||c[0]!=='achat';}); /* (2026-11-05, Opus : D3) plus de rayon ACHAT (en €) */ // (2026-10-14) FIGURES : les tricks du double-tap nitro (figures.js)
 /* LES FIGURES PAR DIRECTION (2026-10-15, Sacha : « dans la boutique classe toutes les figures selon ces deux catégories » · puis « mets aussi
    une catégorie vers l'ARRIÈRE ; une même figure doit avoir marqué à quelle direction elle peut aller ») : VERS L'AVANT (pouce en avant), VERS
    L'ARRIÈRE (pouce en arrière), SUR LES CÔTÉS (pouce à gauche ou à droite : elle part de ce côté). Une figure à deux sens (rodéo, tire-bouchon,

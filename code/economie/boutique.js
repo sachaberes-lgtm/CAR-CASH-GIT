@@ -65,12 +65,12 @@ function shopPop(src){
   const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'},rar=u.rar||'leg';
   const arc=shArcHtml(i,a).replace('class="shArc"','class="shArc spArc"'); // (2026-10-20) le chat : « + TRAÎNÉE ARC-EN-CIEL INCLUSE » sous son nom
   el.innerHTML='<div class="spCarte '+rar+(arc?' avecArc':'')+'" data-car="'+i+'">'
-    +'<span class="spRare">'+sansAcc(TR(RAR[rar]))+'</span>'+''
+    +'<span class="spRare">'+sansAcc(TR(RAR[rar]))+'</span>'+promoBandeau(i,'spOffre') /* (2026-11-18) l'offre de l'hiver : son bandeau sous la rareté */
     +'<div class="shPhoto big">'+(ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture shAttente"></i>')+'</div>'
     +'<b class="spNom" id="spNom">'+insec(TR(CARS[i].name))+'</b>'+arc
     +'<span class="spDesc">'+(LANG==='fr'?CARS[i].desc:TR(CARS[i].desc))+'</span>'
     +(a?'<div class="spPrix aToi">'+pxi('coche')+'<b>'+sansAcc(TR('À TOI'))+'</b></div>'
-       :'<div class="spPrix">'+'<em>'+prixTxt(i,u.eur)+'</em></div>')
+       :'<div class="spPrix">'+prixBarreHtml(i)+'<em>'+prixTxt(i,u.eur)+'</em></div>')
     +'<div class="spBtns"><div class="pbtn pb-gold spOui" role="button" data-sp="oui">'+pxi(a?'coche':'panier')+'<span>'+sansAcc(TR(a?'ÉQUIPER':'ACHETER'))+'</span></div>'
     +'<div class="pbtn pb-cyan spNon" role="button" data-sp="non">'+pxi('gauche')+'<span>'+TR('ANNULER')+'</span></div></div>'
     +'<small class="spNote">'+(a?TR("Elle t'attend à l'atelier."):'')+'</small></div>'; /* (2026-11-08, Sacha : « enlève la ligne achat unique via compte Apple Store ») rien sous les plaques tant que la caisse n'est pas à toi (la note vide se cache ; le refus de l'achat la remplit) */
@@ -169,7 +169,8 @@ function shopPopAJour(){const el=SPOP.el;if(!el||!el.classList.contains('on')||e
   if(carOwned(i)){el.classList.remove('refus');p.className='spPrix aToi';p.innerHTML=pxi('coche')+'<b>'+sansAcc(TR('À TOI'))+'</b>';
     const b=el.querySelector('.spOui');if(b){b.classList.remove('off');b.innerHTML=pxi('coche')+'<span>'+sansAcc(TR('ÉQUIPER'))+'</span>';}
     const n=el.querySelector('.spNote');if(n)n.textContent=TR("Elle t'attend à l'atelier.");return;}
-  const em=p.querySelector('em'),t=prixTxt(i,u.eur);if(em&&em.textContent!==t)em.textContent=t;}
+  const em=p.querySelector('em'),t=prixTxt(i,u.eur);if(em&&em.textContent!==t)em.textContent=t;
+  {const sb=p.querySelector('s'),bh=prixBarreHtml(i);if(sb&&!bh)sb.remove();else if(!sb&&bh)p.insertAdjacentHTML('afterbegin',bh);}} /* (2026-11-18) l'offre de l'hiver : le prix d'Apple arrivé dans une autre monnaie, le prix barré en € s'en va */
 /* LES PHOTOS DE LA BOUTIQUE ARRIVENT UNE PAR UNE (2026-09-30, revue de GAMEPLAY) : la vitrine s'ouvre tout de suite, chaque vignette
    attend en pulsant (une voiture pixel), et les photos se prennent une par une ENTRE deux images, après la transition d'écran — puis
    restent en cache pour la session. */
@@ -178,12 +179,44 @@ const SHQ={q:[],on:false}; // (essayé : remonter la caisse d'avant UNE fois à 
    shBoiteCle), puis, une fois sa boîte posée, sa photo de catalogue (carPhoto) : la fenêtre d'achat (shopPop) la montre dès son ouverture, comme
    avant. Une entrée de la file : `i` = la boîte de la caisse i, `'u'+i` = sa GRANDE boîte (l'offre à la une, SHB_GRAND), `'p'+i` = sa photo de catalogue. */
 function shopPhotoVeut(i){if(SHQ.q.indexOf(i)<0)SHQ.q.push(i);if(!SHQ.on){SHQ.on=true;setTimeout(shopPhotoTour,380);}}
+/* ===== LA BOUTIQUE SANS À-COUPS (2026-11-19, lot « boutiquegel », Sacha : « Il y a un petit freeze quand on charge la boutique pour la première fois. C'est pas très grave, mais à régler quand même. ») =====
+   MESURÉ (banc, iPhone 13 Pro émulé, processeur ×4, profil neuf) : la 1re ouverture de la BOUTIQUE (la page des caisses en boîtes, #mShop) enchaîne ~16 images de 70 à 350 ms
+   pendant 4 s — ce sont les PHOTOS des caisses (la boîte de vitrine, puis la photo de catalogue de chaque caisse), une par tâche. Chacune bâtissait DEUX caisses : la caisse
+   photographiée, puis la caisse du menu remise aussitôt (buildCar, le plus gros morceau).
+   Désormais, tant que la page couvre toute la scène (couvLit() === 'shop' : la scène ne se voit pas), les photos s'enchaînent SANS remettre la caisse du menu entre deux
+   (PHOTO.chaine, comme la rafale de l'atelier) : une photo par image, la caisse photographiée bâtie dans la même tâche que sa photo (la photo est celle d'une caisse neuve,
+   comme avant — ESSAYÉ puis retiré : bâtir à une image et photographier à la suivante ; la boucle du menu anime la caisse cachée entre-temps, opacités, halos, ombres
+   posées après coup : des photos différentes), cachée entre deux (carGroup.visible = false). La caisse du menu n'est remise qu'UNE fois, quand la file est vide — ou
+   tout de suite si la page part (mGo), si une autre photo est demandée hors de la chaîne (photoHorsChaine) ; si quelqu'un d'autre bâtit une caisse (buildCar), c'est sa
+   caisse qui reste. Mêmes photos, même ordre de boîtes. `?menu=max` : comme avant. `?sans=boutiquegel` = l'avant. */
+const BQGEL=!/[?&]sans=[^&]*boutiquegel/.test(location.search);
+var SHCH={on:false,av:null,vis:true,dedans:false,n:0,fins:0};
+function shopChaineFin(){if(!SHCH.on)return;SHCH.on=false;SHCH.fins++;const av=SHCH.av;
+  SHCH.dedans=true;try{buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);}catch(e){console.warn('shopChaineFin',e);}finally{SHCH.dedans=false;}carGroup.visible=SHCH.vis;}
+function photoHorsChaine(){if(SHCH&&SHCH.on&&!SHCH.dedans)shopChaineFin();} /* une photo demandée hors de la chaîne (fenêtre d'achat, garage…) : la caisse du menu d'abord, elle lit carGroup.userData.lvl */
+function shopChainePrend(f){ /* une photo dans la chaîne : la caisse du menu n'est pas remise derrière, la caisse photographiée reste, cachée sous la page */
+  if(!SHCH.on){SHCH.on=true;SHCH.av=carGroup.userData.lvl;SHCH.vis=carGroup.visible;}
+  SHCH.dedans=true;PHOTO.chaine=true;try{f();}finally{PHOTO.chaine=false;SHCH.dedans=false;}
+  if(SHCH.on)carGroup.visible=false;SHCH.n++;}
+window.dbgShopChaine=function(){return {ok:BQGEL,on:SHCH.on,baties:SHCH.n,fins:SHCH.fins,file:SHQ.q.slice()};}; /* (banc) */
 function shopPhotoTour(){
   const sc=document.getElementById('mShop');
+  if(SHCH.on&&(!SHQ.q.length||!sc||!sc.classList.contains('on')||(started&&!gameOver)||couvLit()!=='shop'))shopChaineFin(); /* la file vide ou la page partie : la caisse du menu revient */
   if(!SHQ.q.length||!sc||!sc.classList.contains('on')||(started&&!gameOver)){SHQ.on=false;return;} /* hors de la page (ou en course) : la file attend la prochaine ouverture */
   if(!MENU_MAX){const t9=performance.now(); /* (2026-11-07, Perf 3 — P5) une photo par 150 ms au moins, une par image (rAF), jamais pendant un défilement, un geste ou le voile : la boutique ne gèle plus à l'ouverture */
     if(document.hidden||t9-PHQ.defile<260||t9<(SHQ.pret||0)||ecranWipe._on||transBloque()|| /* (2026-11-13, transitions-ui) pas pendant l'entrée de la page : la 1re photo (130 ms au Mac, ×3-5 au téléphone) gelait l'écran qui arrivait */GFIG.D>0&&t9-GFIG.vu<700){setTimeout(shopPhotoTour,100);return;}
     SHQ.pret=t9+150;}
+  if(BQGEL&&!MENU_MAX&&couvLit()==='shop'){ /* LA BOUTIQUE SANS À-COUPS : une tranche par passage */
+    const j=0,e=SHQ.q[j],t=typeof e==='string'?e[0]:'',i=t?+e.slice(1):e,big=t==='u',vt=shBoiteVt(),k=shBoiteCle(i,big);
+    SHQ.q.splice(j,1);
+    if(t==='p'){if(!PHOTO.cache[i])try{shopChainePrend(function(){carPhoto(i,function(){});});}catch(_){}requestAnimationFrame(function(){setTimeout(shopPhotoTour,0);});return;}
+    const pose=function(u){if(!u)return;
+      sc.querySelectorAll((big?'#shUne':'#shGrille ')+'[data-car="'+i+'"] .shBx').forEach(function(b){let im=b.querySelector('img');if(im&&im.getAttribute('src')===u)return;
+        if(!im){im=document.createElement('img');im.className='shBxI';im.alt='';im.draggable=false;b.appendChild(im);}
+        im.onload=function(){b.classList.add('vt');};im.src=u;if(im.complete&&im.naturalWidth)b.classList.add('vt');});
+      if(vt&&!PHOTO.cache[i])shopPhotoVeut('p'+i);};
+    if(PHOTO.cache[k])pose(PHOTO.cache[k]);else try{if(vt){shopChainePrend(function(){vitrinePhoto({i:i,own:carOwned(i),w:big?SHB_GRAND:0},pose);});if(!PHOTO.cache[i]&&SHQ.q.indexOf('p'+i)<0)SHQ.q.unshift('p'+i);}else shopChainePrend(function(){carPhoto(i,pose);});}catch(_){} /* (2) la boîte ; sa photo de catalogue tout de suite derrière, sur la même caisse */
+    requestAnimationFrame(function(){setTimeout(shopPhotoTour,0);});return;}
   const e=SHQ.q.shift(),t=typeof e==='string'?e[0]:'',i=t?+e.slice(1):e;
   if(t==='p'){if(!PHOTO.cache[i])try{carPhoto(i,function(){});}catch(_){}setTimeout(shopPhotoTour,40);return;}
   const big=t==='u',vt=shBoiteVt(),k=shBoiteCle(i,big);
@@ -227,21 +260,8 @@ const COSM={
     {id:'dragon',   n:'DRAGON',            p:4800000, /* (ECO-23) avant 45 M */r:'legendaire',ico:'ai_dragon', col:'#ff5a2a',d:'Membranes veinées de lave, griffes, grands coups d\'aile. Au boost, la lave flambe et crache des braises.'},
     {id:'air',      n:'SANS AILES',        p:5000000, /* (ECO-23) avant 50 M */r:'legendaire',ico:'ai_air',    col:'#dff1ff',d:'Les ailes, c\'est pour les pigeons. Dix buses à air comprimé planquées dans la carrosserie : elle crache des bouffées blanches, pivote sur elle-même et s\'envole. Bon. Ça a marché.'}, // (2026-10-18, Léo) LA BLAGUE : l'aile la plus chère de la boutique… n'a pas d'aile (voir AILES_POP.air)
     {id:'phenix',   n:'PHÉNIX',            mis:10,pk:400000,r:'legendaire',ico:'flamme',col:'#ffb02a',d:'Des plumes de feu qui battent en semant des étincelles. Tu exploses ? Tu renais de tes cendres. Au prochain run.'}],
-  trainee:[
-    {id:'nitro',   n:'NITRO',             p:0,     d:'Orange brûlé. Le classique des tuyères.'},
-    {id:'rose',    n:'ROSE NÉON',         p:40000,  rgb:[1.45,.22,1.05],pop:'neon',sil:{c:1.45,h:.75,f:0,p:.3},d:'Le rose des enseignes. On te suit à la trace.'},
-    {id:'or',      n:'POUDRE D\'OR',      p:150000, rgb:[1.5,1.22,.3],pop:'paillettes',sil:{c:1.3,h:1.05,f:.1,p:1.9},d:'Tu ne laisses pas de la fumée derrière toi. Tu laisses de l\'or.'},
-    {id:'arcenciel',n:'ARC-EN-CIEL',      mis:5,   rainbow:1,d:'Ne s\'achète pas : elle se gagne en relevant des défis.'},
-    {id:'wow',     n:'WOW',               p:300000, wow:1,rgb:[1.45,.35,1.25],d:'Much sillage. Very mots. Wow.'}, // (2026-10-14) LA TRAÎNÉE WOW (voir wowStep) — la signature du DOGE
-    // (2026-10-14) LES TRAÎNÉES POP (voir TRX) — `pop` : son moteur · `rgb` : la couleur du ruban qui l'accompagne · `rubOff` : pas de ruban (l'effet EST la traînée)
-    {id:'sakura',   n:'SAKURA',            p:80000,  r:'rare',      pop:'sakura', rgb:[1.35,.6,.9],sil:{c:1.05,h:1.2,f:0,p:.5}, ico:'tr_sakura', col:'#ff9cc4',d:'Des pétales de cerisier, comme dans un générique d\'animé. Le drame, c\'est pour les autres.'},
-    {id:'matrice',  n:'MATRICE',           p:110000, r:'rare',      pop:'matrice',rgb:[.25,1.25,.4],sil:{c:1.3,h:.65,f:0,p:1.8},ico:'tr_matrice',col:'#3dff6a',d:'Pilule rouge avalée : du code vert ruisselle derrière toi. La route, c\'est toi qui la réécris.'},
-    {id:'anneaux',  n:'ANNEAUX D\'OR',     p:220000, r:'rare',      pop:'anneaux',rgb:[1.3,1.05,.25],sil:{c:1.3,h:1,f:.06,p:1.3},ico:'tr_anneaux',col:'#ffd23a',d:'Tu sèmes des anneaux comme un hérisson qui vient de se cogner. Sauf que toi, tu ne ralentis pas.'},
-    {id:'glouton',  n:'GLOUTON',           p:400000, r:'rare',      pop:'glouton',rubOff:1,      ico:'tr_glouton',col:'#ffe14a',d:'Une ligne de pastilles et quatre fantômes à tes trousses. Lâche la nitro : ils deviennent bleus.'},
-    {id:'hyper',    n:'HYPERESPACE',       p:900000, r:'epique',    pop:'hyper',  rgb:[.42,.98,2.2],sil:{c:1.6,h:.8,f:0,p:2.4},ico:'tr_hyper', col:'#9fd0ff',d:'Les étoiles s\'étirent en traits. Tu passes en vitesse lumière, les autres restent des touristes.'}, /* (2026-10-18, HYPERESPACE v2) ruban .95,1.15,1.6 (un blanc bleuté, délavé) → bleu ÉLECTRIQUE : le feu de pixels du nitro le prend aussi (nfeuPalTrainee) */
-    {id:'grille',   n:'LA GRILLE',         p:2000000,r:'epique',    pop:'grille', rubOff:1,      ico:'tr_grille', col:'#2ee8ff',d:'Un mur de lumière dans ton sillage. Celui qui te colle finit en pixels.'}, /* (2026-10-18, Sacha : « the grid doit être epic ») ÉPIQUE, et son prix dans sa famille (350 000 → 200 000 : épique < 250 000, voir cosmRar) */
-    {id:'billets',  n:'FAIS PLEUVOIR',     p:5000000,r:'legendaire',pop:'billets',rgb:[.45,1.3,.55],sil:{c:1.15,h:1.05,f:.08,p:1},ico:'tr_billets',col:'#5cd685',d:'Au nitro, les billets volent par la fenêtre comme des confettis. Ce n\'est pas du gaspillage, c\'est de la communication.'},
-    {id:'foudre',   n:'FOUDRE DIVINE',     mis:11,pk:450000,r:'legendaire',pop:'foudre',rgb:[.85,.55,1.7],sil:{c:1.3,h:.75,f:0,p:2},ico:'foudre',col:'#b98aff',d:'Des éclairs crépitent derrière toi. Le marteau, tu l\'as laissé au garage.'} /* (2026-10-18, Sacha : « divine ligthing doit etre legendaire ») LÉGENDAIRE (elle était MYTHIQUE) ; son prix `pk` (450 000, Poki) est déjà dans la famille */]
+  trainee:[ /* (2026-11-21, Sacha : « dans la boutique on supprime les traînées pour l'instant ») il ne reste que la NITRO d'origine (le rendu de base de chaque caisse) ; les douze autres et comment les remettre : passation/SANS-TRAINEES.md */
+    {id:'nitro',   n:'NITRO',             p:0,     d:'Orange brûlé. Le classique des tuyères.'}]
 };
 /* (2026-10-18 soir, Sacha : « enlève la traînée menthe ») LES HABILLAGES RETIRÉS : leur ligne SORT de COSM (la sauvegarde les désigne par leur id,
    aucun index ne bouge) ; qui l'avait acheté est remboursé au prix payé au chargement et l'id sort de shop.own (voir LES CAISSES RETIRÉES dans SAVE) ;
@@ -319,10 +339,10 @@ const PEINT_CAT=[ /* [id, nom, rareté, aspect, description, défi] */
   ['nacre','NACRE','rare',{grad:[0xe6dcef,0xfbf8f2,0xdcefff],g:'n'},"L'intérieur d'un coquillage, poli par cinq vagues parfaites.",{k:'parf',v:5,t:"Fais 5 poses parfaites d'affilée."}],
   ['fantome','FANTÔME','rare',{grad:[0xc9d3e4,0xf2f6fc,0xffffff],g:'n'},"Blanc nacré, presque transparent. Personne ne t'a vu passer.",{k:'b',t:'Roule 2 minutes sans toucher un bord.'}],
   /* … l'ombre… */
-  ['gotham','NUIT DE GOTHAM','rare',{grad:[0x05060a,0x161b2b,0x3c4a72],g:'g'},'Noir laqué, la ville qui brille dedans. Les toits sont à toi.',{k:'sc:ville',v:10,t:'Joue 10 niveaux dans la ville.'}],
+  ['gotham','NUIT DE GOTHAM','rare',{grad:[0x05060a,0x161b2b,0x3c4a72],g:'g'},'Noir laqué, la ville qui brille dedans. Les toits sont à toi.',{k:'sc:ville',v:10,t:'Joue 10 niveaux dans Crypto City.'}],
   ['orage',"CIEL D'ORAGE",'rare',{grad:[0x11151e,0x2e3646,0xaab1c4],g:'k'},'Ardoise en bas, éclair en haut. Le ciel quand il se fâche.',{k:'sc:pluie',v:10,t:'Joue 10 niveaux sous la pluie.'}],
   ['lunaire','LUNAIRE','rare',{grad:[0x2a2c34,0x9a9da6,0xf2f2f6],g:'s'},"Poussière de cratère, sans un grain d'atmosphère.",{k:'sc:espace',v:10,t:'Joue 10 niveaux en orbite.'}],
-  ['lampadaire','LAMPADAIRE','rare',{grad:[0x101422,0x2a3a6a,0xffc85a],g:'g'},"La nuit en bas, le réverbère sur le toit. La ville t'éclaire.",{k:'b',t:'Fais 25 figures dans la ville en une partie.'}],
+  ['lampadaire','LAMPADAIRE','rare',{grad:[0x101422,0x2a3a6a,0xffc85a],g:'g'},"La nuit en bas, le réverbère sur le toit. La ville t'éclaire.",{k:'b',t:'Fais 25 figures dans Crypto City en une partie.'}],
   /* … la pop */
   ['banana','BANANA','rare',{grad:[0x2a5cb8,0xffd21f,0xffe45c]},'Salopette en bas, jaune en haut. Elle dit « banana » à chaque virage.'],
   ['sorbet','SORBET','rare',{grad:[0xffb38a,0xff8fc0,0xb9a6ff]},"Pêche, framboise, violette : trois boules qui ne fondent pas à 900 à l'heure."],
@@ -333,7 +353,7 @@ const PEINT_CAT=[ /* [id, nom, rareté, aspect, description, défi] */
   ['carbone','CARBONE','epique',{mot:'carbone'},'Fibre tressée sous un vernis épais. Plus léger, plus rapide, plus cher.',{k:'aura',v:20000,t:"Atteins 20 000 d'aura en une partie."}],
   ['graffiti','GRAFFITI','epique',{mot:'graffiti'},'Le mur du parking, bombé sur ta carrosserie. Signé, daté, illégal.',{k:'tours',v:5,t:'Frôle 5 tours dans un seul saut.'}],
   ['popart','POP ART','epique',{mot:'popart'},"Trames, bulles et BOOM ! Ta caisse sort tout droit d'une BD."],
-  ['vagues','GRANDE VAGUE','epique',{mot:'vagues'},'Les vagues des estampes japonaises, en écailles. Le calme avant ta nitro.',{k:'prof',v:'prof',t:'Descends au fond de la mer de Jade.'}],
+  ['vagues','GRANDE VAGUE','epique',{mot:'vagues'},'Les vagues des estampes japonaises, en écailles. Le calme avant ta nitro.',{k:'prof',v:'prof',t:'Descends 400 m dans les pics de Jade.'}], /* (2026-11-21) la mer de Jade est retirée depuis le 12/11 : la phrase dit la descente que mesure l'abysse (M2K.prof) */
   ['cash','PLEIN AUX AS','epique',{mot:'cash'},"Des euros d'or sur fond vert billet. Discret ? Non.",{k:'gagne',v:1000000,t:'Gagne 1 000 000 € au total.'}],
   /* … les pelages et la nature */
   ['tigre','TIGRE','epique',{mot:'tigre'},'Orange brûlé, rayures noires. Le roi de la jungle a troqué ses griffes contre des pneus.'],
@@ -390,10 +410,10 @@ Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOR","PEINTURE":"PAI
   "HOLOGRAMME":"HOLOGRAM","Chrome irisé qui change de couleur à chaque angle. Une carte rare… en voiture.":"Iridescent chrome that changes color at every angle. A rare card… on wheels.",
   "NACRE":"PEARL","L'intérieur d'un coquillage, poli par cinq vagues parfaites.":"The inside of a shell, polished by five perfect waves.","Fais 5 poses parfaites d'affilée.":"Land 5 perfects in a row.",
   "FANTÔME":"GHOST","Blanc nacré, presque transparent. Personne ne t'a vu passer.":"Pearl white, almost see-through. Nobody saw you pass.","Roule 2 minutes sans toucher un bord.":"Drive 2 minutes without touching an edge.",
-  "NUIT DE GOTHAM":"GOTHAM NIGHT","Noir laqué, la ville qui brille dedans. Les toits sont à toi.":"Gloss black, the city shining in it. The rooftops are yours.","Joue 10 niveaux dans la ville.":"Play 10 levels in the city.",
+  "NUIT DE GOTHAM":"GOTHAM NIGHT","Noir laqué, la ville qui brille dedans. Les toits sont à toi.":"Gloss black, the city shining in it. The rooftops are yours.","Joue 10 niveaux dans Crypto City.":"Play 10 levels in Crypto City.",
   "CIEL D'ORAGE":"STORM SKY","Ardoise en bas, éclair en haut. Le ciel quand il se fâche.":"Slate below, lightning above. The sky when it's angry.","Joue 10 niveaux sous la pluie.":"Play 10 levels in the rain.",
   "LUNAIRE":"LUNAR","Poussière de cratère, sans un grain d'atmosphère.":"Crater dust, without a grain of atmosphere.","Joue 10 niveaux en orbite.":"Play 10 levels in orbit.",
-  "LAMPADAIRE":"STREETLIGHT","La nuit en bas, le réverbère sur le toit. La ville t'éclaire.":"Night below, the lamp on the roof. The city lights you up.","Fais 25 figures dans la ville en une partie.":"Land 25 tricks in the city in one run.",
+  "LAMPADAIRE":"STREETLIGHT","La nuit en bas, le réverbère sur le toit. La ville t'éclaire.":"Night below, the lamp on the roof. The city lights you up.","Fais 25 figures dans Crypto City en une partie.":"Land 25 tricks in Crypto City in one run.",
   "BANANA":"BANANA","Salopette en bas, jaune en haut. Elle dit « banana » à chaque virage.":"Overalls below, yellow above. It says \"banana\" at every turn.",
   "SORBET":"SORBET","Pêche, framboise, violette : trois boules qui ne fondent pas à 900 à l'heure.":"Peach, raspberry, violet: three scoops that won't melt at 900 km/h.",
   "TOXIQUE":"TOXIC","Du noir au vert fluo. Ne touche pas : ça brille dans le noir.":"Black to neon green. Don't touch: it glows in the dark.",
@@ -402,7 +422,7 @@ Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOR","PEINTURE":"PAI
   "CARBONE":"CARBON","Fibre tressée sous un vernis épais. Plus léger, plus rapide, plus cher.":"Woven fibre under thick clear coat. Lighter, faster, pricier.","Atteins 20 000 d'aura en une partie.":"Reach 20,000 aura in one run.",
   "GRAFFITI":"GRAFFITI","Le mur du parking, bombé sur ta carrosserie. Signé, daté, illégal.":"The car-park wall, sprayed on your bodywork. Signed, dated, illegal.","Frôle 5 tours dans un seul saut.":"Skim 5 towers in a single jump.",
   "POP ART":"POP ART","Trames, bulles et BOOM ! Ta caisse sort tout droit d'une BD.":"Halftones, bubbles and BOOM! Your car jumped straight out of a comic.",
-  "GRANDE VAGUE":"GREAT WAVE","Les vagues des estampes japonaises, en écailles. Le calme avant ta nitro.":"The waves of Japanese prints, in scales. The calm before your nitro.","Descends au fond de la mer de Jade.":"Dive to the bottom of the Jade Sea.",
+  "GRANDE VAGUE":"GREAT WAVE","Les vagues des estampes japonaises, en écailles. Le calme avant ta nitro.":"The waves of Japanese prints, in scales. The calm before your nitro.","Descends 400 m dans les pics de Jade.":"Drop 400 m in the Jade Peaks.",
   "PLEIN AUX AS":"LOADED","Des euros d'or sur fond vert billet. Discret ? Non.":"Gold euros on cash green. Subtle? No.","Gagne 1 000 000 € au total.":"Earn €1,000,000 in total.",
   "TIGRE":"TIGER","Orange brûlé, rayures noires. Le roi de la jungle a troqué ses griffes contre des pneus.":"Burnt orange, black stripes. The king of the jungle traded his claws for tires.",
   "LÉOPARD":"LEOPARD","Des rosettes noires sur fond doré. Tu ne chasses pas : tu doubles.":"Black rosettes on gold. You don't hunt: you overtake.",
@@ -646,6 +666,32 @@ function motToile(id,w){const M=MOTIFS[id];if(!M)return null;const cv=document.c
 function motTex(id){if(MOT_TX[id])return MOT_TX[id];const cv=motToile(id,MOT_W);if(!cv)return null;const t=texLibere(new THREE.CanvasTexture(cv));t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return MOT_TX[id]=t;} /* (2026-11-13, finition · mémoire) texLibere : la toile 512² du cache n'est jamais relue, rendue après l'envoi sur téléphone */
 function motUrl(id){if(MOT_URL[id]!=null)return MOT_URL[id];let u='';try{const cv=motToile(id,192);u=cv?cv.toDataURL('image/jpeg',.86):'';}catch(e){}return MOT_URL[id]=u;} /* (2026-11-05) 192 px : la grande pastille des cartes de la boutique reste nette */
 function motFond(d){const c='#'+((d.c||0)>>>0).toString(16).padStart(6,'0'),u=motUrl(d.mot);return u?'url('+u+') center/'+(MOTIFS[d.mot]&&MOTIFS[d.mot].liv?'cover':'200% auto')+','+c:c;} // la PASTILLE d'un motif (le fond CSS des listes)
+/* ===== LES MOTIFS PRÉPARÉS EN DOUCE (2026-11-21, lot « boutiquefluide », Sacha : « refait un truc d'optimisation de la boutique qui galère toujour un peu ») =====
+   MESURÉ (banc ×4, iPhone 13 Pro émulé) : la 1re visite du rayon PEINTURES de chaque lancement figeait UNE image 0,8 à 1,5 s — la palette dessinait d'un bloc les
+   39 pastilles à motif (motToile 192 px puis toDataURL JPEG : la toile ~20 ms, l'encodage ~12 ms chacune), rien n'étant gardé d'un lancement à l'autre. Désormais :
+   · au garage (menu ou boutique hors rayon PEINTURES), au calme (photoCalme : ni geste, ni défilement, ni volet ; rien en course ; la chauffe finie ;
+     l'encodage d'avant fini), UNE pastille toutes les 200 ms au plus (MESURÉ ×4 : 2 à 15 ms chacune), dans l'ordre de la palette : la même toile (motToile, même tirage, même taille), encodée par toBlob (le même
+     encodeur JPEG, même qualité .86 : les mêmes octets ; Chrome encode hors du fil) et rangée sous une adresse blob: au lieu d'une data: — la même image ;
+   · motUrl reste le chemin d'avant pour tout ce qui n'est pas prêt (rien ne change à l'écran) ;
+   · le rayon PEINTURES pose tout de suite les pastilles EN VUE, les autres par tranches de ~8 ms aux images suivantes (bqPeintPhotos, boutique-peinture.js).
+   `dbgMotPre()` : l'état (banc). `?sans=boutiquefluide` = l'avant (tout dessiné d'un bloc à l'ouverture du rayon, en data:). */
+const BQFLUIDE=!/[?&]sans=[^&]*boutiquefluide/.test(location.search);
+if(BQFLUIDE)try{document.documentElement.classList.add('bqFluide');}catch(e){} /* html.bqFluide : les règles CSS du lot (LA TEINTE QUI GLISSE SEULE, boutique-a-iphone.css) */
+const MOT_PRE={L:null,i:0,n:0,ms:[],pq:'',enCours:0};
+function motPrepare(){if(!MOT_PRE.L){const V={};MOT_PRE.L=[];try{peintOrdre().forEach(function(j){const d=COSM.peinture[j];if(d&&d.mot&&MOTIFS[d.mot]&&!V[d.mot]){V[d.mot]=1;MOT_PRE.L.push(d.mot);}});}catch(e){}}
+  while(MOT_PRE.i<MOT_PRE.L.length&&MOT_URL[MOT_PRE.L[MOT_PRE.i]]!=null)MOT_PRE.i++;if(MOT_PRE.i>=MOT_PRE.L.length)return false;
+  const id=MOT_PRE.L[MOT_PRE.i++],t0=performance.now();let cv=null;try{cv=motToile(id,192);}catch(e){}if(!cv){MOT_URL[id]='';return true;}
+  if(!cv.toBlob||!window.URL||!URL.createObjectURL){try{MOT_URL[id]=cv.toDataURL('image/jpeg',.86);}catch(e){MOT_URL[id]='';}MOT_PRE.n++;MOT_PRE.ms.push(Math.round(performance.now()-t0));return true;}
+  MOT_PRE.enCours++;try{cv.toBlob(function(b){MOT_PRE.enCours--;if(!b||MOT_URL[id]!=null)return;try{MOT_URL[id]=URL.createObjectURL(b);MOT_PRE.n++;}catch(e){}},'image/jpeg',.86);}catch(e){MOT_PRE.enCours--;}
+  MOT_PRE.ms.push(Math.round(performance.now()-t0));return true;}
+setInterval(function(){try{if(!BQFLUIDE||MOT_PRE.fini)return;const t=performance.now();
+  const pq=document.hidden?'cache':(started&&!gameOver)?'course':!garageOn?'garage':!CHAUFFE_R.fait?'chauffe':ecranWipe._on?'volet':(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))?'garage':
+    (typeof GBQ!=='undefined'&&GBQ.on&&SHOP.tab==='peinture')?'rayon':MOT_PRE.enCours?'encode':!photoCalme()?'calme':'';
+  MOT_PRE.pq=pq;if(pq)return;if(!motPrepare())MOT_PRE.fini=true;}catch(e){MOT_PRE.pq=String(e);}},200);
+window.dbgMotEgal=function(){ /* (banc) chaque motif : la data: d'avant (toDataURL) et le blob: d'après (toBlob) ont-ils les mêmes octets ? */
+  const L=[];try{peintOrdre().forEach(function(j){const d=COSM.peinture[j];if(d&&d.mot&&MOTIFS[d.mot]&&L.indexOf(d.mot)<0)L.push(d.mot);});}catch(e){}
+  return Promise.all(L.map(function(id){return new Promise(function(ok){const cv=motToile(id,192),a=cv.toDataURL('image/jpeg',.86);cv.toBlob(function(b){const r=new FileReader();r.onload=function(){ok({id:id,egal:r.result===a,o:b.size});};r.readAsDataURL(b);},'image/jpeg',.86);});})).then(function(R){return {motifs:R.length,egaux:R.filter(function(x){return x.egal;}).length,differents:R.filter(function(x){return !x.egal;}).map(function(x){return x.id;})};});};
+window.dbgMotPre=function(){return {prets:MOT_PRE.L?MOT_PRE.L.filter(function(id){return MOT_URL[id]!=null;}).length:0,total:MOT_PRE.L?MOT_PRE.L.length:null,doux:MOT_PRE.n,ms:MOT_PRE.ms.slice(),attend:MOT_PRE.pq,fini:!!MOT_PRE.fini};};
 /* la projection : chaque face prend la toile du plan qui lui fait face (pondérée par sa normale ^12 : un pan en biais prend surtout le plan le plus proche — à ^6 le damier virait au gris en fondant deux plans),
    retournée là où il faut pour se lire À L'ENDROIT de l'extérieur — dans le repère de la caisse : le motif colle à la tôle quand elle roule */
 const MOT_GLSL='vec3 mN9=normalize(vMotN),mA9=pow(abs(mN9),vec3(12.));mA9/=max(1e-4,mA9.x+mA9.y+mA9.z);vec3 mP9=vMotP*uMotS;\n'+

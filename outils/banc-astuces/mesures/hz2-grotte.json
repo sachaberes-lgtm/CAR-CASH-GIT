@@ -1,0 +1,45 @@
+{
+ "carte": "grotte",
+ "qs": "",
+ "charge0": "7.3",
+ "fige": {
+  "tout": {
+   "images": 20,
+   "partVol": 0.7,
+   "appels": 166.1,
+   "tri": 336106,
+   "rendu": 8.07,
+   "boucle": 14.37
+  },
+  "h1500": {
+   "images": 20,
+   "partVol": 0.7,
+   "appels": 162.2,
+   "tri": 305373,
+   "rendu": 7.685,
+   "boucle": 15.105
+  },
+  "h1000": {
+   "images": 20,
+   "partVol": 0.7,
+   "appels": 161.6,
+   "tri": 299613,
+   "rendu": 8.485,
+   "boucle": 15.33
+  }
+ },
+ "etat": {
+  "s": 2465,
+  "zone": {
+   "carte": "grotte",
+   "meteo": "midi",
+   "teinte": null,
+   "ciel": "grt-midi-luxe",
+   "pluie": 0,
+   "nuit": 1,
+   "orage": false
+  }
+ },
+ "exc": [],
+ "charge1": "4.9"
+}

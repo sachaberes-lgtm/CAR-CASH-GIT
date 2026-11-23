@@ -311,7 +311,7 @@ function lvlNuageOk(o){ // quelles familles de nuages chaque monde garde (lu par
   if(c.id==='ville')return false; // (2026-09-28) PARIS : un ciel de nuit dégagé, on voit les toits                                        // la VILLE n'a AUCUN nuage (user, 2026-09-25) : on la voit de haut en bas, jusqu'à l'horizon
   return true;
 }
-let lvlBanT=0;
+let lvlBanT=0;const LVL_BAN_ON=/[?&]titremap=1\b/.test(location.search);
 /* (2026-09-30) LA PROMESSE SE LIT EN ENTIER. La bannière à promesse restait 3,8 s à l'écran mais ne réservait le couloir que 2,8 s (la
    carte suivante s'affichait PAR-DESSUS pendant la dernière seconde) et, en priorité 1, une carte MOTEUR (2) la coupait à tout instant :
    la règle du niveau disparaissait au portail, pile quand elle sert. Désormais le couloir est réservé toute sa durée (3,8 s) et VERROUILLÉ
@@ -323,6 +323,7 @@ function lvlPromesse(){ // la ligne sous le nom ('' = aucune) — UN seul endroi
   return c.pr||(c.espace>=.5&&!PARK.on?'GRAVITE REDUITE : SAUTS 2 FOIS PLUS LONGS':''); // (2026-09-28) l'espace a SA promesse : la gravité
 }
 function lvlAnnonce(){ // (vague 2) le niveau prend son tour dans la file du couloir : il ne parle plus PAR-DESSUS un palier ou un record
+  if(!LVL_BAN_ON)return; /* (2026-11-22, Sacha : « enlève le titre des maps quand on arrive dans une nouvelle map ») plus de bannière ni son bruit ; `?titremap=1` la remet */
   if(!document.getElementById('lvlBan')||!LVL.cur)return;
   if(lvlPromesse())hautPasse(lvlMontre,LVL_BAN.msPr,'lvl',1,{min:LVL_BAN.verrou,ferme:1});else hautPasse(lvlMontre,LVL_BAN.ms,'lvl',1);}
 function lvlMontre(){ // la bannière « NIVEAU n — LIEU » (fondu d'opacité seul : rien ne bouge, REDUCED_MOTION compris)

@@ -127,6 +127,9 @@ une("const CC_BUILD='__CC_BUILD__';","const CC_BUILD='"+ver+"';",'version');
   une("const CC_PHOTOS='__CC_PHOTOS__';","const CC_PHOTOS='"+emp9+"';",'empreinte des photos');}
 for(const u of['https://game-cdn.poki.com/scripts/v2/poki-sdk.js','https://sdk.crazygames.com/crazygames-sdk-v3.js','https://bridge.playgama.com/v2/stable/playgama-bridge.js'])
   if(h.indexOf(u)>=0)une("src:'"+u+"'","src:''",'kit de portail'); // (T4 du 14/10 : l'édition des portails est retirée du jeu ; l'inventaire plus bas garde l'œil)
+/* (2026-11-22) la référence suit le FICHIER dans les deux éditions : le PNG est remplacé par le webp plus haut, hors de l'édition App Store — dans le build de mesure
+   (COMPLET=1) le jeu demandait encore le PNG supprimé (404, la mer de nuages du menu ne se chargeait pas). */
+if(MC_WEBP)une("im.src='assets/ciel/mer-cumulus.png'","im.src='assets/ciel/mer-cumulus.webp'",'mer de nuages en webp');
 if(!process.env.COMPLET){ /* (2026-11-12, ios-ultime) COMPLET=1 : l'app de MESURE garde le jeu complet de main (aucune coupe de l'édition App Store) — jamais pour une archive */
 /* L'ÉDITION APP STORE (2026-10-13, Sacha : « couper dans l'app seulement ») — le jeu web de main n'est pas touché.
    · plus de mode TEST : les caisses et la carrière se GAGNENT (Apple refuse une version de test) ;
@@ -210,7 +213,6 @@ une('<link rel="manifest" href="manifest.webmanifest">\n','','manifeste PWA');
 une('<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-180.png">\n','','icône d\'écran d\'accueil (PWA)');
 une('<meta property="og:image" content="https://car-cash-git.vercel.app/jouer/assets/icons/icon-512.png">','','aperçu de lien du site (og:image)');
 une('<meta name="twitter:image" content="https://car-cash-git.vercel.app/jouer/assets/icons/icon-512.png">','','aperçu de lien du site (twitter:image)');
-if(MC_WEBP)une("im.src='assets/ciel/mer-cumulus.png'","im.src='assets/ciel/mer-cumulus.webp'",'mer de nuages en webp');
 une("var CC_ADMOB={recompense:''};","var CC_ADMOB={recompense:''}; /* (app iOS) aucune régie : ni AdMob ni AdSense */",'emplacement AdMob éteint');
 /* (2026-11-07) LES PEINTURES EN EUROS reviennent aussi (PEINT_EUR, par shopPaye / StoreKit) : les deux coupes qui les passaient à l'argent du jeu
    (60 000 par euro) sont ôtées. RESTE, par prudence, l'article du pack LA PALETTE : le pack n'est plus vendu (PALETTE_PACK, aucun produit) ;

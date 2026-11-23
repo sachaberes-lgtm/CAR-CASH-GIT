@@ -1,0 +1,45 @@
+{
+ "carte": "canyon",
+ "qs": "",
+ "charge0": "6.6",
+ "fige": {
+  "tout": {
+   "images": 24,
+   "partVol": 0.92,
+   "appels": 162.08,
+   "tri": 453754,
+   "rendu": 7.417,
+   "boucle": 14.358
+  },
+  "h1500": {
+   "images": 24,
+   "partVol": 0.92,
+   "appels": 148.25,
+   "tri": 346190,
+   "rendu": 6.908,
+   "boucle": 13.854
+  },
+  "h1000": {
+   "images": 24,
+   "partVol": 0.92,
+   "appels": 146.75,
+   "tri": 342675,
+   "rendu": 7.075,
+   "boucle": 13.267
+  }
+ },
+ "etat": {
+  "s": 1485,
+  "zone": {
+   "carte": "canyon",
+   "meteo": "nuit",
+   "teinte": null,
+   "ciel": "canyonNuit",
+   "pluie": 0,
+   "nuit": 1,
+   "orage": false
+  }
+ },
+ "exc": [],
+ "charge1": "4.5"
+}

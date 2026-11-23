@@ -419,14 +419,14 @@ document.addEventListener('click',function(e){const t=e.target&&e.target.closest
    6. LA VIE — la caisse respire, un reflet passe sur la carrosserie ; braises (rare, plus denses à l'épique), pluie d'or et éclats
       (légendaire), cendres rouges
       et éclairs lointains (mythique), poussière d'étoiles et projecteurs arc-en-ciel (infinie).
-   La lumière qui bouge vit dans UNE toile 2D (RVX, en `lighter`) ; le reste est en CSS (opacités, transformations). Toucher avant la fin =
-   aller au bout ; Entrée / Espace / Échap aussi. « Réduire les animations » : tout est posé d'un coup, sans toile.
+   La lumière qui bouge vit dans UNE toile 2D (RVX, en `lighter`) ; le reste est en CSS (opacités, transformations). (2026-11-22) Toucher avant la fin ne fait
+   plus rien : seul RÉCUPÈRE ferme (voir m2RevFerme) ; Entrée / Espace / Échap aussi. « Réduire les animations » : tout est posé d'un coup, sans toile.
    VOIR CHAQUE RARETÉ sans rien gagner : `?revelation=legendaire` (commun · rare · epique · legendaire · mythique · infini, ou le nom d'une
    caisse) — ou dbgRevelation('mythique') à la console. RÉCUPÈRE n'y donne rien.
    LA FILE (m2RevFile) : les secrètes réussies dont la caisse n'est pas encore à toi, et déjà au garage (une retirée qui n'est pas encore
    revenue attend). Elle se joue sur l'écran de mort (1,4 s après lui), en ouvrant l'écran MISSIONS, en touchant une secrète qui brille,
    ou à la console (dbgMissions('gagne',id)). Une à la fois ; la suivante enchaîne. */
-const M2REV={on:false,id:null,t:0,demo:false,tm:[],tx:'',n:0};
+const M2REV={on:false,id:null,t:0,demo:false,tm:[],tx:'',n:0,t0:0,btT:0}; /* (2026-11-22) t0 : l'ouverture · btT : l'instant où le bouton RÉCUPÈRE est apparu (voir m2RevFerme) */
 Object.assign(I18N,{'CONTINUER':'CONTINUE'});
 const M2RV_PAL={commun:0,rare:1,exotique:1,epique:2,legendaire:3,mythique:4,infini:5};
 /* par palier : ch = la charge (ms) · bat = ses battements (où, en part de la charge) · on = les ondes · ge = la gerbe · se = la secousse (px) · ph = les projecteurs */
@@ -452,7 +452,7 @@ function m2Revele(id){const m=m2Def(id);if(!m||M2REV.on||m2EnC()||m2RevVolet())r
 function m2RevSon(n,o){try{if(SONV2)sfx(n,o);}catch(e){}}
 function m2RevStop(){for(const t of M2REV.tm)clearTimeout(t);M2REV.tm.length=0;}
 function m2RevScene(i,texte,id,rf){ /* rf : une rareté imposée (l'essai d'un palier qui n'a pas encore de caisse) */
-  M2REV.on=true;M2REV.id=id;M2REV.tx=texte;m2RevStop();
+  M2REV.on=true;M2REV.id=id;M2REV.tx=texte;M2REV.t0=performance.now();M2REV.btT=0;m2RevStop();
   let el=document.getElementById('m2Rev');if(!el){el=document.createElement('div');el.id='m2Rev';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');document.body.appendChild(el);}
   const r=rf||carRar(i),ri=rarInfo(r),n=M2RV_PAL[r]!=null?M2RV_PAL[r]:1,P=M2RV_T[n];M2REV.n=n;
   el.style.setProperty('--rc',ri.c);el.style.setProperty('--ch',(P.ch||900)+'ms');el.setAttribute('aria-label',sansAcc(TR('MISSION SECRÈTE')));
@@ -476,7 +476,7 @@ function m2RevScene(i,texte,id,rf){ /* rf : une rareté imposée (l'essai d'un p
     else{el.querySelector('.m2RvPh').classList.add('vide');joue(null);}};
   const joue=function(b){
     RVX.bx=b||{x0:.08,x1:.92,y0:.2,y1:.78};m2RevCadre(el);
-    if(REDUCED_MOTION){el.classList.add('bout','scene','plein','eclat','rar','nom','tx','bt','vit');el.querySelector('.m2RvTx span').textContent=texte;m2RevSon(n>=3?'caisse.debloquee':'ui.debloque');return;}
+    if(REDUCED_MOTION){M2REV.btT=performance.now();el.classList.add('bout','scene','plein','eclat','rar','nom','tx','bt','vit');el.querySelector('.m2RvTx span').textContent=texte;m2RevSon(n>=3?'caisse.debloquee':'ui.debloque');return;}
     rvxDemarre(el,n);
     const T=function(f,ms){M2REV.tm.push(setTimeout(function(){if(M2REV.on&&M2REV.id===id)f();},REDUCED_MOTION?0:ms));};
     T(function(){el.classList.add('scene');RVX.pou=true;rvxMesure();},450);                                   /* le projecteur, la silhouette */
@@ -488,13 +488,13 @@ function m2RevScene(i,texte,id,rf){ /* rf : une rareté imposée (l'essai d'un p
       T(function(){el.classList.add('rar');},t+500);
       T(function(){m2RevNom(el,n);},t+950);
       T(function(){el.classList.add('tx');m2RevTape(el.querySelector('.m2RvTx span'),texte,id);},t+1450);
-      T(function(){el.classList.add('bt','vit');},t+2150);
+      T(function(){el.classList.add('bt','vit');M2REV.btT=performance.now();},t+2150);
     }else{
       T(function(){el.classList.add('plein');m2RevSon('ui.debloque');hap([20,60,20,60,60]);},t);              /* la couleur monte */
       T(function(){el.classList.add('rar');RVX.vie=true;},t+1250);
       T(function(){m2RevNom(el,n);},t+1600);
       T(function(){el.classList.add('tx');m2RevTape(el.querySelector('.m2RvTx span'),texte,id);},t+2050);
-      T(function(){el.classList.add('bt','vit');},t+2700);
+      T(function(){el.classList.add('bt','vit');M2REV.btT=performance.now();},t+2700);
     }};
   try{carPhoto(i,go);}catch(e){go(null);} /* la photo de studio (asynchrone) : la scène part quand elle est prête */
   return true;}
@@ -528,11 +528,17 @@ function m2RevNom(el,n){el.classList.add('nom');m2RevSon('ui.tampon',{vol:n>=3?3
 function m2RevTape(sp,t,id){if(!sp)return;if(REDUCED_MOTION){sp.textContent=t;return;}let k=0;
   const pas=function(){if(!M2REV.on||M2REV.id!==id)return;k++;sp.textContent=t.slice(0,k);if(k%3===1)m2RevSon('ui.lettre',{vol:-8});if(k<t.length)setTimeout(pas,26);};pas();}
 function m2RevBout(el){ /* toucher avant la fin : tout est posé, sans flash ni battement en retard */
-  m2RevStop();el.classList.remove('charge','bat','eclair');el.classList.add('bout','scene','plein','eclat','rar','nom','tx','bt','vit');
+  m2RevStop();M2REV.btT=performance.now();el.classList.remove('charge','bat','eclair');el.classList.add('bout','scene','plein','eclat','rar','nom','tx','bt','vit');
   const sp=el.querySelector('.m2RvTx span');if(sp)sp.textContent=M2REV.tx;
   RVX.ch=0;RVX.pou=true;RVX.vie=true;RVX.P=RVX.P.filter(function(p){return p.k!=='imp'&&p.k!=='eto';});RVX.F.length=0;rvxMesure();}
-function m2RevFerme(){const el=document.getElementById('m2Rev'),id=M2REV.id;if(!M2REV.on||!el)return;
-  if(!el.classList.contains('bt')){m2RevBout(el);return;} /* pas fini : au bout */
+/* ===== LA RÉVÉLATION NE SE ZAPPE PLUS (2026-11-22, Sacha : « quand on débloque des voitures de mission, on peut skip trop rapidement […] quand on tape sur l'écran en boucle […] on peut rater l'information ») =====
+   Avant : un 1er toucher sautait au bout, le 2e fermait — en tapant en boucle l'écran durait une demi-seconde. Désormais un toucher pendant la mise en scène ne fait rien ;
+   elle se ferme par le bouton RÉCUPÈRE seulement (ou le clavier), et pas avant 0,7 s après son apparition. Secours : si le bouton n'est jamais venu au bout de 12 s, un toucher pose tout. */
+function m2RevFerme(e){const el=document.getElementById('m2Rev'),id=M2REV.id;if(!M2REV.on||!el)return;const now9=performance.now();
+  if(!el.classList.contains('bt')){if(now9-M2REV.t0>12000)m2RevBout(el);return;} /* pas fini : on regarde */
+  if(now9-(M2REV.btT||M2REV.t0)<700)return;
+  if(REDUCED_MOTION&&now9-M2REV.t0<2500)return; /* (2026-11-22) « réduire les animations » : tout est posé d'un coup — l'écran reste quand même 2,5 s */
+  if(e&&e.target&&e.target.closest&&!e.target.closest('.m2RvBt')&&boutonVu(el.querySelector('.m2RvBt'))){ /* (bouton hors de l'écran : n'importe quel toucher ferme — boutonVu, aujourdhui.js) */try{gSecoue(el.querySelector('.m2RvBt'));}catch(_){}return;} /* à côté du bouton : il se signale */
   const demo=M2REV.demo;
   if(!demo){m2Prend(id);try{carSnapshot();}catch(e){}}
   try{pixBurst(el.querySelector('.m2RvBt'),12);}catch(e){}try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.2});}else uiClic('ok');}catch(e){}hap([12,40,30]);
@@ -542,7 +548,7 @@ function m2RevFerme(){const el=document.getElementById('m2Rev'),id=M2REV.id;if(!
     try{if(garageOn&&gEl.classList.contains('missions'))m2Render(true);}catch(e){}try{m2Portes();}catch(e){}
     try{const ob=document.querySelector('.mObj.misPorte');if(ob&&started&&gameOver)objRenderV2(ob);}catch(e){}
     m2RevAuto(500);},REDUCED_MOTION?0:520);}
-document.addEventListener('click',function(e){const el=document.getElementById('m2Rev');if(!el||!M2REV.on||!el.contains(e.target))return;e.stopPropagation();e.preventDefault();m2RevFerme();},true);
+document.addEventListener('click',function(e){const el=document.getElementById('m2Rev');if(!el||!M2REV.on||!el.contains(e.target))return;e.stopPropagation();e.preventDefault();m2RevFerme(e);},true);
 document.addEventListener('keydown',function(e){if(!M2REV.on)return;if(e.code==='Enter'||e.code==='Space'||e.code==='Escape'){e.preventDefault();e.stopPropagation();m2RevFerme();}},true);
 /* LA TOILE DE LUMIÈRE (RVX) : une toile plein écran dans le cadre (elle tremble avec lui), en `lighter`. Ses habitants (P) : pou = la poussière
    du faisceau · imp = l'énergie qui converge (la charge) · eti = la gerbe d'étincelles · bra = les braises qui montent · or = la pluie d'or

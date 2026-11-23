@@ -1,7 +1,7 @@
 // LE BANC DE LA GARDE DU CALME (2026-11-15, Sacha : « en HUD calme il faut que les fruits ARRÊTENT D'APPARAÎTRE, mais ceux qui sont déjà là, tu les ramasses »).
 // Tour 2 (contrôle adverse) : pause en plein calme, portail franchi au calme, sortie sans trou, retours cohérents (pouvoir = fruit).
 // Une course en édition téléphone (?tel=1), SANS SON (sfx/mus/vox coupés dans la sauvegarde, Chrome --mute-audio), filmée image par image (dbgStep : la boucle
-// du jeu ne tourne plus d'elle-même). Le HUD calme, lui, compte en VRAI temps (0,9 s) : on attend entre deux pas.
+// du jeu ne tourne plus d'elle-même). Le HUD calme, lui, compte en VRAI temps (3 s depuis le 2026-11-22, 0,9 s avant) : on attend entre deux pas.
 //   1. nitro tenu : on pose A (90 m) et B (260 m), on suit un fruit F de la route ;
 //   2. nitro lâché → calme : A, B, F restent visibles et sont PRIS, avec leur retour (ret.p1 / ret.f1, jamais p0/f0) ; C posé pendant le calme ne se voit ni ne se prend ;
 //   3. PAUSE en plein calme (2 s), reprise, 1,5 s sans nitro : la garde reste calme, rien n'est jeté (perdus = 0), G (posé au calme) toujours caché, même id ;
@@ -70,7 +70,7 @@ const TAG = ANCIEN ? 'ancien-' : '';
     console.log('2. NITRO LÂCHÉ — LE CALME');
     await c.ev('dbgAuto(true,0,{vol:true,nit:0});1');
     let e2 = null;
-    for (let i = 0; i < 12; i++) { await dormir(250); await pas(1); e2 = await suivi(); if (e2.calme) break; }
+    for (let i = 0; i < 24; i++) { await dormir(250); await pas(1); e2 = await suivi(); if (e2.calme) break; } /* (2026-11-22) le calme tombe à 3 s (HUD_CALME_MS), plus 0,9 s */
     await pas(1); e2 = await suivi(); console.log('    ' + court(e2));
     verifie(e2.calme, 'le HUD calme est tombé');
     const A2 = obj(e2, 'A'), B2 = obj(e2, 'B');

@@ -1,0 +1,61 @@
+{
+ "carte": "canyon",
+ "qs": "",
+ "charge0": "3.3",
+ "fige": {
+  "tout": {
+   "images": 30,
+   "partVol": 1,
+   "appels": 162,
+   "tri": 471557,
+   "rendu": 7.983,
+   "boucle": 15.603
+  },
+  "sansDerriere": {
+   "images": 30,
+   "partVol": 1,
+   "appels": 162.53,
+   "tri": 477651,
+   "rendu": 8.127,
+   "boucle": 16.233
+  },
+  "sansJumeaux": {
+   "images": 30,
+   "partVol": 1,
+   "appels": 162.67,
+   "tri": 490515,
+   "rendu": 7.407,
+   "boucle": 14.383
+  },
+  "sansDessinsLoin": {
+   "images": 30,
+   "partVol": 1,
+   "appels": 166.53,
+   "tri": 471575,
+   "rendu": 8.22,
+   "boucle": 16.153
+  },
+  "rien": {
+   "images": 30,
+   "partVol": 1,
+   "appels": 168.67,
+   "tri": 496735,
+   "rendu": 7.72,
+   "boucle": 14.97
+  }
+ },
+ "etat": {
+  "s": 1802,
+  "zone": {
+   "carte": "canyon",
+   "meteo": "matin",
+   "teinte": null,
+   "ciel": "canyonMatin",
+   "pluie": 0,
+   "nuit": 0,
+   "orage": false
+  }
+ },
+ "exc": [],
+ "charge1": "3.2"
+}

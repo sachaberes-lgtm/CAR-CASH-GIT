@@ -281,7 +281,7 @@ ACESShader.uniforms.uFv={value:new THREE.Vector4(.26,2.0,.8,.25)}; // rayon où 
    flou d'avant (v1, celui que l'app garde) ; banc : outils/banc-trainees/flou-boost.cjs, dbgFlou({fv:[…]}). */
 const FLOU_LEGER=!EN_APP&&!/[?&]flou=plein\b/.test(location.search);
 if(FLOU_LEGER){ACESShader.uniforms.uFv.value.y=.3;ACESShader.uniforms.uFv.value.z=.35;ACESShader.uniforms.uTL.value.y*=1.35;}
-const FLOU_R=[['uniform float uSafe,uRn,uSfx;','uniform float uSafe,uRn,uSfx;uniform vec4 uFv;'], /* (2026-11-21) la déclaration est devenue « uSafe,uRn,uSfx » le 17/11 (3df790c92, les voiles au tiers) : la v2 ne trouvait plus sa ligne et ne s'appliquait plus — le flou v1, caisse comprise, tournait partout */
+const FLOU_R=[['uniform float uSafe,uRn;','uniform float uSafe,uRn;uniform vec4 uFv;'], /* (2026-11-22, fusion) la ligne retrouvée est celle que le lot flouvitesse recoupe plus bas (`uniform float uSfx;uniform float uSafe,uRn;`) : FLOU_R et NET_NITRO2 la trouvent tous les deux. (2026-11-21) la déclaration est devenue « uSafe,uRn,uSfx » le 17/11 (3df790c92, les voiles au tiers) : la v2 ne trouvait plus sa ligne et ne s'appliquait plus — le flou v1, caisse comprise, tournait partout */
   ['  if(uSpeed>0.004){','  float sp=uSpeed*(uFv.w+(1.0-uFv.w)*uSpeed); if(sp>0.02){'],
   ['    vec2 buv=uCtr+dc*(1.0+uSpeed*0.60*rb*rb*ms);','    float e=max(rb-uFv.x,0.0); e*=e; vec2 buv=uCtr+dc*(1.0+sp*uFv.z*e*ms);'],
   ['    float amt=uSpeed*(0.04+rb*rb*1.7)*ms; vec3 acc=vec3(0.0);','    float amt=sp*uFv.y*e*ms; vec3 acc=vec3(0.0);'],
@@ -289,7 +289,12 @@ const FLOU_R=[['uniform float uSafe,uRn,uSfx;','uniform float uSafe,uRn,uSfx;uni
   FLOU_RO=[['ca=dc*amt*0.015*smoothstep(.45,.9,rb);','ca=dc*amt*0.006*smoothstep(.55,.95,rb);']]; // (ordi seul : absente du programme du téléphone)
 function flouFS(f,v){const a=v?0:1,b=v?1:0;for(const r of FLOU_R)if(f.indexOf(r[a])<0)return f; // une ligne retouchée ailleurs : on ne touche à rien
   for(const r of FLOU_R.concat(FLOU_RO))f=f.replace(r[a],r[b]);return f;}
-if(FLOU_LEGER)ACESShader.fragmentShader=flouFS(ACESShader.fragmentShader,1); /* (2026-11-21) sur Vercel seulement : l'app iPhone garde le programme qu'elle avait (à revoir avec Sacha) */
+/* LE FLOU V2 ÉTAIT ÉTEINT DEPUIS LE 17/11 (2026-11-20, lot flouvitesse 2e manche — Sacha, 18/11 : « Si c'est un bug, corrige-le » ; puis « pas de chantier en plus ») : UN BUG, réparé seul.
+   « Voiles au tiers » (3df790c92) a changé `uniform float uSafe,uRn;` en `uSafe,uRn,uSfx;` : la retouche FLOU_R ci-dessus et NET_NITRO2 plus bas ne trouvaient plus leur ligne
+   et ne touchaient à rien. Le jeu rendait le flou V1 du 30/09 (en croisière rapide tout le tour de l'image bavait, tunnel sombre .55) et le cœur des rubans restait flou au nitro.
+   On coupe la ligne en deux (même déclaration) : les deux retouches la retrouvent, le programme redevient celui d'avant le 17/11. `?sans=flouvitesse` = l'avant, bug compris. */
+if(!/[?&]sans=[^&]*\bflouvitesse\b/.test(location.search))ACESShader.fragmentShader=ACESShader.fragmentShader.replace('uniform float uSafe,uRn,uSfx;','uniform float uSfx;uniform float uSafe,uRn;');
+if(EN_APP||FLOU_LEGER)ACESShader.fragmentShader=flouFS(ACESShader.fragmentShader,1); /* (2026-11-22, fusion des deux réparations du même bug) l'app iPhone : le flou V2 plein, celui de ses builds 125 à 128 ; Vercel : le V2 allégé du 21/11 (FLOU_LEGER) ; Vercel `?flou=plein` : le V1 */
 /* ===== LA CAISSE NETTE AU NITRO (2026-11-13, finition iPhone, Sacha : « les traînées et la voiture, ça doit être PARFAIT ») =====
    VU au banc (iPhone 13 Pro émulé, toile 1055×487 agrandie ×2,4, nitro tenue) : dès que le flou de vitesse joue (boost, nitro : `sp` > 0,02), TOUTE l'image
    prenait la branche du flou — et la caisse, au milieu du disque net (là où le flou vaut 0), y recevait 6 prises IDENTIQUES : ni anticrénelage, ni piqué.

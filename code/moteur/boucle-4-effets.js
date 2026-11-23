@@ -11,6 +11,7 @@ if(MG.on)mgTs(4); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 4
     {
       const cS=(mode==='fall'?lastNearS:s),lodR=620+Math.abs(vA)*1.1,pieceArr=C3_ON?PAL.b('pieceArr',1e9):1e9; /* (2026-11-05, perf mobile 2, C3) les pièces À PLUS DE 150 m DERRIÈRE la caisse (ancien) ne sont dans aucune vue : on ne les range plus (`?c3=0` = avant) */
       if(CALG.ok){const on9=CALG.on;CALG.entree=on9&&!CALG.was;CALG.sortie=CALG.was&&!on9;if(CALG.entree){CALG.id++;CALG.vus=0;CALG.neufs=0;CALG.perdus=0;}if(CALG.sortie)CALG.pres=CALG_PRES();CALG.was=on9;} /* (2026-11-15) LA GARDE DU CALME : voir CALG (cadence.js) — l'entrée photographie le couloir, la sortie décide de ce qui arrive pendant le calme */
+      JUM.n=0;
       for(const pk of pickups){
         if(pk.taken)continue;
         // ⚠ LA FACE D'EN DESSOUS NE SE DESSINE PAS AU SOL (2026-09-25) : chaque pickup existe en miroir sous la
@@ -19,7 +20,8 @@ if(MG.on)mgTs(4); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 4
         if(CALG.ok&&(pk.nitro||pk.pow||pk.spin)&&near9){const c9=pk.face===1; /* (garde du calme) les compteurs ne voient qu'une face (le jumeau du dessous suit) */
           if(CALG.entree){pk.cok=CALG.id;if(c9)CALG.vus++;} // déjà là : reste, se ramasse
           else if(CALG.sortie&&pk.cok!==CALG.id&&!pk.cgo){if(pk.s-cS>CALG.pres){pk.cap=0;if(c9)CALG.neufs++;}else{pk.cgo=1;if(c9)CALG.perdus++;}}} // arrivé pendant le calme : il grandit ; seul le TRÈS proche (moins de 0,5 s de route, CALG_PRES) ne vient plus
-        const vis=near9&&(mode==='fall'||pk.face===side)&&(!pk.ci||pk.s>=cS-pieceArr)&&!(CALG.ok?calmeCache(pk):HUD_CALME.on&&(pk.nitro||pk.pow||pk.spin)); /* (2026-11-13, Sacha) HUD calme : les fruits et pouvoirs de la route s'effacent, et reviennent dès qu'on reprend le nitro · (2026-11-14, Sacha : « en HUD calme réactive le ramassage de pièces ») LES PIÈCES, elles, restent à l'écran */ /* (LES SENTIERS DE LUCIOLES) le fil se voit de 800 m, quelle que soit la dalle la plus proche */
+        let vis=near9&&(mode==='fall'||pk.face===side)&&(!pk.ci||pk.s>=cS-pieceArr)&&!(CALG.ok?calmeCache(pk):HUD_CALME.on&&(pk.nitro||pk.pow||pk.spin)); /* (2026-11-13, Sacha) HUD calme : les fruits et pouvoirs de la route s'effacent, et reviennent dès qu'on reprend le nitro · (2026-11-14, Sacha : « en HUD calme réactive le ramassage de pièces ») LES PIÈCES, elles, restent à l'écran */ /* (LES SENTIERS DE LUCIOLES) le fil se voit de 800 m, quelle que soit la dalle la plus proche */
+        if(vis&&mode==='fall'&&!jumVu(pk)){vis=false;JUM.n++;} /* (2026-11-19, astuces-chauffe) en vol, le jumeau que la dalle cache ne part plus au dessin — voir jumVu (pouvoirs-grisants.js), ?sans=jumeaux */
         if(pk.mesh.visible!==vis)pk.mesh.visible=vis;
         if(!vis)continue; // hors couloir : on ne l'anime même pas (une pièce instanciée n'est tout simplement pas rangée)
         pk.mesh.rotateOnWorldAxis(pk.ax,dt*(pk.pow?1.4:2.5)+(pk.ci?coinEveil(pk,cS,dt):0)); /* (2026-11-11) L'ÉVEIL des pièces devant la caisse (coinEveil) */
@@ -111,9 +113,9 @@ if(MG.on)mgTs(4); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 4
         /* (sillage v5) LA FLAMME SUIT LA LIGNE : l'axe de la plume se couche vers les premiers mètres de SON sillage (ramenés dans le repère
            caisse), lissé, et jamais à plus de 70° de la poupe ; sans sillage (filage, repos), elle reprend l'axe de la caisse */
         const sl9=SILS[CAR_FEUX.length<2?0:(CAR_POTS[i9]&&CAR_POTS[i9].x<0?0:1)],dl9=JET_DIR[i9]||JET_DIR[0]; // (2026-10-15) la traînée part des FEUX : la plume suit celle de son côté
-        if(jOn&&sl9&&sl9.dOk){JET_V.set(sl9.dX,sl9.dY,sl9.dZ).applyQuaternion(JET_QI);
+        if(jOn&&sl9&&sl9.dOk&&!(FNIT&&mode==='fall')){JET_V.set(sl9.dX,sl9.dY,sl9.dZ).applyQuaternion(JET_QI);
           if(JET_V.z>-.34){const q9=Math.sqrt((1-.34*.34)/Math.max(1e-6,JET_V.x*JET_V.x+JET_V.y*JET_V.y));JET_V.x*=q9;JET_V.y*=q9;JET_V.z=-.34;}}
-        else JET_V.copy(JET_NZ);
+        else JET_V.copy(JET_NZ); /* (2026-11-19, LE FEU EN FIGURE — voir FNIT) en vol la plume reste dans l'axe du pot : la tête de la traînée tourne autour de la caisse pendant une figure */
         dl9.lerp(JET_V,Math.min(1,dt*16)).normalize();
         m9.quaternion.setFromUnitVectors(JET_NZ,dl9).multiply(JET_QS.setFromAxisAngle(JET_Z,t*7.3)); // (plume v2) l'enveloppe TOURNE sur son axe
         if(c9){c9.visible=jOn&&!ecl9;c9.scale.set(jr*.48*(FM9?rr9:1),jr*.48*(FM9?rr9:1),jl*.72*(FM9?f9:.9+.1*f9));c9.quaternion.setFromUnitVectors(JET_NZ,dl9);}}

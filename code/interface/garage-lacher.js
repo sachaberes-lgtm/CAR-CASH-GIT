@@ -167,10 +167,11 @@ function garageFamilles(r){
   const md=gModeM();if(md==='shop'){gShopJour();return;} /* (2026-10-10) la BOUTIQUE est devenue LA BOUTIQUE DU JOUR (gShopJour) */if(md==='inv'||md==='tous'){gStripModeVoitures();return;} // (2026-10-10) SEE ALL ITEMS (`tous`) : la page de l'inventaire, tout ce qui s'achète — (2026-10-09) INVENTAIRE : voir « LA CONSOLE À TROIS MODES » — la BOUTIQUE garde les familles (Léo : « remets les raretés dans la boutique »)
   const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{gModeBoutons();}catch(e){}bar.classList.remove('gModeBar');
   const eq=SAVE.d.equipped|0,shop=md==='shop';
+  const FAM=COHERENCE?RAR_FAM.filter(function(x){return x.id===r||rarListe(x.id).length>0;}):RAR_FAM; /* (2026-11-21, qa/coherence) une famille SANS caisse (MYTHIQUES, INFINIS : aucune n'existe) n'a plus son bouton : il ouvrait une bande vide */
   const nbV=function(L){let n=0;for(const i of L)if(gAVendre(i))n++;return n;}; // BOUTIQUE : chaque famille dit combien il en reste à ACHETER
-  const cles=md+':'+RAR_FAM.map(function(x){const L=rarListe(x.id);let a=0;for(const i of L)if(carUnlockedVrai(i))a++;return x.id+a+'/'+L.length+(shop?'v'+nbV(L):'');}).join('|')+'#'+r;
+  const cles=md+':'+FAM.map(function(x){const L=rarListe(x.id);let a=0;for(const i of L)if(carUnlockedVrai(i))a++;return x.id+a+'/'+L.length+(shop?'v'+nbV(L):'');}).join('|')+'#'+r;
   if(bar._k!==cles){bar._k=cles;
-    bar.innerHTML=RAR_FAM.map(function(x){const L=rarListe(x.id);let a=0;for(const i of L)if(carUnlockedVrai(i))a++;const v=shop?nbV(L):0,lb=shop?String(v):a+'/'+L.length;
+    bar.innerHTML=FAM.map(function(x){const L=rarListe(x.id);let a=0;for(const i of L)if(carUnlockedVrai(i))a++;const v=shop?nbV(L):0,lb=shop?String(v):a+'/'+L.length;
       const nm9=sansAcc(TR(x.n)); // (garage v6) la famille se dit en COULEUR : son nom reste pour le lecteur d'écran et l'info-bulle
       return '<button class="gR'+(x.id===r?' on':'')+(shop&&!v?' vide':'')+'" data-r="'+x.id+'" role="tab" aria-selected="'+(x.id===r)+'" aria-label="'+nm9+' '+lb+'" title="'+nm9+'" style="--rc:'+x.c+'"><span class="gRn">'+nm9+'</span>'+pxi(RAR_LOGO[x.id]||'etoile')+'</button>';}).join('');} // (2026-10-09) le LOGO de la famille, plus de compte
   {const ro=bar.querySelector('.gR.on');if(ro&&bar._on!==r){bar._on=r;const x=ro.offsetLeft-(bar.clientWidth-ro.offsetWidth)/2;try{bar.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){bar.scrollLeft=x;}}} // la famille active vient se montrer

@@ -34,7 +34,10 @@ function secPose(g,ratee,vol,kmh){ // au verdict d'une pose : g = 1,5 PARFAIT ·
   if(vol>.7){if(!ratee&&g>=1.5){SEC.parf++;if(SEC.parf>=SEC_K.nacre)secGagne('nacre');}else SEC.parf=0;}
 }
 function secFig(){const k=secCarte();if(k.c==='ville'){SEC.villeFig++;if(SEC.villeFig>=SEC_K.lampadaire)secGagne('lampadaire');}} // une figure (addTrick)
-function secPorte(){} /* (2026-10-22) LUNAIRE : dix niveaux dans l'espace (m2Niveau) — l'ancien « 3e portail » n'ouvre plus rien ; */ // un portail franchi (après le compte)
+function secPorte(){ /* (2026-10-22) LUNAIRE : dix niveaux dans l'espace (m2Niveau) — l'ancien « 3e portail » n'ouvre plus rien ; */ /* un portail franchi (après le compte, une fois par portail : portailPasse le garde par PORTV.paye) */
+  /* (2026-11-18, Sacha : « LE COMBI se débloque après avoir passé 10 niveaux dans les nuages ») UN NIVEAU DES NUAGES PASSÉ = son portail franchi : LVL.cur est encore le niveau
+     qu'on quitte (la piste neuve se bâtit après, portPasseNiveau). Compté à vie dans `m2.c.sc.nuages_passes` (gardé par SAVE.san : clés a-z0-9_), hors auto-école, parc et balade (m2Ok). */
+  try{if(!m2Ok())return;if(secCarte().c!=='nuages')return;const c=m2Etat().c,S=c.sc||(c.sc={});S.nuages_passes=(S.nuages_passes||0)+1;SAVE.mark();}catch(e){}}
 window.dbgSec=function(a){if(a==='raz'){secReset();return 'remis à zéro';}const k=secCarte();
   return {actif:secOk(),secDonne:typeof secDonne==='function',carte:k.c,meteo:k.m,sansBord:+SEC.bordT.toFixed(1),parfaitsDeSuite:SEC.parf,sansNitroOrage:Math.round(SEC.sansNit),
     jade:Math.round(SEC.jadeD),villeNuitFigures:SEC.villeFig,cartes:Object.keys(SEC.cartes),portails:runStats.zones|0,gagnesCettePartie:Object.keys(SEC.dits),seuils:SEC_K};};
@@ -133,8 +136,14 @@ function m2Val(m){const d=SAVE.d,s=m2Etat(),r=s.r,c=s.c,ex=d.ex||{},enC=m2EnC();
     case 'kmTot':return Math.floor(c.kmTot||0);
     case 'meteoMap':return m2Meteo().n;
     case 'misok':return s.ok.length;
+    case 'nuagesPasse':return (c.sc&&+c.sc.nuages_passes)||0; /* (2026-11-18) LE COMBI : les niveaux des nuages passés (secPorte) */
+    case 'installJ':return m2InstallJ(); /* (2026-11-18) LA DOLORÈS : les jours depuis la naissance du compte */
   }
   const t=/T$/.test(m.k),o=m2Col(M2_COLK[t?m.k.slice(0,-1):m.k]);return t?o.nT:o.n;}
+/* (2026-11-18, Sacha : « après avoir téléchargé le jeu depuis 1 mois, pas avoir joué tous les jours ») LES JOURS DEPUIS L'INSTALLATION : `SAVE.d.prof.ne` (l'heure de naissance du
+   compte, posée par SAVE.def au tout premier lancement ; SAVE.san la borne à « maintenant » — une horloge en avance ne la repousse pas dans le futur). Jours ENTIERS : à 30 j pile, c'est 30.
+   Horloge reculée : la valeur baisse, mais une mission réussie ne se perd jamais (m2.ok) — la caisse ne se reverrouille pas. */
+function m2InstallJ(n){let ne=0;try{ne=+SAVE.d.prof.ne;}catch(e){}if(!(ne>0))return 0;const t=n!=null?n:Date.now();return Math.max(0,Math.floor((t-ne)/864e5));}
 function m2Musiques(){try{const P=window.POUCE_JEU,L=P&&P.liste;return L&&L.length?L.map(function(e){return e.id;}):null;}catch(e){return null;}} /* (2026-10-25) les ids des morceaux de Pouce bleu ; null tant que la liste n'est pas chargée (1re partie) */
 function m2Seuil(m){if(m.v==='prof')return M2K.prof;if(m.k==='musP10'){const L=m2Musiques();return L?L.length:9999;}if(m.v!=='tot')return m.v;
   if(m.k==='cartes'||m.k==='cartesP')return m2Cartes().length;if(m.k==='raresT')return m2Rares().tot;if(m.k==='meteoMap')return m2Meteo().tot;if(m.k==='toutT')return m2Tout().tot;
@@ -228,7 +237,12 @@ function m2Prend(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.p
    (une caisse retirée, un habillage qui n'existe plus, la récompense « à définir ») n'existe plus pour le joueur : ni dans la liste, ni dans le compte,
    ni suivie, ni réussie en course. Elle revient d'elle-même quand sa récompense revient (une réussie d'avant attend alors, prête). ?sans=missionsvides = avant. */
 const M2DISPO=!/[?&]sans=([^&]*,)?missionsvides(,|&|$)/.test(location.search);
-function m2Dispo(m){if(!M2DISPO)return true;const r=(m&&m.r)||{};if(r.vide)return false;if(r.car){const i=m2CarIdx(r.car);return i>=0&&!carRetiree(i);}
+/* (2026-11-21, lot defispossibles) UNE MISSION QUI NE SE JOUE PLUS : sa mesure ne compte que sur une map que JOUER ne tire plus ici (le glacier, hors du tirage depuis le 30/10) —
+   `M2_CARTES` = ses sources (même forme que DEF_SOURCES, economie/boutique-vitrine.js). Elle quitte la liste, le compte, le pass et l'écran de mort, comme une mission dont la
+   récompense n'est plus au garage ; une mission DÉJÀ réussie reste (sa récompense attend d'être prise). La map revient au tirage : la mission revient. ?sans=defispossibles = avant.
+   (M2_CARTES est déclarée dans missions/table.js, à côté de M2K, avant l'appel de m2Etat du démarrage : voir là) */
+function m2Jouable(m){const S=m&&M2_CARTES[m.id];if(!S||sourceJouable(S))return true;try{const s=SAVE.d&&SAVE.d.m2;if(s&&Array.isArray(s.ok)&&s.ok.indexOf(m.id)>=0)return true;}catch(e){}return false;}
+function m2Dispo(m){if(!M2DISPO)return true;const r=(m&&m.r)||{};if(r.vide)return false;if(!m2Jouable(m))return false;if(r.car){const i=m2CarIdx(r.car);return i>=0&&!carRetiree(i);}
   if(r.cat)return !!(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});return true;}
 function m2Pret(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.pr.indexOf(id)>=0)return false;const r=m.r||{};
   if(r.vide)return false;if(r.car){const i=m2CarIdx(r.car);return i>=0&&!carRetiree(i);}if(r.cat)return !!(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});return true;}

@@ -1,0 +1,45 @@
+{
+ "carte": "jade",
+ "qs": "",
+ "charge0": "11.4",
+ "fige": {
+  "tout": {
+   "images": 20,
+   "partVol": 0.8,
+   "appels": 137,
+   "tri": 389052,
+   "rendu": 7.615,
+   "boucle": 14.77
+  },
+  "h1500": {
+   "images": 20,
+   "partVol": 0.8,
+   "appels": 134.5,
+   "tri": 365275,
+   "rendu": 7.475,
+   "boucle": 14.04
+  },
+  "h1000": {
+   "images": 20,
+   "partVol": 0.8,
+   "appels": 131.2,
+   "tri": 349343,
+   "rendu": 7.765,
+   "boucle": 14.64
+  }
+ },
+ "etat": {
+  "s": 1461,
+  "zone": {
+   "carte": "jade",
+   "meteo": "pluie",
+   "teinte": null,
+   "ciel": "jadePluie",
+   "pluie": 0.75,
+   "nuit": 0,
+   "orage": false
+  }
+ },
+ "exc": [],
+ "charge1": "7.3"
+}

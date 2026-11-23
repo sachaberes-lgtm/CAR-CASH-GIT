@@ -52,8 +52,9 @@ const st = a => { if (!a.length) return null; const s = a.slice().sort((x, y) =>
       await c.send('Emulation.setEmulatedMedia', { features: [{ name: 'hover', value: 'none' }, { name: 'pointer', value: 'coarse' }] });
     }
     const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, bank: 48500, owned: [0, 1, 2, 3], ex: { runs: 12 }, plq: { m: 'fr', x: 'CC-161-RZ', ok: 1 }, q: 'fast', qChoisi: 1 };
+    if (A.auto === '1') { delete SAVE.q; delete SAVE.qChoisi; } /* (2026-11-19, pilotevoiture) --auto 1 : jamais choisi (AUTO, comme le contrôle de l'ensemble) */
     await c.send('Page.addScriptToEvaluateOnNewDocument', { source: 'try{localStorage.clear();sessionStorage.clear();localStorage.setItem("cashcarSave",' + JSON.stringify(JSON.stringify(SAVE)) + ')}catch(e){}' });
-    const url = `http://127.0.0.1:${P_HTTP}/index.html?colonne=0&garde=1&intro=ancien&attente=0&prebati=0&carte=nuages&pistegraine=7` + (PC ? '' : '&appareil=iPhone14,2') + (ESSAI === 'sans' ? '&sans=menuchaud' : '');
+    const url = `http://127.0.0.1:${P_HTTP}/index.html?colonne=0&garde=1&intro=ancien&attente=0&prebati=0&carte=nuages&pistegraine=7` + (PC ? '' : '&appareil=iPhone14,2') + (ESSAI === 'sans' ? '&sans=menuchaud' : '') + (A.q ? '&' + A.q : '');
     await c.send('Page.navigate', { url });
     if (!(await pret())) throw new Error('pas prêt');
     await dormir(1500); await voile(); await dormir(3000);
@@ -114,6 +115,21 @@ const st = a => { if (!a.length) return null; const s = a.slice().sort((x, y) =>
         V.retour = await bouton(A.retour || 'ACCUEIL') || await bouton('MENU') || await bouton('RETOUR'); await dormir(2500); V.apresVolet2 = (await etat()).m;
         R.volet = V;
       }
+    }
+    if (MODE === 'toucher') { /* (2026-11-19, lot pilotevoiture) au chaud, après 12 s de repos : un toucher dans le ciel, puis le doigt sur la caisse au garage ; chaque image d'écran notée (rendue ou sautée, HC) */
+      const SUIT = `(function(){window.__tch=[];var n0=window.__mchN;function f(t){var h=dbgHC();window.__tch.push([Math.round(t*10)/10,window.__mchN-n0,h.on?1:0,Math.round(h.per*10)/10,h.cadOn?1:0]);n0=window.__mchN;if(window.__tch.length<90)requestAnimationFrame(f);}requestAnimationFrame(f);return 1})()`;
+      const lit = async (t0) => { const L = await J('JSON.stringify(window.__tch)'); const rendus = L.filter(x => x[1] > 0).map(x => x[0]); const e = ecarts(rendus.filter(x => x - t0 < 300 && x >= t0)); return { ecarts300ms: st(e), rendus300ms: rendus.filter(x => x - t0 < 300 && x >= t0).length, apres: st(ecarts(rendus.filter(x => x - t0 > 500))), brut: L.slice(0, 24) }; };
+      await c.ev('dbgThermique(2);window.__ccBranche=2;1'); await dormir(1500); await c.ev('dbgMenuChaud(1);dbgMenuChaud(null);1');
+      await touche(420, 60); await dormir(12500); R.avant = await etat(); try { R.pilote = await J("JSON.stringify((function(){var p=dbgPilote();return {on:p.on,K:p.K,vise:p.vise,niveau:p.niveau,cadPer:p.cadPer,cle:p.cle,journal:p.journal.slice(-4)}})())"); } catch (e) { R.pilote = String(e); }
+      await c.ev('window.__mchT=performance.now();1'); await c.ev(SUIT); await touche(420, 60, 40); await dormir(1600);
+      R.ciel = await lit(await c.ev('window.__mchT')); R.cielEtat = await etat();
+      R.garage = await bouton('GARAGE'); await dormir(12500); R.avantDonut = (await etat()).hc;
+      const ce = await caisseEcran(); await c.ev('window.__mchT=performance.now();1'); await c.ev(SUIT);
+      await c.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: ce[0], y: ce[1] }] }); await dormir(1100);
+      for (let i = 1; i <= 10; i++) { await c.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: ce[0] + 6 * i, y: ce[1] }] }); await dormir(50); }
+      await c.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      const t0 = await c.ev('window.__mchT'); const L = await J('JSON.stringify(window.__tch)'); const rd = L.filter(x => x[1] > 0).map(x => x[0]);
+      R.donut = { ecarts: st(ecarts(rd.filter(x => x >= t0))), images: rd.filter(x => x >= t0).length, brut: L.slice(0, 12) };
     }
     if (MODE === 'cout') { /* le coût par image en A/B ALTERNÉ dans la même session (la puce du Mac est partagée : deux sessions ne se comparent pas) */
       await c.ev('dbgThermique(2);window.__ccBranche=2;1'); await dormir(1500); R.blocs = [];

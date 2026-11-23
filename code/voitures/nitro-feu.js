@@ -103,6 +103,17 @@ const NFEU_P10={f:[[2.95,2.87,2.58],[2.3,2.03,1.51],[1.91,1.53,.99],[1.82,1.25,.
   v:[[2.9,2.5,2.45],[2.8,1.5,1.4],[2.4,.62,.5],[2.1,.3,.22],[1.8,.16,.1],[1.9,.2,.12],[1.5,.12,.08],[.5,.08,.06],[.2,.05,.04],[.2,.16,.16]],
   m:[[1.5,1.75,2.5],[2.2,1.95,1.5],[2.3,1.55,.6],[2.15,1.05,.22],[1.95,.78,.12],[1.85,.6,.08],[1.62,.42,.06],[1.3,.24,.04],[.7,.1,.03],[.2,.17,.17]]}; // m : le feu du MOTEUR — un pied BLEUTÉ, comme un vrai échappement, puis l'orange (qui tient : un retour de flamme est orange, pas rouge)
 const NFEU_FIN={taille:.73,taux:1.7,pas:0},NFEU_SOL={det:.45,vent:.9};
+/* ===== LE FEU DU NITRO EN FIGURE (2026-11-19, Sacha : « retravaille le rendu des flammes du nitro, notamment quand on fait des figures dans les airs, ça rend bizarre » ;
+   le 18/11 : « les traînées, quand on est dans les airs et qu'on fait des figures, elles s'affichent bizarrement, ça fait un peu flou ») =====
+   VU au banc (outils/banc-flammesnitro, LÉONIE, tonneau nitro tenue) : en vol chaque cube gardait l'assiette de la caisse À SA NAISSANCE (le « feu détaché » du 15/10).
+   La caisse tourne d'un demi-tour pendant la vie d'un cube : les cubes partaient dans toutes les directions où le pot avait regardé — un NUAGE de pavés orange autour
+   de la caisse, sur le côté, devant, au lieu d'une flamme. Et la plume lisse des pots (JETS) se couchait vers la TÊTE de la traînée des feux : en figure cette tête
+   tourne autour de la caisse, la plume battait jusqu'à 70° hors de l'axe du pot (et l'axe d'émission du feu de pixels, JET_DIR, avec elle).
+   EN VOL, DÉSORMAIS (`FNIT`) : le feu SORT DU POT et suit la caisse dans toutes ses rotations (plus d'assiette de naissance, plus de plume couchée vers la traînée) ;
+   en vieillissant, chaque cube se couche dans le VENT de la trajectoire (l'arrière du vol, `vh`) — la flamme est une comète : la tête dans la bouche du pot, la queue
+   derrière la trajectoire, dans n'importe quelle figure. Son étirement suit cette courbe (plus de traits en travers). Le passage sol ↔ vol est glissé (`N.vf`, ~0,25 s, calé net à 0 et à 1).
+   AU SOL rien ne change (au bit près : vf = 0). Coût : moins de calcul qu'avant en vol (plus de quaternion par cube), aucun appel de dessin. `?sans=flammesnitro` = avant. */
+let FNIT=!/[?&]sans=[^&]*\bflammesnitro\b/.test(location.search);const NFEU_VOL={vent:.92,k:2.4,vit:12};
 /* (2026-10-15 soir, Sacha : « retravaille toutes les traînées, il faut qu'elles soient toutes désirables ») LE FEU À LA COULEUR DE LA TRAÎNÉE — VU au
    banc : derrière la caisse, le plus gros, c'est le FEU DE PIXELS du nitro, et il restait orange (bleu en réserve, violet en infini) quelle que soit la
    traînée achetée : MENTHE, ROSE, POUDRE D'OR… ne se voyaient qu'en un filet. Avec une traînée de la boutique, le feu prend SA couleur : dix nuances
@@ -159,7 +170,7 @@ function nfeuNait(i,b,gros,suie,mi){ // une flamme-cube dans la bouche du pot i 
   P[o+3]=(mi?M9.va*(1+.45*(N.kd-1)):N.vs)*(.75+.5*Math.random())*(gros?1.1:suie?.6:1);P[o+4]=ca*vr+(mi?0:sd9*(.3+.7*Math.random()));P[o+5]=sa*vr+(mi?.15*Math.random():gros?0:.2+.5*Math.random()); // un peu vers l'extérieur, à peine vers le haut (voir N.vs)
   P[o+6]=0;P[o+7]=(.22+.2*Math.random()+.07*b)*(gros?1.35:1)*(mi?M9.vie:1)*NFEU_JET.vie;P[o+8]=(.13+.07*Math.random())*(1+.25*b)*(gros?1.3:1)*N.kd*(mi?M9.t:1)*NFEU_FIN.taille;
   P[o+9]=(suie?Math.random()*.4:Math.random())+(mi?2:0);P[o+10]=i;P[o+11]=0; // mi : la GRAINE +2 marque le feu du MOTEUR (le genre 3 est le feu DÉTACHÉ en vol, celui de Sacha)
-  {const q=carGroup.quaternion,q4=o/3;N.Q[q4]=q.x;N.Q[q4+1]=q.y;N.Q[q4+2]=q.z;N.Q[q4+3]=q.w;if(N.libre&&mode==='fall')P[o+11]=3;}} // l'assiette de sa NAISSANCE, toujours (le feu fluide au sol la lit aussi) ; né en vol : DÉTACHÉ
+  {const q=carGroup.quaternion,q4=o/3;N.Q[q4]=q.x;N.Q[q4+1]=q.y;N.Q[q4+2]=q.z;N.Q[q4+3]=q.w;if(N.libre&&mode==='fall'&&!FNIT)P[o+11]=3;}} // l'assiette de sa NAISSANCE, toujours (le feu fluide au sol la lit aussi) ; né en vol : DÉTACHÉ
 function nfeuEtincelle(i,k9){ // un petit cube qui gicle DANS LE MONDE (il garde l'élan de la caisse, retombe, refroidit) ; k9 : sa taille (le crépitement du moteur : ,4)
   if(pnetCoupe('nfeuEtinc'))return; /* (2026-11-15, LE RENDU NET) le feu de pixels reste, ses étincelles qui giclent dans le monde se taisent */
   k9=k9||1;const N=NFEU;if(N.n>=NFEU_N||!N.pOk)return;const o=N.n*12,P=N.P,w=N.pw[i],D=N.D[i],r=(6+6*Math.random())*(k9<1?.6:1);N.n++;
@@ -226,11 +237,13 @@ function nfeuPas(dt,on,bleu,inf,speedKmh,F,mot){ // F : le moteur simulé (FLM) 
   const K=.92+.18*N.k;let n=0;
   const Q=N.Q,qc=carGroup.quaternion,C=carGroup.position,vol9=N.libre&&mode==='fall',ix=-qc.x,iy=-qc.y,iz=-qc.z,iw=qc.w,r9=N.r9,d9v=N.d9; // (le feu qui se détache) ix…iw : l'assiette d'à présent, inversée
   const vl9=N.v.length(),vh=N.vh;if(vl9>2)vh.copy(N.v).multiplyScalar(-1/vl9);else vh.set(0,0,0); // le VENT RELATIF : l'arrière de la trajectoire (rien si la caisse est arrêtée)
+  if(FNIT){let v8=(N.vf||0)+(((mode==='fall')?1:0)-(N.vf||0))*Math.min(1,dt*NFEU_VOL.vit);N.vf=v8>.97?1:v8<.03?0:v8;}else N.vf=0;
+  const vf9=N.vf,sv9=1-vf9; /* (LE FEU EN FIGURE, voir FNIT) 0 au sol, 1 en vol — calé net aux bouts : au sol le calcul d'avant, en vol le seul calcul de la comète */
   const HB9=N.hist||(N.hist=new Float32Array(10));HB9.fill(0); // (2026-10-18, Sacha) LA PART DE CHAQUE NUANCE dans le feu de cette image (voir bmapTrainee : les bords de la route clignotent pareil)
   for(let j=0;j<N.n;j++){const o=j*12,q4=j*4;
     P[o+6]+=dt;const a=P[o+6]/P[o+7];if(a>=1)continue; // morte : pas recopiée
-    let x,y,z,b,sz,e0=e[0],e1=e[1],e2=e[2],e4=e[4],e5=e[5],e6=e[6],e8=e[8],e9=e[9],e10=e[10];
-    if(vol9&&P[o+11]===0)P[o+11]=3; // né au sol, encore vivant au décollage : il se détache à son tour (Q : l'assiette de sa naissance, posée par nfeuNait — le feu fluide du sol s'en servait déjà)
+    let fb9=0,x,y,z,b,sz,e0=e[0],e1=e[1],e2=e[2],e4=e[4],e5=e[5],e6=e[6],e8=e[8],e9=e[9],e10=e[10];
+    if(vol9&&!FNIT&&P[o+11]===0)P[o+11]=3; // né au sol, encore vivant au décollage : il se détache à son tour (Q : l'assiette de sa naissance, posée par nfeuNait — le feu fluide du sol s'en servait déjà)
     if(P[o+11]===2){P[o+4]-=9*dt;P[o]+=P[o+3]*dt;P[o+1]+=P[o+4]*dt;P[o+2]+=P[o+5]*dt;x=P[o];y=P[o+1];z=P[o+2];b=a<.3?1:a<.65?3:5;sz=P[o+8]*(1-.5*a);} /* les étincelles : jaune d'or → orange → orange profond (les 10 nuances) */
     else{const i=P[o+10]|0,s=P[o],mi9=P[o+9]>=2,sd=mi9?P[o+9]-2:P[o+9],dr=Math.exp(-1.1*dt); // mi9 : le feu du MOTEUR (graine +2)
       const a9=a+.18*Math.min(1,Math.sqrt(P[o+1]*P[o+1]+P[o+2]*P[o+2])/.55)+(sd-.5)*.14-(mi9?NFEU_MINI.bleu:NFEU_JET.chaud); /* le feu du MOTEUR : un pied bleu très court à la bouche, puis le jaune et l'orange ; le NITRO garde plus longtemps son cœur blanc-jaune (la postcombustion) */ // le CŒUR du jet reste chaud, ses bords refroidissent plus tôt ; un peu de hasard par cube (le bord dentelé)
@@ -243,14 +256,15 @@ function nfeuPas(dt,on,bleu,inf,speedKmh,F,mot){ // F : le moteur simulé (FLM) 
       const pa9=(mi9?NFEU_PAS*NFEU_MINI.pas:NFEU_PAS)*NFEU_FIN.pas,qs=pa9?Math.round(P[o]/pa9)*pa9:P[o],qu=pa9?Math.round(P[o+1]/pa9)*pa9:P[o+1],qv=pa9?Math.round(P[o+2]/pa9)*pa9:P[o+2]; // (pas 0 : plus de grille, le mouvement est lisse) // de case en case (le feu du moteur : une grille plus fine)
       const w=N.pw[i],D=N.D[i],R=N.R[i],U=N.U[i];
       x=w.x+D.x*qs+R.x*qu+U.x*qv;y=w.y+D.y*qs+R.y*qu+U.y*qv;z=w.z+D.z*qs+R.z*qu+U.z*qv;sz=P[o+8]*NFEU_T10[b];
-      if(P[o+11]===0&&N.libre){ /* FLUIDE AU SOL : une PART de l'assiette de naissance (jusqu'à NFEU_SOL.det, qui monte avec l'âge) — le feu traîne dans les virages —
+      if(P[o+11]===0&&N.libre&&vf9<1){ /* FLUIDE AU SOL : une PART de l'assiette de naissance (jusqu'à NFEU_SOL.det, qui monte avec l'âge) — le feu traîne dans les virages —
            et en fin de vie le cube se couche dans le vent de la trajectoire (une glisse, un drift) */
         const bx=Q[q4],by=Q[q4+1],bz=Q[q4+2],bw=Q[q4+3];
         let dw=bw*iw-bx*ix-by*iy-bz*iz,dqx=bw*ix+bx*iw+by*iz-bz*iy,dqy=bw*iy-bx*iz+by*iw+bz*ix,dqz=bw*iz+bx*iy-by*ix+bz*iw;
         if(dw<0){dw=-dw;dqx=-dqx;dqy=-dqy;dqz=-dqz;}
-        const wt=Math.min(1,a*1.6)*NFEU_SOL.det;dqx*=wt;dqy*=wt;dqz*=wt;dw=1-wt+dw*wt;const l9=Math.hypot(dqx,dqy,dqz,dw)||1;dqx/=l9;dqy/=l9;dqz/=l9;dw/=l9;
+        const wt=Math.min(1,a*1.6)*NFEU_SOL.det*sv9;dqx*=wt;dqy*=wt;dqz*=wt;dw=1-wt+dw*wt;const l9=Math.hypot(dqx,dqy,dqz,dw)||1;dqx/=l9;dqy/=l9;dqz/=l9;dw/=l9;
         nfeuRot(dqx,dqy,dqz,dw,x-C.x,y-C.y,z-C.z,r9);x=C.x+r9.x;y=C.y+r9.y;z=C.z+r9.z;
-        if(vl9>2){const w9=NFEU_SOL.vent*a*a*qs;nfeuRot(dqx,dqy,dqz,dw,D.x,D.y,D.z,d9v);x+=w9*(vh.x-d9v.x);y+=w9*(vh.y-d9v.y);z+=w9*(vh.z-d9v.z);}}
+        if(vl9>2){const w9=NFEU_SOL.vent*a*a*qs*sv9;nfeuRot(dqx,dqy,dqz,dw,D.x,D.y,D.z,d9v);x+=w9*(vh.x-d9v.x);y+=w9*(vh.y-d9v.y);z+=w9*(vh.z-d9v.z);}}
+      if(vf9>.001&&P[o+11]===0&&vl9>2){fb9=Math.min(1,a*NFEU_VOL.k)*NFEU_VOL.vent*vf9;const w9=fb9*qs;x+=w9*(vh.x-D.x);y+=w9*(vh.y-D.y);z+=w9*(vh.z-D.z);} /* EN VOL : la queue se couche derrière la trajectoire (voir FNIT) */
       if(P[o+11]===3){ /* DÉTACHÉ : le point calculé dans le repère d'à présent est ramené dans celui de sa naissance, autour du centre de la caisse
            (Δ = q_naissance · q_présent⁻¹) — il suit la caisse en translation, pas en rotation */
         const bx=Q[q4],by=Q[q4+1],bz=Q[q4+2],bw=Q[q4+3];
@@ -263,7 +277,7 @@ function nfeuPas(dt,on,bleu,inf,speedKmh,F,mot){ // F : le moteur simulé (FLM) 
     const dx=x-cam.x,dy=y-cam.y,dz=z-cam.z,d9=Math.sqrt(dx*dx+dy*dy+dz*dz);sz*=Math.min(1.25,Math.max(.3,d9/dp));if(d9<fA)sz*=Math.max(0,(d9-fB)/(fA-fB));
     const g9=P[o+11]===2,mi8=!g9&&P[o+9]>=2,st9=g9?0:Math.min(NFEU_JET.etMax,P[o+3]*NFEU_JET.etire*(mi8?NFEU_MINI.et:1)); // (le JET) st9 : l'étirement le long du jet, tant que le cube file
     if(n!==j){P.copyWithin(n*12,o,o+12);Q.copyWithin(n*4,q4,q4+4);}
-    if(st9>.02){const Dj=N.D[P[n*12+10]|0],dx9=Dj.x,dy9=Dj.y,dz9=Dj.z; // chaque colonne c de la matrice devient c + st9·D·(D·c) : le cube s'allonge sur l'axe du jet, pas sur celui de la caisse
+    if(st9>.02){const Dj=N.D[P[n*12+10]|0];let dx9=Dj.x,dy9=Dj.y,dz9=Dj.z;if(fb9>0){dx9+=(vh.x-dx9)*fb9;dy9+=(vh.y-dy9)*fb9;dz9+=(vh.z-dz9)*fb9;const l8=Math.sqrt(dx9*dx9+dy9*dy9+dz9*dz9)||1;dx9/=l8;dy9/=l8;dz9/=l8;} /* (FNIT) en vol, l'étirement suit la courbe de la comète */ // chaque colonne c de la matrice devient c + st9·D·(D·c) : le cube s'allonge sur l'axe du jet, pas sur celui de la caisse
       let t9=dx9*e0+dy9*e1+dz9*e2;e0+=st9*dx9*t9;e1+=st9*dy9*t9;e2+=st9*dz9*t9;t9=dx9*e4+dy9*e5+dz9*e6;e4+=st9*dx9*t9;e5+=st9*dy9*t9;e6+=st9*dz9*t9;
       t9=dx9*e8+dy9*e9+dz9*e10;e8+=st9*dx9*t9;e9+=st9*dy9*t9;e10+=st9*dz9*t9;}
     const m=n*16;ar[m]=e0*sz;ar[m+1]=e1*sz;ar[m+2]=e2*sz;ar[m+3]=0;ar[m+4]=e4*sz;ar[m+5]=e5*sz;ar[m+6]=e6*sz;ar[m+7]=0;
@@ -274,6 +288,7 @@ function nfeuPas(dt,on,bleu,inf,speedKmh,F,mot){ // F : le moteur simulé (FLM) 
   N.ms=N.ms*.95+(performance.now()-t0)*.05;}
 window.dbgFlamme=function(o){ // (banc) l'état du moteur simulé et du feu ; dbgFlamme('nfeu',0|1) coupe / rend le feu de pixels
   if(o==='nfeu'){NFEU.on=!!arguments[1];if(!NFEU.on)nfeuCoupe();return NFEU.on;}
+  if(o==='figure'){if(arguments.length>1)FNIT=!!arguments[1];return FNIT;} /* (banc, 2026-11-19) le feu en figure : 1 = le neuf, 0 = l'avant (voir FNIT) */
   if(o==='libre'){if(arguments.length>1)NFEU.libre=!!arguments[1];let c=0;for(let j=0;j<NFEU.n;j++)if(NFEU.P[j*12+11]===3)c++;return {libre:NFEU.libre,detaches:c,n:NFEU.n,mode:mode};} // (banc) le feu qui se détache en vol : 1 = détaché, 0 = collé à la caisse (l'ancien)
   if(o==='proj'){const ar=NFEU.m.instanceMatrix.array,v=new THREE.Vector3(),r=[];for(let j=0;j<NFEU.n;j++){const m=j*16;v.set(ar[m+12],ar[m+13],ar[m+14]);const d=v.distanceTo(camera.position),sz=Math.hypot(ar[m],ar[m+1],ar[m+2]);v.project(camera);r.push([+d.toFixed(2),+(v.y).toFixed(2),+sz.toFixed(2),NFEU.P[j*12+11]]);}
     const w=new THREE.Vector3();potMonde(CAR_POTS[0],w);const pw9=w.toArray().map(x=>+x.toFixed(2)),dpot=w.distanceTo(camera.position);w.project(camera);return {dir:JET_DIR.map(function(d){return d.toArray().map(x=>+x.toFixed(2));}),pots:CAR_POTS.map(function(d){return d.toArray().map(x=>+x.toFixed(2));}),parPot:[0,1,2,3].map(function(i){let c=0;for(let j=0;j<NFEU.n;j++)if((NFEU.P[j*12+10]|0)===i&&(NFEU.P[j*12+11]===0||NFEU.P[j*12+11]===3))c++;return c;}),pot:[+dpot.toFixed(2),+w.y.toFixed(2),+w.x.toFixed(3)],pw:pw9,cam:camera.position.toArray().map(x=>+x.toFixed(1)),car:carGroup.position.toArray().map(x=>+x.toFixed(1)),cubes:r};} // (banc) où tombent les cubes : distance, hauteur à l'écran (−1 bas, +1 haut), taille

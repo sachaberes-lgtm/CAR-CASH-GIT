@@ -51,13 +51,13 @@ DU STYLE, PAS SEULEMENT DE LA VITESSE
 • Enchaîne sans faute et déclenche la FRÉNÉSIE.
 
 UN GARAGE À REMPLIR
-• Une cinquantaine de voitures à gagner, de l'épave aux légendes.
-• Peintures, ailes et traînées à essayer en 3D sur ta voiture.
+• 46 voitures, de l'épave aux légendes.
+• 82 peintures, des ailes et des traînées à essayer en 3D sur ta voiture.
 • Presque tout se gagne en jouant, avec l'argent ramassé en course.
 
 MISSIONS ET MONDES
 • Des missions à remplir pour débloquer des voitures.
-• Des mondes qui s'enchaînent : nuages, forêt, canyon, glacier, volcan, villes…
+• Des mondes qui s'enchaînent : nuages, Crypto City, pics de jade, orbite, profondeurs, canyon…
 
 SANS RIEN AUTOUR
 • 100 % hors ligne : joue dans le métro, en avion, partout.
@@ -107,13 +107,13 @@ STYLE, NOT JUST SPEED
 • Chain them without a mistake to trigger the FRENZY.
 
 A GARAGE TO FILL
-• Around fifty cars to earn, from the wreck to the legends.
-• Paints, wings and trails to try in 3D on your car.
+• 46 cars, from the wreck to the legends.
+• 82 paint jobs, wings and trails to try in 3D on your car.
 • Almost everything is earned by playing, with the cash you collect on the road.
 
 MISSIONS AND WORLDS
 • Missions to complete to unlock cars.
-• Worlds that keep coming: clouds, forest, canyon, glacier, volcano, cities…
+• Worlds that keep coming: clouds, Crypto City, jade peaks, orbit, the depths, canyon…
 
 NOTHING IN THE WAY
 • Fully offline: play on the subway, on a plane, anywhere.
@@ -167,19 +167,19 @@ les musiques, les voix et les images ont été faites avec Claude (11/11 : plus 
 | Violence réaliste, contenu sexuel, nudité, grossièretés, alcool/tabac/drogues, horreur, contenu médical | Aucun |
 | Jeux d'argent simulés, concours, paris | **Rare / peu fréquent** — la machine à sous FINAL SPIN (levier, rouleaux, trois 7 = JACKPOT) tire un lot au hasard à l'écran de fin ; ses jetons se ramassent en course et dans les missions du jour, aucun achat ne les donne, aucune mise en vrai argent, aucun gain en vrai argent. Concours, paris : Aucun. La note attendue passe alors à **13+** (au barème actuel d'Apple) |
 | Navigation web libre, contenu généré par les utilisateurs, messagerie, pubs | Non |
-| Achats intégrés | **Oui** — 37 produits non consommables (8 voitures + 29 peintures ; CHAT POP-TART est hors vente), achetés une fois ; « caisse » = achat direct d'une voiture connue, jamais de tirage aléatoire (boîtes à butin : Non) |
+| Achats intégrés | **Oui** — 39 produits non consommables (10 voitures + 29 peintures ; CHAT POP-TART est hors vente ; L'AIGLE DE FEU et L'ICEBERG ajoutées le 18/11, à créer dans App Store Connect), achetés une fois ; « caisse » = achat direct d'une voiture connue, jamais de tirage aléatoire (boîtes à butin : Non) |
 
 ## 6. Notes pour le testeur d'Apple (App Review Information)
 
 Coordonnées : ⚠ ton prénom, ton nom, ton téléphone, ton e-mail. Connexion requise : **Non** (pas de compte).
 
 <!-- notes-revue -->
-CASH CAR is a single-player arcade racing game, fully playable offline. No account, no login, no ads. It offers optional one-time in-app purchases (8 cars and 29 paint jobs, non-consumable, handled entirely by Apple's StoreKit) and a RESTORE PURCHASES button on the purchase page (the shop tile on the home screen). Its only network access is an optional check for new versions of the game content (public files, no personal data or identifier sent).
+CASH CAR is a single-player arcade racing game, fully playable offline. No account, no login, no ads. It offers optional one-time in-app purchases (10 cars and 29 paint jobs, non-consumable, handled entirely by Apple's StoreKit) and a RESTORE PURCHASES button on the purchase page (the shop tile on the home screen). Its only network access is an optional check for new versions of the game content (public files, no personal data or identifier sent).
 
 How to reach the gameplay:
 1. Launch the app and tap the CASH CAR logo.
-2. On the first launch, a short driving school (tutorial) starts; it can be skipped.
-3. From the home screen, tap JOUER / PLAY. Left thumb steers, right thumb fires the NITRO. The game plays in portrait and landscape.
+2. From the home screen, tap JOUER / PLAY. On the first launch this starts a one-minute guided driving school: six gestures, each shown on screen by a large thumb. It cannot be failed (a mistake simply replays the step) and when it ends the same run continues as a normal game.
+3. Left thumb steers, right thumb fires the NITRO. The game plays in portrait and landscape.
 
 About the € amounts collected on the road (coins and bills): this is a fictional in-game currency earned only by playing. It is not the real-money price of anything; the real prices of the optional purchases are the ones shown by StoreKit on the purchase page. This in-game currency cannot be bought, sold or exchanged for real money. Cars and paint jobs are unlocked with it, by completing missions, or, for the optional ones, with a one-time non-consumable in-app purchase (shown in euros or in the local currency by Apple). The "crates" are direct purchases of a known car: there is no random draw and no loot box. Likewise, the FINAL SPIN slot machine at the end screen uses free tokens collected on the road and in daily missions: they cannot be bought, and nothing won can be cashed out (simulated gambling, rare, declared in the age rating).
 

@@ -137,7 +137,7 @@ let rnd = 12345; const alea = () => (rnd = (rnd * 1103515245 + 12345) % 21474836
       else if (k === 'volant') await serie(k, { volant: true });
       else if (k === 'volantLache') await serie(k, { volant: true, lache: true });
       else if (k === 'nitro') await serie(k, { nitro: true });
-      else if (k === 'calme') await serie(k, { chaque: async () => { await c.ev('dbgAuto(true,0,{vol:true,nit:0});1'); for (let j = 0; j < 14; j++) { await dormir(80); await pas(1); if (await c.ev("document.body.classList.contains('hudCalme')")) break; } } },
+      else if (k === 'calme') await serie(k, { chaque: async () => { await c.ev('dbgAuto(true,0,{vol:true,nit:0});1'); for (let j = 0; j < 50; j++) { await dormir(80); await pas(1); if (await c.ev("document.body.classList.contains('hudCalme')")) break; } /* (2026-11-22) le calme tombe à 3 s (HUD_CALME_MS), plus 0,9 s */ } },
         null), await c.ev('dbgAuto(true,0,{vol:true,nit:1});1');
       else if (k === 'saut') await serie(k, { chaque: async () => { await c.ev('dbgAuto(true,0,{vol:true,nit:1,saut:60});1'); await pas(8 + Math.floor(alea() * 30)); } }), await c.ev('dbgAuto(true,0,{vol:true,nit:1});1');
       else if (k === 'argent') await serie(k, { chaque: async () => { await c.ev('dbgCash(987654321+Math.floor(Math.random()*1000));1'); await pas(3); } });
