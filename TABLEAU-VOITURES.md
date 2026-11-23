@@ -1,16 +1,16 @@
 # TABLEAU DES VOITURES (mis à jour le 2026-10-22, 3e version ; le 2026-11-18, le tri des voitures — seules les lignes de ce tri ont été revues, les autres prix datent du 22/10 ; le 2026-11-21, les défis impossibles : SQUALE et LA SILENCIEUSE, et la section du bas)
 
-Source vivante : https://claude.ai/artifact/8ARY7pWNmWxXP4rVvNSEkw · retirées sur ta demande : REQUIN, LA ZED, LA PUCE, LE TOFU, LA CAISSE-NUAGE, L'ABSTRAITE, LA FOURNAISE ; le 2026-11-18 : LA CABOSSÉE (79), LA FIDÈLE (81), LE SCARABÉE (6), LA PERLE (78), LA QUEUE DE CANARD (45) — détail dans `passation/qualite/voitures-tri.md`.
+Source vivante : https://claude.ai/artifact/8ARY7pWNmWxXP4rVvNSEkw · retirées sur ta demande : REQUIN, LA ZED, LA PUCE, LE TOFU, LA CAISSE-NUAGE, L'ABSTRAITE, LA FOURNAISE ; le 2026-11-18 : LA CABOSSÉE (79), LA FIDÈLE (81), LE SCARABÉE (6), LA PERLE (78), LA QUEUE DE CANARD (45) ; le 2026-11-23 : LE CAÏD (2), LA DOLCE VITA (80), LE BAROUDEUR (82), LA ZAGAIE (88, absente de cette fiche) — détail dans `passation/qualite/voitures-tri.md`.
 
 | N° | Voiture | Rareté | Type | Prix | Défi |
 |---|---|---|---|---|---|
-| 80 | LA DOLCE VITA | commune | Prix | 3 000 $ |  |
+| 80 | LA DOLCE VITA | commune | Retirée | ~~3 000 $~~ | (23/11) RETIRÉE du jeu ; 30 000 $ rendus à qui l'avait achetée |
 | 83 | LA CERISE | commune | Prix | 6 000 $ |  |
-| 82 | LE BAROUDEUR | commune | Prix | 8 000 $ |  |
+| 82 | LE BAROUDEUR | commune | Retirée | ~~8 000 $~~ | (23/11) RETIRÉE du jeu ; 80 000 $ rendus à qui l'avait acheté |
 | 0 | LA HONTE | commune | Départ |  |  |
 | 7 | LE COMBI | commune | Défi caché |  | PASSE 10 NIVEAUX DANS LES NUAGES (10 portails franchis en sortant de la mer de nuages, comptés depuis le 18/11) |
 | 1 | ELDORADO | rare | Prix | 50 000 $ |  |
-| 2 | LE CAÏD | rare | Prix | 60 000 $ |  |
+| 2 | LE CAÏD | rare | Retirée | ~~60 000 $~~ | (23/11) RETIRÉE du jeu ; 600 000 $ rendus à qui l'avait acheté |
 | 43 | LE CHARGEUR 69 | rare | Prix | 70000 $ |  |
 | 85 | LA LAME | rare | Prix | 80000 $ |  |
 | 40 | LA VETTE | rare | Prix | 90000 |  |

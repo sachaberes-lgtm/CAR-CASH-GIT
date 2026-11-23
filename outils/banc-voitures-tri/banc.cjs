@@ -12,6 +12,8 @@
         la caisse sort de `owned`, l'équipée repart en LA HONTE, le remboursement est celui de la règle, les habillages restent, les quatre gardées restent ;
      4. les deux secrètes : LE COMBI à 9 / 10 / 11 niveaux des nuages passés (secPorte), LA DOLORÈS à 29 j 23 h / 30 j pile / 31 j, et l'horloge reculée après coup ;
      5. L'AIGLE DE FEU et L'ICEBERG en boutique (produit, prix, une, promo), le prix barré seulement à côté d'un prix en euros.
+     6. (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») LE CAÏD (2), LA DOLCE VITA (80), LE BAROUDEUR (82), LA ZAGAIE (88) : la section 5 du
+        banc — fiches réduites, prix gardés, aucune vitrine ni tirage, sauvegardes d'essai (achetée, équipée, pas possédée, deux, quatre, nouveau joueur, plancher, cousin).
    node outils/banc-voitures-tri/banc.cjs [--base origin/qualite-appareil]     Sortie 0 = tout vert. Dernière ligne : BANC OK / BANC KO. */
 'use strict';
 const fs = require('fs'), path = require('path'), cp = require('child_process');
@@ -246,6 +248,72 @@ console.log('4. les secrètes : avant / pile / après le seuil, horloge reculée
   const W4 = charge(undefined, 'DOLORÈS : compte neuf'); if (W4) verifie(W4.J.SAVE.d.prof.ne === W4.H.t && W4.J.m2InstallJ() === 0, 'compte neuf : né maintenant, 0 jour', W4.J.SAVE.d.prof);
   /* sauvegarde d'avant le profil (sans prof) : née au premier lancement de cette version */
   const s5 = clone(SOCLE); delete s5.prof; const W5 = charge(s5, 'DOLORÈS : sauvegarde sans profil'); if (W5) verifie(W5.J.SAVE.d.prof.ne === W5.H.t, 'sans `prof` : la naissance est posée à ce lancement (on attend 30 jours à partir de là)', W5.J.SAVE.d.prof.ne);
+}
+
+/* ---------- 5. (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») QUATRE RETIRÉES DE PLUS ---------- */
+console.log('5. 23/11 : LE CAÏD, LA DOLCE VITA, LE BAROUDEUR, LA ZAGAIE retirées');
+{
+  const N4 = { caid: 'LE CAÏD', dolce: 'LA DOLCE VITA', baroudeur: 'LE BAROUDEUR', zagaie: 'LA ZAGAIE' }, Q4 = Object.keys(N4);
+  const I4 = {}; for (const k of Q4) I4[k] = ici.CARS.findIndex(c => c.name === N4[k]);
+  const PRIX4 = { caid: 600000, dolce: 30000, baroudeur: 80000, zagaie: 3500000 }; /* le prix de CAR_UNLOCK le jour du retrait : c'est lui qui est rendu */
+  console.log('  index lus dans CARS : ' + JSON.stringify(I4));
+  verifie(I4.caid === 2 && I4.dolce === 80 && I4.baroudeur === 82 && I4.zagaie === 88, 'les index comptés dans CARS : 2, 80, 82, 88', I4);
+  if (base) verifie(Q4.every(k => base.CARS[I4[k]].name === N4[k]), 'les mêmes index que ' + BASE + ' (aucune ligne n\'a glissé)');
+  for (const k of Q4) { const c = ici.CARS[I4[k]], u = ici.CAR_UNLOCK[I4[k]];
+    verifie(c.retire === 1 && !c.shape && Object.keys(c).length === 2, N4[k] + ' : {retire:1,name} seulement', c);
+    verifie(u && u.p === PRIX4[k] && Object.keys(u).length === 1, N4[k] + ' : son prix reste dans CAR_UNLOCK (' + PRIX4[k] + ' $) pour le remboursement', u); }
+  const r4 = new Set(Q4.map(k => I4[k]));
+  for (const k of Q4) verifie(J0.carRetiree(I4[k]) && !J0.carEnVente(I4[k]) && !J0.carPrice(I4[k]) && !J0.carUnlockedVrai(I4[k]) && !J0.carUnlocked(I4[k]), N4[k] + ' : retirée, ni en vente, ni à prix, ni ouverte');
+  verifie(!prod.some(p => p.type === 'car' && r4.has(p.cle)), 'catalogue App Store : aucune des quatre (aucune ne se vendait en euros)');
+  verifie(!Q4.some(k => J0.bqValide('v:' + I4[k])), 'boutique du jour : aucune des quatre (une vitrine gardée qui en citait une est retirée, bqValide)');
+  verifie(!aVendre.some(i => r4.has(i)), 'garage, onglets BOUTIQUE / TOUS : aucune des quatre');
+  verifie(!spin.some(i => r4.has(i)), 'machine à sous et série de sept jours (épiques à l\'argent du jeu) : pas LA ZAGAIE', spin);
+  verifie(!J0.M2.some(m => m.r && m.r.car && Q4.some(k => N4[k] === m.r.car)), 'aucune mission ne donne une des quatre (aucune ne se gagnait)');
+  /* la gamme qui reste : pas de trou pour le joueur neuf */
+  const enDollars = []; for (let i = 0; i < 91; i++) { const p = J0.carPrice(i); if (p && !J0.carEuros(i)) enDollars.push([p, J0.CARS[i].name]); } enDollars.sort((a, b) => a[0] - b[0]);
+  console.log('  ce qui s\'achète encore à l\'argent du jeu, du moins cher au plus cher : ' + enDollars.slice(0, 6).map(x => x[1] + ' ' + x[0]).join(' · ') + ' … (' + enDollars.length + ' caisses)');
+  verifie(enDollars.length >= 10 && enDollars[0][0] === 2500, 'compte neuf : la première caisse à acheter existe toujours (LE TAXI JAUNE, 2 500 $)', enDollars[0]);
+  const fam = {}; for (let i = 0; i < 91; i++) if (!J0.carRetiree(i)) { const r = J0.carRar(i); (fam[r] = fam[r] || []).push(J0.CARS[i].name); }
+  console.log('  familles : ' + Object.keys(fam).map(r => r + ' ' + fam[r].length).join(' · ') + ' — communes : ' + (fam.commun || []).join(', '));
+  verifie(['commun', 'rare', 'epique', 'legendaire'].every(r => fam[r] && fam[r].length >= 2), 'aucune famille du garage n\'est vide');
+  const collect = []; for (let i = 0; i < 91; i++) if (!J0.carRetiree(i) && !J0.carEuros(i)) collect.push(i);
+  verifie(collect.length >= 20, 'la mission « COLLECTE 20 VOITURES » reste faisable sans payer en euros (' + collect.length + ' caisses hors euros)', collect.length);
+  for (const id of ['car5', 'car10', 'car20', 'carall', 'rares']) { const m = J0.M2.find(x => x.id === id), se = J0.m2Seuil(m); verifie(se > 0 && isFinite(se), 'mission ' + id + ' : son seuil se recalcule (' + se + ')', se); }
+
+  /* les sauvegardes d'essai */
+  for (const k of Q4) { const i = I4[k];
+    { const s = clone(SOCLE); s.owned = [1, i]; const W = charge(s, N4[k] + ' achetée'); if (W) { const d = W.J.SAVE.d, r = W.J.SAVE.remb;
+      verifie(d.owned.indexOf(i) < 0 && d.owned.indexOf(1) >= 0, N4[k] + ' achetée : sort de owned, ELDORADO reste', d.owned);
+      verifie(d.bank === 1000 + PRIX4[k], N4[k] + ' achetée : remboursée ' + PRIX4[k] + ' $', d.bank - 1000);
+      verifie(d.equipped === 1, N4[k] + ' achetée : l\'équipée (ELDORADO) ne bouge pas', d.equipped);
+      verifie(r && r.v === PRIX4[k] && r.n.length === 1 && r.n[0] === N4[k], N4[k] + ' achetée : le message dit son nom et le montant', r);
+      const re = monde(JSON.stringify(d)); verifie(re.J.SAVE.d.bank === d.bank && !re.J.SAVE.remb, N4[k] + ' : rechargée, ni second remboursement ni second message', [re.J.SAVE.d.bank, re.J.SAVE.remb]); } }
+    { const s = clone(SOCLE); s.owned = [1, i]; s.equipped = i; s.shop.eq = { peinture: 'lagon', aile: 'phenix', trainee: 'foudre' }; const W = charge(s, N4[k] + ' équipée + habillée'); if (W) { const d = W.J.SAVE.d;
+      verifie(d.equipped === 0, N4[k] + ' équipée : repart en LA HONTE (index 0)', d.equipped);
+      verifie(d.bank === 1000 + PRIX4[k], N4[k] + ' équipée : remboursée aussi', d.bank - 1000);
+      verifie(d.shop.eq.peinture === 'lagon' && d.shop.eq.aile === 'phenix' && d.shop.eq.trainee === 'foudre' && ['peinture:lagon', 'aile:phenix', 'trainee:foudre'].every(x => d.shop.own.indexOf(x) >= 0), N4[k] + ' équipée : les habillages restent à toi et restent posés', d.shop); } }
+    { const s = clone(SOCLE); s.equipped = i; const W = charge(s, N4[k] + ' équipée sans être possédée'); if (W) verifie(W.J.SAVE.d.equipped === 0 && W.J.SAVE.d.bank === 1000 && !W.J.SAVE.remb, N4[k] + ' : équipée seule → LA HONTE, rien de versé', [W.J.SAVE.d.equipped, W.J.SAVE.d.bank]); }
+  }
+  /* ne l'a pas */
+  { const s = clone(SOCLE); s.owned = [1, I.iceberg]; const W = charge(s, 'aucune des quatre'); if (W) { const d = W.J.SAVE.d;
+    verifie(d.bank === 1000 && !W.J.SAVE.remb && d.owned.length === 2 && d.equipped === 1, 'ne possède aucune des quatre : rien ne bouge (banque, garage, équipée, pas de message)', [d.bank, d.owned, d.equipped]); } }
+  /* en a deux, puis les quatre */
+  { const s = clone(SOCLE); s.owned = [I4.caid, 1, I4.dolce]; s.equipped = I4.caid; const W = charge(s, 'LE CAÏD + LA DOLCE VITA, roule en CAÏD'); if (W) { const d = W.J.SAVE.d, r = W.J.SAVE.remb;
+    verifie(d.bank === 1000 + 630000 && d.owned.length === 1 && d.owned[0] === 1 && d.equipped === 0, 'en a deux : 630 000 $ rendus, ELDORADO reste, LA HONTE équipée', [d.bank, d.owned, d.equipped]);
+    verifie(r && r.v === 630000 && r.n.length === 2 && r.n.indexOf('LE CAÏD') >= 0 && r.n.indexOf('LA DOLCE VITA') >= 0, 'en a deux : un seul message, les deux noms, la somme', r); } }
+  { const s = clone(SOCLE); s.owned = [1, I4.caid, I4.dolce, I4.baroudeur, I4.zagaie]; s.equipped = I4.zagaie; s.bq = { j: 1, l: ['v:2', 'v:80', 'v:82', 'v:88'] }; s.serieCar = I4.zagaie; const W = charge(s, 'les quatre, roule en ZAGAIE'); if (W) { const d = W.J.SAVE.d, r = W.J.SAVE.remb;
+    verifie(d.bank === 1000 + 4210000 && d.owned.length === 1 && d.equipped === 0 && r && r.v === 4210000 && r.n.length === 4, 'les quatre : 4 210 000 $ rendus en une fois, quatre noms', [d.bank, d.owned, r]);
+ } }
+  /* avec les cinq du 18/11 */
+  { const s = clone(SOCLE); s.owned = [I.perle, I4.caid, I.cabossee]; s.equipped = I.perle; const W = charge(s, 'retirées du 18/11 et du 23/11 ensemble'); if (W) { const d = W.J.SAVE.d;
+    verifie(d.bank === 1000 + 2400000 + 600000 + 25000 && !d.owned.length && d.equipped === 0, 'PERLE + CAÏD + CABOSSÉE : 3 025 000 $ rendus, garage vide, LA HONTE', [d.bank, d.owned]); } }
+  /* nouveau joueur */
+  { const W = charge(undefined, 'nouveau joueur'); if (W) { const J = W.J, d = J.SAVE.d;
+    verifie(d.bank === 0 && d.equipped === 0 && (!d.owned || !d.owned.length) && !J.SAVE.remb, 'nouveau joueur : 0 $, LA HONTE, garage vide, aucun message', [d.bank, d.equipped, d.owned]);
+    verifie(Q4.every(k => !J.carUnlocked(I4[k]) && !J.carPrice(I4[k])), 'nouveau joueur : aucune des quatre ne s\'ouvre ni ne se vend'); } }
+  /* les portes de derrière : vieux plancher, code cousin */
+  { const s = clone(SOCLE); s.ex.floor = 90; s.cousin = 1; const W = charge(s, 'vieux plancher + code cousin'); if (W) verifie(Q4.every(k => !W.J.carUnlocked(I4[k]) && !W.J.carUnlockedVrai(I4[k])), 'ni le plancher des vieilles sauvegardes ni le code cousin ne rouvrent une des quatre'); }
+  charge({ v: 2, owned: [2, 80, 82, 88], equipped: 88, ...MUET }, 'sauvegarde minimale avec les quatre');
 }
 
 console.log('\n' + ok + ' vérifications, ' + ko + ' en échec');

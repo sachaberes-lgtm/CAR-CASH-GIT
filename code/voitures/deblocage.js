@@ -36,7 +36,7 @@ const CAR_UNLOCK=[
      un débutant fait 200 à 1 000 $. L'ancien 25 000 $ demandait donc ~30 parties pour la 1re caisse :
      un mur. Cible : la 1re caisse en 10-15 min de jeu (parties + primes de contrat), puis ×6-7 par marche. */
   {p:500e3},/* (2026-10-22, Sacha : « tableau des voitures » 40 000 → 50 000) */// ELDORADO — (2026-10-17, Sacha : « pas 3 000 dollars, elle doit coûter 40 000 dollars » — 3 000 → 40 000, juste sous LE CAÏD (50 000) ; le même jour LE CHARGEUR (60 000), LA BAVAROISE (100 000) et LE DÉFIEUR (120 000) montent aussi : l'ELDORADO reste la 1re caisse à l'argent) — (2026-10-14 soir, Sacha : option A de passation/ECONOMIE.md — 10 000 → 3 000 : la 1re caisse en 3-4 parties de joueur moyen, aucun gain ne change) — (2026-10-14, équilibrage : 24 000 → 10 000 — la 1re caisse à l'argent depuis le retrait des communes : un débutant l'avait en ~58 parties, ~22 désormais) — (2026-09-26) RARE : les 14 COMMUNES (1 500 → 15 000 $) prennent le rôle de « première caisse »
-  {p:600e3},/* (2026-10-22, Sacha : « tableau des voitures » 180 000 → 60 000) */ // LE CAÏD — RARE (2026-10-06 : 60 000 → 50 000) ; 50 000 → 180 000 : c'est le HUMMER EV désormais ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
+  {p:600e3}, /* (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») RETIRÉE (voir CARS) : la ligne reste pour l'index ; son prix ne sert plus qu'au REMBOURSEMENT de qui l'avait payée (SAVE.san) *//* (2026-10-22, Sacha : « tableau des voitures » 180 000 → 60 000) */ // LE CAÏD — RARE (2026-10-06 : 60 000 → 50 000) ; 50 000 → 180 000 : c'est le HUMMER EV désormais ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
   {p:180e3},            // (2026-10-06 : RETIRÉE, le prix sert au remboursement) SA MAJESTÉ — RARE, la plus chère des rares : l'argent achète la Rolls, c'est même à ça qu'il sert
   {p:4e6},/* (2026-10-22, Sacha : « tableau des voitures » 4 000 000 → 400 000) */ // (2026-10-19 : 2,5 M → 4 M, la plus chère des caisses à l'argent du jeu ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) (2026-10-06 : 1,5 M → 2,5 M) ROSSO 40 — (2026-09-25 : le mode Survivant est retiré, un seul mode de jeu) la caisse de RÊVE, à 1,5 M
   {p:132e5},/* (2026-11-05, Sacha : « poster 84 doit coûter 13200000 ») : 3 200 000 → 13 200 000 $ ; (2026-10-26, Sacha : « la POSTER 84 ne doit plus être en boutique ni à vendre en vrai argent : 20 % moins chère que la ROSSO 40 ») : 4 000 000 × 0,8 = 3 200 000 $ au garage ; avant : premium 1,61 € (2026-10-22, « tableau des voitures »), avant encore : rang d'aura MYTHE */
@@ -124,7 +124,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:30000}, // 80 — COMMUNE : Fiat 500 (2007), finition « 1957 »
+  {p:30000}, /* (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») RETIRÉE (voir CARS) : la ligne reste pour l'index ; son prix ne sert plus qu'au REMBOURSEMENT de qui l'avait payée (SAVE.san) */ // 80 — COMMUNE : Fiat 500 (2007), finition « 1957 »
   /* · */
   /* · */
   /* · */
@@ -132,7 +132,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:80000}, // 82 — COMMUNE : Jeep Wrangler JL (2018)
+  {p:80000}, /* (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») RETIRÉE (voir CARS) : la ligne reste pour l'index ; son prix ne sert plus qu'au REMBOURSEMENT de qui l'avait payée (SAVE.san) */ // 82 — COMMUNE : Jeep Wrangler JL (2018)
   /* · */
   /* · */
   /* · */
@@ -156,7 +156,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:3500000}, // 88 — ÉPIQUE : LA ZAGAIE, la 5-95 de Zagato (2026-10-22, Léo : « zagato imite exactement la forme de la voiture orange ») — prix provisoire (entre L'ICEBERG et ROSSO 40, la caisse de rêve à 4 M : un exemplaire unique)
+  {p:3500000}, /* (2026-11-23, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») RETIRÉE (voir CARS) : la ligne reste pour l'index ; son prix ne sert plus qu'au REMBOURSEMENT de qui l'avait payée (SAVE.san) */ // 88 — ÉPIQUE : LA ZAGAIE, la 5-95 de Zagato (2026-10-22, Léo : « zagato imite exactement la forme de la voiture orange ») — prix provisoire (entre L'ICEBERG et ROSSO 40, la caisse de rêve à 4 M : un exemplaire unique)
   /* · */
   /* · */
   /* · */
