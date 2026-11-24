@@ -34,14 +34,15 @@ const t0=Date.now(),graines=[];for(let i=0;i<NG;i++)graines.push(G0+i*37);
 console.log(`cerveau ${path.basename(fichier)} · ${NG} graines a partir de ${G0} · ${TMAX} s au plus · ${K} courses a la fois · regime ${REGIME}${CARTE?' · map '+CARTE+(METEO?'/'+METEO:''):''}`);
 
 const R=new Array(NG);let suivant=0,finis=0,jeu='?',nom=path.basename(fichier,'.js');
-function ligne(b){return `graine ${b.graine} · ${String(b.cartes.join('>')).padEnd(22)} ${String(b.duree_s).padStart(6)} s · ${String(b.cause).padEnd(8)} palier ${String(b.palier).padStart(2)} · pieces ${String(b.pieces).padStart(4)} · argent ${String(Math.round(b.argent)).padStart(6)} · figures ${String(b.figures_payees).padStart(2)} · air ${String(b.air_pct).padStart(4)} % · raccourcis ${b.raccourcis} · x${b.foisTempsReel}${b.pannes?' · PANNES '+b.pannes:''}`;}
+function ligne(b){return `graine ${b.graine} · ${String(b.cartes.join('>')).padEnd(22)} ${String(b.duree_s).padStart(6)} s · ${String(b.cause).padEnd(8)} palier ${String(b.palier).padStart(2)} · pieces ${String(b.pieces).padStart(4)} · argent ${String(Math.round(b.argent)).padStart(6)} · figures ${String(b.figures_payees).padStart(2)} · air ${String(b.air_pct).padStart(4)} % · raccourcis ${b.raccourcis} · x${b.foisTempsReel}${b.pannes?' · PANNES '+b.pannes:''}${b.erreurs?' · ERREURS DU CERVEAU '+b.erreurs+' ('+String(b.derniereErreur).slice(0,60)+')':''}`;}
 function lance(){
   if(suivant>=NG)return;
   const i=suivant++,g=graines[i];
   const c=fork(__filename,['--enfant'],{silent:true}); /* silent : le jeu bavarde au chargement, on ne garde que le resultat */
   let recu=false;
   c.on('message',function(m){recu=true;R[i]=m;jeu=m.jeu;nom=m.nom;console.log(ligne(m.bilan));});
-  c.on('exit',function(){
+  let err9='';if(c.stderr)c.stderr.on('data',function(x){err9=(err9+x).slice(-600);});
+  c.on('exit',function(code,sig){if(!recu)console.log('   (processus fini : code '+code+(sig?', signal '+sig:'')+') '+err9.replace(/s+/g,' ').slice(-300));
     if(!recu){R[i]=null;console.log(`graine ${g} · ERREUR : le processus n'a rien rendu`);}
     finis++;if(finis===NG)bilan();else lance();});
   c.send({fichier:fichier,graine:g,carte:CARTE,meteo:METEO,tmax:TMAX,regime:REGIME});

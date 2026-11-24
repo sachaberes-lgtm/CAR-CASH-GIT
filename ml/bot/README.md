@@ -39,7 +39,7 @@ module.exports = { nom: 'mon-cerveau', decide: function (vue, memoire) { return 
 - `decide` est appelé **toutes les 6 images (10 fois par seconde)**. Il rend un ordre (§ 3), ou rien.
 - `memoire` est un objet à lui, vide au départ de chaque course.
 - Il tourne dans un **bac fermé** (`charger`, dans `piloter.js`) : pas de `require`, pas de fichiers, pas de réseau, pas d'horloge, pas de
-  `Math.random`. Une décision de plus de 5 s est coupée et comptée comme une panne ; à la 3e panne la course est abandonnée (fin « panne »).
+  `Math.random`. Une décision de plus de 60 s est coupée et comptée comme une panne ; à la 2e la course est abandonnée (fin « panne »). Une décision qui lève une erreur (un bug du cerveau) est comptée à part (`erreurs`) : son ordre est vide, la course continue et reste répétable.
   Ce bac est un garde-fou, pas un coffre-fort. ⚠ Une panne rend la course non répétable : `noter.js` l'affiche (« PANNES n »), le journal
   du labo la garde course par course. La limite était de 500 ms jusqu'au 24/11 : un PC chargé la franchissait tout seul.
 - Pas de hasard, donc : **même version du jeu + même graine + même cerveau = même course**, au bit près, dans un processus neuf

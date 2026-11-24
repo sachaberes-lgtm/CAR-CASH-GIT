@@ -48,12 +48,18 @@ function charger(fichier,o){
      la franchir sans que le cerveau y soit pour rien — et la course n'est plus repetable. MESURES : a 25 ms, 1 decision sur ~2 000 coupee ;
      a 500 ms, le 24/11, PC charge par ailleurs (jeu sans ecran a 0,68 x le temps reel) : 3 et 10 decisions coupees sur la meme graine, deux
      courses differentes. En echange, une course s'ABANDONNE a la 3e panne (PANNES_MAX, dans course) : un cerveau qui boucle coute 15 s, pas des heures. */
-  const appel=new vm.Script('__r=__c.decide(__v,__m)'),ms=o.ms||5000;
-  return {nom:c.nom||path.basename(fichier,'.js'),fichier:fichier,source:src,pannes:0,
-    decide(vue,mem){ctx.__v=vue;ctx.__m=mem;try{appel.runInContext(ctx,{timeout:ms});return ctx.__r;}catch(e){this.pannes++;this.derniere=String(e&&e.message||e);return null;}}};
+  /* (2026-11-24, soir) 60 s, et DEUX COMPTES SEPARES. La note de depart en allege, lancee pendant que 13 agents occupaient le PC : 4 courses
+     abandonnees « panne » a 5 s. Or le meme compteur melait deux choses qui n'ont rien a voir :
+       · la decision COUPEE par la limite de temps (`pannes`) : elle depend de la charge du PC → la course n'est plus repetable → on abandonne ;
+       · la decision qui LEVE UNE ERREUR (`erreurs` : un bug du cerveau, une vue qu'il n'attendait pas) : elle se repete a l'identique → la course
+         reste repetable, l'ordre de cette decision est vide, on continue et on le dit dans le bilan. */
+  const appel=new vm.Script('__r=__c.decide(__v,__m)'),ms=o.ms||60000;
+  return {nom:c.nom||path.basename(fichier,'.js'),fichier:fichier,source:src,pannes:0,erreurs:0,
+    decide(vue,mem){ctx.__v=vue;ctx.__m=mem;try{appel.runInContext(ctx,{timeout:ms});return ctx.__r;}
+      catch(e){if(e&&e.code==='ERR_SCRIPT_EXECUTION_TIMEOUT')this.pannes++;else this.erreurs++;this.derniere=String(e&&e.message||e);return null;}}};
 }
 
-const PANNES_MAX=3; /* decisions coupees avant d'abandonner la course */
+const PANNES_MAX=2; /* decisions coupees par la limite de temps avant d'abandonner la course (un cerveau qui boucle : 2 minutes perdues, pas des heures) */
 /* UNE COURSE. o : { carte, meteo (imposer la map ; sinon la graine la tire), tmax (s de jeu, 180), trace (garder la vue de chaque decision),
    sansEnregistreur, yeuxEnPlus (controles de verifier.js) } */
 function course(J,cerveau,graine,o){
@@ -63,7 +69,7 @@ function course(J,cerveau,graine,o){
   J.ev('__JR.debut()');
   const D=new Doigts(J,()=>Y.modeDe(J)),mem={},JR=J.g.sandbox.__JR;
   const h=crypto.createHash('sha1'),vues=[];
-  let fr=0,vue=null,decisions=0,vide=0,pannes0=cerveau.pannes|0,abandon=false;
+  let fr=0,vue=null,decisions=0,vide=0,pannes0=cerveau.pannes|0,erreurs0=cerveau.erreurs|0,abandon=false;
   const t1=Date.now();
   while(fr<N){
     if(fr%HUMAIN.decision===0){
@@ -89,7 +95,7 @@ function course(J,cerveau,graine,o){
   partie.bot={nom:cerveau.nom,graine:graine,carte:o.carte||null,meteo:o.meteo||null,jeu:J.version,regime:J.regime||'max',tmax:tmax};
   delete partie.ecran;
   const bilan=Object.assign({graine:graine,images:fr,ms:ms,foisTempsReel:+(fr/60/Math.max(.001,ms/1000)).toFixed(2),
-    decisions:decisions,ordresVides:vide,pannes:(cerveau.pannes|0)-pannes0,gestesRefuses:D.refus,appuis:D.touches.filter(x=>x[2]).length,
+    decisions:decisions,ordresVides:vide,pannes:(cerveau.pannes|0)-pannes0,erreurs:(cerveau.erreurs|0)-erreurs0,derniereErreur:((cerveau.erreurs|0)-erreurs0||(cerveau.pannes|0)-pannes0)?(cerveau.derniere||null):null,gestesRefuses:D.refus,appuis:D.touches.filter(x=>x[2]).length,
     empreinte:h.digest('hex').slice(0,12)},mesures(partie));
   return {partie:partie,touches:D.touches,bilan:bilan,vues:o.trace?vues:undefined};
 }
