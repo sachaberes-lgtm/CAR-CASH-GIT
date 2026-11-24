@@ -78,6 +78,8 @@ Rien sur `main`, rien d'envoyé à Apple, rien d'installé sur l'iPhone sans le 
 - 24/11, 14 h 10 : sur l'iPhone (build 131, mode `chaleur=pub`, `pymobiledevice3 syslog live`) : init, consentement, `permis` vrais, mais
   vidéo ET plein écran JAMAIS chargés, et `choix=false` (Google ne voit pas l'iPhone en Europe : sortie du VPN). Cause probable : NordVPN.
   La raison exacte de Google est maintenant gardée (`dbgPub().admob.erreur`, champ `erreur=` du journal) : à lire sur le build 132.
+- 24/11, 14 h 30 (oui de Sacha « Oui, installe ») : **build 132 INSTALLÉ sur l'iPhone** (secours par la pub maison + erreur de Google gardée),
+  app remplacée SANS suppression ; vérifié : CASH CAR 1.0.0 (132). Copie : `~/cash-car/ios-ultime-mesures/builds/build132.app`.
 - Le 24/11 j'ai arrêté 4 Chrome sans fenêtre laissés par mes passages du banc (profils banc-achats-*) ; le banc les ferme désormais toujours.
 
 ## LE BANC (`node outils/banc-pub/banc.cjs`, Chrome sans fenêtre et muet, faux module AdMob ; `--sonde` : l'écran de fin toutes les 400 ms)
