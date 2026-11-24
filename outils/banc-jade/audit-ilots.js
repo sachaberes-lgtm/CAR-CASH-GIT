@@ -1,4 +1,4 @@
-(function(){
+(async function(){
   /* LA SONDE DES ÎLOTS DE JADE (2026-11-24, Sacha : « des bugs d'îlots générés trop proches de la route dans Jade ») — lecture seule, à passer en --auditfile au banc des maps :
        node outils/banc-maps/banc.cjs gen --carte=jade --meteo=midi --graines=1,2,3 --port=… --cdp=… --profil=… --auditfile=outils/banc-jade/audit-ilots.js --out=<hors dépôt> [--tel=1] [--q=sans=jadedegage]
      La roche contre la chaussée, dans le repère de la dalle (modèle : les disques des couches de chaque gabarit, erreur de l'ordre du mètre) :
@@ -8,9 +8,17 @@
        · '<N' = [montagnes, rochers] à moins de N m du bord ; `hors` : les mêmes sans les roches VOULUES contre la route (q.ori : ile-av, tour-clr, pic) ;
        · sauts   : un saut nitro lancé tous les 40 m à la croisière (court : 21 ; allongé : 21 + 19, comme veqSaut), joué jusqu'à sa pose ou 2,4 s, dans les VRAIS cubes
                    (dbgJadeCube, la caisse = 5 points comme jadeHeurt) : combien de sauts finissent dans la roche, et dans laquelle (origine) ;
-       · empRoute : l'empreinte de la ROUTE (pts au mm, NP, L) ; empVallee : dbgJadeEmpreinte() (le décor bâti). */
+       · empRoute : l'empreinte de la ROUTE (pts au mm, NP, L) ; empVallee : dbgJadeEmpreinte() (le décor bâti).
+     LE PALIER (2026-11-24, contrôle du lot : « la mesure du vol ne vaut qu'au palier 0 ») : --q=sondepalier=20 (ajouter &sans=… après) rebâtit la vallée de la même graine
+     au palier moteur 20 avant de mesurer (dbgTrace({palier}), comme à un portail : route plus longue, croisière plus vite), puis attend que le compte des montagnes
+     ne bouge plus. `palier` et `trace` dans la sortie ; sans le paramètre, la vallée du départ (palier 0), comme avant.
+     ⚠ `sauts` est un vol balistique TOUT DROIT à la croisière du palier, sans manche ni réacteur : en jeu le joueur braque en l'air et le réacteur fait planer.
+       C'est donc un majorant, bon pour comparer deux versions, pas un taux de morts en partie. */
+  const PAL=(/[?&]sondepalier=(\d+)/.exec(location.search)||[])[1];let trace=null;
+  if(PAL!=null&&window.dbgTrace){const t=dbgTrace({palier:+PAL});trace={palier:+PAL,L:t.L,eng:t.eng,vPal:t.vPal,rMin:t.rMin};
+    for(let n0=-1,stable=0,k=0;k<40&&stable<4;k++){await new Promise(function(r){setTimeout(r,250);});const j=dbgJadePil(),n=j&&j.P?j.P.length:-1;if(n===n0&&n>0)stable++;else stable=0;n0=n;}}
   const R=dbgRoute(),J=dbgJadePil();if(!J||!R)return 'pas de jade';
-  const pts=R.pts,T=R.T,B=R.B,Nn=R.Nn,NP=R.NP,L=R.L,demi=R.demi,ds=L/(NP-1),VX=J.VX,o={ds:+ds.toFixed(2),NP:NP,L:Math.round(L),demi:demi,VX:VX,pil:J.P.length,n3:J.n3,posees:J.posees,rase:J.rase,v3:J.v3};
+  const pts=R.pts,T=R.T,B=R.B,Nn=R.Nn,NP=R.NP,L=R.L,demi=R.demi,ds=L/(NP-1),VX=J.VX,o={palier:trace?trace.palier:0,trace:trace,ds:+ds.toFixed(2),NP:NP,L:Math.round(L),demi:demi,VX:VX,pil:J.P.length,n3:J.n3,posees:J.posees,rase:J.rase,v3:J.v3};
   {let h=0x811c9dc5;const mi=function(x){h=Math.imul(h^(x|0),16777619);};mi(NP);mi(Math.round(L*1000));for(let i=0;i<NP;i++){mi(Math.round(pts[i].x*1000));mi(Math.round(pts[i].y*1000));mi(Math.round(pts[i].z*1000));mi(Math.round(Nn[i].x*1e5));mi(Math.round(Nn[i].y*1e5));mi(Math.round(Nn[i].z*1e5));}o.empRoute=(h>>>0).toString(16);}
   try{const e=dbgJadeEmpreinte();o.empVallee=e&&e.h;}catch(e){}
   try{const a=dbgJadeAudit();o.audit={couloir:a.couloir,frole:a.frole,temoin:a.temoin,deco:a.deco,mods:a.mods};}catch(e){o.audit=String(e);}
