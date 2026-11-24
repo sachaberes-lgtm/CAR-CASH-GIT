@@ -36,7 +36,10 @@ function ajouter(f,o){
   const deja=fs.existsSync(f)?fs.readFileSync(f,'utf8'):'';
   fs.appendFileSync(f,(deja&&!deja.endsWith('\n')?'\n':'')+JSON.stringify(o)+'\n');
 }
-function ecrireGz(f,o){fs.mkdirSync(path.dirname(f),{recursive:true});fs.writeFileSync(f,zlib.gzipSync(Buffer.from(JSON.stringify(o)),{level:9}));}
+/* (2026-11-24, defaut 26 : « un rejeu en cours d'ecriture, ou abime, fait tomber la page ») ECRIRE D'UN COUP : dans un fichier a cote, puis
+   renomme. Un lecteur voit l'ancien fichier ou le nouveau, jamais une moitie ; un outil tue en pleine ecriture laisse l'ancien intact. */
+function ecrireAtomique(f,d){fs.mkdirSync(path.dirname(f),{recursive:true});const t=f+'.'+process.pid+'.ecriture';fs.writeFileSync(t,d);fs.renameSync(t,f);}
+function ecrireGz(f,o){ecrireAtomique(f,zlib.gzipSync(Buffer.from(JSON.stringify(o)),{level:9}));}
 function lireGz(f){return JSON.parse(zlib.gunzipSync(fs.readFileSync(f)).toString('utf8'));}
 
 /* ----- LA VERSION DU JEU : « un rejeu n'est exact que sur la version du jeu qui l'a produit » (plan, 5.5) -----
@@ -72,13 +75,34 @@ function resumeCourse(b,partie){
    REFUSE ce qui rendrait la ligne inutilisable plus tard : pas de raison, un parent inconnu, un cerveau d'API sans son cout. */
 /* qui n'a pas de cout a declarer : le code ecrit a la main, et celui ecrit par un agent sous ABONNEMENT (aucune API facturee au jeton : « opus-abonnement ») */
 function sansCout(modele){return modele==='main'||/abonnement$/.test(String(modele||''));}
+/* (2026-11-24, defaut 25 : « _essai » devenait « -essai », « élan » devenait « -lan », refuses APRES 10 minutes de note) LE NOM D'UN CERVEAU,
+   nettoye : accents retires, tout le reste devient un tiret, pas de tiret au bord. NOM_OK = ce que le journal accepte. */
+const NOM_OK=/^[a-z0-9][a-z0-9-]*$/i;
+function nettoyerNom(n){return String(n||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9-]+/gi,'-').replace(/^-+|-+$/g,'');}
+/* (2026-11-24, defaut 14 : « inscrire dans une generation deja close : ses courses restent au tampon pour toujours ») */
+function generationClose(etape,generation){return lire(F.generations).some(g=>g.etape===String(etape)&&g.generation===generation);}
+/* UNE INSCRIPTION EN COURS (le temps de la note, ~10 min) : un marqueur au tampon, que clore.js respecte (sinon la clôture passerait
+   pendant la note, et le candidat arriverait apres). Un marqueur dont le processus est mort ne compte plus. */
+const vivant=pid=>{try{process.kill(pid,0);return true;}catch(e){return e.code==='EPERM';}};
+function marquerInscription(etape,generation){
+  fs.mkdirSync(D.tampon,{recursive:true});const f=path.join(D.tampon,'inscription-'+process.pid+'.en-cours');
+  fs.writeFileSync(f,JSON.stringify({etape:String(etape),generation:generation,pid:process.pid,date:new Date().toISOString()}));
+  return ()=>{try{fs.unlinkSync(f);}catch(e){}};
+}
+function inscriptionsEnCours(etape,generation){
+  if(!fs.existsSync(D.tampon))return [];
+  return fs.readdirSync(D.tampon).filter(f=>/^inscription-\d+\.en-cours$/.test(f)).map(f=>{const g=path.join(D.tampon,f);let m=null;try{m=JSON.parse(fs.readFileSync(g,'utf8'));}catch(e){}
+      if(m&&m.pid!==process.pid&&!vivant(m.pid)){try{fs.unlinkSync(g);}catch(e){}return null;}return m;}) /* le marqueur d'une inscription morte (tuee) s'efface */
+    .filter(m=>m&&m.etape===String(etape)&&m.generation===generation&&m.pid!==process.pid);
+}
 function inscrire(c){
   const J=lire(F.cerveaux),ids=new Set(J.map(l=>l.id));
   const faute=m=>{throw new Error('inscription refusee : '+m);};
-  if(!c.nom||!/^[a-z0-9][a-z0-9-]*$/i.test(c.nom))faute('un nom simple (lettres, chiffres, tirets)');
+  if(!c.nom||!NOM_OK.test(c.nom))faute('un nom simple (lettres, chiffres, tirets)');
   if(!c.source||!/module\.exports/.test(c.source))faute('le code du cerveau (module.exports={nom, decide})');
   if(c.etape==null||c.etape==='')faute('l\'etape du plan (--etape)');
   if(!Number.isInteger(c.generation)||c.generation<0)faute('la generation (--generation, un entier)');
+  if(generationClose(c.etape,c.generation))faute('la generation '+c.generation+' de l\'etape '+c.etape+' est deja close : inscrire dans la suivante');
   if(!c.modele)faute('le modele qui a ecrit ce code (--modele ; « main » = ecrit a la main)');
   if(!c.raison||String(c.raison).trim().length<12)faute('la raison du changement (--raison, une vraie phrase) : c\'est elle qui fait l\'arbre et le recit');
   const parents=c.parents||[];for(const p of parents)if(!ids.has(p))faute('parent inconnu : '+p);
@@ -90,7 +114,8 @@ function inscrire(c){
   if(c.echange)ecrireGz(path.join(D.echanges,id+'.json.gz'),c.echange);
   const ligne={id:id,nom:c.nom,date:new Date().toISOString(),etape:String(c.etape),generation:c.generation,parents:parents,modele:c.modele,raison:String(c.raison).trim(),
     code:'cerveaux/'+code,sha:empreinte,octets:Buffer.byteLength(c.source),jumeau:jumeau,jeu:c.jeu,lot:c.lot||'entrainement',graines:c.graines,tmax:c.tmax,
-    note:c.note,courses:c.courses.map(x=>resumeCourse(x.bilan,x.partie)),echecs:c.echecs|0,cout:c.cout||null,echange:c.echange?'journal/echanges/'+id+'.json.gz':null};
+    /* la map et la meteo IMPOSEES a la note (--carte, --meteo ; null = tirees par la graine) : sans elles, garder.js ne refait pas la meme course (defaut 12) */
+    carte:c.carte||null,meteo:c.meteo||null,note:c.note,courses:c.courses.map(x=>resumeCourse(x.bilan,x.partie)),echecs:c.echecs|0,cout:c.cout||null,echange:c.echange?'journal/echanges/'+id+'.json.gz':null};
   /* le tampon d'abord, le journal en dernier : une ligne du journal a toujours ses courses derriere elle */
   ecrireGz(path.join(D.tampon,id+'.json.gz'),{id:id,nom:c.nom,jeu:c.jeu,courses:c.courses.map(x=>({graine:x.bilan.graine,bilan:x.bilan,partie:x.partie,touches:coderTouches(x.touches)}))});
   ajouter(F.cerveaux,ligne);
@@ -100,7 +125,7 @@ function inscrire(c){
 /* un candidat RENOTE sur d'autres graines (« le champion est toujours valide sur des graines que Claude n'a jamais vues ») */
 function valider(id,v){
   if(!lire(F.cerveaux).some(l=>l.id===id))throw new Error('candidat inconnu : '+id);
-  const ligne={id:id,date:new Date().toISOString(),jeu:v.jeu,graines:v.graines,tmax:v.tmax,note:v.note,courses:v.courses.map(x=>resumeCourse(x.bilan,x.partie)),echecs:v.echecs|0};
+  const ligne={id:id,date:new Date().toISOString(),jeu:v.jeu,graines:v.graines,tmax:v.tmax,carte:v.carte||null,meteo:v.meteo||null,note:v.note,courses:v.courses.map(x=>resumeCourse(x.bilan,x.partie)),echecs:v.echecs|0};
   ajouter(F.validations,ligne);return ligne;
 }
 /* UNE DEPENSE d'API (un candidat, une analyse, un calibrage) : euros = null si le tarif n'est pas encore connu (a chiffrer, jamais a deviner) */
@@ -129,7 +154,7 @@ function garder(ligne,x,pourquoi){
     fin:Object.assign({},x.partie.fin),cartes:b.cartes,pourquoi:pq,trajectoire:'trajectoires/'+base+'.json.gz',
     aide:'touches : le nombre d\'images (1/60 s) depuis le changement d\'avant, puis la touche — MAJUSCULE enfoncee, minuscule relachee ; G D H B N = gauche droite haut bas ESPACE',
     touches:touches};
-  fs.mkdirSync(D.rejeux,{recursive:true});fs.writeFileSync(fr,JSON.stringify(rejeu,null,1));
+  ecrireAtomique(fr,JSON.stringify(rejeu,null,1));
   ecrireGz(path.join(D.trajectoires,base+'.json.gz'),x.partie);
   return rejeu;
 }
@@ -151,7 +176,9 @@ function traceFine(id,x){
 function clore(etape,generation,o){
   o=o||{};etape=String(etape);
   const critere=o.critere||'argent_min';
-  if(lire(F.generations).some(g=>g.etape===etape&&g.generation===generation))throw new Error('generation deja close : etape '+etape+', generation '+generation);
+  if(generationClose(etape,generation))throw new Error('generation deja close : etape '+etape+', generation '+generation);
+  const enCours=inscriptionsEnCours(etape,generation);
+  if(enCours.length)throw new Error('une inscription est en cours dans cette generation (processus '+enCours.map(m=>m.pid).join(', ')+', depuis '+enCours[0].date+') : attendre qu\'elle finisse');
   const L=lire(F.cerveaux).filter(l=>l.etape===etape&&l.generation===generation&&l.lot!=='validation');
   if(!L.length)throw new Error('aucun candidat pour l\'etape '+etape+', generation '+generation);
   if(L.some(l=>typeof l.note[critere]!=='number'))throw new Error('critere inconnu dans la note : '+critere);
@@ -179,7 +206,7 @@ function clore(etape,generation,o){
 /* le jeu bavarde en se chargeant (ses propres messages, des erreurs de decor sans ecran) : on ne garde que ce que l'outil a a dire */
 function ensilence(f){const c=console,l=c.log,e=c.error,w=c.warn;c.log=c.error=c.warn=function(){};try{return f();}finally{c.log=l;c.error=e;c.warn=w;}}
 
-module.exports={sansCout,ensilence,RACINE,DEPOT,D,F,sha,lire,ajouter,ecrireGz,lireGz,versionJeu,coderTouches,decoderTouches,resumeCourse,inscrire,valider,depense,depenses,
+module.exports={sansCout,ensilence,RACINE,DEPOT,D,F,sha,lire,ajouter,ecrireAtomique,ecrireGz,lireGz,versionJeu,NOM_OK,nettoyerNom,generationClose,marquerInscription,inscriptionsEnCours,coderTouches,decoderTouches,resumeCourse,inscrire,valider,depense,depenses,
   garder,tampon,nomCourse,traceFine,clore};
 
 /* ----- lance seul : l'etat du labo ----- */

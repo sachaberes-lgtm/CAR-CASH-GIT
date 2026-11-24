@@ -1,6 +1,7 @@
 /* ===== LE PILOTE (2026-11-23, etape 1 BOTS-ML) : un cerveau conduit le VRAI jeu, par ses yeux et ses doigts =====
-   ouvrir()                     charge le jeu une fois (ml/reel), pose les yeux et branche l'enregistreur du jeu
-   charger(fichier)             charge un cerveau dans un bac ferme (ni fichiers, ni reseau, temps limite par decision)
+   ouvrir({regime})             charge le jeu une fois (ml/reel), pose les yeux et branche l'enregistreur du jeu ; J.version, J.sha (l'empreinte chargee)
+   charger(fichier,{source,ms}) charge un cerveau dans un bac ferme (ni fichiers, ni reseau, ni horloge, ni hasard, temps limite par decision) ;
+                                source : son texte, s'il est deja lu (noter.js le lit une fois pour toutes les courses)
    course(J,cerveau,graine,o)   une course : rend { partie, touches, bilan }
        partie  = l'enregistrement du jeu lui-meme (format cashcar-jeurec-1 : le meme que les parties de Sacha)
        touches = le journal des doigts ([image, touche, 1|0]) : avec la graine et la map, c'est le rejeu
@@ -24,26 +25,75 @@ const JR_CODE=`window.__JR={
 /* LE REGIME DU JEU (2026-11-24) : au chargement, le jeu juge la machine. Telephone ou puce graphique integree → version ALLEGEE, ou Crypto City est
    hors du tirage des maps ; le simulateur, sans carte graphique a juger, tombe au regime MAXIMUM. Les vrais joueurs de l'etalon sont tous en allege :
    `regime:'allege'` (le parametre ?allege=1 du jeu) fait jouer le bot dans LEUR jeu. Sans rien : le maximum, comme avant (les notes d'avant le 24/11). */
+/* (2026-11-24, defaut 16 : « une meme note peut meler deux versions du jeu ») J.sha = l'empreinte de ce que CE processus a charge : sha1 de
+   index.html + figures.js (la meme que versionJeu() de ml/labo), lue juste AVANT et juste APRES le chargement. Si un autre agent reassemble le jeu
+   pendant ce temps-la, les deux different : J.sha vaut alors null (version inconnue) et noter.js ecarte la course. */
+const JEU_DIR=path.join(__dirname,'..','..','VERSION PRINCIPALE');
+function shaJeu(){try{return crypto.createHash('sha1').update(Buffer.concat([fs.readFileSync(path.join(JEU_DIR,'index.html')),fs.readFileSync(path.join(JEU_DIR,'figures.js'))])).digest('hex').slice(0,12);}catch(e){return null;}}
 function ouvrir(o){
   o=o||{};
-  const regime=o.regime==='allege'?'allege':'max';
+  const regime=o.regime==='allege'?'allege':'max',v0=fs.readFileSync(path.join(JEU_DIR,'sw.js'),'utf8'),s0=shaJeu();
   const J=creer({silence:true,query:(regime==='allege'?'&allege=1':'')+(o.query||'')});J.regime=regime;
   Y.installer(J);J.ev(JR_CODE);
-  J.version=(fs.readFileSync(path.join(__dirname,'..','..','VERSION PRINCIPALE','sw.js'),'utf8').match(/cashcar-v\d+/)||['?'])[0];
+  const v1=fs.readFileSync(path.join(JEU_DIR,'sw.js'),'utf8'),s1=shaJeu();
+  J.version=v0===v1?(v1.match(/cashcar-v\d+/)||['?'])[0]:'?';
+  J.sha=s0&&s0===s1?s0:null;
   return J;
 }
+/* (2026-11-24, defaut 17 : « la limite de 180 s plafonne le palier mesure ») la limite par defaut d'une course : 900 s de jeu (15 min).
+   MESURE : le record de l'etalon (palier 28, 4044 pieces) tient en 548,8 s ; le bot de reference ramasse ~6,5 pieces/s : a 180 s il ne
+   pouvait pas depasser le palier ~15, a 300 s le palier ~20. 900 s laisse l'echelle 1 a 30 se remplir ; une course coupee reste marquee « temps ». */
+const TMAX_DEFAUT=900;
 
 /* LE BAC FERME : le cerveau tourne dans un contexte a part, sans require, sans process, sans horloge ni hasard ; une decision qui
-   depasse `ms` millisecondes est coupee (elle rend « rien »). Ce n'est pas un coffre-fort : c'est un garde-fou contre un programme
-   maladroit. Les cerveaux ecrits par l'API passeront par ici. */
+   depasse `ms` millisecondes est coupee (elle rend « rien »). Les cerveaux ecrits par l'API passeront par ici. */
+/* ===== LE BAC FERME POUR DE BON (2026-11-24, defauts 1 et 3 de ml/ecurie/etude/defauts-confirmes.md : « le bac laisse passer la vraie horloge,
+   le vrai hasard et le processus ») =====
+   MESURE (vm de Node 24, avant) : dans l'ancien bac, `Date.now()` rendait l'heure du PC, `Object.getPrototypeOf(Math).random()` le hasard de
+   Node (Math etait un Object.create du Math de l'hote), `memoire.constructor.constructor("return process")()` rendait `process` (memoire, module,
+   console : des objets de l'hote, dont le Function n'a pas l'interdit du bac), et la vue, faite DANS le jeu, ouvrait le jeu lui-meme.
+   Desormais RIEN de l'hote ni du jeu ne passe la frontiere, seulement du TEXTE :
+     · le contexte part d'un objet sans prototype ; module, exports, console, Math (une copie sans random) sont faits DEDANS ;
+     · Date est une souche qui refuse (« pas d'horloge : vue.t »), Intl (il donne la date du jour), WeakRef et FinalizationRegistry (le
+       ramasse-miettes n'est pas repetable), SharedArrayBuffer et Atomics sont retires ;
+     · la vue entre en TEXTE (JSON, avec NaN, ±Infinity, -0 et undefined gardes tels quels : un cerveau honnete voit exactement les memes
+       nombres) et se relit dans le contexte ; la memoire est un objet du contexte ; l'ordre ressort en TEXTE et se relit chez l'hote ;
+     · l'appel passe par `__bac`, une constante posee AVANT le cerveau, qui a garde JSON et String d'origine : le cerveau peut tout casser chez
+       lui, rien chez l'hote. Les promesses du cerveau tournent dans sa limite de temps (microtaskMode).
+   Ce qu'un cerveau qui triche obtient : une erreur (comptee dans `erreurs`, ordre vide), la course continue. Controle : verifier.js, section 5.
+   Ce n'est toujours pas un coffre-fort contre un attaquant du moteur JavaScript lui-meme : pour des cerveaux d'inconnus, un processus a part. */
+const BAC_CODE=`(function(g){
+  const M={};for(const k of Object.getOwnPropertyNames(Math))if(k!=='random')M[k]=Math[k];
+  const non=function(){throw new Error("pas d'horloge dans le bac : le temps du jeu est vue.t");};
+  const D=function Date(){non();};D.now=non;D.parse=non;D.UTC=non;
+  g.Math=M;g.Date=D;
+  for(const k of ['Intl','WeakRef','FinalizationRegistry','SharedArrayBuffer','Atomics'])delete g[k];
+  g.console={log(){},warn(){},error(){},info(){}};
+  g.module={exports:{}};g.exports=g.module.exports;
+})(globalThis);
+const __bac=(function(){'use strict';
+  const JS=JSON.stringify,JP=JSON.parse,S=String;
+  const enc=function(k,v){if(typeof v==='number'){if(v!==v)return '\\u0000N';if(v===Infinity)return '\\u0000I';if(v===-Infinity)return '\\u0000J';if(v===0&&1/v<0)return '\\u0000Z';}
+    else if(v===undefined)return '\\u0000U';return v;};
+  const dec=function(k,v){if(typeof v==='string'&&v.length===2&&v.charCodeAt(0)===0){const c=v.charCodeAt(1);
+    if(c===78)return NaN;if(c===73)return Infinity;if(c===74)return -Infinity;if(c===90)return -0;if(c===85)return undefined;}return v;};
+  let c=null,m={};
+  return Object.freeze({
+    pose:function(){const x=module.exports;if(!x||typeof x.decide!=='function')return 'E';c=x;return 'O'+(typeof x.nom==='string'?x.nom:'');},
+    neuve:function(){m={};},
+    appel:function(vj){try{const r=c.decide(JP(vj,dec),m);return 'O'+JS(r,enc);}catch(e){let s='?';try{s=S(e&&e.message||e);}catch(x){}return 'E'+s;}}});
+})();`;
+/* la vue → texte, chez l'hote (les memes reperes que `enc` du bac) */
+const encHote=(k,v)=>{if(typeof v==='number'){if(v!==v)return '\u0000N';if(v===Infinity)return '\u0000I';if(v===-Infinity)return '\u0000J';if(v===0&&1/v<0)return '\u0000Z';}else if(v===undefined)return '\u0000U';return v;};
+const decHote=(k,v)=>{if(typeof v==='string'&&v.length===2&&v.charCodeAt(0)===0){const c=v.charCodeAt(1);if(c===78)return NaN;if(c===73)return Infinity;if(c===74)return -Infinity;if(c===90)return -0;if(c===85)return undefined;}return v;};
 function charger(fichier,o){
   o=o||{};
-  const src=fs.readFileSync(fichier,'utf8'),mod={exports:{}};
-  const M=Object.create(Math);M.random=undefined;
-  const ctx=vm.createContext({module:mod,exports:mod.exports,Math:M,console:{log(){},warn(){},error(){}}},{codeGeneration:{strings:false,wasm:false}});
+  const src=o.source!=null?String(o.source):fs.readFileSync(fichier,'utf8');
+  const ctx=vm.createContext(Object.create(null),{codeGeneration:{strings:false,wasm:false},microtaskMode:'afterEvaluate'});
+  vm.runInContext(BAC_CODE,ctx,{filename:'bac.js'});
   vm.runInContext(src,ctx,{filename:path.basename(fichier),timeout:1000});
-  const c=mod.exports;if(!c||typeof c.decide!=='function')throw new Error(fichier+' : pas de decide(vue, memoire)');
-  ctx.__c=c;
+  const pose=vm.runInContext('__bac.pose()',ctx,{timeout:1000});
+  if(typeof pose!=='string'||pose[0]!=='O')throw new Error(fichier+' : pas de decide(vue, memoire)');
   /* 5 s : TRES large, expres. La limite ne sert qu'a arreter une boucle sans fin ; elle compte en vraie montre, donc un ordinateur charge peut
      la franchir sans que le cerveau y soit pour rien — et la course n'est plus repetable. MESURES : a 25 ms, 1 decision sur ~2 000 coupee ;
      a 500 ms, le 24/11, PC charge par ailleurs (jeu sans ecran a 0,68 x le temps reel) : 3 et 10 decisions coupees sur la meme graine, deux
@@ -53,21 +103,30 @@ function charger(fichier,o){
        · la decision COUPEE par la limite de temps (`pannes`) : elle depend de la charge du PC → la course n'est plus repetable → on abandonne ;
        · la decision qui LEVE UNE ERREUR (`erreurs` : un bug du cerveau, une vue qu'il n'attendait pas) : elle se repete a l'identique → la course
          reste repetable, l'ordre de cette decision est vide, on continue et on le dit dans le bilan. */
-  const appel=new vm.Script('__r=__c.decide(__v,__m)'),ms=o.ms||60000;
-  return {nom:c.nom||path.basename(fichier,'.js'),fichier:fichier,source:src,pannes:0,erreurs:0,
-    decide(vue,mem){ctx.__v=vue;ctx.__m=mem;try{appel.runInContext(ctx,{timeout:ms});return ctx.__r;}
-      catch(e){if(e&&e.code==='ERR_SCRIPT_EXECUTION_TIMEOUT')this.pannes++;else this.erreurs++;this.derniere=String(e&&e.message||e);return null;}}};
+  /* une decision = un petit script : la vue y entre comme un texte litteral (rien a poser sur le contexte, ou un cerveau aurait pu guetter) */
+  const ms=o.ms||60000;
+  return {nom:pose.slice(1)||path.basename(fichier,'.js'),fichier:fichier,source:src,pannes:0,erreurs:0,
+    neuve(){vm.runInContext('__bac.neuve()',ctx,{timeout:1000});},
+    decide(vue){let r;
+      try{r=vm.runInContext('__bac.appel('+JSON.stringify(JSON.stringify(vue,encHote))+')',ctx,{timeout:ms});}
+      catch(e){let code=null;try{code=e&&e.code;}catch(x){} /* seule une erreur de Node sort d'ici (__bac attrape tout le reste) ; avec microtaskMode, elle est faite dans le contexte : pas d'instanceof */
+        if(code==='ERR_SCRIPT_EXECUTION_TIMEOUT'){this.pannes++;this.derniere='decision coupee apres '+ms+' ms';}
+        else{this.erreurs++;this.derniere='le bac a leve une erreur';}return null;}
+      if(typeof r!=='string'){this.erreurs++;this.derniere='le bac n\'a rien rendu';return null;}
+      if(r[0]==='E'){this.erreurs++;this.derniere=r.slice(1,300);return null;}
+      try{return JSON.parse(r.slice(1),decHote);}catch(e){return null;}}};  /* 'Oundefined' (un cerveau qui ne rend rien) : ordre vide */
 }
 
 const PANNES_MAX=2; /* decisions coupees par la limite de temps avant d'abandonner la course (un cerveau qui boucle : 2 minutes perdues, pas des heures) */
-/* UNE COURSE. o : { carte, meteo (imposer la map ; sinon la graine la tire), tmax (s de jeu, 180), trace (garder la vue de chaque decision),
+/* UNE COURSE. o : { carte, meteo (imposer la map ; sinon la graine la tire), tmax (s de jeu, TMAX_DEFAUT = 900), trace (garder la vue de chaque decision),
    sansEnregistreur, yeuxEnPlus (controles de verifier.js) } */
 function course(J,cerveau,graine,o){
   o=o||{};
-  const tmax=o.tmax||180,N=Math.round(tmax*60);
+  const tmax=o.tmax||TMAX_DEFAUT,N=Math.round(tmax*60);
   J.lancer(graine,o.carte?{carte:o.carte,meteo:o.meteo}:{});
   J.ev('__JR.debut()');
-  const D=new Doigts(J,()=>Y.modeDe(J)),mem={},JR=J.g.sandbox.__JR;
+  const D=new Doigts(J,()=>Y.modeDe(J)),JR=J.g.sandbox.__JR;
+  cerveau.neuve(); /* la memoire du cerveau : vide au depart de chaque course (un objet de SON contexte) */
   const h=crypto.createHash('sha1'),vues=[];
   let fr=0,vue=null,decisions=0,vide=0,pannes0=cerveau.pannes|0,erreurs0=cerveau.erreurs|0,abandon=false;
   const t1=Date.now();
@@ -77,7 +136,7 @@ function course(J,cerveau,graine,o){
       h.update(vue.mode+'|'+(vue.s||0)+'|'+(vue.lat||0)+'|'+(vue.vitesse||0)+'|'+vue.nitro+'|'+vue.argent+';');
       if(vue.fini)break;
       vue.image=fr;vue.t=+(fr/60).toFixed(2);
-      let ordre=null;try{ordre=cerveau.decide(vue,mem);}catch(e){ordre=null;}
+      let ordre=null;try{ordre=cerveau.decide(vue);}catch(e){ordre=null;}
       if((cerveau.pannes|0)-pannes0>=PANNES_MAX){abandon=true;break;}   /* le cerveau boucle (ou l'ordinateur est a genoux) : cette course ne vaut rien */
       if(!ordre||typeof ordre!=='object'){ordre={};vide++;}
       D.ordre(ordre,vue);decisions++;
@@ -88,11 +147,14 @@ function course(J,cerveau,graine,o){
     if(o.yeuxEnPlus)Y.voir(J);   /* (controle, verifier.js) regarder plus souvent ne doit rien changer a la course */
     fr++;
   }
-  const ms=Date.now()-t1,vivant=!(vue&&vue.fini);
+  const ms=Date.now()-t1;
   D.lache();J.lacher();
   const partie=JSON.parse(J.ev('__JR.fin()'));
-  if(vivant&&partie.fin)partie.fin.cause=abandon?'panne':'temps'; /* arretee par la limite de temps (ou abandonnee : le cerveau en panne), pas par une mort */
-  partie.bot={nom:cerveau.nom,graine:graine,carte:o.carte||null,meteo:o.meteo||null,jeu:J.version,regime:J.regime||'max',tmax:tmax};
+  /* (2026-11-24, defaut 24 : « une mort dans les 5 dernieres images notee temps ») morte ou non, c'est l'ENREGISTREMENT qui le dit (l'evenement
+     'mort', ecrit a l'image pres), pas la derniere vue (prise jusqu'a 5 images avant la fin) */
+  const morte=!!(partie&&(partie.ev||[]).some(e=>e[1]==='mort'));
+  if(partie.fin&&(abandon||!morte))partie.fin.cause=abandon?'panne':'temps'; /* arretee par la limite de temps (ou abandonnee : le cerveau en panne), pas par une mort */
+  partie.bot={nom:cerveau.nom,graine:graine,carte:o.carte||null,meteo:o.meteo||null,jeu:J.version,jeu_sha:J.sha||null,regime:J.regime||'max',tmax:tmax};
   delete partie.ecran;
   const bilan=Object.assign({graine:graine,images:fr,ms:ms,foisTempsReel:+(fr/60/Math.max(.001,ms/1000)).toFixed(2),
     decisions:decisions,ordresVides:vide,pannes:(cerveau.pannes|0)-pannes0,erreurs:(cerveau.erreurs|0)-erreurs0,derniereErreur:((cerveau.erreurs|0)-erreurs0||(cerveau.pannes|0)-pannes0)?(cerveau.derniere||null):null,gestesRefuses:D.refus,appuis:D.touches.filter(x=>x[2]).length,
@@ -137,7 +199,7 @@ const HASARD_CODE=`window.__HAS={mode:null,cur:null,pos:null,prof:0,noms:[]};
 })()`;
 function rejouer(J,graine,touches,o){
   o=o||{};
-  const N=Math.round((o.tmax||180)*60),JR=J.g.sandbox.__JR,h=crypto.createHash('sha1'),serie=[];
+  const N=Math.round((o.tmax||TMAX_DEFAUT)*60),JR=J.g.sandbox.__JR,h=crypto.createHash('sha1'),serie=[];
   J.lancer(graine,o.carte?{carte:o.carte,meteo:o.meteo}:{});
   J.ev('__JR.debut()');
   let fr=0,k=0,vue=null,HAS=null;const hasard=[],appels=[],etat=o.hasard?J.ev('Math.random.__etat'):null;
@@ -155,12 +217,11 @@ function rejouer(J,graine,touches,o){
     if(etat)appels.push(HAS.cur);
   }
   if(HAS)HAS.mode=null;
-  const vivant=!(vue&&vue.fini);
   J.lacher();
   const partie=JSON.parse(J.ev('__JR.fin()'));
-  if(vivant&&partie.fin)partie.fin.cause='temps';
+  if(partie.fin&&!(partie.ev||[]).some(e=>e[1]==='mort'))partie.fin.cause='temps'; /* comme course() (defaut 24) */
   delete partie.ecran;
   /* hasard : images[i] = l'etat au debut de l'image i · appels[i] = [fonction, etat, fonction, etat…] dans l'ordre des appels de l'image i · noms = les fonctions */
   return {partie:partie,images:fr,empreinte:h.digest('hex').slice(0,12),serie:o.serie?serie:undefined,hasard:o.hasard?{images:hasard,noms:HAS.noms,appels:appels}:undefined,bilan:mesures(partie)};
 }
-module.exports={ouvrir,charger,course,rejouer,JR_CODE,HASARD_CODE};
+module.exports={ouvrir,charger,course,rejouer,shaJeu,TMAX_DEFAUT,JR_CODE,HASARD_CODE,BAC_CODE};

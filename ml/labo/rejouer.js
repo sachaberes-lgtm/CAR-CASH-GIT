@@ -16,7 +16,7 @@ function un(fichier,serie){
   const {ouvrir,rejouer}=require('../bot/piloter');
   const t0=Date.now();
   const r=L.ensilence(()=>rejouer(ouvrir({regime:R.jeu&&R.jeu.regime}),R.graine,L.decoderTouches(R.touches),{carte:R.carte,meteo:R.meteo,tmax:R.tmax,serie:!!serie,hasard:!!serie}));
-  if(serie)fs.writeFileSync(serie,JSON.stringify({rejeu:path.basename(fichier),jeu:jeu,serie:r.serie,hasard:r.hasard}));
+  if(serie)L.ecrireAtomique(serie,JSON.stringify({rejeu:path.basename(fichier),jeu:jeu,regime:(R.jeu&&R.jeu.regime)||'max',serie:r.serie,hasard:r.hasard})); /* d'un coup : la salle de projection peut le lire pendant ce temps */
   const f=r.partie.fin||{},meme=r.empreinte===R.empreinte&&r.images===R.images&&f.argent===R.fin.argent&&f.cause===R.fin.cause;
   return {fichier:path.basename(fichier),exact:meme,memeJeu:jeu.sha===R.jeu.sha,jeu:jeu,origine:R.jeu,empreinte:[R.empreinte,r.empreinte],images:[R.images,r.images],
     cause:[R.fin.cause,f.cause],argent:[R.fin.argent,f.argent],ms:Date.now()-t0};
@@ -30,9 +30,11 @@ if(A.includes('--tout')){
   const F=fs.existsSync(L.D.rejeux)?fs.readdirSync(L.D.rejeux).filter(f=>/\.json$/.test(f)).sort().map(f=>path.join(L.D.rejeux,f)):[];
   if(!F.length){console.log('aucun rejeu garde dans '+L.D.rejeux);process.exit(1);}
   const K=Math.max(1,Math.min(F.length,+opt('coeurs',Math.max(1,Math.min(4,os.cpus().length-2)))));let i=0,finis=0,exacts=0;
-  const lance=()=>{if(i>=F.length)return;const f=F[i++],c=fork(__filename,['--enfant'],{silent:true});let recu=false;
+  const lance=()=>{if(i>=F.length)return;const f=F[i++],c=fork(__filename,['--enfant'],{stdio:['ignore','ignore','pipe','ipc']});let recu=false,err9='';
+    /* (2026-11-24) la sortie du jeu n'est pas lue : un tuyau jamais vide finirait par bloquer l'enfant ; on garde la fin de ses erreurs, pour dire pourquoi */
+    c.stderr.on('data',x=>{err9=(err9+x).slice(-400);});
     c.on('message',x=>{recu=true;if(x.erreur)console.log(x.fichier+' : ERREUR '+x.erreur);else{dit(x);if(x.exact)exacts++;}});
-    c.on('exit',()=>{if(!recu)console.log(path.basename(f)+' : ERREUR, le processus n\'a rien rendu');finis++;
+    c.on('exit',()=>{if(!recu)console.log(path.basename(f)+' : ERREUR, le processus n\'a rien rendu'+(err9?' — '+err9.replace(/\s+/g,' ').trim().slice(-200):''));finis++;
       if(finis===F.length){console.log(`\n${exacts} rejeu(x) exact(s) sur ${F.length}`);process.exit(exacts===F.length?0:1);}else lance();});
     c.send({fichier:f});};
   for(let k=0;k<K;k++)lance();

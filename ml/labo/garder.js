@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* ===== GARDER UNE COURSE A LA MAIN (2026-11-24, etape 1 bis BOTS-ML : le betisier, « les morts les plus betes et les triches ») =====
-   usage : node garder.js c0012 910037 --pourquoi "mort absurde : il saute dans le portail"
+   usage : node garder.js c0012 910037 --pourquoi "mort absurde : il saute dans le portail"   [--carte ville --meteo nuit : un candidat d'avant le 24/11 note sur une map imposee]
    Si la generation est encore ouverte, la course sort du tampon. Sinon elle est REJOUEE a partir du code du candidat (un processus
    neuf, une course) et n'est gardee que si elle redonne la meme empreinte que celle du journal — donc sur la meme version du jeu. */
 const path=require('path');
@@ -17,8 +17,11 @@ if(!x){
   const jeu=L.versionJeu();
   if(jeu.sha!==ligne.jeu.sha){console.log(`le jeu a change depuis (${ligne.jeu.version}, empreinte ${ligne.jeu.sha}, commit ${ligne.jeu.commit} → aujourd'hui ${jeu.version}, ${jeu.sha}) : cette course ne se refait que sur l'ancienne version`);process.exit(1);}
   const {ouvrir,charger,course}=require('../bot/piloter');
-  const r=L.ensilence(()=>{const J=ouvrir({regime:ligne.jeu&&ligne.jeu.regime}),C=charger(path.join(L.RACINE,ligne.code));return course(J,C,graine,{tmax:ligne.tmax});});
-  if(r.bilan.empreinte!==c0.empreinte){console.log(`la course rejouee n'est pas celle du journal (empreinte ${r.bilan.empreinte} ≠ ${c0.empreinte}) : rien n'est garde`);process.exit(1);}
+  /* (2026-11-24, defaut 12 : « le rejeu oubliait la map et la meteo imposees : la course n'etait pas la meme ») la ligne du journal les porte
+     depuis le 24/11 ; une ligne plus ancienne n'en a pas : sa note les tirait de la graine, sauf --carte, que l'on retape ici. */
+  const carte=opt('carte',ligne.carte||null),meteo=opt('meteo',ligne.meteo||null);
+  const r=L.ensilence(()=>{const J=ouvrir({regime:ligne.jeu&&ligne.jeu.regime}),C=charger(path.join(L.RACINE,ligne.code));return course(J,C,graine,{tmax:ligne.tmax,carte:carte,meteo:meteo});});
+  if(r.bilan.empreinte!==c0.empreinte){console.log(`la course rejouee n'est pas celle du journal (empreinte ${r.bilan.empreinte} ≠ ${c0.empreinte} ; regime ${(ligne.jeu&&ligne.jeu.regime)||'max'}, map ${carte||'tiree par la graine'}${c0.pannes?' ; cette course avait des decisions coupees : elle n\'est pas repetable':''}) : rien n'est garde`);process.exit(1);}
   x={graine:graine,bilan:r.bilan,partie:r.partie,touches:r.touches};
   console.log('course rejouee a partir du code : meme empreinte que le journal ('+c0.empreinte+')');
 }

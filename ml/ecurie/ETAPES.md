@@ -10,12 +10,44 @@ Le plan d'ensemble est dans `PLAN.md`, l'étude dans `etude/`.
 | # | Étape | État |
 |---|---|---|
 | A | L'étude : ce qui donne des pièces, ce qui tue, les vrais joueurs mesurés | **faite** (commit `67ea1f009`) |
-| B | Les fondations : défauts corrigés, yeux v2, doigts v2 | **en cours** (24/11 au soir) |
+| B | Les fondations : défauts corrigés, yeux v2, doigts v2 | **à moitié** : les défauts sont corrigés et validés ; les yeux v2, les doigts v2 et la relecture restent à faire |
 | C | Le pilote d'élite, amélioré par tours | à faire |
-| C bis | La boucle automatique sur le crédit API (les 200 €), avec un plafond de dépense | **écrite** (`boucle.js`), pas encore essayée ; attend la clé de Sacha |
+| C bis | La boucle automatique sur le crédit API (les 200 €), avec un plafond de dépense | **écrite** (`boucle.js`), **jamais essayée** (ni à blanc, ni pour de vrai) ; la clé est posée par Sacha |
 | D | Le facteur humain et les 30 niveaux | à faire |
 | E | Le juge, niveau par niveau | à faire |
 | F | Le paquet du matchmaking et le dossier du portfolio | à faire |
+
+---
+
+## OÙ ON EN EST — à lire en premier (24/11/2026, 20 h 30, fin de la première session)
+
+**Fait et validé dans git** (branche `bots-ecurie`) :
+- l'étude (`etude/`), le plan (`PLAN.md`), le juge `ml/bot/discerner.js`, le palier dans les mesures, le régime allégé du simulateur ;
+- **les 24 défauts corrigés** sur les 28 confirmés : 15 dans `ml/bot`, 9 dans `ml/labo`. Contrôles faits par les agents qui les ont
+  corrigés : `node verifier.js` passe en entier avec l'empreinte `a7b3171768ca`, les 4 rejeux gardés restent exacts, `node etalon.js`
+  donne les paliers 1 1 4 5 5 8 11 12 14 15 16 21 22 28. Je n'ai refait moi-même que la syntaxe, `etalon.js` et `labo.js` ;
+- la note de départ : le bot de référence en version allégée, **palier médian 9, meilleur 25** (`ml/bot/results/note-reference-allege.json`) ;
+- la boucle sur le crédit API : `boucle.js`, `CONSIGNES.md`, `essai-api.js`.
+
+**Pas fait** :
+- **les yeux v2** (le radar de vol, les dangers du décor) : l'agent venait de commencer, rien n'est écrit dans `yeux.js` ;
+- **les doigts v2** (profil, appuis humains, seconde chance) : pas commencés ;
+- **la relecture** des corrections par trois agents : pas faite. Les 4 défauts de documents (n° 4, 19, 20, 22) et le n° 7 (les raccourcis
+  ne se comptent pas tout à fait comme le jeu) restent ouverts ;
+- **la boucle n'a jamais tourné**, même à blanc (l'essai a été interrompu) ;
+- aucun pilote de l'écurie n'existe.
+
+**La clé d'API.** Sacha l'a posée (`setx ANTHROPIC_API_KEY`) et dit que `node essai-api.js` passe. Les deux premières clés essayées
+répondaient « credit balance is too low ». Une session ouverte avant le `setx` ne voit pas la clé : lancer depuis un terminal neuf.
+
+**Le texte à coller dans la prochaine session :**
+> Dans `C:\Users\sacha\code\CASH-CAR-bots-ecurie` (branche `bots-ecurie`), lis `ml/ecurie/ETAPES.md` (la section « Où on en est »),
+> `ml/ecurie/PLAN.md` et `ml/ecurie/etude/*.md`. Fais dans l'ordre, en validant dans git à la fin de chaque point et en mettant
+> `ETAPES.md` à jour : (1) `node ml/ecurie/essai-api.js` puis `node ml/ecurie/boucle.js --a-blanc --tours 1 --candidats 3 --depuis ml/bot/reference.js`,
+> et corrige ce qui casse ; (2) finis l'étape B : les yeux v2 puis les doigts v2, comme décrits à l'étape B, avec `node ml/bot/verifier.js`
+> qui passe et l'empreinte `a7b3171768ca` ; (3) écris le premier pilote `ml/ecurie/pilote.js` (étape C) ; (4) lance le calibrage de
+> l'étape C bis (10 €), puis la boucle par tranches de 20 €, sans dépasser 200 € au total. Jamais plus de 4 courses à la fois. Si la limite
+> d'usage du modèle bloque des agents, lance-les avec un autre modèle. Ne me pose pas de question.
 
 ---
 

@@ -11,6 +11,9 @@
 const L=require('./labo');
 const A=process.argv.slice(2),opt=(n,d)=>{const i=A.indexOf('--'+n);return i>=0?A[i+1]:d;};
 if(opt('etape',null)==null||opt('generation',null)==null){console.log('usage : node clore.js --etape N --generation G [--critere argent_min]');process.exit(1);}
+if(!/^\d+$/.test(String(opt('generation'))))stop9('--generation : un entier (0, 1, 2…)');
+function stop9(m){console.log(m);process.exit(1);}
+/* (2026-11-24) une inscription en cours dans cette generation (inscrire.js pose un marqueur au tampon le temps de sa note) : labo.clore refuse */
 let g;try{g=L.clore(opt('etape'),parseInt(opt('generation'),10),{critere:opt('critere',null)});}catch(e){console.log(String(e.message||e));process.exit(1);}
 console.log(`generation close : etape ${g.etape}, generation ${g.generation} · ${g.candidats} candidat(s), ${g.courses} course(s)`);
 console.log(`champion : ${g.champion} (${g.critere} = ${g.note_champion[g.critere]})`);

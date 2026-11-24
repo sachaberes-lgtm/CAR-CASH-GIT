@@ -12,9 +12,16 @@
         la meme partie des deux cotes) et note l'AUC : 0,50 = le juge tire a pile ou face (indiscernable), 1,00 = il ne se trompe jamais ;
      3. donne le TEMOIN : le meme juge, humains contre humains (une partie sur deux) — ce que vaut 0,50 avec si peu de parties ;
      4. dit CE QUI TRAHIT le bot : l'AUC de chaque mesure prise seule, la plus bavarde d'abord, avec la valeur humaine et la valeur du bot.
-   LIMITE, a dire a chaque fois : 14 parties de 2 joueurs. Le juge apprend « Sacha et Leo », pas « un humain ». */
+   LIMITE, a dire a chaque fois : 14 parties de 2 joueurs. Le juge apprend « Sacha et Leo », pas « un humain ».
+   (2026-11-24, defaut 28 : « le juge ne compte pas les parties comme l'etalon ») LES PARTIES DES JOUEURS sont celles d'etalon.js, comptees par
+   la MEME fonction (partiesJoueurs de mesures.js) : doublons ecartes, seconde chance recollee, fin a la mort et a la pause, moins de 10 s
+   ecartees. Avant : 11 parties « clavier » ici contre 10 a l'etalon (une reprise comptee comme une partie). Une partie du bot aussi s'arrete
+   a sa mort (finVraie) : l'explosion n'entre dans aucune fenetre.
+   CE QUE VAUT LE VERDICT : il depend de l'echantillon du bot. Les 4 courses de ml/labo/trajectoires sont les courses EXTREMES qu'a gardees
+   clore.js (la meilleure, la plus courte, le plus long vol…) : un verdict sur elles n'est pas celui du bot ordinaire. Pour juger un bot :
+   une note complete, node noter.js <cerveau> --parties --graines 20, puis node discerner.js results/note-<…>.json. */
 const fs=require('fs'),path=require('path'),zlib=require('zlib');
-const {partiesDe}=require('./mesures');
+const {partiesDe,partiesJoueurs,finVraie}=require('./mesures');
 const A=process.argv.slice(2),opt=(n,d)=>{const i=A.indexOf('--'+n);return i>=0?A[i+1]:d;};
 const FEN=+opt('fenetre',10),QUI=opt('humains','clavier');
 
@@ -32,6 +39,7 @@ const NOMS=['ecart au milieu (part de la demi-route)','ecart-type de l\'ecart','
   'vitesse : ecart-type / moyenne','part du temps en l\'air','decollages par 10 s','vol moyen (s)','hauteur max (m)','part du temps nitro','bascules de nitro par 10 s',
   'part du temps en drift','figures par 10 s','pieces par seconde','part du temps pres du bord (> 80 %)','acceleration laterale (ecart-type, m/s2)'];
 function fenetres(c){
+  c=finVraie(c);
   const col={};(c.cols||[]).forEach((n,i)=>col[n]=i);const E=c.ech||[],ev=c.ev||[],g=(e,n)=>e[col[n]],F=[];
   if(E.length<FEN*10)return F;
   const rh=r=>((c.routes||[])[r]||{}).rh||28;
@@ -75,12 +83,11 @@ function juge(G){ /* G : [{y, F:[fenetres]}] */
   return auc(S);}
 
 /* ----- les parties ----- */
-const HUM=[];for(const f of fichiersDe(path.join(__dirname,'etalon')))for(const c of partiesDe(lis(f))){
-  if(c.bot||c.tuto||!c.fin||!c.ech||c.fin.t<20)continue;const E=c.ech,i=(c.cols||[]).indexOf('doigt'),clavier=i>=0?!E.some(e=>e[i]):null;
-  if(QUI==='clavier'&&!clavier)continue;if(QUI==='doigt'&&clavier)continue;
-  if(HUM.some(h=>h.c.debut===c.debut&&h.c.fin.t===c.fin.t))continue;HUM.push({c:c,clavier:clavier});}
+const PJ=partiesJoueurs(fichiersDe(path.join(__dirname,'etalon')).map(f=>({nom:path.basename(f),j:lis(f)})));
+const HUM=[];for(const c of PJ.parties){const E=c.ech,i=(c.cols||[]).indexOf('doigt'),clavier=i>=0?!E.some(e=>e[i]):null;
+  if(QUI==='clavier'&&!clavier)continue;if(QUI==='doigt'&&clavier)continue;HUM.push({c:c,clavier:clavier});}
 const sources=A.filter((a,i)=>!a.startsWith('--')&&!(i&&A[i-1].startsWith('--')));
-const BOT=[];for(const s of sources)for(const f of fichiersDe(s))for(const c of partiesDuFichier(f))if(c&&c.ech&&c.fin&&c.fin.t>=20)BOT.push({c:c});
+const BOT=[];for(const s of sources)for(const f of fichiersDe(s))for(const c of partiesDuFichier(f))if(c&&c.ech&&c.fin&&finVraie(c).fin.t>=10)BOT.push({c:c}); /* le meme seuil que les joueurs */
 if(!sources.length||!BOT.length){console.log('usage : node discerner.js <parties-du-bot.json | .json.gz | dossier> [--fenetre 10] [--humains clavier|doigt|tous]\n(aucune partie de bot lue)');process.exit(1);}
 const GH=HUM.map(h=>({y:1,F:fenetres(h.c)})).filter(g=>g.F.length),GB=BOT.map(b=>({y:0,F:fenetres(b.c)})).filter(g=>g.F.length);
 const nH=GH.reduce((s,g)=>s+g.F.length,0),nB=GB.reduce((s,g)=>s+g.F.length,0);
@@ -111,14 +118,15 @@ const r3=x=>x==null?null:+x.toFixed(3);
 const zMax=Math.max(...seules.map(s=>Math.abs(s.z))),eA=A1==null?1:Math.abs(A1-.5);
 const verdict=eA<=.10&&zMax<=1.5?'INDISCERNABLE (juge a pile ou face, aucune mesure hors des joueurs)'
   :eA>.4?'DISCERNABLE A COUP SUR':eA>.25?'DISCERNABLE':(temEc!=null&&eA<=temEc&&zMax<=2.5)?'PAS DE PREUVE (trop peu de parties pour trancher) — pas encore une reussite':'PLUTOT DISCERNABLE';
-console.log(`humains (${QUI}) : ${GH.length} parties, ${nH} fenetres de ${FEN} s · bot : ${GB.length} parties, ${nB} fenetres`);
+console.log(`humains (${QUI}) : ${GH.length} parties, ${nH} fenetres de ${FEN} s (l'etalon : ${PJ.parties.length} parties, ${PJ.recollees} reprise(s) recollee(s), ${PJ.doublons} doublon(s)) · bot : ${GB.length} parties, ${nB} fenetres`);
 console.log(`LE JUGE : AUC ${r3(A1)} — ${verdict}`);
 console.log(`le temoin (etiquettes melangees, ${tem.length} fois) : AUC ${r3(temMoy)} en moyenne ; 95 % des melanges restent a moins de ${r3(temEc)} de 0,50`);
 console.log('CE QUI TRAHIT LE BOT (z = distance aux joueurs en ecarts-types d\'une partie a l\'autre ; AUC de la mesure seule : 0,50 = rien) :');
 for(const s of seules)console.log(`  z ${String(s.z).padStart(6)} · AUC ${String(s.auc).padEnd(5)} ${s.mesure.padEnd(52)} humains ${String(s.humains).padStart(7)} · bot ${String(s.bot).padStart(7)}`);
 console.log('⚠ '+GH.length+' parties de joueurs seulement (2 joueurs en tout) : ce juge connait Sacha et Leo, pas « les humains ».');
+if(sources.some(s=>/trajectoires/.test(s)))console.log('⚠ ml/labo/trajectoires = les courses EXTREMES gardees par clore.js, pas un echantillon du bot : pour un verdict, une note complete (noter.js --parties).');
 const sortie=opt('sortie',path.join(__dirname,'results','discerner-'+(opt('nom',null)||path.basename(sources[0]).replace(/\.json(\.gz)?$/,''))+'.json'));
 fs.mkdirSync(path.dirname(sortie),{recursive:true});
-fs.writeFileSync(sortie,JSON.stringify({date:new Date().toISOString(),fenetre_s:FEN,humains:{qui:QUI,parties:GH.length,fenetres:nH},bot:{sources:sources.map(s=>path.basename(s)),parties:GB.length,fenetres:nB},
+fs.writeFileSync(sortie,JSON.stringify({date:new Date().toISOString(),fenetre_s:FEN,humains:{qui:QUI,parties:GH.length,fenetres:nH,etalon:PJ.parties.length,recollees:PJ.recollees,doublons:PJ.doublons},bot:{sources:sources.map(s=>path.basename(s)),parties:GB.length,fenetres:nB},
   auc:r3(A1),verdict:verdict,temoin:{auc:tem.map(r3),moyenne:r3(temMoy),ecart_max:r3(temEc)},mesures:seules},null,1));
 console.log('ecrit : '+path.relative(process.cwd(),sortie));

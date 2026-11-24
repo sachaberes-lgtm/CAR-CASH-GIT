@@ -2,20 +2,23 @@
 /* ===== L'AUTOPSIE D'UNE COURSE (2026-11-23, etape 1 BOTS-ML : « Claude lit les echecs et reecrit ») =====
    Rejoue UNE graine avec un cerveau et raconte la fin : ce que le bot voyait et ce qu'il a ordonne, decision par decision,
    dans les dernieres secondes. C'est le texte qu'on donne a lire (a Claude, a Sacha) pour comprendre une mort.
-   usage : node autopsie.js [cerveau.js] --graine 910037 [--carte ville] [--meteo nuit] [--tmax 180] [--avant 4] [--json]
+   usage : node autopsie.js [cerveau.js] --graine 910037 [--carte ville] [--meteo nuit] [--regime max|allege] [--tmax 900] [--avant 4] [--json]
+     --regime  (2026-11-24, defaut 8) LE MEME que la note : en allege, Crypto City sort du tirage et la meme graine donne une autre course.
+               Sans lui, l'autopsie d'une mort notee en allege racontait une AUTRE course (max par defaut, comme noter.js)
+     --tmax    LE MEME que la note (900 par defaut, comme noter.js depuis le 24/11 ; une note faite a 300 s : --tmax 300)
      --avant   combien de secondes avant la fin on raconte (4)
      --json    les vues completes au lieu du recit */
 const path=require('path');
-const {ouvrir,charger,course}=require('./piloter');
+const {ouvrir,charger,course,TMAX_DEFAUT}=require('./piloter');
 const A=process.argv.slice(2),opt=(n,d)=>{const i=A.indexOf('--'+n);return i>=0?A[i+1]:d;};
 const fichier=path.resolve(A[0]&&!A[0].startsWith('--')?A[0]:path.join(__dirname,'reference.js'));
-const G=+opt('graine',910000),AV=+opt('avant',4);
-const J=ouvrir(),C=charger(fichier);
-const r=course(J,C,G,{carte:opt('carte',null),meteo:opt('meteo',null),tmax:+opt('tmax',180),trace:true});
+const G=+opt('graine',910000),AV=+opt('avant',4),REGIME=opt('regime','max')==='allege'?'allege':'max',TMAX=+opt('tmax',TMAX_DEFAUT);
+const J=ouvrir({regime:REGIME}),C=charger(fichier);
+const r=course(J,C,G,{carte:opt('carte',null),meteo:opt('meteo',null),tmax:TMAX,trace:true});
 const b=r.bilan,fin=r.vues.length?r.vues[r.vues.length-1].image:0,V=r.vues.filter(x=>x.image>=fin-AV*60);
 if(A.includes('--json')){console.log(JSON.stringify({bilan:b,vues:V},null,1));process.exit(0);}
 const f=(x,n)=>x==null?'—':(+x).toFixed(n==null?1:n);
-console.log(`cerveau « ${C.nom} » · graine ${G} · ${b.cartes.join(' > ')} · ${b.duree_s} s · FIN : ${b.cause} · argent ${Math.round(b.argent)} · figures ${b.figures_payees} · air ${b.air_pct} %`);
+console.log(`cerveau « ${C.nom} » · graine ${G} · regime ${REGIME} · ${TMAX} s au plus · ${J.version} ${J.sha||'(jeu instable)'} · ${b.cartes.join(' > ')} · ${b.duree_s} s · FIN : ${b.cause} · argent ${Math.round(b.argent)} · figures ${b.figures_payees} · air ${b.air_pct} %`);
 console.log(`evenements des ${AV} dernieres secondes : `+(r.partie.ev.filter(e=>e[0]>=b.duree_s-AV&&e[1]!=='piece').map(e=>e[0]+' s '+e.slice(1).join(' ')).join(' · ')||'aucun'));
 for(const x of V){const v=x.vue,o=x.ordre;
   const ord=[o.geste?('GESTE '+o.geste+(o.direction?' '+o.direction:'')):null,o.ligne!=null?'ligne '+f(o.ligne):null,o.viser?'viser':null,

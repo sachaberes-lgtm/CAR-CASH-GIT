@@ -1,10 +1,13 @@
 {
- "date": "2026-11-24T17:48:18.792Z",
+ "date": "2026-11-24T19:05:01.600Z",
  "fenetre_s": 10,
  "humains": {
   "qui": "clavier",
-  "parties": 11,
-  "fenetres": 146
+  "parties": 10,
+  "fenetres": 147,
+  "etalon": 14,
+  "recollees": 2,
+  "doublons": 3
  },
  "bot": {
   "sources": [
@@ -13,172 +16,172 @@
   "parties": 4,
   "fenetres": 58
  },
- "auc": 0.971,
+ "auc": 0.97,
  "verdict": "DISCERNABLE A COUP SUR",
  "temoin": {
   "auc": [
-   0.448,
-   0.669,
-   0.362,
+   0.282,
+   0.59,
+   0.821,
+   0.695,
+   0.539,
+   0.211,
+   0.703,
+   0.273,
+   0.329,
    0.156,
-   0.22,
-   0.447,
-   0.453,
-   0.581,
-   0.641,
-   0.591,
-   0.079,
-   0.471,
-   0.382,
-   0.156,
-   0.112,
-   0.3,
-   0.653,
-   0.568,
-   0.414,
+   0.57,
+   0.109,
+   0.692,
+   0.102,
+   0.144,
+   0.207,
+   0.409,
+   0.339,
    0.535,
-   0.17,
-   0.824,
-   0.687,
-   0.357,
-   0.493,
-   0.333,
-   0.607,
-   0.316,
-   0.611,
-   0.759
+   0.583,
+   0.557,
+   0.282,
+   0.149,
+   0.087,
+   0.82,
+   0.351,
+   0.081,
+   0.503,
+   0.608,
+   0.42
   ],
-  "moyenne": 0.447,
-  "ecart_max": 0.388
+  "moyenne": 0.405,
+  "ecart_max": 0.413
  },
  "mesures": [
   {
-   "mesure": "vol moyen (s)",
-   "auc": 0.76,
-   "ecart": 0.26,
-   "z": -3.79,
-   "humains": 1.663,
-   "bot": 0.556
+   "mesure": "part du temps en l'air",
+   "auc": 0.782,
+   "ecart": 0.282,
+   "z": -2.59,
+   "humains": 0.283,
+   "bot": 0.077
   },
   {
    "mesure": "part du temps nitro",
-   "auc": 0.955,
-   "ecart": 0.455,
-   "z": -3.42,
+   "auc": 0.952,
+   "ecart": 0.452,
+   "z": -2.14,
    "humains": 0.631,
    "bot": 0.187
-  },
-  {
-   "mesure": "part du temps en l'air",
-   "auc": 0.784,
-   "ecart": 0.284,
-   "z": -3.19,
-   "humains": 0.28,
-   "bot": 0.077
   },
   {
    "mesure": "hauteur max (m)",
    "auc": 0.749,
    "ecart": 0.249,
-   "z": -2.52,
-   "humains": 55.295,
+   "z": -1.82,
+   "humains": 56.68,
    "bot": 7.776
   },
   {
-   "mesure": "ecart-type de l'ecart",
-   "auc": 0.674,
-   "ecart": 0.174,
-   "z": -1.79,
-   "humains": 0.339,
-   "bot": 0.283
+   "mesure": "vol moyen (s)",
+   "auc": 0.75,
+   "ecart": 0.25,
+   "z": -1.8,
+   "humains": 1.649,
+   "bot": 0.556
   },
   {
-   "mesure": "ondulation (ecart-type de la vitesse laterale, m/s)",
-   "auc": 0.787,
-   "ecart": 0.287,
-   "z": -1.78,
-   "humains": 32.877,
-   "bot": 18.429
+   "mesure": "decollages par 10 s",
+   "auc": 0.654,
+   "ecart": 0.154,
+   "z": -1.75,
+   "humains": 1.422,
+   "bot": 0.828
   },
   {
    "mesure": "part du temps pres du bord (> 80 %)",
-   "auc": 0.632,
-   "ecart": 0.132,
-   "z": -1.69,
+   "auc": 0.636,
+   "ecart": 0.136,
+   "z": -1.59,
    "humains": 0.045,
    "bot": 0.025
   },
   {
    "mesure": "vitesse : ecart-type / moyenne",
-   "auc": 0.707,
-   "ecart": 0.207,
-   "z": -1.52,
-   "humains": 0.191,
+   "auc": 0.712,
+   "ecart": 0.212,
+   "z": -1.26,
+   "humains": 0.195,
    "bot": 0.134
   },
   {
-   "mesure": "changements de cote par seconde",
-   "auc": 0.606,
-   "ecart": 0.106,
-   "z": -1.48,
-   "humains": 1.048,
-   "bot": 0.91
-  },
-  {
-   "mesure": "decollages par 10 s",
-   "auc": 0.658,
-   "ecart": 0.158,
-   "z": -1.48,
-   "humains": 1.418,
-   "bot": 0.828
+   "mesure": "ondulation (ecart-type de la vitesse laterale, m/s)",
+   "auc": 0.781,
+   "ecart": 0.281,
+   "z": -1.24,
+   "humains": 32.699,
+   "bot": 18.429
   },
   {
    "mesure": "acceleration laterale (ecart-type, m/s2)",
-   "auc": 0.848,
-   "ecart": 0.348,
-   "z": -1.48,
-   "humains": 162.541,
+   "auc": 0.843,
+   "ecart": 0.343,
+   "z": -1.08,
+   "humains": 160.1,
    "bot": 72.364
   },
   {
-   "mesure": "bascules de nitro par 10 s",
-   "auc": 0.675,
-   "ecart": 0.175,
-   "z": -1.26,
-   "humains": 10.726,
-   "bot": 7.293
-  },
-  {
-   "mesure": "ecart au milieu (part de la demi-route)",
-   "auc": 0.65,
-   "ecart": 0.15,
-   "z": -0.99,
-   "humains": 0.288,
-   "bot": 0.244
+   "mesure": "ecart-type de l'ecart",
+   "auc": 0.67,
+   "ecart": 0.17,
+   "z": -0.96,
+   "humains": 0.337,
+   "bot": 0.283
   },
   {
    "mesure": "pieces par seconde",
-   "auc": 0.489,
-   "ecart": 0.011,
-   "z": 0.55,
-   "humains": 7.985,
+   "auc": 0.481,
+   "ecart": 0.019,
+   "z": 0.93,
+   "humains": 7.899,
    "bot": 9.747
   },
   {
+   "mesure": "bascules de nitro par 10 s",
+   "auc": 0.67,
+   "ecart": 0.17,
+   "z": -0.78,
+   "humains": 10.701,
+   "bot": 7.293
+  },
+  {
    "mesure": "part du temps en drift",
-   "auc": 0.521,
-   "ecart": 0.021,
-   "z": -0.53,
+   "auc": 0.52,
+   "ecart": 0.02,
+   "z": -0.55,
    "humains": 0.001,
    "bot": 0
   },
   {
    "mesure": "figures par 10 s",
-   "auc": 0.456,
-   "ecart": 0.044,
-   "z": -0.29,
-   "humains": 0.404,
+   "auc": 0.453,
+   "ecart": 0.047,
+   "z": -0.36,
+   "humains": 0.408,
    "bot": 0.397
+  },
+  {
+   "mesure": "ecart au milieu (part de la demi-route)",
+   "auc": 0.646,
+   "ecart": 0.146,
+   "z": -0.25,
+   "humains": 0.287,
+   "bot": 0.244
+  },
+  {
+   "mesure": "changements de cote par seconde",
+   "auc": 0.596,
+   "ecart": 0.096,
+   "z": -0.23,
+   "humains": 1.04,
+   "bot": 0.91
   }
  ]
 }

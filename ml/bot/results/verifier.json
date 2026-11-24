@@ -1,7 +1,8 @@
 {
- "date": "2026-11-24T15:49:23.709Z",
+ "date": "2026-11-24T19:12:19.117Z",
  "graine": 910000,
  "tmax": 150,
+ "regime": "max",
  "humain": {
   "decision": 6,
   "appui": 4,
@@ -167,6 +168,18 @@
  },
  "yeuxEnPlus": {
   "ok": true
+ },
+ "bac": {
+  "erreurs": 17,
+  "pannes": 0,
+  "decisions": 400,
+  "images": 2400,
+  "cause": "temps",
+  "duree": 40,
+  "pieces": 135,
+  "tentatives": 17,
+  "fuites": [],
+  "derniere": "Code generation from strings disallowed for this context"
  },
  "ok": true
 }

@@ -32,7 +32,7 @@ function echelle(){const k=Math.min(1,(innerWidth)/1280,(innerHeight-44)/720);$(
 addEventListener('resize',echelle);echelle();
 
 async function projette(){
-  const nom=Q.get('rejeu'),mode=Q.get('mode')==='cerveau'?'cerveau':'touches',film=!!Q.get('film')&&Q.get('film')!=='0',libre=Q.get('cadence')==='libre'&&!film,DEBIT=(+Q.get('debit')||5)*1e6;
+  const nom=String(Q.get('rejeu')||'').replace(/[^a-z0-9-]/gi,''),mode=Q.get('mode')==='cerveau'?'cerveau':'touches',film=!!Q.get('film')&&Q.get('film')!=='0',libre=Q.get('cadence')==='libre'&&!film,DEBIT=(+Q.get('debit')||5)*1e6;
   if(!nom){dit('il manque ?rejeu=<course>');return;}
   $('titre').textContent=nom+(mode==='cerveau'?' · le cerveau en direct':' · les touches du rejeu')+(film?' · filmé':'');
   E.phase='chargement';dit('chargement du rejeu et du jeu…');
@@ -53,9 +53,12 @@ async function projette(){
      regime maximum, avec Crypto City. MESURE (24/11, ce PC) : au 2e portail, meme etat du hasard des deux cotes, « crypto, midi » sans ecran,
      « ville, orage » dans le navigateur — meme route (meme graine), mais des pieces a 0,75 fois leur valeur : c'etait l'ecart de 127,4 s.
      `?regime=<0..3|max>` pour projeter dans un autre regime (la course ne sera alors plus celle du journal). */
-  /* (un rejeu note en ALLEGE — R.jeu.regime — se projette avec ?allege=1 : c'est exactement ce que le simulateur a charge pour lui) */
+  /* (un rejeu note en ALLEGE — R.jeu.regime — se projette avec ?allege=1&poste=3, ce que le simulateur a charge pour lui.
+     (2026-11-24, defaut 21) LU DANS LE JEU (code/rendu/soleil-planete.js, POSTE) : un ?allege= dans l'adresse rend le POSTE AVANT tout jugement
+     de la machine (r = 3, palier 2, « essai a la main ») — dans le simulateur comme ici. `&poste=3` n'y change donc rien aujourd'hui ; il est
+     la pour le dire, et pour que la page reste au regime du simulateur si cet ordre changeait un jour.) */
   const REGIME=Q.get('regime')||(R.jeu.regime==='allege'?'allege':'3');
-  await new Promise(ok=>{cadre.onload=ok;cadre.src='/jeu/__projection.html'+N9.requete+(REGIME==='allege'?'&allege=1':'&poste='+REGIME.replace(/[^a-z0-9]/gi,''));});
+  await new Promise(ok=>{cadre.onload=ok;cadre.src='/jeu/__projection.html'+N9.requete+(REGIME==='allege'?'&allege=1&poste=3':'&poste='+REGIME.replace(/[^a-z0-9]/gi,''));});
   const w=cadre.contentWindow,env=w.__ENV;
   if(!env||!w.__EV){dit('le jeu ne s\'est pas chargé (pas de porte de lecture)');E.erreur='chargement';return;}
   await attends(2500);                                   /* les textures et les polices arrivent (l'horloge du jeu, elle, ne bouge pas) */

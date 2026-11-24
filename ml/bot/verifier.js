@@ -6,21 +6,40 @@
      2. LES DOIGTS : sur une vraie course du bot de reference, aucune touche ne bat plus vite que les limites d'une main (HUMAIN).
      3. MEME GRAINE = MEME COURSE : deux processus neufs, la meme graine → la meme course ET les memes touches.
      4. REGARDER NE CHANGE RIEN : sans l'enregistreur du jeu, ou en ouvrant les yeux a chaque image, la course est la meme.
-   usage : node verifier.js [--graine 910000] [--tmax 150]        (sortie : results/verifier.json ; code 0 = tout passe) */
+     5. LE BAC EST FERME (2026-11-24, defauts 1 et 3) : un cerveau qui tente l'horloge, le hasard, process, require, Function par
+        constructor.constructor (sur la vue, la memoire, module, console, globalThis), eval, Intl, WeakRef, la pile d'appels… echoue a chaque
+        fois (une erreur comptee, un ordre vide) et la course CONTINUE ; le jeu n'est pas touche.
+   usage : node verifier.js [--graine 910000] [--tmax 150] [--regime max|allege] [--coeurs 2]   (sortie : results/verifier.json ; code 0 = tout passe)
+     --regime   (2026-11-24, defaut 8) le contrat se controle aussi dans la version allegee (les empreintes different d'un regime a l'autre)
+     --coeurs   combien de processus a la fois (2 par defaut : le simulateur prend ~650 Mo et un coeur par course) */
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),{fork}=require('child_process');
 const A=process.argv.slice(2),opt=(n,d)=>{const i=A.indexOf('--'+n);return i>=0?A[i+1]:d;};
 const {HUMAIN}=require('./doigts');
 const REF=path.join(__dirname,'reference.js');
 const sha=x=>crypto.createHash('sha1').update(JSON.stringify(x)).digest('hex').slice(0,12);
+/* LE TRICHEUR du controle 5 (le texte d'un cerveau : il ne touche aucun fichier) */
+const TRICHES=["()=>Date.now()","()=>new Date()","()=>Math.random()","()=>Object.getPrototypeOf(Math).random()","()=>process.pid","()=>require('fs')",
+  "v=>v.constructor.constructor('coinsGot=5000')()","(v,m)=>m.constructor.constructor('return process')()","()=>globalThis.constructor.constructor('return process')()",
+  "()=>module.constructor.constructor('return process')()","()=>console.log.constructor('return process')()","()=>Function('return process')()","()=>eval('process')",
+  "()=>new Intl.DateTimeFormat().format()","()=>new WeakRef({})","()=>(async function(){}).constructor('return process')()",
+  "()=>{Error.prepareStackTrace=(e,cs)=>cs;const s=new Error().stack;for(const c of s){const f=c.getFunction&&c.getFunction();if(f)return f.constructor('return process')();}throw new Error('pile fermee');}"];
+const NTRICHE=TRICHES.length;
+const TRICHEUR='const T=['+TRICHES.join(',')+'];\nmodule.exports={nom:"tricheur",decide(v,m){m.k=(m.k|0)+1;if(m.k<=T.length){const r=T[m.k-1](v,m);return {ligne:0,fuite:m.k+" : "+String(r).slice(0,30)};}return v.mode==="sol"?{ligne:0}:{};}};';
 
 if(A.includes('--enfant')){
   const {ouvrir,charger,course}=require('./piloter'),Y=require('./yeux'),{Doigts}=require('./doigts');
   process.on('message',function(m){
-    const J=ouvrir();let r;
+    const J=ouvrir({regime:m.regime});let r;
     if(m.quoi==='course'){
       const x=course(J,charger(REF),m.graine,Object.assign({tmax:m.tmax},m.o||{}));
       r={empreinte:x.bilan.empreinte,touches:sha(x.touches),journal:m.journal?x.touches:undefined,images:x.bilan.images,cause:x.bilan.cause,duree:x.bilan.duree_s,cartes:x.bilan.cartes,
          argent:x.bilan.argent,figures:x.bilan.figures_payees,decisions:x.bilan.decisions};
+    }else if(m.quoi==='bac'){
+      /* LE TRICHEUR : une tentative par decision (une erreur attendue chacune), puis il conduit tout droit. Une tentative qui REUSSIT rend
+         { fuite } : on la lit dans la trace. Il essaie aussi d'ecrire dans le jeu (coinsGot=5000) : les pieces de fin le diraient. */
+      const x=course(J,charger('tricheur.js',{source:TRICHEUR}),m.graine,{tmax:m.tmax,trace:true});
+      r={erreurs:x.bilan.erreurs,pannes:x.bilan.pannes,decisions:x.bilan.decisions,images:x.bilan.images,cause:x.bilan.cause,duree:x.bilan.duree_s,pieces:x.bilan.pieces,
+         tentatives:NTRICHE,fuites:x.vues.filter(v=>v.ordre&&v.ordre.fuite!=null).map(v=>v.ordre.fuite),derniere:x.bilan.derniereErreur};
     }else r=gestes(J,Y,Doigts);
     process.send(r,function(){process.exit(0);});
   });
@@ -60,8 +79,12 @@ if(A.includes('--enfant')){
   return;
 }
 
-const G=+opt('graine',910000),TMAX=+opt('tmax',150);
-const enfant=m=>new Promise(res=>{const c=fork(__filename,['--enfant'],{silent:true});let r=null;c.on('message',x=>{r=x;});c.on('exit',()=>res(r));c.send(m);});
+const G=+opt('graine',910000),TMAX=+opt('tmax',150),REGIME=opt('regime','max')==='allege'?'allege':'max',K=Math.max(1,+opt('coeurs',2)||2);
+/* un processus neuf par controle, K a la fois au plus */
+let actifs=0;const attente=[];
+const enfant=m=>new Promise(res=>{const go=()=>{actifs++;const c=fork(__filename,['--enfant'],{silent:true});let r=null;c.on('message',x=>{r=x;});
+  c.on('exit',()=>{actifs--;res(r);if(attente.length)attente.shift()();});c.send(Object.assign({regime:REGIME},m));};
+  if(actifs<K)go();else attente.push(go);});
 /* LES LIMITES D'UNE MAIN, lues dans le journal des touches d'une vraie course */
 function mains(T){
   const par={},pb=[];let nApp=0,court=1e9,repos=1e9;
@@ -75,14 +98,15 @@ function mains(T){
 }
 (async function(){
   const t0=Date.now();
-  console.log(`controle du contrat · graine ${G} · ${TMAX} s · 5 processus neufs…`);
-  const [g,a,b,sansRec,yeux]=await Promise.all([
+  console.log(`controle du contrat · graine ${G} · ${TMAX} s · regime ${REGIME} · 6 processus neufs, ${K} a la fois…`);
+  const [g,a,b,sansRec,yeux,bac]=await Promise.all([
     enfant({quoi:'gestes'}),
     enfant({quoi:'course',graine:G,tmax:TMAX,journal:true}),
     enfant({quoi:'course',graine:G,tmax:TMAX}),
     enfant({quoi:'course',graine:G,tmax:TMAX,o:{sansEnregistreur:true}}),
-    enfant({quoi:'course',graine:G,tmax:TMAX,o:{yeuxEnPlus:true}})]);
-  const R={date:new Date().toISOString(),graine:G,tmax:TMAX,humain:HUMAIN};let tout=true;
+    enfant({quoi:'course',graine:G,tmax:TMAX,o:{yeuxEnPlus:true}}),
+    enfant({quoi:'bac',graine:G,tmax:40})]);
+  const R={date:new Date().toISOString(),graine:G,tmax:TMAX,regime:REGIME,humain:HUMAIN};let tout=true;
   const dit=(ok,txt)=>{if(!ok)tout=false;console.log((ok?'  OK   ':'  RATE ')+txt);};
   console.log('\n1. LES GESTES dans le jeu');
   if(!g||!g.gestes){dit(false,'le processus des gestes n\'a rien rendu');R.gestes=null;}
@@ -100,6 +124,13 @@ function mains(T){
   console.log('\n4. REGARDER NE CHANGE RIEN');
   R.sansEnregistreur={ok:meme(a,sansRec)};dit(R.sansEnregistreur.ok,'sans l\'enregistreur du jeu : '+(sansRec?sansRec.empreinte:'rien'));
   R.yeuxEnPlus={ok:meme(a,yeux)};dit(R.yeuxEnPlus.ok,'les yeux ouverts a chaque image : '+(yeux?yeux.empreinte:'rien'));
+  console.log('\n5. LE BAC EST FERME (un cerveau qui triche)');
+  if(!bac){dit(false,'la course du tricheur n\'a rien rendu');R.bac=null;}
+  else{R.bac=bac;
+    dit(bac.fuites.length===0,bac.fuites.length?'des tentatives ont REUSSI : '+bac.fuites.join(', '):`${bac.tentatives} tentatives (horloge, hasard, process, require, Function, eval, Intl, WeakRef, pile d'appels), aucune ne passe`);
+    dit(bac.erreurs===bac.tentatives&&bac.pannes===0,`${bac.erreurs} erreurs comptees pour ${bac.tentatives} tentatives, ${bac.pannes} panne`);
+    dit(bac.decisions>bac.tentatives+50,`la course continue : ${bac.decisions} decisions, ${bac.duree} s, fin « ${bac.cause} »`);
+    dit(bac.pieces<5000,`le jeu n'est pas touche : ${bac.pieces} pieces a la fin (le tricheur en voulait 5000)`);}
   R.ok=tout;
   fs.mkdirSync(path.join(__dirname,'results'),{recursive:true});
   if(a)delete a.journal;

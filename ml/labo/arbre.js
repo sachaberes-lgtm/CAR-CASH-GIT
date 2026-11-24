@@ -24,7 +24,7 @@ function ecart(a,b){
 const MESURES=['survie_mediane_s','argent_min','pieces_min','figures_min','air_pct','vols_min','vol_moyen_s','raccourcis_min','distance_m_min','nitro_pct'];
 const J=L.lire(L.F.cerveaux),G=L.lire(L.F.generations),V=L.lire(L.F.validations),parId={};for(const l of J)parId[l.id]=l;
 const src=l=>{try{return fs.readFileSync(path.join(L.RACINE,l.code),'utf8');}catch(e){return null;}};
-const rejeux=fs.existsSync(L.D.rejeux)?fs.readdirSync(L.D.rejeux).filter(f=>/\.json$/.test(f)).map(f=>{try{return JSON.parse(fs.readFileSync(path.join(L.D.rejeux,f),'utf8'));}catch(e){return null;}}).filter(Boolean):[];
+const rejeux=fs.existsSync(L.D.rejeux)?fs.readdirSync(L.D.rejeux).filter(f=>/\.json$/.test(f)).map(f=>{try{return JSON.parse(fs.readFileSync(path.join(L.D.rejeux,f),'utf8'));}catch(e){return null;}}).filter(r=>r&&r.cerveau&&r.fin):[]; /* un rejeu illisible ou sans ses champs : saute (comme la salle de projection) */
 const noeuds=J.map(l=>{
   const s=src(l),p=l.parents&&l.parents[0]&&parId[l.parents[0]],sp=p?src(p):null,note={};
   for(const k of MESURES)note[k]=l.note[k];
@@ -35,7 +35,7 @@ const noeuds=J.map(l=>{
     validation:v?{note:MESURES.reduce((o,k)=>(o[k]=v.note[k],o),{}),depart:v.graines&&v.graines.depart,parties:v.note.parties}:null,
     champion:!!(g&&g.champion===l.id),
     ecart:p&&s&&sp?ecart(sp,s):null,source:!p&&s?s.split(/\r?\n/):null,
-    rejeux:rejeux.filter(r=>r.cerveau.id===l.id).map(r=>{const c=L.nomCourse(l.id,r.graine);return {course:c,graine:r.graine,pourquoi:r.pourquoi,fin:r.fin.cause,t:r.fin.t,
+    rejeux:rejeux.filter(r=>r.cerveau.id===l.id).map(r=>{const c=L.nomCourse(l.id,r.graine);return {course:c,graine:r.graine,pourquoi:r.pourquoi||[],fin:r.fin.cause,t:r.fin.t,
       video:fs.existsSync(path.join(L.D.videos,c+'.webm'))?'videos/'+c+'.webm':null};})};
 });
 let etalon=null;try{const e=JSON.parse(fs.readFileSync(path.join(L.DEPOT,'ml','bot','results','etalon.json'),'utf8'));etalon={parties:e.barre.parties,note:MESURES.reduce((o,k)=>(o[k]=e.barre[k],o),{})};}catch(e){}

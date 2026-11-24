@@ -22,7 +22,11 @@ node inscrire.js cerveau.js --etape 3 --generation 0 --modele main --raison "ce 
 node inscrire.js cerveau.js --etape 3 --generation 1 --parents c0004 --modele opus-5-5 --entree 4200 --sortie 1800 --euros 0.09 --raison "…"
 node garder.js c0012 910037 --pourquoi "mort absurde : il saute dans le portail"
 node clore.js --etape 3 --generation 1 --critere argent_min
-node inscrire.js --valider c0012                   # le champion, sur 20 graines qu'aucun cerveau n'a vues (950000 + 37 × i)
+node inscrire.js cerveau.js … --regime allege      # noté dans le jeu des vrais joueurs (version allégée) ; max par défaut
+node noter.js cerveau.js --parties --sortie n.json # (dans ml/bot) noter d'abord, puis inscrire SANS rejouer :
+node inscrire.js cerveau.js … --note n.json        #   refusé si la note vient d'un autre code ou d'une autre version du jeu
+node inscrire.js --valider c0012                   # le champion, sur 20 graines qu'aucun cerveau n'a vues (950000 + 37 × i),
+                                                   #   dans SON régime, sur SA map imposée (ceux de sa ligne du journal)
 node arbre.js                                      # refait arbre.html
 node rejouer.js --tout                             # tous les rejeux gardés redonnent-ils la même course ?
 node projection.js                                 # puis http://localhost:3161/
@@ -60,8 +64,9 @@ parents                  le ou les candidats dont il descend (aucun : une racine
 modele                   qui a écrit le code : « main », ou le modèle de l'API
 raison                   LA PHRASE : ce qui change et pourquoi. Elle fait l'arbre et le récit
 code, sha, octets        le fichier dans cerveaux/, son empreinte ; jumeau = un candidat qui a exactement le même code
-jeu                      version (cashcar-vNNN), commit, empreinte de index.html + figures.js
+jeu                      version (cashcar-vNNN), commit, empreinte de index.html + figures.js, regime (max ou allege)
 graines, tmax            sur quoi il a été noté
+carte, meteo             la map et la météo imposées à la note (--carte, --meteo) ; null = tirées par la graine
 note                     les chiffres du lot (ceux de ml/bot/mesures.js, comptés comme pour les joueurs)
 courses[]                chaque course : graine, empreinte, durée, fin, argent, figures, vols, raccourcis,
                          plus long vol posé, plus de figures en un vol, plus gros raccourci, et OÙ elle finit (map, route, s, x y z, en vol ?)
@@ -71,7 +76,17 @@ cout                     jetons lus, jetons écrits, euros (null = prix à chiff
 Chaque course garde aussi ses `pannes` (décisions du cerveau coupées par la limite de temps). **Une course avec une panne ne vaut pas** :
 elle n'est pas répétable. `inscrire.js` le signale à la fin ; la cause est un cerveau trop lent, ou un PC surchargé pendant la note.
 
-`inscrire.js` **refuse** : pas de raison, un parent inconnu, un cerveau d'API sans ses jetons. Il refuse avant de jouer, pas après.
+`inscrire.js` **refuse** : pas de raison, un parent inconnu, un cerveau d'API sans ses jetons, une génération qui n'est pas un entier,
+un nom de cerveau qui ne donne pas un nom simple (les accents sont retirés : « élan » → `elan`), **une génération déjà close**.
+Il refuse avant de jouer, pas après. Si le journal refuse quand même après la note, la note n'est pas perdue : elle reste au tampon
+(`tampon/note-refusee-….json`) et se réinscrit sans rejouer avec `--note`.
+
+`--note <fichier>` (une note faite par `ml/bot/noter.js --parties`) n'est inscrite que si elle vient de **ce code** (son empreinte sha1
+si la note la porte, sinon le nom que le cerveau se donne) et de **cette version du jeu** (son empreinte si la note la porte, sinon
+`cashcar-vNNN` ; un avertissement si index.html a été réécrit depuis), dans le régime et sur la map demandés.
+
+`--valider` reprend le **régime**, la **map** et la **météo** de la ligne du candidat (un `--regime` tapé à la main l'emporte, avec un
+avertissement : la validation ne se compare plus à sa note).
 
 ---
 
@@ -86,7 +101,11 @@ Garder chaque course coûterait trop (≈ 400 Ko l'enregistrement d'une course d
 Et pour **toutes** les courses : leur ligne au journal (avec l'endroit de la fin) et leur trace fine.
 
 Une « mort absurde » ne se repère pas toute seule : c'est `garder.js`, à la main ou par celui qui lit les autopsies.
-Après la clôture, `garder.js` rejoue la course à partir du code du candidat et ne la garde que si elle redonne la même empreinte.
+Après la clôture, `garder.js` rejoue la course à partir du code du candidat (dans son régime, sur sa map imposée) et ne la garde que si
+elle redonne la même empreinte. Une ligne d'avant le 24/11 n'a pas sa map : `--carte`/`--meteo` à la main si elle en avait une.
+
+Pendant qu'une inscription note ses courses, elle pose un marqueur au tampon : `clore.js` refuse de clore sa génération tant
+qu'elle tourne (sinon le candidat arriverait après la clôture, et ne serait jamais trié).
 
 **Le champion se désigne par un critère écrit** (`--critere`, `argent_min` par défaut). Chaque étape du plan a le sien ; il est noté
 dans `generations.jsonl`. Aucune « note unique » n'est inventée ici.
@@ -168,8 +187,18 @@ Au chargement, le jeu juge la machine (`POSTE`). Une puce graphique intégrée o
 retirée du tirage des maps. Le simulateur n'a pas de carte graphique : il tourne au régime **maximum**. Sans précaution, la projection
 montrait donc le jeu allégé de ce PC pendant que le journal décrivait le jeu complet : au deuxième portail, « ville » au lieu de « crypto ».
 
-La page charge le jeu avec `&poste=3` (le régime du simulateur). `&regime=2` (ou 0, 1, max) projette dans un autre régime — la course
-n'est alors plus celle du journal, et le verdict le dira. Au régime maximum, ce PC dessine lentement (5 à 30 images par seconde selon la
+La page charge le jeu avec `&poste=3` (le régime du simulateur). Un rejeu noté en **allégé** (`--regime allege`) se charge avec
+`&allege=1&poste=3` : dans le jeu, un `?allege=` fixe le POSTE avant tout jugement de la machine, dans le simulateur comme dans le
+navigateur (lu dans `code/rendu/soleil-planete.js`). `&regime=2` (ou 0, 1, max, allege) projette dans un autre régime — la course
+n'est alors plus celle du journal, et le verdict le dira.
+
+La course sans écran gardée au tampon (`tampon/serie-<course>.json`) est refaite quand le rejeu, le code qui rejoue ou **la version du
+jeu** changent. Un rejeu enregistré sur une autre version du jeu n'est pas rejoué du tout.
+
+**Qui peut parler au serveur** : seulement ce PC (`localhost`, `127.0.0.1`), et ce qui calcule ou écrit (`/__hasard`, `/__resultat`,
+`/__film`, `/__video`) seulement depuis la salle elle-même — une autre page web ouverte dans le navigateur reçoit un 403. Les noms de
+course sont nettoyés à l'entrée : rien ne s'écrit hors de `tampon/` et `videos/`. Les films se servent par plages (`Range`, réponse 206) :
+on peut s'y déplacer. Au régime maximum, ce PC dessine lentement (5 à 30 images par seconde selon la
 map) : sans conséquence pour un film exact, il est juste plus long à faire.
 
 **Croire le verdict affiché**, pas le film : c'est lui qui dit si l'image montre la course du journal.
