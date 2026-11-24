@@ -13,11 +13,13 @@ let rates = 0;
 const OUVERTS = [];
 const ok = (v, quoi, detail) => { console.log((v ? '  ✓ ' : '  ✗ ') + quoi + (detail !== undefined ? '  — ' + (typeof detail === 'string' ? detail : JSON.stringify(detail)) : '')); if (!v) rates++; };
 
-async function session(dossier, { admob = true, web = false } = {}) {
+async function session(dossier, opts = {}) {
+  const { admob = true, web = false } = opts;
   const J = await ouvre({ dossier, web: true });
   { const f9 = J.ferme; let fait = false; J.ferme = async () => { if (fait) return; fait = true; await f9(); }; OUVERTS.push(J); } /* fermé même si le banc s'arrête en route (sinon des Chrome restent allumés) */ /* web:true pour le pilote = pas de maj.json ni d'attente de __sk : le faux natif est posé ici */
   if (!web) await J.c.send('Page.addScriptToEvaluateOnNewDocument', { source: FAUX_SK });
   if (admob && !web) await J.c.send('Page.addScriptToEvaluateOnNewDocument', { source: FAUX_AD });
+  if (opts.bloque) await J.c.send('Page.addScriptToEvaluateOnNewDocument', { source: 'window.__ad&&(window.__ad.reseau=false);' });
   await J.vide(); await J.seme({ chanceG: 0, spinBoost: 0, jetons: 0 });
   /* un téléphone, comme outils/banc-chance/coeur.cjs : sans lui la chute du départ ne part pas */
   await J.c.send('Emulation.setDeviceMetricsOverride', { width: 844, height: 390, deviceScaleFactor: 1, mobile: true, screenWidth: 844, screenHeight: 390 });
@@ -54,6 +56,19 @@ async function session(dossier, { admob = true, web = false } = {}) {
     /* le jeu du dépôt, avec le faux Capacitor : il se croit dans l'app (EN_APP) et garde ses crochets dbg* (l'édition de l'app les retire à
        la fabrication, publie-allege). La fabrication elle-même est contrôlée par preparer-www --essai et ses TÉMOINS DE LA PUB. */
     const www = path.join(RACINE, 'VERSION PRINCIPALE');
+    if (process.argv.includes('--secours')) { /* --secours : Google injoignable dès le lancement (bloqueur d'un VPN) → la pub maison, et la récompense */
+      const J = await session(www, { bloque: true });
+      for (let k = 0; k < 3; k++) { if (await J.course(30, 900)) break; }
+      ok(await J.meurt(), 'mort : écran de fin');
+      ok(await J.attend("dbgChance().ok&&!document.getElementById('mChance').hidden", 9000, 150), 'offre CONTINUER');
+      const pl = await J.v(`(function(){var e=document.getElementById('mChance');return {gris:e.classList.contains('pubGris'),txt:e.textContent,video:dbgPub().admob.recompense};})()`);
+      ok(!pl.gris && /PUB/.test(pl.txt) && !pl.video, 'Google n\'a rien chargé, et pourtant CONTINUER ▶ PUB est allumé', pl);
+      await J.v(`dbgChance('joue');1`);
+      ok(await J.attend("!!document.querySelector('#pubR.on')&&!document.getElementById('pubR').hidden", 3000, 100), 'la pub maison de 5 s passe (le secours)');
+      ok(await J.attend("dbgChance().mode==='drive'&&!dbgChance().gameOver&&dbgChance().used", 15000), 'puis la course reprend (récompense donnée)');
+      ok((await J.ad()).n.r === 0 && (await J.v('dbgPub()')).pubs === 0, 'aucune vidéo Google montrée, L\'ÉTERNELLE ne compte pas la pub maison');
+      ok(J.erreurs.length === 0, 'aucune exception JS', J.erreurs.slice(0, 5));
+      await J.ferme(); return; }
     if (process.argv.includes('--sonde')) { /* --sonde : ce que l'écran de fin montre, toutes les 200 ms, après une mort (mise au point du banc) */
       const J = await session(www);
       for (let k = 0; k < 3; k++) { const c9 = await J.course(30, 900); console.log('course', k, c9, JSON.stringify(await J.v('dbgJouer()')).slice(0, 160)); if (c9) break; }

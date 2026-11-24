@@ -10,15 +10,19 @@
      l'écran allumé. `pubRecompense(nom, fin)` : fin(vue) part UNE fois. `?pub=0` : pas de pub, reprise immédiate. Banc : dbgPub(). */
 /* ===== LA VRAIE PUB DANS L'APP (2026-11-23, Sacha : « mettre de la VRAIE pub dans l'app iPhone », AdMob) =====
    Avant (2026-11-05, jury IOS-04, décision D1) l'app ne montrait AUCUNE pub. Maintenant, deux cas dans l'app (EN_APP) :
-   · le module AdMob est là (AMOB.on, rendu/traces-pneus.js) → PUBR.app : CONTINUER et ×2 passent par une VRAIE vidéo récompensée ; la pub
-     maison n'existe pas ; aucune vidéo chargée (mode avion…) → les deux plaques sont GRISÉES « PAS DE PUB » (pubDispo, décision de Sacha) ;
+   · le module AdMob est là (AMOB.on, rendu/traces-pneus.js) → PUBR.app : CONTINUER et ×2 passent par une VRAIE vidéo récompensée ;
      REJOUER montre parfois une pub plein écran (pubEntre, plus bas).
+     LE SECOURS (2026-11-24, Sacha, sur son iPhone avec NordVPN : « trouve un moyen pour que ça marche même si les gens ont des VPN ») :
+     quand Google ne peut fournir AUCUNE vidéo (bloqueur de pubs d'un VPN, mode avion, rien en stock, pub ratée à l'affichage), c'est la
+     PUB MAISON de 5 s (une caisse du jeu) qui passe, et la récompense est donnée — CONTINUER et ×2 ne sont plus jamais gris (PUBR.secours).
+     Contourner le bloqueur est impossible sans enfreindre le règlement d'AdMob : on ne le fait pas. La pub maison ne compte pas pour
+     L'ÉTERNELLE et ne rapporte rien. Avant (23/11) : plaques grises « PAS DE PUB » ; `PUBR.secours=false` les ramène.
    · un ancien binaire, sans le module → comme avant : seconde chance GRATUITE (PUBR.sans), pas de ×2 (DBL.on), pas de pub (html.ccSansPub).
    Le site garde la pub maison et AdSense, sans changement. `?pub=0` ne vaut qu'en DEV. */
-const PUBR={on:false,d:5,t:0,tm:0,el:null,mus:false,finR:0,app:EN_APP&&AMOB.on,sans:(EN_APP&&!AMOB.on)||qDev(/[?&]pub=0\b/)};
+const PUBR={on:false,d:5,t:0,tm:0,el:null,mus:false,finR:0,secours:true,app:EN_APP&&AMOB.on,sans:(EN_APP&&!AMOB.on)||qDev(/[?&]pub=0\b/)};
 if(EN_APP&&!PUBR.app)try{document.documentElement.classList.add('ccSansPub');}catch(e){}
 Object.assign(I18N,{'PUB':'AD','PAS DE PUB':'NO AD','EN BOUTIQUE':'IN THE SHOP','TA COURSE REPREND APRÈS LA PUB':'YOUR RUN RESUMES AFTER THE AD','TON GAIN ×2 APRÈS LA PUB':'YOUR WINNINGS ×2 AFTER THE AD'});
-function pubDispo(){if(!PUBR.app)return true;try{return !!(typeof window.CC_PUB_PRETE==='function'&&window.CC_PUB_PRETE());}catch(e){return false;}} /* une vidéo récompensée est-elle chargée ? (le site et l'ancien app : toujours) */
+function pubDispo(){if(!PUBR.app||PUBR.secours)return true;try{return !!(typeof window.CC_PUB_PRETE==='function'&&window.CC_PUB_PRETE());}catch(e){return false;}} /* une vidéo récompensée est-elle chargée ? (le site et l'ancien app : toujours) */
 function pubSilence(on){try{ // une régie montre SA pub par-dessus le jeu : le jeu se tait (la musique en pause, le contexte audio suspendu), puis reprend
   if(on){PUBR.mus=!!(musicEl&&!musicEl.paused);if(PUBR.mus)musicEl.pause();if(AC&&AC.state==='running')AC.suspend();}
   else{if(AC&&AC.state==='suspended')acReveil(AC);if(PUBR.mus&&musicVoulue&&!paused)musicJoue();PUBR.mus=false;}}catch(e){}}
@@ -31,13 +35,13 @@ function pubRecompense(nom,fin){
   if(typeof regie==='function'){
     let p=null;try{p=regie(nom);}catch(e){p=null;}
     if(p&&typeof p.then==='function'){pubSilence(true); // (15/10 soir, régie AdSense) on ne se tait que si la régie montre VRAIMENT une pub (une promesse) : « rien de prêt » rend null tout de suite
-      p.then(function(v){pubSilence(false);PUBR.finR=performance.now();if(v===true)pubCompte();if(v===true||v===false)fini(v);else if(PUBR.app)fini(false);else pubMaison(fini,nom);},
-        function(){pubSilence(false);PUBR.finR=performance.now();if(PUBR.app)fini(false);else pubMaison(fini,nom);});} /* (2026-11-23) dans l'app, jamais de pub maison : pas vue = pas de récompense */
+      p.then(function(v){pubSilence(false);PUBR.finR=performance.now();if(v===true)pubCompte();if(v===true||v===false)fini(v);else if(PUBR.app&&!PUBR.secours)fini(false);else pubMaison(fini,nom);},
+        function(){pubSilence(false);PUBR.finR=performance.now();if(PUBR.app&&!PUBR.secours)fini(false);else pubMaison(fini,nom);});} /* vrai = vue, faux = fermée avant la fin (rien) ; rien de Google (null) : la pub maison, le SECOURS (2026-11-24) */
     else if(p===true||p===false){if(p)pubCompte();fini(p);}
-    else if(PUBR.app)fini(false);
+    else if(PUBR.app&&!PUBR.secours)fini(false);
     else pubMaison(fini,nom);
     return true;}
-  if(PUBR.app){fini(false);return true;}
+  if(PUBR.app&&!PUBR.secours){fini(false);return true;}
   pubMaison(fini,nom);return true;
 }
 /* ===== LA PUB ENTRE LES COURSES (2026-11-23, Sacha : « 1 pub sur 3 en temps normal mais si la partie dépasse 2 minutes alors pub obligée ») =====

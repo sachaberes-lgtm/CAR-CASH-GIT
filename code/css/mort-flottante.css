@@ -341,10 +341,10 @@ html body #mob #mDead.m5 #mObj .obM.ok:not(.sec)>em{max-width:none}
 @media (prefers-reduced-motion:reduce){html body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val,.m6Scene,.m6Scene::after,.m6Ligne,.m6Badge,.obM,.obM *){animation:none!important}}
 html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val,.m6Scene,.m6Scene::after,.m6Ligne,.m6Badge,.obM,.obM *){animation:none!important}
 /* ===== L'APP ET LA PUB (2026-11-05, Opus : décision D1 ; 2026-11-23, Sacha : la vraie pub AdMob) =====
-   Dans l'app (html.ccApp, posée par EN_APP), l'écran de la pub maison n'existe jamais (les vraies pubs sont celles de Google). Dans un ancien
-   binaire sans le module AdMob (html.ccSansPub, seconde-chance.js), le ×2 du gain n'existe pas non plus. L'id doublé passe devant la règle
-   du ×2 ci-dessus (#mob #mDead.m5 #mDouble:not([hidden])). */
-html.ccSansPub body #mob #mDead #mDouble#mDouble,html.ccApp #pubR#pubR{display:none!important}
+   Dans un ancien binaire sans le module AdMob (html.ccSansPub, seconde-chance.js), le ×2 du gain et la pub maison n'existent pas. Avec le
+   module, la pub maison sert de SECOURS quand Google ne fournit rien (2026-11-24 ; avant, elle était cachée dans toute l'app). L'id doublé
+   passe devant la règle du ×2 ci-dessus (#mob #mDead.m5 #mDouble:not([hidden])). */
+html.ccSansPub body #mob #mDead #mDouble#mDouble,html.ccSansPub #pubR#pubR{display:none!important}
 /* PAS DE VIDÉO CHARGÉE (mode avion…) : CONTINUER et ×2 restent à leur place, GRIS, « PAS DE PUB » ; ils se rallument seuls quand une pub arrive */
 #mChance.pubGris,#mDouble.pubGris{filter:grayscale(1) brightness(.8)!important;opacity:.55!important}
 </style>

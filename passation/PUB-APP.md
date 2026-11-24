@@ -11,6 +11,10 @@ Rien sur `main`, rien d'envoyé à Apple, rien d'installé sur l'iPhone sans le 
      **obligatoire si la course a duré plus de 2 minutes**. Jamais sur l'écran de mort, jamais juste après une vidéo récompensée.
 3. Pas d'achat « SANS PUB » pour l'instant.
 4. Pas de pub disponible (mode avion, rien chez Google) : **CONTINUER et ×2 grisés** (le jeu se joue normalement).
+   → **CHANGÉ le 24/11** (Sacha, son iPhone avec NordVPN : bouton gris « alors que j'ai internet » ; « trouve un moyen pour que ça marche même si
+   les gens ont des VPN ») : le bloqueur de NordVPN (Protection contre les menaces Lite) empêche Google de livrer ses pubs, et le contourner
+   enfreindrait le règlement d'AdMob. Désormais, quand Google ne fournit RIEN (bloqueur, mode avion, rien en stock, pub ratée), la **pub maison
+   de 5 s** passe et la récompense est donnée : CONTINUER et ×2 ne sont plus jamais gris (`PUBR.secours`, seconde-chance.js). Elle ne rapporte rien.
 5. Identifiants de TEST de Google pendant tout le développement : jamais de vraies pubs sur l'iPhone de Sacha.
 6. Le site web (Vercel) ne change pas : la pub n'existe que dans l'app.
 
@@ -71,6 +75,9 @@ Rien sur `main`, rien d'envoyé à Apple, rien d'installé sur l'iPhone sans le 
   `--qs "&perfrec=2&sans=radiopause"`, Debug, équipe M532TDYCH2, CURRENT_PROJECT_VERSION=131 ; copie `~/cash-car/ios-ultime-mesures/builds/build131.app`.
   Pubs de TEST de Google (App ID ca-app-pub-3940256099942544~1458002511, admob.json test:true). Vérifié installé : CASH CAR 1.0.0 (131).
   À VOIR PAR SACHA : CONTINUER ▶ PUB, ×2, plein écran au 3e REJOUER, mode avion (gris), son coupé pendant la pub.
+- 24/11, 14 h 10 : sur l'iPhone (build 131, mode `chaleur=pub`, `pymobiledevice3 syslog live`) : init, consentement, `permis` vrais, mais
+  vidéo ET plein écran JAMAIS chargés, et `choix=false` (Google ne voit pas l'iPhone en Europe : sortie du VPN). Cause probable : NordVPN.
+  La raison exacte de Google est maintenant gardée (`dbgPub().admob.erreur`, champ `erreur=` du journal) : à lire sur le build 132.
 - Le 24/11 j'ai arrêté 4 Chrome sans fenêtre laissés par mes passages du banc (profils banc-achats-*) ; le banc les ferme désormais toujours.
 
 ## LE BANC (`node outils/banc-pub/banc.cjs`, Chrome sans fenêtre et muet, faux module AdMob ; `--sonde` : l'écran de fin toutes les 400 ms)

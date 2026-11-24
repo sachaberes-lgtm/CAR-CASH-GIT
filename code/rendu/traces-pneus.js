@@ -196,8 +196,9 @@ const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort
    · AU LANCEMENT (1,5 s après le chargement) : initialize ; le consentement européen de Google (UMP : requestConsentInfo, et son formulaire
      s'il est REQUIS) ; la fenêtre de suivi d'Apple (ATT) si elle n'a jamais été posée ; puis une vidéo récompensée et une pub plein écran
      préchargées. Google répond « pas le droit de demander des pubs » (canRequestAds faux) : rien ne se charge.
-   · LA VIDÉO RÉCOMPENSÉE (CONTINUER, ×2) : CC_PUB_PRETE() dit si une est chargée (sinon les plaques sont GRISÉES, décision de Sacha) ;
-     CC_PUB_RECOMPENSE() la montre et rend une promesse : vrai = récompense gagnée, à la fermeture ; faux = fermée avant la fin, ou ratée.
+   · LA VIDÉO RÉCOMPENSÉE (CONTINUER, ×2) : CC_PUB_PRETE() dit si une est chargée ; CC_PUB_RECOMPENSE() la montre et rend une promesse :
+     vrai = récompense gagnée, à la fermeture ; faux = fermée avant la fin ; null = rien de prêt ou jamais montrée → le jeu passe au SECOURS,
+     la pub maison (2026-11-24, seconde-chance.js : PUBR.secours ; avant, les plaques étaient grises).
    · LA PUB ENTRE LES COURSES (seconde-chance.js : pubEntre) : CC_PUB_ENTRE() la montre si une est chargée (promesse résolue à la fermeture),
      sinon null.
    · Pas de réseau : le consentement et les pubs se redemandent 20 s, 40 s, 80 s… (5 min au plus), et tout de suite au retour du réseau
@@ -224,12 +225,13 @@ const AMOB={on:false,init:false,cOk:false,ok:true,test:false,choix:false,etat:''
       .then(function(){s.charge=false;s.pret=true;s.t=performance.now();s.essai=0;s.err='';},
             function(e){s.charge=false;s.pret=false;s.err=pubErr(e);AMOB.etat='pas chargée ('+k+') : '+s.err;clearTimeout(s.tm);s.tm=setTimeout(function(){charge(k);},attente(s.essai++));});}; /* (2026-11-24, iPhone de Sacha : « grisé alors que j'ai internet ») la raison de Google est gardée : dbgPub().admob.erreur, journal du banc */
   const pubErr=function(e){try{return String((e&&(e.code!=null?e.code+' ':''))+(e&&(e.message||e.errorMessage)||e)).replace(/\s+/g,' ').slice(0,120);}catch(x){return '?';}};
-  const finR=function(v){clearTimeout(AMOB.tm);const r=AMOB.res;AMOB.res=null;if(!r)return;AMOB.etat=v?'vue':'pas vue';r(!!v);setTimeout(function(){charge('r');},1000);};
+  const finR=function(v){clearTimeout(AMOB.tm);const r=AMOB.res;AMOB.res=null;if(!r)return;AMOB.etat=v===true?'vue':v===false?'pas vue':'pas montrée';r(v===true?true:v===false?false:null);setTimeout(function(){charge('r');},1000);}; /* null = Google n'a rien montré : le jeu passe au secours (la pub maison) */
   const finI=function(){clearTimeout(AMOB.tmI);const r=AMOB.resI;AMOB.resI=null;if(!r)return;r(true);setTimeout(function(){charge('i');},1000);};
   const ecoute=function(n,f){try{A.addListener(n,f);}catch(e){}};
   ecoute('onRewardedVideoAdReward',function(){if(AMOB.res)AMOB.vu=true;});
   ecoute('onRewardedVideoAdDismissed',function(){setTimeout(function(){finR(AMOB.vu);},250);}); /* (une récompense annoncée juste après la fermeture compte encore) */
-  ecoute('onRewardedVideoAdFailedToShow',function(){finR(false);});
+  ecoute('onRewardedVideoAdFailedToShow',function(){finR(AMOB.affiche?false:null);});
+  ecoute('onRewardedVideoAdShowed',function(){AMOB.affiche=true;});
   ecoute('interstitialAdDismissed',finI);
   ecoute('interstitialAdFailedToShow',finI);
   ecoute('onRewardedVideoAdFailedToLoad',function(e){AMOB.r.err=pubErr(e);});
@@ -257,11 +259,11 @@ const AMOB={on:false,init:false,cOk:false,ok:true,test:false,choix:false,etat:''
   window.CC_PUB_PRETE=function(){return !!(AMOB.init&&!AMOB.res&&!AMOB.resI&&pret('r'));};
   window.CC_PUB_RECOMPENSE=function(nom){
     if(!pret('r')||AMOB.res||AMOB.resI){charge('r');return null;} /* rien de prêt : la plaque aurait dû être grise */
-    AMOB.r.pret=false;AMOB.vu=false;AMOB.n++;AMOB.etat='montrée';
+    AMOB.r.pret=false;AMOB.vu=false;AMOB.affiche=false;AMOB.n++;AMOB.etat='montrée';
     const p=new Promise(function(res){AMOB.res=res;});
     AMOB.tm=setTimeout(function(){finR(AMOB.vu);},180000); /* une pub qui ne rend jamais la main : 3 min, puis ce qui a été gagné */
     Promise.resolve().then(function(){return A.showRewardVideoAd();})
-      .then(function(){AMOB.vu=true;},function(){setTimeout(function(){finR(AMOB.vu);},300);}); /* rejetée : fermée avant la fin (Dismissed suit) ou pas montrée du tout */
+      .then(function(){AMOB.vu=true;},function(){setTimeout(function(){finR(AMOB.vu?true:AMOB.affiche?false:null);},300);}); /* rejetée : fermée avant la fin (Dismissed suit) ou jamais montrée (null : le secours) */
     return p;};
   window.CC_PUB_ENTRE=function(){
     if(!avecI||!pret('i')||AMOB.res||AMOB.resI){charge('i');return null;}
