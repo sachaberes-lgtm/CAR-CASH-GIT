@@ -106,6 +106,20 @@ const CYD0=(function(){const m9=/[?&]cydet=([012])\b/.exec(location.search);retu
    textures (gCs, le niveau de mip) ne change pas. ESSAYÉS en photo : wq³ (plus fin encore, mais une bascule plus raide : risque de « nager » en roulant), la position lue moins
    quantifiée (Pc à 0,5 : presque rien). Coût : une multiplication par pixel, 0 programme, 0 triangle. `?sans=cyfin` = l'avant. Les gros pixels lisses (Sacha, 25/10) restent. */
 const CY_FIN=!/[?&]sans=([^&]*,)?cyfin(,|&|$)/.test(location.search);
+/* ===== LES GRIFFURES DE L'ORDINATEUR (2026-11-24, Sacha : « il y a toujours des bugs de texture sur canyon ») =====
+   REPRODUIT (banc canyon-textures, ordinateur au maximum, graine 12 matin, s 1001 et 1703 ; graines 2 et 7, les quatre météos) : au détail 2 de la roche (le seul que
+   l'ordinateur au maximum joue ; le téléphone et l'app sont au détail 1 ou 0), les parois se couvrent de GRIFFURES NOIRES EN BLOCS, de près comme de loin.
+   ISOLÉ à chaud, une ligne à la fois : elles partent toutes avec la ligne des « fissures », et aucune avec la normale tordue (qui reste). CAUSE : les « fines lignes
+   verticales » sont l'isoligne d'un bruit lu AU MIP DE LA CASE (les gros pixels) : un champ en blocs de 0,6 × 3 m au contact, de 2,4 × 12 m à 200 m ; l'isoligne en
+   couvre 14 % de la surface à 20 m et 36 % à 200 m, à 30 % d'ombre : des cases noires, pas des lignes. CORRIGÉ : l'ombre des fissures passe de 30 à 10 % (une nuance
+   de la case, comme les cannelures) et s'éteint entre 90 et 220 m (là où le texel lu dépasse le mètre). Le relief fin (la normale tordue) et l'air d'éloignement
+   du détail 2 ne changent pas. Aucune lecture de texture en plus ; rien ne change aux détails 0 et 1. `?sans=cyfiss` = l'avant.
+   LE DOSAGE (contrôle du lot : à 10 % la paroi du milieu, 70-200 m, perd aussi son grain sombre et paraît plus lisse — c'est le défaut lui-même qui part, mais c'est un
+   choix de goût) : `?cyfiss=N` règle l'ombre des fissures en pour cent, de 0 à 30 (10 par défaut ; 18 = entre les deux, les griffures reviennent à demi), pour que
+   Sacha juge sur sa machine sans nouvelle publication. ESSAYÉ à l'image et NON gardé : une ombre plus forte de près seulement (24 % sous 20 m, 10 % à 70 m) — les
+   parois photographiées sont presque toutes au-delà de 70 m, l'image ne change pas. */
+const CY_FISS=!/[?&]sans=([^&]*,)?cyfiss(,|&|$)/.test(location.search);
+const CY_FISSK=(function(){const m=/[?&]cyfiss=([0-9.]+)/.exec(location.search),v=m?parseFloat(m[1]):10;return (Math.max(0,Math.min(30,isFinite(v)?v:10))/100).toFixed(3);})(); /* l'ombre des fissures, en nombre du shader ('0.100') */
 /* ===== LE RENDU FINAL DU CANYON (2026-11-17, Sacha : « retravailler les graphismes de la map… les couleurs et le rendu général ») =====
    MESURÉ sur les photos du jeu (graine 3, matin et soir) : la gorge est presque toujours à l'ombre (soleil à 13° le matin, 6° le soir), et l'ombre de la roche tirait à
    l'ardoise bleutée (×.86,.88,1.04 puis un gris bleu jusqu'à 60 %) sous un ciel d'hémisphère bleu : des lits lie-de-vin et crème à l'ombre → un canyon LAVANDE et CRAMOISI
@@ -157,7 +171,7 @@ function cyFS(CYD){return ['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,u
   /* LES STRATES : la colonne relue à la hauteur, gondolée par deux bruits (les couches ondulent et plongent doucement) */
   '  float sy=(Pc.y+34.*(n0.r-.5)+4.*(n1.g-.5))/'+('3.7')+';vec4 st=texture2DLodEXT(uSTR,vec2(.5,sy/1024.),max(log2(gCs/3.7),0.));'+('vec3 rc=st.rgb*st.rgb*(.95+.10*n1.b);rc=max(mix(vec3(dot(rc,vec3(.3,.55,.15))),rc,'+(CY_LOOK?CY_LOOK.sat:'1.32')+'-.22*uWet),0.);'+(CY_TEX?'{float Lr=dot(rc,vec3(.3,.55,.15));rc=max(rc,vec3(Lr)*vec3(.6,.5,.42));}':'')), /* (2026-11-03) sous la pluie la roche perd un peu de son éclat (la charte : saturation ≤ 1,05 sous la pluie) */
   ...(CYD>=1?['  rc*=vec3(1.+.35*(n0.g-.5),1.,1.-.42*(n0.g-.5));rc*=1.+(nf.g-.5)*.62*fx;']:[]), /* la dérive de teinte au kilomètre (chaud ↔ froid) · les cannelures : des bandes verticales plus claires, plus sombres */
-  ...(CYD>=2?['  rc*=1.-.30*(1.-smoothstep(0.,.03,abs(nf.b-.5)))*fx;']:[]), /* les fissures : de fines lignes sombres, verticales */
+  ...(CYD>=2?[CY_FISS?'  rc*=1.-'+CY_FISSK+'*(1.-smoothstep(0.,.03,abs(nf.b-.5)))*fx*(1.-smoothstep(90.,220.,dist));':'  rc*=1.-.30*(1.-smoothstep(0.,.03,abs(nf.b-.5)))*fx;']:[]), /* les fissures : de fines lignes sombres, verticales — adoucies et fondues au loin (CY_FISS, « LES GRIFFURES DE L'ORDINATEUR ») */
   '  float lb=fract(Pc.y*.42+n1.b*.6);rc*=1.-'+('(.025+.035*st.a)*smoothstep(.65,1.,lb)*(1.-smoothstep(120.,420.,dist))')+'*rk;', // le litage des grès, horizontal (fondu au loin : des rayures de 2,4 m moiraient)
   '  float vr=smoothstep(.55,.82,nv.r)*smoothstep(.35,.8,stp)*rk;rc=mix(rc,rc*vec3(.74,.62,.60),vr*.28);', // le VERNIS du désert
   '  vec3 sab='+('vec3(.95,.50,.29)*(.96+.08*n1.r)')+';float top=smoothstep(.72,.9,N.y);vec3 col=mix(rc,mix(rc,sab,.62),top*rk);',
