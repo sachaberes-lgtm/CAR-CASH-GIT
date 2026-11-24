@@ -58,6 +58,10 @@ Rien sur `main`, rien d'envoyé à Apple, rien d'installé sur l'iPhone sans le 
   BLOQUÉ : au simulateur, la page cesse d'avancer (0 image/s) ~20 s après le départ, même sans dessin 3D (`chalrendu=0`) : le simulateur, fenêtre
   absente ou derrière les autres, ne fait plus tourner l'animation → la mort n'arrive jamais à l'écran de fin. À refaire avec la fenêtre
   Simulator AU PREMIER PLAN (ou sur l'iPhone, oui de Sacha). Rien à voir avec la pub (au navigateur les courses tournent).
+- 24/11, 13 h 25 (Sacha devant le Mac, fenêtre Simulator AU PREMIER PLAN) : même figement. Le mode d'origine `chaleur=course` (immortel, aucune
+  mort, aucune pub touchée) se fige AUSSI : ~20 s à 30 i/s puis 0 i/s, vitesse 0, aucune erreur JS. Donc pas le scénario de pub. Reste ouvert :
+  le simulateur (WebGL) ou le kit Google lui-même ? Contrôle à faire : le même essai sur un build SANS le module AdMob (base qa/tuto-finitions),
+  ou sur l'iPhone (oui de Sacha).
 - Le 24/11 j'ai arrêté 4 Chrome sans fenêtre laissés par mes passages du banc (profils banc-achats-*) ; le banc les ferme désormais toujours.
 
 ## LE BANC (`node outils/banc-pub/banc.cjs`, Chrome sans fenêtre et muet, faux module AdMob ; `--sonde` : l'écran de fin toutes les 400 ms)
