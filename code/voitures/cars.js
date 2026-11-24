@@ -40,7 +40,7 @@ const CARS=[
   desc:'Inox brossé, portes papillon. À 88 à l\'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.'},
  // ---- LES CAISSES PREMIUM (2026-09-25) : la gamme des 15 retrouvée, en BOUTIQUE (vrai argent). Hors du garage tant
  // qu'elles ne sont pas achetées (voir `garageListe`). Fiches reprises de la branche `appstore-backlog`, emojis retirés.
- {name:'CHAT POP-TART',   shape:'poptart', color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:1.35,w:1.88,l:2.85,spoiler:0, // (2026-10-09) encore un peu plus grande : ×,95 (h 1,22 · w 1,7 · l 2,58 avant) · plus volumineuse : ×,86, ailes +12 cm (h 1,14 · w 1,5 · l 2,4 avant) · la mini de rallye : plus basse, plus large (h 1,2 · w 1,36 avant)
+ {retire:1,name:'CHAT POP-TART',   shape:'poptart', /* (2026-11-23, Sacha : « CHAT POP-TART ça fait longtemps qu'on en veut plus » · « enlève la voiture pizza ») RETIRÉE du jeu (le site aussi) : sa ligne reste (index de sauvegarde) avec son `shape` (= l'identifiant chez Apple, cashcar.car.poptart, jamais vendu) ; pas de prix dans CAR_UNLOCK, donc aucun remboursement : personne ne l'a payée */ color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:1.35,w:1.88,l:2.85,spoiler:0, // (2026-10-09) encore un peu plus grande : ×,95 (h 1,22 · w 1,7 · l 2,58 avant) · plus volumineuse : ×,86, ailes +12 cm (h 1,14 · w 1,5 · l 2,4 avant) · la mini de rallye : plus basse, plus large (h 1,2 · w 1,36 avant)
   // (2026-10-09, Léo, fiche de la salle blanche) « plus petite » : tout le chat ×NY_K (,8) — h 1,5 · w 1,7 · l 3,0 avant
   // (2026-10-06) en voxels : 1,7 × 3 m, oreilles à 1,5 m — plus de bandes néon (`glow`) : elles barraient les murs noirs
   fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8}, // (2026-10-07) son arc-en-ciel EN FEU DE PIXELS (voir ARC_*) + ses pixels qui scintillent (NY_PIX), à la nitro et en vol — branché par NYAN.on
@@ -66,7 +66,7 @@ const CARS=[
  {retire:1,name:'LA DEUCHE'}, /* (2026-11-07, Léo : « enlève la tin snail ») retirée de nouveau (elle était revenue le même jour) ; son dessin `a_deuche` est dans l'historique git (commit ccfbb021^) */
  {name:'LE TAXI JAUNE',color:0xffc61a,accent:0x141414,maxKmh:215,accel:24,turn:2.45,h:1.5,w:2,l:5.4,spoiler:0,shape:'a_taxi',rar:'commun',
   desc:'Le compteur tourne en millions. Tu montes, tu t\'accroches, tu ne négocies pas le prix.'},
- {name:'LA PIZZA EXPRESS',color:0xf4f1ea,accent:0xd8261e,maxKmh:190,accel:21,turn:2.9,h:1.45,w:1.5,l:3.4,spoiler:0,shape:'b_pizza',rar:'legendaire',
+ {retire:1,name:'LA PIZZA EXPRESS', /* (2026-11-23, Sacha : « CHAT POP-TART ça fait longtemps qu'on en veut plus » · « enlève la voiture pizza ») RETIRÉE : sa ligne reste (index de sauvegarde) avec son `shape` b_pizza (= l'identifiant cashcar.car.b_pizza, jamais vendu) ; pas de prix dans CAR_UNLOCK, donc aucun remboursement */color:0xf4f1ea,accent:0xd8261e,maxKmh:190,accel:21,turn:2.9,h:1.45,w:1.5,l:3.4,spoiler:0,shape:'b_pizza',rar:'legendaire',
   desc:'30 minutes chrono ou la pizza est offerte. Spoiler : elle n\'a jamais été offerte.'},
  {retire:1,name:'LE MONOSPACE'},
  {retire:1,name:'LE BREAK SUÉDOIS'},

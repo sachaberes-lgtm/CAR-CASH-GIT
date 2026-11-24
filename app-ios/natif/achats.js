@@ -12,7 +12,10 @@
      ccAchat.produits(ids)        Promise<{[id]:{prix:'0,99 €', devise:'EUR'}}>
      ccAchat.payer(id)            Promise<'ok'> ; rejette une Error dont .code vaut 'annule' | 'attente' | 'indisponible' | 'echec'
      ccAchat.possedes()           Promise<string[]> ;  ccAchat.restaurer()  Promise<string[]>
-     ccAchat.onRecu(cb)           cb(id) à chaque achat reçu en dehors d'un payer() */
+     ccAchat.onRecu(cb)           cb(id) à chaque achat reçu en dehors d'un payer()
+   (2026-11-23, Sacha : « remboursement […] Non, on la reprend ») LES REMBOURSEMENTS :
+     ccAchat.repris()             Promise<string[]> : les produits remboursés par Apple (et pas rachetés) ; [] avec un binaire plus ancien
+     ccAchat.onRepris(cb)         cb(id) quand Apple rembourse un achat pendant que l'app tourne (événement natif « achatRepris ») */
 (function(){
   'use strict';
   var C=window.Capacitor;
@@ -23,6 +26,7 @@
   var erreur=function(code,texte){var e=new Error(texte||code);e.code=code;return e;};
   var enCours=false; // UN SEUL ACHAT À LA FOIS : un second payer() pendant le premier est refusé sans toucher au plugin
   var ecouteurs=[], enAttente=[]; // enAttente : achats reçus avant que le jeu n'ait posé son onRecu (ils sont rejoués ensuite)
+  var ecRepris=[], reprisAttente=[]; // (2026-11-23, Sacha : « remboursement […] Non, on la reprend ») la même chose pour les remboursements
 
   var recu=function(id){
     if(typeof id!=='string')return;
@@ -30,6 +34,12 @@
     ecouteurs.slice().forEach(function(cb){try{cb(id);}catch(e){}});
   };
   try{var r=A.addListener('achatRecu',function(ev){recu(ev&&ev.id);});if(r&&r.catch)r.catch(function(){});}catch(e){}
+  var repris=function(id){
+    if(typeof id!=='string')return;
+    if(!ecRepris.length){reprisAttente.push(id);return;}
+    ecRepris.slice().forEach(function(cb){try{cb(id);}catch(e){}});
+  };
+  try{var r2=A.addListener('achatRepris',function(ev){repris(ev&&ev.id);});if(r2&&r2.catch)r2.catch(function(){});}catch(e){}
 
   var ids=function(r){return (r&&Array.isArray(r.ids))?r.ids.filter(function(x){return typeof x==='string';}):[];};
 
@@ -59,6 +69,14 @@
     },
     possedes:function(){return Promise.resolve().then(function(){return A.possedes();}).then(ids);},
     restaurer:function(){return Promise.resolve().then(function(){return A.restaurer();}).then(ids);},
+    repris:function(){ /* un binaire d'avant le 23/11 n'a pas la méthode : rien de repris (jamais un rejet) */
+      if(typeof A.repris!=='function')return Promise.resolve([]);
+      return Promise.resolve().then(function(){return A.repris();}).then(ids,function(){return [];});},
+    onRepris:function(cb){
+      if(typeof cb!=='function')return;
+      ecRepris.push(cb);
+      if(reprisAttente.length){var q=reprisAttente;reprisAttente=[];q.forEach(repris);}
+    },
     onRecu:function(cb){
       if(typeof cb!=='function')return;
       ecouteurs.push(cb);

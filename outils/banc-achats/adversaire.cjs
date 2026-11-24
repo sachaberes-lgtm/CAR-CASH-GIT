@@ -240,8 +240,22 @@ const code = (o) => Buffer.from(unescape(encodeURIComponent(JSON.stringify(o))),
   };
 
   CAS.divers = async () => {
-    await neuf(); await J.acheteCaisse(A.cle); await sk(`rembourse(${JSON.stringify(A.id)})`); await dormir(300);
-    trou((await J.a(A.cle)).vif, 'achat REMBOURSÉ par Apple : l\'objet reste dans cette installation (choix de la v1.0)');
+    /* (2026-11-23, Sacha : « remboursement […] Non, on la reprend ») un achat remboursé par Apple est REPRIS (avant : l'objet restait, « choix de la v1.0 ») */
+    const rien = (a) => !a.vif && !a.disque && !a.miroir;
+    await neuf(); await J.acheteCaisse(A.cle); await sk(`rembourse(${JSON.stringify(A.id)})`); await dormir(600);
+    doit(rien(await J.a(A.cle)), 'achat REMBOURSÉ par Apple, app ouverte : la caisse est reprise (mémoire, disque, miroir)');
+    doit((await J.vif()).save.equipped !== A.cle, 'et on ne roule plus avec');
+    await J.tue();
+    doit(rien(await J.a(A.cle)), 'et elle ne revient pas au lancement suivant');
+    await neuf(); await J.achetePeinture(P.nom); await J.tue(); await sk(`remboursementFerme(${JSON.stringify(P.id)})`); await J.tue(); await dormir(600);
+    doit(rien(await J.a(P.cle)), 'peinture remboursée app FERMÉE : reprise au lancement suivant');
+    doit((await J.vif()).eq.peinture !== P.cle.slice(9), 'et la voiture ne la porte plus');
+    await neuf(); await J.acheteCaisse(A.cle); await sk(`rembourse(${JSON.stringify(A.id)})`); await dormir(400); await J.acheteCaisse(A.cle); await J.tue(); await dormir(400);
+    doit(tient(await J.a(A.cle)), 'remboursée puis RACHETÉE : la caisse reste (la liste des reprises exclut ce qui est de nouveau à toi)');
+    await neuf(); await J.acheteCaisse(A.cle); await sk(`regle({reseau:false})`); await J.tue(); await dormir(400);
+    doit(tient(await J.a(A.cle)), 'hors ligne, sans remboursement : rien n\'est repris');
+    await sk(`regle({reseau:true})`);
+    await neuf(); await J.acheteCaisse(A.cle); await sk(`rembourse(${JSON.stringify(A.id)})`); await dormir(400); /* le cas d'avant : un achat remboursé, puis un téléphone neuf */
     await J.telephoneNeuf(); await J.seme(); await J.lance();
     const n = await J.restaure();
     doit(n === 0 && !(await J.a(A.cle)).vif, 'un achat remboursé n\'est pas restauré sur un téléphone neuf');

@@ -141,3 +141,14 @@ Comment ça marche dans le jeu : toute caisse `k:'premium'` en vente devient un 
 
 ## 23/11 : quatre voitures retirées de plus
 - (23/11, Sacha : « enlève les voiture : baroudeur, dolce vita, caid, zagaie ») LE CAÏD (2), LA DOLCE VITA (80), LE BAROUDEUR (82) et LA ZAGAIE (88) sont retirées, par la même règle que le 18/11 : `{retire:1,name}` au même index, prix gardés dans `CAR_UNLOCK` (600 000, 30 000, 80 000, 3 500 000 $) pour le remboursement, équipée → LA HONTE, dessins gardés dans `SHAPES`. Banc : `outils/banc-voitures-tri/banc.cjs` (297 vérifications, section 5) et `page-23-11.cjs` (Chrome). Détail, points délicats et questions : `PASSATION-21-11.md`, section « 23/11 : quatre voitures retirées ».
+
+## 23/11 (soir) : CHAT POP-TART et LA PIZZA EXPRESS retirés du jeu (branche `qa/voitures-noms`)
+- Sacha : « CHAT POP-TART ça fait longtemps qu'on en veut plus » · « enlève la voiture pizza » · « change les nom si tu veux » · « les son c'est leo qui les as fait avec garage bande » · « on garde les code de triche on verra apres ».
+- CHAT POP-TART (index 9) et LA PIZZA EXPRESS (19) : `retire:1` au même index, fiche et `shape` gardés (identifiants Apple `cashcar.car.poptart` et `cashcar.car.b_pizza`, jamais vendus). Pas de prix dans `CAR_UNLOCK` : **aucun remboursement** (personne ne les a payées). Équipée → LA HONTE.
+- La traînée ARC-EN-CIEL (« vient avec le CHAT POP-TART ») devient secrète dans le jeu, comme dans l'app depuis le 11/11 (`economie/boutique-vitrine.js`). Les deux coupes du chat dans `preparer-www.js` sont ôtées (le jeu le fait lui-même), un témoin les remplace.
+- LA PIZZA quitte `app-ios/outils/produits.csv` et `Produits.storekit` : **38 produits** à créer dans App Store Connect.
+- Nom : LE SPECTRE (modèle Rolls-Royce en vente) → **LE REVENANT / THE REVENANT dans l'app seulement** (`preparer-www.js`, après les renommages du 11/11). Le jeu web garde LE SPECTRE.
+- Sons `kaching`, `compteuse`, `cash`, `compteur`, `wow` : faits par Léo avec GarageBand (Sacha, 23/11) → droits réglés.
+- Contrôles : assembleur OK, gardes démarrage / allégé / charte / burn-out OK, `preparer-www.js --essai` réussi (LE REVENANT ×3, LE SPECTRE ×0 dans l'app), banc `outils/banc-voitures-tri/page-23-11-chat-pizza.cjs` : **BANC OK** (joueur neuf : ni l'une ni l'autre nulle part ; joueur qui roulait en chat avec la pizza : LA HONTE, banque inchangée, aucun message de remboursement, 30 s de course, 0 exception). Cache v1617.
+- Pas fait : rien sur le vrai iPhone ; `cashcar.car.poptart` n'a jamais été dans `produits.csv`.
+- (23/11, Sacha : « Non, garde-le ») le prix barré 1,61 € de L'ICEBERG est GARDÉ, malgré la règle européenne des 30 jours (risque connu, écrit plus haut). Kit App Store à copier-coller : https://claude.ai/artifact/Ko8onhNZ2JYAvGEPJcmC5a

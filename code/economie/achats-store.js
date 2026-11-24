@@ -86,6 +86,44 @@ function achatsRecoit(idProduit,calme){ /* pose l'objet s'il manque : vrai si NO
   if(!SAVE.d.shop||!SAVE.d.shop.own||SAVE.d.shop.own.indexOf('peinture:'+id)>=0)return false;
   habDonne('peinture',id,!!calme);if(!calme)achatsRepeint();return true;
 }
+/* ===== LES ACHATS REMBOURSÉS SONT REPRIS (2026-11-23, Sacha : « remboursement […] Non, on la reprend ») =====
+   Avant (choix de la v1.0) : un achat remboursé par Apple laissait l'objet. Maintenant, sur un signal SÛR d'Apple seulement (événement « achatRepris »
+   d'une transaction qui porte une revocationDate, ou la liste ccAchat.repris() au démarrage et au retour au premier plan), la caisse sort de `owned`
+   (on repart en LA HONTE si on roulait avec) et la peinture sort de `shop.own` (retour à la peinture d'usine si on la portait). Jamais sur une simple ABSENCE
+   dans les droits : hors ligne ou sur un autre identifiant Apple, StoreKit ne sait rien, et ce n'est pas un remboursement. Rien n'est repris en course ni sur
+   l'écran de mort : la reprise attend l'accueil, le garage ou l'écran ACHAT (achatsFeteOk), comme les fêtes. Un toast le dit. Rien sur le web (pas de ccAchat). */
+Object.assign(I18N,{"ACHAT REMBOURSÉ":"PURCHASE REFUNDED","PEINTURE RETIRÉE":"PAINT JOB REMOVED"});
+var achatsReprises=[];
+function achatsReprend(idProduit){ /* vrai si un objet a été repris maintenant */
+  const p=achatsResout(idProduit);
+  if(!p)return false;
+  if(!achatsFeteOk()){if(achatsReprises.indexOf(idProduit)<0)achatsReprises.push(idProduit);achatsFetesGuet();return false;}
+  let nom='';
+  if(p.type==='car'){
+    const o=SAVE.d.owned;if(!Array.isArray(o)||o.indexOf(p.cle)<0)return false;
+    o.splice(o.indexOf(p.cle),1);try{carWas[p.cle]=false;}catch(e){}
+    if((SAVE.d.equipped|0)===p.cle)SAVE.d.equipped=0;
+    nom=sansAcc(TR(CARS[p.cle].name))+' '+TR('QUITTE LE GARAGE');
+  }else{
+    const id=p.cle.slice(9),o=SAVE.d.shop&&SAVE.d.shop.own,k=o?o.indexOf('peinture:'+id):-1;
+    if(k<0)return false;
+    o.splice(k,1);if(SAVE.d.shop.eq.peinture===id)SAVE.d.shop.eq.peinture='usine';
+    nom=TR('PEINTURE RETIRÉE');
+  }
+  SAVE.flush();
+  try{window.__ccNote&&window.__ccNote('achat','repris '+idProduit);}catch(e){}
+  try{toast(pxi('panier')+' '+TR('ACHAT REMBOURSÉ')+' : '+nom);}catch(e){}
+  try{SHOP.prev=null;buildCar(CARS[garageOn?garageI:equippedCar()]);if(garageOn){GBQ.rk='';gShopJour();}}catch(e){}
+  achatsRafraichit();
+  return true;
+}
+function achatsRepris(){ /* la liste d'Apple : au démarrage et à chaque synchro en cours de session ; n'échoue jamais */
+  const A=window.ccAchat;
+  if(!A||typeof A.repris!=='function')return Promise.resolve(0);
+  return Promise.resolve().then(function(){return A.repris();}).then(function(L){
+    let n=0;(Array.isArray(L)?L:[]).forEach(function(id){try{if(achatsReprend(id))n++;}catch(e){}});return n;
+  }).catch(function(){return 0;});
+}
 function achatsSync(restaure){ /* ce que l'App Store dit posséder ⇒ calme ; n'échoue JAMAIS, aucun toast : en cas d'erreur 0 (démarrage) ou -1 (RESTAURER : l'échec se distingue de « rien à restaurer ») */
   const A=window.ccAchat;
   if(!A)return Promise.resolve(0);
@@ -94,6 +132,7 @@ function achatsSync(restaure){ /* ce que l'App Store dit posséder ⇒ calme ; n
     return f.call(A);
   }).then(function(L){
     let n=0,vus=0;(Array.isArray(L)?L:[]).forEach(function(id){try{if(achatsResout(id))vus++;if(achatsRecoit(id,true))n++;}catch(e){}});
+    try{achatsRepris();}catch(e){} /* (2026-11-23, Sacha : « remboursement […] Non, on la reprend ») */
     achatsSync.vus=vus; /* combien d'achats Apple le jeu RECONNAÎT (déjà posés ou non) : RESTAURER s'en sert pour ne pas dire « aucun achat » à qui les a tous */
     if(n)achatsRafraichit();
     return n;
@@ -137,11 +176,12 @@ var achatsFetes=[];
    l'achat lui-même (fenêtre d'achat, peinture) : la feuille d'Apple peut répondre après qu'on a fermé la fenêtre et lancé JOUER. */
 function achatsFeteOk(){if(started&&!gameOver)return false;const on=function(id){const e=document.getElementById(id);return !!e&&e.classList.contains('on');};return !!(garageOn||on('mHome')||on('mShop'));}
 function achatsFetesGuet(){if(achatsFetesGuet.t)return;achatsFetesGuet.t=setInterval(function(){
-  if(!achatsFetes.length){clearInterval(achatsFetesGuet.t);achatsFetesGuet.t=0;return;}
+  if(!achatsFetes.length&&!achatsReprises.length){clearInterval(achatsFetesGuet.t);achatsFetesGuet.t=0;return;}
   if(achatsFeteOk())try{achatsFetesJoue();}catch(e){}},1000);}
 /* la caisse à l'écran reprend la peinture tout juste équipée (hors course) : sans ça elle gardait l'ancienne alors que la boutique disait DÉSÉQUIPER pour la neuve */
 function achatsRepeint(){if(started&&!gameOver)return;try{SHOP.prev=null;buildCar(CARS[garageOn?garageI:equippedCar()]);if(garageOn){GBQ.rk='';gShopJour();}}catch(e){}}
 function achatsFetesJoue(){
+  if(achatsReprises.length&&achatsFeteOk()){const R=achatsReprises.splice(0,achatsReprises.length);R.forEach(function(id){try{achatsReprend(id);}catch(e){}});} /* (2026-11-23, Sacha : « remboursement […] Non, on la reprend ») */
   if(!achatsFetes.length||!achatsFeteOk())return;
   const L=achatsFetes.splice(0,achatsFetes.length);let peint=false;
   L.forEach(function(id){try{const p=achatsResout(id);if(!p)return;
@@ -197,6 +237,7 @@ function achatsDemarre(){ /* fin d'init : écoute des achats reçus, prix, synch
       const enCourse=!achatsFeteOk(); /* (2026-11-15) course, écran de mort, lancement : voir achatsFeteOk */
       if(achatsRecoit(id,!!enCourse)){if(enCourse){achatsFetes.push(id);achatsFetesGuet();}achatsRafraichit();}}catch(e){}});}catch(e){}
     try{document.addEventListener('visibilitychange',function(){if(!document.hidden)achatsResync();});}catch(e){} /* (2026-11-10) le retour au premier plan : voir achatsResync */
+    if(typeof A.onRepris==='function')try{A.onRepris(function(id){try{achatsReprend(id);}catch(e){}});}catch(e){} /* (2026-11-23, Sacha : « remboursement […] Non, on la reprend ») Apple rembourse pendant que l'app tourne */
   }
   achatsPrix();achatsSync(false);
 }

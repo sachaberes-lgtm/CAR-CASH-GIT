@@ -39697,7 +39697,7 @@ const CARS=[
   desc:'Inox brossé, portes papillon. À 88 à l\'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.'},
  // ---- LES CAISSES PREMIUM (2026-09-25) : la gamme des 15 retrouvée, en BOUTIQUE (vrai argent). Hors du garage tant
  // qu'elles ne sont pas achetées (voir `garageListe`). Fiches reprises de la branche `appstore-backlog`, emojis retirés.
- {name:'CHAT POP-TART',   shape:'poptart', color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:1.35,w:1.88,l:2.85,spoiler:0, // (2026-10-09) encore un peu plus grande : ×,95 (h 1,22 · w 1,7 · l 2,58 avant) · plus volumineuse : ×,86, ailes +12 cm (h 1,14 · w 1,5 · l 2,4 avant) · la mini de rallye : plus basse, plus large (h 1,2 · w 1,36 avant)
+ {retire:1,name:'CHAT POP-TART',   shape:'poptart', /* (2026-11-23, Sacha : « CHAT POP-TART ça fait longtemps qu'on en veut plus » · « enlève la voiture pizza ») RETIRÉE du jeu (le site aussi) : sa ligne reste (index de sauvegarde) avec son `shape` (= l'identifiant chez Apple, cashcar.car.poptart, jamais vendu) ; pas de prix dans CAR_UNLOCK, donc aucun remboursement : personne ne l'a payée */ color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:1.35,w:1.88,l:2.85,spoiler:0, // (2026-10-09) encore un peu plus grande : ×,95 (h 1,22 · w 1,7 · l 2,58 avant) · plus volumineuse : ×,86, ailes +12 cm (h 1,14 · w 1,5 · l 2,4 avant) · la mini de rallye : plus basse, plus large (h 1,2 · w 1,36 avant)
   // (2026-10-09, Léo, fiche de la salle blanche) « plus petite » : tout le chat ×NY_K (,8) — h 1,5 · w 1,7 · l 3,0 avant
   // (2026-10-06) en voxels : 1,7 × 3 m, oreilles à 1,5 m — plus de bandes néon (`glow`) : elles barraient les murs noirs
   fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8}, // (2026-10-07) son arc-en-ciel EN FEU DE PIXELS (voir ARC_*) + ses pixels qui scintillent (NY_PIX), à la nitro et en vol — branché par NYAN.on
@@ -39723,7 +39723,7 @@ const CARS=[
  {retire:1,name:'LA DEUCHE'}, /* (2026-11-07, Léo : « enlève la tin snail ») retirée de nouveau (elle était revenue le même jour) ; son dessin `a_deuche` est dans l'historique git (commit ccfbb021^) */
  {name:'LE TAXI JAUNE',color:0xffc61a,accent:0x141414,maxKmh:215,accel:24,turn:2.45,h:1.5,w:2,l:5.4,spoiler:0,shape:'a_taxi',rar:'commun',
   desc:'Le compteur tourne en millions. Tu montes, tu t\'accroches, tu ne négocies pas le prix.'},
- {name:'LA PIZZA EXPRESS',color:0xf4f1ea,accent:0xd8261e,maxKmh:190,accel:21,turn:2.9,h:1.45,w:1.5,l:3.4,spoiler:0,shape:'b_pizza',rar:'legendaire',
+ {retire:1,name:'LA PIZZA EXPRESS', /* (2026-11-23, Sacha : « CHAT POP-TART ça fait longtemps qu'on en veut plus » · « enlève la voiture pizza ») RETIRÉE : sa ligne reste (index de sauvegarde) avec son `shape` b_pizza (= l'identifiant cashcar.car.b_pizza, jamais vendu) ; pas de prix dans CAR_UNLOCK, donc aucun remboursement */color:0xf4f1ea,accent:0xd8261e,maxKmh:190,accel:21,turn:2.9,h:1.45,w:1.5,l:3.4,spoiler:0,shape:'b_pizza',rar:'legendaire',
   desc:'30 minutes chrono ou la pizza est offerte. Spoiler : elle n\'a jamais été offerte.'},
  {retire:1,name:'LE MONOSPACE'},
  {retire:1,name:'LE BREAK SUÉDOIS'},
@@ -61947,7 +61947,7 @@ const CAR_UNLOCK=[
   {k:'carnet',v:2},     // LE COMBI — contrat n° 2 — (2026-11-18, Sacha) SECRÈTE : la mission `nuages10` (missions/table.js) remplace cette ligne au chargement ; elle reste la condition d'AVANT (`av`), relue une seule fois par la migration des missions (m2MigreV2)
   {k:'carnet',v:3},     // LA DOLORÈS — contrat n° 3 — (2026-11-18, Sacha) SECRÈTE : la mission `mois1` (missions/table.js) remplace cette ligne au chargement ; elle reste la condition d'AVANT (`av`)
   // LES PREMIUM : en BOUTIQUE, contre du vrai argent (StoreKit à brancher). `eur` = le prix affiché, `rar` = la rareté de la carte
-  {k:'premium',eur:'4,20 €',rar:'leg',une:1,horsVente:1}, // (2026-10-06 : 4,99 → 4,20 €) CHAT POP-TART — l'offre à la une · (2026-11-13, Sacha : « le chat nian cat, tu le tej de la boutique ») `horsVente` : plus en boutique (carEnVente) ; la fiche, le dessin et l'achat déjà fait (restauration Apple) restent
+  {k:'premium',eur:'4,20 €',rar:'leg',une:1,horsVente:1}, /* (2026-11-23, Sacha : « CHAT POP-TART ça fait longtemps qu'on en veut plus » · « enlève la voiture pizza ») RETIRÉE (voir CARS) : la ligne reste pour l'index */ // (2026-10-06 : 4,99 → 4,20 €) CHAT POP-TART — l'offre à la une · (2026-11-13, Sacha : « le chat nian cat, tu le tej de la boutique ») `horsVente` : plus en boutique (carEnVente) ; la fiche, le dessin et l'achat déjà fait (restauration Apple) restent
   {k:'premium',eur:'9,99 €',rar:'leg'},       // REQUIN — SUPPRIMÉE (2026-11-07, Sacha : « supprime-la complètement du code du jeu ») : la ligne reste pour l'index ; `retire` la sort de la boutique et de la sauvegarde
   {k:'bientot',v:1},                          // COMÈTE — (2026-10-06) DÉFI à définir (était en boutique, 4,99 €)
   {k:'premium',eur:'4,99 €',rar:'leg'},       // FORMULE OR — (2026-10-06) RETIRÉE
@@ -61958,7 +61958,7 @@ const CAR_UNLOCK=[
   {p:1500}, // LA POSTIÈRE — (2026-10-06) RETIRÉE
   {p:2000}, // LA DEUCHE — (2026-10-06) RETIRÉE ; (2026-11-07) remise puis retirée de nouveau (« enlève la tin snail »)
   {p:2500}, // LE TAXI JAUNE — (2026-10-06) retiré ; (2026-11-07, Léo : « le taxi remets ») REMIS
-  {k:'premium',eur:'161,00 €',rar:'leg'}, // LA PIZZA EXPRESS — (2026-10-06) revient, LÉGENDAIRE en boutique
+  {k:'premium',eur:'161,00 €',rar:'leg'}, /* (2026-11-23, Sacha : « CHAT POP-TART ça fait longtemps qu'on en veut plus » · « enlève la voiture pizza ») RETIRÉE (voir CARS) : la ligne reste pour l'index */ // LA PIZZA EXPRESS — (2026-10-06) revient, LÉGENDAIRE en boutique
   {p:3500}, // LE MONOSPACE
   {p:4000}, // LE BREAK SUÉDOIS
   {p:5000}, // LA BOULE
@@ -65091,6 +65091,44 @@ function achatsRecoit(idProduit,calme){ /* pose l'objet s'il manque : vrai si NO
   if(!SAVE.d.shop||!SAVE.d.shop.own||SAVE.d.shop.own.indexOf('peinture:'+id)>=0)return false;
   habDonne('peinture',id,!!calme);if(!calme)achatsRepeint();return true;
 }
+/* ===== LES ACHATS REMBOURSÉS SONT REPRIS (2026-11-23, Sacha : « remboursement […] Non, on la reprend ») =====
+   Avant (choix de la v1.0) : un achat remboursé par Apple laissait l'objet. Maintenant, sur un signal SÛR d'Apple seulement (événement « achatRepris »
+   d'une transaction qui porte une revocationDate, ou la liste ccAchat.repris() au démarrage et au retour au premier plan), la caisse sort de `owned`
+   (on repart en LA HONTE si on roulait avec) et la peinture sort de `shop.own` (retour à la peinture d'usine si on la portait). Jamais sur une simple ABSENCE
+   dans les droits : hors ligne ou sur un autre identifiant Apple, StoreKit ne sait rien, et ce n'est pas un remboursement. Rien n'est repris en course ni sur
+   l'écran de mort : la reprise attend l'accueil, le garage ou l'écran ACHAT (achatsFeteOk), comme les fêtes. Un toast le dit. Rien sur le web (pas de ccAchat). */
+Object.assign(I18N,{"ACHAT REMBOURSÉ":"PURCHASE REFUNDED","PEINTURE RETIRÉE":"PAINT JOB REMOVED"});
+var achatsReprises=[];
+function achatsReprend(idProduit){ /* vrai si un objet a été repris maintenant */
+  const p=achatsResout(idProduit);
+  if(!p)return false;
+  if(!achatsFeteOk()){if(achatsReprises.indexOf(idProduit)<0)achatsReprises.push(idProduit);achatsFetesGuet();return false;}
+  let nom='';
+  if(p.type==='car'){
+    const o=SAVE.d.owned;if(!Array.isArray(o)||o.indexOf(p.cle)<0)return false;
+    o.splice(o.indexOf(p.cle),1);try{carWas[p.cle]=false;}catch(e){}
+    if((SAVE.d.equipped|0)===p.cle)SAVE.d.equipped=0;
+    nom=sansAcc(TR(CARS[p.cle].name))+' '+TR('QUITTE LE GARAGE');
+  }else{
+    const id=p.cle.slice(9),o=SAVE.d.shop&&SAVE.d.shop.own,k=o?o.indexOf('peinture:'+id):-1;
+    if(k<0)return false;
+    o.splice(k,1);if(SAVE.d.shop.eq.peinture===id)SAVE.d.shop.eq.peinture='usine';
+    nom=TR('PEINTURE RETIRÉE');
+  }
+  SAVE.flush();
+  try{window.__ccNote&&window.__ccNote('achat','repris '+idProduit);}catch(e){}
+  try{toast(pxi('panier')+' '+TR('ACHAT REMBOURSÉ')+' : '+nom);}catch(e){}
+  try{SHOP.prev=null;buildCar(CARS[garageOn?garageI:equippedCar()]);if(garageOn){GBQ.rk='';gShopJour();}}catch(e){}
+  achatsRafraichit();
+  return true;
+}
+function achatsRepris(){ /* la liste d'Apple : au démarrage et à chaque synchro en cours de session ; n'échoue jamais */
+  const A=window.ccAchat;
+  if(!A||typeof A.repris!=='function')return Promise.resolve(0);
+  return Promise.resolve().then(function(){return A.repris();}).then(function(L){
+    let n=0;(Array.isArray(L)?L:[]).forEach(function(id){try{if(achatsReprend(id))n++;}catch(e){}});return n;
+  }).catch(function(){return 0;});
+}
 function achatsSync(restaure){ /* ce que l'App Store dit posséder ⇒ calme ; n'échoue JAMAIS, aucun toast : en cas d'erreur 0 (démarrage) ou -1 (RESTAURER : l'échec se distingue de « rien à restaurer ») */
   const A=window.ccAchat;
   if(!A)return Promise.resolve(0);
@@ -65099,6 +65137,7 @@ function achatsSync(restaure){ /* ce que l'App Store dit posséder ⇒ calme ; n
     return f.call(A);
   }).then(function(L){
     let n=0,vus=0;(Array.isArray(L)?L:[]).forEach(function(id){try{if(achatsResout(id))vus++;if(achatsRecoit(id,true))n++;}catch(e){}});
+    try{achatsRepris();}catch(e){} /* (2026-11-23, Sacha : « remboursement […] Non, on la reprend ») */
     achatsSync.vus=vus; /* combien d'achats Apple le jeu RECONNAÎT (déjà posés ou non) : RESTAURER s'en sert pour ne pas dire « aucun achat » à qui les a tous */
     if(n)achatsRafraichit();
     return n;
@@ -65142,11 +65181,12 @@ var achatsFetes=[];
    l'achat lui-même (fenêtre d'achat, peinture) : la feuille d'Apple peut répondre après qu'on a fermé la fenêtre et lancé JOUER. */
 function achatsFeteOk(){if(started&&!gameOver)return false;const on=function(id){const e=document.getElementById(id);return !!e&&e.classList.contains('on');};return !!(garageOn||on('mHome')||on('mShop'));}
 function achatsFetesGuet(){if(achatsFetesGuet.t)return;achatsFetesGuet.t=setInterval(function(){
-  if(!achatsFetes.length){clearInterval(achatsFetesGuet.t);achatsFetesGuet.t=0;return;}
+  if(!achatsFetes.length&&!achatsReprises.length){clearInterval(achatsFetesGuet.t);achatsFetesGuet.t=0;return;}
   if(achatsFeteOk())try{achatsFetesJoue();}catch(e){}},1000);}
 /* la caisse à l'écran reprend la peinture tout juste équipée (hors course) : sans ça elle gardait l'ancienne alors que la boutique disait DÉSÉQUIPER pour la neuve */
 function achatsRepeint(){if(started&&!gameOver)return;try{SHOP.prev=null;buildCar(CARS[garageOn?garageI:equippedCar()]);if(garageOn){GBQ.rk='';gShopJour();}}catch(e){}}
 function achatsFetesJoue(){
+  if(achatsReprises.length&&achatsFeteOk()){const R=achatsReprises.splice(0,achatsReprises.length);R.forEach(function(id){try{achatsReprend(id);}catch(e){}});} /* (2026-11-23, Sacha : « remboursement […] Non, on la reprend ») */
   if(!achatsFetes.length||!achatsFeteOk())return;
   const L=achatsFetes.splice(0,achatsFetes.length);let peint=false;
   L.forEach(function(id){try{const p=achatsResout(id);if(!p)return;
@@ -65202,6 +65242,7 @@ function achatsDemarre(){ /* fin d'init : écoute des achats reçus, prix, synch
       const enCourse=!achatsFeteOk(); /* (2026-11-15) course, écran de mort, lancement : voir achatsFeteOk */
       if(achatsRecoit(id,!!enCourse)){if(enCourse){achatsFetes.push(id);achatsFetesGuet();}achatsRafraichit();}}catch(e){}});}catch(e){}
     try{document.addEventListener('visibilitychange',function(){if(!document.hidden)achatsResync();});}catch(e){} /* (2026-11-10) le retour au premier plan : voir achatsResync */
+    if(typeof A.onRepris==='function')try{A.onRepris(function(id){try{achatsReprend(id);}catch(e){}});}catch(e){} /* (2026-11-23, Sacha : « remboursement […] Non, on la reprend ») Apple rembourse pendant que l'app tourne */
   }
   achatsPrix();achatsSync(false);
 }
@@ -65509,7 +65550,7 @@ Object.assign(I18N,{"SANS AILES":"NO WINGS","Les ailes, c'est pour les pigeons. 
 {const H9={};for(const m of M2)if(m.r&&m.r.cat)H9[m.r.cat+':'+m.r.id]=m.id;
   for(const cat of ['peinture','aile','trainee'])for(const d of COSM[cat]){const id=H9[cat+':'+d.id];
     if(id){d.mis2=id;delete d.mis;delete d.p;delete d.eur;if(/relevant des défis/.test(d.d||''))d.d="Ne s'achète pas : elle se gagne par une mission.";}
-    else if(d.mis){delete d.mis;if(d.id==='arcenciel'){d.pack='chat';d.d="Ne s'achète pas : elle vient avec le CHAT POP-TART.";}}}}
+    else if(d.mis){delete d.mis;if(d.id==='arcenciel'){d.sec=1;d.d="Ne s'achète pas.";} /* (2026-11-23, Sacha : « CHAT POP-TART ça fait longtemps qu'on en veut plus » · « enlève la voiture pizza ») le chat est retiré : la traînée ARC-EN-CIEL qui « venait avec lui » devient secrète, comme dans l'app depuis le 11/11 */}}}
 /* LE RANGEMENT DES PEINTURES (2026-11-05, le nuancier v3) : D'ORIGINE, puis l'ordre de PEINT_CAT — COMMUNES (le cercle chromatique, puis les pastels),
    RARES (feu, froid, néon, métal, ombre, pop), ÉPIQUES (les livrées, puis les pelages), LÉGENDAIRES. L'ordre des listes EST l'ordre à l'écran.
    Plus rien de caché : `peintCachee` reste (la bande du garage l'appelle) et répond toujours non. */
