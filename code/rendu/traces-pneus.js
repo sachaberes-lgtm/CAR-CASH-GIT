@@ -205,7 +205,7 @@ const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort
    · Le choix des pubs (Europe) se rouvre par RÉGLAGES › AIDE › CHOIX DES PUBS (CC_PUB_CHOIX), seulement quand Google le demande (AMOB.choix).
    Banc : dbgPub().admob ; outils/banc-pub/ (un faux module, Chrome muet). */
 const AMOB={on:false,init:false,cOk:false,ok:true,test:false,choix:false,etat:'',n:0,nI:0,
-  r:{pret:false,charge:false,essai:0,tm:0,t:0},i:{pret:false,charge:false,essai:0,tm:0,t:0},res:null,resI:null,vu:false,tm:0,tmI:0,tmC:0,eC:0};
+  r:{pret:false,charge:false,essai:0,tm:0,t:0,err:''},i:{pret:false,charge:false,essai:0,tm:0,t:0,err:''},res:null,resI:null,vu:false,tm:0,tmI:0,tmC:0,eC:0};
 (function(){try{
   const C=window.Capacitor;if(!C)return;
   let A=C.Plugins&&C.Plugins.AdMob;
@@ -221,8 +221,9 @@ const AMOB={on:false,init:false,cOk:false,ok:true,test:false,choix:false,etat:''
     if(!AMOB.init||!AMOB.cOk||!AMOB.ok||s.pret||s.charge||(k==='i'&&!avecI)||(k==='r'?AMOB.res:AMOB.resI))return;
     s.charge=true;clearTimeout(s.tm);
     Promise.resolve().then(function(){return k==='r'?A.prepareRewardVideoAd({adId:idR,isTesting:test}):A.prepareInterstitial({adId:idI,isTesting:test});})
-      .then(function(){s.charge=false;s.pret=true;s.t=performance.now();s.essai=0;},
-            function(){s.charge=false;s.pret=false;clearTimeout(s.tm);s.tm=setTimeout(function(){charge(k);},attente(s.essai++));});};
+      .then(function(){s.charge=false;s.pret=true;s.t=performance.now();s.essai=0;s.err='';},
+            function(e){s.charge=false;s.pret=false;s.err=pubErr(e);AMOB.etat='pas chargée ('+k+') : '+s.err;clearTimeout(s.tm);s.tm=setTimeout(function(){charge(k);},attente(s.essai++));});}; /* (2026-11-24, iPhone de Sacha : « grisé alors que j'ai internet ») la raison de Google est gardée : dbgPub().admob.erreur, journal du banc */
+  const pubErr=function(e){try{return String((e&&(e.code!=null?e.code+' ':''))+(e&&(e.message||e.errorMessage)||e)).replace(/\s+/g,' ').slice(0,120);}catch(x){return '?';}};
   const finR=function(v){clearTimeout(AMOB.tm);const r=AMOB.res;AMOB.res=null;if(!r)return;AMOB.etat=v?'vue':'pas vue';r(!!v);setTimeout(function(){charge('r');},1000);};
   const finI=function(){clearTimeout(AMOB.tmI);const r=AMOB.resI;AMOB.resI=null;if(!r)return;r(true);setTimeout(function(){charge('i');},1000);};
   const ecoute=function(n,f){try{A.addListener(n,f);}catch(e){}};
@@ -231,6 +232,8 @@ const AMOB={on:false,init:false,cOk:false,ok:true,test:false,choix:false,etat:''
   ecoute('onRewardedVideoAdFailedToShow',function(){finR(false);});
   ecoute('interstitialAdDismissed',finI);
   ecoute('interstitialAdFailedToShow',finI);
+  ecoute('onRewardedVideoAdFailedToLoad',function(e){AMOB.r.err=pubErr(e);});
+  ecoute('interstitialAdFailedToLoad',function(e){AMOB.i.err=pubErr(e);});
   const consent=async function(){ /* le consentement de Google, à chaque lancement (il peut changer) ; raté (pas de réseau) : on le redemande */
     let ci=null;
     try{if(typeof A.requestConsentInfo==='function'){ci=await A.requestConsentInfo();
