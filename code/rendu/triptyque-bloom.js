@@ -303,6 +303,10 @@ if(EN_APP||FLOU_LEGER)ACESShader.fragmentShader=flouFS(ACESShader.fragmentShader
    repasse par l'anticrénelage et le piqué, comme en croisière ; ailleurs, le flou d'avant, au bit près. Aucune lecture de plus (5 lectures au lieu de 6
    dans le disque net), aucune passe, aucune cible ; à la frontière l'écart est sous un demi-texel. Téléphone (ALLEGE) et WebGL2 seulement : l'ordinateur
    ne change pas d'un pixel. `?sans=netnitro` = avant. */
+/* (2026-11-24, lot « reprise des modifs iPhone sur Vercel ») ESSAYÉ SUR L'ORDINATEUR AU MAXIMUM, PAS ÉTENDU : même image figée, 1264×625, ?poste=max, cran de qualité 0,
+   flou léger (FLOU_LEGER), avec et sans la retouche (dbgGfxFin(1) / dbgGfxFin(0)). Avec : les arêtes de la caisse sont lissées, mais la plaque et les petits détails
+   se brouillent (l'anticrénelage de croisière passe sur du texte de 1 pixel). Sans : des marches de 1 pixel d'écran (2-3 sur le téléphone, d'où le gain là-bas), plaque lisible.
+   Ni gain net ni perte nette : l'ordinateur garde son image d'avant. */
 const NET_NITRO=ALLEGE&&W2_POST&&FXAA_ON&&!/[?&]sans=[^&]*\bnetnitro\b/.test(location.search);
 if(NET_NITRO){let f9=ACESShader.fragmentShader;const a1='  bool fx=uSpeed>0.0||',a2='    for(int i=0;i<'+ACES_N+';i++){',a3='    x=acc/'+ACES_N+'.0;',a4='\n  } else {\n';
   const i3=f9.indexOf(a3),j3=i3<0?-1:f9.indexOf('\n',i3);

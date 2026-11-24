@@ -181,12 +181,16 @@ toutes("name:'LE DÉFIEUR'","name:'LE PROVOCATEUR'",1,'nom LE DÉFIEUR (CARS)');
 toutes('"LE DÉFIEUR":"THE DEFIER"','"LE PROVOCATEUR":"THE PROVOKER"',1,'nom LE DÉFIEUR en anglais');toutes("'LE DEFIEUR'","'LE PROVOCATEUR'",1,'nom LE DÉFIEUR (liste sans accents)');
 toutes("name:'LA DOLORÈS'","name:'LA BRUMEUSE'",1,'nom LA DOLORÈS (CARS)');toutes("car:'LA DOLORÈS'","car:'LA BRUMEUSE'",1,'nom LA DOLORÈS (mission)');
 toutes('"LA DOLORÈS": "LA DOLORES"','"LA BRUMEUSE": "THE MISTY ONE"',1,'nom LA DOLORÈS en anglais');toutes("'LA DOLORES'","'LA BRUMEUSE'",1,'nom LA DOLORÈS (liste sans accents)');
+/* (2026-11-23, Sacha : « change les noms si tu veux ») LE SPECTRE porte le nom d'un modèle Rolls-Royce en vente : LE REVENANT dans l'app (même idée de fantôme). */
+toutes("name:'LE SPECTRE'","name:'LE REVENANT'",1,'nom LE SPECTRE (CARS)');toutes('"LE SPECTRE":"THE SPECTER"','"LE REVENANT":"THE REVENANT"',1,'nom LE SPECTRE en anglais');
+toutes("'LE SPECTRE',","'LE REVENANT',",1,'nom LE SPECTRE (liste sans accents)');
 /* (l'enseigne MOULIN ROUGE de la carte PARIS : retirée du jeu lui-même, coupe ôtée le 24/10) */
 /* (2026-11-11, Sacha : « enlève aussi Pop-Tart ») le CHAT POP-TART (marque Kellogg + Nyan Cat, audit Apple 5.2.1) QUITTE L'APP, pas le jeu web : `retire:1` est le mécanisme
    du jeu (caisse absente du garage, de la boutique et de l'inventaire ; remboursement des exemplaires déjà possédés). Sa traînée ARC-EN-CIEL, qui « venait avec le chat »,
    devient secrète (elle ne montre plus de « PACK CHAT » sans caisse à acheter). */
-une("{name:'CHAT POP-TART',   shape:'poptart',","{retire:1,name:'CHAT POP-TART',   shape:'poptart',",'CHAT POP-TART retiré de l\'app');
-une("d.pack='chat';d.d=\"Ne s'achète pas : elle vient avec le CHAT POP-TART.\";","d.sec=1;d.d=\"Ne s'achète pas.\";",'traînée ARC-EN-CIEL (liée au chat)');
+/* (2026-11-23) le jeu retire lui-même le CHAT POP-TART et rend l'ARC-EN-CIEL secrète (Sacha : « CHAT POP-TART ça fait longtemps qu'on en veut plus ») : les deux coupes sont ôtées.
+   Témoin : plus aucune fiche du chat en vente. */
+une("{retire:1,name:'CHAT POP-TART',   shape:'poptart',","{retire:1,name:'CHAT POP-TART',   shape:'poptart',",'CHAT POP-TART retiré par le jeu (témoin)');
 /* (2026-11-05, Sonnet : jour 0 du jury) Léo a remis le code COUSIN le 05/11 avec un 3e mot (« cousintout », qui ouvre aussi les caisses en €) : la coupe suit la nouvelle ligne, et cousinTout() est coupée aussi. */
 une("if(k!=='cousin'&&k!=='cousin161'&&k!=='cousintout')return false;","return false; /* (app iOS) pas de déblocage par code */",'code COUSIN (saisie)');
 /* (2026-11-11) le jeu a changé cette ligne (Sacha, v1471 : « cousin » seul ouvre tout → SAVE.d.cousin) : la coupe suit, même effet dans l'app (aucun déblocage par code). */

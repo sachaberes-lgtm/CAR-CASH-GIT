@@ -151,7 +151,15 @@ window.dbgHorloge=function(){const H=CADH;return {ok:CAD_HORLOGE,reg:H.reg,med:+
    RÉGLAGES › ENTRER UN CODE › « uhd » (ou « hud ») l'allume ; le retaper l'éteint. Gardé sur l'appareil (localStorage `ccHudCalme`), hors de la sauvegarde.
    `?hudcalme=1` l'allume pour un banc ; `?sans=hudcalme` le coupe toujours. L'écran léger (`ecrLeger`) ne change pas. */
 let HUD_CALME_CODE=/[?&]hudcalme=1\b/.test(location.search);try{if(localStorage.getItem('ccHudCalme')==='1')HUD_CALME_CODE=true;}catch(e){}
+/* ===== LE CODE « UHD » NE MENT PLUS SUR L'ORDINATEUR (2026-11-24, Sacha : « mets à jour le Vercel intelligemment ») =====
+   Le HUD calme ne tourne que sur un vrai téléphone (hudCalmeTick sort si !TEL_NATIF) : sur l'ordinateur le code affichait « HUD CALME ALLUMÉ » et rien ne se passait.
+   Hors téléphone, le code ne bascule plus rien et le dit (codeUhd rend 3, le toast « HUD CALME : SUR TÉLÉPHONE SEULEMENT », moteur/mobile-tactile.js).
+   Téléphone et app : inchangés. `?sans=uhdtel` = comme avant (l'annonce sans effet). */
+const UHD_TEL=!/[?&]sans=([^&]*,)?uhdtel(,|&|$)/.test(location.search);
+Object.assign(I18N,{'HUD CALME : SUR TÉLÉPHONE SEULEMENT':'CALM HUD: PHONE ONLY'});
 function codeUhd(t){const k=String(t||'').toLowerCase().replace(/[^a-z0-9]/g,'');if(k!=='uhd'&&k!=='hud')return 0;
+  if(UHD_TEL&&!TEL_NATIF){ /* (2026-11-24, contrôle adverse) un ordinateur qui avait tapé le code AVANT ce lot gardait `ccHudCalme` sans pouvoir l'effacer : le code l'efface en passant */
+    if(HUD_CALME_CODE&&!/[?&]hudcalme=1/.test(location.search)){HUD_CALME_CODE=false;HUD_CALME.ok=false;}try{localStorage.removeItem('ccHudCalme');}catch(e){}return 3;}
   HUD_CALME_CODE=!HUD_CALME_CODE;try{if(HUD_CALME_CODE)localStorage.setItem('ccHudCalme','1');else localStorage.removeItem('ccHudCalme');}catch(e){}
   HUD_CALME.ok=HUD_CALME_CODE&&!/[?&]sans=[^&]*hudcalme/.test(location.search);
   if(!HUD_CALME.ok){if(HUD_CALME.on){HUD_CALME.on=false;document.body.classList.remove('hudCalme');try{sonCalme(false);}catch(e){}}CALG.on=false;}

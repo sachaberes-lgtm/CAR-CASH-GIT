@@ -44,7 +44,7 @@ const CAR_UNLOCK=[
   {k:'carnet',v:2},     // LE COMBI — contrat n° 2 — (2026-11-18, Sacha) SECRÈTE : la mission `nuages10` (missions/table.js) remplace cette ligne au chargement ; elle reste la condition d'AVANT (`av`), relue une seule fois par la migration des missions (m2MigreV2)
   {k:'carnet',v:3},     // LA DOLORÈS — contrat n° 3 — (2026-11-18, Sacha) SECRÈTE : la mission `mois1` (missions/table.js) remplace cette ligne au chargement ; elle reste la condition d'AVANT (`av`)
   // LES PREMIUM : en BOUTIQUE, contre du vrai argent (StoreKit à brancher). `eur` = le prix affiché, `rar` = la rareté de la carte
-  {k:'premium',eur:'4,20 €',rar:'leg',une:1,horsVente:1}, // (2026-10-06 : 4,99 → 4,20 €) CHAT POP-TART — l'offre à la une · (2026-11-13, Sacha : « le chat nian cat, tu le tej de la boutique ») `horsVente` : plus en boutique (carEnVente) ; la fiche, le dessin et l'achat déjà fait (restauration Apple) restent
+  {k:'premium',eur:'4,20 €',rar:'leg',une:1,horsVente:1}, /* (2026-11-23, Sacha : « CHAT POP-TART ça fait longtemps qu'on en veut plus » · « enlève la voiture pizza ») RETIRÉE (voir CARS) : la ligne reste pour l'index */ // (2026-10-06 : 4,99 → 4,20 €) CHAT POP-TART — l'offre à la une · (2026-11-13, Sacha : « le chat nian cat, tu le tej de la boutique ») `horsVente` : plus en boutique (carEnVente) ; la fiche, le dessin et l'achat déjà fait (restauration Apple) restent
   {k:'premium',eur:'9,99 €',rar:'leg'},       // REQUIN — SUPPRIMÉE (2026-11-07, Sacha : « supprime-la complètement du code du jeu ») : la ligne reste pour l'index ; `retire` la sort de la boutique et de la sauvegarde
   {k:'bientot',v:1},                          // COMÈTE — (2026-10-06) DÉFI à définir (était en boutique, 4,99 €)
   {k:'premium',eur:'4,99 €',rar:'leg'},       // FORMULE OR — (2026-10-06) RETIRÉE
@@ -55,7 +55,7 @@ const CAR_UNLOCK=[
   {p:1500}, // LA POSTIÈRE — (2026-10-06) RETIRÉE
   {p:2000}, // LA DEUCHE — (2026-10-06) RETIRÉE ; (2026-11-07) remise puis retirée de nouveau (« enlève la tin snail »)
   {p:2500}, // LE TAXI JAUNE — (2026-10-06) retiré ; (2026-11-07, Léo : « le taxi remets ») REMIS
-  {k:'premium',eur:'161,00 €',rar:'leg'}, // LA PIZZA EXPRESS — (2026-10-06) revient, LÉGENDAIRE en boutique
+  {k:'premium',eur:'161,00 €',rar:'leg'}, /* (2026-11-23, Sacha : « CHAT POP-TART ça fait longtemps qu'on en veut plus » · « enlève la voiture pizza ») RETIRÉE (voir CARS) : la ligne reste pour l'index */ // LA PIZZA EXPRESS — (2026-10-06) revient, LÉGENDAIRE en boutique
   {p:3500}, // LE MONOSPACE
   {p:4000}, // LE BREAK SUÉDOIS
   {p:5000}, // LA BOULE
