@@ -96188,7 +96188,14 @@ window.dbgHorloge=function(){const H=CADH;return {ok:CAD_HORLOGE,reg:H.reg,med:+
    RÉGLAGES › ENTRER UN CODE › « uhd » (ou « hud ») l'allume ; le retaper l'éteint. Gardé sur l'appareil (localStorage `ccHudCalme`), hors de la sauvegarde.
    `?hudcalme=1` l'allume pour un banc ; `?sans=hudcalme` le coupe toujours. L'écran léger (`ecrLeger`) ne change pas. */
 let HUD_CALME_CODE=/[?&]hudcalme=1\b/.test(location.search);try{if(localStorage.getItem('ccHudCalme')==='1')HUD_CALME_CODE=true;}catch(e){}
+/* ===== LE CODE « UHD » NE MENT PLUS SUR L'ORDINATEUR (2026-11-24, Sacha : « mets à jour le Vercel intelligemment ») =====
+   Le HUD calme ne tourne que sur un vrai téléphone (hudCalmeTick sort si !TEL_NATIF) : sur l'ordinateur le code affichait « HUD CALME ALLUMÉ » et rien ne se passait.
+   Hors téléphone, le code ne bascule plus rien et le dit (codeUhd rend 3, le toast « HUD CALME : SUR TÉLÉPHONE SEULEMENT », moteur/mobile-tactile.js).
+   Téléphone et app : inchangés. `?sans=uhdtel` = comme avant (l'annonce sans effet). */
+const UHD_TEL=!/[?&]sans=([^&]*,)?uhdtel(,|&|$)/.test(location.search);
+Object.assign(I18N,{'HUD CALME : SUR TÉLÉPHONE SEULEMENT':'CALM HUD: PHONE ONLY'});
 function codeUhd(t){const k=String(t||'').toLowerCase().replace(/[^a-z0-9]/g,'');if(k!=='uhd'&&k!=='hud')return 0;
+  if(UHD_TEL&&!TEL_NATIF)return 3;
   HUD_CALME_CODE=!HUD_CALME_CODE;try{if(HUD_CALME_CODE)localStorage.setItem('ccHudCalme','1');else localStorage.removeItem('ccHudCalme');}catch(e){}
   HUD_CALME.ok=HUD_CALME_CODE&&!/[?&]sans=[^&]*hudcalme/.test(location.search);
   if(!HUD_CALME.ok){if(HUD_CALME.on){HUD_CALME.on=false;document.body.classList.remove('hudCalme');try{sonCalme(false);}catch(e){}}CALG.on=false;}
@@ -102681,7 +102688,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
         if(t9&&SAVE.neuf){let s9=false;try{s9=typeof JSON.parse(decodeURIComponent(escape(atob(t9)))).v==='number';}catch(e){}if(s9){toast(pxi('croix')+' '+TR('LE SITE NE RESTAURE PAS LES SAUVEGARDES'));return;}} /* (2026-10-24, chasse aux bugs) le site ne garde rien (SAVE.neuf) : importer puis recharger rendait un compte VIDE, et la session en cours partait avec */
         if(t9&&SAVE.import(t9)){SAVE.natif=2; /* (24/10, relecture : « restaurer un code depuis la pause ») plus AUCUNE écriture jusqu'au rechargement, comme l'EFFACEMENT : la page cachée par ce rechargement posait la partie en pause (enCoursPose) dans la sauvegarde restaurée, qui recevait au lancement suivant l'argent et l'aura d'un autre profil */toast(pxi('coche')+' '+TR('RESTAURE — RECHARGE…'));setTimeout(function(){location.reload();},900);return;}
         {const ct9=codeTest(r.texte);if(ct9){toast(pxi('coche')+' '+TR(ct9===1?'CODE TEST : MOTEUR 15 AU DÉPART':'CODE TEST ÉTEINT'),true);hap([20,40,20]);return;}} /* (2026-11-13) le code « test » : voir codeTest */
-        {const cu9=codeUhd(r.texte);if(cu9){toast(pxi('coche')+' '+TR(cu9===1?'HUD CALME ALLUMÉ':'HUD CALME ÉTEINT'),true);hap([20,40,20]);return;}} /* (2026-11-22) le code « uhd » : voir codeUhd (moteur/cadence.js) */
+        {const cu9=codeUhd(r.texte);if(cu9===3){toast(pxi('croix')+' '+TR('HUD CALME : SUR TÉLÉPHONE SEULEMENT'));return;} /* (2026-11-24) hors téléphone le HUD calme n'existe pas : on le dit au lieu d'annoncer un réglage sans effet (UHD_TEL, moteur/cadence.js) */if(cu9){toast(pxi('coche')+' '+TR(cu9===1?'HUD CALME ALLUMÉ':'HUD CALME ÉTEINT'),true);hap([20,40,20]);return;}} /* (2026-11-22) le code « uhd » : voir codeUhd (moteur/cadence.js) */
         if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'),true);try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
         else toast(pxi('croix')+' '+TR('CODE INCONNU')); }); }
     else if(a==='wipe'){
