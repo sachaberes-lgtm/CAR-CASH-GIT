@@ -448,7 +448,7 @@ Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOR","PEINTURE":"PAI
    n'a pas de toile sur la tôle : son programme (MOT_ANIM) la calcule à chaque image ; sa toile ne sert qu'aux pastilles des listes (`motFond`),
    qu'une animation CSS fait vivre (`.pL`, voir css/peintures.css). Essayer : `dbgHab('peinture','galaxie')`. */
 const PEINT_V2=true;
-const PEINT_EUR={commun:'1 €',rare:'1 €',epique:'2 €',legendaire:'3 €'};
+const PEINT_EUR={commun:'0,99 €',rare:'0,99 €',epique:'1,99 €',legendaire:'2,99 €'}; /* (2026-11-24, Sacha via Projets) les paliers d'Apple (avant : 1 / 1 / 2 / 3 €) ; prix de secours, Apple affiche le sien dès qu'il répond */
 const MOT_W=512;
 function motAlea(s){return function(){s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
 function motTore(x,f){for(const ox of [-MOT_W,0,MOT_W])for(const oy of [-MOT_W,0,MOT_W]){x.save();x.translate(ox,oy);f();x.restore();}} // chaque forme est posée avec ses huit voisines : la toile se raccorde sur ses quatre bords

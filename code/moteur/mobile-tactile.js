@@ -978,7 +978,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
   function surAccueilCiel(){return MENU_PASSE&&garageOn&&!GAR.go&&!ecranWipe._on&&document.body.classList.contains('garMenuH');}
   function mTap(a,el){
     if(a!=='snd'){ if(a==='tuto'||a==='shopRestore')hap(8); /* (2026-10-14, session SON) ces deux-là répondent par un toast coche (ui.ok) : le résultat passe devant le clic (avant : nav + ok, deux sons) */ else uiClic(a==='shopSoon'&&!(el&&el.hasAttribute('data-car'))?'refus':mRole9(a)); /* « BIENTÔT DISPONIBLE » = refus, comme le même mot sur la plaque verrouillée du garage */ }uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
-    if(a==='replay'&&started&&gameOver){ m2Rejoue(); try{clearTimeout(M2REV.t);}catch(e){} /* (2026-11-03, audit) la RÉVÉLATION d'une secrète (m2RevAuto, 1,4 s après la mort) n'a plus à s'ouvrir : REJOUER est parti, elle se montrera à la prochaine fin de partie (m2RevFile la garde) */ /* (2026-10-16) LES MISSIONS v2 : les parties enchaînées */ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ tutoArme(); return rejoueAttend().then(function(){ if(started&&gameOver)resetGame(); }); } }); }; r9(); } /* (2026-10-31) rejoueAttend : le départ d'avance pas fini se finit SOUS le volet, en tranches */ // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite)
+    if(a==='replay'&&started&&gameOver&&!ENTRE.on){ m2Rejoue(); try{clearTimeout(M2REV.t);}catch(e){} /* (2026-11-03, audit) la RÉVÉLATION d'une secrète (m2RevAuto, 1,4 s après la mort) n'a plus à s'ouvrir : REJOUER est parti, elle se montrera à la prochaine fin de partie (m2RevFile la garde) */ /* (2026-10-16) LES MISSIONS v2 : les parties enchaînées */ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ tutoArme(); return rejoueAttend().then(function(){ if(started&&gameOver)resetGame(); }); } }); }; pubEntre(r9); } /* (2026-11-23, Sacha) pubEntre : dans l'app, parfois une pub plein écran AVANT le volet (gameplay/seconde-chance.js) ; sinon r9 tout de suite */ /* (2026-10-31) rejoueAttend : le départ d'avance pas fini se finit SOUS le volet, en tranches */ // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite)
     else if(a==='play'&&jadePlayOk()){ const go9=function(){goImmersive();jadeJouer();}; // (2026-10-12, Léo) le JOUER lance le SOLEIL DE JADE, avec sa musique
       if(SAVE.d.facile==null&&!SAVE.d.tuto)Promise.resolve().then(go9);else go9(); }
     else if(a==='play'&&sfPlayOk()){ const go9=function(){goImmersive();classiqueJouer();}; // (2026-10-13, Sacha) le JOUER lance le MODE CLASSIQUE AU HASARD
@@ -986,6 +986,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     else if(a==='play'||a==='replay'){ // la partie sans fin : parc, Survivant armé, ?menu=leo
       if(a==='play'&&SAVE.d.facile==null&&!SAVE.d.tuto){Promise.resolve().then(function(){goImmersive();playViaGarage(true);});}
       else{goImmersive(); playViaGarage(true);} } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
+    else if(a==='pubchoix'){ try{if(typeof window.CC_PUB_CHOIX==='function')window.CC_PUB_CHOIX();}catch(e){} } /* (2026-11-23) le choix des pubs de Google (Europe) */
     else if(a==='conf'){ confOuvre(); } /* (2026-11-13, finition) CONFIDENTIALITÉ : la page embarquée (achats-store.js) */
     else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.d.tutoProv=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
     else if(a==='back'&&window.__setPause){ setPauseFerme(); } // (2026-10-14, charte 6) le ◀ des réglages ouverts depuis la pause rend la pause
@@ -1060,7 +1061,9 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     const fond=document.createElement('div');fond.id='mChanceFond';fond.hidden=true;fond.setAttribute('aria-hidden','true');el.parentNode.insertBefore(fond,el);
     let vu=false;
     const maj=function(){let e=null;try{e=chanceEtat();}catch(_){e=null;}const ok=!!(e&&e.ok);
-      if(ok){const p9=e.gratuit?(LANG==='en'?'FREE':'GRATUIT'):pxi('lecture')+'<span>'+TR('PUB')+'</span>';if(el._p9!==p9){el._p9=p9;el.querySelector('.chP').innerHTML=p9;}  /* (15/10 soir, Sacha : « au lieu de payer il faut regarder une pub ») CONTINUER ▶ PUB, plus de prix */
+      const gris=ok&&e.dispo===false; /* (2026-11-23, Sacha) l'app sans vidéo chargée (mode avion…) : CONTINUER est GRIS « PAS DE PUB », l'offre reste là */
+      el.classList.toggle('pubGris',gris);el.setAttribute('aria-disabled',gris?'true':'false');
+      if(ok){const p9=e.gratuit?(LANG==='en'?'FREE':'GRATUIT'):gris?'<span>'+TR('PAS DE PUB')+'</span>':pxi('lecture')+'<span>'+TR('PUB')+'</span>';if(el._p9!==p9){el._p9=p9;el.querySelector('.chP').innerHTML=p9;}  /* (15/10 soir, Sacha : « au lieu de payer il faut regarder une pub ») CONTINUER ▶ PUB, plus de prix */
         if(!vu){vu=true;el.style.setProperty('--chD',Math.max(300,e.reste||5500)+'ms');el.classList.remove('chOn');void el.offsetWidth;el.classList.add('chOn');}}
       else vu=false;
       el.hidden=!ok;non.hidden=!ok;fond.hidden=!ok;el.classList.toggle('pb-gold',ok);el.classList.toggle('pb-cyan',!ok);document.body.classList.toggle('chOffre',ok);};
@@ -1091,8 +1094,10 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       const voir=ok&&(deja||(performance.now()-vu0>=1100&&!mCntT)); // (une pub fermée trop tôt : la plaque revient tout de suite, sans rejouer son entrée) · (2026-11-04) et pas avant la fin du compte de l'argent : il en double le montant FINAL
       if(voir)deja=true;
       if(voir){const s9='+'+fmtC(e.v);if(el._s9!==s9){el._s9=s9;el.querySelector('.dbS').textContent=s9;}
+        {const g9=e.dispo===false,k9=g9?'PAS DE PUB':'PUB',sp9=el.querySelector('.dbP span'); /* (2026-11-23, Sacha) pas de vidéo chargée : ×2 GRIS « PAS DE PUB » */
+          el.classList.toggle('pubGris',g9);el.setAttribute('aria-disabled',g9?'true':'false');if(sp9&&sp9.getAttribute('data-fr')!==k9){sp9.setAttribute('data-fr',k9);sp9.textContent=TR(k9);}}
         if(!prep){prep=true;pubPrepare('double-gain');} // la régie va chercher sa pub pendant que la plaque monte
-        el.setAttribute('aria-label','×2 '+s9+' '+TR('PUB'));
+        el.setAttribute('aria-label','×2 '+s9+' '+TR(e.dispo===false?'PAS DE PUB':'PUB'));
         if(el.hidden){el.hidden=false;el.classList.remove('dbOn');void el.offsetWidth;el.classList.add('dbOn');}}
       else if(!el.hidden)el.hidden=true;};
     const monte=function(v){ // le grand chiffre passe de v à 2 v (0,6 s, ease-out), puis claque ; la ligne COMPTE dit le nouveau solde

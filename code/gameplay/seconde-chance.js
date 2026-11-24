@@ -8,16 +8,26 @@
    · LA PUB MAISON — sinon : PUBR.d secondes plein écran (#pubR, <style id="pubRecompense">) qui montrent une caisse de la boutique qu'on
      n'a pas encore, son nom, son prix ; le compte ROND et la barre disent le temps qui reste ; rien ne se touche ; le temps ne court que
      l'écran allumé. `pubRecompense(nom, fin)` : fin(vue) part UNE fois. `?pub=0` : pas de pub, reprise immédiate. Banc : dbgPub(). */
-/* ===== L'APP NE MONTRE AUCUNE PUB (2026-11-05, Opus : jury IOS-04 / DIR-29, décision D1 « couper dans l'app ») =====
-   L'app déclare « aucune publicité » à Apple : sous EN_APP, plus de pub maison (PUBR.sans : la reprise est servie tout de suite), la
-   seconde chance s'annonce GRATUITE (chanceEtat), et le ×2 du gain n'existe pas (DBL.on). Le site garde tout. `?pub=0` ne vaut qu'en DEV. */
-const PUBR={on:false,d:5,t:0,tm:0,el:null,mus:false,sans:EN_APP||qDev(/[?&]pub=0\b/)};
-Object.assign(I18N,{'PUB':'AD','EN BOUTIQUE':'IN THE SHOP','TA COURSE REPREND APRÈS LA PUB':'YOUR RUN RESUMES AFTER THE AD','TON GAIN ×2 APRÈS LA PUB':'YOUR WINNINGS ×2 AFTER THE AD'});
+/* ===== LA VRAIE PUB DANS L'APP (2026-11-23, Sacha : « mettre de la VRAIE pub dans l'app iPhone », AdMob) =====
+   Avant (2026-11-05, jury IOS-04, décision D1) l'app ne montrait AUCUNE pub. Maintenant, deux cas dans l'app (EN_APP) :
+   · le module AdMob est là (AMOB.on, rendu/traces-pneus.js) → PUBR.app : CONTINUER et ×2 passent par une VRAIE vidéo récompensée ;
+     REJOUER montre parfois une pub plein écran (pubEntre, plus bas).
+     LE SECOURS (2026-11-24, Sacha, sur son iPhone avec NordVPN : « trouve un moyen pour que ça marche même si les gens ont des VPN ») :
+     quand Google ne peut fournir AUCUNE vidéo (bloqueur de pubs d'un VPN, mode avion, rien en stock, pub ratée à l'affichage), c'est la
+     PUB MAISON de 5 s (une caisse du jeu) qui passe, et la récompense est donnée — CONTINUER et ×2 ne sont plus jamais gris (PUBR.secours).
+     Contourner le bloqueur est impossible sans enfreindre le règlement d'AdMob : on ne le fait pas. La pub maison ne compte pas pour
+     L'ÉTERNELLE et ne rapporte rien. Avant (23/11) : plaques grises « PAS DE PUB » ; `PUBR.secours=false` les ramène.
+   · un ancien binaire, sans le module → comme avant : seconde chance GRATUITE (PUBR.sans), pas de ×2 (DBL.on), pas de pub (html.ccSansPub).
+   Le site garde la pub maison et AdSense, sans changement. `?pub=0` ne vaut qu'en DEV. */
+const PUBR={on:false,d:5,t:0,tm:0,el:null,mus:false,finR:0,secours:true,app:EN_APP&&AMOB.on,sans:(EN_APP&&!AMOB.on)||qDev(/[?&]pub=0\b/)};
+if(EN_APP&&!PUBR.app)try{document.documentElement.classList.add('ccSansPub');}catch(e){}
+Object.assign(I18N,{'PUB':'AD','PAS DE PUB':'NO AD','EN BOUTIQUE':'IN THE SHOP','TA COURSE REPREND APRÈS LA PUB':'YOUR RUN RESUMES AFTER THE AD','TON GAIN ×2 APRÈS LA PUB':'YOUR WINNINGS ×2 AFTER THE AD'});
+function pubDispo(){if(!PUBR.app||PUBR.secours)return true;try{return !!(typeof window.CC_PUB_PRETE==='function'&&window.CC_PUB_PRETE());}catch(e){return false;}} /* une vidéo récompensée est-elle chargée ? (le site et l'ancien app : toujours) */
 function pubSilence(on){try{ // une régie montre SA pub par-dessus le jeu : le jeu se tait (la musique en pause, le contexte audio suspendu), puis reprend
   if(on){PUBR.mus=!!(musicEl&&!musicEl.paused);if(PUBR.mus)musicEl.pause();if(AC&&AC.state==='running')AC.suspend();}
   else{if(AC&&AC.state==='suspended')acReveil(AC);if(PUBR.mus&&musicVoulue&&!paused)musicJoue();PUBR.mus=false;}}catch(e){}}
 function pubRecompense(nom,fin){
-  if(PUBR.on)return false;
+  if(PUBR.on||ENTRE.on)return false; /* un double appui, ou une pub plein écran en route : jamais deux pubs */
   PUBR.on=true;let fait=false;
   const fini=function(vue){if(fait)return;fait=true;PUBR.on=false;try{fin(!!vue);}catch(e){console.warn('pub',e);}};
   if(PUBR.sans){setTimeout(function(){fini(true);},0);return true;}
@@ -25,11 +35,33 @@ function pubRecompense(nom,fin){
   if(typeof regie==='function'){
     let p=null;try{p=regie(nom);}catch(e){p=null;}
     if(p&&typeof p.then==='function'){pubSilence(true); // (15/10 soir, régie AdSense) on ne se tait que si la régie montre VRAIMENT une pub (une promesse) : « rien de prêt » rend null tout de suite
-      p.then(function(v){pubSilence(false);if(v===true)pubCompte();if(v===true||v===false)fini(v);else pubMaison(fini,nom);},function(){pubSilence(false);pubMaison(fini,nom);});}
+      p.then(function(v){pubSilence(false);PUBR.finR=performance.now();if(v===true)pubCompte();if(v===true||v===false)fini(v);else if(PUBR.app&&!PUBR.secours)fini(false);else pubMaison(fini,nom);},
+        function(){pubSilence(false);PUBR.finR=performance.now();if(PUBR.app&&!PUBR.secours)fini(false);else pubMaison(fini,nom);});} /* vrai = vue, faux = fermée avant la fin (rien) ; rien de Google (null) : la pub maison, le SECOURS (2026-11-24) */
     else if(p===true||p===false){if(p)pubCompte();fini(p);}
+    else if(PUBR.app&&!PUBR.secours)fini(false);
     else pubMaison(fini,nom);
     return true;}
+  if(PUBR.app&&!PUBR.secours){fini(false);return true;}
   pubMaison(fini,nom);return true;
+}
+/* ===== LA PUB ENTRE LES COURSES (2026-11-23, Sacha : « 1 pub sur 3 en temps normal mais si la partie dépasse 2 minutes alors pub obligée ») =====
+   Dans l'app avec AdMob seulement (PUBR.app). Au toucher de REJOUER sur l'écran de fin (moteur/mobile-tactile.js) : une pub plein écran
+   si la partie a duré plus de ENTRE.tLong secondes de course (RUNX.t, seconde chance comprise), sinon une fois tous les ENTRE.tous REJOUER.
+   Jamais sur l'écran de mort lui-même, jamais moins de ENTRE.apresR secondes après une vidéo récompensée, et jamais d'attente : pas de pub
+   chargée (mode avion…) → la course part tout de suite (le compteur garde son compte pour le REJOUER suivant). Le jeu se tait pendant
+   (pubSilence) ; la course suivante part quand la pub est fermée. Un double appui ne lance qu'une pub (ENTRE.on). Banc : dbgPub().entre. */
+const ENTRE={n:0,tous:3,tLong:120,apresR:45,on:false,vu:0};
+function pubEntre(go){
+  if(ENTRE.on)return;
+  if(!PUBR.app||PUBR.on||typeof window.CC_PUB_ENTRE!=='function'){go();return;}
+  ENTRE.n++;
+  const long=(RUNX.t||0)>ENTRE.tLong,recente=PUBR.finR>0&&performance.now()-PUBR.finR<ENTRE.apresR*1000;
+  if(recente||!(long||ENTRE.n>=ENTRE.tous)){go();return;}
+  let p=null;try{p=window.CC_PUB_ENTRE();}catch(e){p=null;}
+  if(!p||typeof p.then!=='function'){go();return;}
+  ENTRE.on=true;ENTRE.n=0;ENTRE.vu++;pubSilence(true);
+  const fin=function(){if(!ENTRE.on)return;ENTRE.on=false;pubSilence(false);go();};
+  p.then(fin,fin);
 }
 /* (2026-10-19, Sacha au quiz : « vraies pubs seulement ») L'ÉTERNELLE — « REGARDE 100 PUBS » (SAVE.d.ex.pubs) ne se remplissait plus depuis le
    retrait du kit des portails : chaque pub d'une VRAIE régie (AdMob, AdSense) vue jusqu'au bout compte une. La pub maison ne compte pas. */
@@ -63,11 +95,13 @@ function pubMaison(fini,nom){
       setTimeout(function(){el.classList.remove('on');el.hidden=true;},ecranWipe._on?160:0);}},50);
 }
 addEventListener('keydown',function(e){if(PUBR.on&&PUBR.el&&!PUBR.el.hidden){e.stopPropagation();e.preventDefault();}},true); // pendant la pub maison, le clavier ne touche pas l'écran de fin dessous
-window.dbgPub=function(k){ // banc : dbgPub() l'état · ('fin') la pub maison finit tout de suite · (n) elle dure n s
+window.dbgPub=function(k){ // banc : dbgPub() l'état · ('fin') la pub maison finit tout de suite · (n) elle dure n s · ({n,tous,tLong,apresR}) règle la pub entre les courses (outils/banc-pub)
+  if(k&&typeof k==='object')Object.assign(ENTRE,k);
   if(k==='fin'&&PUBR.on)PUBR.t=PUBR.d;else if(+k>0)PUBR.d=+k;
   return {on:PUBR.on,d:PUBR.d,t:+PUBR.t.toFixed(2),regie:typeof window.CC_PUB_RECOMPENSE==='function',maison:!!(PUBR.el&&!PUBR.el.hidden),chance:!!CHANCE.pub,
     ads:{on:ADS.on,test:!!(window.CC_ADS&&window.CC_ADS.test),pret:ADS.pret,etat:ADS.etat,n:ADS.n,prete:!!(ADS.b&&ADS.b.show)},
-    admob:{on:AMOB.on,init:AMOB.init,pret:AMOB.pret,etat:AMOB.etat,n:AMOB.n},pubs:(SAVE.d.ex&&SAVE.d.ex.pubs)|0};};
+    admob:{on:AMOB.on,test:AMOB.test,init:AMOB.init,consent:AMOB.cOk,permis:AMOB.ok,choix:AMOB.choix,recompense:AMOB.r.pret,entre:AMOB.i.pret,sens:(AMOB.r.o||'-')+(AMOB.i.o||'-'),erreur:AMOB.r.err||AMOB.i.err||'',essais:AMOB.r.essai,etat:AMOB.etat,n:AMOB.n,nEntre:AMOB.nI},
+    app:PUBR.app,dispo:pubDispo(),entre:{n:ENTRE.n,on:ENTRE.on,vu:ENTRE.vu,t:+(RUNX.t||0).toFixed(1)},pubs:(SAVE.d.ex&&SAVE.d.ex.pubs)|0};};
 /* LA SECONDE CHANCE (2026-10-14, Sacha au quiz de 14 h 35 — « façon Subway Surfers » ; le principe vient du CŒUR À LA MORT de l'édition
    ROBLOX). À la mort, l'écran de fin propose UNE fois par partie de CONTINUER — ⚠ depuis le 15/10 soir contre une PUB (voir LA PUB QUI
    RESSUSCITE, juste au-dessus) ; avant, contre de l'ARGENT DU JEU (jamais d'euros) :
@@ -147,10 +181,12 @@ addEventListener('visibilitychange',function(){ try{
 }catch(e){} });
 function chanceEtat(){
   const ok=!!(CHANCE.on&&CHANCE.offre&&!CHANCE.used&&started&&gameOver&&performance.now()<CHANCE.fin&&overlay.style.display!=='none'&&!garageOn&&!MENUV.retour); /* (15/10 soir) plus de `bank()>=CHANCE.prix` : la pub ne demande rien au compte */
-  return {ok:ok,prix:CHANCE.prix,gratuit:!!CHANCE.gratuit||EN_APP,reste:ok?Math.max(0,Math.round(CHANCE.fin-performance.now())):0};
+  const gratuit=!!CHANCE.gratuit||(EN_APP&&!PUBR.app); /* (2026-11-23) l'app SANS module AdMob : gratuite, comme avant ; avec : une vraie pub */
+  return {ok:ok,prix:CHANCE.prix,gratuit:gratuit,dispo:gratuit||pubDispo(),reste:ok?Math.max(0,Math.round(CHANCE.fin-performance.now())):0};
 }
 function chanceJoue(){ // le toucher de la plaque : (15/10 soir) la PUB d'abord (pubRecompense) — la reprise, sous le volet, quand elle a été vue
   if(!chanceEtat().ok)return false;
+  if(!CHANCE.gratuit&&!pubDispo()){pubPrepare('seconde-chance');return false;} /* (2026-11-23) aucune vidéo chargée : la plaque est grise, le toucher ne fait rien (l'offre reste) */
   if(ecranWipe._on)return false; // (2026-10-14, chasse aux bugs) un volet déjà en route (REJOUER, ⌂ touchés juste avant) n'appellerait jamais la reprise (ecranWipe sort sans `go`) : on paierait pour rester sur l'écran de mort, offre éteinte et ligne du Top 10 retirée — on ne débite rien
   clearTimeout(CHANCE.tm);CHANCE.offre=false; // la fenêtre de 5,5 s s'arrête : la pub prend le temps qu'il lui faut
   try{goImmersive();}catch(e){} // (le plein écran veut le geste : ici, pas au bout de la pub)
@@ -404,7 +440,7 @@ window.dbgChance=function(k){ // banc : dbgChance() l'état · ('mort') explose 
    Sans régie (aujourd'hui : l'app v1 et le site), c'est la pub maison de 5 s qui la paie. Fermée avant la fin (vraie régie) : rien n'est
    versé, la plaque revient — on peut réessayer. Ce que la machine à sous verse après la mort n'est PAS doublé (RUNX.verse est figé à la mort).
    `?double=0` éteint tout. Banc : dbgDouble() l'état · ('joue') la touche. */
-const DBL={on:!EN_APP&&!/[?&]double=0\b/.test(location.search),min:50,used:false,pub:false,v:0};
+const DBL={on:(!EN_APP||PUBR.app)&&!/[?&]double=0\b/.test(location.search),min:50,used:false,pub:false,v:0}; /* (2026-11-23) le ×2 revient dans l'app qui a AdMob */
 function dblRaz(){DBL.used=false;DBL.pub=false;DBL.v=0;}
 /* ===== LE ×2 NE DOUBLE QUE LE GAIN DE LA COURSE (2026-11-05, Opus : jury ECO-08) =====
    RUNX.verse = tout ce que la fin de partie a mis au compte, prime de SÉRIE du jour (jourCommit) et missions comprises : le ×2 les doublait aussi.
@@ -416,10 +452,11 @@ function dblEtat(){
   const v=dblGain();
   const ok=!!(DBL.on&&!DBL.used&&!DBL.pub&&started&&gameOver&&!SANDBOX&&!TUTO.on&&!TUTO.quitte&&!PARK.on&&!SURV.on&&!BALADE&&v>=DBL.min&&
     overlay.style.display!=='none'&&!garageOn&&!MENUV.retour&&!chanceAttend()&&!SPIN.ouvert&&!PUBR.on&&!ecranWipe._on&&document.querySelector('#mDead.on'));
-  return {ok:ok,v:v,used:DBL.used,pub:DBL.pub};
+  return {ok:ok,v:v,used:DBL.used,pub:DBL.pub,dispo:pubDispo()};
 }
 function dblJoue(apres){ // le toucher de la plaque : la pub, puis le 2e versement — apres(vue, v) dit à l'écran de fin ce qui s'est passé
   const e=dblEtat();if(!e.ok)return false;
+  if(!e.dispo){pubPrepare('double-gain');return false;} /* (2026-11-23) aucune vidéo chargée : plaque grise */
   DBL.pub=true;DBL.v=e.v;
   const lance=pubRecompense('double-gain',function(vue){DBL.pub=false;const v=DBL.v;
     const ok=!!(vue&&started&&gameOver&&!DBL.used&&v>0);
@@ -429,6 +466,9 @@ function dblJoue(apres){ // le toucher de la plaque : la pub, puis le 2e verseme
   return true;
 }
 window.dblEtat=dblEtat;
+/* (2026-11-23) RÉGLAGES › AIDE › CHOIX DES PUBS (page/ecrans-menus.html) : visible seulement quand Google demande qu'on puisse revoir son choix (Europe) */
+Object.assign(I18N,{'CHOIX DES PUBS':'AD CHOICES','MODIFIER':'CHANGE'});
+document.addEventListener('cc:pubchoix',function(){try{const r9=document.querySelector('[data-m="pubchoix"]');if(r9)r9.style.display=AMOB.choix?'':'none';}catch(e){}});
 window.dbgDouble=function(k){if(k==='joue')return dblJoue(window.__dblApres||null);const e=dblEtat();return {ok:e.ok,v:e.v,used:DBL.used,pub:DBL.pub,min:DBL.min,bank:Math.round(bank()),verse:RUNX.verse};};
 function finSonsCoupe(){
   if(!SONV2||!window.CCSON)return;
