@@ -90,3 +90,8 @@ index.html commité = morceaux (`assembler --verifier` OK). NB : le commit `6b94
 `archiver.sh` vérifie désormais que index.html est à jour avant d'archiver (la cause de l'échec de 15 h 20).
 SEUL BLOCAGE pour l'export / l'envoi : **aucun compte Apple dans Xcode** (`No Accounts`) et pas de certificat « Apple Distribution »
 sur le Mac (seulement « Apple Development »). À faire par Sacha (mot de passe) : Xcode › Réglages › Comptes › « + » › Apple ID, équipe M532TDYCH2.
+
+**24/11, 21 h 40 (Claude, fusion demandée par Sacha « oui » 21:33)** — `pub-admob-app` (dfe4cb301, build 1.1.0 (134)) fusionnée dans main : merge `439bc3cc3`, faite dans un worktree jetable (`fusion-pub-main`), le dossier pub-admob et ses modifs non commitées intacts.
+Conflits : `VERSION PRINCIPALE/index.html` (généré) réassemblé depuis code/ (`--verifier` OK, scripts compilés) ; `vercel-build.sh` = un commentaire sur app-ads.txt, gardé celui du build 134 (code identique). Sans conflit : `traces-pneus.js` prend la régie AdMob du build 134.
+`sw.js` → cashcar-v1629. Aucune branche supprimée, rien envoyé à Apple.
+FUSION MAIN FAITE
