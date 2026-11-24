@@ -11,6 +11,9 @@ DEST=export; [ "$1" = "--envoyer" ] && DEST=upload
 B="$PWD/build"; ARCHIVE="$B/CASH-CAR.xcarchive"
 # (2026-11-13, finition · COMPLET) jamais le jeu non coupé dans l'archive : COMPLET est retiré de l'environnement, puis www/ est vérifié
 # (pas de maj.json « complet », pas d'app de banc ni d'interrupteurs cuits).
+# (2026-11-24) LE JEU EST-IL À JOUR ? Sur cette lignée, index.html n'était plus commité : l'archive a pris un index.html du 17/11 sans la pub
+# (arrêtée par le témoin CC_PUB_ENTRE). On refuse donc d'archiver si index.html ≠ les morceaux de code/ (le corriger : node code/assembler.cjs --depuis-morceaux).
+node ../code/assembler.cjs --verifier || { echo "✗ archiver : VERSION PRINCIPALE/index.html n'est pas à jour avec code/ — lancer  node code/assembler.cjs --depuis-morceaux  puis committer — rien n'est archivé" >&2; exit 1; }
 # (2026-11-24) LES VRAIES PUBS, SEULEMENT DANS L'ARCHIVE : CC_PUB_VRAIE=1 fait passer preparer-www.js à test:false (admob.json garde test:true pour le dev)
 env -u COMPLET CC_PUB_VRAIE=1 npm run sync
 if ! grep -q '"test":false' www/index.html; then echo "✗ archiver : www/ n'a pas les vraies pubs (CC_ADMOB test:false introuvable) — rien n'est archivé" >&2; exit 1; fi

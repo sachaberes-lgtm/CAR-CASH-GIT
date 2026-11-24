@@ -57,3 +57,36 @@ PRÊT POUR L'ARCHIVE — build 134 (version 1.1.0), branche `pub-admob-app`. Ava
 **24/11, 15 h 50 (oui de Sacha « juste les pages ») : sur main `aa6408c98`** — seulement `pages-app/confidentialite.html` (avec AdMob),
 `pages-app/app-ads.txt` et 3 lignes de `vercel-build.sh`. Le jeu ne change pas. EN LIGNE, vérifié :
 https://car-cash-git.vercel.app/app-ads.txt et https://car-cash-git.vercel.app/confidentialite.html. La soumission n'attend plus rien côté site.
+
+---
+## Archive du 24/11 (Claude, session pub, à la demande de Projets) — témoin CC_PUB_ENTRE
+
+**Cause** : sur la branche `pub-admob-app`, `VERSION PRINCIPALE/index.html` n'avait plus été commité depuis le 17/11 (`492ac0970`) : tout le
+travail de la pub n'était commité que dans les morceaux de `code/`. Les builds 131 à 133 avaient été faits avec un index.html assemblé
+mais jamais commité. Vers 15 h 05, la copie de travail est revenue à l'index.html du 17/11, celui sans la pub : `preparer-www.js` n'y trouvait
+plus `window.CC_PUB_ENTRE=function` (le code est bien dans `code/rendu/traces-pneus.js`).
+
+**Correctif** : `node code/assembler.cjs --depuis-morceaux` (index.html := morceaux), commit local `6b9451c3c` (index.html seul, rien poussé).
+L'écart d'index.html (+4964/−1306 lignes) recouvre celui des morceaux depuis le 17/11 (+4958/−1300) : rien de perdu.
+(Le premier essai, `node code/assembler.cjs` sans option, a pris le mauvais sens et recopié le vieil index dans 127 morceaux. Je les ai
+aussitôt remis au contenu de HEAD, et `git status code/` est propre.)
+
+**Archive** (`sh archiver.sh`, sans --envoyer) : `✓ vraies pubs AdMob (blocs de Sacha) dans cette archive`, puis `** ARCHIVE SUCCEEDED **`.
+→ `app-ios/build/CASH-CAR.xcarchive`, version **1.1.0 (134)**, `"test":false` dans le jeu embarqué, jeu `6b9451c3c`.
+**Mais l'export du .ipa a échoué** (`** EXPORT FAILED **`, code 70) : `exportArchive No Accounts` / `No signing certificate "iOS Distribution"
+found`. Xcode n'a aucun compte Apple visible depuis cette session (l'archive est signée « Apple Development »). Rien n'a été envoyé à Apple.
+
+**Reste pour Sacha** :
+1. Xcode › Réglages › Comptes : vérifier que son compte Apple (équipe M532TDYCH2) est connecté, puis relancer
+   `cd ~/cash-car/pub-admob/app-ios && sh archiver.sh` depuis son Terminal (le certificat « iOS Distribution » est créé par la signature automatique).
+   Autre voie : Xcode › Window › Organizer › l'archive 1.1.0 (134) › Distribute App.
+2. Sur son OUI : `sh archiver.sh --envoyer`. Le commit `6b9451c3c` reste local sur `pub-admob-app`, il n'est pas poussé.
+3. Leçon : sur cette branche, toujours committer index.html avec les morceaux (`node code/assembler.cjs --depuis-morceaux` avant chaque commit).
+
+**24/11, 16 h (Claude, session pub, relecture demandée par Sacha)** — l'archive `app-ios/build/CASH-CAR.xcarchive` est BONNE, vérifiée dedans :
+1.1.0 (134), App ID ca-app-pub-8409305028912847~7030914291, `"test":false` + les deux vrais blocs, secours (pub maison), orientation,
+pizza hors vente, prix 1,99 € / 0,99 €, phrases ATT FR + EN, GoogleMobileAds + UMP, aucun fichier de dev (qs.json, banc.json, complet).
+index.html commité = morceaux (`assembler --verifier` OK). NB : le commit `6b9451c3c` A été poussé (crochet post-commit), c'est voulu.
+`archiver.sh` vérifie désormais que index.html est à jour avant d'archiver (la cause de l'échec de 15 h 20).
+SEUL BLOCAGE pour l'export / l'envoi : **aucun compte Apple dans Xcode** (`No Accounts`) et pas de certificat « Apple Distribution »
+sur le Mac (seulement « Apple Development »). À faire par Sacha (mot de passe) : Xcode › Réglages › Comptes › « + » › Apple ID, équipe M532TDYCH2.
