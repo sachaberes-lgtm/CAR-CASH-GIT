@@ -5,6 +5,14 @@
    Le bot : le pilote (piloter.js) fait tourner le MEME enregistreur dans le jeu sans ecran.
    mesures(partie) : les chiffres d'une partie · barre(parties) : le resume d'un lot (c'est LA BARRE quand le lot est celui de Sacha). */
 const RACC=60; /* le jeu crie RACCOURCI a partir de 60 m gagnes (piste sautee moins distance volee) */
+/* ===== LE PALIER ATTEINT (2026-11-24, Sacha : « des bots du record de palier 1 au palier 30 ») =====
+   Un palier = un moteur de ENGINE_TIERS (code/gameplay/pickups-fruits.js), gagne en ramassant des pieces PENDANT la course. Le palier d'une
+   partie = le dernier seuil franchi par ses pieces (1 = MOTEUR ROUILLE … 30 = TROU NOIR). C'est l'echelle du matchmaking.
+   Les seuils sont RELUS dans le code du jeu quand il est la (ils changent avec lui) ; la liste ci-dessous est celle du 24/11/2026 (cashcar-v1627). */
+let SEUILS=[0,40,85,150,225,305,400,505,615,730,860,995,1130,1280,1430,1585,1745,1910,2080,2255,2440,2630,2825,3030,3240,3455,3680,3910,4145,4385];
+try{const src=require('fs').readFileSync(require('path').join(__dirname,'..','..','code','gameplay','pickups-fruits.js'),'utf8'),a=src.indexOf('const ENGINE_TIERS=['),b=src.indexOf('];',a);
+  if(a>=0&&b>a){const S=[...src.slice(a,b).matchAll(/coins:\s*(\d+)/g)].map(m=>+m[1]);if(S.length>=10&&S[0]===0&&S.every((x,i)=>i===0||x>S[i-1]))SEUILS=S;}}catch(e){}
+function palierDe(pieces){let k=0;for(let i=0;i<SEUILS.length;i++)if((pieces|0)>=SEUILS[i])k=i;return k+1;}
 
 function mesures(c){
   const col={};(c.cols||[]).forEach((n,i)=>col[n]=i);
@@ -31,7 +39,7 @@ function mesures(c){
     appareil:c.ecran?(c.ecran.app?'app iPhone':c.ecran.tel?'version allegee (telephone ou PC lent)':'ordinateur'):(c.bot?'bot':'?'), /* ecran.tel = ALLEGE, vrai aussi sur un PC lent */
     clavier:(E.length&&col.doigt!=null)?!E.some(e=>g(e,'doigt')):null,chances:c.chances|0,
     argent:fin.argent||0,argent_min:+((fin.argent||0)/min).toFixed(1),
-    pieces:fin.pieces|0,pieces_min:+((fin.pieces|0)/min).toFixed(1),
+    pieces:fin.pieces|0,pieces_min:+((fin.pieces|0)/min).toFixed(1),palier:palierDe(fin.pieces|0),
     figures_lancees:par('fig').length,figures_payees:figPayees,figures_min:+(figPayees/min).toFixed(2),
     vols:vols.length,vols_min:+(vols.length/min).toFixed(2),
     air_s:+vols.reduce((a,v)=>a+(v.duree||0),0).toFixed(1),air_pct:+(E.length?100*enVol/E.length:0).toFixed(1),
@@ -59,6 +67,8 @@ function barre(parties){
     survie_mediane_s:r(med('duree_s')),survie_moyenne_s:r(som('duree_s')/Math.max(1,n)),
     argent_min:r(som('argent')/min),argent_mediane:r(med('argent')),
     pieces_min:r(som('pieces')/min),
+    /* l'echelle du matchmaking : le palier d'une partie ordinaire (mediane), le RECORD du lot (le meilleur), et chaque partie */
+    palier_median:med('palier'),palier_record:Math.max(0,...M.map(m=>m.palier)),paliers:M.map(m=>m.palier).sort((a,b)=>a-b),
     figures_min:r(som('figures_payees')/min,2),figures_lancees_min:r(som('figures_lancees')/min,2),
     vols_min:r(som('vols')/min,2),air_pct:r(100*som('air_s')/Math.max(1e-9,som('duree_s'))),vol_moyen_s:r(som('air_s')/Math.max(1,som('vols')),2),
     raccourcis_min:r(som('raccourcis')/min,2),raccourcis_m_min:r(som('raccourcis_m')/min),
@@ -81,9 +91,10 @@ function lignes(b){
     `argent ${b.argent_min} par minute (mediane d'une partie : ${b.argent_mediane}) · pieces ${b.pieces_min} par minute`,
     `figures posees ${b.figures_min} par minute (lancees ${b.figures_lancees_min})`,
     `en l'air ${b.air_pct} % du temps · ${b.vols_min} vols par minute · vol moyen ${b.vol_moyen_s} s`,
+    `PALIER moteur : mediane ${b.palier_median} · record ${b.palier_record} · par partie ${(b.paliers||[]).join(' ')}`,
     `raccourcis ${b.raccourcis_min} par minute (${b.raccourcis_m_min} m gagnes par minute) · bumps ${b.bumps_min} par minute`,
     `distance ${b.distance_m_min} m par minute · nitro tenue ${b.nitro_pct} % du temps`,
     `fins : ${Object.entries(b.causes).sort((a,b)=>b[1]-a[1]).map(e=>e[0]+' '+e[1]).join(' · ')}`,
     `maps : ${Object.entries(b.cartes).sort((a,b)=>b[1]-a[1]).map(e=>e[0]+' '+e[1]).join(' · ')}`];
 }
-module.exports={mesures,barre,partiesDe,lignes,RACC};
+module.exports={mesures,barre,partiesDe,lignes,RACC,palierDe,SEUILS};

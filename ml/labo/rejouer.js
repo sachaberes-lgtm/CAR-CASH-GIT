@@ -15,7 +15,7 @@ function un(fichier,serie){
   const R=JSON.parse(fs.readFileSync(fichier,'utf8')),jeu=L.versionJeu();
   const {ouvrir,rejouer}=require('../bot/piloter');
   const t0=Date.now();
-  const r=L.ensilence(()=>rejouer(ouvrir(),R.graine,L.decoderTouches(R.touches),{carte:R.carte,meteo:R.meteo,tmax:R.tmax,serie:!!serie,hasard:!!serie}));
+  const r=L.ensilence(()=>rejouer(ouvrir({regime:R.jeu&&R.jeu.regime}),R.graine,L.decoderTouches(R.touches),{carte:R.carte,meteo:R.meteo,tmax:R.tmax,serie:!!serie,hasard:!!serie}));
   if(serie)fs.writeFileSync(serie,JSON.stringify({rejeu:path.basename(fichier),jeu:jeu,serie:r.serie,hasard:r.hasard}));
   const f=r.partie.fin||{},meme=r.empreinte===R.empreinte&&r.images===R.images&&f.argent===R.fin.argent&&f.cause===R.fin.cause;
   return {fichier:path.basename(fichier),exact:meme,memeJeu:jeu.sha===R.jeu.sha,jeu:jeu,origine:R.jeu,empreinte:[R.empreinte,r.empreinte],images:[R.images,r.images],

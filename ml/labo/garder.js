@@ -17,7 +17,7 @@ if(!x){
   const jeu=L.versionJeu();
   if(jeu.sha!==ligne.jeu.sha){console.log(`le jeu a change depuis (${ligne.jeu.version}, empreinte ${ligne.jeu.sha}, commit ${ligne.jeu.commit} → aujourd'hui ${jeu.version}, ${jeu.sha}) : cette course ne se refait que sur l'ancienne version`);process.exit(1);}
   const {ouvrir,charger,course}=require('../bot/piloter');
-  const r=L.ensilence(()=>{const J=ouvrir(),C=charger(path.join(L.RACINE,ligne.code));return course(J,C,graine,{tmax:ligne.tmax});});
+  const r=L.ensilence(()=>{const J=ouvrir({regime:ligne.jeu&&ligne.jeu.regime}),C=charger(path.join(L.RACINE,ligne.code));return course(J,C,graine,{tmax:ligne.tmax});});
   if(r.bilan.empreinte!==c0.empreinte){console.log(`la course rejouee n'est pas celle du journal (empreinte ${r.bilan.empreinte} ≠ ${c0.empreinte}) : rien n'est garde`);process.exit(1);}
   x={graine:graine,bilan:r.bilan,partie:r.partie,touches:r.touches};
   console.log('course rejouee a partir du code : meme empreinte que le journal ('+c0.empreinte+')');

@@ -70,6 +70,8 @@ function resumeCourse(b,partie){
    c : { nom, source (le code), etape, generation, parents:[ids], modele, raison, note (la barre du lot), courses:[{bilan, partie, touches}],
          graines:{n,depart,pas}, tmax, jeu (versionJeu), cout:{entree, sortie, euros}, echange (demande + reponse de l'API), lot }
    REFUSE ce qui rendrait la ligne inutilisable plus tard : pas de raison, un parent inconnu, un cerveau d'API sans son cout. */
+/* qui n'a pas de cout a declarer : le code ecrit a la main, et celui ecrit par un agent sous ABONNEMENT (aucune API facturee au jeton : « opus-abonnement ») */
+function sansCout(modele){return modele==='main'||/abonnement$/.test(String(modele||''));}
 function inscrire(c){
   const J=lire(F.cerveaux),ids=new Set(J.map(l=>l.id));
   const faute=m=>{throw new Error('inscription refusee : '+m);};
@@ -80,7 +82,7 @@ function inscrire(c){
   if(!c.modele)faute('le modele qui a ecrit ce code (--modele ; « main » = ecrit a la main)');
   if(!c.raison||String(c.raison).trim().length<12)faute('la raison du changement (--raison, une vraie phrase) : c\'est elle qui fait l\'arbre et le recit');
   const parents=c.parents||[];for(const p of parents)if(!ids.has(p))faute('parent inconnu : '+p);
-  if(c.modele!=='main'&&!(c.cout&&c.cout.entree>=0&&c.cout.sortie>=0))faute('le cout en jetons d\'un cerveau ecrit par l\'API (--entree, --sortie, --euros)');
+  if(!sansCout(c.modele)&&!(c.cout&&c.cout.entree>=0&&c.cout.sortie>=0))faute('le cout en jetons d\'un cerveau ecrit par l\'API (--entree, --sortie, --euros)');
   if(!c.courses||!c.courses.length)faute('aucune course notee');
   const id='c'+String(J.length+1).padStart(4,'0'),empreinte=sha(c.source),jumeau=(J.find(l=>l.sha===empreinte)||{}).id||null;
   const code=id+'-'+c.nom.toLowerCase()+'.js';
@@ -177,7 +179,7 @@ function clore(etape,generation,o){
 /* le jeu bavarde en se chargeant (ses propres messages, des erreurs de decor sans ecran) : on ne garde que ce que l'outil a a dire */
 function ensilence(f){const c=console,l=c.log,e=c.error,w=c.warn;c.log=c.error=c.warn=function(){};try{return f();}finally{c.log=l;c.error=e;c.warn=w;}}
 
-module.exports={ensilence,RACINE,DEPOT,D,F,sha,lire,ajouter,ecrireGz,lireGz,versionJeu,coderTouches,decoderTouches,resumeCourse,inscrire,valider,depense,depenses,
+module.exports={sansCout,ensilence,RACINE,DEPOT,D,F,sha,lire,ajouter,ecrireGz,lireGz,versionJeu,coderTouches,decoderTouches,resumeCourse,inscrire,valider,depense,depenses,
   garder,tampon,nomCourse,traceFine,clore};
 
 /* ----- lance seul : l'etat du labo ----- */

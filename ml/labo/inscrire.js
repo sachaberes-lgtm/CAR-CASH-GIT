@@ -27,19 +27,23 @@ if(!VAL){
   const manque=[];
   if(opt('etape',null)==null)manque.push('--etape');if(opt('generation',null)==null)manque.push('--generation');
   if(!opt('modele',null))manque.push('--modele');if(String(opt('raison','')).trim().length<12)manque.push('--raison "une vraie phrase"');
-  if(opt('modele','main')!=='main'&&(opt('entree',null)==null||opt('sortie',null)==null))manque.push('--entree et --sortie (les jetons de l\'API)');
+  if(!L.sansCout(opt('modele','main'))&&(opt('entree',null)==null||opt('sortie',null)==null))manque.push('--entree et --sortie (les jetons de l\'API)');
   if(manque.length){console.log('il manque : '+manque.join(', '));process.exit(1);}
 }
 /* la note : noter.js, tel quel, avec les enregistrements complets */
 fs.mkdirSync(L.D.tampon,{recursive:true});
 const tmp=path.join(L.D.tampon,'note-en-cours-'+process.pid+'.json');
 const args=[path.join(__dirname,'..','bot','noter.js'),fichier,'--graines',String(NG),'--depart',String(G0),'--tmax',String(TMAX),'--sortie',tmp,'--parties'];
-for(const k of ['coeurs','carte','meteo'])if(opt(k,null)!=null)args.push('--'+k,String(opt(k)));
-const r=spawnSync(process.execPath,args,{stdio:'inherit'});
-if(r.status!==0||!fs.existsSync(tmp)){console.log('la note n\'a pas abouti : rien n\'est inscrit');process.exit(1);}
-const N=JSON.parse(fs.readFileSync(tmp,'utf8'));fs.unlinkSync(tmp);
+for(const k of ['coeurs','carte','meteo','regime'])if(opt(k,null)!=null)args.push('--'+k,String(opt(k)));
+/* --note <fichier> : une note DEJA faite par noter.js (avec --parties) pour ce meme code : on l'inscrit sans rejouer (la boucle note d'abord, inscrit ensuite) */
+let N;
+if(opt('note',null)){N=JSON.parse(fs.readFileSync(opt('note'),'utf8'));
+  if(!N.parties||!N.parties.length){console.log('cette note n\'a pas ses parties (noter.js --parties) : rien n\'est inscrit');process.exit(1);}}
+else{const r=spawnSync(process.execPath,args,{stdio:'inherit'});
+  if(r.status!==0||!fs.existsSync(tmp)){console.log('la note n\'a pas abouti : rien n\'est inscrit');process.exit(1);}
+  N=JSON.parse(fs.readFileSync(tmp,'utf8'));fs.unlinkSync(tmp);}
 const courses=N.parties.map((p,i)=>({bilan:N.courses[i],partie:p.partie,touches:p.touches}));
-const commun={jeu:Object.assign({},jeu,{version:N.jeu}),graines:N.graines,tmax:N.tmax,note:N.note,courses:courses,echecs:N.echecs};
+const commun={jeu:Object.assign({},jeu,{version:N.jeu,regime:N.regime||'max'}),graines:N.graines,tmax:N.tmax,note:N.note,courses:courses,echecs:N.echecs};
 let ligne;
 try{
   if(VAL)ligne=L.valider(VAL,commun);
@@ -48,7 +52,7 @@ try{
     const modele=opt('modele'),nom=(source.match(/nom\s*:\s*['"]([^'"]+)['"]/)||[])[1]||path.basename(fichier,'.js');
     ligne=L.inscrire(Object.assign({nom:nom.replace(/[^a-z0-9-]/gi,'-'),source:source,etape:opt('etape'),generation:parseInt(opt('generation'),10),
       parents:String(opt('parents','')).split(',').map(s=>s.trim()).filter(Boolean),modele:modele,raison:opt('raison'),echange:echange,
-      cout:modele==='main'?null:{entree:+opt('entree'),sortie:+opt('sortie'),euros:opt('euros',null)==null?null:+opt('euros')}},commun));
+      cout:L.sansCout(modele)?null:{entree:+opt('entree'),sortie:+opt('sortie'),euros:opt('euros',null)==null?null:+opt('euros')}},commun));
   }
 }catch(e){console.log(String(e.message||e));process.exit(1);}
 const enPanne=ligne.courses.filter(c=>c.pannes>0);

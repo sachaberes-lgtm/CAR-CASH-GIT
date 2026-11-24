@@ -53,8 +53,9 @@ async function projette(){
      regime maximum, avec Crypto City. MESURE (24/11, ce PC) : au 2e portail, meme etat du hasard des deux cotes, « crypto, midi » sans ecran,
      « ville, orage » dans le navigateur — meme route (meme graine), mais des pieces a 0,75 fois leur valeur : c'etait l'ecart de 127,4 s.
      `?regime=<0..3|max>` pour projeter dans un autre regime (la course ne sera alors plus celle du journal). */
-  const REGIME=Q.get('regime')||'3';
-  await new Promise(ok=>{cadre.onload=ok;cadre.src='/jeu/__projection.html'+N9.requete+'&poste='+REGIME.replace(/[^a-z0-9]/gi,'');});
+  /* (un rejeu note en ALLEGE — R.jeu.regime — se projette avec ?allege=1 : c'est exactement ce que le simulateur a charge pour lui) */
+  const REGIME=Q.get('regime')||(R.jeu.regime==='allege'?'allege':'3');
+  await new Promise(ok=>{cadre.onload=ok;cadre.src='/jeu/__projection.html'+N9.requete+(REGIME==='allege'?'&allege=1':'&poste='+REGIME.replace(/[^a-z0-9]/gi,''));});
   const w=cadre.contentWindow,env=w.__ENV;
   if(!env||!w.__EV){dit('le jeu ne s\'est pas chargé (pas de porte de lecture)');E.erreur='chargement';return;}
   await attends(2500);                                   /* les textures et les polices arrivent (l'horloge du jeu, elle, ne bouge pas) */

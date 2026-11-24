@@ -21,9 +21,13 @@ const JR_CODE=`window.__JR={
   fin:function(){const c=JREC.cours;if(!c)return null;const now=performance.now();if(mode==='boom'||gameOver)jrEvMort(c,now);jrFinit(c,now);JREC.cours=null;return JSON.stringify(c);}
 };`;
 
+/* LE REGIME DU JEU (2026-11-24) : au chargement, le jeu juge la machine. Telephone ou puce graphique integree → version ALLEGEE, ou Crypto City est
+   hors du tirage des maps ; le simulateur, sans carte graphique a juger, tombe au regime MAXIMUM. Les vrais joueurs de l'etalon sont tous en allege :
+   `regime:'allege'` (le parametre ?allege=1 du jeu) fait jouer le bot dans LEUR jeu. Sans rien : le maximum, comme avant (les notes d'avant le 24/11). */
 function ouvrir(o){
   o=o||{};
-  const J=creer({silence:true,query:o.query||''});
+  const regime=o.regime==='allege'?'allege':'max';
+  const J=creer({silence:true,query:(regime==='allege'?'&allege=1':'')+(o.query||'')});J.regime=regime;
   Y.installer(J);J.ev(JR_CODE);
   J.version=(fs.readFileSync(path.join(__dirname,'..','..','VERSION PRINCIPALE','sw.js'),'utf8').match(/cashcar-v\d+/)||['?'])[0];
   return J;
@@ -82,7 +86,7 @@ function course(J,cerveau,graine,o){
   D.lache();J.lacher();
   const partie=JSON.parse(J.ev('__JR.fin()'));
   if(vivant&&partie.fin)partie.fin.cause=abandon?'panne':'temps'; /* arretee par la limite de temps (ou abandonnee : le cerveau en panne), pas par une mort */
-  partie.bot={nom:cerveau.nom,graine:graine,carte:o.carte||null,meteo:o.meteo||null,jeu:J.version,tmax:tmax};
+  partie.bot={nom:cerveau.nom,graine:graine,carte:o.carte||null,meteo:o.meteo||null,jeu:J.version,regime:J.regime||'max',tmax:tmax};
   delete partie.ecran;
   const bilan=Object.assign({graine:graine,images:fr,ms:ms,foisTempsReel:+(fr/60/Math.max(.001,ms/1000)).toFixed(2),
     decisions:decisions,ordresVides:vide,pannes:(cerveau.pannes|0)-pannes0,gestesRefuses:D.refus,appuis:D.touches.filter(x=>x[2]).length,
