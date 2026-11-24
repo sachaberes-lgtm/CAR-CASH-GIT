@@ -7,12 +7,13 @@
        touches = le journal des doigts ([image, touche, 1|0]) : avec la graine et la map, c'est le rejeu
    LE CONTRAT D'UN CERVEAU : un fichier qui pose `module.exports={nom, decide}` ; `decide(vue, memoire)` rend un ORDRE (voir doigts.js).
    Il est appele 10 fois par seconde ; `memoire` est un objet a lui, vide au depart de chaque course. Rien d'autre : ni require, ni horloge,
-   ni hasard (Math.random est retire : meme graine = meme course). */
+   ni hasard (Math.random est retire : meme graine = meme course).
+   (2026-11-24, doigts v2) Il peut poser aussi `profil` : les reglages de SA main (doigts.js, LE PROFIL). Lu une fois au chargement, borne ici. */
 const fs=require('fs'),path=require('path'),vm=require('vm'),crypto=require('crypto');
 const {creer}=require('../reel/jeu-reel');
 const Y=require('./yeux');
-const {Doigts,HUMAIN,TOUCHE}=require('./doigts');
-const {mesures}=require('./mesures');
+const {Doigts,HUMAIN,TOUCHE,normaliserProfil,REPRISE}=require('./doigts');
+const {mesures,colle}=require('./mesures');
 
 /* L'ENREGISTREUR DU JEU, tenu a la main : dans un navigateur il bat par requestAnimationFrame (qui ne bat jamais ici) et range ses
    parties dans le telephone. Ici on appelle SES fonctions (jrNeuve, jrSuit, jrFinit) image par image : memes chiffres, meme format. */
@@ -81,11 +82,15 @@ const __bac=(function(){'use strict';
   return Object.freeze({
     pose:function(){const x=module.exports;if(!x||typeof x.decide!=='function')return 'E';c=x;return 'O'+(typeof x.nom==='string'?x.nom:'');},
     neuve:function(){m={};},
+    profil:function(){try{const p=c&&c.profil;return p==null?'O':typeof p==='object'?'O'+JS(p,enc):'E';}catch(e){return 'E';}},
     appel:function(vj){try{const r=c.decide(JP(vj,dec),m);return 'O'+JS(r,enc);}catch(e){let s='?';try{s=S(e&&e.message||e);}catch(x){}return 'E'+s;}}});
 })();`;
 /* la vue → texte, chez l'hote (les memes reperes que `enc` du bac) */
 const encHote=(k,v)=>{if(typeof v==='number'){if(v!==v)return '\u0000N';if(v===Infinity)return '\u0000I';if(v===-Infinity)return '\u0000J';if(v===0&&1/v<0)return '\u0000Z';}else if(v===undefined)return '\u0000U';return v;};
 const decHote=(k,v)=>{if(typeof v==='string'&&v.length===2&&v.charCodeAt(0)===0){const c=v.charCodeAt(1);if(c===78)return NaN;if(c===73)return Infinity;if(c===74)return -Infinity;if(c===90)return -0;if(c===85)return undefined;}return v;};
+/* l'empreinte d'un profil normalise : sha1 de son JSON aux cles triees */
+function shaProfil(P){const tri=x=>Array.isArray(x)?x.map(tri):(x&&typeof x==='object')?Object.keys(x).sort().reduce((o,k)=>{o[k]=tri(x[k]);return o;},{}):x;
+  return crypto.createHash('sha1').update(JSON.stringify(tri(P))).digest('hex').slice(0,12);}
 function charger(fichier,o){
   o=o||{};
   const src=o.source!=null?String(o.source):fs.readFileSync(fichier,'utf8');
@@ -94,6 +99,16 @@ function charger(fichier,o){
   vm.runInContext(src,ctx,{filename:path.basename(fichier),timeout:1000});
   const pose=vm.runInContext('__bac.pose()',ctx,{timeout:1000});
   if(typeof pose!=='string'||pose[0]!=='O')throw new Error(fichier+' : pas de decide(vue, memoire)');
+  /* ===== LE PROFIL DE LA MAIN (2026-11-24, doigts v2, Sacha : « des bots du palier 1 au palier 30 qu'on ne distingue pas de vrais joueurs ») =====
+     `module.exports.profil` est lu UNE fois, ici : il sort du bac en texte (comme un ordre), il est borne chez l'hote (normaliserProfil : un champ
+     inconnu ou d'un mauvais type refuse le cerveau, une valeur hors bornes y est ramenee) — un cerveau ne peut pas descendre sous les limites
+     d'une main. Le cerveau charge porte `profil` (normalise, ou null s'il ne change rien a la main d'avant) et `profilSha` (son empreinte). */
+  let profil=null,profilSha=null;
+  {const tp=vm.runInContext('__bac.profil()',ctx,{timeout:1000});
+    if(typeof tp!=='string'||tp[0]!=='O')throw new Error(fichier+' : profil illisible (un objet de reglages : voir ml/bot/README.md, « Le profil »)');
+    let brut=null;if(tp.length>1){try{brut=JSON.parse(tp.slice(1),decHote);}catch(e){throw new Error(fichier+' : profil illisible');}}
+    try{profil=normaliserProfil(brut);}catch(e){throw new Error(fichier+' : '+String(e&&e.message||e));}
+    if(profil)profilSha=shaProfil(profil);}
   /* 5 s : TRES large, expres. La limite ne sert qu'a arreter une boucle sans fin ; elle compte en vraie montre, donc un ordinateur charge peut
      la franchir sans que le cerveau y soit pour rien — et la course n'est plus repetable. MESURES : a 25 ms, 1 decision sur ~2 000 coupee ;
      a 500 ms, le 24/11, PC charge par ailleurs (jeu sans ecran a 0,68 x le temps reel) : 3 et 10 decisions coupees sur la meme graine, deux
@@ -105,7 +120,7 @@ function charger(fichier,o){
          reste repetable, l'ordre de cette decision est vide, on continue et on le dit dans le bilan. */
   /* une decision = un petit script : la vue y entre comme un texte litteral (rien a poser sur le contexte, ou un cerveau aurait pu guetter) */
   const ms=o.ms||60000;
-  return {nom:pose.slice(1)||path.basename(fichier,'.js'),fichier:fichier,source:src,pannes:0,erreurs:0,
+  return {nom:pose.slice(1)||path.basename(fichier,'.js'),fichier:fichier,source:src,pannes:0,erreurs:0,profil:profil,profilSha:profilSha,
     neuve(){vm.runInContext('__bac.neuve()',ctx,{timeout:1000});},
     decide(vue){let r;
       const txt=JSON.stringify(vue,encHote);this.texte=txt; /* (2026-11-24, yeux v2) le texte de la vue, tel qu'il entre dans le bac : course() en tire l'empreinte des vues et leur poids */
@@ -130,12 +145,33 @@ const PANNES_MAX=2; /* decisions coupees par la limite de temps avant d'abandonn
      vue ; le lire ne change rien) ; bilan.empreinteVues = sha1 du texte de toutes les vues donnees au cerveau (le radar est repetable) ;
      bilan.cerveau_ms_moy = le temps d'une decision.
    · o.temoin (verifier.js, controle 6e) : une fonction appelee une fois par seconde de jeu, juste avant la vue, avec (J, image). */
+/* ===== LES DOIGTS V2 DANS LA COURSE (2026-11-24, Sacha : « des bots du palier 1 au palier 30 qu'on ne distingue pas de vrais joueurs ») =====
+   Un cerveau SANS profil : la boucle d'avant, image pour image (D.P est null : aucune des lignes ci-dessous ne s'execute pour lui).
+   Un cerveau A PROFIL (doigts.js) :
+     · LA PORTE DE LA MAIN (MAIN_CODE, posee a la premiere course a profil : ouvrir() ne pose rien de neuf) : a chaque image, l'etat dont la main
+       a besoin pour tenir une ligne ou un cap — les grandeurs des yeux, sans arrondi. Elle LIT, sur un seul objet reutilise ; rien n'est ecrit
+       dans le jeu (verifier.js, controle 4, montre deja que lire a chaque image ne change pas la course).
+     · LA SECONDE CHANCE : a la decision qui voit la mort, la main dit si elle continue (D.suiteMort). Si oui, le premier MORCEAU de
+       l'enregistrement se ferme la (il est donc celui de la course sans reprise), la boucle tourne sans decision jusqu'a la reprise (la plaque,
+       la pub de 5 s : de l'ordre de 7 a 12 s de temps mort), un second morceau s'ouvre, et les deux sont recolles a la fin (mesures.js, colle :
+       comme les parties des joueurs). `decide` n'est jamais appele mort. bilan.images et vue.t comptent le temps mort ; duree_s non.
+     · LE BILAN gagne : main { sha, graine, modele } (le profil), chance { voulue, ok, image, prise, reprise }, imagesMortes, gestesRates,
+       erreursMain { manques, retards, surs, parasites }. bilan.appuis ne compte pas la lettre C du journal. */
+const MAIN_CODE=`window.__MAIN=(function(){const o={mode:'boom',lat:0,cap:0,vitesse:0,lacetRoute:0,lacetMax:1,capVol:0};return function(){
+  if(mode==='drive'){const vm=vitMult();o.mode='sol';o.lat=lat;o.cap=psi;o.vitesse=Math.abs(vA)*SPD*vm;o.lacetRoute=routeLacet;o.lacetMax=lacetMax(vA)*vm;}
+  else if(mode==='fall'){o.mode='vol';o.capVol=Math.atan2(fallVel.x,fallVel.z);}
+  else o.mode='boom';
+  return o;};})();`;
+/* les morceaux d'une course → la partie : recolles s'il y a eu une reprise ; `fin` = le dernier morceau (c'est lui qui dit si la course est morte) */
+function recolle(morceaux,dernier){const A=morceaux[0]||null;return {partie:A&&dernier?colle(A,dernier):(dernier||A),fin:dernier||A};}
 function course(J,cerveau,graine,o){
   o=o||{};
   const tmax=o.tmax||TMAX_DEFAUT,N=Math.round(tmax*60);
   J.lancer(graine,o.carte?{carte:o.carte,meteo:o.meteo}:{});
   J.ev('__JR.debut()');
-  const D=new Doigts(J,()=>Y.modeDe(J)),JR=J.g.sandbox.__JR;
+  const PROFIL=cerveau.profil||null;
+  if(PROFIL&&!J.main){J.ev(MAIN_CODE);J.main=J.g.sandbox.__MAIN;}
+  const D=new Doigts(J,()=>Y.modeDe(J),PROFIL?{profil:PROFIL,graine:graine}:undefined),JR=J.g.sandbox.__JR,morceaux=[];let driftPerdus=0;
   cerveau.neuve(); /* la memoire du cerveau : vide au depart de chaque course (un objet de SON contexte) */
   const h=crypto.createHash('sha1'),hv=crypto.createHash('sha1'),vues=[];
   let fr=0,vue=null,decisions=0,vide=0,pannes0=cerveau.pannes|0,erreurs0=cerveau.erreurs|0,abandon=false;
@@ -145,6 +181,9 @@ function course(J,cerveau,graine,o){
   let dem=undefined;
   const t1=Date.now();
   while(fr<N){
+    /* (doigts v2) LA REPRISE : la pub est finie, le jeu a remis la caisse sur la route → un nouveau morceau d'enregistrement, la main repart a neuf */
+    if(D.fin&&D.fin.etat==='pub'&&Y.modeDe(J)!=='boom'){J.ev('__JR.debut()');D.revit();}
+    const etatMain=D.P&&!D.fin?J.main():null;
     if(fr%HUMAIN.decision===0){
       if(o.temoin&&fr%60===0)o.temoin(J,fr);
       /* (yeux v2) la demande : celle du cerveau (ou du controle), plus les delais de la main — le radar garde chaque touche dans son etat tant
@@ -156,7 +195,13 @@ function course(J,cerveau,graine,o){
       if(vue.mode==='vol'){MY.vol++;MY.msVol+=dv;MY.pasVol+=ct.pas;MY.dallesVol+=ct.dalles;}else{MY.sol++;MY.msSol+=dv;}
       if(dv>MY.msMax)MY.msMax=dv;if(ct.pas>MY.pas)MY.pas=ct.pas;if(ct.sondes>MY.sondes)MY.sondes=ct.sondes;if(ct.route>MY.route)MY.route=ct.route;MY.erreurs+=ct.erreurs|0;
       h.update(vue.mode+'|'+(vue.s||0)+'|'+(vue.lat||0)+'|'+(vue.vitesse||0)+'|'+vue.nitro+'|'+vue.argent+';');
-      if(vue.fini)break;
+      if(vue.fini){
+        if(!D.P)break;
+        /* (doigts v2) la main continue-t-elle ? A la premiere decision qui voit la mort, le premier morceau se ferme (comme une course sans reprise) */
+        const premiere=!D.fin;
+        if(!D.suiteMort(vue))break;
+        if(premiere)morceaux.push(JSON.parse(J.ev('__JR.fin()')));
+      }else{
       vue.image=fr;vue.t=+(fr/60).toFixed(2);
       cerveau.texte=null;const c0=horloge();
       let ordre=null;try{ordre=cerveau.decide(vue);}catch(e){ordre=null;}
@@ -165,10 +210,12 @@ function course(J,cerveau,graine,o){
       if((cerveau.pannes|0)-pannes0>=PANNES_MAX){abandon=true;break;}   /* le cerveau boucle (ou l'ordinateur est a genoux) : cette course ne vaut rien */
       if(!ordre||typeof ordre!=='object'){ordre={};vide++;}
       dem=ordre.regarder==='sorties'?{sorties:true}:undefined;   /* (yeux v2) la demande vaut pour la vue suivante */
-      D.ordre(ordre,vue);decisions++;
+      if(ordre.drift&&!D.P)driftPerdus++;   /* (doigts v2) l'ordre « drift » n'est lu que par une main a profil : compte, pour le dire au bilan */
+      D.ordre(ordre,vue,etatMain);decisions++;
       if(o.trace)vues.push({image:fr,vue:vue,ordre:ordre,demande:demande});
+      }
     }
-    D.image();J.image();
+    D.image(etatMain);J.image();
     if(!o.sansEnregistreur)JR.image();
     if(o.image)o.image(J,fr);   /* (justesse.js, verifier.js) un regard de l'hote apres chaque image : il ne doit rien ecrire dans le jeu */
     if(o.yeuxEnPlus)Y.voir(J,o.yeuxEnPlus===true?undefined:o.yeuxEnPlus);   /* (controle, verifier.js) regarder plus souvent ne doit rien changer a la course */
@@ -177,17 +224,21 @@ function course(J,cerveau,graine,o){
   const ms=Date.now()-t1,a3=x=>+x.toFixed(3);
   const yeux={ms_moy:a3((MY.msSol+MY.msVol)/Math.max(1,MY.sol+MY.vol)),ms_max:a3(MY.msMax),ms_sol_moy:a3(MY.msSol/Math.max(1,MY.sol)),ms_vol_moy:a3(MY.msVol/Math.max(1,MY.vol)),
     vues_sol:MY.sol,vues_vol:MY.vol,pas_vol_moy:Math.round(MY.pasVol/Math.max(1,MY.vol)),dalles_vol_moy:Math.round(MY.dallesVol/Math.max(1,MY.vol)),pas_max:MY.pas,sondes_max:MY.sondes,route_max:MY.route,octets_moy:Math.round(MY.octets/Math.max(1,MY.textes)),erreurs:MY.erreurs,manque:Y.manqueDe(J)};
+  if(D.P)D.clot();   /* (doigts v2) coupee pendant l'attente de la plaque : le journal le dit ([image,'C',0]), sinon le rejeu s'arreterait a la mort */
   D.lache();J.lacher();
-  const partie=JSON.parse(J.ev('__JR.fin()'));
+  /* (doigts v2) la partie = le morceau d'avant la mort et celui d'apres la reprise, recolles ; sans reprise, le seul morceau (comme avant) */
+  const RC=recolle(morceaux,JSON.parse(J.ev('__JR.fin()'))),partie=RC.partie;
   /* (2026-11-24, defaut 24 : « une mort dans les 5 dernieres images notee temps ») morte ou non, c'est l'ENREGISTREMENT qui le dit (l'evenement
-     'mort', ecrit a l'image pres), pas la derniere vue (prise jusqu'a 5 images avant la fin) */
-  const morte=!!(partie&&(partie.ev||[]).some(e=>e[1]==='mort'));
+     'mort', ecrit a l'image pres), pas la derniere vue (prise jusqu'a 5 images avant la fin). (doigts v2) Lu sur le DERNIER morceau : apres
+     le collage, la mort d'avant la reprise est dans les evenements, et une course coupee par le temps apres une reprise serait notee morte. */
+  const morte=!!(RC.fin&&(RC.fin.ev||[]).some(e=>e[1]==='mort'));
   if(partie.fin&&(abandon||!morte))partie.fin.cause=abandon?'panne':'temps'; /* arretee par la limite de temps (ou abandonnee : le cerveau en panne), pas par une mort */
-  partie.bot={nom:cerveau.nom,graine:graine,carte:o.carte||null,meteo:o.meteo||null,jeu:J.version,jeu_sha:J.sha||null,regime:J.regime||'max',tmax:tmax};
+  partie.bot={nom:cerveau.nom,graine:graine,carte:o.carte||null,meteo:o.meteo||null,jeu:J.version,jeu_sha:J.sha||null,regime:J.regime||'max',tmax:tmax,main:cerveau.profilSha||null};
   delete partie.ecran;
   const bilan=Object.assign({graine:graine,images:fr,ms:ms,foisTempsReel:+(fr/60/Math.max(.001,ms/1000)).toFixed(2),
-    decisions:decisions,ordresVides:vide,pannes:(cerveau.pannes|0)-pannes0,erreurs:(cerveau.erreurs|0)-erreurs0,derniereErreur:((cerveau.erreurs|0)-erreurs0||(cerveau.pannes|0)-pannes0)?(cerveau.derniere||null):null,gestesRefuses:D.refus,appuis:D.touches.filter(x=>x[2]).length,
-    empreinte:h.digest('hex').slice(0,12),empreinteVues:hv.digest('hex').slice(0,12),yeux:yeux,yeuxTirages:etat?MY.tirages:null,cerveau_ms_moy:a3(MY.msCerveau/Math.max(1,MY.textes))},mesures(partie));
+    decisions:decisions,ordresVides:vide,pannes:(cerveau.pannes|0)-pannes0,erreurs:(cerveau.erreurs|0)-erreurs0,derniereErreur:((cerveau.erreurs|0)-erreurs0||(cerveau.pannes|0)-pannes0)?(cerveau.derniere||null):null,gestesRefuses:D.refus,appuis:D.touches.filter(x=>x[2]&&x[1]!=='C').length,
+    main:PROFIL?{sha:cerveau.profilSha,graine:PROFIL.graine,modele:PROFIL.modele}:null,driftSansProfil:driftPerdus||undefined,
+    empreinte:h.digest('hex').slice(0,12),empreinteVues:hv.digest('hex').slice(0,12),yeux:yeux,yeuxTirages:etat?MY.tirages:null,cerveau_ms_moy:a3(MY.msCerveau/Math.max(1,MY.textes))},D.resume()||{},mesures(partie));
   return {partie:partie,touches:D.touches,bilan:bilan,vues:o.trace?vues:undefined};
 }
 /* ===== LE REJEU (2026-11-24, etape 1 bis BOTS-ML : « les rejeux : la graine, la version du jeu, les touches image par image ») =====
@@ -197,6 +248,11 @@ function course(J,cerveau,graine,o){
    sinon la derniere decision, celle qui voit la mort, ne serait pas regardee (MESURE : 4 rejeux « differents » dont l'argent etait pourtant le meme).
    o : { carte, meteo, tmax, serie (garder l'etat a chaque decision : pour chercher l'image ou deux rejeux se separent),
          hasard (noter l'etat du generateur a chaque image et a l'entree de chaque fonction qui tire : voir LE RECALAGE DU HASARD) } */
+/* (2026-11-24, doigts v2) LA LETTRE C : la seconde chance. [image,'C',1] = la plaque CONTINUER touchee et acceptee (le rejeu appelle chanceJoue(),
+   la fonction de la plaque) ; [image,'C',0] = l'attente abandonnee, sans effet dans le jeu. Le journal suffit : ni le profil ni son hasard ne
+   servent au rejeu. Le miroir de course() : a la premiere decision qui voit une mort, s'il reste une entree C a venir la course d'origine a
+   attendu la plaque — le morceau d'enregistrement se ferme, la boucle continue jusqu'a la reprise (un nouveau morceau s'ouvre) ou jusqu'a
+   l'abandon. Sans entree C (tous les rejeux d'avant) : la boucle d'avant, a l'image pres. */
 /* ===== LE RECALAGE DU HASARD (2026-11-24, etape 1 bis : la salle de projection) =====
    Le jeu tire TOUT du meme hasard (Math.random) : la flamme d'un reacteur comme la graine de la route suivante. Or un vrai navigateur anime
    plus de choses que le simulateur, et pas autant de fois (MESURE : presque chaque image tire un nombre different de valeurs — 723 contre 403
@@ -231,26 +287,35 @@ function rejouer(J,graine,touches,o){
   const N=Math.round((o.tmax||TMAX_DEFAUT)*60),JR=J.g.sandbox.__JR,h=crypto.createHash('sha1'),serie=[];
   J.lancer(graine,o.carte?{carte:o.carte,meteo:o.meteo}:{});
   J.ev('__JR.debut()');
-  let fr=0,k=0,vue=null,HAS=null;const hasard=[],appels=[],etat=o.hasard?J.ev('Math.random.__etat'):null;
+  let fr=0,k=0,vue=null,HAS=null,R=null;const hasard=[],appels=[],morceaux=[],etat=o.hasard?J.ev('Math.random.__etat'):null;
   if(o.hasard){J.ev(HASARD_CODE);HAS=J.g.sandbox.__HAS;HAS.mode='note';}
   while(fr<N){
+    if(R&&R.etat==='pub'&&Y.modeDe(J)!=='boom'){J.ev('__JR.debut()');R=null;}   /* (doigts v2) la reprise : comme course() */
     if(etat){hasard.push(etat());HAS.cur=[];HAS.prof=0;}
     if(fr%HUMAIN.decision===0){
       vue=Y.voir(J,{radar:false});   /* (yeux v2) la vue d'avant suffit : l'empreinte ne lit que six champs de base */
       h.update(vue.mode+'|'+(vue.s||0)+'|'+(vue.lat||0)+'|'+(vue.vitesse||0)+'|'+vue.nitro+'|'+vue.argent+';');
       if(o.serie)serie.push([fr,vue.mode,vue.s||0,vue.lat||0,vue.vitesse||0,vue.nitro,vue.argent]);
-      if(vue.fini)break;
+      if(vue.fini){
+        if(!R){let c=false;for(let j=k;j<touches.length;j++)if(touches[j][1]==='C'){c=true;break;}
+          if(!c)break;
+          morceaux.push(JSON.parse(J.ev('__JR.fin()')));R={etat:'attend',image:-1};}
+        else if(R.etat==='abandon'||(R.etat==='pub'&&fr-R.image>REPRISE.REPRISE_MAX))break;
+      }
     }
-    while(k<touches.length&&touches[k][0]<=fr){if(touches[k][0]===fr)J.touche(TOUCHE[touches[k][1]],!!touches[k][2]);k++;}
+    while(k<touches.length&&touches[k][0]<=fr){if(touches[k][0]===fr){const t=touches[k];
+        if(t[1]==='C'){if(t[2]){J.ev('chanceJoue()');if(R){R.etat='pub';R.image=fr;}}else if(R){R.etat='abandon';R.image=fr;}}
+        else J.touche(TOUCHE[t[1]],!!t[2]);}
+      k++;}
     J.image();JR.image();fr++;
     if(etat)appels.push(HAS.cur);
   }
   if(HAS)HAS.mode=null;
   J.lacher();
-  const partie=JSON.parse(J.ev('__JR.fin()'));
-  if(partie.fin&&!(partie.ev||[]).some(e=>e[1]==='mort'))partie.fin.cause='temps'; /* comme course() (defaut 24) */
+  const RC=recolle(morceaux,JSON.parse(J.ev('__JR.fin()'))),partie=RC.partie;
+  if(partie.fin&&!(RC.fin.ev||[]).some(e=>e[1]==='mort'))partie.fin.cause='temps'; /* comme course() (defaut 24 ; la mort se lit sur le dernier morceau) */
   delete partie.ecran;
   /* hasard : images[i] = l'etat au debut de l'image i · appels[i] = [fonction, etat, fonction, etat…] dans l'ordre des appels de l'image i · noms = les fonctions */
   return {partie:partie,images:fr,empreinte:h.digest('hex').slice(0,12),serie:o.serie?serie:undefined,hasard:o.hasard?{images:hasard,noms:HAS.noms,appels:appels}:undefined,bilan:mesures(partie)};
 }
-module.exports={ouvrir,charger,course,rejouer,shaJeu,TMAX_DEFAUT,JR_CODE,HASARD_CODE,BAC_CODE};
+module.exports={ouvrir,charger,course,rejouer,shaJeu,shaProfil,TMAX_DEFAUT,JR_CODE,HASARD_CODE,BAC_CODE,MAIN_CODE};

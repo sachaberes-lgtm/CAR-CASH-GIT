@@ -1,5 +1,5 @@
 {
- "date": "2026-11-24T22:30:23.430Z",
+ "date": "2026-11-24T23:29:40.883Z",
  "graine": 910000,
  "tmax": 150,
  "regime": "max",
@@ -307,7 +307,7 @@
   "etat": {
    "ok": true,
    "photos": 110,
-   "ms_par_controle": 1504,
+   "ms_par_controle": 1690,
    "changes": {},
    "brouillons": {
     "V9J": 1,
@@ -328,10 +328,10 @@
    "sondes": 2420
   },
   "a": {
-   "ms_moy": 0.736,
-   "ms_max": 13.13,
-   "ms_sol_moy": 0.659,
-   "ms_vol_moy": 2.58,
+   "ms_moy": 0.567,
+   "ms_max": 13.092,
+   "ms_sol_moy": 0.503,
+   "ms_vol_moy": 2.106,
    "vues_sol": 1440,
    "vues_vol": 60,
    "pas_vol_moy": 923,
@@ -344,10 +344,10 @@
    "manque": []
   },
   "b": {
-   "ms_moy": 0.696,
-   "ms_max": 11.919,
-   "ms_sol_moy": 0.62,
-   "ms_vol_moy": 2.525,
+   "ms_moy": 0.527,
+   "ms_max": 10.329,
+   "ms_sol_moy": 0.474,
+   "ms_vol_moy": 1.782,
    "vues_sol": 1440,
    "vues_vol": 60,
    "pas_vol_moy": 923,
@@ -362,10 +362,10 @@
   "ok": true,
   "cartes": {
    "nuages": {
-    "ms_moy": 0.899,
-    "ms_max": 4.087,
-    "ms_sol_moy": 0.663,
-    "ms_vol_moy": 1.22,
+    "ms_moy": 0.868,
+    "ms_max": 3.855,
+    "ms_sol_moy": 0.67,
+    "ms_vol_moy": 1.137,
     "vues_sol": 98,
     "vues_vol": 72,
     "pas_vol_moy": 1076,
@@ -378,10 +378,10 @@
     "manque": []
    },
    "espace": {
-    "ms_moy": 0.915,
-    "ms_max": 5.929,
-    "ms_sol_moy": 0.594,
-    "ms_vol_moy": 1.199,
+    "ms_moy": 0.845,
+    "ms_max": 3.53,
+    "ms_sol_moy": 0.568,
+    "ms_vol_moy": 1.091,
     "vues_sol": 76,
     "vues_vol": 86,
     "pas_vol_moy": 1077,
@@ -394,10 +394,10 @@
     "manque": []
    },
    "grotte": {
-    "ms_moy": 1.878,
-    "ms_max": 21.047,
-    "ms_sol_moy": 0.806,
-    "ms_vol_moy": 3.351,
+    "ms_moy": 1.927,
+    "ms_max": 11.536,
+    "ms_sol_moy": 0.871,
+    "ms_vol_moy": 3.38,
     "vues_sol": 99,
     "vues_vol": 72,
     "pas_vol_moy": 988,
@@ -410,10 +410,10 @@
     "manque": []
    },
    "ville": {
-    "ms_moy": 1.217,
-    "ms_max": 4.247,
-    "ms_sol_moy": 0.688,
-    "ms_vol_moy": 2.059,
+    "ms_moy": 1.209,
+    "ms_max": 5.75,
+    "ms_sol_moy": 0.563,
+    "ms_vol_moy": 2.241,
     "vues_sol": 59,
     "vues_vol": 37,
     "pas_vol_moy": 720,
@@ -426,10 +426,10 @@
     "manque": []
    },
    "jade": {
-    "ms_moy": 2.683,
-    "ms_max": 10.623,
-    "ms_sol_moy": 1.068,
-    "ms_vol_moy": 4.521,
+    "ms_moy": 3.627,
+    "ms_max": 27.575,
+    "ms_sol_moy": 1.878,
+    "ms_vol_moy": 5.617,
     "vues_sol": 91,
     "vues_vol": 80,
     "pas_vol_moy": 988,
@@ -442,10 +442,10 @@
     "manque": []
    },
    "canyon": {
-    "ms_moy": 1.069,
-    "ms_max": 5.586,
-    "ms_sol_moy": 0.886,
-    "ms_vol_moy": 1.31,
+    "ms_moy": 1.147,
+    "ms_max": 5.517,
+    "ms_sol_moy": 0.904,
+    "ms_vol_moy": 1.465,
     "vues_sol": 97,
     "vues_vol": 74,
     "pas_vol_moy": 1158,
@@ -458,10 +458,10 @@
     "manque": []
    },
    "canyon+relief": {
-    "ms_moy": 2.959,
-    "ms_max": 22.112,
-    "ms_sol_moy": 1.135,
-    "ms_vol_moy": 14.019,
+    "ms_moy": 3.42,
+    "ms_max": 38.643,
+    "ms_sol_moy": 1.318,
+    "ms_vol_moy": 16.165,
     "vues_sol": 97,
     "vues_vol": 16,
     "pas_vol_moy": 625,
@@ -1175,6 +1175,188 @@
    "chocs": 1,
    "chocsNonPrevus": [],
    "chocsHorsHorizon": 0
+  }
+ },
+ "main": {
+  "neutre": {
+   "ok": true
+  },
+  "hasard": {
+   "ok": true,
+   "suite": [
+    0.7287770616821945,
+    0.7914068624377251,
+    0.6164035510737449
+   ]
+  },
+  "bornes": {
+   "ok": true,
+   "planchers": true,
+   "refus": [
+    [
+     "un champ inconnu",
+     "profil : champ inconnu « vitesse »"
+    ],
+    [
+     "un sous-champ inconnu",
+     "profil : champ inconnu « coups.cadence »"
+    ],
+    [
+     "un mauvais type",
+     "profil : reaction.volant doit etre une duree en ms (un nombre, ou [p10, p50, p90])"
+    ],
+    [
+     "un modele inconnu",
+     "profil : modele inconnu (machine, clavier, doigt)"
+    ],
+    [
+     "un profil qui n'est pas un objet (au chargement)",
+     "x.js : profil illisible (un objet de reglages : voir ml/bot/README.md, « Le profil »)"
+    ],
+    [
+     "un champ inconnu (au chargement)",
+     "x.js : profil : champ inconnu « turbo »"
+    ]
+   ]
+  },
+  "texte": {
+   "ok": true,
+   "trouve": []
+  },
+  "seule": {
+   "ok": true,
+   "coups": {
+    "coups": 105,
+    "parMinute": 105,
+    "braquage": 0.359,
+    "durees": 23,
+    "min": 4,
+    "max": 32,
+    "plusFrequente": 0.095
+   },
+   "mains": {
+    "appuis": 105,
+    "appuiLePlusCourt_images": 4,
+    "reposLePlusCourt_images": 5,
+    "appuisParSecondeMax": 4,
+    "problemes": [],
+    "ok": true
+   },
+   "repetable": true,
+   "autreGraineProfil": true,
+   "autreGraineCourse": true
+  },
+  "sansEffet": {
+   "ok": true,
+   "profil": true,
+   "chanceJouee": false,
+   "course": {
+    "empreinte": "a7b3171768ca",
+    "touches": "6195695442b6",
+    "images": 9000,
+    "vues": "a61fcf4ff530",
+    "cause": "temps"
+   }
+  },
+  "humaine": {
+   "repetable": true,
+   "mains": {
+    "appuis": 67,
+    "appuiLePlusCourt_images": 4,
+    "reposLePlusCourt_images": 4,
+    "appuisParSecondeMax": 3,
+    "problemes": [],
+    "ok": true
+   },
+   "rejeu": true,
+   "autreGraine": true,
+   "coups": {
+    "coups": 50,
+    "parMinute": 92.9,
+    "braquage": 0.509,
+    "durees": 31,
+    "min": 4,
+    "max": 55,
+    "plusFrequente": 0.12
+   },
+   "course": {
+    "empreinte": "4e22b6137cf4",
+    "touches": "6eaab501c616",
+    "images": 1938,
+    "cause": "vide",
+    "duree": 32.3,
+    "main": {
+     "sha": "beb383e90174",
+     "graine": 1,
+     "modele": "clavier"
+    }
+   },
+   "varie": true
+  },
+  "chance": {
+   "jamais": {
+    "ok": true,
+    "sans": {
+     "empreinte": "2b6e2fc56891",
+     "touches": "8498f1184939",
+     "images": 2394,
+     "cause": "pic"
+    },
+    "avec": {
+     "empreinte": "2b6e2fc56891",
+     "touches": "8498f1184939",
+     "images": 2394,
+     "cause": "pic"
+    }
+   },
+   "juge": true,
+   "toucher": true,
+   "reprise": true,
+   "palier": true,
+   "rejeu": true,
+   "course": {
+    "empreinte": "a8cc67029a0c",
+    "touches": "c4e3f8d2dd80",
+    "images": 5400,
+    "cause": "temps",
+    "duree": 82.1,
+    "chance": {
+     "voulue": true,
+     "ok": 2508,
+     "image": 2556,
+     "prise": true,
+     "reprise": 2867
+    },
+    "moteur": {
+     "mort": 3,
+     "reprise": 2,
+     "invulnerable": 2.97
+    },
+    "imagesMortes": 473
+   }
+  },
+  "drift": {
+   "ok": true,
+   "decisionsEnDrift": 5,
+   "fleche": 360,
+   "bas": 362,
+   "relacheBas": 390,
+   "relacheFleche": 390,
+   "basSeul": 0,
+   "vitesse": [
+    92.1,
+    91.9,
+    90.4,
+    89.2,
+    88,
+    86.7,
+    85.4,
+    87.7
+   ],
+   "sansProfil": {
+    "perdus": 5,
+    "bas": 0
+   }
   }
  },
  "ok": true

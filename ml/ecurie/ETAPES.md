@@ -10,7 +10,7 @@ Le plan d'ensemble est dans `PLAN.md`, l'étude dans `etude/`.
 | # | Étape | État |
 |---|---|---|
 | A | L'étude : ce qui donne des pièces, ce qui tue, les vrais joueurs mesurés | **faite** (commit `67ea1f009`) |
-| B | Les fondations : défauts corrigés, yeux v2, doigts v2 | **aux deux tiers** : les défauts sont corrigés et validés ; **les yeux v2 sont écrits et mesurés** (24/11, nuit) ; les doigts v2 et la relecture restent à faire |
+| B | Les fondations : défauts corrigés, yeux v2, doigts v2 | **il ne manque que la relecture** : les défauts sont corrigés et validés ; **les yeux v2** (24/11, nuit) et **les doigts v2** (nuit du 24 au 25/11) sont écrits, contrôlés et mesurés ; la relecture par trois agents reste à faire |
 | C | Le pilote d'élite, amélioré par tours | à faire |
 | C bis | La boucle automatique sur le crédit API (les 200 €), avec un plafond de dépense | **écrite** (`boucle.js`), **jamais essayée** (ni à blanc, ni pour de vrai) ; la clé est posée par Sacha |
 | D | Le facteur humain et les 30 niveaux | à faire |
@@ -19,7 +19,7 @@ Le plan d'ensemble est dans `PLAN.md`, l'étude dans `etude/`.
 
 ---
 
-## OÙ ON EN EST — à lire en premier (24/11/2026, 20 h 30, fin de la première session)
+## OÙ ON EN EST — à lire en premier (25/11/2026, 1 h, après les yeux v2 et les doigts v2)
 
 **Fait et validé dans git** (branche `bots-ecurie`) :
 - l'étude (`etude/`), le plan (`PLAN.md`), le juge `ml/bot/discerner.js`, le palier dans les mesures, le régime allégé du simulateur ;
@@ -59,9 +59,58 @@ Le plan d'ensemble est dans `PLAN.md`, l'étude dans `etude/`.
 - le coût : 0,74 ms par vue contre 0,39 sans le radar sur la course du contrôle 3 (bot de référence, 150 s) ; une vue en vol coûte 1 à 2 ms sans décor, mais
   **2 à 4,5 ms devant la ville, la grotte ou les pics de jade : la cible de 2,5 ms n'y est pas tenue** ; la vue pèse 2 360 caractères contre 1 640.
 
+**Fait depuis (nuit du 24 au 25/11) — les doigts v2** (`ml/bot/doigts.js`, `piloter.js`, décrits dans `ml/bot/README.md` § 3.1 à 3.8) :
+- **un `profil` par cerveau** (`module.exports = { nom, profil, decide }`), lu une fois au chargement, borné chez l'hôte (un champ inconnu refuse le
+  cerveau). Il règle la main : **temps de réaction** par canal, **suivi** de `ligne` / `viser` à chaque image, **volant par coups** de durées
+  tirées, **nitro hachée** au sol, **drift** (l'ordre `drift: ±1` : la flèche d'abord, ↓ ensuite), **seconde chance** (la main touche la plaque
+  CONTINUER comme un joueur : c'est le profil qui décide), cinq **erreurs** (appui manqué, réaction en retard, appui trop long, bruit, appui
+  parasite). Trois modèles de départ : `machine`, `clavier`, `doigt` ;
+- **le hasard de la main a une graine** (celle de la course + celle du profil), un flux par usage, un tirage par événement : même graine = même
+  course, et **le journal des touches suffit toujours au rejeu** — une lettre de plus, `C`, pour la plaque de la seconde chance (`rejouer`,
+  `ml/labo/labo.js` et la salle de projection la lisent) ;
+- **un cerveau sans profil conduit exactement comme avant** : `Doigts.P` est nul, les lignes d'avant s'exécutent. `Doigts.prototype.delais`
+  compte le temps de réaction (tiré d'avance : le radar lit le vrai) ;
+- **la seconde chance tourne dans `ml/reel` sans y toucher** (elle n'y avait jamais tourné) : la plaque paraît 114 images après la décision qui
+  voit la mort, la pub maison dure 5 s, la course reprend 311 images après le toucher, un palier plus bas (moteur 3 → 2, 165 → 85 pièces) ;
+- **contrôlé** (`node ml/bot/verifier.js`, sections 9 à 13 ajoutées) : `TOUT PASSE` en 11 min (32 processus neufs, 2 à la fois). L'empreinte de la
+  section 3 reste `a7b3171768ca` ; une main v2 sans effet rend cette course, ces touches et ces vues (contrôle 10) ; une main `clavier` est la même
+  dans deux processus, tient les limites d'une main, et le rejeu de son journal redonne sa course (contrôle 11) ; la seconde chance : un seul
+  toucher de la plaque, une reprise, un palier en moins, la course continue (5400 images contre 2394), le rejeu exact avec le même argent, et
+  une main v2 qui ne la prend pas meurt comme la main d'avant (contrôle 12) ; le drift : le jeu drifte, ↓ part deux images après la flèche et
+  n'est jamais tenu seul (contrôle 13). `node ml/labo/rejouer.js --tout --coeurs 2` : 4 rejeux exacts sur 4 ;
+- **mesuré** (`ml/bot/appuis.js`, `mesures.js` : `mainLot`, la même fonction pour les joueurs et les bots) : le cerveau d'essai `ml/bot/essai-main.js`
+  (la conduite du bot de référence sans ses gestes, profil `clavier`), 8 graines, version allégée, 120 s au plus
+  (`ml/bot/results/appuis-essai-main-allege-t120.json` ; les enregistrements, 2,8 Mo, ne sont pas dans git : ils se refont à l'identique) :
+
+  | | les joueurs au clavier (10 parties) | la main `clavier` (8 courses) |
+  |---|---|---|
+  | coups de volant par minute de sol | 111,3 | 84,7 |
+  | durée d'un coup : p10 · p50 · p90 | 0,1 · 0,2 · 0,4 s | 0,1 · 0,3 · 0,6 s |
+  | écart entre deux débuts : p10 · p50 · p90 (CV) | 0,2 · 0,5 · 0,9 s (0,57) | 0,3 · 0,6 · 1,3 s (0,64) |
+  | changements de sens par seconde de sol | 1,36 | 0,88 |
+  | nitro allumée | 60,4 % du temps, 35 allumages par minute | 13 %, 18 allumages par minute |
+  | tenue de nitro : p10 · p50 · p90 | 0,1 · 0,3 · 2,6 s | 0,1 · 0,3 · 1,0 s |
+
+  La seconde chance a été prise et réussie dans 7 de ces 8 courses (la 8e est morte 1,5 s avant la limite de temps).
+
+**Ce que les doigts v2 ne font pas, ou mal** (dit aussi dans le README, § 3.8) :
+- **la main `clavier` n'est pas encore celle des joueurs** : des coups un quart moins nombreux et plus longs, un tiers de changements de sens en
+  moins. Les valeurs de départ ne sont pas un réglage ; **les temps de réaction ne sont mesurés nulle part** chez les joueurs (l'étalon est à
+  10 échantillons par seconde) : ce sont des ordres de grandeur ;
+- **la nitro tenue 60 % du temps ne viendra pas de la main** : elle hache comme les joueurs (tenue médiane 0,3 s), mais c'est le cerveau qui
+  la demande, et celui de l'essai ne la demande que dans les droites (13 %) ;
+- **cette main coûte cher à un cerveau écrit pour l'ancienne** : les 8 courses de l'essai meurent une première fois en vol, après une sortie
+  par le bord, à 72 s en médiane (le bot de référence, main d'avant : 157 s) ; 159 pièces par minute contre 402. Le pilote de l'étape C devra
+  être écrit pour sa main ;
+- le juge `discerner.js` n'a pas été passé sur ces courses ; `node verifier.js --regime allege` n'a pas été lancé ;
+- la salle de projection lit la lettre `C`, mais **ce n'est pas essayé dans un navigateur** ; son mode « cerveau en direct » refuse un cerveau à profil ;
+- **les cinq erreurs ne sont exercées dans aucun contrôle ni aucune course** : essayées une fois, la main seule, sans le jeu. L'ordre `drift`
+  n'est contrôlé que sur un drift d'une demi-seconde en ligne droite (contrôle 13) : aucun pilote ne s'en sert, et sans profil il n'est pas lu
+  (le bilan le compte : `driftSansProfil`) ;
+- l'offre de seconde chance est jugée à la décision qui voit la mort : une partie morte entre 18 et 20 s, que le jeu aurait offerte 1,8 s plus
+  tard, n'est pas reprise.
+
 **Pas fait** :
-- **les doigts v2** (profil, appuis humains, seconde chance) : pas commencés. ⚠ Le radar lit les délais de la main (`Doigts.prototype.delais`,
-  `doigts.js`) : les doigts v2 devront tenir cette fonction à jour (temps de réaction compris), sinon la première vue d'un vol ment ;
 - **la relecture** des corrections par trois agents : pas faite. Les 4 défauts de documents (n° 4, 19, 20, 22) et le n° 7 (les raccourcis
   ne se comptent pas tout à fait comme le jeu) restent ouverts ;
 - **la boucle n'a jamais tourné**, même à blanc (l'essai a été interrompu) ;
@@ -74,8 +123,9 @@ répondaient « credit balance is too low ». Une session ouverte avant le `setx
 > Dans `C:\Users\sacha\code\CASH-CAR-bots-ecurie` (branche `bots-ecurie`), lis `ml/ecurie/ETAPES.md` (la section « Où on en est »),
 > `ml/ecurie/PLAN.md` et `ml/ecurie/etude/*.md`. Fais dans l'ordre, en validant dans git à la fin de chaque point et en mettant
 > `ETAPES.md` à jour : (1) `node ml/ecurie/essai-api.js` puis `node ml/ecurie/boucle.js --a-blanc --tours 1 --candidats 3 --depuis ml/bot/reference.js`,
-> et corrige ce qui casse ; (2) finis l'étape B : les doigts v2 (les yeux v2 sont faits), comme décrits à l'étape B, avec `node ml/bot/verifier.js`
-> qui passe et l'empreinte `a7b3171768ca` ; (3) écris le premier pilote `ml/ecurie/pilote.js` (étape C) ; (4) lance le calibrage de
+> et corrige ce qui casse ; (2) finis l'étape B : la relecture des yeux v2 et des doigts v2 par trois agents, et la reprise de ce qu'ils
+> confirment, avec `node ml/bot/verifier.js` qui passe et l'empreinte `a7b3171768ca` ; (3) écris le premier pilote `ml/ecurie/pilote.js`
+> (étape C) : un cerveau à profil, écrit POUR sa main (`ml/bot/README.md` § 3.1 à 3.8) ; (4) lance le calibrage de
 > l'étape C bis (10 €), puis la boucle par tranches de 20 €, sans dépasser 200 € au total. Jamais plus de 4 courses à la fois. Si la limite
 > d'usage du modèle bloque des agents, lance-les avec un autre modèle. Ne me pose pas de question.
 
@@ -101,16 +151,19 @@ node discerner.js ..\labo\trajectoires           # le bot de référence : recon
    façons de piloter ; au sol, « et si je sortais par le bord ? », les couloirs et plafonds devant, la vitesse sûre d'un virage, la ligne
    parfaite, l'aimant, le palier.
 3. **Les doigts v2** (`ml/bot/doigts.js`, `piloter.js`) : un `profil` par cerveau — appuis irréguliers à graine, temps de réaction,
-   volant recalculé à chaque image, drift, seconde chance.
+   volant recalculé à chaque image, drift, seconde chance, taux d'erreur. **Écrits, contrôlés et mesurés** (nuit du 24 au 25/11) ; ce qui
+   reste à régler est dit plus haut.
 4. Une relecture par trois agents, et la reprise de ce qu'ils confirment.
 
 **Vérifier quand c'est fini.**
 ```
 cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\bot
-node verifier.js                 # TOUT PASSE, et l'empreinte de la section 3 reste a7b3171768ca (un cerveau sans profil conduit comme avant)
+node verifier.js                 # TOUT PASSE (11 min), et l'empreinte de la section 3 reste a7b3171768ca (un cerveau sans profil conduit comme avant)
+node noter.js essai-main.js --regime allege --coeurs 2 --tmax 120 --graines 8 --parties --sortie results\note-essai-main-allege-t120-parties.json   # 4 min
+node appuis.js results\note-essai-main-allege-t120-parties.json --nom essai-main-allege-t120   # la main du bot contre celle des joueurs
 node justesse.js                 # le radar : prévu / arrivé, par map (5 min) ; --pas : les places image par image
 cd ..\labo
-node rejouer.js --tout           # 4 rejeu(x) exact(s) sur 4
+node rejouer.js --tout --coeurs 2   # 4 rejeu(x) exact(s) sur 4
 ```
 Et lire `ml/bot/README.md` §2 (la vue) et §3 (les gestes, le profil) : tout ce qui est neuf doit y être décrit.
 

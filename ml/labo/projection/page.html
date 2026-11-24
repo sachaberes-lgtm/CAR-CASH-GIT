@@ -44,9 +44,13 @@ async function projette(){
   if(RECALE){dit('la course est d\'abord rejouée sans écran (pour recaler le hasard) : 1 à 2 minutes la première fois…');
     const r=await fetch('/__hasard?f='+nom);if(r.ok)HAS0=await r.json();if(!HAS0||!HAS0.images){dit('la course sans écran n\'a pas pu être rejouée');E.erreur='hasard';return;}}
   for(const f of ['reel/jeu-reel.js','bot/yeux.js','bot/doigts.js','bot/mesures.js','bot/piloter.js'])await script('/__cjs?f='+f);
-  const {creer}=requis('x.js')('reel/jeu-reel'),Y=requis('x.js')('bot/yeux'),{Doigts,HUMAIN,TOUCHE}=requis('x.js')('bot/doigts'),{JR_CODE,HASARD_CODE}=requis('x.js')('bot/piloter');
+  const {creer}=requis('x.js')('reel/jeu-reel'),Y=requis('x.js')('bot/yeux'),{Doigts,HUMAIN,TOUCHE,normaliserProfil,REPRISE}=requis('x.js')('bot/doigts'),{JR_CODE,HASARD_CODE}=requis('x.js')('bot/piloter');
   let cerveau=null;
-  if(mode==='cerveau'){await script('/__cjs?f=labo:'+R.cerveau.code);cerveau=requis('x.js')('labo:'+R.cerveau.code);}
+  if(mode==='cerveau'){await script('/__cjs?f=labo:'+R.cerveau.code);cerveau=requis('x.js')('labo:'+R.cerveau.code);
+    /* (2026-11-24, doigts v2) UN CERVEAU A PROFIL ne se projette pas « en direct » : cette page ne connait ni la porte de lecture de la main ni sa
+       seconde chance (ml/bot/piloter.js, course) — la course projetee ne serait pas celle du journal. Ses TOUCHES, elles, se projettent (sans &mode=cerveau). */
+    let prof=null,illisible=false;try{prof=normaliserProfil(cerveau.profil);}catch(e){illisible=true;}
+    if(prof||illisible){dit('ce cerveau a un profil (sa main a ses réglages) : le mode « cerveau » ne sait pas encore le jouer — projeter ses touches (sans &mode=cerveau)');E.erreur='profil';return;}}
   const cadre=$('jeu');
   /* LE MEME REGIME QUE LE SIMULATEUR : `&poste=3`. Au chargement, le jeu juge la machine (rendu/soleil-planete.js, POSTE) : une puce graphique
      integree → version ALLEGEE, ou Crypto City est HORS DU TIRAGE (SF_HORS). Le simulateur n'a pas de carte graphique a juger : il tourne au
@@ -85,22 +89,33 @@ async function projette(){
   /* (&espion=<nom>) UN ESPION : le code de tampon/<nom>.js est evalue dans le jeu, apres le depart (pour chercher ce qui differe du simulateur :
      le meme fichier se donne au rejeu sans ecran). Il range ce qu'il voit dans window.__ESP ; window.__IMG = l'image en cours. */
   if(Q.get('espion')){const c=await (await fetch('/labo/tampon/'+Q.get('espion').replace(/[^a-z0-9-]/gi,'')+'.js')).text();J.ev(c);}
-  const JR=w.__JR,T=(function(s){const A=[];let d=0;for(const m of String(s).matchAll(/(\d+)([GDHBNgdhbn])/g)){d+=+m[1];A.push([d,m[2].toUpperCase(),m[2]===m[2].toUpperCase()?1:0]);}return A;})(R.touches);
+  /* (2026-11-24, doigts v2) la lettre C du journal : la seconde chance (ml/labo/labo.js, decoderTouches ; ml/bot/piloter.js, rejouer) */
+  const JR=w.__JR,T=(function(s){const A=[];let d=0;for(const m of String(s).matchAll(/(\d+)([GDHBNCgdhbnc])/g)){d+=+m[1];A.push([d,m[2].toUpperCase(),m[2]===m[2].toUpperCase()?1:0]);}return A;})(R.touches);
   const D=mode==='cerveau'?new Doigts(J,()=>Y.modeDe(J)):null,mem={},serie=[],NMAX=Math.min(+Q.get('images')||1e9,Math.round((R.tmax||180)*60)); /* comme l'originale : la mort (vue par les yeux) ou tmax arretent la course, pas un nombre d'images */
-  let fr=0,k=0,vue=null,fini=false,apres=film?90:0;
+  let fr=0,k=0,vue=null,fini=false,apres=film?90:0,RC=null; /* RC (doigts v2) : l'attente de la plaque CONTINUER, puis de la reprise — le miroir de rejouer() */
   /* UNE IMAGE DU JEU : la meme boucle que piloter.js (rejouer / course) — regarder, remettre les touches, avancer d'un soixantieme */
   function pas(){
     if(fini){if(apres>0){apres--;J.image();return true;}return false;}
+    if(RC&&RC.etat==='pub'&&Y.modeDe(J)!=='boom'){J.ev('__JR.debut()');RC=null;}   /* la course a repris apres la pub : un nouveau morceau d'enregistrement */
     if(poseEtat&&fr<HAS0.images.length){poseEtat(HAS0.images[fr]);       /* le hasard repart d'ou il en etait, a cette image, dans la course sans ecran */
       const a=HAS0.appels[fr]||[],P={};for(let j=0;j<a.length;j+=2){const i=trad[a[j]];if(i>=0)(P[i]=P[i]||[]).push(a[j+1]);}HAS.pos=P;HAS.prof=0;}
     else if(HAS)HAS.pos=null;
     w.__IMG=fr;
     if(fr%HUMAIN.decision===0){
       vue=Y.voir(J);serie.push([fr,vue.mode,vue.s||0,vue.lat||0,vue.vitesse||0,vue.nitro,vue.argent]);if(DIAG)cumul.push(w.__TIR.total());
-      if(vue.fini){fini=true;return apres>0;}
-      if(D){vue.image=fr;vue.t=+(fr/60).toFixed(2);let o=null;try{o=cerveau.decide(vue,mem);}catch(e){}D.ordre(o&&typeof o==='object'?o:{},vue);}
+      if(vue.fini){
+        /* (doigts v2) une mort suivie d'une entree C au journal : la course d'origine a attendu la plaque — on continue, comme rejouer() */
+        let suite=false;
+        if(!D){if(!RC){if(T.slice(k).some(t=>t[1]==='C')){J.ev('__JR.fin()');RC={etat:'attend',image:-1};suite=true;}}
+          else suite=!(RC.etat==='abandon'||(RC.etat==='pub'&&fr-RC.image>REPRISE.REPRISE_MAX));}
+        if(!suite){fini=true;return apres>0;}
+      }
+      else if(D){vue.image=fr;vue.t=+(fr/60).toFixed(2);let o=null;try{o=cerveau.decide(vue,mem);}catch(e){}D.ordre(o&&typeof o==='object'?o:{},vue);}
     }
-    if(D)D.image();else while(k<T.length&&T[k][0]<=fr){if(T[k][0]===fr)J.touche(TOUCHE[T[k][1]],!!T[k][2]);k++;}
+    if(D)D.image();else while(k<T.length&&T[k][0]<=fr){if(T[k][0]===fr){const t=T[k];
+        if(t[1]==='C'){if(t[2]){J.ev('chanceJoue()');if(RC){RC.etat='pub';RC.image=fr;}}else if(RC){RC.etat='abandon';RC.image=fr;}}
+        else J.touche(TOUCHE[t[1]],!!t[2]);}
+      k++;}
     J.image();JR.image();
     if(poseEtat&&fr+1<HAS0.images.length){const vu=poseEtat(),du=HAS0.images[fr+1];
       if(vu!==du){ecartsHasard.images++;if(ecartsHasard.premieres.length<12)ecartsHasard.premieres.push({image:fr,seconde:+(fr/60).toFixed(2),sansEcran:tirages(HAS0.images[fr],du),avecImage:tirages(HAS0.images[fr],vu)});}}

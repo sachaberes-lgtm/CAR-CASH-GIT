@@ -116,6 +116,10 @@ dans `generations.jsonl`. Aucune « note unique » n'est inventée ici.
 
 Un rejeu, c'est : la graine, la map si elle est imposée, la version du jeu, et les touches (`12N5n…` : le nombre d'images depuis le
 changement d'avant, puis la touche — MAJUSCULE enfoncée, minuscule relâchée ; `G D H B N` = ← → ↑ ↓ ESPACE). Pas le cerveau.
+Depuis les doigts v2 (24/11), une lettre de plus : `C` = la plaque CONTINUER de la **seconde chance** touchée et acceptée (le rejeu appelle
+alors la fonction de la plaque, attend la pub et la reprise comme la course d'origine), `c` = l'attente de la plaque abandonnée. Ni le
+profil de la main ni son hasard ne servent au rejeu : le journal suffit. La salle de projection rejoue ces touches (non essayé dans un
+navigateur à ce jour) ; son mode « cerveau en direct » refuse un cerveau à profil.
 
 `node rejouer.js <course>` remet ces touches dans le jeu sans écran, dans un processus neuf, et compare : même empreinte, même nombre
 d'images, même fin, même argent → **EXACT**.

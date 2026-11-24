@@ -40,13 +40,116 @@ function traduire(o,vue){
   return o;
 }
 
-function Doigts(J,lireMode){
+/* ===== LES DOIGTS V2 : UNE MAIN PAR CERVEAU (2026-11-24, Sacha : « des bots du palier 1 au palier 30 qu'on ne distingue pas de vrais joueurs ») =====
+   Un cerveau peut poser un `profil` a cote de `decide` (module.exports={nom, profil, decide}) : il regle SA main. Sans profil, ou avec un profil
+   dont tout est au defaut, RIEN ne change : `Doigts.P` vaut null, `ordre()` et `image()` executent les lignes d'avant, sans un tirage ni une lecture
+   de plus (verifier.js : l'empreinte a7b3171768ca). Tout le neuf est dans `ordreV2` / `imageV2` :
+     · LE TEMPS DE REACTION : un ordre qui CHANGE n'atteint la main qu'apres un delai tire (volant, manche et drift, nitro, geste) ;
+     · LE SUIVI : avec `ligne` (au sol) ou `viser` (en vol), le volant est recalcule a CHAQUE image sur l'etat du jeu, pas 10 fois par seconde ;
+     · LES COUPS : le volant par appuis de durees irregulieres (les durees mesurees sur les joueurs), au lieu du battement regulier d'avant ;
+     · LA NITRO HACHEE au sol (tenues et pauses tirees) ;
+     · LE DRIFT, un ordre a part (`drift:+1|-1`) : la fleche d'abord, ↓ ensuite, les deux laches ensemble ;
+     · LA SECONDE CHANCE : la main touche la plaque CONTINUER comme un joueur (c'est le profil qui decide, pas `decide`) ;
+     · LES ERREURS : appui manque, reaction en retard, appui trop long, bruit, appui parasite.
+   Les limites d'une main (HUMAIN) restent tenues par `veut` : un profil peut ralentir la main, jamais l'accelerer.
+   MEME GRAINE = MEME COURSE : le hasard de la main sort d'un generateur a graine (la graine de la course + celle du profil), un flux par usage,
+   un tirage par EVENEMENT (un ordre qui change, un appui, une mort), jamais par image. Aucune horloge, aucun hasard de l'hote, aucune fonction
+   transcendante : les durees sortent de tables de quantiles [p10, p50, p90] lues en ligne droite (+ − × ÷). Le journal des touches suffit au rejeu. */
+/* LE HASARD A GRAINE : le generateur du jeu (ml/reel/sim-env-reel.js) et du temoin de discerner.js ; graineDe = un texte → une graine */
+function hasard(a){a|=0;return function(){a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function graineDe(txt){let h=0x811c9dc5;for(let i=0;i<txt.length;i++){h^=txt.charCodeAt(i);h=Math.imul(h,0x01000193);}return h|0;}
+/* une loi = 5 points [mini, p10, p50, p90, maxi] ; u dans [0,1[ → la valeur, en ligne droite entre deux points */
+const QX=[0,.1,.5,.9,1],EXPO=[0,.105,.693,2.303,4.6]; /* EXPO : les quantiles d'une loi exponentielle de moyenne 1 (l'ecart entre deux appuis parasites) */
+function quantile(q,u){for(let k=1;k<5;k++)if(u<=QX[k])return q[k-1]+(q[k]-q[k-1])*(u-QX[k-1])/(QX[k]-QX[k-1]);return q[4];}
+function tirer(q,u){return Math.round(quantile(q,u));}
+const FLUX=['reaction','volant','nitro','geste','erreur','chance'];
+const PI=3.141592653589793;
+const angle=a=>{if(!(a-a===0))return 0;while(a>PI)a-=2*PI;while(a<-PI)a+=2*PI;return a;};
+
+/* ===== LE PROFIL (2026-11-24, doigts v2) =====
+   Les durees s'ecrivent en MILLISECONDES : un nombre seul (une constante) ou [p10, p50, p90] ; elles deviennent des images (ms × 0,06, arrondi).
+   Chaque champ a son defaut (= la main d'avant) et ses bornes : une valeur hors bornes y est RAMENEE, un champ inconnu ou d'un mauvais type
+   LEVE une erreur (le cerveau est refuse au chargement). `modele` donne le point de depart, les champs ecrits l'ecrasent.
+   Les plages mesurees viennent de ml/ecurie/etude/humains.md (14 parties, 2 joueurs) ; le temps de reaction n'y est PAS mesure (l'etalon est
+   a 10 echantillons par seconde) : les valeurs de `clavier` sont des ordres de grandeur, a regler par le juge (etapes D et E). */
+const IMG=.06;
+const DEFAUT={
+  reaction:{volant:0,nitro:0,manche:0,geste:0},
+  suivi:{actif:false,retard:0},
+  coups:{actif:false,duree:[100,200,400],repos:[70,110,200],seuil:.5,plein:.92,mort:.08,contre:.5},
+  nitro:{tenue:null,pause:[130,220,500]},
+  geste:{tap:83,entre:83},
+  drift:{avance:33},
+  chance:{prend:0,palierMin:1,delai:[900,1500,3000]},
+  erreur:{manque:0,retard:0,retardK:2.5,sur:0,surK:[1.5,2.5],bruit:0,parasite:0}};
+/* d : une duree · d? : une duree ou null · ms : un delai fixe · n : un nombre · e : un entier · b : vrai ou faux · nn : [mini, maxi] */
+const REGLES={
+  reaction:{volant:['d',0,1000],nitro:['d',0,1000],manche:['d',0,1000],geste:['d',0,1000]},
+  suivi:{actif:['b'],retard:['ms',0,500]},
+  coups:{actif:['b'],duree:['d',67,1500],repos:['d',67,1000],seuil:['n',.2,1.5],plein:['n',.5,1],mort:['n',0,.4],contre:['n',.1,1]},
+  nitro:{tenue:['d?',100,30000],pause:['d',67,2000]},
+  geste:{tap:['d',67,233],entre:['d',67,167]},
+  drift:{avance:['ms',33,200]},
+  chance:{prend:['n',0,1],palierMin:['e',1,30],delai:['d',600,4500]},
+  erreur:{manque:['n',0,.5],retard:['n',0,.5],retardK:['n',1,5],sur:['n',0,.5],surK:['nn',1,3],bruit:['n',0,.5],parasite:['n',0,20]}};
+/* LES MODELES. machine : la main d'avant. clavier : Sacha (volant par coups de 0,1 a 0,4 s, 111 par minute ; nitro tapotee, tenue mediane 0,35 a
+   0,4 s — mesuree sur la flamme, pas sur la touche : une jauge vide tenue la fait battre toute seule, ne pas s'y fier au plus juste).
+   doigt : PROVISOIRE (4 parties de Leo : coups de 0,2 s, 0,9 s au plus). */
+const MAIN_CLAVIER={reaction:{volant:[120,200,320],nitro:[110,180,300],manche:[150,240,380],geste:[180,260,420]},suivi:{actif:true,retard:100},
+  coups:{actif:true,duree:[100,200,400],repos:[70,110,200]},nitro:{tenue:[100,400,3000],pause:[130,220,500]}};
+const MODELES={machine:{},clavier:MAIN_CLAVIER,doigt:Object.assign({},MAIN_CLAVIER,{coups:{actif:true,duree:[100,200,350],repos:[70,110,200]}})};
+function regle(R,v,nom){
+  const t=R[0],lo=R[1],hi=R[2],nb=x=>typeof x==='number'&&x===x;
+  if(t==='b'){if(typeof v!=='boolean')throw new Error('profil : '+nom+' doit valoir true ou false');return v;}
+  if(t==='d'||t==='d?'){
+    if(v===null&&t==='d?')return null;
+    let a;
+    if(nb(v))a=[v,v,v,v,v];
+    else if(Array.isArray(v)&&v.length===3&&v.every(nb))a=[v[0]-(v[1]-v[0])/2,v[0],v[1],v[2],v[2]+(v[2]-v[1])];
+    else throw new Error('profil : '+nom+' doit etre une duree en ms (un nombre, ou [p10, p50, p90])');
+    return a.map(x=>Math.round(cl(x,lo,hi)*IMG)).sort((x,y)=>x-y);}
+  if(t==='nn'){if(!Array.isArray(v)||v.length!==2||!v.every(nb))throw new Error('profil : '+nom+' doit etre [mini, maxi]');return v.map(x=>cl(x,lo,hi)).sort((x,y)=>x-y);}
+  if(!nb(v))throw new Error('profil : '+nom+' doit etre un nombre');
+  if(t==='ms')return Math.round(cl(v,lo,hi)*IMG);
+  if(t==='e')return Math.round(cl(v,lo,hi));
+  return cl(v,lo,hi);
+}
+/* le profil ecrit par le cerveau → le profil de la main (des images, des lois a 5 points), ou null s'il ne change rien a la main d'avant */
+function normaliserProfil(p){
+  if(p==null)return null;
+  if(typeof p!=='object'||Array.isArray(p))throw new Error('profil : un objet { modele, graine, reaction, suivi, coups, nitro, geste, drift, chance, erreur }');
+  const a=(o,k)=>Object.prototype.hasOwnProperty.call(o,k),mod=p.modele==null?'machine':p.modele;
+  if(typeof mod!=='string'||!a(MODELES,mod))throw new Error('profil : modele inconnu (machine, clavier, doigt)');
+  for(const k of Object.keys(p))if(k!=='modele'&&k!=='graine'&&!a(REGLES,k))throw new Error('profil : champ inconnu « '+k+' »');
+  const g=p.graine==null?0:p.graine;if(typeof g!=='number'||g!==g)throw new Error('profil : graine doit etre un entier');
+  const P={modele:mod,graine:g|0},M=MODELES[mod];
+  for(const s of Object.keys(REGLES)){
+    const donne=p[s];
+    if(donne!=null&&(typeof donne!=='object'||Array.isArray(donne)))throw new Error('profil : '+s+' doit etre un objet');
+    if(donne)for(const k of Object.keys(donne))if(!a(REGLES[s],k))throw new Error('profil : champ inconnu « '+s+'.'+k+' »');
+    P[s]={};
+    for(const k of Object.keys(REGLES[s]))P[s][k]=regle(REGLES[s][k],donne&&donne[k]!==undefined?donne[k]:(M[s]&&M[s][k]!==undefined?M[s][k]:DEFAUT[s][k]),s+'.'+k);}
+  const nul=q=>q[4]===0,fixe=(q,n)=>q[0]===n&&q[4]===n,R=P.reaction,E=P.erreur;
+  if(nul(R.volant)&&nul(R.nitro)&&nul(R.manche)&&nul(R.geste)&&!P.suivi.actif&&!P.coups.actif&&P.nitro.tenue===null&&fixe(P.geste.tap,HUMAIN.tap)&&fixe(P.geste.entre,HUMAIN.entre)
+    &&P.drift.avance===2&&P.chance.prend===0&&E.manque===0&&E.retard===0&&E.sur===0&&E.bruit===0&&E.parasite===0)return null; /* tout est au defaut : la main d'avant */
+  return P;
+}
+/* LA SECONDE CHANCE, en images : ce que la plaque du jeu impose (moteur/mobile-tactile.js : sourde 600 ms apres l'ecran de mort ; gameplay/seconde-chance.js :
+   une fenetre de 5,5 s), et ce que la main s'accorde (attendre la plaque 5 s au plus, la reprise 20 s au plus apres le toucher). */
+const REPRISE={GARDE:36,FENETRE:330,ATTENTE:300,REPRISE_MAX:1200};
+/* l'offre aura-t-elle lieu ? Les conditions de chanceOuvre (gameplay/seconde-chance.js), LUES a la decision qui voit la mort. Rien n'est ecrit. */
+const OFFRE_CODE="!!(CHANCE.on&&!CHANCE.used&&mode==='boom'&&!SANDBOX&&!TUTO.on&&!TUTO.quitte&&!PARK.on&&!SURV.on&&!BALADE&&(RUNX.t||0)>=CHANCE.tMin&&!((SAVE.d.chanceG|0)>0))";
+
+function Doigts(J,lireMode,o){
   const D=this;
   D.J=J;D.lireMode=lireMode||null;D.image0=0;D.i=0;D.touches=[];D.refus=0;
   D.k={};for(const n in TOUCHE)D.k[n]={bas:false,depuis:-999,debut:-999,duree:999};
   D.o={volant:0,manche:0,nitro:false};
   D.pwm={cote:null,on:false,n:0};
   D.geste=null;D.dernierGeste=-999;D.nBloque=-999;
+  /* (doigts v2) o = { profil (deja passe par normaliserProfil), graine (celle de la course) }. Sans profil : la main d'avant, ligne pour ligne. */
+  D.P=(o&&o.profil)||null;D.fin=null;
+  if(D.P)D.monte(o.graine);
 }
 /* une touche change MAINTENANT (et s'ecrit au journal) */
 Doigts.prototype.pose=function(n,on){const k=this.k[n];on=!!on;if(k.bas===on)return;
@@ -59,7 +162,8 @@ Doigts.prototype.veut=function(n,on){const k=this.k[n];on=!!on;if(k.bas===on)ret
   this.pose(n,on);return true;};
 Doigts.prototype.occupe=function(){return !!this.geste;};
 /* le cerveau donne son ordre (une fois par decision). Rend false si le geste demande est refuse (un autre en cours, ou trop tot). */
-Doigts.prototype.ordre=function(o,vue){
+Doigts.prototype.ordre=function(o,vue,e){
+  if(this.P)return this.ordreV2(o,vue,e); /* (doigts v2) une main a profil : l'ordre passe par ses delais ; e = l'etat lu par piloter.js (MAIN_CODE) */
   o=traduire(o,vue);this.o=o;
   if(!o.geste)return true;
   if(this.geste||this.i-this.dernierGeste<HUMAIN.gestes){this.refus++;return false;}
@@ -81,7 +185,7 @@ Doigts.prototype.volant=function(v){
   else if(P.n>=off&&this.veut(cote,1)){P.on=true;P.n=0;}};
 /* UN GESTE, image par image. Pendant un geste, la NITRO et les directions qu'il tient lui appartiennent. */
 Doigts.prototype.joueGeste=function(){
-  const g=this.geste,H=HUMAIN,dr=g.dir?DIR[g.dir]:null;
+  const g=this.geste,H=HUMAIN,dr=g.dir?DIR[g.dir]:null,t1=g.t1||H.tap,en=g.en||H.entre,t2=g.t2||H.tap; /* (doigts v2) les durees du double appui : celles du geste (tirees du profil), sinon HUMAIN */
   /* LA MISE EN PLACE : la NITRO relachee, la direction posee — chaque touche a son rythme (jamais un appui plus court que HUMAIN.appui).
      Le geste ne part que la main en place : 4 images au plus. */
   if(g.t===0){
@@ -92,10 +196,10 @@ Doigts.prototype.joueGeste=function(){
   const t=(g.t++)-1;
   if(g.nom==='redresser'){ /* un appui bref, seul : la caisse se remet face a la route */
     if(t===H.repos)this.pose('N',1);
-    if(t===H.repos+H.tap){this.pose('N',0);this.nBloque=this.i+H.seul;this.geste=null;}
+    if(t===H.repos+t1){this.pose('N',0);this.nBloque=this.i+H.seul;this.geste=null;}
     return {N:1};}
   /* figure / saut : la direction, puis deux appuis brefs sur NITRO */
-  const a=H.repos,b=a+H.tap,c=b+H.entre,d=c+H.tap;
+  const a=H.repos,b=a+t1,c=b+en,d=c+t2;
   if(t===a)this.pose('N',1);
   if(t===b)this.pose('N',0);
   if(t===c)this.pose('N',1);            /* le 2e appui : le jeu lit la direction a l'image suivante */
@@ -111,7 +215,8 @@ Doigts.prototype.joueGeste=function(){
     if(m==='vol'||m==='boom'||(m==='sol'&&t>e+8)||t>e+40){this.pose('N',0);this.pose('B',0);this.nBloque=this.i+H.repos;this.geste=null;return {};}}
   return {N:1,G:1,D:1,B:1,H:1};};
 /* a appeler AVANT chaque image du jeu */
-Doigts.prototype.image=function(){
+Doigts.prototype.image=function(e){
+  if(this.P)return this.imageV2(e); /* (doigts v2) une main a profil */
   const o=this.o,pris=this.geste?this.joueGeste():{};
   if(!pris.G&&!pris.D)this.volant(o.volant);
   if(!pris.B&&!pris.H){this.veut('H',o.manche<0);this.veut('B',o.manche>0);}
@@ -125,15 +230,209 @@ Doigts.prototype.lache=function(){for(const n in TOUCHE)if(this.k[n].bas)this.po
    delai (yeux.js, LE PRELUDE) : sans cela le radar suppose l'ordre obei a l'image suivante, ce qu'aucune main ne fait. */
 Doigts.prototype.delais=function(){
   const H=HUMAIN,o={};let g=0;
-  if(this.geste){const G9=this.geste,t=G9.t-1,a=H.repos,d=a+H.tap+H.entre+H.tap;
+  if(this.geste){const G9=this.geste,t=G9.t-1,a=H.repos,t1=G9.t1||H.tap,d=a+t1+(G9.en||H.entre)+(G9.t2||H.tap); /* (doigts v2) les durees de CE geste */
     g=G9.t===0?H.repos:0;
-    if(G9.nom==='redresser')g+=Math.max(0,a+H.tap-t)+1;
+    if(G9.nom==='redresser')g+=Math.max(0,a+t1-t)+1;
     else if(G9.nom==='figure')g+=Math.max(0,d-t)+1;
     else g+=Math.max(0,d+H.repos+H.appui+1-t);}
   for(const n in TOUCHE){const k=this.k[n];let r=Math.max(0,(k.bas?H.appui:H.repos)-(this.i-k.depuis));
     if(n==='N'&&!k.bas){r=Math.max(r,this.nBloque-this.i);if(k.duree<18)r=Math.max(r,H.seul-(this.i-k.debut));}
     o[n]=Math.max(0,r,g);}
   if(g>0&&this.geste.nom==='saut')o.N=Math.max(o.N,g+H.repos); /* le saut bloque la NITRO 4 images de plus apres l'avoir lachee */
+  /* (2026-11-24, doigts v2) LE TEMPS DE REACTION compte aussi : un ordre NEUF n'atteint sa touche qu'apres la reaction de son canal (deja tiree :
+     `rp`) et jamais avant les ordres deja en route (`dernier`). Sans profil, ou reactions nulles : rien ne s'ajoute. Ce que le radar ne sait
+     toujours pas : les ordres deja en route changeront les touches avant le sien, et une main a coups ou a suivi ne tient pas une touche fixe. */
+  if(this.P){const L=this.L,i=this.i,att=c=>Math.max(L[c].dernier,i+L[c].rp)-i,v=att('volant'),m=att('manche'),n=att('nitro');
+    o.G=Math.max(o.G,v);o.D=Math.max(o.D,v);o.H=Math.max(o.H,m);o.B=Math.max(o.B,m);o.N=Math.max(o.N,n);}
   return o;};
 
-module.exports={Doigts,HUMAIN,TOUCHE,traduire};
+/* ===== LA MAIN A PROFIL (2026-11-24, doigts v2) ===== */
+/* le montage : un generateur par usage (ajouter un tirage dans un flux ne decale pas les autres), les lignes a retard, les compteurs */
+Doigts.prototype.monte=function(graine){
+  const P=this.P;this.H={};
+  for(const f of FLUX)this.H[f]=hasard(graineDe('doigts-v2|'+(graine|0)+'|'+P.graine+'|'+f));
+  this.err={manques:0,retards:0,surs:0,parasites:0};this.gestesRates=0;this.imagesMortes=0;
+  this.chance={voulue:false,ok:-1,image:-1,prise:false,reprise:-1};
+  this.detteMax=2*P.coups.duree[3];
+  this.e=null;this.anneau=[];for(let j=0;j<32;j++)this.anneau.push({img:-1,mode:'boom',lat:0,cap:0,vitesse:0,lacetRoute:0,lacetMax:1,capVol:0});
+  /* une ligne a retard par canal : file (les ordres en route, {a : l'image d'arrivee, v}), v (l'ordre arrive), ref (le dernier ordre qui a
+     compte comme un changement), dernier (l'arrivee du dernier ordre parti), rp (la prochaine reaction, tiree D'AVANCE : le radar la lit) */
+  this.L={};for(const c of ['volant','manche','nitro','geste']){this.L[c]={file:[],v:null,ref:null,dernier:0,rp:0,rr:false};this.reac(c);}
+  this.neuf();};
+/* la main repart de zero (au depart, et apres une seconde chance) : plus aucun ordre en route, les modulateurs a neuf */
+Doigts.prototype.neuf=function(){
+  const L=this.L,i=this.i;
+  L.volant.file=[];L.volant.v=L.volant.ref={k:'volant',x:0};L.volant.dernier=i;
+  L.manche.file=[];L.manche.v=L.manche.ref={m:0,drift:0};L.manche.dernier=i;
+  L.nitro.file=[];L.nitro.v=L.nitro.ref=false;L.nitro.dernier=i;
+  this.gf=null;this.geste=null;this.pwm={cote:null,on:false,n:0};
+  this.M={dette:0,fin:-1,repos:i,prochain:null,gain:1,para:-1}; /* le volant par coups */
+  this.NH={fin:-1,pause:i,pour:-1};                             /* la nitro hachee */
+  this.drB=false;this.drCote=0;};                               /* ↓ tenu par un drift, et son cote */
+/* un tirage dans le flux f, selon la loi q. Une loi constante ne tire RIEN : un profil sans alea ne consomme aucun nombre. */
+Doigts.prototype.tire=function(f,q){return q[0]===q[4]?q[0]:tirer(q,this.H[f]());};
+/* la prochaine reaction du canal c, tiree d'avance (une par changement d'ordre) ; erreur.retard : cette reaction-la est multipliee par retardK */
+Doigts.prototype.reac=function(c){
+  const P=this.P,L=this.L[c];let r=this.tire('reaction',P.reaction[c]);L.rr=false;
+  if(P.erreur.retard>0&&r>0&&this.H.erreur()<P.erreur.retard){r=Math.min(60,Math.round(r*P.erreur.retardK));L.rr=true;}
+  L.rp=r;};
+/* un ordre part vers la main : s'il CHANGE, il attend une reaction ; il n'en double jamais un autre */
+Doigts.prototype.retarde=function(c,v,change){
+  const L=this.L[c];let r=0;
+  if(change){r=L.rp;if(L.rr)this.err.retards++;L.ref=v;this.reac(c);}
+  const a=Math.max(L.dernier,this.i+r);L.file.push({a:a,v:v});L.dernier=a;};
+/* la direction a-t-elle change pour de bon ? (une autre aide, une ligne a plus de 3 m, un cap a plus de 0,15 rad, un volant qui change de sens ou de plus de 0,3) */
+function changeDir(a,b,mort){
+  if(a.k!==b.k)return true;
+  if(b.k==='ligne')return Math.abs(b.x-a.x)>3;
+  if(b.k==='viser')return Math.abs(angle(b.x-a.x))>.15;
+  const sg=x=>x>mort?1:x<-mort?-1:0;return sg(a.x)!==sg(b.x)||Math.abs(b.x-a.x)>.3;}
+/* L'ORDRE DU CERVEAU (une fois par decision) : il est traduit comme avant, puis part dans les lignes a retard */
+Doigts.prototype.ordreV2=function(o,vue,e){
+  const P=this.P,t=traduire(o,vue),L=this.L,src=o||{},mode=vue&&vue.mode;this.o=t;
+  if(this.fin)return false;
+  /* la direction : avec le suivi, l'aide elle-meme (la main la tiendra a chaque image) ; sinon le volant chiffre par traduire */
+  let dir=null;
+  if(P.suivi.actif&&e){
+    if(mode==='sol'&&src.ligne!=null){const x=+src.ligne;if(x-x===0)dir={k:'ligne',x:x};}
+    else if(mode==='vol'&&src.viser&&typeof src.viser.gisement==='number'&&src.viser.gisement-src.viser.gisement===0)
+      dir={k:'viser',x:e.capVol+cl(src.viser.gisement,-PI,PI)}; /* le cap ABSOLU de la cible : le gisement des yeux = cap de la cible − cap du vol */
+  }
+  if(!dir)dir={k:'volant',x:t.volant};
+  this.retarde('volant',dir,changeDir(L.volant.ref,dir,P.coups.mort));
+  const mv={m:t.manche,drift:src.drift>0?1:src.drift<0?-1:0},mr=L.manche.ref; /* le drift voyage avec le manche : c'est un seul geste */
+  this.retarde('manche',mv,mv.m!==mr.m||mv.drift!==mr.drift);
+  this.retarde('nitro',t.nitro,t.nitro!==L.nitro.ref);
+  /* le geste : un seul en attente */
+  const nom=t.geste;if(!nom)return true;
+  if(nom!=='figure'&&nom!=='saut'&&nom!=='redresser')return false;
+  if(this.gf){this.refus++;return false;}
+  const G=L.geste,r=G.rp;if(G.rr)this.err.retards++;this.reac('geste');
+  this.gf={a:this.i+r,nom:nom,dir:nom==='redresser'?null:(DIR[t.direction]?t.direction:'avant')};
+  return true;};
+/* l'etat du jeu que la main « voit » : celui de l'image, ou celui d'il y a suivi.retard images (le retard de perception) */
+Doigts.prototype.percu=function(){
+  const r=this.P.suivi.retard;
+  if(r>0){const j=this.i-r,s=j>=0?this.anneau[j&31]:null;if(s&&s.img===j)return s;}
+  return this.e;};
+/* LE VOLANT VOULU a cette image : l'aide recalculee sur l'etat percu (la loi de traduire), ou le volant chiffre. Une aide qui ne va plus avec
+   le mode (un `viser` arrive apres la pose, une `ligne` apres le decollage) : la main lache. */
+Doigts.prototype.consigne=function(mode){
+  const d=this.L.volant.v;
+  if(d.k==='volant')return d.x;
+  const e=this.percu();
+  if(!e||e.mode!==mode)return 0;
+  let v=0;
+  if(d.k==='ligne'&&mode==='sol'){const capVise=cl((d.x-e.lat)/(Math.max(6,e.vitesse)*.9),-.4,.4);v=cl((e.lacetRoute+(capVise-e.cap)*3)/Math.max(.05,e.lacetMax),-1,1);}
+  else if(d.k==='viser'&&mode==='vol')v=cl(angle(d.x-e.capVol)*2.2,-1,1);
+  return v===v?v:0;};
+/* LE VOLANT PAR COUPS : la part de braquage voulue s'accumule (la dette, en images d'appui) ; quand elle vaut une part du prochain coup, la main
+   appuie pour une duree TIREE, puis se repose. En moyenne le braquage est le bon ; les durees et les ecarts sont ceux d'une main.
+   Controle d'ordre de grandeur : braquage 0,36 et coups de 14 images → 1,5 coup par seconde, 91 par minute (les joueurs : 98 a 111). */
+Doigts.prototype.volantCoups=function(v){
+  const P=this.P,Q=P.coups,M=this.M,i=this.i,a=Math.abs(v),k=this.k;
+  if(a>=Q.plein){this.volant(v>0?1:-1);M.dette=0;return;}                                 /* plein volant : la touche tenue, comme avant */
+  if(a<Q.mort)M.dette*=.9;else M.dette=cl(M.dette+v*M.gain,-this.detteMax,this.detteMax);
+  if(k.G.bas||k.D.bas){
+    for(const n of ['G','D']){if(!k[n].bas)continue;
+      const contre=a>=Q.contre&&(n==='G'?v<0:v>0);                                         /* l'ordre s'est inverse : le coup est coupe */
+      if((i>=M.fin||contre)&&this.veut(n,0))M.repos=i+this.tire('volant',Q.repos);}
+    return;}
+  if(i<M.repos)return;
+  /* erreur.parasite : un coup que personne n'a demande, d'un cote au hasard (l'embardee) ; l'ecart jusqu'au suivant suit une loi exponentielle */
+  if(P.erreur.parasite>0){
+    if(M.para<0)M.para=i+Math.round(3600/P.erreur.parasite*quantile(EXPO,this.H.erreur()));
+    if(i>=M.para){const n=this.H.erreur()<.5?'G':'D',d=this.tire('erreur',Q.duree);
+      M.para=i+d+Math.round(3600/P.erreur.parasite*quantile(EXPO,this.H.erreur()));
+      if(this.veut(n,1)){M.fin=i+d;this.err.parasites++;return;}}}
+  if(M.prochain==null){M.prochain=this.tire('volant',Q.duree);M.gain=1+(P.erreur.bruit>0?P.erreur.bruit*(2*this.H.erreur()-1):0);}
+  if(Math.abs(M.dette)<Q.seuil*M.prochain)return;
+  const n=M.dette>0?'G':'D';
+  if(i-k[n].depuis<HUMAIN.repos)return;                                                    /* la touche n'est pas encore libre : aucun tirage d'erreur pour rien */
+  if(P.erreur.manque>0&&this.H.erreur()<P.erreur.manque){M.repos=i+this.tire('volant',Q.repos);this.err.manques++;return;} /* l'appui manque : la dette reste, la correction viendra tard */
+  let d=M.prochain;
+  if(P.erreur.sur>0&&this.H.erreur()<P.erreur.sur){d=Math.round(d*(P.erreur.surK[0]+(P.erreur.surK[1]-P.erreur.surK[0])*this.H.erreur()));this.err.surs++;} /* l'appui trop long */
+  if(this.veut(n,1)){M.fin=i+d;M.dette-=(M.dette>0?1:-1)*M.prochain;M.prochain=null;}};    /* la dette perd la duree PREVUE : la main ne sait pas qu'elle a trop tenu, c'est l'etat lu qui corrige */
+/* LA NITRO HACHEE (au sol seulement : en vol chaque allumage coute de la jauge, et un appui seul redresse une figure). La garde de `veut` reste :
+   apres un appui de moins de 18 images, 27 images depuis son debut — sans elle, deux tapotements feraient une figure. */
+Doigts.prototype.nitroHache=function(n){
+  const P=this.P,k=this.k.N,NH=this.NH,i=this.i;
+  if(!n){this.veut('N',0);return;}
+  if(k.bas){
+    if(NH.pour!==k.debut){NH.pour=k.debut;NH.fin=i+this.tire('nitro',P.nitro.tenue);}     /* un appui venu d'ailleurs (tenu en vol, puis la pose) : sa tenue se tire ici */
+    if(i>=NH.fin&&this.veut('N',0))NH.pause=i+this.tire('nitro',P.nitro.pause);
+    return;}
+  if(i>=NH.pause&&this.veut('N',1)){NH.pour=i;NH.fin=i+this.tire('nitro',P.nitro.tenue);}};
+/* A CHAQUE IMAGE, avant celle du jeu. L'ordre des touches est celui d'avant : geste, volant, manche, nitro. Avec un profil sans effet (reactions
+   nulles, ni coups ni suivi), chaque etape fait les appels d'avant a la meme image (verifier.js, controle 10). */
+Doigts.prototype.imageV2=function(e){
+  const P=this.P,L=this.L,i=this.i;
+  this.e=e||null;
+  /* MORTE : la main lache tout, a son rythme (jamais de force : un appui de 2 images ne serait pas d'une main), puis guette la plaque */
+  if(this.fin){for(const n in TOUCHE)this.veut(n,0);this.plaque();this.imagesMortes++;this.i++;return;}
+  if(e&&P.suivi.retard>0){const s=this.anneau[i&31];s.img=i;s.mode=e.mode;s.lat=e.lat;s.cap=e.cap;s.vitesse=e.vitesse;s.lacetRoute=e.lacetRoute;s.lacetMax=e.lacetMax;s.capVol=e.capVol;}
+  /* les ordres arrives a echeance, dans l'ordre volant, manche, nitro ; puis le geste */
+  for(const c of ['volant','manche','nitro']){const F=L[c].file;while(F.length&&F[0].a<=i)L[c].v=F.shift().v;}
+  if(this.gf&&this.gf.a<=i){const g=this.gf;this.gf=null;
+    if(P.erreur.manque>0&&this.H.erreur()<P.erreur.manque)this.gestesRates++;             /* le geste manque : il ne part pas */
+    else if(this.geste||i-this.dernierGeste<HUMAIN.gestes)this.refus++;                    /* la regle d'avant : un autre en cours, ou trop tot */
+    else{const t1=this.tire('geste',P.geste.tap),en=Math.max(HUMAIN.repos,Math.min(this.tire('geste',P.geste.entre),22-t1)),t2=this.tire('geste',P.geste.tap);
+      this.geste={nom:g.nom,dir:g.dir,t:0,t1:t1,en:en,t2:t2};this.dernierGeste=i;}}        /* t1 + en ≤ 22 images : le jeu veut le 2e appui moins de 420 ms apres le debut du 1er */
+  const pris=this.geste?this.joueGeste():{},mode=e?e.mode:'sol',mv=L.manche.v,dr=mode==='sol'?mv.drift:0; /* hors du sol le drift est ignore : ↓ en vol cabre */
+  if(!pris.G&&!pris.D){
+    if(dr){this.volant(dr);this.M.dette=0;}                                                /* LE DRIFT : la fleche a fond, sans aide ni coups, tant que l'ordre dure */
+    else{
+      if(this.drB&&(!this.k.B.bas||this.veut('B',0)))this.drB=false;                       /* la fin du drift : ↓ se relache D'ABORD ; jamais ↓ seul, qui freinerait */
+      if(this.drB)this.volant(this.drCote);
+      else{const v=this.consigne(mode);if(P.coups.actif)this.volantCoups(v);else this.volant(v);}}}
+  if(!pris.B&&!pris.H){
+    if(dr){this.veut('H',0);const f=this.k[dr>0?'G':'D'];
+      if(this.k.B.bas||(f.bas&&i-f.depuis>=P.drift.avance&&this.veut('B',1))){this.drB=true;this.drCote=dr;}} /* ↓ apres la fleche : le volant du jeu a depasse 0,35, ↓ ne freine pas */
+    else{this.veut('H',mv.m<0);this.veut('B',mv.m>0);}}
+  if(!pris.N){if(P.nitro.tenue&&mode==='sol')this.nitroHache(L.nitro.v);else this.veut('N',L.nitro.v);}
+  this.i++;};
+/* ===== LA SECONDE CHANCE (2026-11-24, doigts v2) =====
+   Un joueur la prend en touchant la plaque « CONTINUER ▶ PUB » de l'ecran de mort. Le faux navigateur n'a pas de clic : la main appelle
+   `chanceJoue()`, LA fonction que la plaque appelle (gameplay/seconde-chance.js), et s'impose ce que la plaque impose : l'offre ouverte
+   (`chanceEtat().ok`), 36 images de garde, le toucher dans la fenetre. Rien d'autre n'est appele ni ecrit dans le jeu.
+   MESURE dans ml/reel le 24/11 (graine 910407, mort a 39,9 s) : la plaque parait 114 images apres la decision qui voit la mort, la pub maison
+   dure 5 s, la course reprend 311 images apres le toucher, un palier plus bas (moteur 3 → 2, 165 → 85 pieces), 3 s d'invulnerabilite.
+   Entre la mort et la reprise : AUCUNE touche (ESPACE sauterait l'explosion, ENTREE relancerait une partie neuve).
+   Au journal : [image,'C',1] = la plaque touchee et acceptee ; [image,'C',0] = l'attente abandonnee (sans effet dans le jeu). */
+/* a chaque decision qui voit la mort (piloter.js). Rend true tant que la course doit continuer. */
+Doigts.prototype.suiteMort=function(vue){
+  const P=this.P,i=this.i;
+  if(!this.fin){
+    let veut=false;
+    if(P.chance.prend>0){
+      let offre=false;try{offre=this.J.ev(OFFRE_CODE)===true;}catch(x){}
+      if(offre&&((vue&&vue.moteur)|0)+1>=P.chance.palierMin)veut=P.chance.prend>=1||this.H.chance()<P.chance.prend;} /* aucun tirage si l'offre est impossible */
+    for(const c of ['volant','manche','nitro'])this.L[c].file=[];this.gf=null;this.geste=null;
+    this.fin={depuis:i,ok:-1,clic:-1,image:-1,etat:veut?'attend':'non'};
+    if(veut)this.chance.voulue=true;
+    return veut;}
+  const F=this.fin;
+  if(F.etat==='attend')return true;
+  if(F.etat==='pub')return i-F.image<=REPRISE.REPRISE_MAX;
+  return false;};
+/* a chaque image tant que la main attend : la plaque est-elle la ? puis le toucher, apres le delai tire */
+Doigts.prototype.plaque=function(){
+  const F=this.fin,i=this.i;if(!F||F.etat!=='attend')return;
+  if(F.ok<0){
+    let ok=false;try{ok=this.J.ev('chanceEtat().ok')===true;}catch(x){}
+    if(ok){F.ok=i;this.chance.ok=i;F.clic=i+Math.max(REPRISE.GARDE,Math.min(this.tire('chance',this.P.chance.delai),REPRISE.FENETRE-60));}
+    else if(i-F.depuis>=REPRISE.ATTENTE){this.touches.push([i,'C',0]);F.etat='abandon';F.image=i;}
+    return;}
+  if(i>=F.clic){
+    let pris=false;try{pris=!!this.J.ev('chanceJoue()');}catch(x){}
+    this.touches.push([i,'C',pris?1:0]);F.etat=pris?'pub':'abandon';F.image=i;this.chance.image=i;this.chance.prise=pris;}};
+/* la course a repris (piloter.js l'a vu) : la main repart a neuf */
+Doigts.prototype.revit=function(){this.fin=null;this.chance.reprise=this.i;this.neuf();};
+/* la course s'arrete (limite de temps) alors que la main attendait encore la plaque : le journal doit le dire, sinon le rejeu s'arreterait a la mort */
+Doigts.prototype.clot=function(){const F=this.fin;if(F&&F.etat==='attend'){this.touches.push([this.i,'C',0]);F.etat='abandon';F.image=this.i;}};
+/* ce que la main a fait de plus que les touches (pour le bilan de la course) */
+Doigts.prototype.resume=function(){
+  if(!this.P)return null;
+  return {chance:Object.assign({},this.chance),imagesMortes:this.imagesMortes,gestesRates:this.gestesRates,erreursMain:Object.assign({},this.err)};};
+
+module.exports={Doigts,HUMAIN,TOUCHE,traduire,normaliserProfil,MODELES,REPRISE,hasard,graineDe,quantile,tirer};

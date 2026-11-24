@@ -4,7 +4,8 @@
    format `cashcar-jeurec-1`) et par les fonctions de ce fichier. Sacha : ses parties exportees du telephone ou de l'ordinateur.
    Le bot : le pilote (piloter.js) fait tourner le MEME enregistreur dans le jeu sans ecran.
    mesures(partie) : les chiffres d'une partie · barre(parties) : le resume d'un lot (c'est LA BARRE quand le lot est celui de Sacha)
-   partiesJoueurs(fichiers lus) : les VRAIES parties des joueurs (doublons, pause, seconde chance), pour etalon.js ET discerner.js. */
+   partiesJoueurs(fichiers lus) : les VRAIES parties des joueurs (doublons, pause, seconde chance), pour etalon.js ET discerner.js.
+   mainDe(partie), mainLot(parties) : ce qui se lit de la MAIN (coups de volant, changements de sens, nitro), pour appuis.js (doigts v2). */
 const RACC=60; /* le jeu crie RACCOURCI a partir de 60 m gagnes (piste sautee moins distance volee) */
 /* ===== LE PALIER ATTEINT (2026-11-24, Sacha : « des bots du record de palier 1 au palier 30 ») =====
    Un palier = un moteur de ENGINE_TIERS (code/gameplay/pickups-fruits.js), gagne en ramassant des pieces PENDANT la course. Le palier d'une
@@ -162,6 +163,51 @@ function barre(parties){
     causes,cartes,detail:M};
 }
 
+/* ===== LA MAIN D'UNE PARTIE (2026-11-24, doigts v2, Sacha : « des bots du palier 1 au palier 30 qu'on ne distingue pas de vrais joueurs ») =====
+   Ce qui se LIT de la main dans l'enregistrement du jeu (10 echantillons par seconde), compte PAREIL pour un joueur et pour un bot — la mesure de
+   ml/ecurie/etude/humains.md, faite alors par un script jetable :
+     · un COUP DE VOLANT = une suite d'echantillons au sol ou |steer| > 0,3 du meme cote. steer est le volant LISSE du jeu, pas la touche : les
+       durees sont a 0,1 s pres, et un coup de moins de 100 ms peut passer entre deux echantillons ;
+     · l'ECART = le temps entre les debuts de deux coups qui se suivent sur le meme passage au sol (un vol entre les deux : pas compte) ;
+     · une TENUE DE NITRO = une suite d'echantillons ou la flamme est allumee (nit = nitroOn, pas la touche : une jauge vide tenue la fait battre) ;
+     · un CHANGEMENT DE SENS = la vitesse laterale au sol (a plus de 1,5 m/s) qui change de signe — le compte de discerner.js.
+   mainDe(partie) rend les listes brutes (elles se mettent en commun) ; mainLot(parties) le resume d'un lot, les memes chiffres pour tous. */
+function mainDe(c){
+  c=finVraie(c);
+  const col={};(c.cols||[]).forEach((n,i)=>col[n]=i);const E=c.ech||[],g=(e,n)=>e[col[n]];
+  const o={duree_s:0,sol_s:0,braque_s:0,drift_s:0,nitro_s:0,coups:[],ecarts:[],tenues:[],bascules:0};
+  if(!E.length||col.steer==null)return o;
+  let cur=null,dernier=null,nit=0,sens=0;
+  const fermeCoup=()=>{if(cur){o.coups.push(+(cur.n*.1).toFixed(1));cur=null;}},fermeNit=()=>{if(nit){o.tenues.push(+(nit*.1).toFixed(1));nit=0;}};
+  for(let i=0;i<E.length;i++){
+    const e=E[i],p=i?E[i-1]:null,suit=!!p&&g(e,'t')-g(p,'t')<.25&&g(e,'r')===g(p,'r'),sol=g(e,'m')===0;
+    o.duree_s+=.1;
+    if(!suit)fermeNit();
+    if(g(e,'nit')){o.nitro_s+=.1;nit++;}else fermeNit();
+    if(!sol||!suit){fermeCoup();dernier=null;sens=0;}
+    if(!sol)continue;
+    o.sol_s+=.1;if(g(e,'drift'))o.drift_s+=.1;
+    const st=g(e,'steer'),cote=st>.3?1:st<-.3?-1:0;
+    if(cote){o.braque_s+=.1;
+      if(cur&&cur.cote===cote)cur.n++;
+      else{fermeCoup();cur={cote:cote,n:1};const t=g(e,'t');if(dernier!=null)o.ecarts.push(+(t-dernier).toFixed(1));dernier=t;}}
+    else fermeCoup();
+    if(suit&&g(p,'m')===0){const v=(g(e,'lat')-g(p,'lat'))/.1,s=v>1.5?1:v<-1.5?-1:0;if(s&&sens&&s!==sens)o.bascules++;if(s)sens=s;}
+  }
+  fermeCoup();fermeNit();
+  return o;
+}
+function mainLot(parties){
+  const M=parties.map(mainDe),som=k=>M.reduce((a,m)=>a+m[k],0),tous=k=>[].concat(...M.map(m=>m[k])).sort((a,b)=>a-b);
+  const q=(A,p)=>A.length?A[Math.round(p*(A.length-1))]:null,r=(x,k)=>x==null?null:+x.toFixed(k==null?1:k);
+  const C=tous('coups'),X=tous('ecarts'),T=tous('tenues'),sol=Math.max(1e-9,som('sol_s')),dur=Math.max(1e-9,som('duree_s'));
+  const mx=X.length?X.reduce((a,b)=>a+b,0)/X.length:0,cv=X.length&&mx?Math.sqrt(X.reduce((a,b)=>a+(b-mx)*(b-mx),0)/X.length)/mx:null;
+  return {parties:M.length,minutes:r(dur/60),sol_min:r(sol/60),
+    coups:C.length,coups_min:r(C.length/(sol/60)),coup_p10_s:q(C,.1),coup_p50_s:q(C,.5),coup_p90_s:q(C,.9),coup_max_s:C.length?C[C.length-1]:null,
+    ecart_p10_s:q(X,.1),ecart_p50_s:q(X,.5),ecart_p90_s:q(X,.9),ecart_cv:r(cv,2),
+    braquage_pct:r(100*som('braque_s')/sol),sens_s:r(som('bascules')/sol,2),drift_pct:r(100*som('drift_s')/sol),
+    nitro_pct:r(100*som('nitro_s')/dur),nitro_appuis_min:r(T.length/(dur/60)),tenue_p10_s:q(T,.1),tenue_p50_s:q(T,.5),tenue_p90_s:q(T,.9),tenue_max_s:T.length?T[T.length-1]:null};
+}
 /* un fichier exporte par le jeu ({format, parties:[…]}), une partie seule, ou une liste de parties → la liste des parties */
 function partiesDe(j){
   if(Array.isArray(j))return j.flatMap(partiesDe);
@@ -182,4 +228,4 @@ function lignes(b){
     `fins : ${Object.entries(b.causes).sort((a,b)=>b[1]-a[1]).map(e=>e[0]+' '+e[1]).join(' · ')}`,
     `maps : ${Object.entries(b.cartes).sort((a,b)=>b[1]-a[1]).map(e=>e[0]+' '+e[1]).join(' · ')}`];
 }
-module.exports={mesures,barre,partiesDe,partiesJoueurs,finVraie,suite,colle,lignes,RACC,palierDe,SEUILS};
+module.exports={mesures,barre,partiesDe,partiesJoueurs,finVraie,suite,colle,lignes,RACC,palierDe,SEUILS,mainDe,mainLot};

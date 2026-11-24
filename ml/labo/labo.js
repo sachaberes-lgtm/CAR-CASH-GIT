@@ -55,8 +55,10 @@ function versionJeu(){
 
 /* ----- LES TOUCHES, serrees : [image, touche, 1|0] → « 12N5n… » (le nombre d'images depuis le changement d'avant, puis la touche :
    MAJUSCULE = enfoncee, minuscule = relachee ; G D H B N = ← → ↑ ↓ ESPACE). ~4 octets par changement au lieu de 12. ----- */
+/* (2026-11-24, doigts v2) UNE LETTRE DE PLUS, C : la seconde chance. « C » = la plaque CONTINUER touchee et acceptee, « c » = l'attente de la plaque
+   abandonnee (ml/bot/piloter.js, rejouer). Sans elle dans l'expression, un C serait avale en silence et le rejeu sortirait « different ». */
 function coderTouches(T){let d=0,s='';for(const t of T){s+=(t[0]-d)+(t[2]?t[1]:t[1].toLowerCase());d=t[0];}return s;}
-function decoderTouches(s){const T=[];let d=0;for(const m of String(s||'').matchAll(/(\d+)([GDHBNgdhbn])/g)){d+=+m[1];T.push([d,m[2].toUpperCase(),m[2]===m[2].toUpperCase()?1:0]);}return T;}
+function decoderTouches(s){const T=[];let d=0;for(const m of String(s||'').matchAll(/(\d+)([GDHBNCgdhbnc])/g)){d+=+m[1];T.push([d,m[2].toUpperCase(),m[2]===m[2].toUpperCase()?1:0]);}return T;}
 
 /* ----- une course, en une ligne de journal : ce qu'il faut pour la retrouver, la comparer, et savoir OU elle s'est finie ----- */
 function resumeCourse(b,partie){
@@ -152,7 +154,7 @@ function garder(ligne,x,pourquoi){
   const rejeu={format:'cashcar-rejeu-1',cerveau:{id:ligne.id,nom:ligne.nom,sha:ligne.sha,code:ligne.code},etape:ligne.etape,generation:ligne.generation,
     jeu:ligne.jeu,graine:x.graine,carte:bot.carte||null,meteo:bot.meteo||null,tmax:bot.tmax||ligne.tmax,images:b.images,empreinte:b.empreinte,
     fin:Object.assign({},x.partie.fin),cartes:b.cartes,pourquoi:pq,trajectoire:'trajectoires/'+base+'.json.gz',
-    aide:'touches : le nombre d\'images (1/60 s) depuis le changement d\'avant, puis la touche — MAJUSCULE enfoncee, minuscule relachee ; G D H B N = gauche droite haut bas ESPACE',
+    aide:'touches : le nombre d\'images (1/60 s) depuis le changement d\'avant, puis la touche — MAJUSCULE enfoncee, minuscule relachee ; G D H B N = gauche droite haut bas ESPACE ; C = la plaque CONTINUER de la seconde chance touchee (c : attente abandonnee)',
     touches:touches};
   ecrireAtomique(fr,JSON.stringify(rejeu,null,1));
   ecrireGz(path.join(D.trajectoires,base+'.json.gz'),x.partie);

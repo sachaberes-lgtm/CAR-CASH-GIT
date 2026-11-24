@@ -61,6 +61,9 @@ erreurs.
 
 - Un fichier JavaScript qui pose `module.exports = { nom, profil, decide }`. Pas de `require`, pas d'horloge, pas de `Math.random`
   (retiré) : même graine, même course. Un hasard, s'il en faut un, est un générateur à graine rangé dans `memoire`.
+- `profil` ne règle QUE la main (temps de réaction, volant par coups, nitro tapotée, drift, seconde chance, erreurs : README § 3.1) ; un champ
+  qu'il ne connaît pas REFUSE le pilote au chargement. Les réglages de la conduite restent des constantes nommées en tête du fichier. Sans
+  `profil`, la main est une machine ; avec un profil, les ordres arrivent en retard et le volant ondule : le pilote doit être écrit pour sa main.
 - Lisible : des réglages nommés en tête, des fonctions courtes, un commentaire qui dit POURQUOI devant chaque règle, avec la mesure qui la
   justifie quand il y en a une (« MESURE : … »). Commentaires en français, sans accents dans le code, `/* … */`.
 - Une vue peut manquer d'un champ selon la map ou le moment : ne jamais supposer qu'un tableau a une case, tester avant de lire.
