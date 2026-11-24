@@ -77,7 +77,7 @@ window.dbgJadePil=function(tout){
       tops:T9.tops.length,cor:T9.cor.length,des:T9.des.length,
       ly:T9.ly.map(function(l){const o=[l[0],l[1],r1(l[2]-T9.M),r1(l[3]-T9.M),r1(l[4]),l[5]];if(l[6])o.push(l[6].map(function(e){return [r1(e[0]-T9.M),r1(e[1]-T9.M),r1(e[2])];}));return o;})});}
   return {VX:VX,VXG:VXG,formes:JADE_FORMES,compact:JADE_COMPACT,ntpl:JADE_NTPL,ile0:typeof JADE_ILE0!=='undefined'?JADE_ILE0:-1,v3:typeof JADE_V3!=='undefined'?!!JADE_V3:null,sobre:!!JADE_SOBRE,L:Math.round(L),NP:NP,demi:ROAD_HALF,merY:Math.round(JADE.merY),
-    P:JADE.col.P.map(function(q){return [r1(q[0]),r1(q[1]),r1(q[2]),r1(q[3]),r1(q[4]),q[5],q[6],q.inv?1:0,q[8]>1e8?-1:Math.round(q[8]),q.sc||1];}), /* (2026-11-14) 10e : l'échelle (q.sc) */
+    P:JADE.col.P.map(function(q){return [r1(q[0]),r1(q[1]),r1(q[2]),r1(q[3]),r1(q[4]),q[5],q[6],q.inv?1:0,q[8]>1e8?-1:Math.round(q[8]),q.sc||1,q.ori||''];}), /* (2026-11-14) 10e : l'échelle (q.sc) ; (2026-11-24) 11e : l'origine (q.ori : tour, tour-clr, ile, ile-bord, ile-av, pic, pic-dessus ; vide = le hasard) */
     roc:JADE.col.P.map(function(q){return jadeRocher(q[5])?1:0;}),
     tpl:tpl,nTpl:nTpl,catalogue:JADE_FORMES?JADE_CAT.length:P9.length,palette:pal||null,octGrilles:octG,octGeos:octGeoT,octFins:octFin,triGab:triG,triFin:triFin,route:route,pasRoute:+(pas*ds).toFixed(2),
     fam:JADE.fam.length,famInst:JADE.fam.reduce(function(a,F){return a+F.n;},0),
