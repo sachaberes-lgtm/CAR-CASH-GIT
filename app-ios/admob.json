@@ -1,7 +1,8 @@
 {
-  "_lisez-moi": "Réglages de la pub AdMob de l'app (lus par preparer-www.js, voir passation/PUB-APP.md). test:true = les pubs de TEST de Google, toujours, quels que soient les identifiants : à garder pendant TOUT le développement. Pour l'archive envoyée à Apple seulement (oui de Sacha) : appId, recompense, interstitiel = les vrais identifiants de la console AdMob, puis test:false. L'appId est recopié dans Info.plist par preparer-www.js (npm run sync).",
+  "_lisez-moi": "Réglages de la pub AdMob de l'app (lus par preparer-www.js, voir passation/PUB-APP.md). Les identifiants sont les VRAIS (compte AdMob de Sacha, 24/11). test:true = les pubs de TEST de Google, toujours, quels que soient les identifiants : à GARDER pendant tout le développement (builds installés sur l'iPhone). Seule l'archive pour Apple montre les vraies pubs : archiver.sh lance la fabrication avec CC_PUB_VRAIE=1, qui force test:false (et preparer-www vérifie les identifiants). appareilsTest : identifiants d'appareils de test du kit Google (facultatif).",
   "test": true,
-  "appId": "ca-app-pub-3940256099942544~1458002511",
-  "recompense": "",
-  "interstitiel": ""
+  "appId": "ca-app-pub-8409305028912847~7030914291",
+  "recompense": "ca-app-pub-8409305028912847/6839342600",
+  "interstitiel": "ca-app-pub-8409305028912847/5526260936",
+  "appareilsTest": []
 }

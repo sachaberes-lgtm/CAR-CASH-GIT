@@ -11,7 +11,11 @@ DEST=export; [ "$1" = "--envoyer" ] && DEST=upload
 B="$PWD/build"; ARCHIVE="$B/CASH-CAR.xcarchive"
 # (2026-11-13, finition · COMPLET) jamais le jeu non coupé dans l'archive : COMPLET est retiré de l'environnement, puis www/ est vérifié
 # (pas de maj.json « complet », pas d'app de banc ni d'interrupteurs cuits).
-env -u COMPLET npm run sync
+# (2026-11-24) LES VRAIES PUBS, SEULEMENT DANS L'ARCHIVE : CC_PUB_VRAIE=1 fait passer preparer-www.js à test:false (admob.json garde test:true pour le dev)
+env -u COMPLET CC_PUB_VRAIE=1 npm run sync
+if ! grep -q '"test":false' www/index.html; then echo "✗ archiver : www/ n'a pas les vraies pubs (CC_ADMOB test:false introuvable) — rien n'est archivé" >&2; exit 1; fi
+if ! grep -q 'ca-app-pub-8409305028912847~7030914291' ios/App/App/Info.plist; then echo "✗ archiver : Info.plist n'a pas l'App ID AdMob de Sacha — rien n'est archivé" >&2; exit 1; fi
+echo "✓ vraies pubs AdMob (blocs de Sacha) dans cette archive"
 if grep -q '"complet":true' www/maj.json || [ -e www/banc.json ] || [ -e www/qs.json ]; then
   echo "✗ archiver : www/ n'est pas l'édition App Store (complet, banc.json ou qs.json) — rien n'est archivé" >&2; exit 1; fi
 rm -rf "$B"; mkdir -p "$B"

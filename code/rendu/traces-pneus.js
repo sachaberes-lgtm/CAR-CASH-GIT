@@ -215,6 +215,7 @@ const AMOB={on:false,init:false,cOk:false,ok:true,test:false,choix:false,etat:''
   const idR=test?'ca-app-pub-3940256099942544/1712485313':String(cfg.recompense||''),idI=test?'ca-app-pub-3940256099942544/4411468910':String(cfg.interstitiel||'');
   if(!A||typeof A.prepareRewardVideoAd!=='function'||typeof A.showRewardVideoAd!=='function'||!ID.test(idR))return;
   AMOB.on=true;AMOB.test=test;
+  const appareils=Array.isArray(cfg.appareils)?cfg.appareils.map(String):[]; /* (2026-11-24) les appareils de test (admob.json appareilsTest) : de vrais blocs y montrent des pubs de test */
   const avecI=ID.test(idI)&&typeof A.prepareInterstitial==='function'&&typeof A.showInterstitial==='function';
   const attente=function(n){return Math.min(300,20*Math.pow(2,Math.min(4,n)))*1000;};
   const pret=function(k){const s=AMOB[k];if(s.pret&&performance.now()-s.t>3e6){s.pret=false;charge(k);}return s.pret;};
@@ -245,7 +246,7 @@ const AMOB={on:false,init:false,cOk:false,ok:true,test:false,choix:false,etat:''
   ecoute('interstitialAdFailedToLoad',function(e){AMOB.i.err=pubErr(e);});
   const consent=async function(){ /* le consentement de Google, à chaque lancement (il peut changer) ; raté (pas de réseau) : on le redemande */
     let ci=null;
-    try{if(typeof A.requestConsentInfo==='function'){ci=await A.requestConsentInfo();
+    try{if(typeof A.requestConsentInfo==='function'){ci=await A.requestConsentInfo(appareils.length?{testDeviceIdentifiers:appareils}:undefined);
       if(ci&&ci.isConsentFormAvailable&&ci.status==='REQUIRED'&&typeof A.showConsentForm==='function'){const c2=await A.showConsentForm();if(c2)ci=c2;}}
       AMOB.cOk=true;AMOB.eC=0;}
     catch(e){AMOB.cOk=false;clearTimeout(AMOB.tmC);AMOB.tmC=setTimeout(relance,attente(AMOB.eC++));}
@@ -254,7 +255,7 @@ const AMOB={on:false,init:false,cOk:false,ok:true,test:false,choix:false,etat:''
   };
   const relance=async function(){if(!AMOB.init)return;if(!AMOB.cOk)await consent();AMOB.r.essai=AMOB.i.essai=0;charge('r');charge('i');};
   const lance=async function(){
-    try{await A.initialize({initializeForTesting:test});}catch(e){}
+    try{await A.initialize(appareils.length?{initializeForTesting:test,testingDevices:appareils}:{initializeForTesting:test});}catch(e){}
     await consent();
     try{if(typeof A.trackingAuthorizationStatus==='function'&&typeof A.requestTrackingAuthorization==='function'){ /* la fenêtre de suivi d'Apple : une seule fois dans la vie de l'app (iOS ne la remontre jamais) */
       const t=await A.trackingAuthorizationStatus();if(t&&t.status==='notDetermined')await A.requestTrackingAuthorization();}}catch(e){}

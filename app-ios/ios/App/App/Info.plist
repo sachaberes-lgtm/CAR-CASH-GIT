@@ -28,7 +28,7 @@
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>ca-app-pub-8409305028912847~7030914291</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>Allowing tracking lets Google show you ads that fit you better in CASH CAR. Saying no changes nothing in the game: the ads will just be less personalized.</string>
 	<key>SKAdNetworkItems</key>

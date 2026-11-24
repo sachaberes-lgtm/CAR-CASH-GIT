@@ -6,7 +6,7 @@ qui affiche le jeu dans une vue web, sans navigateur autour). Le jeu n'est **pas
 
 | Quoi | Où |
 |---|---|
-| Identifiant de l'app | `com.sachaberes.carcash` · nom sous l'icône : **CASH CAR** · version **1.0.0 (1)** · équipe Apple `M532TDYCH2` |
+| Identifiant de l'app | `com.sachaberes.carcash` · nom sous l'icône : **CASH CAR** · version **1.1.0 (134)** (la pub AdMob, 24/11) · équipe Apple `M532TDYCH2` |
 | Le jeu embarqué (généré, ne pas éditer) | `www/` |
 | La colle native (chargée en premier, inerte hors de l'app) | `natif/natif.js` |
 | Le projet Xcode | `ios/App/App.xcodeproj` (Swift Package Manager, pas de CocoaPods) |

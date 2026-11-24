@@ -145,12 +145,15 @@ if(MC_WEBP)une("im.src='assets/ciel/mer-cumulus.png'","im.src='assets/ciel/mer-c
   let A9=null;try{A9=JSON.parse(fs.readFileSync(fA,'utf8'));}catch(e){stopPub('app-ios/admob.json illisible : '+e.message);}
   const TEST_PUB='3940256099942544',BLOC=/^ca-app-pub-\d{10,20}\/\d{6,14}$/,APPID=/^ca-app-pub-\d{10,20}~\d{6,14}$/;
   if(typeof A9.test!=='boolean')stopPub('admob.json : « test » doit valoir true ou false');
+  /* (2026-11-24) L'ARCHIVE POUR APPLE (archiver.sh) passe CC_PUB_VRAIE=1 : les vraies pubs, et SEULEMENT là. admob.json garde test:true pour tous les builds de dev. */
+  if(process.env.CC_PUB_VRAIE==='1'){if(ESSAI)stopPub('CC_PUB_VRAIE=1 ne vaut que pour la vraie fabrication de l\'archive, pas pour un essai');A9.test=false;}
+  if(A9.appareilsTest!=null&&(!Array.isArray(A9.appareilsTest)||A9.appareilsTest.some(x=>!/^[A-Za-z0-9-]{8,64}$/.test(String(x)))))stopPub('admob.json : appareilsTest doit être une liste d\'identifiants');
   if(!APPID.test(String(A9.appId||'')))stopPub('admob.json : appId « '+A9.appId+' » n\'est pas un App ID AdMob (ca-app-pub-…~…)');
   for(const k of ['recompense','interstitiel'])if(A9[k]&&!BLOC.test(A9[k]))stopPub('admob.json : '+k+' « '+A9[k]+' » n\'est pas un bloc AdMob (ca-app-pub-…/…)');
   if(A9.test===false){
     for(const k of ['appId','recompense','interstitiel'])if(!A9[k]||String(A9[k]).indexOf(TEST_PUB)>=0)stopPub('admob.json : test:false (vraies pubs) mais '+k+' est vide ou celui de TEST de Google');
     if(process.env.COMPLET)stopPub('admob.json : test:false interdit dans l\'app de mesure (COMPLET=1) — elle va sur l\'iPhone de Sacha : jamais de vraies pubs');}
-  une("var CC_ADMOB={recompense:''};","var CC_ADMOB="+JSON.stringify({test:A9.test,recompense:A9.recompense||'',interstitiel:A9.interstitiel||''})+";",'régie AdMob de l\'app (admob.json)');
+  une("var CC_ADMOB={recompense:''};","var CC_ADMOB="+JSON.stringify({test:A9.test,recompense:A9.recompense||'',interstitiel:A9.interstitiel||'',appareils:A9.appareilsTest||[]})+";",'régie AdMob de l\'app (admob.json)');
   const fP=path.join(ICI,'ios','App','App','Info.plist');let P9=fs.readFileSync(fP,'utf8');
   const mP=P9.match(/<key>GADApplicationIdentifier<\/key>\s*<string>([^<]*)<\/string>/);
   if(!mP)stopPub('Info.plist : la clé GADApplicationIdentifier manque (le kit de Google en a besoin au lancement)');

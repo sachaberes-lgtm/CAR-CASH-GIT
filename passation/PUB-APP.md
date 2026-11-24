@@ -91,6 +91,10 @@ Rien sur `main`, rien d'envoyé à Apple, rien d'installé sur l'iPhone sans le 
   quand Google ne livre rien (NordVPN et sa protection contre les menaces).
 - RESTE (Sacha) : la liste « CE QUE SACHA DOIT FAIRE » plus bas (compte AdMob, blocs, paiement, message européen, App Store Connect). Puis
   les vrais identifiants dans `admob.json` (test reste true jusqu'à l'archive), MARKETING_VERSION 1.1.0, fusion sur main (oui de Sacha).
+- 24/11, 15 h 30 — `passation/DE-PROJETS.md` (Projets, l'assistant de Sacha ; Sacha : « fais ce qui est demandé ») : vrais identifiants dans
+  admob.json (test:true gardé ; vraies pubs SEULEMENT par archiver.sh, CC_PUB_VRAIE=1), pizza hors vente, prix alignés sur les paliers
+  d'Apple, `pages-app/app-ads.txt` + page de confidentialité à jour dans `pages-app/`, version 1.1.0 build 134, Release compilé.
+  Réponse détaillée et « PRÊT POUR L'ARCHIVE » au bas de DE-PROJETS.md.
 - Le 24/11 j'ai arrêté 4 Chrome sans fenêtre laissés par mes passages du banc (profils banc-achats-*) ; le banc les ferme désormais toujours.
 
 ## LE BANC (`node outils/banc-pub/banc.cjs`, Chrome sans fenêtre et muet, faux module AdMob ; `--sonde` : l'écran de fin toutes les 400 ms)
