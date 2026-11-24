@@ -31,6 +31,9 @@ html body #m2Ligne,html body #m2Focus{display:none!important}
 html:not(.barreAir) body #airHud,html:not(.barreAir) body.touch #airPie[style*="block"]+#airHud{display:none!important}
 /* le doublon du raisin : en vol (body.hAirPie, posé par hasMaj quand le bloc AIR est allumé), la ligne de pouvoir AIR MAX s'efface — le bloc AIR porte déjà sa 2e barre. Au sol elle revient. */
 html.airSeul:not([data-hud="d"]) body.touch.hAirPie #pwrChip .pl[data-k="a"]{display:none!important}
+/* (2026-11-24, contrôle du lot) …et elle revient SANS rejouer son entrée glissée (hlEntre, 0,3 s) : une ligne rendue à l'écran relance son animation, et sur une suite de petits sauts
+   la ligne AIR MAX clignotait à chaque posé. Elle se pose d'un coup ; son clignotement de fin (.fin) reste. */
+html.airSeul:not([data-hud="d"]) body.touch #pwrChip .pl[data-k="a"]:not(.fin){animation:none}
 /* (2026-11-13) le rappel des gestes (#fhLeg) revient en vol, en PAYSAGE seulement : voir « LE RAPPEL DES FIGURES, EN LIGNES » plus bas */
 /* ---- 2. LA BARRE DE NITRO, COMPRESSÉE ---- */
 html body.touch #nitroBar{height:14px!important;padding:2px!important}

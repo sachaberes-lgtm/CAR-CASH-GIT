@@ -149,9 +149,9 @@ if (require.main === module) (async () => {
           if (m.vol) { try { enVol = await c.ev("dbgState().mode==='fall'"); } catch (e) { enVol = false; } }
           if (enVol) break;
         }
-        if (!enVol) console.log('   ~ ' + fmt + '-' + m.n + ' : pas en vol (non contrôlé)');
         await photo(m.n); /* la sonde AVANT la photo : une capture prend jusqu'à 0,6 s sur une machine chargée, et le HUD calme tombe à 3 s (0,9 s avant le 2026-11-22) */
         const r = { ok, sonde: s, pb: [] };
+        if (!enVol) { r.horsVol = fmt + '-' + m.n + ' : la caisse n\'est pas en vol après 5 essais, le moment n\'est PAS contrôlé'; echecs++; console.log('   ✗ ' + r.horsVol); } /* (2026-11-24, contrôle du lot) un vol manqué est un ÉCHEC du banc : sinon une barre disparue passerait sur une machine chargée */
         if (s && !m.sansControle) {
           const k = controle(s, fmt + '-' + m.n); r.blocs = k.blocs; r.pb = k.pb;
           /* un chevauchement ne compte que s'il DURE : la colonne se range dix fois par seconde, un bloc qui change de taille peut mordre le suivant le temps d'un passage */
