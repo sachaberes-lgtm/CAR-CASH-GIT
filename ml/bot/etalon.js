@@ -7,10 +7,14 @@
      dans deux exports n'est comptee qu'une fois ;
    · ecartees : les parties de l'auto-ecole et celles de moins de 10 s (un faux depart, une partie quittee tout de suite) ;
    · une reprise par seconde chance est recollee a sa partie (voir « LES VRAIES PARTIES » plus bas) ;
-   · resultat : results/etalon.json + le tableau, et la comparaison avec chaque note de bot deja ecrite (results/note-*.json). */
+   · resultat : results/etalon.json + le tableau, et la comparaison avec chaque note de bot deja ecrite (results/note-*.json) ;
+   · --nom=leo + ses fichiers : la barre d'UN joueur, a cote (results/etalon-leo.json) ; results/etalon.json n'est pas touche. */
 const fs=require('fs'),path=require('path');
 const {barre,partiesDe,lignes}=require('./mesures');
 const A=process.argv.slice(2).filter(a=>!a.startsWith('--'));
+/* L'ETALON A DEUX JOUEURS (2026-11-24, Sacha : « Dans les 20 ») : les parties de Leo (au doigt, sur telephone) comptent avec celles de Sacha
+   (au clavier). Sans --nom : tout le dossier, c'est LA BARRE. Avec --nom=X et les fichiers de X : sa barre a lui, a cote (etalon-x.json). */
+const AUTRE=process.argv.find(a=>/^--nom=/.test(a)),NOM=AUTRE?AUTRE.slice(6):'Sacha et Leo',SORTIE=AUTRE?'etalon-'+NOM.toLowerCase()+'.json':'etalon.json';
 const DOSSIER=path.join(__dirname,'etalon'),RES=path.join(__dirname,'results');
 const fichiers=[];
 for(const a of (A.length?A:[DOSSIER])){
@@ -55,12 +59,12 @@ for(let i=parties.length-1;i>=0;i--)if(!(parties[i].fin.t>=10)){parties.splice(i
 if(recollees)console.log(recollees+' reprise(s) par seconde chance recollee(s) a leur partie');
 if(!parties.length){console.log('aucune partie retenue ('+lues+' lues, '+ecartees+' ecartees)');process.exit(1);}
 const B=barre(parties),detail=B.detail;delete B.detail;
-const ou={};for(const m of detail)ou[m.appareil]=(ou[m.appareil]||0)+1;
-console.log(`\n=== L'ETALON : ${parties.length} parties de Sacha (${Object.entries(ou).map(e=>e[1]+' sur '+e[0]).join(', ')}) — ${lues} lues, ${ecartees} ecartees ===`);
+const ou={};for(const m of detail){const k=m.clavier==null?'main inconnue':m.clavier?'au clavier':'au doigt';ou[k]=(ou[k]||0)+1;} /* « version allegee » ne separait pas le PC lent de Sacha du telephone de Leo : la main, si */
+console.log(`\n=== L'ETALON : ${parties.length} parties de ${NOM} (${Object.entries(ou).map(e=>e[1]+' '+e[0]).join(', ')}) — ${lues} lues, ${ecartees} ecartees ===`);
 console.log(lignes(B).join('\n'));
 if(parties.length<20)console.log(`\n⚠ ${parties.length} parties : le plan en demande 20. La barre ci-dessus est provisoire.`);
 fs.mkdirSync(RES,{recursive:true});
-fs.writeFileSync(path.join(RES,'etalon.json'),JSON.stringify({date:new Date().toISOString(),fichiers:fichiers.map(f=>path.basename(f)),versions:[...new Set(parties.map(c=>c.ver))],
+fs.writeFileSync(path.join(RES,SORTIE),JSON.stringify({date:new Date().toISOString(),fichiers:fichiers.map(f=>path.basename(f)),versions:[...new Set(parties.map(c=>c.ver))],
   voitures:[...new Set(parties.map(c=>c.voiture))],barre:B,parties:detail.map((m,i)=>Object.assign({debut:parties[i].debut},m))},null,1));
 /* LA COMPARAISON avec les notes des bots */
 const notes=fs.existsSync(RES)?fs.readdirSync(RES).filter(f=>/^note-.*\.json$/.test(f)):[];
@@ -69,9 +73,9 @@ const LIG=[['survie mediane (s)','survie_mediane_s'],['argent par minute','argen
 for(const f of notes){
   let n;try{n=JSON.parse(fs.readFileSync(path.join(RES,f),'utf8'));}catch(e){continue;}
   if(!n.note)continue;
-  console.log(`\n--- Sacha (${parties.length} parties) contre « ${n.cerveau} » (${n.note.parties} courses, ${n.jeu}, ${n.tmax} s au plus) ---`);
-  console.log('| mesure | Sacha | '+n.cerveau+' | bot / Sacha |\n|---|---|---|---|');
+  console.log(`\n--- ${NOM} (${parties.length} parties) contre « ${n.cerveau} » (${n.note.parties} courses, ${n.jeu}, ${n.tmax} s au plus) ---`);
+  console.log('| mesure | '+NOM+' | '+n.cerveau+' | bot / '+NOM+' |\n|---|---|---|---|');
   for(const [nom,k] of LIG){const s=B[k],b=n.note[k];console.log(`| ${nom} | ${s} | ${b} | ${s?Math.round(100*b/s)+' %':'—'} |`);}
   if(n.tmax)console.log(`(les courses du bot sont coupees a ${n.tmax} s : sa survie est plafonnee, ses taux par minute ne le sont pas)`);
 }
-console.log('\necrit : '+path.relative(process.cwd(),path.join(RES,'etalon.json')));
+console.log('\necrit : '+path.relative(process.cwd(),path.join(RES,SORTIE)));
