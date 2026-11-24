@@ -40,6 +40,16 @@
    `?sans=jadev3` rend la vallée d'avant (genJade1) ; `?jscene=russes,couloir` impose les premières scènes. Les décors : JADE.deco3 (tours, îles, cascades :
    jadeDeco3Pose, jade-3) et JADE.pose (les pics au bord, comme avant) ; JADE.zc3 : les scènes où rien ne se pose au hasard près de la route. */
 const JADE_V3=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadev3(,|&|$)/.test(location.search);
+/* ===== LE DÉGAGEMENT DES ÎLOTS (2026-11-24, Sacha : « des bugs d'îlots générés trop proches de la route dans Jade ») =====
+   Aucun îlot n'entrait dans le couloir de conduite, mais les marges VOULUES étaient petites (île de bord 2,5 m, tour 5 m, pic toléré à gap − 3 m) et la garde `libre`
+   (jadeDeco3Pose) ne lisait la route qu'en 3 points de sa largeur, tous les ~10 m : une rangée étroite passait entre deux points. Or la roche ne tue qu'EN VOL (jadeHeurt) :
+   une île à 7 m du bord est sans danger en roulant et en plein dans la trajectoire dès qu'on saute. Maintenant : la route lue en 5 points de sa largeur tous les ~5 m ;
+   île de scène à 10 m au moins (île de bord : 8 m, et elle RECULE au lieu d'être refusée), tour sans marge voulue à 8 m, pic de scène visé à 6 m au moins ; et LE VOL
+   PROCHE : au-dessus de la dalle, rien de tout cela sous 14 m (`haut` : le saut nitro allongé culmine à ~8 m, et la route descend sous lui). Les roches VOULUES contre la
+   route gardent leurs marges : les îles des verbes (o.av : mésas sous la dalle, toits du saute-mouton et de la galerie, essaim) et les tours à `clr` (parois des virages
+   relevés, colonnes du viaduc, cœurs des boucles). La ROUTE ne change pas (genJade* n'est pas touché) ; le décor d'une graine, si. `?sans=jadedegage` = les marges d'avant. */
+const JADE_DEG=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadedegage(,|&|$)/.test(location.search);
+const JADE_DEGM={ile:10,bord:8,tour:8,pic:6,haut:14,recul:2};
 const JADE_A={essais:10,force:typeof location==='undefined'?null:((/[?&]jscene=([a-z,]+)/.exec(location.search)||[])[1]||null),bank:20*Math.PI/180,demi:5};
 const JA_FAM=[{autres:['plongee','ilots','chas','mur'],env:'couloir',rac:['spirale','stade']},{autres:['tours','cascade','russes','voute'],env:'envers',rac:['colimacon','puits']}];
 const JA_CLES=['plongee','couloir','ilots','chas','mur','spirale','stade','tours','cascade','russes','voute','envers','colimacon','puits','balcon'];
@@ -362,12 +372,17 @@ function* jadeDeco3Pose(X){
     for(let y=0;y<G9.ny;y++){let m=0;const o9=nx*nz*y;for(let j=0;j<nz;j++)for(let i=0;i<nx;i++)if(d9[o9+i+nx*j]){const e=(i+.5-M9)*(i+.5-M9)+(j+.5-M9)*(j+.5-M9);if(e>m)m=e;}rY[y]=m>0?(Math.sqrt(m)+.71)*VX:0;}
     return T9.rY=rY;};
   /* la dalle (sur toute sa largeur) et la caisse (4 m au-dessus) n'entrent pas dans la montagne gonflée de `marge` : à la hauteur de chaque point, le rayon de SA rangée (et des voisines à moins de marge) */
-  const libre=(cx,cz,T9,yb,yt,inv,marge,sc)=>{sc=sc||1;const rY=rayons(T9),ny=rY.length,H9=ny*VX*sc,rmx=T9.rmax*VX*sc;let ok=true; /* sc (2026-11-14) : une île jumelle à son échelle (jadeFormeChoix().echelle) */
-    X.proches(cx,cz,rmx+ROAD_HALF+marge+8,function(i){if(!ok)return;const p=pts[i],b=B[i],nn=Nn[i];
-      for(let w=-1;w<=1;w++)for(let u=0;u<=4;u+=4){const x=p.x+b.x*ROAD_HALF*w+nn.x*u,y=p.y+b.y*ROAD_HALF*w+nn.y*u,z=p.z+b.z*ROAD_HALF*w+nn.z*u;
-        const hy=inv?yt-y:y-yb;if(hy<-marge||hy>H9+marge)continue;const dh=Math.hypot(x-cx,z-cz);if(dh>rmx+marge)continue;
-        let rr=0;for(let k9=Math.max(0,Math.floor((hy-marge)/(VX*sc))),k1=Math.min(ny-1,Math.floor((hy+marge)/(VX*sc)));k9<=k1;k9++)if(rY[k9]*sc>rr)rr=rY[k9]*sc;
-        if(dh<rr+marge){ok=false;JADE.n3.der={i:i,hy:Math.round(hy),dh:Math.round(dh),rr:Math.round(rr),H:Math.round(H9),w:w,u:u};return;}}});return ok;};
+  /* (2026-11-24, LE DÉGAGEMENT) la route lue plus fin — 5 places de la largeur (le pas de jadeAvAncre) et le point à mi-chemin de deux points de la grille (~5 m) ; les HAUTEURS ne changent
+     pas (0 et 4 m : le plancher d'un toit reste 4 m + sa marge). mA : la marge quand la roche est AU-DESSUS du point (le vol proche) ; sans elle, `marge` partout, comme avant. */
+  const dm9=JADE_DEG?Math.max(1,Math.round(5/(L/(NP-1)))):0,W9=JADE_DEG?[-1,-.5,0,.5,1]:[-1,0,1];
+  const libre=(cx,cz,T9,yb,yt,inv,marge,sc,mA)=>{sc=sc||1;if(mA==null)mA=marge;const rY=rayons(T9),ny=rY.length,H9=ny*VX*sc,rmx=T9.rmax*VX*sc,mI=inv?mA:marge,mS=inv?marge:mA;let ok=true; /* sc (2026-11-14) : une île jumelle à son échelle (jadeFormeChoix().echelle) */ /* mI, mS : les marges du côté des rangées hautes et du côté des rangées basses (la renversée a ses rangées à l'envers) */
+    const vu=function(i){const p=pts[i],b=B[i],nn=Nn[i];
+      for(const w of W9)for(let u=0;u<=4;u+=4){const x=p.x+b.x*ROAD_HALF*w+nn.x*u,y=p.y+b.y*ROAD_HALF*w+nn.y*u,z=p.z+b.z*ROAD_HALF*w+nn.z*u;
+        const hy=inv?yt-y:y-yb;if(hy<-mS||hy>H9+mI)continue;const dh=Math.hypot(x-cx,z-cz);if(dh>rmx+marge)continue;
+        let rr=0;for(let k9=Math.max(0,Math.floor((hy-mI)/(VX*sc))),k1=Math.min(ny-1,Math.floor((hy+mS)/(VX*sc)));k9<=k1;k9++)if(rY[k9]*sc>rr)rr=rY[k9]*sc;
+        if(dh<rr+marge){ok=false;JADE.n3.der={i:i,hy:Math.round(hy),dh:Math.round(dh),rr:Math.round(rr),H:Math.round(H9),w:w,u:u,x:x,z:z,manque:rr+marge-dh};return;}}};
+    X.proches(cx,cz,rmx+ROAD_HALF+marge+8+(dm9?6:0),function(i){if(!ok)return;vu(i);if(ok&&dm9)vu(Math.min(NP-1,i+dm9));});return ok;};
+  const mHaut=m=>JADE_DEG?Math.max(m,JADE_DEGM.haut-4):m; /* LE VOL PROCHE : la roche au-dessus de la dalle, à `haut` m au moins (les hauteurs lues s'arrêtent à 4 m) */
   const voisin=(cx,cz,rm,bas,haut)=>X.pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9&&haut>q[3]-6&&bas<q[4]+6;});
   if(L3)for(const o of L3){oC=o;if(performance.now()>JF.lim)yield;
     if(o.t==='tour'){const span=o.top-o.foot,cand=X.FC?X.FC.tours(o.r,span,o.x,o.z):[];if(!X.FC)for(let t=0;t<JADE_NTPL;t++)if(X.G.p[t].rmax*VX<=o.r)cand.push(t); /* (2026-11-14, LES FORMES) X.FC : toute forme haute de la palette qui tient dans le cercle, assez haute d'abord, puis à la note (jadeFormeChoix) */
@@ -377,14 +392,20 @@ function* jadeDeco3Pose(X){
         const sc0=X.FC&&X.FC.echelleTour?X.FC.echelleTour(t,cx,cz,Math.min(1,span/(T9.yTop*VX)),o.r/(T9.rmax*VX)):1;
         for(const sc of sc0!==1?[sc0,1]:[1]){const rm=T9.rmax*VX*sc,Hs=T9.yTop*VX*sc;
         if(yt-Hs<JADE.merY+20){non('tour-abime');continue;}
-        if(!libre(cx,cz,T9,yt-Hs,yt,o.inv,o.clr!=null?Math.max(2,o.clr-ROAD_HALF):5,sc)){non('tour-route');continue;}if(voisin(cx,cz,rm,yt-Hs,yt)){non('tour-voisin');continue;}if(!jadeVolLibre(X.CV,cx,cz,rm,yt-Hs,yt)){non('tour-vol');continue;}
-        const q9=[cx,cz,rm,yt-Hs,yt,t,(X.jr()*4)|0,X.jr(),ROAD_HALF+12];if(sc!==1)q9.sc=sc;if(o.inv)q9.inv=1;if(X.FC)q9[6]=X.FC.rot(t,cx,cz,q9[6],q9.inv);X.pose(q9);JADE.n3.tours++;ok=true;break;}
+        const mT=o.clr!=null?Math.max(2,o.clr-ROAD_HALF):JADE_DEG?JADE_DEGM.tour:5; /* (LE DÉGAGEMENT) 8 m, sauf la marge VOULUE d'une paroi, d'une colonne de viaduc, d'un cœur de boucle (clr) */
+        if(!libre(cx,cz,T9,yt-Hs,yt,o.inv,mT,sc,o.clr!=null?mT:mHaut(mT))){non('tour-route');continue;}if(voisin(cx,cz,rm,yt-Hs,yt)){non('tour-voisin');continue;}if(!jadeVolLibre(X.CV,cx,cz,rm,yt-Hs,yt)){non('tour-vol');continue;}
+        const q9=[cx,cz,rm,yt-Hs,yt,t,(X.jr()*4)|0,X.jr(),ROAD_HALF+12];if(sc!==1)q9.sc=sc;if(o.inv)q9.inv=1;if(X.FC)q9[6]=X.FC.rot(t,cx,cz,q9[6],q9.inv);q9.ori=o.clr!=null?'tour-clr':'tour';X.pose(q9);JADE.n3.tours++;ok=true;break;} /* q9.ori : l'origine, pour le banc (dbgJadePil) */
         if(ok)break;}
       if(!ok){JADE.n3.refus++;if(!cand.length)non('tour-aucun-gabarit');}}
-    else{let ok=false;const LI=X.FC?X.FC.iles(o.r,o.massif,o.cascDir||o.casc||(o.av&&o.av.plat),o.x,o.z):null;for(let e=0;e<3&&!ok;e++){const t=LI?(e<LI.length?LI[e]:-1):Math.max(o.massif?JADE_ILE0+4:JADE_ILE0,jadeIleDe(o.r,o.massif)-e),T9=X.G.p[t];if(!T9)break;if(o.inv&&LI&&X.FC.droit(t))continue;const hA=o.av&&o.av.anc==='haut',sc=X.FC&&!hA?X.FC.echelle(t,o.x,o.z):1,rm=T9.rmax*VX*sc,Hs=T9.yTop*VX*sc,cx=X.snap(o.x),cz=X.snap(o.z);if(hA&&rm>o.r*1.35){non('ile-trop-large');continue;} /* (LES VERBES) l'île sous la dalle : à son échelle, et pas plus large que son palier */
+    else{let ok=false;const LI=X.FC?X.FC.iles(o.r,o.massif,o.cascDir||o.casc||(o.av&&o.av.plat),o.x,o.z):null;for(let e=0;e<3&&!ok;e++){const t=LI?(e<LI.length?LI[e]:-1):Math.max(o.massif?JADE_ILE0+4:JADE_ILE0,jadeIleDe(o.r,o.massif)-e),T9=X.G.p[t];if(!T9)break;if(o.inv&&LI&&X.FC.droit(t))continue;const hA=o.av&&o.av.anc==='haut',sc=X.FC&&!hA?X.FC.echelle(t,o.x,o.z):1,rm=T9.rmax*VX*sc,Hs=T9.yTop*VX*sc;let cx=X.snap(o.x),cz=X.snap(o.z);if(hA&&rm>o.r*1.35){non('ile-trop-large');continue;} /* (LES VERBES) l'île sous la dalle : à son échelle, et pas plus large que son palier */
         let yt=Math.round((o.y+Hs/2)/VX)*VX;if(o.av)yt=jadeAvAncre(o,X,cx,cz,rm,Hs,yt); /* (JADE, LES VERBES) l'île SOUS la dalle, le toit */if(yt-Hs<JADE.merY+20)yt=Math.ceil((JADE.merY+20+Hs)/VX)*VX;
-        if(!libre(cx,cz,T9,yt-Hs,yt,o.inv,o.av&&o.av.m!=null?o.av.m:o.coeur?3:o.bord?2.5:6,sc)){non('ile-route'+(o.coeur?'-coeur':o.bord?'-bord':''));continue;}if(voisin(cx,cz,rm,yt-Hs,yt)){non('ile-voisin');continue;}if(!jadeVolLibre(X.CV,cx,cz,rm,yt-Hs,o.av&&o.av.anc==='haut'?yt-14:yt)){non('ile-vol');continue;} /* (LES VERBES) une île SOUS la dalle : le vol, qui se pose sur la dalle, ne descend pas dans sa roche */
-        const q9=[cx,cz,rm,yt-Hs,yt,t,(X.jr()*4)|0,X.jr(),o.dR!=null?o.dR:ROAD_HALF+30];if(sc!==1)q9.sc=sc;if(o.inv)q9.inv=1;if(X.FC)q9[6]=X.FC.rot(t,cx,cz,q9[6],q9.inv);X.pose(q9);if(o.av)o.av.q=q9;JADE.n3.iles++;ok=true;
+        const mI=o.av&&o.av.m!=null?o.av.m:JADE_DEG&&!o.av?(o.bord?JADE_DEGM.bord:JADE_DEGM.ile):o.coeur?3:o.bord?2.5:6,mA9=o.av?mI:mHaut(mI); /* (LE DÉGAGEMENT) 10 m, 8 m au bord ; une île des verbes (o.av) garde sa marge */
+        let li9=libre(cx,cz,T9,yt-Hs,yt,o.inv,mI,sc,mA9);
+        /* L'ÎLE DE BORD RECULE (au plus `recul` fois, du manque mesuré + un cube et demi, à l'opposé du point de route fautif) au lieu d'être refusée : elle reste dans la scène, plus loin. Aucun tirage. */
+        if(!li9&&JADE_DEG&&o.bord&&!o.av){let fx=o.x,fz=o.z;for(let rc=0;rc<JADE_DEGM.recul&&!li9;rc++){const d9=JADE.n3.der,ex=cx-d9.x,ez=cz-d9.z,l9=Math.hypot(ex,ez);if(l9<1)break;const pas9=d9.manque+VX*1.5;fx+=ex/l9*pas9;fz+=ez/l9*pas9;cx=X.snap(fx);cz=X.snap(fz);
+            li9=libre(cx,cz,T9,yt-Hs,yt,o.inv,mI,sc,mA9);}if(li9)JADE.n3.recules=(JADE.n3.recules||0)+1;}
+        if(!li9){non('ile-route'+(o.coeur?'-coeur':o.bord?'-bord':''));continue;}if(voisin(cx,cz,rm,yt-Hs,yt)){non('ile-voisin');continue;}if(!jadeVolLibre(X.CV,cx,cz,rm,yt-Hs,o.av&&o.av.anc==='haut'?yt-14:yt)){non('ile-vol');continue;} /* (LES VERBES) une île SOUS la dalle : le vol, qui se pose sur la dalle, ne descend pas dans sa roche */
+        const q9=[cx,cz,rm,yt-Hs,yt,t,(X.jr()*4)|0,X.jr(),o.dR!=null?o.dR:ROAD_HALF+30];if(sc!==1)q9.sc=sc;if(o.inv)q9.inv=1;if(X.FC)q9[6]=X.FC.rot(t,cx,cz,q9[6],q9.inv);q9.ori=o.av?'ile-av':o.bord?'ile-bord':'ile';X.pose(q9);if(o.av)o.av.q=q9;JADE.n3.iles++;ok=true;
         /* LES CASCADES : du bord de l'île vers le vide — `cascDir` : celle qui tombe en travers de la route */
         const nc=o.cascDir?1:(o.casc|0);for(let c=0;c<nc;c++)for(let es=0;es<(X.FC&&!o.cascDir?6:1);es++){const d=o.cascDir? /* (2026-11-14, LES FORMES) es : une cascade au hasard qui traverserait le couloir de conduite est retirée dans une autre direction (six essais) — celle d'une scène (cascDir) est voulue en travers */o.cascDir:(function(){const an=X.jr()*6.2832;return [Math.cos(an),Math.sin(an)];})();
           const lg=Math.min(ALLEGE?420:900,Math.max(120,yt-JADE.eauY)*(o.cascDir?.95:.6+X.jr()*.3));
