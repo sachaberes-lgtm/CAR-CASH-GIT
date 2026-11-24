@@ -10,10 +10,12 @@ const { ouvre, dormir } = require('../banc-achats/pilote.cjs');
 const FAUX_AD = fs.readFileSync(path.join(__dirname, 'admob-faux.js'), 'utf8'), FAUX_SK = fs.readFileSync(path.join(__dirname, '..', 'banc-achats', 'storekit-faux.js'), 'utf8');
 const RACINE = path.resolve(__dirname, '..', '..');
 let rates = 0;
+const OUVERTS = [];
 const ok = (v, quoi, detail) => { console.log((v ? '  ✓ ' : '  ✗ ') + quoi + (detail !== undefined ? '  — ' + (typeof detail === 'string' ? detail : JSON.stringify(detail)) : '')); if (!v) rates++; };
 
 async function session(dossier, { admob = true, web = false } = {}) {
-  const J = await ouvre({ dossier, web: true }); /* web:true pour le pilote = pas de maj.json ni d'attente de __sk : le faux natif est posé ici */
+  const J = await ouvre({ dossier, web: true });
+  { const f9 = J.ferme; let fait = false; J.ferme = async () => { if (fait) return; fait = true; await f9(); }; OUVERTS.push(J); } /* fermé même si le banc s'arrête en route (sinon des Chrome restent allumés) */ /* web:true pour le pilote = pas de maj.json ni d'attente de __sk : le faux natif est posé ici */
   if (!web) await J.c.send('Page.addScriptToEvaluateOnNewDocument', { source: FAUX_SK });
   if (admob && !web) await J.c.send('Page.addScriptToEvaluateOnNewDocument', { source: FAUX_AD });
   await J.vide(); await J.seme({ chanceG: 0, spinBoost: 0, jetons: 0 });
@@ -183,7 +185,7 @@ async function session(dossier, { admob = true, web = false } = {}) {
     ok(J.erreurs.length === 0, 'aucune exception JS (site)', J.erreurs.slice(0, 5));
     await J.ferme();
   } catch (e) { console.log('  ✗ le banc s\'est arrêté : ' + (e && e.stack || e)); rates++; }
-  finally { try { fs.rmSync(S, { recursive: true, force: true }); } catch (e) {} }
+  finally { for (const J of OUVERTS) { try { await J.ferme(); } catch (e) {} } try { fs.rmSync(S, { recursive: true, force: true }); } catch (e) {} }
   console.log(rates ? `✗ ${rates} contrôle(s) en échec` : '✓ tous les contrôles passent');
   process.exit(rates ? 1 : 0);
 })();

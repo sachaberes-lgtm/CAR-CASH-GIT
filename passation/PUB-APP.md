@@ -43,7 +43,12 @@ Rien sur `main`, rien d'envoyé à Apple, rien d'installé sur l'iPhone sans le 
 - 23/11, nuit (16 Go libérés par Sacha) : `npm run sync` puis compilation SIMULATEUR Debug sans signature : **BUILD SUCCEEDED**. L'app
   construite contient GoogleMobileAds.framework, UserMessagingPlatform.framework, le module AdMob, GADApplicationIdentifier (test), 50
   SKAdNetworkItems, fr.lproj / en.lproj, et la régie dans le jeu. Rien d'installé sur l'iPhone, rien d'envoyé à Apple.
-- RESTE : lancer au simulateur et regarder les vraies pubs de TEST de Google (CONTINUER vu jusqu'au bout, double appui, le son qui se coupe).
+- 24/11, 12 h 40 (oui de Sacha « lance-la ») : simulateur iPhone 17 Pro créé (il n'en restait aucun, iOS 26.5), app installée et lancée.
+  VU : au lancement, le formulaire de consentement de Google (version de test « Publisher Test Ads ») ; « Consent » touché ; puis la
+  fenêtre d'Apple « Autoriser « CASH CAR » à suivre… » avec NOTRE phrase en français ; « ne pas me suivre » touché ; le jeu démarre
+  (écran TOUCHE, intro 1.61). Pas encore vu : une vraie mort avec CONTINUER ▶ PUB et la vidéo de test (installation neuve = auto-école
+  d'abord ; Mac très chargé, charge ~160) → Sacha joue dans le panneau du simulateur.
+- Le 24/11 j'ai arrêté 4 Chrome sans fenêtre laissés par mes passages du banc (profils banc-achats-*) ; le banc les ferme désormais toujours.
 
 ## LE BANC (`node outils/banc-pub/banc.cjs`, Chrome sans fenêtre et muet, faux module AdMob ; `--sonde` : l'écran de fin toutes les 400 ms)
 Il tourne sur le jeu du dépôt avec un faux Capacitor (l'édition de l'app retire les crochets dbg* à la fabrication). Quatre passages le 23/11,
