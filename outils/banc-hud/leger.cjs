@@ -52,11 +52,15 @@ const SONDE = `(function(){
 
 /* les couches plein écran (voiles, toiles du jeu, zone du volant) et le décor ne sont pas des blocs du HUD */
 const FOND = /^(tSteer|touchCtl|c|cv|gl|jeu|scene|slCv|juiceCv|cloudFx|vig|beatFx|scan|speedFx|feverGlow|flash|flowGlow|pwrFx|launchGlow|mepTemoin|bordsFx|telCadre|\?)$/;
+/* (2026-11-24, Sacha : « remets la barre de air time sur le Vercel ») le bloc AIR (#airHud) est revenu sur le site : il n'est interdit que là où <html> n'a pas la classe `barreAir`
+   (l'app : --q "app=1" ; l'état d'avant : --q "sans=barreair"). Le moment « vol-air » attend, lui, qu'il se voie hors de l'app et qu'il reste caché dans l'app. */
+const BARRE_AIR = !/(^|&)app=1(&|$)|(^|&)sans=([^&]*,)?barreair(,|&|$)/.test(A.q || '');
 const INTERDITS = ['auraV2', 'airHud', 'nxVit', 'speedo', 'm2Ligne', 'm2Focus', 'fil', 'fh', 'auraHud', 'money', 'carInfo', 'cpInfo'];
 function pleinEcran(b, vp) { return b.w >= vp[0] * .9 && b.h >= vp[1] * .6; }
 function controle(s, nom) {
   const pb = [], K = Object.keys(s.B).filter(k => !FOND.test(k) && !pleinEcran(s.B[k], s.vp));
-  for (const k of K) if (INTERDITS.indexOf(k) >= 0) pb.push(nom + ' : ' + k + ' se voit encore ' + JSON.stringify(s.B[k]));
+  const barre = (' ' + (s.html || '') + ' ').indexOf(' barreAir ') >= 0;
+  for (const k of K) if (INTERDITS.indexOf(k) >= 0 && !(k === 'airHud' && barre)) pb.push(nom + ' : ' + k + ' se voit encore ' + JSON.stringify(s.B[k]));
   for (const k of K) { const b = s.B[k]; if (b.l < 0 || b.t < 0 || b.r > s.vp[0] || b.b > s.vp[1]) pb.push(nom + ' : ' + k + ' sort de l\'écran ' + JSON.stringify(b)); }
   for (let i = 0; i < K.length; i++) for (let j = i + 1; j < K.length; j++) {
     const a = s.B[K[i]], b = s.B[K[j]], w = Math.min(a.r, b.r) - Math.max(a.l, b.l), h = Math.min(a.b, b.b) - Math.max(a.t, b.t);
@@ -90,11 +94,13 @@ const MOMENTS = CALME ? [
   { n: 'figures-vol-cote', js: "dbgRappel(0);dbgRappel(1,1,0)", att: 700, voit: ['fhLeg'], paysage: 1 },
   { n: 'figures-vol-gaucher', js: "document.body.classList.add('gaucher');dbgRappel(0);dbgRappel(1,0,-1)", att: 700, voit: ['fhLeg'], paysage: 1 },
   { n: 'figures-vol-fin', js: "document.body.classList.remove('gaucher');dbgRappel(0)", att: 400 },
-  { n: 'frenesie', js: "dbgFren('v',100);dbgFren('entre')", att: 2500 },
+  /* (2026-11-24) LE VOL : le bloc AIR se voit (hors de l'app), au-dessus des lignes de pouvoir, sans rien toucher ; dans l'app (--q "app=1") il reste caché (INTERDITS) */
+  { n: 'vol-air', js: "dbgPwr('n');dbgPwr('v');dbgPwr('m');dbgAuto(true,0,{vol:true,saut:.3,imp:30})", attend: "dbgState().mode==='fall'&&document.getElementById('airPie').style.display==='block'", att: 380, vol: 1, voit: BARRE_AIR ? ['airHud'] : [] },
+  { n: 'frenesie', js: "dbgAuto(true,0,{vol:true});dbgFren('v',100);dbgFren('entre')", att: 2500 },
   { n: 'pause', js: 'window.__panBascule()', att: 1200, sansControle: 1 },
 ];
 
-module.exports = { SONDE, controle, FORMATS, UA, SAVE }; /* (vie.cjs réutilise la sonde et le contrôle) */
+module.exports = { SONDE, controle, FORMATS, UA, SAVE, BARRE_AIR }; /* (vie.cjs réutilise la sonde et le contrôle) */
 if (require.main === module) (async () => {
   for (const p of [P_HTTP, P_CDP]) if (!portLibre(p)) { console.error('port occupé :', p); process.exit(2); }
   fs.mkdirSync(OUT, { recursive: true });
@@ -135,10 +141,17 @@ if (require.main === module) (async () => {
       for (const m of MOMENTS) {
         let ok = '';
         if (m.js) { try { await c.ev(m.js + ';1'); } catch (e) { ok += ' js:' + e.message.slice(0, 160); } }
-        await dormir(m.att);
-        let s = null; try { s = JSON.parse(await c.ev(SONDE)); } catch (e) { ok += ' sonde:' + e.message.slice(0, 120); }
+        let s = null, enVol = true;
+        for (let essai = 0; essai < (m.vol ? 5 : 1); essai++) { /* un moment « en vol » se reprend si la caisse s'est posée avant la sonde (les vols du pilote sont courts) */
+          if (m.attend) for (let i = 0; i < 100; i++) { try { if (await c.ev(m.attend)) break; } catch (e) {} await dormir(100); }
+          await dormir(m.att);
+          try { s = JSON.parse(await c.ev(SONDE)); } catch (e) { ok += ' sonde:' + e.message.slice(0, 120); }
+          if (m.vol) { try { enVol = await c.ev("dbgState().mode==='fall'"); } catch (e) { enVol = false; } }
+          if (enVol) break;
+        }
         await photo(m.n); /* la sonde AVANT la photo : une capture prend jusqu'à 0,6 s sur une machine chargée, et le HUD calme tombe à 3 s (0,9 s avant le 2026-11-22) */
         const r = { ok, sonde: s, pb: [] };
+        if (!enVol) { r.horsVol = fmt + '-' + m.n + ' : la caisse n\'est pas en vol après 5 essais, le moment n\'est PAS contrôlé'; echecs++; console.log('   ✗ ' + r.horsVol); } /* (2026-11-24, contrôle du lot) un vol manqué est un ÉCHEC du banc : sinon une barre disparue passerait sur une machine chargée */
         if (s && !m.sansControle) {
           const k = controle(s, fmt + '-' + m.n); r.blocs = k.blocs; r.pb = k.pb;
           /* un chevauchement ne compte que s'il DURE : la colonne se range dix fois par seconde, un bloc qui change de taille peut mordre le suivant le temps d'un passage */
@@ -147,7 +160,7 @@ if (require.main === module) (async () => {
               r.passagers = r.pb.filter(p => dure.indexOf(cle(p)) < 0); r.pb = r.pb.filter(p => dure.indexOf(cle(p)) >= 0); for (const p of r.passagers) console.log('   ~ (passager, parti en 0,35 s) ' + p); } }
           if (m.vide) { const reste = k.blocs.filter(b => ['tGear', 'fil'].indexOf(b) < 0) /* (2026-11-13, Sacha) en calme tout s'efface, argent, moteur et textes compris */; if (reste.length) r.pb.push(fmt + '-' + m.n + ' : HUD calme, il reste ' + reste.map(b => b + ' (opacité ' + s.B[b].op + ')').join(', ')); if (k.blocs.indexOf('tGear') < 0) r.pb.push(fmt + '-' + m.n + ' : le bouton pause a disparu'); }
           if (m.paysage && W < H && k.blocs.indexOf('fhLeg') >= 0) r.pb.push(fmt + '-' + m.n + ' : le rappel des figures se voit debout (paysage seulement)');
-          if (m.voit && !(m.paysage && W < H)) for (const b of m.voit) if (k.blocs.indexOf(b) < 0 && !(b === 'fil' && /ebOn/.test(s.body))) r.pb.push(fmt + '-' + m.n + ' : ' + b + ' devrait se voir (corps : ' + s.body.slice(0, 110) + ')');
+          if (m.voit && enVol && !(m.paysage && W < H)) for (const b of m.voit) if (k.blocs.indexOf(b) < 0 && !(b === 'fil' && /ebOn/.test(s.body))) r.pb.push(fmt + '-' + m.n + ' : ' + b + ' devrait se voir (corps : ' + s.body.slice(0, 110) + ')');
           if (m.tout) for (const b of ['tGear', 'nitroWrap', 'flowHud', 'cashHud', 'tNitro']) if (k.blocs.indexOf(b) < 0) r.pb.push(fmt + '-' + m.n + ' : ' + b + ' devrait se voir');
         }
         rapport[m.n] = r; echecs += r.pb.length;

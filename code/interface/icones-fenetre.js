@@ -12,6 +12,15 @@ const DEV=location.protocol==='file:'||/[?&]dev=/.test(location.search)||
   /^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)$|\.(local|localhost|test)$/.test(location.hostname);
 function qDev(re){return DEV&&re.test(location.search);}
 if(EN_APP)try{document.documentElement.classList.add('ccApp');}catch(e){}
+/* ===== LA BARRE D'AIR TIME REVIENT SUR LE SITE (2026-11-24, Sacha : « remets la barre de air time sur le Vercel ») =====
+   BARRE_AIR : le bloc AIR de la colonne de droite (#airHud : les secondes de vol, la barre, la 2e barre du raisin) se voit de nouveau sur TOUT le site (ordinateur et téléphone au navigateur).
+   L'app iPhone (EN_APP) reste sans barre, comme depuis le HUD léger du 12/11. La classe `barreAir` sur <html> sert au CSS (css/hud-leger.css §1) : sans elle, le bloc reste caché.
+   `?sans=barreair` = l'état d'avant (cachée partout).
+   LE DOUBLON DU RAISIN (Sacha, 12/11, sur photo : « pourquoi y a une grosse barre blanche et la même en petit en bas ») : en vol, le raisin se lit déjà dans le bloc AIR (sa 2e barre, rose et blanche) ;
+   sa ligne de pouvoir AIR MAX, juste dessous (la même aile, une barre blanche plus fine), disait deux fois la même chose. Tant que le bloc AIR est à l'écran, cette ligne s'efface (classe `airSeul`,
+   css/hud-leger.css §1) ; au sol elle revient, avec les secondes qui restent au pouvoir. `?sans=airseul` = la ligne reste en vol. */
+const BARRE_AIR=!EN_APP&&!/[?&]sans=([^&]*,)?barreair(,|&|$)/.test(location.search);
+if(BARRE_AIR)try{document.documentElement.classList.add('barreAir');if(!/[?&]sans=([^&]*,)?airseul(,|&|$)/.test(location.search))document.documentElement.classList.add('airSeul');}catch(e){}
 window.CC_DEV=DEV;window.CC_EN_APP=EN_APP;
 /* COUCHÉ, UNE SEULE DÉFINITION (2026-11-05, Opus : jury INT-26) : le CSS dit « couché » quand l'écran est en paysage ET bas (≤ 540 px), ou en
    paysage large (≥ 3/2) jusqu'à 820 px de haut ; le JS avait deux autres règles (ratio > 1,25 aux missions, > 1 au HUD des figures). estCouche()

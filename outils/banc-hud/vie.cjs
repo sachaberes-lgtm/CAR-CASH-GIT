@@ -19,39 +19,43 @@ const LIGNES = n => `(function(){var L=document.querySelectorAll('#pwrChip .pl')
 const PAUSE = `(window.__panBascule?window.__panBascule():(document.getElementById('tPanel').classList.contains('open')?document.querySelector('#tPanel [data-a=close]').click():document.getElementById('tGear').click()))`;
 /* ce que le HUD calme laisse à l'écran (Sacha, 12/11) : le ⏸, la frénésie (DARK TRIAD, TRIPLE MONSTER), l'argent, le moteur et ses paliers, les petits textes d'effets, les noms de figures */
 const RESTENT = ['tGear', 'triade', 'frenChrono', 'frenTraits', 'frenTitre', 'cashHud', 'engVig', 'engPop', 'msg', 'trickBox', 'popTxt', 'fil'];
+const APP_OU_SANS = /(^|&)app=1(&|$)|(^|&)sans=([^&]*,)?barreair(,|&|$)/.test(A.q || ''); /* (2026-11-24) là où la barre d'air time reste cachée */
 const PAS_CALME = `(document.body.classList.contains('hudCalme')?'hudCalme encore posé':'')`;
+/* (2026-11-24, contrôle du lot) LES ATTENTES DU CALME : il tombe 3 s après le nitro depuis le 2026-11-22 (0,9 s avant) — les étapes qui l'attendent (02b, 05, 08, 12) patientent 3,6 s (1,9 à 2,2 s avant : 7 faux problèmes par passage). */
 /* les étapes : n nom · js · att attente (ms) · voit / pasVu · vide (seul le pause) · verif (expression → '' ou le problème) · sans (pas de contrôle des chevauchements : un autre écran est dessus) · op (action du banc) */
 const ETAPES = [
   { n: '01-charge', js: "dbgAuto(true,0,{nit:1,vol:true});dbgPwr('n');dbgPwr('a');dbgPwr('v');dbgHud('flow',60);dbgHud('chaine',3);dbgLeFil('TONNEAU +45',1)", att: 1500, voit: BASE.concat('pwrChip'), verif: LIGNES(3) },
   { n: '02-frenesie', js: "dbgFren('v',100);dbgFren('entre')", att: 2500, voit: BASE },
   /* (2026-11-12, Sacha : « laisse la dark triad et le triple monstre ») frénésie + nitro lâché : le calme efface tout sauf le pause, l'emblème DARK TRIAD et le titre TRIPLE MONSTER */
-  { n: '02b-frenesie-calme', js: 'dbgAuto(true,0,{nit:0,vol:true})', att: 1900, tel: { calmeFren: 1 }, autre: { voit: BASE },
+  { n: '02b-frenesie-calme', js: 'dbgAuto(true,0,{nit:0,vol:true})', att: 3600, tel: { calmeFren: 1 }, autre: { voit: BASE },
     verif: `(document.getElementById('triade').classList.contains('on')?(document.body.classList.contains('hudCalme')||!${TEL}?'':'HUD calme pas posé pendant la frénésie'):'frénésie finie (non contrôlé)')` },
   { n: '03-mort', js: 'dbgBoom()', att: 3500, pasVu: ['nitroWrap', 'flowHud', 'pwrChip', 'tNitro'], sans: 1, verif: `(${PAS_CALME}||(dbgState().gameOver?'':'la caisse n\\'est pas morte'))` },
   { n: '04-relance', op: 'jouer', js: 'dbgAuto(true,0,{nit:1,vol:true})', att: 2500, voit: BASE, pasVu: ['pwrChip'], verif: `(${PAS_CALME}||(document.querySelectorAll('#pwrChip .pl').length?'des lignes de pouvoir restent de la partie d\\'avant':'')||(document.getElementById('flowHud').dataset.lv>0?'le flow n\\'est pas revenu à zéro : '+document.getElementById('flowHud').dataset.lv:''))` },
-  { n: '05-lache', js: 'dbgAuto(true,0,{nit:0,vol:true})', att: 1900, tel: { vide: 1 }, autre: { voit: BASE } },
-  /* un nom de figure qui tombe pendant le calme RESTE (et l'argent aussi) : Sacha a laissé au calme les petits textes d'effets */
-  { n: '05a-nom-pendant-le-calme', js: "dbgLeFil('TONNEAU',1,'rare')", att: 500, tel: { vide: 1, voit: ['fil', 'cashHud'] }, autre: { voit: BASE } },
+  { n: '05-lache', js: 'dbgAuto(true,0,{nit:0,vol:true})', att: 3600, tel: { vide: 1 }, autre: { voit: BASE } },
+  /* un nom de figure qui tombe pendant le calme : rien ne doit revenir (2026-11-24, contrôle du lot : l'étape attendait encore le fil et l'argent, que Sacha a fait effacer au calme le 2026-11-13 — « en calme tout s'efface, argent, moteur et textes compris », voir leger.cjs) */
+  { n: '05a-nom-pendant-le-calme', js: "dbgLeFil('TONNEAU',1,'rare')", att: 500, tel: { vide: 1 }, autre: { voit: BASE } },
   { n: '05b-frenesie-pendant-le-calme', js: "dbgFren('v',100);dbgFren('entre')", att: 800, tel: { calmeFren: 1, titre: 1 }, autre: { voit: BASE } },
   { n: '06-pause', js: PAUSE, att: 1200, sans: 1, verif: `(${PAS_CALME}||(dbgState().paused?'':'la pause n\\'est pas prise'))` },
   { n: '07-reprise', js: PAUSE, op2: 'reprise', att: 0, voit: BASE, verif: `(dbgState().paused?'toujours en pause':'')` },
-  { n: '08-reprise-calme', att: 2200, tel: { vide: 1 }, autre: { voit: BASE } },
+  { n: '08-reprise-calme', att: 3600, tel: { vide: 1 }, autre: { voit: BASE } },
   /* les vrais touchers (téléphone) */
   { n: '09-volant', tel1: 1, op: 'volant', att: 600, verif: `(document.getElementById('tSteer').classList.contains('used')?'':'le volant n\\'a pas pris le toucher')` },
   { n: '10-nitro-tenu', tel1: 1, op: 'nitro', att: 700, voit: BASE, verif: `(${PAS_CALME}||(dbgHudCalme().nitro?'':'le nitro ne part pas au toucher'))` },
   { n: '11-nitro-glisse', tel1: 1, op: 'glisse', att: 500, voit: BASE, verif: `(function(){var c=document.querySelector('#tNitro canvas'),g=dbgNitro3().glisse;if(!c.style.transform)return 'la flamme ne suit pas le doigt';if(g[2]==null)return 'le glissé est lâché alors que le doigt appuie';return ''})()` },
-  { n: '12-nitro-lache', journal: 1, tel1: 1, op: 'lacheNitro', att: 1900, vide: 1, verif: `(dbgNitro3().glisse[2]!=null?'la flamme reste accrochée au doigt':'')` },
+  { n: '12-nitro-lache', journal: 1, tel1: 1, op: 'lacheNitro', att: 3600, vide: 1, verif: `(dbgNitro3().glisse[2]!=null?'la flamme reste accrochée au doigt':'')` },
   { n: '13-double-tap', tel1: 1, op: 'doubleTap', att: 900, verif: `''` },
   { n: '14-fin-des-touchers', journal: 1, tel1: 1, op: 'lacheTout', att: 400, verif: `(function(){var g=dbgNitro3().glisse;return g[2]!=null||dbgHudCalme().nitro?'un toucher est resté pris':''})()` },
-  /* LE VOL (en dernier : sans pilote la caisse quitte la route, et finit par exploser). Par défaut (ancien HUD) AUCUN temps de vol ne s'affiche — ni bloc AIR, ni anneau ; avec ?hud=d,
-     l'anneau autour du pouce. Puis le vol devient CRITIQUE : par défaut le HUD calme tient (rien à montrer) ; avec ?hud=d il se rallume pour l'anneau. */
-  { n: '15-vol', tel1: 1, op: 'vol', att: 1900, verif: `(function(){if(dbgState().mode!=='fall')return 'pas en vol (non contrôlé)';if(getComputedStyle(document.getElementById('airHud')).display!=='none')return 'le bloc AIR est revenu';
+  /* LE VOL (en dernier : sans pilote la caisse quitte la route, et finit par exploser). (2026-11-24, Sacha : « remets la barre de air time sur le Vercel ») sur le site (<html class="barreAir">) le bloc AIR
+     est allumé en vol (au calme il s'efface avec le reste du HUD) ; dans l'app (--q "app=1") et avec --q "sans=barreair" AUCUN temps de vol ne s'affiche — ni bloc AIR, ni anneau ; avec ?hud=d,
+     l'anneau autour du pouce. Puis le vol devient CRITIQUE : le HUD calme se rallume là où un temps de vol se voit (le site, ?hud=d) ; dans l'app il tient (rien à montrer). */
+  { n: '15-vol', tel1: 1, op: 'vol', att: 1900, verif: `(function(){if(dbgState().mode!=='fall')return 'pas en vol (non contrôlé)';var ba=document.documentElement.classList.contains('barreAir'),da=getComputedStyle(document.getElementById('airHud')).display;if(!ba&&da!=='none')return 'le bloc AIR se voit sans la classe barreAir (app, ?sans=barreair)';if(ba&&!${APP_OU_SANS}&&document.documentElement.dataset.hud!=='d'&&da!=='block')return 'le bloc AIR reste éteint en vol';if(${APP_OU_SANS}&&ba)return 'la classe barreAir est posée (app ou ?sans=barreair)';if(!${APP_OU_SANS}&&!ba)return 'la classe barreAir manque sur le site';
       var a=document.querySelector('#tKnob .skAir'),s=document.querySelector('#tKnob .skAirS'),d=document.documentElement.dataset.hud==='d';
       if(!d){if(a&&getComputedStyle(a).display!=='none')return 'un anneau de vol se voit sans ?hud=d';return document.body.classList.contains('hudCalme')?'':'HUD calme pas posé en vol';}
       if(!a)return 'pas d\\'anneau';if(getComputedStyle(a).display==='none')return 'anneau masqué en vol';if(!/^\\d+${SEC}\\d$/.test(s.textContent))return 'secondes de vol : «'+s.textContent+'»';
       var r=a.getBoundingClientRect(),n=document.getElementById('tNitro').getBoundingClientRect();if(r.right>n.left&&r.left<n.right&&r.bottom>n.top&&r.top<n.bottom)return 'l\\'anneau de vol chevauche le bouton nitro';return ''})()` },
-  { n: '16-vol-critique', tel1: 1, op: 'urgent', att: 300, verif: `(function(){var k=document.getElementById('airHud').dataset.k;if(k!=='urgent')return 'vol pas critique (non contrôlé) : '+k+' · '+dbgState().mode;var c=document.body.classList.contains('hudCalme'),d=document.documentElement.dataset.hud==='d';
-      if(!d&&!c)return 'le HUD se rallume en vol critique alors qu\\'aucun temps de vol ne s\\'affiche';if(d&&c)return 'avec ?hud=d le HUD reste effacé en vol critique (l\\'anneau ne se voit pas)';return ''})()` },
+  { n: '16-vol-critique', tel1: 1, op: 'urgent', att: 120, verif: `(function(){var k=document.getElementById('airHud').dataset.k,m9=dbgState().mode;if(k!=='urgent'||m9!=='fall')return 'le vol critique n\\'a pas été atteint, le rallumage du HUD n\\'est PAS contrôlé : '+k+' · '+m9;var c=document.body.classList.contains('hudCalme'),d=document.documentElement.dataset.hud==='d';
+      var ba=document.documentElement.classList.contains('barreAir');if(!d&&!ba&&!c)return 'le HUD se rallume en vol critique alors qu\\'aucun temps de vol ne s\\'affiche';if(d&&c)return 'avec ?hud=d le HUD reste effacé en vol critique (l\\'anneau ne se voit pas)';if(ba&&c)return 'le HUD reste effacé en vol critique (la barre d\\'air time ne se voit pas)';
+      if(ba&&!d&&getComputedStyle(document.getElementById('airHud')).display!=='block')return 'vol critique : le bloc AIR n\\'est pas allumé';return ''})()` },
 ];
 (async () => {
   for (const p of [P_HTTP, P_CDP]) if (!portLibre(p)) { console.error('port occupé :', p); process.exit(2); }
@@ -69,7 +73,9 @@ const ETAPES = [
   const centreNitro = async () => JSON.parse(await c.ev("(function(){var b=document.getElementById('tNitro').getBoundingClientRect();return JSON.stringify([Math.round(b.left+b.width/2),Math.round(b.top+b.height/2)])})()"));
   const OPS = {
     jouer: async () => { /* l'écran de série (1re mort du jour) s'ouvre sur l'écran de mort : un joueur le ferme avant de rejouer — dbgJouer, lui, relançait la course DESSOUS */
-      for (let i = 0; i < 6; i++) { let r = ''; try { r = await c.ev("(function(){for(const id of ['mvW','serieW']){const e=document.getElementById(id);if(e&&e.classList.contains('on')&&!e.classList.contains('fin')){e.click();return id;}}return ''})()"); } catch (e) {} if (!r) break; await dormir(450); }
+      /* (2026-11-24, contrôle du lot) depuis le 2026-11-22 seul le bouton CONTINUER ferme l'écran de série (toucher ailleurs ne fait plus rien), et il n'arrive qu'à la fin de la scène :
+         on attend l'écran s'il est dû (serieWAttend), puis son bouton (.swBt), jusqu'à 18 s — sinon la partie se relançait DESSOUS et toute la suite du banc se jouait sous l'écran. */
+      for (let i = 0; i < 40; i++) { let r = ''; try { r = await c.ev("(function(){for(const id of ['mvW','serieW']){const e=document.getElementById(id);if(e&&e.classList.contains('on')&&!e.classList.contains('fin')){const b=e.querySelector('.swBt');(b||e).click();return id;}}return typeof serieWAttend==='function'&&serieWAttend()?'attend':''})()"); } catch (e) {} if (!r) break; await dormir(450); }
       if (!await jouer()) throw new Error('la relance ne part pas'); },
     volant: async () => { await pose(1, Math.round(W * .25), Math.round(H * .72)); await dormir(120); await bouge(1, Math.round(W * .25) + 24, Math.round(H * .72)); await dormir(250); await leve(1); }, /* un doigt à la fois : CDP ne sait pas lever UN doigt sur deux (un point absent d'un touchMove n'est pas levé) */
     nitro: async () => { const n = await centreNitro(); await pose(2, n[0], n[1]); },
@@ -78,7 +84,14 @@ const ETAPES = [
     lacheNitro: async () => { await leve(2); },
     doubleTap: async () => { const n = await centreNitro(); for (let k = 0; k < 2; k++) { await pose(2, n[0], n[1]); await dormir(60); await leve(2); await dormir(90); } },
     lacheTout: async () => { if (!doigts.size) return; doigts.clear(); await c.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); },
-    urgent: async () => { try { await c.ev('dbgAuto(false);1'); } catch (e) {} /* plus de pilote en l'air : le temps de vol s'épuise */ for (let i = 0; i < 60; i++) { try { if (await c.ev("document.getElementById('airHud').dataset.k==='urgent'||dbgState().mode!=='fall'")) return; } catch (e) {} await dormir(250); } },
+    /* (2026-11-24, contrôle du lot) LE VOL CRITIQUE S'ATTEND VRAIMENT : plus de pilote en l'air, le temps de vol s'épuise. Si la caisse s'est posée (les vols du pilote sont courts, l'étape sortait
+       « non contrôlé » à chaque passage), le pilote la sort de la route par le côté (latK 6, sans nitro : le calme reste posé), puis on le lâche dès qu'elle vole. On rend la main au vol critique, ou à la mort. */
+    urgent: async () => { let sorti = false; const t0 = Date.now(); try { await c.ev('dbgAuto(false);1'); } catch (e) {}
+      for (let i = 0; i < 700; i++) { let e = ''; try { e = await c.ev("(function(){var s=dbgState();return s.gameOver||s.mode==='boom'?'mort':s.mode!=='fall'?'sol':document.getElementById('airHud').dataset.k==='urgent'?'urgent':'vol'})()"); } catch (x) {}
+        if (e === 'urgent' || e === 'mort') return;
+        if (e === 'sol' && !sorti && Date.now() - t0 > 2500) { sorti = true; try { await c.ev('dbgAuto(true,0,{latK:6,nit:0});1'); } catch (x) {} }
+        if (e === 'vol' && sorti) { sorti = false; try { await c.ev('dbgAuto(false);1'); } catch (x) {} }
+        await dormir(60); } },
   };
   try {
     await c.send('Page.enable'); await c.send('Runtime.enable'); await c.send('Network.enable');

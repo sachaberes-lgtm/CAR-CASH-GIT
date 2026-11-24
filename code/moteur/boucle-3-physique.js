@@ -281,7 +281,7 @@ if(MG.on)mgTs(3); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 3
           if(nitroOn){const a9=nitroBlue?.05:.036;camera.position.addScaledVector(F.n,Math.sin(t*38.7)*a9).addScaledVector(tmp,Math.sin(t*29.3+1.7)*a9*.7);}
         }
         // indicateur de virage RETIRÉ du HUD épuré (#turnHint est display:none) : on n'évalue plus la courbe à l'avance (frameAt+trig) chaque frame pour rien
-        if(airPie.style.display!=='none')airPie.style.display='none'; // (2026-09-27) une fois suffit (c'était à chaque image de conduite)
+        if(airPie.style.display!=='none'){airPie.style.display='none';hudColVite();} // (2026-09-27) une fois suffit (c'était à chaque image de conduite)
       }
     }else if(mode==='fall'&&PORTV.vol&&PORTV.att){ /* (2026-11-12, grande vitesse) LA CAISSE TENUE EN L'AIR : le passage du portail attend le pré-bâti sous le voile (rien ne se dessine) — le vol ne court pas, ni sa jauge ni ses heurts ; newTrack la reposera sur la route neuve */
     }else if(mode==='fall'){ // ---- VOL : maniabilité aérienne propre ----
@@ -568,7 +568,7 @@ if(MG.on)mgTs(3); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 3
       LM.a+=((LM.vu?1:0)-LM.a)*Math.min(1,dt*(LM.vu?14:7));landMark.visible=LM.a>.02&&!HUD_CALME.on /* (2026-11-12, Sacha : « même la cible d'atterrissage ne doit plus être là ») le HUD calme éteint aussi l'anneau d'atterrissage */;landMark.material.opacity=.85*LM.a;
       landMark.material.color.lerp(LM.c,Math.min(1,dt*12));
       // camembert de temps de vol (cyan plein pendant AIRTIME INFINI : c'est le pouvoir qui s'égrène)
-      if(airPie.style.display!=='block')airPie.style.display='block'; // (2026-09-27) une fois par vol, plus à chaque image
+      if(airPie.style.display!=='block'){airPie.style.display='block';hudColVite();} // (2026-09-27) une fois par vol, plus à chaque image
       const inf9=pwrAirT>0&&TUTO.pa; // l'airtime PRÊTÉ par l'auto-école reste INFINI ; le RAISIN, lui, DOUBLE la jauge (voir RAI)
       const fr=inf9?Math.min(1,pwrAirT/PWR_DEFS.a.t):Math.max(0,1-fallTR/airMax()); // jauge en temps RÉEL : 6 s affichées = 6 s vécues
       if(airFlash>0)airFlash=Math.max(0,airFlash-dt);
@@ -591,7 +591,7 @@ if(MG.on)mgTs(3); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 3
       else if((ORB.heurt=rochesHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(rochesHeurt,ORB.heurt,.9);explode(ORB.heurt);} /* (2026-11-10, Sacha : « les météorites ont pas de physique ») LES ROCHES DE JUPITER sont dures — voir rochesHeurt */
       else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else{impPrep(villeHeurt,'tour',.9);explode('tour');}} // (2026-10-15) L'IMPACT, le même partout (le cratère propre aux tours, villeImpact, n'est plus appelé : Sacha veut l'explosion de l'airtime sur la ville aussi) // (2026-09-26) DANS UNE TOUR : on meurt
       else if(GEANTS.col&&(GEANTS.heurt=geantsHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(geantsHeurt,GEANTS.heurt,1);explode(GEANTS.heurt);} /* (2026-11-13) LES GÉANTS DE L'ORBITE : la coque du hangar de l'épave, la lune glacée */
-      else if(tryLand(dtF)){airPie.style.display='none';mirPose();} // posé : le total du DAUPHIN se fige et s'encaisse — (v5) et s'ÉCRIT enfin
+      else if(tryLand(dtF)){airPie.style.display='none';hudColVite();mirPose();} // posé : le total du DAUPHIN se fige et s'encaisse — (v5) et s'ÉCRIT enfin
       else if((airDepasse()&&!BALADE)||jadeVide(fallPos.y)){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(jadeVide(fallPos.y)||MIR.t>2.2?'vide':'air');} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       if(!impCoupTick(dt)){ // (2026-10-15, L'IMPACT) pendant le COUP (0,11 s), la caisse s'écrase contre la paroi : la détonation attend

@@ -284,6 +284,9 @@ function hudColonne(dt){
   HUDCOL.t-=dt;if(HUDCOL.t>0)return;HUDCOL.t=.1;
   apresMiseEnPage(hudColMesure,true);
 }
+/* (2026-11-24, la barre d'air time revient sur le site) hudColVite : la colonne se range DANS L'IMAGE EN COURS (après sa mise en page, avant qu'elle soit peinte), sans attendre son tour (0,1 s) —
+   appelée quand le bloc AIR apparaît (décollage), disparaît (posé) ou change de hauteur (la 2e barre du raisin) : les lignes de pouvoir lui font place avant qu'il se voie. */
+function hudColVite(){if(!BARRE_AIR)return;HUDCOL.t=.1;apresMiseEnPage(hudColMesure,true);}
 function hudColMesure(){ // la mesure d'avant, à l'identique
   if(!(TCTL.on&&running&&!paused&&!gameOver))return; // (le rappel tombe en fin d'image : la partie a pu s'arrêter entre-temps)
   if(!HUDCOL.els)HUDCOL.els=['triade','airHud','pwrChip','campChip'].map(function(i){return document.getElementById(i);});
@@ -298,6 +301,10 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
     if(pay&&e.id==='triade'){if(e.style.getPropertyValue('top'))e.style.removeProperty('top');continue;}
     const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden')continue;
     const z=parseFloat(cs.zoom)||1,r=e.getBoundingClientRect();if(zRect.leg===undefined)zRect(e);let h=r.height*(zRect.leg?z:1);if(h<2)continue;
+    /* (2026-11-24, la barre d'air time revient sur le site) LA HAUTEUR FINALE DU BLOC AIR : il entre en grandissant (hmPie, échelle 0,55 → 1 en 0,32 s) et le rectangle lu à l'écran
+       est celui de l'échelle du moment — les lignes de pouvoir se rangeaient sous un bloc à moitié grandi, puis il leur passait dessus (7 à 13 px relevés). On divise par l'échelle en cours :
+       la colonne réserve tout de suite la hauteur du bloc fini. */
+    if(e.id==='airHud'){const sc9=parseFloat(String(cs.scale||'').split(' ').pop());if(sc9>.05&&sc9<1)h/=sc9;}
     /* (2026-11-10, chasse aux bugs visuels) LE CHRONO DE DARK TRIAD COMPTE : #frenChrono est posé SOUS la boîte de l'emblème (top:100% + 2px) — la colonne ne le voyait pas,
        et le bloc suivant (le chrono de vol, la plaque NITRO MAX) se posait dessus (« 0:03 » à moitié sous la plaque, debout). Ce qui dépasse s'ajoute à la hauteur ; tant que le
        chrono n'est pas encore affiché, sa place est gardée (14 px, puis la dernière mesure) : la colonne ne saute pas quand il arrive. */
