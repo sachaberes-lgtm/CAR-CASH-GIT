@@ -6,6 +6,11 @@ même graine = même course au bit près dans un processus neuf, presque dans le
 **14 parties sur 20** au 24/11 (10 de Sacha au clavier, 4 de Léo au doigt) : la barre est provisoire, il en manque 6.
 **Étape 1 bis faite le 24/11** (la boîte noire du labo : `ml/labo/README.md`). Les comptes rendus sont à la fin de la section 3.
 La boucle (étapes 2 à 8) n'est pas codée : aucun euro d'API n'a été dépensé.
+
+> **NOUVEL OBJECTIF (24/11/2026, Sacha) : une écurie de bots pour le matchmaking, un par niveau de record du palier 1 au palier 30,
+> indiscernables de vrais joueurs.** Le plan de cet objectif, et l'état du chantier, sont dans **`ml/ecurie/PLAN.md`** ; l'étude qui le fonde
+> dans `ml/ecurie/etude/`. Il remplace les étapes 2 à 8 ci-dessous (la boucle par API), qui restent pour mémoire. Aucun euro d'API n'est
+> dépensé : le travail se fait sur l'abonnement, et le crédit ne sera touché qu'avec l'accord de Sacha.
 Demande : des bots qui jouent vraiment à CASH CAR (rouler, voler, figures, raccourcis), un plan qui dépense surtout les ~200 € de crédit API, et un projet qui sert au portfolio (RCA — je suppose Royal College of Art, à confirmer).
 
 ---
