@@ -95,6 +95,8 @@ Rien sur `main`, rien d'envoyé à Apple, rien d'installé sur l'iPhone sans le 
   admob.json (test:true gardé ; vraies pubs SEULEMENT par archiver.sh, CC_PUB_VRAIE=1), pizza hors vente, prix alignés sur les paliers
   d'Apple, `pages-app/app-ads.txt` + page de confidentialité à jour dans `pages-app/`, version 1.1.0 build 134, Release compilé.
   Réponse détaillée et « PRÊT POUR L'ARCHIVE » au bas de DE-PROJETS.md.
+- 24/11, 15 h 50 (oui de Sacha « juste les pages ») : sur MAIN `aa6408c98`, seulement la page de confidentialité (AdMob), app-ads.txt et
+  3 lignes de vercel-build.sh ; en ligne et vérifié (app-ads.txt = la ligne de Sacha ; /jouer/ répond 200). Le jeu de main ne change pas.
 - Le 24/11 j'ai arrêté 4 Chrome sans fenêtre laissés par mes passages du banc (profils banc-achats-*) ; le banc les ferme désormais toujours.
 
 ## LE BANC (`node outils/banc-pub/banc.cjs`, Chrome sans fenêtre et muet, faux module AdMob ; `--sonde` : l'écran de fin toutes les 400 ms)

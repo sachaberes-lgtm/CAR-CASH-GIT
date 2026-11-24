@@ -53,3 +53,7 @@ toucher ses propres pubs.
 
 PRÊT POUR L'ARCHIVE — build 134 (version 1.1.0), branche `pub-admob-app`. Avant la SOUMISSION (pas avant l'archive) : fusionner sur main
 (page de confidentialité + app-ads.txt), sur le OUI de Sacha.
+
+**24/11, 15 h 50 (oui de Sacha « juste les pages ») : sur main `aa6408c98`** — seulement `pages-app/confidentialite.html` (avec AdMob),
+`pages-app/app-ads.txt` et 3 lignes de `vercel-build.sh`. Le jeu ne change pas. EN LIGNE, vérifié :
+https://car-cash-git.vercel.app/app-ads.txt et https://car-cash-git.vercel.app/confidentialite.html. La soumission n'attend plus rien côté site.
