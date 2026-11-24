@@ -8,6 +8,8 @@
                           [--critere palier_median] [--patience 4] [--consigne "une precision pour ce lancement"] [--sans-commit] [--a-blanc]
      --budget      OBLIGATOIRE (sauf --a-blanc) : le plafond de CE lancement, en euros. La boucle s'arrete avant de le depasser.
      --depuis      le pilote de depart, la premiere fois (ensuite le parent est le meilleur de l'etape, lu au journal)
+     --plafond     le plafond de TOUS les lancements reunis, en euros (200 par defaut) : le budget de ce lancement est rabote a ce qu'il reste
+                   d'apres le journal des depenses du labo (toutes etapes confondues). Atteint, la boucle ne demande plus rien.
      --a-blanc     tout sauf l'appel payant : des jumeaux du parent, 2 graines de 40 s, dans un labo jetable. Pour verifier la tuyauterie.
    UN TOUR : (1) le parent = le meilleur de l'etape ; (2) ses pires courses sont autopsiees ; (3) N variantes sont demandees a Claude, chacune
    sous un angle different ; (4) TRI : chaque variante sur peu de graines ; (5) celles qui font au moins aussi bien que le parent au tri sont
@@ -25,7 +27,7 @@ const L=require('../labo/labo'),{lignes}=require('../bot/mesures');
 const BOT=path.join(__dirname,'..','bot'),TRAVAIL=path.join(L.D.tampon,'boucle');
 const ETAPE=String(opt('etape','C')),TOURS=+opt('tours',20),NC=+opt('candidats',6),MODELE=opt('modele','claude-opus-5-5'),EFFORT=opt('effort','high');
 const GT=+opt('graines-tri',BLANC?2:6),TT=+opt('tmax-tri',BLANC?40:600),NG=+opt('graines',BLANC?2:20),TMAX=+opt('tmax',BLANC?40:900);
-const REGIME=opt('regime','allege'),COEURS=+opt('coeurs',4),CRITERE=opt('critere','palier_median'),PATIENCE=+opt('patience',4),BUDGET=+opt('budget',0);
+const REGIME=opt('regime','allege'),COEURS=+opt('coeurs',4),CRITERE=opt('critere','palier_median'),PATIENCE=+opt('patience',4),PLAFOND=+opt('plafond',200);let BUDGET=+opt('budget',0);
 const G0=910000;
 
 /* LES TARIFS, en dollars par million de jetons : [lus, ecrits, lus depuis le cache]. Source : la table des modeles de la documentation
@@ -116,6 +118,11 @@ async function demande(parent,k){
     const S=require('@anthropic-ai/sdk');Anthropic=S.default||S;
     try{client=new Anthropic({maxRetries:4});}catch(e){
       dire('pas de cle d\'API dans l\'environnement. Sacha la pose lui-meme, une fois, dans PowerShell :\n    setx ANTHROPIC_API_KEY "sa-cle"\n  puis rouvre le terminal. (console.anthropic.com → API keys)');process.exit(1);}}
+  /* LE PLAFOND GENERAL (2026-11-24, Sacha : « tous les 200 credits API en 2 semaines ») : la boucle tourne seule, nuit apres nuit ; ce qu'elle a deja
+     depense est au journal (toutes etapes), et aucun lancement ne peut faire passer le total au-dessus du plafond. */
+  if(!BLANC){const deja=L.depenses().total,reste=r2(PLAFOND-deja);
+    if(reste<.25){dire(`le plafond general est atteint : ${deja} € depenses sur ${PLAFOND} €. Rien n'est demande.`);process.exit(0);}
+    if(BUDGET>reste){dire(`budget rabote de ${BUDGET} a ${reste} € : ${deja} € deja depenses sur ${PLAFOND} €`);BUDGET=reste;}}
   dire(`${BLANC?'A BLANC (rien n\'est depense, labo jetable '+L.RACINE+')':'budget '+BUDGET+' € · modele '+MODELE+' · effort '+EFFORT} · etape ${ETAPE} · ${NC} variantes par tour · tri ${GT} graines × ${TT} s · note ${NG} graines × ${TMAX} s · regime ${REGIME}`);
   let P=meilleur();
   if(!P){
@@ -173,7 +180,8 @@ async function demande(parent,k){
           modele:BLANC?'a-blanc':MODELE,raison:c.v.raison,lot:lot,jeu:jeuDe(N),graines:N.graines,tmax:N.tmax,note:N.note,courses:coursesDe(N),echecs:N.echecs,cout:c.jetons,
           echange:{modele:MODELE,effort:EFFORT,angle:ANGLES[c.k%ANGLES.length],parent:P.id,reponse:c.texte}});
         dire(`  inscrit ${l.id} (${lot}) : ${CRITERE} ${N.note[CRITERE]} · record ${N.note.palier_record} · survie ${N.note.survie_mediane_s} s`);}
-      catch(e){dire('  inscription refusee : '+String(e.message||e));}}
+      catch(e){dire('  inscription refusee : '+String(e.message||e));
+        if(!BLANC)try{L.depense({etape:ETAPE,generation:gen,modele:MODELE,entree:c.jetons.entree,sortie:c.jetons.sortie,euros:c.jetons.euros,pour:'variante payee, inscription refusee'});}catch(e2){}}}
     try{const g=L.clore(ETAPE,gen,{critere:CRITERE});dire('  generation '+gen+' close · '+g.gardes.length+' course(s) gardee(s)');}catch(e){dire('  cloture : '+String(e.message||e));}
     spawnSync(process.execPath,[path.join(__dirname,'..','labo','arbre.js')],{stdio:'ignore',env:process.env});
     const M=meilleur();
