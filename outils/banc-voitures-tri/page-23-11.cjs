@@ -59,14 +59,18 @@ async function unCas(nom, ls, port, faire) {
 async function photo(c, n) { if (!A.photos) return; fs.mkdirSync(A.photos, { recursive: true });
   const r = await c.send('Page.captureScreenshot', { format: 'jpeg', quality: 55, clip: { x: 0, y: 0, width: 390, height: 844, scale: 1 } }); fs.writeFileSync(path.join(A.photos, n + '.jpg'), Buffer.from(r.data, 'base64')); }
 
-/* le garage feuilleté à la flèche : le nom de chaque caisse, jusqu'à retomber sur la première */
+/* le garage feuilleté à la flèche : le nom de chaque caisse, jusqu'à retomber sur la première.
+   (2026-11-24, contrôle adverse) la première flèche lance la bascule de 1,06 s, qui avance avec le rendu : sous un Chrome sans fenêtre chargé, le nom n'avait pas
+   changé 450 ms après et la boucle s'arrêtait à « 1 caisse ». On attend que #gName change (4 s au plus) au lieu de dormir une durée fixe. */
 async function feuillette(c) {
   const noms = []; let vides = 0;
   for (let k = 0; k < 70; k++) {
     const n = await c.ev("(function(){const e=document.getElementById('gName');return e?(e.innerText||e.textContent||'').trim():null;})()");
     if (k && noms.length && n === noms[0]) break;
     if (!n) vides++; noms.push(n);
-    await c.ev(clic('#gNext')); await dormir(450);
+    await c.ev(clic('#gNext'));
+    for (let i = 0; i < 40; i++) { await dormir(100); const m = await c.ev("(function(){const e=document.getElementById('gName');return e?(e.innerText||e.textContent||'').trim():null;})()"); if (m !== n) break; }
+    await dormir(120);
   }
   return { noms, vides };
 }

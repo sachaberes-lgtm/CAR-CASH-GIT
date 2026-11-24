@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /* ===== LE POIDS DE LA COPIE PUBLIÉE (2026-11-24, Sacha : « plusieurs modifications ont été faites sur iOS Capacitor et n'ont pas été prises en compte sur le Vercel ») =====
    Deux gains de poids que l'app iPhone avait déjà (app-ios/preparer-www.js) et que le site n'avait pas. La copie publiée seulement : le dépôt ne change pas.
-   1. LA MER DE NUAGES EN WEBP SANS PERTE : assets/ciel/mer-cumulus.png (867 Ko) → mer-cumulus.webp (304 Ko), le fichier déjà dans le dépôt
+   1. LA MER DE NUAGES EN WEBP SANS PERTE : assets/ciel/mer-cumulus.png (847 Ko) → mer-cumulus.webp (297 Ko ; Ko de 1024 octets, comme l'outil les affiche), le fichier déjà dans le dépôt
       (app-ios/ressources/mer-cumulus.webp). Pixels et alpha identiques (revérifié le 24/11 dans Chrome, texture WebGL sans prémultiplication : 0 composante
       différente sur 512×512×4). Le jeu charge déjà du webp (assets/portail/*.webp). Fait SEULEMENT si le PNG est exactement celui qui a été converti
       (même sha1 que dans preparer-www.js) ET si la copie ne cite le PNG qu'une fois, par la ligne connue ; sinon le PNG reste et un message le dit.
-   2. musique-moteur.json est rangé indenté (537 Ko pour 159 Ko de données) : recompacté, JSON.parse rend le même objet (revérifié ici avant d'écrire).
+   2. musique-moteur.json est rangé indenté (525 Ko pour 155 Ko de données) : recompacté, JSON.parse rend le même objet (revérifié ici avant d'écrire).
    Ne fait JAMAIS échouer la publication : au moindre doute le fichier reste tel quel. APRÈS publie-audio (sa preuve lit les fichiers tels que le dépôt les a)
    et publie-allege (les commentaires qui citent le PNG sont partis), AVANT publie-script-externe et l'empreinte du jeu. POIDS_SITE=0 coupe tout.
    usage : node outils/publie-poids.cjs <dossier publié>   (le dossier qui contient index.html et assets/) */
