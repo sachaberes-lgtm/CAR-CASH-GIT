@@ -218,13 +218,20 @@ const AMOB={on:false,init:false,cOk:false,ok:true,test:false,choix:false,etat:''
   const avecI=ID.test(idI)&&typeof A.prepareInterstitial==='function'&&typeof A.showInterstitial==='function';
   const attente=function(n){return Math.min(300,20*Math.pow(2,Math.min(4,n)))*1000;};
   const pret=function(k){const s=AMOB[k];if(s.pret&&performance.now()-s.t>3e6){s.pret=false;charge(k);}return s.pret;};
+  /* (2026-11-24, iPhone de Sacha : « la pub se met en mode vertical même si on joue en horizontal ») le kit de Google fige une pub dans
+     l'orientation du téléphone AU CHARGEMENT : préchargée au lancement (debout), elle s'affichait debout en pleine partie couchée. Chaque pub
+     garde donc son sens (s.o) ; le téléphone tourne → la pub de l'autre sens est jetée et rechargée dans le nouveau (une course laisse le temps). */
+  const sens=function(){try{if(window.matchMedia)return matchMedia('(orientation: landscape)').matches?'h':'v';}catch(e){}return innerWidth>innerHeight?'h':'v';};
   const charge=function(k){const s=AMOB[k];
     if(!AMOB.init||!AMOB.cOk||!AMOB.ok||s.pret||s.charge||(k==='i'&&!avecI)||(k==='r'?AMOB.res:AMOB.resI))return;
-    s.charge=true;clearTimeout(s.tm);
+    s.charge=true;clearTimeout(s.tm);const o9=sens();
     Promise.resolve().then(function(){return k==='r'?A.prepareRewardVideoAd({adId:idR,isTesting:test}):A.prepareInterstitial({adId:idI,isTesting:test});})
-      .then(function(){s.charge=false;s.pret=true;s.t=performance.now();s.essai=0;s.err='';},
+      .then(function(){s.charge=false;s.pret=true;s.o=o9;s.t=performance.now();s.essai=0;s.err='';if(o9!==sens())retourne();},
             function(e){s.charge=false;s.pret=false;s.err=pubErr(e);AMOB.etat='pas chargée ('+k+') : '+s.err;clearTimeout(s.tm);s.tm=setTimeout(function(){charge(k);},attente(s.essai++));});}; /* (2026-11-24, iPhone de Sacha : « grisé alors que j'ai internet ») la raison de Google est gardée : dbgPub().admob.erreur, journal du banc */
   const pubErr=function(e){try{return String((e&&(e.code!=null?e.code+' ':''))+(e&&(e.message||e.errorMessage)||e)).replace(/\s+/g,' ').slice(0,120);}catch(x){return '?';}};
+  let tmO=0;const retourne=function(){clearTimeout(tmO);tmO=setTimeout(function(){const o=sens(); /* 0,6 s : le temps que la rotation finisse */
+    for(const k of ['r','i']){const s=AMOB[k];if(s.pret&&s.o&&s.o!==o&&!(k==='r'?AMOB.res:AMOB.resI)){s.pret=false;charge(k);}}},600);};
+  try{const mq9=window.matchMedia&&matchMedia('(orientation: landscape)');if(mq9&&mq9.addEventListener)mq9.addEventListener('change',retourne);else addEventListener('resize',retourne);}catch(e){}
   const finR=function(v){clearTimeout(AMOB.tm);const r=AMOB.res;AMOB.res=null;if(!r)return;AMOB.etat=v===true?'vue':v===false?'pas vue':'pas montrée';r(v===true?true:v===false?false:null);setTimeout(function(){charge('r');},1000);}; /* null = Google n'a rien montré : le jeu passe au secours (la pub maison) */
   const finI=function(){clearTimeout(AMOB.tmI);const r=AMOB.resI;AMOB.resI=null;if(!r)return;r(true);setTimeout(function(){charge('i');},1000);};
   const ecoute=function(n,f){try{A.addListener(n,f);}catch(e){}};

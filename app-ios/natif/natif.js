@@ -56,7 +56,7 @@
     addEventListener('unhandledrejection',function(e){bat({'état':'promesse-rejetée',x:String(e&&e.reason&&(e.reason.message||e.reason)||'?').slice(0,90)});});
     try{var AM9=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.AdMob;if(AM9&&!/[?&]chalson=1/.test(location.search))AM9.setApplicationMuted({muted:true});}catch(e){}
     setInterval(function(){try{if(typeof window.dbgPub!=='function'){bat({'état':'pub-charge'});return;}var p9=window.dbgPub(),a9=p9.admob,c9=typeof window.dbgChance==='function'?window.dbgChance():{};
-      bat({'état':'pub',app:p9.app,init:a9.init,consent:a9.consent,permis:a9.permis,choix:a9.choix,video:a9.recompense,entre:a9.entre,vues:a9.n,pleins:a9.nEntre,erreur:a9.erreur,essais:a9.essais,dernier:a9.etat,dispo:p9.dispo,
+      bat({'état':'pub',app:p9.app,init:a9.init,consent:a9.consent,permis:a9.permis,choix:a9.choix,video:a9.recompense,entre:a9.entre,vues:a9.n,pleins:a9.nEntre,sens:a9.sens,erreur:a9.erreur,essais:a9.essais,dernier:a9.etat,dispo:p9.dispo,
         silence:!!(p9.on||p9.entre.on),cpt:p9.entre.n,eternelle:p9.pubs,fin:!!c9.gameOver,offre:!!c9.ok,reprise:!!c9.used,t:c9.t,banque:c9.bank});}catch(x){bat({'état':'pub-erreur',x:String(x&&x.message||x).slice(0,60)});}},2000);}
   if(CHAL==='vide'){try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}
     try{document.write('<body style="margin:0;background:#000"><plaintext style="display:none">');}catch(e){} /* tout ce qui suit dans la page devient du texte : aucun script du jeu ne tourne */

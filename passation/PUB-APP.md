@@ -80,6 +80,10 @@ Rien sur `main`, rien d'envoyé à Apple, rien d'installé sur l'iPhone sans le 
   La raison exacte de Google est maintenant gardée (`dbgPub().admob.erreur`, champ `erreur=` du journal) : à lire sur le build 132.
 - 24/11, 14 h 30 (oui de Sacha « Oui, installe ») : **build 132 INSTALLÉ sur l'iPhone** (secours par la pub maison + erreur de Google gardée),
   app remplacée SANS suppression ; vérifié : CASH CAR 1.0.0 (132). Copie : `~/cash-car/ios-ultime-mesures/builds/build132.app`.
+- 24/11, 14 h 35 : erreur lue sur l'iPhone (build 132) : « 1 Request Error: No ad to show » pour les deux pubs. NordVPN COUPÉ → Sacha : « ça
+  marche » (vraies pubs de test). Mais : « la pub se met en mode vertical même si on joue en horizontal ». Cause : Google fige la pub dans
+  l'orientation du CHARGEMENT (préchargée debout au lancement). Correction (traces-pneus.js, `sens`/`retourne`) : chaque pub garde son sens ;
+  le téléphone tourne → la pub de l'autre sens est rechargée (0,6 s après la rotation). `dbgPub().admob.sens` / journal `sens=` (r puis i : h/v).
 - Le 24/11 j'ai arrêté 4 Chrome sans fenêtre laissés par mes passages du banc (profils banc-achats-*) ; le banc les ferme désormais toujours.
 
 ## LE BANC (`node outils/banc-pub/banc.cjs`, Chrome sans fenêtre et muet, faux module AdMob ; `--sonde` : l'écran de fin toutes les 400 ms)

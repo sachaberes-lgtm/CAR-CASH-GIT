@@ -100,7 +100,7 @@ window.dbgPub=function(k){ // banc : dbgPub() l'état · ('fin') la pub maison f
   if(k==='fin'&&PUBR.on)PUBR.t=PUBR.d;else if(+k>0)PUBR.d=+k;
   return {on:PUBR.on,d:PUBR.d,t:+PUBR.t.toFixed(2),regie:typeof window.CC_PUB_RECOMPENSE==='function',maison:!!(PUBR.el&&!PUBR.el.hidden),chance:!!CHANCE.pub,
     ads:{on:ADS.on,test:!!(window.CC_ADS&&window.CC_ADS.test),pret:ADS.pret,etat:ADS.etat,n:ADS.n,prete:!!(ADS.b&&ADS.b.show)},
-    admob:{on:AMOB.on,test:AMOB.test,init:AMOB.init,consent:AMOB.cOk,permis:AMOB.ok,choix:AMOB.choix,recompense:AMOB.r.pret,entre:AMOB.i.pret,erreur:AMOB.r.err||AMOB.i.err||'',essais:AMOB.r.essai,etat:AMOB.etat,n:AMOB.n,nEntre:AMOB.nI},
+    admob:{on:AMOB.on,test:AMOB.test,init:AMOB.init,consent:AMOB.cOk,permis:AMOB.ok,choix:AMOB.choix,recompense:AMOB.r.pret,entre:AMOB.i.pret,sens:(AMOB.r.o||'-')+(AMOB.i.o||'-'),erreur:AMOB.r.err||AMOB.i.err||'',essais:AMOB.r.essai,etat:AMOB.etat,n:AMOB.n,nEntre:AMOB.nI},
     app:PUBR.app,dispo:pubDispo(),entre:{n:ENTRE.n,on:ENTRE.on,vu:ENTRE.vu,t:+(RUNX.t||0).toFixed(1)},pubs:(SAVE.d.ex&&SAVE.d.ex.pubs)|0};};
 /* LA SECONDE CHANCE (2026-10-14, Sacha au quiz de 14 h 35 — « façon Subway Surfers » ; le principe vient du CŒUR À LA MORT de l'édition
    ROBLOX). À la mort, l'écran de fin propose UNE fois par partie de CONTINUER — ⚠ depuis le 15/10 soir contre une PUB (voir LA PUB QUI
