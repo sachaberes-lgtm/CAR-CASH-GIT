@@ -34,7 +34,8 @@ try {
       const f = path.join(dos, ou), t = fs.readFileSync(f, 'utf8'), a = fs.statSync(png).size;
       fs.copyFileSync(webp, path.join(dos, 'assets', 'ciel', 'mer-cumulus.webp'));
       fs.writeFileSync(f, t.replace(AVANT, APRES));
-      fs.unlinkSync(png);
+      /* (2026-11-24, passe finale) le PNG RESTE dans la copie : plus rien ne le cite, donc personne ne le télécharge (le gain est entier), mais un onglet resté
+         ouvert sur l'ancienne version pendant la publication le demande encore — il ne doit pas tomber sur une 404 (ciel sans mer de nuages jusqu'au rechargement). */
       console.log('publie-poids : mer de nuages en webp sans perte, ' + ko(a) + ' → ' + ko(fs.statSync(webp).size) + ' (' + ou + ')');
     }
   }

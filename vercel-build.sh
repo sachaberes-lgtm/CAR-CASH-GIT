@@ -63,6 +63,9 @@ node outils/retraits-publies.cjs .vercel-static/jouer
 # colle). AVANT publie-allege (l'empreinte de la preuve lit les fichiers tels que le dépôt les a).
 # (2026-10-24, passe perf) LA BANQUE DE SONS EN DEUX MOITIÉS : le 1er lancement ne télécharge d'abord que les sons du début (0,8 Mo sur 7,7) ; le reste arrive
 # après load (sfx.js, CCSON.ajoute). La copie publiée seulement ; en cas d'échec la banque reste entière (outils/scinde-banque.cjs, preuve octet pour octet).
+# (2026-11-24, passe finale) LA FORÊT HORS DE LA COPIE PUBLIÉE, comme dans l'app : ses 19 sons (1,2 Mo de la 2e moitié de la banque) et ses 6 cartes postales
+# partaient encore en ligne alors que la map a quitté main. AVANT scinde-banque ; rien n'est retiré si la forêt est revenue dans SF_CARTES (outils/retire-foret.cjs).
+node outils/retire-foret.cjs .vercel-static/jouer || echo "⚠ retire-foret : échec, la banque part avec les sons de la forêt"
 node outils/scinde-banque.cjs .vercel-static/jouer || echo "⚠ scinde-banque : échec, la banque part entière"
 node outils/publie-audio.cjs .vercel-static/jouer || echo "⚠ publie-audio : échec, la copie part avec tous ses sons"
 # (2026-10-18, Sacha : « retirer les commentaires de la copie mise en ligne » + « les outils de test dbg… ») LA COPIE ALLÉGÉE : la copie
