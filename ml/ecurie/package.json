@@ -1,0 +1,8 @@
+{
+  "name": "cashcar-ecurie",
+  "private": true,
+  "description": "L'ecurie de bots CASH CAR : la boucle automatique (API Claude). Voir ETAPES.md, etape C bis.",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.13.0"
+  }
+}

@@ -12,7 +12,7 @@ Le plan d'ensemble est dans `PLAN.md`, l'étude dans `etude/`.
 | A | L'étude : ce qui donne des pièces, ce qui tue, les vrais joueurs mesurés | **faite** (commit `67ea1f009`) |
 | B | Les fondations : défauts corrigés, yeux v2, doigts v2 | **en cours** (24/11 au soir) |
 | C | Le pilote d'élite, amélioré par tours | à faire |
-| C bis | La boucle automatique sur le crédit API (≈ 200 €), avec un plafond de dépense | à écrire après B |
+| C bis | La boucle automatique sur le crédit API (les 200 €), avec un plafond de dépense | **écrite** (`boucle.js`), pas encore essayée ; attend la clé de Sacha |
 | D | Le facteur humain et les 30 niveaux | à faire |
 | E | Le juge, niveau par niveau | à faire |
 | F | Le paquet du matchmaking et le dossier du portfolio | à faire |
@@ -62,7 +62,9 @@ Et lire `ml/bot/README.md` §2 (la vue) et §3 (les gestes, le profil) : tout ce
 lire ses morts (`node autopsie.js`), corriger, noter sur 20 graines en version allégée (`--regime allege --tmax 900`). Chaque version
 entre au labo par `ml/labo/inscrire.js` (étape `C`, une génération par tour), avec sa raison.
 
-**Le but, chiffré.** Battre le bot de référence (palier médian 10, meilleur 20) et monter le plus haut possible. Le palier 28 est le
+**Le but, chiffré.** Battre le bot de référence et monter le plus haut possible. Le point de départ, mesuré le 24/11 dans la version
+allégée du jeu (20 courses, 15 minutes au plus, `ml/bot/results/note-reference-allege.json`) : **palier médian 9, meilleur 25**, survie
+médiane 157 s, 402 pièces par minute, nitro tenue 16 % du temps. Les joueurs : médian 11,5, meilleur 28. Le palier 28 est le
 meilleur des joueurs ; le palier 30 demande environ 11 minutes de survie. Le plafond atteint sera écrit ici, pas promis.
 
 **Vérifier.**
@@ -79,23 +81,59 @@ node arbre.js                    # puis ouvrir arbre.html : la lignée, la raiso
 > tour. Jamais plus de 4 courses à la fois. Arrête-toi quand deux tours de suite ne gagnent plus rien, écris le plafond atteint dans
 > `ETAPES.md`, et valide dans git. Ne me pose pas de question.
 
-## C bis — La boucle automatique sur le crédit API
+## C bis — La boucle automatique sur le crédit API (les 200 €)
 
-**Pourquoi.** L'abonnement a une limite d'usage (atteinte le 24/11 pour les agents) et demande une session ouverte. Le crédit API
-(≈ 200 €) sert à ce que l'abonnement ne sait pas faire : tourner **seul, la nuit**, sur des dizaines de variantes du pilote.
+**C'est la méthode du plan, et c'est à ça que servent les crédits.** Claude écrit des variantes du pilote (un appel payant chacune),
+le vrai jeu les note, on garde la meilleure, on recommence. L'abonnement a une limite d'usage et demande une session ouverte ; la boucle
+tourne seule, la nuit.
 
-**Ce qui doit en sortir.** `ml/ecurie/boucle.js` : à chaque tour, il prend le champion du labo, lit ses pires morts (autopsie), demande
-à Claude par l'API d'écrire des variantes, les note dans le vrai jeu, et inscrit chacune au labo **avec son coût en jetons et en euros**
-(`inscrire.js --entree --sortie --euros`, cumul par étape dans `node ml/labo/labo.js`).
-- Un **plafond de dépense** obligatoire (`--budget 20` = il s'arrête à 20 €) et un mode à blanc (`--a-blanc` : tout sauf l'appel payant).
-- La clé de l'API se lit dans la variable d'environnement `ANTHROPIC_API_KEY`, que **Sacha pose lui-même** ; elle n'est jamais écrite
-  dans un fichier ni dans le journal.
-- D'abord un calibrage à petit budget (quelques euros) : quel modèle gagne le plus de paliers par euro. Puis le gros de la somme sur le
-  pilote d'élite (étape C) et sur le réglage des 30 niveaux (étape D).
+**Ce qui existe** (24/11) : `ml/ecurie/boucle.js` et `ml/ecurie/CONSIGNES.md` (ce que la boucle dit du jeu à Claude avant chaque
+variante). Écrite et relue, **pas encore essayée** : l'essai à blanc attend la fin de l'étape B, l'essai réel attend la clé.
 
-**Rien n'est dépensé sans l'accord de Sacha** : écrire la boucle ne coûte rien, la lancer oui. C'est lui qui la lance, ou qui dit de le faire.
+**Un tour.** Le parent est le meilleur pilote de l'étape. Ses trois pires courses sont racontées (autopsie). Six variantes sont demandées,
+chacune sous un angle différent (survie en vol, vitesse avant les virages, ligne parfaite, fil des pièces, la map qui tue, voler comme un
+joueur…). Chacune est triée sur 6 graines ; celles qui tiennent la barre du parent sont notées sur 20. Toutes sont inscrites au labo
+avec leur raison et **leur coût**. La génération est close, l'arbre refait, le labo validé dans git.
 
-**Vérifier.** `node ml/ecurie/boucle.js --a-blanc --tours 1` fait un tour complet sans dépenser ; `node ml/labo/labo.js` donne les euros par étape.
+**Les 200 €, répartis.**
+
+| Poste | Budget | À quoi |
+|---|---|---|
+| Calibrage | 10 € | les mêmes tours avec Haiku 5.5, Sonnet 5.5, Opus 5.5 et Fable 5.2 : lequel gagne le plus de paliers par euro |
+| Le pilote d'élite (étape C) | 90 € | monter le plafond le plus haut possible |
+| Le facteur humain et les 30 niveaux (étapes D et E) | 60 € | des profils que le juge ne distingue pas des joueurs, à chaque palier |
+| Le récit (journal de bord, bêtisier commenté) | 15 € | pour le portfolio |
+| Réserve | 25 € | |
+
+Prix relevés le 03/11/2026, en dollars par million de jetons lus / écrits : Haiku 5.5 0,10 / 0,50 · Sonnet 5.5 2 / 10 · Opus 5.5 4 / 20 ·
+Fable 5.2 8 / 40. Une variante coûte de l'ordre de 0,30 € avec Opus 5.5. La boucle compte 1 € pour 1 $ et affiche une **estimation** :
+la facture de la console fait foi.
+
+**Le frein n'est pas l'argent, c'est le PC.** Chaque variante se joue plusieurs minutes sur tous les cœurs : compter 20 à 30 variantes par
+nuit. Les 200 € se dépensent donc sur plusieurs nuits, pas en une heure.
+
+**Les garde-fous.** `--budget` est obligatoire : la boucle s'arrête avant de le dépasser. `--a-blanc` fait tout sauf l'appel payant, dans
+un labo jetable. La clé se lit dans l'environnement (`ANTHROPIC_API_KEY`) et n'est écrite nulle part.
+
+**Ce que Sacha fait, une fois** (dans PowerShell, puis rouvrir le terminal) :
+```
+setx ANTHROPIC_API_KEY "sa-clé"        # la clé se crée sur console.anthropic.com → API keys
+```
+
+**Vérifier, puis lancer.**
+```
+cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\ecurie
+node boucle.js --a-blanc --tours 1 --depuis ..\bot\reference.js      # un tour complet sans rien dépenser (≈ 5 min)
+node boucle.js --budget 10 --tours 3 --modele claude-opus-5-5 --depuis pilote.js   # le premier vrai lancement, plafonné à 10 €
+node ..\labo\labo.js                                                  # les euros dépensés, par étape
+```
+
+**Pour lancer cette étape dans une autre session**, coller :
+> Dans `C:\Users\sacha\code\CASH-CAR-bots-ecurie` (branche `bots-ecurie`), lis `ml/ecurie/ETAPES.md`. Fais d'abord
+> `node ml/ecurie/boucle.js --a-blanc --tours 1 --depuis ml/bot/reference.js` et corrige ce qui casse. Puis, si la clé d'API est posée,
+> lance le calibrage (10 € en tout : un lancement de 2,50 € par modèle), écris dans `ETAPES.md` quel modèle gagne le plus de paliers par
+> euro, et lance la boucle de l'étape C avec ce modèle, par tranches de 20 €. Ne dépasse jamais 200 € au total (`node ml/labo/labo.js`
+> donne le cumul). Ne me pose pas de question.
 
 ## D — Le facteur humain et les 30 niveaux
 
