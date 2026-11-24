@@ -51,6 +51,13 @@
     var ips=Math.round((e.fr-fr0)*1000/Math.max(1,Date.now()-t0)*10)/10;
     bat({'état':e.etat,mode:e.mode,carte:e.carte,'météo':e.meteo,moteur:e.moteur,'km/h':e.kmh,ips:ips,ms:e.ms,rendu_ms:Math.round(e.rendu_ms/Math.max(1,(e.fr-fr0))*10)/10,QL:e.ql,DPR:e.dpr,cad:e.cad,zones:e.zones});
   }catch(x){bat({'état':'erreur',x:String(x&&x.message||x).slice(0,60)});}},10000);
+  if(CHAL==='pub'){ /* (2026-11-24) le banc de la pub : son état au journal, et les pubs de test muettes (voir plus bas, CHAL==='pub') */
+    addEventListener('error',function(e){bat({'état':'erreur-js',x:String(e&&e.message||'?').slice(0,90),l:(e&&e.lineno)|0,f:String(e&&e.filename||'').split('/').pop().slice(0,24)});});
+    addEventListener('unhandledrejection',function(e){bat({'état':'promesse-rejetée',x:String(e&&e.reason&&(e.reason.message||e.reason)||'?').slice(0,90)});});
+    try{var AM9=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.AdMob;if(AM9&&!/[?&]chalson=1/.test(location.search))AM9.setApplicationMuted({muted:true});}catch(e){}
+    setInterval(function(){try{if(typeof window.dbgPub!=='function'){bat({'état':'pub-charge'});return;}var p9=window.dbgPub(),a9=p9.admob,c9=typeof window.dbgChance==='function'?window.dbgChance():{};
+      bat({'état':'pub',app:p9.app,init:a9.init,consent:a9.consent,permis:a9.permis,choix:a9.choix,video:a9.recompense,entre:a9.entre,vues:a9.n,pleins:a9.nEntre,sens:a9.sens,erreur:a9.erreur,essais:a9.essais,dernier:a9.etat,dispo:p9.dispo,
+        silence:!!(p9.on||p9.entre.on),cpt:p9.entre.n,eternelle:p9.pubs,fin:!!c9.gameOver,offre:!!c9.ok,reprise:!!c9.used,t:c9.t,banque:c9.bank});}catch(x){bat({'état':'pub-erreur',x:String(x&&x.message||x).slice(0,60)});}},2000);}
   if(CHAL==='vide'){try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}
     try{document.write('<body style="margin:0;background:#000"><plaintext style="display:none">');}catch(e){} /* tout ce qui suit dans la page devient du texte : aucun script du jeu ne tourne */
     setInterval(function(){try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}},2000);return;}
@@ -68,6 +75,21 @@
       try{if(/[?&]chalhud=0/.test(location.search)&&typeof window.dbgBancSansHud==='function')window.dbgBancSansHud(true);}catch(e){}
       try{var mC=/[?&]carte=(\w+)/.exec(location.search),mM=/[?&]meteo=(\w+)/.exec(location.search);if(mC&&typeof window.dbgBancCarte==='function')window.dbgBancCarte(mC[1],mM?mM[1]:null);}catch(e){} /* (17/11) la même carte et la même météo à chaque portail */
       if(CHAL==='accueil')return;
+      if(CHAL==='pub'){ /* (2026-11-24, la pub AdMob) LE BANC DE LA PUB AU SIMULATEUR (Debug + CC_QS « &chaleur=pub », jamais une app normale) : la caisse roule seule
+           (auto-école passée), meurt au bout de `pubmort` s (25 par défaut, la partie vieillie à `pubt` s : 30 par défaut, 130 pour la pub « partie > 2 min »,
+           800 $ pour que le ×2 soit dû) ; à l'écran de fin RIEN n'est touché : le testeur touche lui-même CONTINUER, ×2, REJOUER, comme un joueur.
+           Les pubs de test de Google sont muettes (setApplicationMuted) ; l'état de la pub part au journal toutes les 2 s (« CCBANC état=pub … »). */
+        try{window.dbgTuto('permis');}catch(e){}
+        var s9=window.dbgState();
+        if(!s9.started){chT0=0;window.dbgJouer();return;}
+        if(s9.gameOver){chT0=0;return;}
+        if(!chT0)chT0=Date.now();
+        var c9=typeof window.dbgChance==='function'?window.dbgChance():{};
+        if(c9.mode!=='drive'){window.dbgAuto(false);return;} /* l'explosion, la chute, la reprise : le pilote ne touche à rien (il n'a jamais connu la mort : le banc de chaleur est immortel) */
+        window.dbgAuto(true,0,{});
+        var qM=+((/[?&]pubmort=(\d+)/.exec(location.search)||[])[1]||25),qT=+((/[?&]pubt=(\d+)/.exec(location.search)||[])[1]||30);
+        if(Date.now()-chT0>qM*1000){chT0=Date.now();try{window.dbgChance('t',qT);window.dbgChance('$',800);window.dbgChance('mort');}catch(e){}}
+        return;}
       try{window.dbgTuto('permis');}catch(e){}
       try{window.dbgImmortel(true);}catch(e){}
       try{if(/[?&]chalpal=1/.test(location.search)&&typeof window.dbgBancPal==='function')window.dbgBancPal(true);}catch(e){}

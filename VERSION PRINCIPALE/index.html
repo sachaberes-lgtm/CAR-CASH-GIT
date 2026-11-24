@@ -10272,11 +10272,13 @@ html body #mob #mDead.m5 #mObj .obM.ok:not(.sec)>em{max-width:none}
 }
 @media (prefers-reduced-motion:reduce){html body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val,.m6Scene,.m6Scene::after,.m6Ligne,.m6Badge,.obM,.obM *){animation:none!important}}
 html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val,.m6Scene,.m6Scene::after,.m6Ligne,.m6Badge,.obM,.obM *){animation:none!important}
-/* ===== L'APP SANS PUB (2026-11-05, Opus : jury IOS-04 / DIR-29, décision D1) =====
-   Dans l'app (html.ccApp, posée par EN_APP), le ×2 du gain et l'écran de la pub maison n'existent pas : le jeu ne les ouvre jamais
-   (DBL.on, PUBR.sans, voir seconde-chance.js) — ceinture et bretelles si un écran les montrait quand même. L'id doublé passe devant
-   la règle du ×2 ci-dessus (#mob #mDead.m5 #mDouble:not([hidden])). */
-html.ccApp body #mob #mDead #mDouble#mDouble,html.ccApp #pubR#pubR{display:none!important}
+/* ===== L'APP ET LA PUB (2026-11-05, Opus : décision D1 ; 2026-11-23, Sacha : la vraie pub AdMob) =====
+   Dans un ancien binaire sans le module AdMob (html.ccSansPub, seconde-chance.js), le ×2 du gain et la pub maison n'existent pas. Avec le
+   module, la pub maison sert de SECOURS quand Google ne fournit rien (2026-11-24 ; avant, elle était cachée dans toute l'app). L'id doublé
+   passe devant la règle du ×2 ci-dessus (#mob #mDead.m5 #mDouble:not([hidden])). */
+html.ccSansPub body #mob #mDead #mDouble#mDouble,html.ccSansPub #pubR#pubR{display:none!important}
+/* PAS DE VIDÉO CHARGÉE (mode avion…) : CONTINUER et ×2 restent à leur place, GRIS, « PAS DE PUB » ; ils se rallument seuls quand une pub arrive */
+#mChance.pubGris,#mDouble.pubGris{filter:grayscale(1) brightness(.8)!important;opacity:.55!important}
 </style>
 <style id="finitionEcrans">
 /* ===== LA FINITION DES ÉCRANS (2026-11-04, Sacha : « chaque écran, chaque interface doit être parfaite […] qualité professionnelle ») =====
@@ -13128,6 +13130,7 @@ html.qmSerie body.touch #serieW .swPied b{white-space:nowrap}
           <div class="mPanel oAide">
             <div class="mLigne" data-m="tuto"><i class="pxi pxi-volant" aria-hidden="true"></i><span class="tpL">AUTO-ECOLE</span><b id="mvTuto" class="valeur">REVOIR</b></div><!-- (2026-10-14, charte 6) « REVOIR L'AUTO-ECOLE » + la prime ne tenaient pas sur une ligne : le nom à gauche, le geste à droite, comme les autres lignes (mFill écrit REVOIR ou la prime) -->
             <div class="mLigne" data-m="conf"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL" data-fr="CONFIDENTIALITÉ">CONFIDENTIALITÉ</span><b class="valeur" data-fr="LIRE">LIRE</b></div><!-- (2026-11-13, finition) la politique de confidentialité DANS l'app (règle 5.1.1) : page embarquée, aucun lien qui sort -->
+            <div class="mLigne" data-m="pubchoix" style="display:none"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL" data-fr="CHOIX DES PUBS">CHOIX DES PUBS</span><b class="valeur" data-fr="MODIFIER">MODIFIER</b></div><!-- (2026-11-23, Sacha : la vraie pub dans l'app) le choix des pubs de Google, revu à volonté : montrée seulement dans l'app, quand Google le demande (Europe) -->
           </div>
         </div>
         <div class="c6Pied">
@@ -62040,6 +62043,8 @@ const PWR_EGAUX=PWR_LIGNE; // les cinq pouvoirs à la même fréquence
    Les `p:` ci-dessous (et ceux des habillages dans boutique.js, des figures dans figures.js, des quatre caisses de carnet PX9 dans missions/table.js) sont les prix
    d'AUJOURD'HUI ; les commentaires datés qui les accompagnent citent les prix d'AVANT. LA ZAGAIE (index 88) garde 3 500 000. Les caisses RETIRÉES gardent leur
    ancien prix : il ne sert qu'au REMBOURSEMENT de qui les avait payées à l'époque. Les prix en € des premium (`eur`) ne bougent pas. */
+/* (2026-11-24, Sacha via Projets) LES PRIX EN € SUIVENT LES PALIERS D'APPLE (les ,61 / ,80 n'existent pas en France) : 1,61 € → 1,99 €, l'Iceberg 0,80 → 0,99 €
+   (barré 1,99 €). Ce n'est que le prix de SECOURS (avant la réponse d'Apple, hors ligne, le site) : dès qu'Apple répond, son prix s'affiche. */
 const CAR_UNLOCK=[
   /* (2026-10-06, Léo : « fiche-voitures-cash-car.txt — applique les changements ») LA GAMME RESSERRÉE : 43 caisses jouables (50 au 2026-11-05). Prix et
      familles de la fiche ; les 25 supprimées gardent leur ligne (`retire:1` dans CARS, leur prix ici sert au REMBOURSEMENT de san) ;
@@ -62070,7 +62075,7 @@ const CAR_UNLOCK=[
   {p:1500}, // LA POSTIÈRE — (2026-10-06) RETIRÉE
   {p:2000}, // LA DEUCHE — (2026-10-06) RETIRÉE ; (2026-11-07) remise puis retirée de nouveau (« enlève la tin snail »)
   {p:2500}, // LE TAXI JAUNE — (2026-10-06) retiré ; (2026-11-07, Léo : « le taxi remets ») REMIS
-  {k:'premium',eur:'161,00 €',rar:'leg'}, /* (2026-11-23, Sacha : « CHAT POP-TART ça fait longtemps qu'on en veut plus » · « enlève la voiture pizza ») RETIRÉE (voir CARS) : la ligne reste pour l'index */ // LA PIZZA EXPRESS — (2026-10-06) revient, LÉGENDAIRE en boutique
+  {k:'premium',eur:'161,00 €',rar:'leg',horsVente:1}, /* (2026-11-23, Sacha : « CHAT POP-TART ça fait longtemps qu'on en veut plus » · « enlève la voiture pizza ») RETIRÉE (voir CARS) : la ligne reste pour l'index ; (2026-11-24) horsVente gardé de la branche de la pub : le produit cashcar.car.b_pizza n'existe pas dans App Store Connect */ // LA PIZZA EXPRESS — (2026-10-06) revient, LÉGENDAIRE en boutique
   {p:3500}, // LE MONOSPACE
   {p:4000}, // LE BREAK SUÉDOIS
   {p:5000}, // LA BOULE
@@ -62103,16 +62108,16 @@ const CAR_UNLOCK=[
   {p:8500000}, // LA NOCTAMBULE (ex-LA CHAUVE-SOURIS — renommée le 2026-10-14, Sacha : nom trop proche de Batman pour la revue App Store)
   {p:950000}, // LA PAGODE — (2026-10-06) RETIRÉE
   {p:1100000}, // LA DÉESSE — (2026-10-06) RETIRÉE
-  {k:'premium',eur:'1,61 €',rar:'leg'}, /* (2026-11-18, Sacha : « la voiture Aigle de Feu, tu la mets en payante à 1,61 € en légendaire ») en BOUTIQUE (produit Apple cashcar.car.e_aigle, à créer : voir passation/qualite/voitures-tri.md) ; qui l'avait déjà (achetée 8 M$ ou gagnée par la mission `lave`) la GARDE : elle est dans `owned` ; avant : {p:8000000} */ // L'AIGLE DE FEU (2026-10-06 : 1,3 M → 1 M) (2026-10-09, Léo, fiche de la salle blanche) RARE à 800 000 : entre LA QUEUE DE CANARD et LA NOCTAMBULE (ex-LA CHAUVE-SOURIS), l'ordre de la fiche
+  {k:'premium',eur:'1,99 €',rar:'leg'}, /* (2026-11-18, Sacha : « la voiture Aigle de Feu, tu la mets en payante à 1,61 € en légendaire ») en BOUTIQUE (produit Apple cashcar.car.e_aigle, à créer : voir passation/qualite/voitures-tri.md) ; qui l'avait déjà (achetée 8 M$ ou gagnée par la mission `lave`) la GARDE : elle est dans `owned` ; avant : {p:8000000} */ // L'AIGLE DE FEU (2026-10-06 : 1,3 M → 1 M) (2026-10-09, Léo, fiche de la salle blanche) RARE à 800 000 : entre LA QUEUE DE CANARD et LA NOCTAMBULE (ex-LA CHAUVE-SOURIS), l'ordre de la fiche
   {p:600000}, // (2026-10-19) 1 600 000 → 600 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) — // LA ZED
-  {k:'premium',eur:'1,61 €',rar:'leg'}, // LA FÉLINE — (2026-10-06) LÉGENDAIRE en boutique (était épique, 2 M)
+  {k:'premium',eur:'1,99 €',rar:'leg'}, // LA FÉLINE — (2026-10-06) LÉGENDAIRE en boutique (était épique, 2 M)
   {p:2600000},/* (2026-10-22, Sacha : « tableau des voitures » 2 500 000 → 260 000) */ // LA RAIE — (2026-10-18, Sacha) REMISE dans le jeu : épique à 2,5 M, comme avant le 6/10 (« DÉFI À VENIR » du 6 au 14/10, retirée ensuite)
-  {k:'premium',eur:'1,61 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : L'ÉTERNELLE en boutique à 1,61 €, légendaire ; avant : 100 parties) */ // L'ÉTERNELLE — (2026-10-14, PILOTAGE) DÉFI : 100 PARTIES jouées (`ex.runs`, déjà compté : les parties passées valent) — c'était 100 pubs, impossible depuis qu'il n'y a plus de pubs — (2026-10-06) DÉFI : 100 pubs (était en boutique, 9,99 €)
-  {k:'premium',eur:'1,61 €',rar:'leg'}, // LE TRÔNE CENTRAL (2026-10-06 : 7,99 → 1,61 €)
+  {k:'premium',eur:'1,99 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : L'ÉTERNELLE en boutique à 1,61 €, légendaire ; avant : 100 parties) */ // L'ÉTERNELLE — (2026-10-14, PILOTAGE) DÉFI : 100 PARTIES jouées (`ex.runs`, déjà compté : les parties passées valent) — c'était 100 pubs, impossible depuis qu'il n'y a plus de pubs — (2026-10-06) DÉFI : 100 pubs (était en boutique, 9,99 €)
+  {k:'premium',eur:'1,99 €',rar:'leg'}, // LE TRÔNE CENTRAL (2026-10-06 : 7,99 → 1,61 €)
   {p:4200000},/* (2026-10-22, Sacha : « tableau des voitures » : LE SPECTRE à l'argent, 420 000 $, épique ; avant : 1,61 €) */ // LE SPECTRE (2026-10-06 : 7,99 → 1,61 €)
-  {k:'premium',eur:'1,61 €',rar:'leg'}, // LE BLINDÉ NOIR (2026-10-21, Sacha : 9,99 → 1,61 €) (ex-LE CHEVALIER NOIR — renommé le 2026-10-14, Sacha : nom trop proche de Batman pour la revue App Store)
-  {k:'premium',eur:'1,61 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : 0,99 → 1,61 €) */ // LE MUR DU SON (2026-10-06 : 6,99 → 0,99 €)
-  {k:'premium',eur:'1,61 €',rar:'leg'}, // LE DRAGON D'OR (2026-10-21, Sacha : 9,99 → 1,61 €)
+  {k:'premium',eur:'1,99 €',rar:'leg'}, // LE BLINDÉ NOIR (2026-10-21, Sacha : 9,99 → 1,61 €) (ex-LE CHEVALIER NOIR — renommé le 2026-10-14, Sacha : nom trop proche de Batman pour la revue App Store)
+  {k:'premium',eur:'1,99 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : 0,99 → 1,61 €) */ // LE MUR DU SON (2026-10-06 : 6,99 → 0,99 €)
+  {k:'premium',eur:'1,99 €',rar:'leg'}, // LE DRAGON D'OR (2026-10-21, Sacha : 9,99 → 1,61 €)
   {k:'carnet',v:9}, // LE MASTODONTE
   {k:'carnet',v:7}, // LA GROUPE B
   {k:'carnet',v:8}, // LE HOT ROD
@@ -62122,9 +62127,9 @@ const CAR_UNLOCK=[
   {p:2200000,exK:'carrV',exV:5}, // LE LINGOT — (2026-10-18) idem : les 5 niveaux de la VILLE gagnés = il est à toi
   {p:2800000},/* (2026-10-22, Sacha : « tableau des voitures » : L'ORIGAMI à l'argent, 280 000 $ ; avant : mission « joue sur chaque map ») */ // (2026-10-02) L'ORIGAMI — ÉPIQUE, à l'argent : entre LA DÉESSE et L'AIGLE DE FEU
   {p:9000000}, // (2026-10-06) ATCHOUM — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 900 000 : entre LA STRATOS et L'ORIGAMI, l'ordre de la fiche
-  {k:'premium',eur:'1,61 €',rar:'leg'}, // (2026-10-21, Sacha : « remplace le shark par l'autre requin de Léo, à 1,61 € ») LE SQUALE passe en boutique, ex-700 000 (la mission secrète `abysse` ne le donne plus : elle paie de l'argent, voir missions/table.js — sinon le patch des missions le remettait en `k:'mis'` et il disparaissait de la boutique) ; (2026-10-08) LE SQUALE — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 700 000 : entre LA TAURINE et ACIDE, l'ordre de la fiche
+  {k:'premium',eur:'1,99 €',rar:'leg'}, // (2026-10-21, Sacha : « remplace le shark par l'autre requin de Léo, à 1,61 € ») LE SQUALE passe en boutique, ex-700 000 (la mission secrète `abysse` ne le donne plus : elle paie de l'argent, voir missions/table.js — sinon le patch des missions le remettait en `k:'mis'` et il disparaissait de la boutique) ; (2026-10-08) LE SQUALE — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 700 000 : entre LA TAURINE et ACIDE, l'ordre de la fiche
   {p:3000000}, // (2026-10-09, Léo : « fais-en une hyper abstraite mais travaillée, concept, ajoute-la à la liste ») L'ABSTRAITE — ÉPIQUE, la plus chère des épiques (juste après ROSSO 40)
-  {k:'premium',eur:'0,80 €',rar:'leg',une:1,promo:{av:'1,61 €',t:'OFFRE DE L\'HIVER'}}, /* (2026-11-18, Sacha : « L'iceberg, tu la mets là où elle était Nyan Cat avant, en mode offre de l'hiver ; elle est à 80 centimes au lieu de 1,61 € en mode promo ») L'OFFRE À LA UNE (`une` : la grande boîte de la page ACHAT, la place du CHAT POP-TART jusqu'au 13/11) ; `promo` : le prix d'avant BARRÉ (`av`) et le bandeau (`t`), voir prixBarre (achats-store.js) — `?promo=0` les éteint ; produit Apple cashcar.car.iceberg, à créer à 0,80 € (voir passation/qualite/voitures-tri.md) ; qui l'avait déjà (achetée 3,2 M$ ou gagnée par la mission `verglas100`) la GARDE ; avant : {p:3200000} */ // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg ») L'ICEBERG — ÉPIQUE, juste après L'ABSTRAITE
+  {k:'premium',eur:'0,99 €',rar:'leg',une:1,promo:{av:'1,99 €',t:'OFFRE DE L\'HIVER'}}, /* (2026-11-18, Sacha : « L'iceberg, tu la mets là où elle était Nyan Cat avant, en mode offre de l'hiver ; elle est à 80 centimes au lieu de 1,61 € en mode promo ») L'OFFRE À LA UNE (`une` : la grande boîte de la page ACHAT, la place du CHAT POP-TART jusqu'au 13/11) ; `promo` : le prix d'avant BARRÉ (`av`) et le bandeau (`t`), voir prixBarre (achats-store.js) — `?promo=0` les éteint ; produit Apple cashcar.car.iceberg, à créer à 0,80 € (voir passation/qualite/voitures-tri.md) ; qui l'avait déjà (achetée 3,2 M$ ou gagnée par la mission `verglas100`) la GARDE ; avant : {p:3200000} */ // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg ») L'ICEBERG — ÉPIQUE, juste après L'ABSTRAITE
   {p:3400000}, // (2026-10-10, Léo : « une voiture flamme ») LA FOURNAISE — ÉPIQUE, juste après L'ICEBERG
   {p:3600000}, // (2026-10-10, Léo : « une abstraite type eau ») LA DÉFERLANTE — ÉPIQUE, juste après LA FOURNAISE
   {p:3800000}, // (2026-10-11, Léo : « génère-la en 3D dans mon jeu ») LA MERCURE — ÉPIQUE, juste après LA DÉFERLANTE
@@ -62151,7 +62156,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {k:'premium',eur:'1,61 €',rar:'leg'}, /* (2026-11-07, Léo : « la Cerise en voiture payante, 1,61 €, on l'appelle Kelly ») */ // 83 — KELLY CHERRY (ex-LA CERISE, était COMMUNE à 60 000) : Mazda MX-5 NA (1989), phares escamotables
+  {k:'premium',eur:'1,99 €',rar:'leg'}, /* (2026-11-07, Léo : « la Cerise en voiture payante, 1,61 €, on l'appelle Kelly ») */ // 83 — KELLY CHERRY (ex-LA CERISE, était COMMUNE à 60 000) : Mazda MX-5 NA (1989), phares escamotables
   /* · */
   /* · */
   /* · */
@@ -64817,7 +64822,7 @@ Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOR","PEINTURE":"PAI
    n'a pas de toile sur la tôle : son programme (MOT_ANIM) la calcule à chaque image ; sa toile ne sert qu'aux pastilles des listes (`motFond`),
    qu'une animation CSS fait vivre (`.pL`, voir css/peintures.css). Essayer : `dbgHab('peinture','galaxie')`. */
 const PEINT_V2=true;
-const PEINT_EUR={commun:'1 €',rare:'1 €',epique:'2 €',legendaire:'3 €'};
+const PEINT_EUR={commun:'0,99 €',rare:'0,99 €',epique:'1,99 €',legendaire:'2,99 €'}; /* (2026-11-24, Sacha via Projets) les paliers d'Apple (avant : 1 / 1 / 2 / 3 €) ; prix de secours, Apple affiche le sien dès qu'il répond */
 const MOT_W=512;
 function motAlea(s){return function(){s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
 function motTore(x,f){for(const ox of [-MOT_W,0,MOT_W])for(const oy of [-MOT_W,0,MOT_W]){x.save();x.translate(ox,oy);f();x.restore();}} // chaque forme est posée avec ses huit voisines : la toile se raccorde sur ses quatre bords
@@ -65368,16 +65373,26 @@ Object.assign(I18N,{"CONFIDENTIALITÉ":"PRIVACY","LIRE":"READ","FERMER":"CLOSE",
 "CERTAINES VOITURES ET PEINTURES S'ACHÈTENT EN VRAI ARGENT, VIA APPLE : CASH CAR NE REÇOIT NI TON NOM, NI TON MOYEN DE PAIEMENT. LE BOUTON RESTAURER MES ACHATS DEMANDE SEULEMENT À TON APPAREIL CE QUE TU AS DÉJÀ ACHETÉ.":"SOME CARS AND PAINT JOBS CAN BE BOUGHT WITH REAL MONEY, THROUGH APPLE: CASH CAR RECEIVES NEITHER YOUR NAME NOR YOUR PAYMENT METHOD. THE RESTORE PURCHASES BUTTON ONLY ASKS YOUR DEVICE WHAT YOU ALREADY BOUGHT.",
 "SUPPRIMER TES DONNÉES":"DELETE YOUR DATA",
 "DÉSINSTALLER L'APPLICATION EFFACE TOUTES LES DONNÉES DU JEU. TU PEUX AUSSI UTILISER EFFACER MA PROGRESSION.":"UNINSTALLING THE APP ERASES ALL GAME DATA. YOU CAN ALSO USE ERASE MY PROGRESS.",
-"CONTACT : 16180contact@gmail.com":"CONTACT: 16180contact@gmail.com"});
+"CONTACT : 16180contact@gmail.com":"CONTACT: 16180contact@gmail.com",
+/* (2026-11-23, Sacha : la vraie pub dans l'app, AdMob) le texte de l'app qui montre des pubs de Google (confOuvre : AMOB.on) */
+"CASH CAR NE TE DEMANDE AUCUN COMPTE ET NE GARDE AUCUNE DONNÉE SUR UN SERVEUR.":"CASH CAR ASKS FOR NO ACCOUNT AND KEEPS NO DATA ON ANY SERVER.",
+"TA PROGRESSION, TES RÉGLAGES ET TES RECORDS RESTENT SUR TON APPAREIL. LE JEU FONCTIONNE SANS CONNEXION (ALORS SANS PUB).":"YOUR PROGRESS, SETTINGS AND RECORDS STAY ON YOUR DEVICE. THE GAME WORKS OFFLINE (WITHOUT ADS THEN).",
+"PUBLICITÉ":"ADVERTISING",
+"L'APP MONTRE DES PUBS DE GOOGLE (ADMOB) : UNE VIDÉO QUE TU CHOISIS DE REGARDER (CONTINUER, ×2) ET, DE TEMPS EN TEMPS, UNE PUB ENTRE DEUX COURSES. POUR LES CHOISIR ET LES COMPTER, GOOGLE REÇOIT DES DONNÉES DE TON APPAREIL : SON IDENTIFIANT PUBLICITAIRE (SEULEMENT SI TU AUTORISES LE SUIVI), SON ADRESSE IP ET UNE LOCALISATION APPROXIMATIVE, SON MODÈLE ET SES RÉGLAGES, ET CE QUE TU FAIS AVEC LES PUBS (VUES, TOUCHERS).":"THE APP SHOWS ADS FROM GOOGLE (ADMOB): A VIDEO YOU CHOOSE TO WATCH (CONTINUE, ×2) AND, NOW AND THEN, AN AD BETWEEN TWO RUNS. TO PICK AND COUNT THEM, GOOGLE RECEIVES DATA FROM YOUR DEVICE: ITS ADVERTISING IDENTIFIER (ONLY IF YOU ALLOW TRACKING), ITS IP ADDRESS AND AN APPROXIMATE LOCATION, ITS MODEL AND SETTINGS, AND WHAT YOU DO WITH THE ADS (VIEWS, TAPS).",
+"EN EUROPE, TU DONNES OU REFUSES TON ACCORD AU PREMIER LANCEMENT ET TU PEUX CHANGER D'AVIS DANS RÉGLAGES › CHOIX DES PUBS. LE SUIVI SE RÈGLE AUSSI DANS LES RÉGLAGES DE L'IPHONE › CONFIDENTIALITÉ › SUIVI. CE QUE GOOGLE FAIT DE CES DONNÉES : LA POLITIQUE DE CONFIDENTIALITÉ DE GOOGLE.":"IN EUROPE, YOU GIVE OR REFUSE YOUR CONSENT AT FIRST LAUNCH AND YOU CAN CHANGE YOUR MIND IN SETTINGS › AD CHOICES. TRACKING CAN ALSO BE SET IN THE IPHONE SETTINGS › PRIVACY › TRACKING. WHAT GOOGLE DOES WITH THIS DATA: GOOGLE'S PRIVACY POLICY."});
 function confOuvre(){
   let f=document.getElementById('confFen');
   if(f){f.remove();}
   f=document.createElement('div');f.id='confFen';f.setAttribute('role','dialog');
-  const T=[['CONFIDENTIALITÉ','CASH CAR NE COLLECTE AUCUNE DONNÉE PERSONNELLE : PAS DE COMPTE, PAS DE PUBLICITÉ, PAS DE TRACEUR, AUCUN TIERS.'],
-    ['','TOUT RESTE SUR TON APPAREIL : TA PROGRESSION, TES RÉGLAGES ET TES RECORDS. LE JEU FONCTIONNE SANS CONNEXION.'],
-    ['ACHATS INTÉGRÉS',"CERTAINES VOITURES ET PEINTURES S'ACHÈTENT EN VRAI ARGENT, VIA APPLE : CASH CAR NE REÇOIT NI TON NOM, NI TON MOYEN DE PAIEMENT. LE BOUTON RESTAURER MES ACHATS DEMANDE SEULEMENT À TON APPAREIL CE QUE TU AS DÉJÀ ACHETÉ."],
+  const T=AMOB.on?[['CONFIDENTIALITÉ','CASH CAR NE TE DEMANDE AUCUN COMPTE ET NE GARDE AUCUNE DONNÉE SUR UN SERVEUR.'], /* (2026-11-23) l'app avec les pubs de Google */
+    ['','TA PROGRESSION, TES RÉGLAGES ET TES RECORDS RESTENT SUR TON APPAREIL. LE JEU FONCTIONNE SANS CONNEXION (ALORS SANS PUB).'],
+    ['PUBLICITÉ',"L'APP MONTRE DES PUBS DE GOOGLE (ADMOB) : UNE VIDÉO QUE TU CHOISIS DE REGARDER (CONTINUER, ×2) ET, DE TEMPS EN TEMPS, UNE PUB ENTRE DEUX COURSES. POUR LES CHOISIR ET LES COMPTER, GOOGLE REÇOIT DES DONNÉES DE TON APPAREIL : SON IDENTIFIANT PUBLICITAIRE (SEULEMENT SI TU AUTORISES LE SUIVI), SON ADRESSE IP ET UNE LOCALISATION APPROXIMATIVE, SON MODÈLE ET SES RÉGLAGES, ET CE QUE TU FAIS AVEC LES PUBS (VUES, TOUCHERS)."],
+    ['',"EN EUROPE, TU DONNES OU REFUSES TON ACCORD AU PREMIER LANCEMENT ET TU PEUX CHANGER D'AVIS DANS RÉGLAGES › CHOIX DES PUBS. LE SUIVI SE RÈGLE AUSSI DANS LES RÉGLAGES DE L'IPHONE › CONFIDENTIALITÉ › SUIVI. CE QUE GOOGLE FAIT DE CES DONNÉES : LA POLITIQUE DE CONFIDENTIALITÉ DE GOOGLE."]]
+    :[['CONFIDENTIALITÉ','CASH CAR NE COLLECTE AUCUNE DONNÉE PERSONNELLE : PAS DE COMPTE, PAS DE PUBLICITÉ, PAS DE TRACEUR, AUCUN TIERS.'],
+    ['','TOUT RESTE SUR TON APPAREIL : TA PROGRESSION, TES RÉGLAGES ET TES RECORDS. LE JEU FONCTIONNE SANS CONNEXION.']];
+  T.push(['ACHATS INTÉGRÉS',"CERTAINES VOITURES ET PEINTURES S'ACHÈTENT EN VRAI ARGENT, VIA APPLE : CASH CAR NE REÇOIT NI TON NOM, NI TON MOYEN DE PAIEMENT. LE BOUTON RESTAURER MES ACHATS DEMANDE SEULEMENT À TON APPAREIL CE QUE TU AS DÉJÀ ACHETÉ."],
     ['SUPPRIMER TES DONNÉES',"DÉSINSTALLER L'APPLICATION EFFACE TOUTES LES DONNÉES DU JEU. TU PEUX AUSSI UTILISER EFFACER MA PROGRESSION."],
-    ['','CONTACT : 16180contact@gmail.com']];
+    ['','CONTACT : 16180contact@gmail.com']);
   let h='';T.forEach(function(t){if(t[0])h+='<h2>'+TR(t[0])+'</h2>';h+='<p>'+TR(t[1])+'</p>';});
   f.innerHTML=h+'<div class="confX" role="button">'+TR('FERMER')+'</div>';
   const ferme=function(e){if(e){e.preventDefault();e.stopPropagation();}if(f.parentNode)f.remove();};
@@ -83430,51 +83445,103 @@ window.dbgSaut=function(){ if(!started||gameOver||PARK.on)return 'pas de course 
    écran de fin (`gameOver`) : les sons du départ qui précèdent resetGame (JOUER depuis le garage) ne sont jamais touchés. */
 const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort.arret','mort.air','mort.police',
   'mort.enseigne','mort.compteFin','ui.debloque','ui.record','caisse.debloquee','aura.encaisse1','aura.encaisse2','aura.encaisse3'];
-/* LA RÉGIE ADMOB, CÔTÉ JEU (2026-10-19, Sacha : « prépare les emplacements de pub récompensée dans le jeu (sans module AdMob), on branchera
-   AdMob en v1.1 ») — ÉTEINTE tant que le chargeur du <head> (« LA RÉGIE ADMOB DE L'APP iPHONE » : CC_ADMOB) n'a pas son identifiant ET que
-   le module natif n'est pas dans l'app : aujourd'hui elle ne fait RIEN (AMOB.on faux), la pub maison joue comme avant.
-   Allumée, elle devient la régie de TOUTES les pubs récompensées (seconde chance, ×2 du gain) par les deux crochets que pubRecompense
-   connaît déjà : CC_PUB_PREPARE (l'offre s'ouvre → prepareRewardVideoAd) et CC_PUB_RECOMPENSE (le toucher → showRewardVideoAd).
-   Au lancement de l'app : initialize, le message de consentement RGPD de Google (UMP : requestConsentInfo/showConsentForm, obligatoire en
-   Europe), la fenêtre de suivi d'Apple (ATT : requestTrackingAuthorization), puis une pub préchargée. La fin d'une pub se lit aux
-   ÉVÉNEMENTS du module (récompense gagnée, pub fermée, pub ratée) — pas à la promesse de showRewardVideoAd, qui selon les versions rend
-   la main avant que la pub soit fermée. Rien de prêt au toucher → null → la pub maison. Une pub qui ne rend jamais la main : 150 s, puis
-   « pas vue ». ⚠ ÉCRIT SANS LE MODULE SOUS LA MAIN (aucun Mac ici) : les noms d'événements et d'options sont ceux de
-   @capacitor-community/admob v5-v7 — à vérifier contre la version installée, au banc ?pubtest=1 sur un vrai iPhone. Banc : dbgPub().admob. */
-const AMOB={on:false,pret:false,charge:false,vu:false,res:null,tm:0,etat:'',n:0,init:false};
+/* LA RÉGIE ADMOB, CÔTÉ JEU (2026-10-19, Sacha : « prépare les emplacements de pub récompensée dans le jeu (sans module AdMob) » ;
+   RÉÉCRITE le 2026-11-23, Sacha : « mettre de la VRAIE pub dans l'app iPhone ») — pour @capacitor-community/admob 8.4.2, lu dans son code :
+   showRewardVideoAd se RÉSOUT quand la récompense est gagnée (la pub est encore à l'écran) et se REJETTE (REWARDED_AD_CANCELLED) si elle
+   est fermée avant ; l'événement « Dismissed » dit qu'elle est fermée. Le site n'est jamais concerné (pas de window.Capacitor : on sort).
+   Allumée seulement si : on est dans l'app, le module natif est là (Capacitor.Plugins.AdMob), et CC_ADMOB (posé par app-ios/preparer-www.js
+   depuis app-ios/admob.json) a son bloc récompensé — ou `test` (défaut) : les blocs de TEST de Google (isTesting), jamais une vraie pub.
+   · AU LANCEMENT (1,5 s après le chargement) : initialize ; le consentement européen de Google (UMP : requestConsentInfo, et son formulaire
+     s'il est REQUIS) ; la fenêtre de suivi d'Apple (ATT) si elle n'a jamais été posée ; puis une vidéo récompensée et une pub plein écran
+     préchargées. Google répond « pas le droit de demander des pubs » (canRequestAds faux) : rien ne se charge.
+   · LA VIDÉO RÉCOMPENSÉE (CONTINUER, ×2) : CC_PUB_PRETE() dit si une est chargée ; CC_PUB_RECOMPENSE() la montre et rend une promesse :
+     vrai = récompense gagnée, à la fermeture ; faux = fermée avant la fin ; null = rien de prêt ou jamais montrée → le jeu passe au SECOURS,
+     la pub maison (2026-11-24, seconde-chance.js : PUBR.secours ; avant, les plaques étaient grises).
+   · LA PUB ENTRE LES COURSES (seconde-chance.js : pubEntre) : CC_PUB_ENTRE() la montre si une est chargée (promesse résolue à la fermeture),
+     sinon null.
+   · Pas de réseau : le consentement et les pubs se redemandent 20 s, 40 s, 80 s… (5 min au plus), et tout de suite au retour du réseau
+     (`online`) ou de l'app au premier plan. Une pub gardée plus de 50 min est rechargée (Google les périme à 1 h).
+   · Le choix des pubs (Europe) se rouvre par RÉGLAGES › AIDE › CHOIX DES PUBS (CC_PUB_CHOIX), seulement quand Google le demande (AMOB.choix).
+   Banc : dbgPub().admob ; outils/banc-pub/ (un faux module, Chrome muet). */
+const AMOB={on:false,init:false,cOk:false,ok:true,test:false,choix:false,etat:'',n:0,nI:0,
+  r:{pret:false,charge:false,essai:0,tm:0,t:0,err:''},i:{pret:false,charge:false,essai:0,tm:0,t:0,err:''},res:null,resI:null,vu:false,tm:0,tmI:0,tmC:0,eC:0};
 (function(){try{
   const C=window.Capacitor;if(!C)return;
   let A=C.Plugins&&C.Plugins.AdMob;
   if(!A&&typeof C.isPluginAvailable==='function'&&C.isPluginAvailable('AdMob')&&typeof C.registerPlugin==='function')A=C.registerPlugin('AdMob');
-  const test=/[?&]pubtest=1\b/.test(location.search),cfg=window.CC_ADMOB||{};
-  const id=test?'ca-app-pub-3940256099942544/1712485313':String(cfg.recompense||'');
-  if(!A||typeof A.prepareRewardVideoAd!=='function'||typeof A.showRewardVideoAd!=='function'||!/^ca-app-pub-\d{10,20}\/\d{6,14}$/.test(id))return;
-  AMOB.on=true;
-  const fin=function(v){clearTimeout(AMOB.tm);const r=AMOB.res;AMOB.res=null;if(r)r(v);};
-  const charge=function(){if(!AMOB.init||AMOB.pret||AMOB.charge||AMOB.res)return;AMOB.charge=true;
-    Promise.resolve().then(function(){return A.prepareRewardVideoAd({adId:id,isTesting:test});})
-      .then(function(){AMOB.charge=false;AMOB.pret=true;AMOB.etat='prête';},function(){AMOB.charge=false;AMOB.etat='pas chargée';});};
+  const cfg=window.CC_ADMOB||{},test=cfg.test!==false||/[?&]pubtest=1\b/.test(location.search),ID=/^ca-app-pub-\d{10,20}\/\d{6,14}$/;
+  const idR=test?'ca-app-pub-3940256099942544/1712485313':String(cfg.recompense||''),idI=test?'ca-app-pub-3940256099942544/4411468910':String(cfg.interstitiel||'');
+  if(!A||typeof A.prepareRewardVideoAd!=='function'||typeof A.showRewardVideoAd!=='function'||!ID.test(idR))return;
+  AMOB.on=true;AMOB.test=test;
+  const appareils=Array.isArray(cfg.appareils)?cfg.appareils.map(String):[]; /* (2026-11-24) les appareils de test (admob.json appareilsTest) : de vrais blocs y montrent des pubs de test */
+  const avecI=ID.test(idI)&&typeof A.prepareInterstitial==='function'&&typeof A.showInterstitial==='function';
+  const attente=function(n){return Math.min(300,20*Math.pow(2,Math.min(4,n)))*1000;};
+  const pret=function(k){const s=AMOB[k];if(s.pret&&performance.now()-s.t>3e6){s.pret=false;charge(k);}return s.pret;};
+  /* (2026-11-24, iPhone de Sacha : « la pub se met en mode vertical même si on joue en horizontal ») le kit de Google fige une pub dans
+     l'orientation du téléphone AU CHARGEMENT : préchargée au lancement (debout), elle s'affichait debout en pleine partie couchée. Chaque pub
+     garde donc son sens (s.o) ; le téléphone tourne → la pub de l'autre sens est jetée et rechargée dans le nouveau (une course laisse le temps). */
+  const sens=function(){try{if(window.matchMedia)return matchMedia('(orientation: landscape)').matches?'h':'v';}catch(e){}return innerWidth>innerHeight?'h':'v';};
+  const charge=function(k){const s=AMOB[k];
+    if(!AMOB.init||!AMOB.cOk||!AMOB.ok||s.pret||s.charge||(k==='i'&&!avecI)||(k==='r'?AMOB.res:AMOB.resI))return;
+    s.charge=true;clearTimeout(s.tm);const o9=sens();
+    Promise.resolve().then(function(){return k==='r'?A.prepareRewardVideoAd({adId:idR,isTesting:test}):A.prepareInterstitial({adId:idI,isTesting:test});})
+      .then(function(){s.charge=false;s.pret=true;s.o=o9;s.t=performance.now();s.essai=0;s.err='';if(o9!==sens())retourne();},
+            function(e){s.charge=false;s.pret=false;s.err=pubErr(e);AMOB.etat='pas chargée ('+k+') : '+s.err;clearTimeout(s.tm);s.tm=setTimeout(function(){charge(k);},attente(s.essai++));});}; /* (2026-11-24, iPhone de Sacha : « grisé alors que j'ai internet ») la raison de Google est gardée : dbgPub().admob.erreur, journal du banc */
+  const pubErr=function(e){try{return String((e&&(e.code!=null?e.code+' ':''))+(e&&(e.message||e.errorMessage)||e)).replace(/\s+/g,' ').slice(0,120);}catch(x){return '?';}};
+  let tmO=0;const retourne=function(){clearTimeout(tmO);tmO=setTimeout(function(){const o=sens(); /* 0,6 s : le temps que la rotation finisse */
+    for(const k of ['r','i']){const s=AMOB[k];if(s.pret&&s.o&&s.o!==o&&!(k==='r'?AMOB.res:AMOB.resI)){s.pret=false;charge(k);}}},600);};
+  try{const mq9=window.matchMedia&&matchMedia('(orientation: landscape)');if(mq9&&mq9.addEventListener)mq9.addEventListener('change',retourne);else addEventListener('resize',retourne);}catch(e){}
+  const finR=function(v){clearTimeout(AMOB.tm);const r=AMOB.res;AMOB.res=null;if(!r)return;AMOB.etat=v===true?'vue':v===false?'pas vue':'pas montrée';r(v===true?true:v===false?false:null);setTimeout(function(){charge('r');},1000);}; /* null = Google n'a rien montré : le jeu passe au secours (la pub maison) */
+  const finI=function(){clearTimeout(AMOB.tmI);const r=AMOB.resI;AMOB.resI=null;if(!r)return;r(true);setTimeout(function(){charge('i');},1000);};
   const ecoute=function(n,f){try{A.addListener(n,f);}catch(e){}};
-  ecoute('onRewardedVideoAdReward',function(){AMOB.vu=true;});
-  ecoute('onRewardedVideoAdDismissed',function(){AMOB.etat='fermée';fin(AMOB.vu);});
-  ecoute('onRewardedVideoAdFailedToShow',function(){AMOB.etat='ratée';fin(null);});
+  ecoute('onRewardedVideoAdReward',function(){if(AMOB.res)AMOB.vu=true;});
+  ecoute('onRewardedVideoAdDismissed',function(){setTimeout(function(){finR(AMOB.vu);},250);}); /* (une récompense annoncée juste après la fermeture compte encore) */
+  ecoute('onRewardedVideoAdFailedToShow',function(){finR(AMOB.affiche?false:null);});
+  ecoute('onRewardedVideoAdShowed',function(){AMOB.affiche=true;});
+  ecoute('interstitialAdDismissed',finI);
+  ecoute('interstitialAdFailedToShow',finI);
+  ecoute('onRewardedVideoAdFailedToLoad',function(e){AMOB.r.err=pubErr(e);});
+  ecoute('interstitialAdFailedToLoad',function(e){AMOB.i.err=pubErr(e);});
+  const consent=async function(){ /* le consentement de Google, à chaque lancement (il peut changer) ; raté (pas de réseau) : on le redemande */
+    let ci=null;
+    try{if(typeof A.requestConsentInfo==='function'){ci=await A.requestConsentInfo(appareils.length?{testDeviceIdentifiers:appareils}:undefined);
+      if(ci&&ci.isConsentFormAvailable&&ci.status==='REQUIRED'&&typeof A.showConsentForm==='function'){const c2=await A.showConsentForm();if(c2)ci=c2;}}
+      AMOB.cOk=true;AMOB.eC=0;}
+    catch(e){AMOB.cOk=false;clearTimeout(AMOB.tmC);AMOB.tmC=setTimeout(relance,attente(AMOB.eC++));}
+    if(ci){AMOB.ok=ci.canRequestAds!==false;AMOB.choix=ci.privacyOptionsRequirementStatus==='REQUIRED'&&typeof A.showPrivacyOptionsForm==='function';}
+    try{document.dispatchEvent(new Event('cc:pubchoix'));}catch(e){}
+  };
+  const relance=async function(){if(!AMOB.init)return;if(!AMOB.cOk)await consent();AMOB.r.essai=AMOB.i.essai=0;charge('r');charge('i');};
   const lance=async function(){
-    try{await A.initialize({initializeForTesting:test});}catch(e){}
-    try{if(typeof A.requestConsentInfo==='function'){const ci=await A.requestConsentInfo();
-      if(ci&&ci.isConsentFormAvailable&&ci.status==='REQUIRED'&&typeof A.showConsentForm==='function')await A.showConsentForm();}}catch(e){}
-    try{if(typeof A.trackingAuthorizationStatus==='function'&&typeof A.requestTrackingAuthorization==='function'){
+    try{await A.initialize(appareils.length?{initializeForTesting:test,testingDevices:appareils}:{initializeForTesting:test});}catch(e){}
+    await consent();
+    try{if(typeof A.trackingAuthorizationStatus==='function'&&typeof A.requestTrackingAuthorization==='function'){ /* la fenêtre de suivi d'Apple : une seule fois dans la vie de l'app (iOS ne la remontre jamais) */
       const t=await A.trackingAuthorizationStatus();if(t&&t.status==='notDetermined')await A.requestTrackingAuthorization();}}catch(e){}
-    AMOB.init=true;charge();};
+    AMOB.init=true;charge('r');charge('i');};
   if(document.readyState==='complete')setTimeout(lance,1500);else addEventListener('load',function(){setTimeout(lance,1500);});
-  window.CC_PUB_PREPARE=function(nom){charge();};
+  addEventListener('online',relance);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)relance();});
+  window.CC_PUB_PREPARE=function(nom){charge('r');};
+  window.CC_PUB_PRETE=function(){return !!(AMOB.init&&!AMOB.res&&!AMOB.resI&&pret('r'));};
   window.CC_PUB_RECOMPENSE=function(nom){
-    if(!AMOB.pret||AMOB.res){charge();return null;} // rien de prêt : la pub maison
-    AMOB.pret=false;AMOB.vu=false;AMOB.n++;AMOB.etat='montrée';
+    if(!pret('r')||AMOB.res||AMOB.resI){charge('r');return null;} /* rien de prêt : la plaque aurait dû être grise */
+    AMOB.r.pret=false;AMOB.vu=false;AMOB.affiche=false;AMOB.n++;AMOB.etat='montrée';
     const p=new Promise(function(res){AMOB.res=res;});
-    AMOB.tm=setTimeout(function(){fin(false);},150000);
-    Promise.resolve().then(function(){return A.showRewardVideoAd();}).then(function(r){if(r&&r.type!=null)AMOB.vu=true;},function(){AMOB.etat='ratée';fin(null);});
-    p.then(function(){setTimeout(charge,1000);}); // la suivante se prépare dès que celle-ci a rendu la main
+    AMOB.tm=setTimeout(function(){finR(AMOB.vu);},180000); /* une pub qui ne rend jamais la main : 3 min, puis ce qui a été gagné */
+    Promise.resolve().then(function(){return A.showRewardVideoAd();})
+      .then(function(){AMOB.vu=true;},function(){setTimeout(function(){finR(AMOB.vu?true:AMOB.affiche?false:null);},300);}); /* rejetée : fermée avant la fin (Dismissed suit) ou jamais montrée (null : le secours) */
     return p;};
+  window.CC_PUB_ENTRE=function(){
+    if(!avecI||!pret('i')||AMOB.res||AMOB.resI){charge('i');return null;}
+    AMOB.i.pret=false;AMOB.nI++;
+    const p=new Promise(function(res){AMOB.resI=res;});
+    AMOB.tmI=setTimeout(finI,120000);
+    Promise.resolve().then(function(){return A.showInterstitial();}).then(null,function(){setTimeout(finI,300);});
+    return p;};
+  window.CC_PUB_CHOIX=function(){ /* RÉGLAGES › CHOIX DES PUBS : le formulaire de Google, puis son nouvel avis */
+    if(!AMOB.choix)return Promise.resolve(false);
+    return Promise.resolve().then(function(){return A.showPrivacyOptionsForm();}).then(function(){return consent();})
+      .then(function(){charge('r');charge('i');return true;},function(){return false;});};
 }catch(e){AMOB.on=false;}})();
 /* LA RÉGIE ADSENSE, CÔTÉ JEU (2026-10-15 soir, Sacha : « branche les vraies pubs sur le site web avec Google AdSense (jeux H5) ») — le
    chargeur du <head> (« LA RÉGIE ADSENSE » : CC_ADSENSE, ?pubtest=1) a posé adBreak/adConfig ; on en fait la régie de LA PUB QUI RESSUSCITE.
@@ -83519,16 +83586,26 @@ if(ADS.on){
    · LA PUB MAISON — sinon : PUBR.d secondes plein écran (#pubR, <style id="pubRecompense">) qui montrent une caisse de la boutique qu'on
      n'a pas encore, son nom, son prix ; le compte ROND et la barre disent le temps qui reste ; rien ne se touche ; le temps ne court que
      l'écran allumé. `pubRecompense(nom, fin)` : fin(vue) part UNE fois. `?pub=0` : pas de pub, reprise immédiate. Banc : dbgPub(). */
-/* ===== L'APP NE MONTRE AUCUNE PUB (2026-11-05, Opus : jury IOS-04 / DIR-29, décision D1 « couper dans l'app ») =====
-   L'app déclare « aucune publicité » à Apple : sous EN_APP, plus de pub maison (PUBR.sans : la reprise est servie tout de suite), la
-   seconde chance s'annonce GRATUITE (chanceEtat), et le ×2 du gain n'existe pas (DBL.on). Le site garde tout. `?pub=0` ne vaut qu'en DEV. */
-const PUBR={on:false,d:5,t:0,tm:0,el:null,mus:false,sans:EN_APP||qDev(/[?&]pub=0\b/)};
-Object.assign(I18N,{'PUB':'AD','EN BOUTIQUE':'IN THE SHOP','TA COURSE REPREND APRÈS LA PUB':'YOUR RUN RESUMES AFTER THE AD','TON GAIN ×2 APRÈS LA PUB':'YOUR WINNINGS ×2 AFTER THE AD'});
+/* ===== LA VRAIE PUB DANS L'APP (2026-11-23, Sacha : « mettre de la VRAIE pub dans l'app iPhone », AdMob) =====
+   Avant (2026-11-05, jury IOS-04, décision D1) l'app ne montrait AUCUNE pub. Maintenant, deux cas dans l'app (EN_APP) :
+   · le module AdMob est là (AMOB.on, rendu/traces-pneus.js) → PUBR.app : CONTINUER et ×2 passent par une VRAIE vidéo récompensée ;
+     REJOUER montre parfois une pub plein écran (pubEntre, plus bas).
+     LE SECOURS (2026-11-24, Sacha, sur son iPhone avec NordVPN : « trouve un moyen pour que ça marche même si les gens ont des VPN ») :
+     quand Google ne peut fournir AUCUNE vidéo (bloqueur de pubs d'un VPN, mode avion, rien en stock, pub ratée à l'affichage), c'est la
+     PUB MAISON de 5 s (une caisse du jeu) qui passe, et la récompense est donnée — CONTINUER et ×2 ne sont plus jamais gris (PUBR.secours).
+     Contourner le bloqueur est impossible sans enfreindre le règlement d'AdMob : on ne le fait pas. La pub maison ne compte pas pour
+     L'ÉTERNELLE et ne rapporte rien. Avant (23/11) : plaques grises « PAS DE PUB » ; `PUBR.secours=false` les ramène.
+   · un ancien binaire, sans le module → comme avant : seconde chance GRATUITE (PUBR.sans), pas de ×2 (DBL.on), pas de pub (html.ccSansPub).
+   Le site garde la pub maison et AdSense, sans changement. `?pub=0` ne vaut qu'en DEV. */
+const PUBR={on:false,d:5,t:0,tm:0,el:null,mus:false,finR:0,secours:true,app:EN_APP&&AMOB.on,sans:(EN_APP&&!AMOB.on)||qDev(/[?&]pub=0\b/)};
+if(EN_APP&&!PUBR.app)try{document.documentElement.classList.add('ccSansPub');}catch(e){}
+Object.assign(I18N,{'PUB':'AD','PAS DE PUB':'NO AD','EN BOUTIQUE':'IN THE SHOP','TA COURSE REPREND APRÈS LA PUB':'YOUR RUN RESUMES AFTER THE AD','TON GAIN ×2 APRÈS LA PUB':'YOUR WINNINGS ×2 AFTER THE AD'});
+function pubDispo(){if(!PUBR.app||PUBR.secours)return true;try{return !!(typeof window.CC_PUB_PRETE==='function'&&window.CC_PUB_PRETE());}catch(e){return false;}} /* une vidéo récompensée est-elle chargée ? (le site et l'ancien app : toujours) */
 function pubSilence(on){try{ // une régie montre SA pub par-dessus le jeu : le jeu se tait (la musique en pause, le contexte audio suspendu), puis reprend
   if(on){PUBR.mus=!!(musicEl&&!musicEl.paused);if(PUBR.mus)musicEl.pause();if(AC&&AC.state==='running')AC.suspend();}
   else{if(AC&&AC.state==='suspended')acReveil(AC);if(PUBR.mus&&musicVoulue&&!paused)musicJoue();PUBR.mus=false;}}catch(e){}}
 function pubRecompense(nom,fin){
-  if(PUBR.on)return false;
+  if(PUBR.on||ENTRE.on)return false; /* un double appui, ou une pub plein écran en route : jamais deux pubs */
   PUBR.on=true;let fait=false;
   const fini=function(vue){if(fait)return;fait=true;PUBR.on=false;try{fin(!!vue);}catch(e){console.warn('pub',e);}};
   if(PUBR.sans){setTimeout(function(){fini(true);},0);return true;}
@@ -83536,11 +83613,33 @@ function pubRecompense(nom,fin){
   if(typeof regie==='function'){
     let p=null;try{p=regie(nom);}catch(e){p=null;}
     if(p&&typeof p.then==='function'){pubSilence(true); // (15/10 soir, régie AdSense) on ne se tait que si la régie montre VRAIMENT une pub (une promesse) : « rien de prêt » rend null tout de suite
-      p.then(function(v){pubSilence(false);if(v===true)pubCompte();if(v===true||v===false)fini(v);else pubMaison(fini,nom);},function(){pubSilence(false);pubMaison(fini,nom);});}
+      p.then(function(v){pubSilence(false);PUBR.finR=performance.now();if(v===true)pubCompte();if(v===true||v===false)fini(v);else if(PUBR.app&&!PUBR.secours)fini(false);else pubMaison(fini,nom);},
+        function(){pubSilence(false);PUBR.finR=performance.now();if(PUBR.app&&!PUBR.secours)fini(false);else pubMaison(fini,nom);});} /* vrai = vue, faux = fermée avant la fin (rien) ; rien de Google (null) : la pub maison, le SECOURS (2026-11-24) */
     else if(p===true||p===false){if(p)pubCompte();fini(p);}
+    else if(PUBR.app&&!PUBR.secours)fini(false);
     else pubMaison(fini,nom);
     return true;}
+  if(PUBR.app&&!PUBR.secours){fini(false);return true;}
   pubMaison(fini,nom);return true;
+}
+/* ===== LA PUB ENTRE LES COURSES (2026-11-23, Sacha : « 1 pub sur 3 en temps normal mais si la partie dépasse 2 minutes alors pub obligée ») =====
+   Dans l'app avec AdMob seulement (PUBR.app). Au toucher de REJOUER sur l'écran de fin (moteur/mobile-tactile.js) : une pub plein écran
+   si la partie a duré plus de ENTRE.tLong secondes de course (RUNX.t, seconde chance comprise), sinon une fois tous les ENTRE.tous REJOUER.
+   Jamais sur l'écran de mort lui-même, jamais moins de ENTRE.apresR secondes après une vidéo récompensée, et jamais d'attente : pas de pub
+   chargée (mode avion…) → la course part tout de suite (le compteur garde son compte pour le REJOUER suivant). Le jeu se tait pendant
+   (pubSilence) ; la course suivante part quand la pub est fermée. Un double appui ne lance qu'une pub (ENTRE.on). Banc : dbgPub().entre. */
+const ENTRE={n:0,tous:3,tLong:120,apresR:45,on:false,vu:0};
+function pubEntre(go){
+  if(ENTRE.on)return;
+  if(!PUBR.app||PUBR.on||typeof window.CC_PUB_ENTRE!=='function'){go();return;}
+  ENTRE.n++;
+  const long=(RUNX.t||0)>ENTRE.tLong,recente=PUBR.finR>0&&performance.now()-PUBR.finR<ENTRE.apresR*1000;
+  if(recente||!(long||ENTRE.n>=ENTRE.tous)){go();return;}
+  let p=null;try{p=window.CC_PUB_ENTRE();}catch(e){p=null;}
+  if(!p||typeof p.then!=='function'){go();return;}
+  ENTRE.on=true;ENTRE.n=0;ENTRE.vu++;pubSilence(true);
+  const fin=function(){if(!ENTRE.on)return;ENTRE.on=false;pubSilence(false);go();};
+  p.then(fin,fin);
 }
 /* (2026-10-19, Sacha au quiz : « vraies pubs seulement ») L'ÉTERNELLE — « REGARDE 100 PUBS » (SAVE.d.ex.pubs) ne se remplissait plus depuis le
    retrait du kit des portails : chaque pub d'une VRAIE régie (AdMob, AdSense) vue jusqu'au bout compte une. La pub maison ne compte pas. */
@@ -83574,11 +83673,13 @@ function pubMaison(fini,nom){
       setTimeout(function(){el.classList.remove('on');el.hidden=true;},ecranWipe._on?160:0);}},50);
 }
 addEventListener('keydown',function(e){if(PUBR.on&&PUBR.el&&!PUBR.el.hidden){e.stopPropagation();e.preventDefault();}},true); // pendant la pub maison, le clavier ne touche pas l'écran de fin dessous
-window.dbgPub=function(k){ // banc : dbgPub() l'état · ('fin') la pub maison finit tout de suite · (n) elle dure n s
+window.dbgPub=function(k){ // banc : dbgPub() l'état · ('fin') la pub maison finit tout de suite · (n) elle dure n s · ({n,tous,tLong,apresR}) règle la pub entre les courses (outils/banc-pub)
+  if(k&&typeof k==='object')Object.assign(ENTRE,k);
   if(k==='fin'&&PUBR.on)PUBR.t=PUBR.d;else if(+k>0)PUBR.d=+k;
   return {on:PUBR.on,d:PUBR.d,t:+PUBR.t.toFixed(2),regie:typeof window.CC_PUB_RECOMPENSE==='function',maison:!!(PUBR.el&&!PUBR.el.hidden),chance:!!CHANCE.pub,
     ads:{on:ADS.on,test:!!(window.CC_ADS&&window.CC_ADS.test),pret:ADS.pret,etat:ADS.etat,n:ADS.n,prete:!!(ADS.b&&ADS.b.show)},
-    admob:{on:AMOB.on,init:AMOB.init,pret:AMOB.pret,etat:AMOB.etat,n:AMOB.n},pubs:(SAVE.d.ex&&SAVE.d.ex.pubs)|0};};
+    admob:{on:AMOB.on,test:AMOB.test,init:AMOB.init,consent:AMOB.cOk,permis:AMOB.ok,choix:AMOB.choix,recompense:AMOB.r.pret,entre:AMOB.i.pret,sens:(AMOB.r.o||'-')+(AMOB.i.o||'-'),erreur:AMOB.r.err||AMOB.i.err||'',essais:AMOB.r.essai,etat:AMOB.etat,n:AMOB.n,nEntre:AMOB.nI},
+    app:PUBR.app,dispo:pubDispo(),entre:{n:ENTRE.n,on:ENTRE.on,vu:ENTRE.vu,t:+(RUNX.t||0).toFixed(1)},pubs:(SAVE.d.ex&&SAVE.d.ex.pubs)|0};};
 /* LA SECONDE CHANCE (2026-10-14, Sacha au quiz de 14 h 35 — « façon Subway Surfers » ; le principe vient du CŒUR À LA MORT de l'édition
    ROBLOX). À la mort, l'écran de fin propose UNE fois par partie de CONTINUER — ⚠ depuis le 15/10 soir contre une PUB (voir LA PUB QUI
    RESSUSCITE, juste au-dessus) ; avant, contre de l'ARGENT DU JEU (jamais d'euros) :
@@ -83658,10 +83759,12 @@ addEventListener('visibilitychange',function(){ try{
 }catch(e){} });
 function chanceEtat(){
   const ok=!!(CHANCE.on&&CHANCE.offre&&!CHANCE.used&&started&&gameOver&&performance.now()<CHANCE.fin&&overlay.style.display!=='none'&&!garageOn&&!MENUV.retour); /* (15/10 soir) plus de `bank()>=CHANCE.prix` : la pub ne demande rien au compte */
-  return {ok:ok,prix:CHANCE.prix,gratuit:!!CHANCE.gratuit||EN_APP,reste:ok?Math.max(0,Math.round(CHANCE.fin-performance.now())):0};
+  const gratuit=!!CHANCE.gratuit||(EN_APP&&!PUBR.app); /* (2026-11-23) l'app SANS module AdMob : gratuite, comme avant ; avec : une vraie pub */
+  return {ok:ok,prix:CHANCE.prix,gratuit:gratuit,dispo:gratuit||pubDispo(),reste:ok?Math.max(0,Math.round(CHANCE.fin-performance.now())):0};
 }
 function chanceJoue(){ // le toucher de la plaque : (15/10 soir) la PUB d'abord (pubRecompense) — la reprise, sous le volet, quand elle a été vue
   if(!chanceEtat().ok)return false;
+  if(!CHANCE.gratuit&&!pubDispo()){pubPrepare('seconde-chance');return false;} /* (2026-11-23) aucune vidéo chargée : la plaque est grise, le toucher ne fait rien (l'offre reste) */
   if(ecranWipe._on)return false; // (2026-10-14, chasse aux bugs) un volet déjà en route (REJOUER, ⌂ touchés juste avant) n'appellerait jamais la reprise (ecranWipe sort sans `go`) : on paierait pour rester sur l'écran de mort, offre éteinte et ligne du Top 10 retirée — on ne débite rien
   clearTimeout(CHANCE.tm);CHANCE.offre=false; // la fenêtre de 5,5 s s'arrête : la pub prend le temps qu'il lui faut
   try{goImmersive();}catch(e){} // (le plein écran veut le geste : ici, pas au bout de la pub)
@@ -83915,7 +84018,7 @@ window.dbgChance=function(k){ // banc : dbgChance() l'état · ('mort') explose 
    Sans régie (aujourd'hui : l'app v1 et le site), c'est la pub maison de 5 s qui la paie. Fermée avant la fin (vraie régie) : rien n'est
    versé, la plaque revient — on peut réessayer. Ce que la machine à sous verse après la mort n'est PAS doublé (RUNX.verse est figé à la mort).
    `?double=0` éteint tout. Banc : dbgDouble() l'état · ('joue') la touche. */
-const DBL={on:!EN_APP&&!/[?&]double=0\b/.test(location.search),min:50,used:false,pub:false,v:0};
+const DBL={on:(!EN_APP||PUBR.app)&&!/[?&]double=0\b/.test(location.search),min:50,used:false,pub:false,v:0}; /* (2026-11-23) le ×2 revient dans l'app qui a AdMob */
 function dblRaz(){DBL.used=false;DBL.pub=false;DBL.v=0;}
 /* ===== LE ×2 NE DOUBLE QUE LE GAIN DE LA COURSE (2026-11-05, Opus : jury ECO-08) =====
    RUNX.verse = tout ce que la fin de partie a mis au compte, prime de SÉRIE du jour (jourCommit) et missions comprises : le ×2 les doublait aussi.
@@ -83927,10 +84030,11 @@ function dblEtat(){
   const v=dblGain();
   const ok=!!(DBL.on&&!DBL.used&&!DBL.pub&&started&&gameOver&&!SANDBOX&&!TUTO.on&&!TUTO.quitte&&!PARK.on&&!SURV.on&&!BALADE&&v>=DBL.min&&
     overlay.style.display!=='none'&&!garageOn&&!MENUV.retour&&!chanceAttend()&&!SPIN.ouvert&&!PUBR.on&&!ecranWipe._on&&document.querySelector('#mDead.on'));
-  return {ok:ok,v:v,used:DBL.used,pub:DBL.pub};
+  return {ok:ok,v:v,used:DBL.used,pub:DBL.pub,dispo:pubDispo()};
 }
 function dblJoue(apres){ // le toucher de la plaque : la pub, puis le 2e versement — apres(vue, v) dit à l'écran de fin ce qui s'est passé
   const e=dblEtat();if(!e.ok)return false;
+  if(!e.dispo){pubPrepare('double-gain');return false;} /* (2026-11-23) aucune vidéo chargée : plaque grise */
   DBL.pub=true;DBL.v=e.v;
   const lance=pubRecompense('double-gain',function(vue){DBL.pub=false;const v=DBL.v;
     const ok=!!(vue&&started&&gameOver&&!DBL.used&&v>0);
@@ -83940,6 +84044,9 @@ function dblJoue(apres){ // le toucher de la plaque : la pub, puis le 2e verseme
   return true;
 }
 window.dblEtat=dblEtat;
+/* (2026-11-23) RÉGLAGES › AIDE › CHOIX DES PUBS (page/ecrans-menus.html) : visible seulement quand Google demande qu'on puisse revoir son choix (Europe) */
+Object.assign(I18N,{'CHOIX DES PUBS':'AD CHOICES','MODIFIER':'CHANGE'});
+document.addEventListener('cc:pubchoix',function(){try{const r9=document.querySelector('[data-m="pubchoix"]');if(r9)r9.style.display=AMOB.choix?'':'none';}catch(e){}});
 window.dbgDouble=function(k){if(k==='joue')return dblJoue(window.__dblApres||null);const e=dblEtat();return {ok:e.ok,v:e.v,used:DBL.used,pub:DBL.pub,min:DBL.min,bank:Math.round(bank()),verse:RUNX.verse};};
 function finSonsCoupe(){
   if(!SONV2||!window.CCSON)return;
@@ -102741,7 +102848,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
   function surAccueilCiel(){return MENU_PASSE&&garageOn&&!GAR.go&&!ecranWipe._on&&document.body.classList.contains('garMenuH');}
   function mTap(a,el){
     if(a!=='snd'){ if(a==='tuto'||a==='shopRestore')hap(8); /* (2026-10-14, session SON) ces deux-là répondent par un toast coche (ui.ok) : le résultat passe devant le clic (avant : nav + ok, deux sons) */ else uiClic(a==='shopSoon'&&!(el&&el.hasAttribute('data-car'))?'refus':mRole9(a)); /* « BIENTÔT DISPONIBLE » = refus, comme le même mot sur la plaque verrouillée du garage */ }uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
-    if(a==='replay'&&started&&gameOver){ m2Rejoue(); try{clearTimeout(M2REV.t);}catch(e){} /* (2026-11-03, audit) la RÉVÉLATION d'une secrète (m2RevAuto, 1,4 s après la mort) n'a plus à s'ouvrir : REJOUER est parti, elle se montrera à la prochaine fin de partie (m2RevFile la garde) */ /* (2026-10-16) LES MISSIONS v2 : les parties enchaînées */ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ tutoArme(); return rejoueAttend().then(function(){ if(started&&gameOver)resetGame(); }); } }); }; r9(); } /* (2026-10-31) rejoueAttend : le départ d'avance pas fini se finit SOUS le volet, en tranches */ // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite)
+    if(a==='replay'&&started&&gameOver&&!ENTRE.on){ m2Rejoue(); try{clearTimeout(M2REV.t);}catch(e){} /* (2026-11-03, audit) la RÉVÉLATION d'une secrète (m2RevAuto, 1,4 s après la mort) n'a plus à s'ouvrir : REJOUER est parti, elle se montrera à la prochaine fin de partie (m2RevFile la garde) */ /* (2026-10-16) LES MISSIONS v2 : les parties enchaînées */ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ tutoArme(); return rejoueAttend().then(function(){ if(started&&gameOver)resetGame(); }); } }); }; pubEntre(r9); } /* (2026-11-23, Sacha) pubEntre : dans l'app, parfois une pub plein écran AVANT le volet (gameplay/seconde-chance.js) ; sinon r9 tout de suite */ /* (2026-10-31) rejoueAttend : le départ d'avance pas fini se finit SOUS le volet, en tranches */ // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite)
     else if(a==='play'&&jadePlayOk()){ const go9=function(){goImmersive();jadeJouer();}; // (2026-10-12, Léo) le JOUER lance le SOLEIL DE JADE, avec sa musique
       if(SAVE.d.facile==null&&!SAVE.d.tuto)Promise.resolve().then(go9);else go9(); }
     else if(a==='play'&&sfPlayOk()){ const go9=function(){goImmersive();classiqueJouer();}; // (2026-10-13, Sacha) le JOUER lance le MODE CLASSIQUE AU HASARD
@@ -102749,6 +102856,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     else if(a==='play'||a==='replay'){ // la partie sans fin : parc, Survivant armé, ?menu=leo
       if(a==='play'&&SAVE.d.facile==null&&!SAVE.d.tuto){Promise.resolve().then(function(){goImmersive();playViaGarage(true);});}
       else{goImmersive(); playViaGarage(true);} } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
+    else if(a==='pubchoix'){ try{if(typeof window.CC_PUB_CHOIX==='function')window.CC_PUB_CHOIX();}catch(e){} } /* (2026-11-23) le choix des pubs de Google (Europe) */
     else if(a==='conf'){ confOuvre(); } /* (2026-11-13, finition) CONFIDENTIALITÉ : la page embarquée (achats-store.js) */
     else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.d.tutoProv=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
     else if(a==='back'&&window.__setPause){ setPauseFerme(); } // (2026-10-14, charte 6) le ◀ des réglages ouverts depuis la pause rend la pause
@@ -102823,7 +102931,9 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     const fond=document.createElement('div');fond.id='mChanceFond';fond.hidden=true;fond.setAttribute('aria-hidden','true');el.parentNode.insertBefore(fond,el);
     let vu=false;
     const maj=function(){let e=null;try{e=chanceEtat();}catch(_){e=null;}const ok=!!(e&&e.ok);
-      if(ok){const p9=e.gratuit?(LANG==='en'?'FREE':'GRATUIT'):pxi('lecture')+'<span>'+TR('PUB')+'</span>';if(el._p9!==p9){el._p9=p9;el.querySelector('.chP').innerHTML=p9;}  /* (15/10 soir, Sacha : « au lieu de payer il faut regarder une pub ») CONTINUER ▶ PUB, plus de prix */
+      const gris=ok&&e.dispo===false; /* (2026-11-23, Sacha) l'app sans vidéo chargée (mode avion…) : CONTINUER est GRIS « PAS DE PUB », l'offre reste là */
+      el.classList.toggle('pubGris',gris);el.setAttribute('aria-disabled',gris?'true':'false');
+      if(ok){const p9=e.gratuit?(LANG==='en'?'FREE':'GRATUIT'):gris?'<span>'+TR('PAS DE PUB')+'</span>':pxi('lecture')+'<span>'+TR('PUB')+'</span>';if(el._p9!==p9){el._p9=p9;el.querySelector('.chP').innerHTML=p9;}  /* (15/10 soir, Sacha : « au lieu de payer il faut regarder une pub ») CONTINUER ▶ PUB, plus de prix */
         if(!vu){vu=true;el.style.setProperty('--chD',Math.max(300,e.reste||5500)+'ms');el.classList.remove('chOn');void el.offsetWidth;el.classList.add('chOn');}}
       else vu=false;
       el.hidden=!ok;non.hidden=!ok;fond.hidden=!ok;el.classList.toggle('pb-gold',ok);el.classList.toggle('pb-cyan',!ok);document.body.classList.toggle('chOffre',ok);};
@@ -102854,8 +102964,10 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       const voir=ok&&(deja||(performance.now()-vu0>=1100&&!mCntT)); // (une pub fermée trop tôt : la plaque revient tout de suite, sans rejouer son entrée) · (2026-11-04) et pas avant la fin du compte de l'argent : il en double le montant FINAL
       if(voir)deja=true;
       if(voir){const s9='+'+fmtC(e.v);if(el._s9!==s9){el._s9=s9;el.querySelector('.dbS').textContent=s9;}
+        {const g9=e.dispo===false,k9=g9?'PAS DE PUB':'PUB',sp9=el.querySelector('.dbP span'); /* (2026-11-23, Sacha) pas de vidéo chargée : ×2 GRIS « PAS DE PUB » */
+          el.classList.toggle('pubGris',g9);el.setAttribute('aria-disabled',g9?'true':'false');if(sp9&&sp9.getAttribute('data-fr')!==k9){sp9.setAttribute('data-fr',k9);sp9.textContent=TR(k9);}}
         if(!prep){prep=true;pubPrepare('double-gain');} // la régie va chercher sa pub pendant que la plaque monte
-        el.setAttribute('aria-label','×2 '+s9+' '+TR('PUB'));
+        el.setAttribute('aria-label','×2 '+s9+' '+TR(e.dispo===false?'PAS DE PUB':'PUB'));
         if(el.hidden){el.hidden=false;el.classList.remove('dbOn');void el.offsetWidth;el.classList.add('dbOn');}}
       else if(!el.hidden)el.hidden=true;};
     const monte=function(v){ // le grand chiffre passe de v à 2 v (0,6 s, ease-out), puis claque ; la ligne COMPTE dit le nouveau solde

@@ -25,6 +25,8 @@
    Les `p:` ci-dessous (et ceux des habillages dans boutique.js, des figures dans figures.js, des quatre caisses de carnet PX9 dans missions/table.js) sont les prix
    d'AUJOURD'HUI ; les commentaires datés qui les accompagnent citent les prix d'AVANT. LA ZAGAIE (index 88) garde 3 500 000. Les caisses RETIRÉES gardent leur
    ancien prix : il ne sert qu'au REMBOURSEMENT de qui les avait payées à l'époque. Les prix en € des premium (`eur`) ne bougent pas. */
+/* (2026-11-24, Sacha via Projets) LES PRIX EN € SUIVENT LES PALIERS D'APPLE (les ,61 / ,80 n'existent pas en France) : 1,61 € → 1,99 €, l'Iceberg 0,80 → 0,99 €
+   (barré 1,99 €). Ce n'est que le prix de SECOURS (avant la réponse d'Apple, hors ligne, le site) : dès qu'Apple répond, son prix s'affiche. */
 const CAR_UNLOCK=[
   /* (2026-10-06, Léo : « fiche-voitures-cash-car.txt — applique les changements ») LA GAMME RESSERRÉE : 43 caisses jouables (50 au 2026-11-05). Prix et
      familles de la fiche ; les 25 supprimées gardent leur ligne (`retire:1` dans CARS, leur prix ici sert au REMBOURSEMENT de san) ;
@@ -55,7 +57,7 @@ const CAR_UNLOCK=[
   {p:1500}, // LA POSTIÈRE — (2026-10-06) RETIRÉE
   {p:2000}, // LA DEUCHE — (2026-10-06) RETIRÉE ; (2026-11-07) remise puis retirée de nouveau (« enlève la tin snail »)
   {p:2500}, // LE TAXI JAUNE — (2026-10-06) retiré ; (2026-11-07, Léo : « le taxi remets ») REMIS
-  {k:'premium',eur:'161,00 €',rar:'leg'}, /* (2026-11-23, Sacha : « CHAT POP-TART ça fait longtemps qu'on en veut plus » · « enlève la voiture pizza ») RETIRÉE (voir CARS) : la ligne reste pour l'index */ // LA PIZZA EXPRESS — (2026-10-06) revient, LÉGENDAIRE en boutique
+  {k:'premium',eur:'161,00 €',rar:'leg',horsVente:1}, /* (2026-11-23, Sacha : « CHAT POP-TART ça fait longtemps qu'on en veut plus » · « enlève la voiture pizza ») RETIRÉE (voir CARS) : la ligne reste pour l'index ; (2026-11-24) horsVente gardé de la branche de la pub : le produit cashcar.car.b_pizza n'existe pas dans App Store Connect */ // LA PIZZA EXPRESS — (2026-10-06) revient, LÉGENDAIRE en boutique
   {p:3500}, // LE MONOSPACE
   {p:4000}, // LE BREAK SUÉDOIS
   {p:5000}, // LA BOULE
@@ -88,16 +90,16 @@ const CAR_UNLOCK=[
   {p:8500000}, // LA NOCTAMBULE (ex-LA CHAUVE-SOURIS — renommée le 2026-10-14, Sacha : nom trop proche de Batman pour la revue App Store)
   {p:950000}, // LA PAGODE — (2026-10-06) RETIRÉE
   {p:1100000}, // LA DÉESSE — (2026-10-06) RETIRÉE
-  {k:'premium',eur:'1,61 €',rar:'leg'}, /* (2026-11-18, Sacha : « la voiture Aigle de Feu, tu la mets en payante à 1,61 € en légendaire ») en BOUTIQUE (produit Apple cashcar.car.e_aigle, à créer : voir passation/qualite/voitures-tri.md) ; qui l'avait déjà (achetée 8 M$ ou gagnée par la mission `lave`) la GARDE : elle est dans `owned` ; avant : {p:8000000} */ // L'AIGLE DE FEU (2026-10-06 : 1,3 M → 1 M) (2026-10-09, Léo, fiche de la salle blanche) RARE à 800 000 : entre LA QUEUE DE CANARD et LA NOCTAMBULE (ex-LA CHAUVE-SOURIS), l'ordre de la fiche
+  {k:'premium',eur:'1,99 €',rar:'leg'}, /* (2026-11-18, Sacha : « la voiture Aigle de Feu, tu la mets en payante à 1,61 € en légendaire ») en BOUTIQUE (produit Apple cashcar.car.e_aigle, à créer : voir passation/qualite/voitures-tri.md) ; qui l'avait déjà (achetée 8 M$ ou gagnée par la mission `lave`) la GARDE : elle est dans `owned` ; avant : {p:8000000} */ // L'AIGLE DE FEU (2026-10-06 : 1,3 M → 1 M) (2026-10-09, Léo, fiche de la salle blanche) RARE à 800 000 : entre LA QUEUE DE CANARD et LA NOCTAMBULE (ex-LA CHAUVE-SOURIS), l'ordre de la fiche
   {p:600000}, // (2026-10-19) 1 600 000 → 600 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) — // LA ZED
-  {k:'premium',eur:'1,61 €',rar:'leg'}, // LA FÉLINE — (2026-10-06) LÉGENDAIRE en boutique (était épique, 2 M)
+  {k:'premium',eur:'1,99 €',rar:'leg'}, // LA FÉLINE — (2026-10-06) LÉGENDAIRE en boutique (était épique, 2 M)
   {p:2600000},/* (2026-10-22, Sacha : « tableau des voitures » 2 500 000 → 260 000) */ // LA RAIE — (2026-10-18, Sacha) REMISE dans le jeu : épique à 2,5 M, comme avant le 6/10 (« DÉFI À VENIR » du 6 au 14/10, retirée ensuite)
-  {k:'premium',eur:'1,61 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : L'ÉTERNELLE en boutique à 1,61 €, légendaire ; avant : 100 parties) */ // L'ÉTERNELLE — (2026-10-14, PILOTAGE) DÉFI : 100 PARTIES jouées (`ex.runs`, déjà compté : les parties passées valent) — c'était 100 pubs, impossible depuis qu'il n'y a plus de pubs — (2026-10-06) DÉFI : 100 pubs (était en boutique, 9,99 €)
-  {k:'premium',eur:'1,61 €',rar:'leg'}, // LE TRÔNE CENTRAL (2026-10-06 : 7,99 → 1,61 €)
+  {k:'premium',eur:'1,99 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : L'ÉTERNELLE en boutique à 1,61 €, légendaire ; avant : 100 parties) */ // L'ÉTERNELLE — (2026-10-14, PILOTAGE) DÉFI : 100 PARTIES jouées (`ex.runs`, déjà compté : les parties passées valent) — c'était 100 pubs, impossible depuis qu'il n'y a plus de pubs — (2026-10-06) DÉFI : 100 pubs (était en boutique, 9,99 €)
+  {k:'premium',eur:'1,99 €',rar:'leg'}, // LE TRÔNE CENTRAL (2026-10-06 : 7,99 → 1,61 €)
   {p:4200000},/* (2026-10-22, Sacha : « tableau des voitures » : LE SPECTRE à l'argent, 420 000 $, épique ; avant : 1,61 €) */ // LE SPECTRE (2026-10-06 : 7,99 → 1,61 €)
-  {k:'premium',eur:'1,61 €',rar:'leg'}, // LE BLINDÉ NOIR (2026-10-21, Sacha : 9,99 → 1,61 €) (ex-LE CHEVALIER NOIR — renommé le 2026-10-14, Sacha : nom trop proche de Batman pour la revue App Store)
-  {k:'premium',eur:'1,61 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : 0,99 → 1,61 €) */ // LE MUR DU SON (2026-10-06 : 6,99 → 0,99 €)
-  {k:'premium',eur:'1,61 €',rar:'leg'}, // LE DRAGON D'OR (2026-10-21, Sacha : 9,99 → 1,61 €)
+  {k:'premium',eur:'1,99 €',rar:'leg'}, // LE BLINDÉ NOIR (2026-10-21, Sacha : 9,99 → 1,61 €) (ex-LE CHEVALIER NOIR — renommé le 2026-10-14, Sacha : nom trop proche de Batman pour la revue App Store)
+  {k:'premium',eur:'1,99 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : 0,99 → 1,61 €) */ // LE MUR DU SON (2026-10-06 : 6,99 → 0,99 €)
+  {k:'premium',eur:'1,99 €',rar:'leg'}, // LE DRAGON D'OR (2026-10-21, Sacha : 9,99 → 1,61 €)
   {k:'carnet',v:9}, // LE MASTODONTE
   {k:'carnet',v:7}, // LA GROUPE B
   {k:'carnet',v:8}, // LE HOT ROD
@@ -107,9 +109,9 @@ const CAR_UNLOCK=[
   {p:2200000,exK:'carrV',exV:5}, // LE LINGOT — (2026-10-18) idem : les 5 niveaux de la VILLE gagnés = il est à toi
   {p:2800000},/* (2026-10-22, Sacha : « tableau des voitures » : L'ORIGAMI à l'argent, 280 000 $ ; avant : mission « joue sur chaque map ») */ // (2026-10-02) L'ORIGAMI — ÉPIQUE, à l'argent : entre LA DÉESSE et L'AIGLE DE FEU
   {p:9000000}, // (2026-10-06) ATCHOUM — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 900 000 : entre LA STRATOS et L'ORIGAMI, l'ordre de la fiche
-  {k:'premium',eur:'1,61 €',rar:'leg'}, // (2026-10-21, Sacha : « remplace le shark par l'autre requin de Léo, à 1,61 € ») LE SQUALE passe en boutique, ex-700 000 (la mission secrète `abysse` ne le donne plus : elle paie de l'argent, voir missions/table.js — sinon le patch des missions le remettait en `k:'mis'` et il disparaissait de la boutique) ; (2026-10-08) LE SQUALE — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 700 000 : entre LA TAURINE et ACIDE, l'ordre de la fiche
+  {k:'premium',eur:'1,99 €',rar:'leg'}, // (2026-10-21, Sacha : « remplace le shark par l'autre requin de Léo, à 1,61 € ») LE SQUALE passe en boutique, ex-700 000 (la mission secrète `abysse` ne le donne plus : elle paie de l'argent, voir missions/table.js — sinon le patch des missions le remettait en `k:'mis'` et il disparaissait de la boutique) ; (2026-10-08) LE SQUALE — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 700 000 : entre LA TAURINE et ACIDE, l'ordre de la fiche
   {p:3000000}, // (2026-10-09, Léo : « fais-en une hyper abstraite mais travaillée, concept, ajoute-la à la liste ») L'ABSTRAITE — ÉPIQUE, la plus chère des épiques (juste après ROSSO 40)
-  {k:'premium',eur:'0,80 €',rar:'leg',une:1,promo:{av:'1,61 €',t:'OFFRE DE L\'HIVER'}}, /* (2026-11-18, Sacha : « L'iceberg, tu la mets là où elle était Nyan Cat avant, en mode offre de l'hiver ; elle est à 80 centimes au lieu de 1,61 € en mode promo ») L'OFFRE À LA UNE (`une` : la grande boîte de la page ACHAT, la place du CHAT POP-TART jusqu'au 13/11) ; `promo` : le prix d'avant BARRÉ (`av`) et le bandeau (`t`), voir prixBarre (achats-store.js) — `?promo=0` les éteint ; produit Apple cashcar.car.iceberg, à créer à 0,80 € (voir passation/qualite/voitures-tri.md) ; qui l'avait déjà (achetée 3,2 M$ ou gagnée par la mission `verglas100`) la GARDE ; avant : {p:3200000} */ // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg ») L'ICEBERG — ÉPIQUE, juste après L'ABSTRAITE
+  {k:'premium',eur:'0,99 €',rar:'leg',une:1,promo:{av:'1,99 €',t:'OFFRE DE L\'HIVER'}}, /* (2026-11-18, Sacha : « L'iceberg, tu la mets là où elle était Nyan Cat avant, en mode offre de l'hiver ; elle est à 80 centimes au lieu de 1,61 € en mode promo ») L'OFFRE À LA UNE (`une` : la grande boîte de la page ACHAT, la place du CHAT POP-TART jusqu'au 13/11) ; `promo` : le prix d'avant BARRÉ (`av`) et le bandeau (`t`), voir prixBarre (achats-store.js) — `?promo=0` les éteint ; produit Apple cashcar.car.iceberg, à créer à 0,80 € (voir passation/qualite/voitures-tri.md) ; qui l'avait déjà (achetée 3,2 M$ ou gagnée par la mission `verglas100`) la GARDE ; avant : {p:3200000} */ // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg ») L'ICEBERG — ÉPIQUE, juste après L'ABSTRAITE
   {p:3400000}, // (2026-10-10, Léo : « une voiture flamme ») LA FOURNAISE — ÉPIQUE, juste après L'ICEBERG
   {p:3600000}, // (2026-10-10, Léo : « une abstraite type eau ») LA DÉFERLANTE — ÉPIQUE, juste après LA FOURNAISE
   {p:3800000}, // (2026-10-11, Léo : « génère-la en 3D dans mon jeu ») LA MERCURE — ÉPIQUE, juste après LA DÉFERLANTE
@@ -136,7 +138,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {k:'premium',eur:'1,61 €',rar:'leg'}, /* (2026-11-07, Léo : « la Cerise en voiture payante, 1,61 €, on l'appelle Kelly ») */ // 83 — KELLY CHERRY (ex-LA CERISE, était COMMUNE à 60 000) : Mazda MX-5 NA (1989), phares escamotables
+  {k:'premium',eur:'1,99 €',rar:'leg'}, /* (2026-11-07, Léo : « la Cerise en voiture payante, 1,61 €, on l'appelle Kelly ») */ // 83 — KELLY CHERRY (ex-LA CERISE, était COMMUNE à 60 000) : Mazda MX-5 NA (1989), phares escamotables
   /* · */
   /* · */
   /* · */

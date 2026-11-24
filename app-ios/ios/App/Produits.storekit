@@ -3,7 +3,7 @@
   "nonRenewingSubscriptions": [],
   "products": [
     {
-      "displayPrice": "1.61",
+      "displayPrice": "1.99",
       "familyShareable": false,
       "internalID": "6340622410",
       "localizations": [
@@ -18,7 +18,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.61",
+      "displayPrice": "1.99",
       "familyShareable": false,
       "internalID": "6303308831",
       "localizations": [
@@ -33,7 +33,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.61",
+      "displayPrice": "1.99",
       "familyShareable": false,
       "internalID": "6903318058",
       "localizations": [
@@ -48,7 +48,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.61",
+      "displayPrice": "1.99",
       "familyShareable": false,
       "internalID": "6667282678",
       "localizations": [
@@ -63,7 +63,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.61",
+      "displayPrice": "1.99",
       "familyShareable": false,
       "internalID": "6630026964",
       "localizations": [
@@ -78,7 +78,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.61",
+      "displayPrice": "1.99",
       "familyShareable": false,
       "internalID": "6553174096",
       "localizations": [
@@ -93,7 +93,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.61",
+      "displayPrice": "1.99",
       "familyShareable": false,
       "internalID": "6146913386",
       "localizations": [
@@ -108,7 +108,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "0.80",
+      "displayPrice": "0.99",
       "familyShareable": false,
       "internalID": "6666862976",
       "localizations": [
@@ -123,7 +123,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.61",
+      "displayPrice": "1.99",
       "familyShareable": false,
       "internalID": "6028851696",
       "localizations": [
@@ -138,7 +138,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.00",
+      "displayPrice": "0.99",
       "familyShareable": false,
       "internalID": "6562960070",
       "localizations": [
@@ -153,7 +153,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.00",
+      "displayPrice": "0.99",
       "familyShareable": false,
       "internalID": "6823016039",
       "localizations": [
@@ -168,7 +168,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.00",
+      "displayPrice": "0.99",
       "familyShareable": false,
       "internalID": "6413649744",
       "localizations": [
@@ -183,7 +183,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.00",
+      "displayPrice": "0.99",
       "familyShareable": false,
       "internalID": "6777292372",
       "localizations": [
@@ -198,7 +198,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.00",
+      "displayPrice": "0.99",
       "familyShareable": false,
       "internalID": "6775025640",
       "localizations": [
@@ -213,7 +213,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.00",
+      "displayPrice": "0.99",
       "familyShareable": false,
       "internalID": "6812581320",
       "localizations": [
@@ -228,7 +228,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.00",
+      "displayPrice": "0.99",
       "familyShareable": false,
       "internalID": "6120373534",
       "localizations": [
@@ -243,7 +243,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.00",
+      "displayPrice": "0.99",
       "familyShareable": false,
       "internalID": "6937059799",
       "localizations": [
@@ -258,7 +258,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.00",
+      "displayPrice": "0.99",
       "familyShareable": false,
       "internalID": "6878750576",
       "localizations": [
@@ -273,7 +273,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.00",
+      "displayPrice": "0.99",
       "familyShareable": false,
       "internalID": "6269029287",
       "localizations": [
@@ -288,7 +288,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.00",
+      "displayPrice": "0.99",
       "familyShareable": false,
       "internalID": "6434483153",
       "localizations": [
@@ -303,7 +303,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.00",
+      "displayPrice": "0.99",
       "familyShareable": false,
       "internalID": "6908826098",
       "localizations": [
@@ -318,7 +318,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.00",
+      "displayPrice": "0.99",
       "familyShareable": false,
       "internalID": "6267535430",
       "localizations": [
@@ -333,7 +333,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "1.00",
+      "displayPrice": "0.99",
       "familyShareable": false,
       "internalID": "6473741653",
       "localizations": [
@@ -348,7 +348,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "2.00",
+      "displayPrice": "1.99",
       "familyShareable": false,
       "internalID": "6482691247",
       "localizations": [
@@ -363,7 +363,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "2.00",
+      "displayPrice": "1.99",
       "familyShareable": false,
       "internalID": "6002235843",
       "localizations": [
@@ -378,7 +378,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "2.00",
+      "displayPrice": "1.99",
       "familyShareable": false,
       "internalID": "6561073824",
       "localizations": [
@@ -393,7 +393,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "2.00",
+      "displayPrice": "1.99",
       "familyShareable": false,
       "internalID": "6335515060",
       "localizations": [
@@ -408,7 +408,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "2.00",
+      "displayPrice": "1.99",
       "familyShareable": false,
       "internalID": "6776574338",
       "localizations": [
@@ -423,7 +423,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "2.00",
+      "displayPrice": "1.99",
       "familyShareable": false,
       "internalID": "6517083016",
       "localizations": [
@@ -438,7 +438,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "2.00",
+      "displayPrice": "1.99",
       "familyShareable": false,
       "internalID": "6148966565",
       "localizations": [
@@ -453,7 +453,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "2.00",
+      "displayPrice": "1.99",
       "familyShareable": false,
       "internalID": "6014305674",
       "localizations": [
@@ -468,7 +468,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "2.00",
+      "displayPrice": "1.99",
       "familyShareable": false,
       "internalID": "6822787240",
       "localizations": [
@@ -483,7 +483,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "2.00",
+      "displayPrice": "1.99",
       "familyShareable": false,
       "internalID": "6837123037",
       "localizations": [
@@ -498,7 +498,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "3.00",
+      "displayPrice": "2.99",
       "familyShareable": false,
       "internalID": "6196526309",
       "localizations": [
@@ -513,7 +513,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "3.00",
+      "displayPrice": "2.99",
       "familyShareable": false,
       "internalID": "6638077297",
       "localizations": [
@@ -528,7 +528,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "3.00",
+      "displayPrice": "2.99",
       "familyShareable": false,
       "internalID": "6359756138",
       "localizations": [
@@ -543,7 +543,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "3.00",
+      "displayPrice": "2.99",
       "familyShareable": false,
       "internalID": "6872228203",
       "localizations": [
@@ -558,7 +558,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "3.00",
+      "displayPrice": "2.99",
       "familyShareable": false,
       "internalID": "6878353982",
       "localizations": [

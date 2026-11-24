@@ -107,8 +107,8 @@ for (const k of RETIREES) verifie(J0.carRetiree(I[k]) && !J0.carEnVente(I[k]) &&
 const prod = J0.produitsStore();
 verifie(!prod.some(p => p.type === 'car' && J0.carRetiree(p.cle)), 'catalogue App Store : aucune retirée', prod.filter(p => p.type === 'car').map(p => p.id));
 const pA = prod.find(p => p.cle === I.aigle), pI = prod.find(p => p.cle === I.iceberg);
-verifie(pA && pA.id === 'cashcar.car.e_aigle' && pA.eur === '1,61 €', "L'AIGLE DE FEU au catalogue : cashcar.car.e_aigle à 1,61 €", pA);
-verifie(pI && pI.id === 'cashcar.car.iceberg' && pI.eur === '0,80 €', "L'ICEBERG au catalogue : cashcar.car.iceberg à 0,80 €", pI);
+verifie(pA && pA.id === 'cashcar.car.e_aigle' && pA.eur === '1,99 €', "L'AIGLE DE FEU au catalogue : cashcar.car.e_aigle à 1,99 €", pA);
+verifie(pI && pI.id === 'cashcar.car.iceberg' && pI.eur === '0,99 €', "L'ICEBERG au catalogue : cashcar.car.iceberg à 0,99 €", pI);
 verifie(J0.carRar(I.aigle) === 'legendaire' && J0.carRar(I.iceberg) === 'legendaire', 'les deux payantes sont LÉGENDAIRES', [J0.carRar(I.aigle), J0.carRar(I.iceberg)]);
 const unes = []; for (let i = 0; i < 91; i++) { const u = J0.CAR_UNLOCK[i]; if (u && u.une && u.k === 'premium' && J0.carEnVente(i)) unes.push(i); }
 verifie(unes.length === 1 && unes[0] === I.iceberg, "l'offre à la une (la place du CHAT POP-TART) : L'ICEBERG seule", unes);
@@ -133,14 +133,14 @@ verifie(!J0.carUnlockedVrai(I.combi) && !J0.carUnlockedVrai(I.dolores), 'compte 
 /* le prix barré */
 {
   const h = J0.prixBarreHtml(I.iceberg), b = J0.promoBandeau(I.iceberg);
-  verifie(/<s>1,61 €<\/s>/.test(h), "prix d'avant barré « 1,61 € » à côté du prix du jeu en €", h);
+  verifie(/<s>1,99 €<\/s>/.test(h), "prix d'avant barré « 1,99 € » à côté du prix du jeu en €", h);
   verifie(/OFFRE DE L'HIVER/.test(b), 'bandeau OFFRE DE L\'HIVER', b);
   verifie(J0.prixBarreHtml(I.aigle) === '' && J0.promoBandeau(I.aigle) === '', "pas de promo sur L'AIGLE DE FEU");
   J0.ACH_PRIX['cashcar.car.iceberg'] = '$0.99';
   verifie(J0.prixBarreHtml(I.iceberg) === '' && /OFFRE/.test(J0.promoBandeau(I.iceberg)), "prix d'Apple en dollars : plus de prix barré en €, le bandeau reste");
   J0.ACH_PRIX['cashcar.car.iceberg'] = '0,79 €';
   verifie(/<s>/.test(J0.prixBarreHtml(I.iceberg)), "prix d'Apple en euros : le prix barré revient");
-  J0.ACH_PRIX['cashcar.car.iceberg'] = '1,69 €';
+  J0.ACH_PRIX['cashcar.car.iceberg'] = '2,09 €'; /* (2026-11-25) les prix suivent les paliers d'Apple depuis le 24/11 (1,61 → 1,99 €, 0,80 → 0,99 €) : le banc attend ces prix, et « remonté » veut dire au-dessus du barré de 1,99 € */
   verifie(J0.prixBarreHtml(I.iceberg) === '', "prix d'Apple remonté (offre finie chez Apple) : plus de prix barré");
   delete J0.ACH_PRIX['cashcar.car.iceberg'];
   const W9 = monde(undefined, { search: '?promo=0' });
