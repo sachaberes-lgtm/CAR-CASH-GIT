@@ -48,6 +48,16 @@ Rien sur `main`, rien d'envoyé à Apple, rien d'installé sur l'iPhone sans le 
   fenêtre d'Apple « Autoriser « CASH CAR » à suivre… » avec NOTRE phrase en français ; « ne pas me suivre » touché ; le jeu démarre
   (écran TOUCHE, intro 1.61). Pas encore vu : une vraie mort avec CONTINUER ▶ PUB et la vidéo de test (installation neuve = auto-école
   d'abord ; Mac très chargé, charge ~160) → Sacha joue dans le panneau du simulateur.
+- 24/11, 13 h (Sacha : « fais-le toi-même ») : nouveau mode de test DANS natif.js, `chaleur=pub` (build Debug + variable CC_QS seulement, jamais
+  une app normale) : la caisse roule seule, meurt au bout de 25 s (`pubmort`, `pubt`), le testeur touche CONTINUER / ×2 / REJOUER ; l'état de la
+  pub part au journal toutes les 2 s (`CCBANC état=pub …`, lu par `xcrun simctl spawn <id> log stream --predicate 'eventMessage CONTAINS "CCBANC"'`).
+  Lancement : `SIMCTL_CHILD_CC_QS='&chaleur=pub' xcrun simctl launch <id> com.sachaberes.carcash`. Effet de bord : natif.js citant dbgChance et
+  dbgPub, publie-allege GARDE ces deux crochets dans www/ (comme dbgState, dbgJouer… déjà gardés pour le banc de chaleur).
+  VU DANS LA VRAIE APP (simulateur, kit Google réel, blocs de test) : init, consentement OK, canRequestAds vrai, CHOIX DES PUBS demandé (Europe),
+  **vidéo récompensée CHARGÉE et pub plein écran CHARGÉE**, `dispo` vrai, aucune erreur JS.
+  BLOQUÉ : au simulateur, la page cesse d'avancer (0 image/s) ~20 s après le départ, même sans dessin 3D (`chalrendu=0`) : le simulateur, fenêtre
+  absente ou derrière les autres, ne fait plus tourner l'animation → la mort n'arrive jamais à l'écran de fin. À refaire avec la fenêtre
+  Simulator AU PREMIER PLAN (ou sur l'iPhone, oui de Sacha). Rien à voir avec la pub (au navigateur les courses tournent).
 - Le 24/11 j'ai arrêté 4 Chrome sans fenêtre laissés par mes passages du banc (profils banc-achats-*) ; le banc les ferme désormais toujours.
 
 ## LE BANC (`node outils/banc-pub/banc.cjs`, Chrome sans fenêtre et muet, faux module AdMob ; `--sonde` : l'écran de fin toutes les 400 ms)
