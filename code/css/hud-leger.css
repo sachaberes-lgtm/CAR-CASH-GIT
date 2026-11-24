@@ -12,7 +12,9 @@
    1. CE QUI PART : le compteur d'aura et sa chaîne (#auraV2), la vitesse (#nxVit, #speedo), le « €×1,3 » du flow (.fM), les étiquettes du
       bas (le fil des figures #fil — fil() se tait, voir fil.js —, la ligne et les missions suivies #m2Ligne / #m2Focus, le rappel #fhLeg),
       et le bloc AIR de la colonne (#airHud : secondes, barre, 2e barre du raisin — Sacha, sur photo : « on veut plus de air time, pourquoi y a une grosse
-      barre blanche et la même en petit en bas ») : AUCUN temps de vol ne s'affiche (l'anneau autour du pouce n'existe qu'avec ?hud=d) ; AIR MAX garde sa ligne de pouvoir.
+      barre blanche et la même en petit en bas ») : AIR MAX garde sa ligne de pouvoir.
+      (2026-11-24, Sacha : « remets la barre de air time sur le Vercel ») le bloc AIR REVIENT sur le site (ordinateur et téléphone au navigateur) ; il ne reste caché que
+      dans l'app iPhone (aucun temps de vol affiché, l'anneau autour du pouce n'existe qu'avec ?hud=d) et avec `?sans=barreair`.
    2. LA BARRE DE NITRO : 24 → 14 px (cadre compris) ; sa flamme et la vague du flow rétrécissent avec elle (27 → 20 px, 17 → 15 px), sur le
       même axe ; le flow remonte de 10 px.
    3. LES POUVOIRS EN LIGNES (.pl, bâties par boucle-6-hud.js) : l'icône, une barre fine, les secondes — 16 px par pouvoir au lieu d'une plaque
@@ -23,8 +25,12 @@
    ===================================================================================================================================== */
 /* ---- 1. CE QUI PART ---- */
 html body #auraV2,html body #auraHud,html body #speedo,html body #nitroBar>#nxVit,html body #flowHud .fM,html body.touch #flowHud .fM,
-html body #m2Ligne,html body #m2Focus,
-html body #airHud,html body.touch #airPie[style*="block"]+#airHud{display:none!important}
+html body #m2Ligne,html body #m2Focus{display:none!important}
+/* (2026-11-24, Sacha : « remets la barre de air time sur le Vercel ») le bloc AIR n'est plus caché que là où <html> n'a pas la classe `barreAir` (posée par interface/icones-fenetre.js,
+   BARRE_AIR) : dans l'app iPhone, et avec `?sans=barreair`. Sur le site il revient, à sa place d'avant le 12/11 : sous le ⏸, au-dessus des lignes de pouvoir (hudColMesure). */
+html:not(.barreAir) body #airHud,html:not(.barreAir) body.touch #airPie[style*="block"]+#airHud{display:none!important}
+/* le doublon du raisin : en vol (body.hAirPie, posé par hasMaj quand le bloc AIR est allumé), la ligne de pouvoir AIR MAX s'efface — le bloc AIR porte déjà sa 2e barre. Au sol elle revient. */
+html.airSeul:not([data-hud="d"]) body.touch.hAirPie #pwrChip .pl[data-k="a"]{display:none!important}
 /* (2026-11-13) le rappel des gestes (#fhLeg) revient en vol, en PAYSAGE seulement : voir « LE RAPPEL DES FIGURES, EN LIGNES » plus bas */
 /* ---- 2. LA BARRE DE NITRO, COMPRESSÉE ---- */
 html body.touch #nitroBar{height:14px!important;padding:2px!important}

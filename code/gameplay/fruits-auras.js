@@ -403,7 +403,7 @@ function raisinHud(double,fr2){ // la 2e barre sous le chrono de vol
   const el=raisinHud.el||(raisinHud.el=document.getElementById('airHud'));if(!el)return;
   if(!raisinHud.b){const bar=el.querySelector('.ahBar');if(!bar)return;const b2=bar.cloneNode(true);b2.classList.add('ahBar2');bar.after(b2);raisinHud.b=b2;
     const st=document.createElement('style');st.textContent='#airHud .ahBar2{display:none;height:9px;margin-top:3px;padding:2px}#airHud[data-d="1"] .ahBar2{display:block}#airHud .ahBar2 .ahF{width:calc(var(--a2,1)*100%);background:linear-gradient(90deg,#ff9ec2,#ffffff)}#airHud .ahBar2 .ahF::after{display:none}';document.head.appendChild(st);}
-  const d=double?'1':'0';if(el.dataset.d!==d)el.dataset.d=d;
+  const d=double?'1':'0';if(el.dataset.d!==d){el.dataset.d=d;hudColVite();}
   if(double){const q=fr2.toFixed(2);if(raisinHud._q!==q){raisinHud._q=q;el.style.setProperty('--a2',q);}}
 }
 Object.assign(PWR_DEFS.a,{col:0xffffff,core:0xfff4e8,tint:'#ffd6f0',c2:'#d070d0',fx:'rgba(255,214,240,.8)',fx2:'rgba(208,112,208,.3)',msg:'🍇 RAISIN — AIRTIME ×2 : DEUX JAUGES !',sous:'AIRTIME ×2, 2 JAUGES'});

@@ -11966,7 +11966,9 @@ html[data-hud="d"] body.hAirPie #tKnob .skAirS[data-k="inf"]{color:#eafffb;--c:v
    1. CE QUI PART : le compteur d'aura et sa chaîne (#auraV2), la vitesse (#nxVit, #speedo), le « €×1,3 » du flow (.fM), les étiquettes du
       bas (le fil des figures #fil — fil() se tait, voir fil.js —, la ligne et les missions suivies #m2Ligne / #m2Focus, le rappel #fhLeg),
       et le bloc AIR de la colonne (#airHud : secondes, barre, 2e barre du raisin — Sacha, sur photo : « on veut plus de air time, pourquoi y a une grosse
-      barre blanche et la même en petit en bas ») : AUCUN temps de vol ne s'affiche (l'anneau autour du pouce n'existe qu'avec ?hud=d) ; AIR MAX garde sa ligne de pouvoir.
+      barre blanche et la même en petit en bas ») : AIR MAX garde sa ligne de pouvoir.
+      (2026-11-24, Sacha : « remets la barre de air time sur le Vercel ») le bloc AIR REVIENT sur le site (ordinateur et téléphone au navigateur) ; il ne reste caché que
+      dans l'app iPhone (aucun temps de vol affiché, l'anneau autour du pouce n'existe qu'avec ?hud=d) et avec `?sans=barreair`.
    2. LA BARRE DE NITRO : 24 → 14 px (cadre compris) ; sa flamme et la vague du flow rétrécissent avec elle (27 → 20 px, 17 → 15 px), sur le
       même axe ; le flow remonte de 10 px.
    3. LES POUVOIRS EN LIGNES (.pl, bâties par boucle-6-hud.js) : l'icône, une barre fine, les secondes — 16 px par pouvoir au lieu d'une plaque
@@ -11977,8 +11979,12 @@ html[data-hud="d"] body.hAirPie #tKnob .skAirS[data-k="inf"]{color:#eafffb;--c:v
    ===================================================================================================================================== */
 /* ---- 1. CE QUI PART ---- */
 html body #auraV2,html body #auraHud,html body #speedo,html body #nitroBar>#nxVit,html body #flowHud .fM,html body.touch #flowHud .fM,
-html body #m2Ligne,html body #m2Focus,
-html body #airHud,html body.touch #airPie[style*="block"]+#airHud{display:none!important}
+html body #m2Ligne,html body #m2Focus{display:none!important}
+/* (2026-11-24, Sacha : « remets la barre de air time sur le Vercel ») le bloc AIR n'est plus caché que là où <html> n'a pas la classe `barreAir` (posée par interface/icones-fenetre.js,
+   BARRE_AIR) : dans l'app iPhone, et avec `?sans=barreair`. Sur le site il revient, à sa place d'avant le 12/11 : sous le ⏸, au-dessus des lignes de pouvoir (hudColMesure). */
+html:not(.barreAir) body #airHud,html:not(.barreAir) body.touch #airPie[style*="block"]+#airHud{display:none!important}
+/* le doublon du raisin : en vol (body.hAirPie, posé par hasMaj quand le bloc AIR est allumé), la ligne de pouvoir AIR MAX s'efface — le bloc AIR porte déjà sa 2e barre. Au sol elle revient. */
+html.airSeul:not([data-hud="d"]) body.touch.hAirPie #pwrChip .pl[data-k="a"]{display:none!important}
 /* (2026-11-13) le rappel des gestes (#fhLeg) revient en vol, en PAYSAGE seulement : voir « LE RAPPEL DES FIGURES, EN LIGNES » plus bas */
 /* ---- 2. LA BARRE DE NITRO, COMPRESSÉE ---- */
 html body.touch #nitroBar{height:14px!important;padding:2px!important}
@@ -13233,6 +13239,15 @@ const DEV=location.protocol==='file:'||/[?&]dev=/.test(location.search)||
   /^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)$|\.(local|localhost|test)$/.test(location.hostname);
 function qDev(re){return DEV&&re.test(location.search);}
 if(EN_APP)try{document.documentElement.classList.add('ccApp');}catch(e){}
+/* ===== LA BARRE D'AIR TIME REVIENT SUR LE SITE (2026-11-24, Sacha : « remets la barre de air time sur le Vercel ») =====
+   BARRE_AIR : le bloc AIR de la colonne de droite (#airHud : les secondes de vol, la barre, la 2e barre du raisin) se voit de nouveau sur TOUT le site (ordinateur et téléphone au navigateur).
+   L'app iPhone (EN_APP) reste sans barre, comme depuis le HUD léger du 12/11. La classe `barreAir` sur <html> sert au CSS (css/hud-leger.css §1) : sans elle, le bloc reste caché.
+   `?sans=barreair` = l'état d'avant (cachée partout).
+   LE DOUBLON DU RAISIN (Sacha, 12/11, sur photo : « pourquoi y a une grosse barre blanche et la même en petit en bas ») : en vol, le raisin se lit déjà dans le bloc AIR (sa 2e barre, rose et blanche) ;
+   sa ligne de pouvoir AIR MAX, juste dessous (la même aile, une barre blanche plus fine), disait deux fois la même chose. Tant que le bloc AIR est à l'écran, cette ligne s'efface (classe `airSeul`,
+   css/hud-leger.css §1) ; au sol elle revient, avec les secondes qui restent au pouvoir. `?sans=airseul` = la ligne reste en vol. */
+const BARRE_AIR=!EN_APP&&!/[?&]sans=([^&]*,)?barreair(,|&|$)/.test(location.search);
+if(BARRE_AIR)try{document.documentElement.classList.add('barreAir');if(!/[?&]sans=([^&]*,)?airseul(,|&|$)/.test(location.search))document.documentElement.classList.add('airSeul');}catch(e){}
 window.CC_DEV=DEV;window.CC_EN_APP=EN_APP;
 /* COUCHÉ, UNE SEULE DÉFINITION (2026-11-05, Opus : jury INT-26) : le CSS dit « couché » quand l'écran est en paysage ET bas (≤ 540 px), ou en
    paysage large (≥ 3/2) jusqu'à 820 px de haut ; le JS avait deux autres règles (ratio > 1,25 aux missions, > 1 au HUD des figures). estCouche()
@@ -40735,6 +40750,9 @@ function hudColonne(dt){
   HUDCOL.t-=dt;if(HUDCOL.t>0)return;HUDCOL.t=.1;
   apresMiseEnPage(hudColMesure,true);
 }
+/* (2026-11-24, la barre d'air time revient sur le site) hudColVite : la colonne se range DANS L'IMAGE EN COURS (après sa mise en page, avant qu'elle soit peinte), sans attendre son tour (0,1 s) —
+   appelée quand le bloc AIR apparaît (décollage), disparaît (posé) ou change de hauteur (la 2e barre du raisin) : les lignes de pouvoir lui font place avant qu'il se voie. */
+function hudColVite(){if(!BARRE_AIR)return;HUDCOL.t=.1;apresMiseEnPage(hudColMesure,true);}
 function hudColMesure(){ // la mesure d'avant, à l'identique
   if(!(TCTL.on&&running&&!paused&&!gameOver))return; // (le rappel tombe en fin d'image : la partie a pu s'arrêter entre-temps)
   if(!HUDCOL.els)HUDCOL.els=['triade','airHud','pwrChip','campChip'].map(function(i){return document.getElementById(i);});
@@ -40749,6 +40767,10 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
     if(pay&&e.id==='triade'){if(e.style.getPropertyValue('top'))e.style.removeProperty('top');continue;}
     const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden')continue;
     const z=parseFloat(cs.zoom)||1,r=e.getBoundingClientRect();if(zRect.leg===undefined)zRect(e);let h=r.height*(zRect.leg?z:1);if(h<2)continue;
+    /* (2026-11-24, la barre d'air time revient sur le site) LA HAUTEUR FINALE DU BLOC AIR : il entre en grandissant (hmPie, échelle 0,55 → 1 en 0,32 s) et le rectangle lu à l'écran
+       est celui de l'échelle du moment — les lignes de pouvoir se rangeaient sous un bloc à moitié grandi, puis il leur passait dessus (7 à 13 px relevés). On divise par l'échelle en cours :
+       la colonne réserve tout de suite la hauteur du bloc fini. */
+    if(e.id==='airHud'){const sc9=parseFloat(String(cs.scale||'').split(' ').pop());if(sc9>.05&&sc9<1)h/=sc9;}
     /* (2026-11-10, chasse aux bugs visuels) LE CHRONO DE DARK TRIAD COMPTE : #frenChrono est posé SOUS la boîte de l'emblème (top:100% + 2px) — la colonne ne le voyait pas,
        et le bloc suivant (le chrono de vol, la plaque NITRO MAX) se posait dessus (« 0:03 » à moitié sous la plaque, debout). Ce qui dépasse s'ajoute à la hauteur ; tant que le
        chrono n'est pas encore affiché, sa place est gardée (14 px, puis la dernière mesure) : la colonne ne saute pas quand il arrive. */
@@ -69698,7 +69720,7 @@ function raisinHud(double,fr2){ // la 2e barre sous le chrono de vol
   const el=raisinHud.el||(raisinHud.el=document.getElementById('airHud'));if(!el)return;
   if(!raisinHud.b){const bar=el.querySelector('.ahBar');if(!bar)return;const b2=bar.cloneNode(true);b2.classList.add('ahBar2');bar.after(b2);raisinHud.b=b2;
     const st=document.createElement('style');st.textContent='#airHud .ahBar2{display:none;height:9px;margin-top:3px;padding:2px}#airHud[data-d="1"] .ahBar2{display:block}#airHud .ahBar2 .ahF{width:calc(var(--a2,1)*100%);background:linear-gradient(90deg,#ff9ec2,#ffffff)}#airHud .ahBar2 .ahF::after{display:none}';document.head.appendChild(st);}
-  const d=double?'1':'0';if(el.dataset.d!==d)el.dataset.d=d;
+  const d=double?'1':'0';if(el.dataset.d!==d){el.dataset.d=d;hudColVite();}
   if(double){const q=fr2.toFixed(2);if(raisinHud._q!==q){raisinHud._q=q;el.style.setProperty('--a2',q);}}
 }
 Object.assign(PWR_DEFS.a,{col:0xffffff,core:0xfff4e8,tint:'#ffd6f0',c2:'#d070d0',fx:'rgba(255,214,240,.8)',fx2:'rgba(208,112,208,.3)',msg:'🍇 RAISIN — AIRTIME ×2 : DEUX JAUGES !',sous:'AIRTIME ×2, 2 JAUGES'});
@@ -96190,7 +96212,7 @@ function hudCalmeTick(now){if(!TEL_NATIF)return;
   const course=started&&running&&!gameOver&&!paused&&!garageOn&&!(typeof TUTO!=='undefined'&&TUTO.on)&&mode!=='boom';
   if(!course||nitroOn||keys.Space||keys.ShiftLeft||keys.ShiftRight)HUD_CALME.t=now; /* (2026-11-12, chasse aux bugs du HUD) « quand le joueur RELÂCHE le nitro » : le bouton tenu compte, pas seulement la poussée — réserve à sec, le doigt appuyé, le HUD s'effaçait (et la jauge vide avec lui) */
   let h=course&&now-HUD_CALME.t>HUD_CALME_MS;
-  if(h&&mode==='fall'&&HUDV==='d'){const a=HUD_CALME.air||(HUD_CALME.air=document.getElementById('airHud'));if(a&&a.dataset.k==='urgent')h=false;}
+  if(h&&mode==='fall'&&(HUDV==='d'||BARRE_AIR)){const a=HUD_CALME.air||(HUD_CALME.air=document.getElementById('airHud'));if(a&&a.dataset.k==='urgent')h=false;}
   if(CALG.ok){if(h)CALG.on=true;else if(CALG.on&&course&&(nitroOn||keys.Space||keys.ShiftLeft||keys.ShiftRight||now-HUD_CALME.t>HUD_CALME_MS))CALG.on=false;} /* (garde du calme) voir CALG.on : hors course (pause, mort) et pendant la reprise sans nitro, la garde reste calme */
   if(h!==HUD_CALME.on){HUD_CALME.on=h;document.body.classList.toggle('hudCalme',h);sonCalme(h);}}
 /* (2026-11-13, Sacha : « en mode HUD calme on doit même plus voir les pièces ou les ramasser… pareil pour les pouvoirs et tout, les sons seule la musique reste ») LE SON DU CALME.
@@ -96203,6 +96225,7 @@ function sonCalme(h){
   try{const p=MASTER._limIn.gain,t=AC.currentTime,ouvert=(musGraphe()&&!SND.sfx)?0:.937;
     p.cancelScheduledValues(t);p.setTargetAtTime(h?0:ouvert,t,h?.08:.03);}catch(e){}}
 /* (2026-11-12, chasse aux bugs du HUD) le vol critique ne rallume le HUD qu'avec l'anneau de vol (?hud=d) : par défaut aucun temps de vol ne s'affiche (HUD léger), le HUD revenait sans rien montrer. */
+/* (2026-11-24, Sacha : « remets la barre de air time sur le Vercel ») …et là où la barre d'air time se voit (BARRE_AIR : le site, pas l'app) : la barre rouge qui tremble doit se lire, même au HUD calme. */
 Object.assign(I18N,{'HUD CALME ALLUMÉ':'CALM HUD ON','HUD CALME ÉTEINT':'CALM HUD OFF'});
 window.dbgCodeUhd=function(v){if(v!=null&&!!v!==HUD_CALME_CODE)codeUhd('uhd');return {code:HUD_CALME_CODE,ok:HUD_CALME.ok};};
 window.dbgHudCalme=function(){return {on:HUD_CALME.on,ok:HUD_CALME.ok,leger:document.documentElement.classList.contains('ecrLeger'),nitro:!!nitroOn,depuis:Math.round(performance.now()-HUD_CALME.t),effets:(AC&&MASTER&&MASTER._limIn)?+MASTER._limIn.gain.value.toFixed(3):null};};
@@ -98435,7 +98458,7 @@ if(MG.on)mgTs(3); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 3
           if(nitroOn){const a9=nitroBlue?.05:.036;camera.position.addScaledVector(F.n,Math.sin(t*38.7)*a9).addScaledVector(tmp,Math.sin(t*29.3+1.7)*a9*.7);}
         }
         // indicateur de virage RETIRÉ du HUD épuré (#turnHint est display:none) : on n'évalue plus la courbe à l'avance (frameAt+trig) chaque frame pour rien
-        if(airPie.style.display!=='none')airPie.style.display='none'; // (2026-09-27) une fois suffit (c'était à chaque image de conduite)
+        if(airPie.style.display!=='none'){airPie.style.display='none';hudColVite();} // (2026-09-27) une fois suffit (c'était à chaque image de conduite)
       }
     }else if(mode==='fall'&&PORTV.vol&&PORTV.att){ /* (2026-11-12, grande vitesse) LA CAISSE TENUE EN L'AIR : le passage du portail attend le pré-bâti sous le voile (rien ne se dessine) — le vol ne court pas, ni sa jauge ni ses heurts ; newTrack la reposera sur la route neuve */
     }else if(mode==='fall'){ // ---- VOL : maniabilité aérienne propre ----
@@ -98722,7 +98745,7 @@ if(MG.on)mgTs(3); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 3
       LM.a+=((LM.vu?1:0)-LM.a)*Math.min(1,dt*(LM.vu?14:7));landMark.visible=LM.a>.02&&!HUD_CALME.on /* (2026-11-12, Sacha : « même la cible d'atterrissage ne doit plus être là ») le HUD calme éteint aussi l'anneau d'atterrissage */;landMark.material.opacity=.85*LM.a;
       landMark.material.color.lerp(LM.c,Math.min(1,dt*12));
       // camembert de temps de vol (cyan plein pendant AIRTIME INFINI : c'est le pouvoir qui s'égrène)
-      if(airPie.style.display!=='block')airPie.style.display='block'; // (2026-09-27) une fois par vol, plus à chaque image
+      if(airPie.style.display!=='block'){airPie.style.display='block';hudColVite();} // (2026-09-27) une fois par vol, plus à chaque image
       const inf9=pwrAirT>0&&TUTO.pa; // l'airtime PRÊTÉ par l'auto-école reste INFINI ; le RAISIN, lui, DOUBLE la jauge (voir RAI)
       const fr=inf9?Math.min(1,pwrAirT/PWR_DEFS.a.t):Math.max(0,1-fallTR/airMax()); // jauge en temps RÉEL : 6 s affichées = 6 s vécues
       if(airFlash>0)airFlash=Math.max(0,airFlash-dt);
@@ -98745,7 +98768,7 @@ if(MG.on)mgTs(3); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 3
       else if((ORB.heurt=rochesHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(rochesHeurt,ORB.heurt,.9);explode(ORB.heurt);} /* (2026-11-10, Sacha : « les météorites ont pas de physique ») LES ROCHES DE JUPITER sont dures — voir rochesHeurt */
       else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else{impPrep(villeHeurt,'tour',.9);explode('tour');}} // (2026-10-15) L'IMPACT, le même partout (le cratère propre aux tours, villeImpact, n'est plus appelé : Sacha veut l'explosion de l'airtime sur la ville aussi) // (2026-09-26) DANS UNE TOUR : on meurt
       else if(GEANTS.col&&(GEANTS.heurt=geantsHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(geantsHeurt,GEANTS.heurt,1);explode(GEANTS.heurt);} /* (2026-11-13) LES GÉANTS DE L'ORBITE : la coque du hangar de l'épave, la lune glacée */
-      else if(tryLand(dtF)){airPie.style.display='none';mirPose();} // posé : le total du DAUPHIN se fige et s'encaisse — (v5) et s'ÉCRIT enfin
+      else if(tryLand(dtF)){airPie.style.display='none';hudColVite();mirPose();} // posé : le total du DAUPHIN se fige et s'encaisse — (v5) et s'ÉCRIT enfin
       else if((airDepasse()&&!BALADE)||jadeVide(fallPos.y)){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(jadeVide(fallPos.y)||MIR.t>2.2?'vide':'air');} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       if(!impCoupTick(dt)){ // (2026-10-15, L'IMPACT) pendant le COUP (0,11 s), la caisse s'écrase contre la paroi : la détonation attend

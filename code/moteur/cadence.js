@@ -194,7 +194,7 @@ function hudCalmeTick(now){if(!TEL_NATIF)return;
   const course=started&&running&&!gameOver&&!paused&&!garageOn&&!(typeof TUTO!=='undefined'&&TUTO.on)&&mode!=='boom';
   if(!course||nitroOn||keys.Space||keys.ShiftLeft||keys.ShiftRight)HUD_CALME.t=now; /* (2026-11-12, chasse aux bugs du HUD) « quand le joueur RELÂCHE le nitro » : le bouton tenu compte, pas seulement la poussée — réserve à sec, le doigt appuyé, le HUD s'effaçait (et la jauge vide avec lui) */
   let h=course&&now-HUD_CALME.t>HUD_CALME_MS;
-  if(h&&mode==='fall'&&HUDV==='d'){const a=HUD_CALME.air||(HUD_CALME.air=document.getElementById('airHud'));if(a&&a.dataset.k==='urgent')h=false;}
+  if(h&&mode==='fall'&&(HUDV==='d'||BARRE_AIR)){const a=HUD_CALME.air||(HUD_CALME.air=document.getElementById('airHud'));if(a&&a.dataset.k==='urgent')h=false;}
   if(CALG.ok){if(h)CALG.on=true;else if(CALG.on&&course&&(nitroOn||keys.Space||keys.ShiftLeft||keys.ShiftRight||now-HUD_CALME.t>HUD_CALME_MS))CALG.on=false;} /* (garde du calme) voir CALG.on : hors course (pause, mort) et pendant la reprise sans nitro, la garde reste calme */
   if(h!==HUD_CALME.on){HUD_CALME.on=h;document.body.classList.toggle('hudCalme',h);sonCalme(h);}}
 /* (2026-11-13, Sacha : « en mode HUD calme on doit même plus voir les pièces ou les ramasser… pareil pour les pouvoirs et tout, les sons seule la musique reste ») LE SON DU CALME.
@@ -207,6 +207,7 @@ function sonCalme(h){
   try{const p=MASTER._limIn.gain,t=AC.currentTime,ouvert=(musGraphe()&&!SND.sfx)?0:.937;
     p.cancelScheduledValues(t);p.setTargetAtTime(h?0:ouvert,t,h?.08:.03);}catch(e){}}
 /* (2026-11-12, chasse aux bugs du HUD) le vol critique ne rallume le HUD qu'avec l'anneau de vol (?hud=d) : par défaut aucun temps de vol ne s'affiche (HUD léger), le HUD revenait sans rien montrer. */
+/* (2026-11-24, Sacha : « remets la barre de air time sur le Vercel ») …et là où la barre d'air time se voit (BARRE_AIR : le site, pas l'app) : la barre rouge qui tremble doit se lire, même au HUD calme. */
 Object.assign(I18N,{'HUD CALME ALLUMÉ':'CALM HUD ON','HUD CALME ÉTEINT':'CALM HUD OFF'});
 window.dbgCodeUhd=function(v){if(v!=null&&!!v!==HUD_CALME_CODE)codeUhd('uhd');return {code:HUD_CALME_CODE,ok:HUD_CALME.ok};};
 window.dbgHudCalme=function(){return {on:HUD_CALME.on,ok:HUD_CALME.ok,leger:document.documentElement.classList.contains('ecrLeger'),nitro:!!nitroOn,depuis:Math.round(performance.now()-HUD_CALME.t),effets:(AC&&MASTER&&MASTER._limIn)?+MASTER._limIn.gain.value.toFixed(3):null};};

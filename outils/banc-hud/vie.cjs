@@ -19,6 +19,7 @@ const LIGNES = n => `(function(){var L=document.querySelectorAll('#pwrChip .pl')
 const PAUSE = `(window.__panBascule?window.__panBascule():(document.getElementById('tPanel').classList.contains('open')?document.querySelector('#tPanel [data-a=close]').click():document.getElementById('tGear').click()))`;
 /* ce que le HUD calme laisse à l'écran (Sacha, 12/11) : le ⏸, la frénésie (DARK TRIAD, TRIPLE MONSTER), l'argent, le moteur et ses paliers, les petits textes d'effets, les noms de figures */
 const RESTENT = ['tGear', 'triade', 'frenChrono', 'frenTraits', 'frenTitre', 'cashHud', 'engVig', 'engPop', 'msg', 'trickBox', 'popTxt', 'fil'];
+const APP_OU_SANS = /(^|&)app=1(&|$)|(^|&)sans=([^&]*,)?barreair(,|&|$)/.test(A.q || ''); /* (2026-11-24) là où la barre d'air time reste cachée */
 const PAS_CALME = `(document.body.classList.contains('hudCalme')?'hudCalme encore posé':'')`;
 /* les étapes : n nom · js · att attente (ms) · voit / pasVu · vide (seul le pause) · verif (expression → '' ou le problème) · sans (pas de contrôle des chevauchements : un autre écran est dessus) · op (action du banc) */
 const ETAPES = [
@@ -43,15 +44,17 @@ const ETAPES = [
   { n: '12-nitro-lache', journal: 1, tel1: 1, op: 'lacheNitro', att: 1900, vide: 1, verif: `(dbgNitro3().glisse[2]!=null?'la flamme reste accrochée au doigt':'')` },
   { n: '13-double-tap', tel1: 1, op: 'doubleTap', att: 900, verif: `''` },
   { n: '14-fin-des-touchers', journal: 1, tel1: 1, op: 'lacheTout', att: 400, verif: `(function(){var g=dbgNitro3().glisse;return g[2]!=null||dbgHudCalme().nitro?'un toucher est resté pris':''})()` },
-  /* LE VOL (en dernier : sans pilote la caisse quitte la route, et finit par exploser). Par défaut (ancien HUD) AUCUN temps de vol ne s'affiche — ni bloc AIR, ni anneau ; avec ?hud=d,
-     l'anneau autour du pouce. Puis le vol devient CRITIQUE : par défaut le HUD calme tient (rien à montrer) ; avec ?hud=d il se rallume pour l'anneau. */
-  { n: '15-vol', tel1: 1, op: 'vol', att: 1900, verif: `(function(){if(dbgState().mode!=='fall')return 'pas en vol (non contrôlé)';if(getComputedStyle(document.getElementById('airHud')).display!=='none')return 'le bloc AIR est revenu';
+  /* LE VOL (en dernier : sans pilote la caisse quitte la route, et finit par exploser). (2026-11-24, Sacha : « remets la barre de air time sur le Vercel ») sur le site (<html class="barreAir">) le bloc AIR
+     est allumé en vol (au calme il s'efface avec le reste du HUD) ; dans l'app (--q "app=1") et avec --q "sans=barreair" AUCUN temps de vol ne s'affiche — ni bloc AIR, ni anneau ; avec ?hud=d,
+     l'anneau autour du pouce. Puis le vol devient CRITIQUE : le HUD calme se rallume là où un temps de vol se voit (le site, ?hud=d) ; dans l'app il tient (rien à montrer). */
+  { n: '15-vol', tel1: 1, op: 'vol', att: 1900, verif: `(function(){if(dbgState().mode!=='fall')return 'pas en vol (non contrôlé)';var ba=document.documentElement.classList.contains('barreAir'),da=getComputedStyle(document.getElementById('airHud')).display;if(!ba&&da!=='none')return 'le bloc AIR se voit sans la classe barreAir (app, ?sans=barreair)';if(ba&&!${APP_OU_SANS}&&document.documentElement.dataset.hud!=='d'&&da!=='block')return 'le bloc AIR reste éteint en vol';if(${APP_OU_SANS}&&ba)return 'la classe barreAir est posée (app ou ?sans=barreair)';if(!${APP_OU_SANS}&&!ba)return 'la classe barreAir manque sur le site';
       var a=document.querySelector('#tKnob .skAir'),s=document.querySelector('#tKnob .skAirS'),d=document.documentElement.dataset.hud==='d';
       if(!d){if(a&&getComputedStyle(a).display!=='none')return 'un anneau de vol se voit sans ?hud=d';return document.body.classList.contains('hudCalme')?'':'HUD calme pas posé en vol';}
       if(!a)return 'pas d\\'anneau';if(getComputedStyle(a).display==='none')return 'anneau masqué en vol';if(!/^\\d+${SEC}\\d$/.test(s.textContent))return 'secondes de vol : «'+s.textContent+'»';
       var r=a.getBoundingClientRect(),n=document.getElementById('tNitro').getBoundingClientRect();if(r.right>n.left&&r.left<n.right&&r.bottom>n.top&&r.top<n.bottom)return 'l\\'anneau de vol chevauche le bouton nitro';return ''})()` },
   { n: '16-vol-critique', tel1: 1, op: 'urgent', att: 300, verif: `(function(){var k=document.getElementById('airHud').dataset.k;if(k!=='urgent')return 'vol pas critique (non contrôlé) : '+k+' · '+dbgState().mode;var c=document.body.classList.contains('hudCalme'),d=document.documentElement.dataset.hud==='d';
-      if(!d&&!c)return 'le HUD se rallume en vol critique alors qu\\'aucun temps de vol ne s\\'affiche';if(d&&c)return 'avec ?hud=d le HUD reste effacé en vol critique (l\\'anneau ne se voit pas)';return ''})()` },
+      var ba=document.documentElement.classList.contains('barreAir');if(!d&&!ba&&!c)return 'le HUD se rallume en vol critique alors qu\\'aucun temps de vol ne s\\'affiche';if(d&&c)return 'avec ?hud=d le HUD reste effacé en vol critique (l\\'anneau ne se voit pas)';if(ba&&c)return 'le HUD reste effacé en vol critique (la barre d\\'air time ne se voit pas)';
+      if(ba&&!d&&getComputedStyle(document.getElementById('airHud')).display!=='block')return 'vol critique : le bloc AIR n\\'est pas allumé';return ''})()` },
 ];
 (async () => {
   for (const p of [P_HTTP, P_CDP]) if (!portLibre(p)) { console.error('port occupé :', p); process.exit(2); }
