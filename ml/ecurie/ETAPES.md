@@ -12,6 +12,7 @@ Le plan d'ensemble est dans `PLAN.md`, l'étude dans `etude/`.
 | A | L'étude : ce qui donne des pièces, ce qui tue, les vrais joueurs mesurés | **faite** (commit `67ea1f009`) |
 | B | Les fondations : défauts corrigés, yeux v2, doigts v2 | **en cours** (24/11 au soir) |
 | C | Le pilote d'élite, amélioré par tours | à faire |
+| C bis | La boucle automatique sur le crédit API (≈ 200 €), avec un plafond de dépense | à écrire après B |
 | D | Le facteur humain et les 30 niveaux | à faire |
 | E | Le juge, niveau par niveau | à faire |
 | F | Le paquet du matchmaking et le dossier du portfolio | à faire |
@@ -77,6 +78,24 @@ node arbre.js                    # puis ouvrir arbre.html : la lignée, la raiso
 > améliore-le par tours — autopsie des morts, correction, note sur 20 graines en `--regime allege --tmax 900`, inscription au labo à chaque
 > tour. Jamais plus de 4 courses à la fois. Arrête-toi quand deux tours de suite ne gagnent plus rien, écris le plafond atteint dans
 > `ETAPES.md`, et valide dans git. Ne me pose pas de question.
+
+## C bis — La boucle automatique sur le crédit API
+
+**Pourquoi.** L'abonnement a une limite d'usage (atteinte le 24/11 pour les agents) et demande une session ouverte. Le crédit API
+(≈ 200 €) sert à ce que l'abonnement ne sait pas faire : tourner **seul, la nuit**, sur des dizaines de variantes du pilote.
+
+**Ce qui doit en sortir.** `ml/ecurie/boucle.js` : à chaque tour, il prend le champion du labo, lit ses pires morts (autopsie), demande
+à Claude par l'API d'écrire des variantes, les note dans le vrai jeu, et inscrit chacune au labo **avec son coût en jetons et en euros**
+(`inscrire.js --entree --sortie --euros`, cumul par étape dans `node ml/labo/labo.js`).
+- Un **plafond de dépense** obligatoire (`--budget 20` = il s'arrête à 20 €) et un mode à blanc (`--a-blanc` : tout sauf l'appel payant).
+- La clé de l'API se lit dans la variable d'environnement `ANTHROPIC_API_KEY`, que **Sacha pose lui-même** ; elle n'est jamais écrite
+  dans un fichier ni dans le journal.
+- D'abord un calibrage à petit budget (quelques euros) : quel modèle gagne le plus de paliers par euro. Puis le gros de la somme sur le
+  pilote d'élite (étape C) et sur le réglage des 30 niveaux (étape D).
+
+**Rien n'est dépensé sans l'accord de Sacha** : écrire la boucle ne coûte rien, la lancer oui. C'est lui qui la lance, ou qui dit de le faire.
+
+**Vérifier.** `node ml/ecurie/boucle.js --a-blanc --tours 1` fait un tour complet sans dépenser ; `node ml/labo/labo.js` donne les euros par étape.
 
 ## D — Le facteur humain et les 30 niveaux
 
