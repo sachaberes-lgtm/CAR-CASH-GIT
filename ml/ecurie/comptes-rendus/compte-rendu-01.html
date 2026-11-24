@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L'écurie · compte rendu n° 1</title>
+<style>
+  :root{
+    --fond:#f6f4ef; --carte:#ffffff; --encre:#1c1b19; --doux:#6b675f; --trait:#e4dfd4;
+    --or:#b8860b; --or-fond:#fbf3dc; --vert:#1f7a4d; --vert-fond:#e3f3ea; --rouge:#b3402e; --rouge-fond:#fbe9e5;
+    --bleu:#2c5f9e; --bleu-fond:#e6eef8; --code:#f1ede4;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --fond:#141311; --carte:#1d1c19; --encre:#f0ece3; --doux:#a39e92; --trait:#32302b;
+      --or:#e3b341; --or-fond:#2b2412; --vert:#5fc48f; --vert-fond:#14271d; --rouge:#ee8a78; --rouge-fond:#2e1814;
+      --bleu:#86b3ec; --bleu-fond:#152234; --code:#26241f;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fond);color:var(--encre);font:16px/1.55 "Segoe UI",system-ui,-apple-system,sans-serif}
+  .page{max-width:920px;margin:0 auto;padding:40px 16px 80px}
+  header .sur{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--or);font-weight:600}
+  h1{font-size:clamp(30px,6vw,46px);line-height:1.08;margin:8px 0 10px;letter-spacing:-.02em;text-wrap:balance}
+  .chapo{font-size:18px;color:var(--doux);max-width:62ch;margin:0}
+  h2{font-size:22px;margin:52px 0 6px;letter-spacing:-.01em}
+  h2+p.sous{margin:0 0 18px;color:var(--doux)}
+  .tuiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:30px}
+  .tuile{background:var(--carte);border:1px solid var(--trait);border-radius:14px;padding:16px 18px}
+  .tuile .lab{font-size:12.5px;color:var(--doux);text-transform:uppercase;letter-spacing:.08em}
+  .tuile .val{font-size:30px;font-weight:650;letter-spacing:-.02em;margin:4px 0 2px;font-variant-numeric:tabular-nums}
+  .tuile .val small{font-size:15px;font-weight:500;color:var(--doux)}
+  .tuile .note{font-size:13.5px;color:var(--doux)}
+  .jauge{height:8px;border-radius:99px;background:var(--trait);margin:10px 0 6px;overflow:hidden}
+  .jauge i{display:block;height:100%;min-width:3px;background:var(--or);border-radius:99px}
+  .frise{display:grid;gap:8px;margin-top:8px}
+  .pas{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;background:var(--carte);border:1px solid var(--trait);border-radius:12px;padding:12px 16px}
+  .pas .l{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;background:var(--trait);color:var(--doux)}
+  .pas.fait .l{background:var(--vert-fond);color:var(--vert)}
+  .pas.cours .l{background:var(--or-fond);color:var(--or)}
+  .pas b{display:block}
+  .pas span.d{font-size:14px;color:var(--doux)}
+  .etat{font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:99px;white-space:nowrap;background:var(--trait);color:var(--doux)}
+  .fait .etat{background:var(--vert-fond);color:var(--vert)}
+  .cours .etat{background:var(--or-fond);color:var(--or)}
+  .cartes{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:12px}
+  .carte{background:var(--carte);border:1px solid var(--trait);border-radius:14px;padding:18px 20px}
+  .carte h3{margin:0 0 6px;font-size:17px}
+  .carte p{margin:0 0 8px;font-size:15px}
+  .carte p:last-child{margin-bottom:0}
+  .carte .f{font-size:13px;color:var(--doux)}
+  code,pre{font-family:"Cascadia Mono",Consolas,ui-monospace,monospace;font-size:13.5px}
+  code{background:var(--code);padding:1px 6px;border-radius:6px}
+  .alerte{border-left:4px solid var(--rouge);background:var(--rouge-fond);border-radius:0 12px 12px 0;padding:14px 18px;margin:12px 0}
+  .alerte b{color:var(--rouge)}
+  .info{border-left:4px solid var(--bleu);background:var(--bleu-fond);border-radius:0 12px 12px 0;padding:14px 18px;margin:12px 0}
+  .info b{color:var(--bleu)}
+  .tab{overflow-x:auto;background:var(--carte);border:1px solid var(--trait);border-radius:14px}
+  table{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums}
+  th,td{padding:10px 16px;text-align:left;border-bottom:1px solid var(--trait)}
+  th{font-size:12.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--doux);font-weight:600}
+  tr:last-child td{border-bottom:0}
+  td.n,th.n{text-align:right}
+  .essai{background:var(--carte);border:1px solid var(--trait);border-radius:14px;padding:16px 18px;margin-bottom:10px}
+  .essai label{display:flex;gap:12px;align-items:flex-start;cursor:pointer;font-weight:600}
+  .essai input{width:20px;height:20px;margin-top:2px;accent-color:var(--vert);flex:none}
+  .essai .duree{font-weight:500;color:var(--doux);font-size:13.5px;margin-left:6px}
+  .cmd{position:relative;margin:10px 0 8px}
+  pre{margin:0;background:var(--code);border-radius:10px;padding:12px 84px 12px 14px;overflow-x:auto;white-space:pre}
+  .cmd button{position:absolute;top:7px;right:7px;border:1px solid var(--trait);background:var(--carte);color:var(--encre);border-radius:8px;padding:5px 10px;font:inherit;font-size:13px;cursor:pointer}
+  .cmd button:hover{border-color:var(--or)}
+  .attendu{font-size:14.5px;color:var(--doux);margin:0}
+  .attendu b{color:var(--vert)}
+  ul.net{margin:8px 0 0;padding-left:20px}
+  ul.net li{margin:6px 0}
+  .cal{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+  .cal div{background:var(--carte);border:1px solid var(--trait);border-radius:12px;padding:14px 16px}
+  .cal .q{font-size:12.5px;color:var(--or);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+  .cal .e{font-size:22px;font-weight:650;margin:2px 0}
+  .cal p{margin:0;font-size:14px;color:var(--doux)}
+  footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--trait);font-size:13.5px;color:var(--doux)}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="sur">CASH CAR · l'écurie des bots · compte rendu n° 1</div>
+  <h1>La clé marche, les bots ont des yeux et des mains. Rien n'est encore dépensé.</h1>
+  <p class="chapo">Du 24 au 25 novembre 2026. Ce qui a été produit dans cette session, ce que les mesures disent, et les commandes pour le vérifier toi-même.</p>
+</header>
+
+<div class="tuiles">
+  <div class="tuile">
+    <div class="lab">Crédit API dépensé</div>
+    <div class="val">0,00 € <small>/ 200 €</small></div>
+    <div class="jauge"><i style="width:0%"></i></div>
+    <div class="note">Seul l'essai de la clé a coûté : 0,002 $.</div>
+  </div>
+  <div class="tuile">
+    <div class="lab">Le radar voit juste</div>
+    <div class="val">57 <small>/ 57 vols</small></div>
+    <div class="note">Issue du vol prévue dès la première image. Places au centimètre : 44 / 44.</div>
+  </div>
+  <div class="tuile">
+    <div class="lab">Rien de cassé</div>
+    <div class="val" style="font-size:22px;padding:6px 0 4px"><code>a7b3171768ca</code></div>
+    <div class="note">Un bot d'avant refait la même course, à l'image près. 4 rejeux exacts sur 4.</div>
+  </div>
+  <div class="tuile">
+    <div class="lab">Échéance des 200 €</div>
+    <div class="val">8 déc. <small>13 jours</small></div>
+    <div class="note">13 à 14 € par jour une fois la boucle lancée.</div>
+  </div>
+</div>
+
+<h2>Où en est le plan</h2>
+<p class="sous">Les six étapes d'<code>ml/ecurie/ETAPES.md</code>.</p>
+<div class="frise">
+  <div class="pas fait"><div class="l">A</div><div><b>L'étude</b><span class="d">Ce qui donne des pièces, ce qui tue, les vrais joueurs mesurés.</span></div><span class="etat">faite</span></div>
+  <div class="pas cours"><div class="l">B</div><div><b>Les fondations</b><span class="d">Yeux v2 et doigts v2 écrits et contrôlés. La relecture par six agents tourne en ce moment.</span></div><span class="etat">relecture en cours</span></div>
+  <div class="pas"><div class="l">C</div><div><b>Le pilote d'élite</b><span class="d">Le premier pilote, puis la boucle payante : calibrage des 4 modèles (10 €), puis 90 €.</span></div><span class="etat">ensuite</span></div>
+  <div class="pas"><div class="l">D</div><div><b>Les 30 niveaux</b><span class="d">Un profil par palier, réglé par la mesure.</span></div><span class="etat">à faire</span></div>
+  <div class="pas"><div class="l">E</div><div><b>Le juge</b><span class="d">Chaque niveau comparé aux parties des joueurs.</span></div><span class="etat">à faire</span></div>
+  <div class="pas"><div class="l">F</div><div><b>Le paquet et le portfolio</b><span class="d">Les fantômes prêts pour le matchmaking, l'arbre, les films.</span></div><span class="etat">à faire</span></div>
+</div>
+
+<h2>Ce qui a été produit</h2>
+<p class="sous">Quatre commits sur la branche <code>bots-ecurie</code>. Rien n'est poussé, le jeu n'est pas touché.</p>
+<div class="cartes">
+  <div class="carte">
+    <h3>1 · La clé et la boucle</h3>
+    <p>La clé est acceptée par les quatre modèles : Haiku 5.5, Sonnet 5.5, Opus 5.5 et Fable 5.2.</p>
+    <p>La boucle a fait un tour complet « à blanc » : le pilote de départ noté, 3 variantes triées, une notée en grand, la génération close. 0 €.</p>
+    <p class="f"><code>ml/ecurie/essai-api.js</code> · <code>boucle.js</code></p>
+  </div>
+  <div class="carte">
+    <h3>2 · Un plafond général de 200 €</h3>
+    <p>Avant chaque lancement, la boucle lit le journal des dépenses, toutes étapes réunies, et rabote son budget à ce qu'il reste. Arrivée à 200 €, elle ne demande plus rien.</p>
+    <p class="f">commit <code>71f3c7bea</code> · option <code>--plafond</code></p>
+  </div>
+  <div class="carte">
+    <h3>3 · Les yeux v2 : le radar</h3>
+    <p>En vol, le bot voit l'avenir : le vol est rejoué image par image avec les lois du jeu, pour 10 façons de piloter. Pour chacune : pose, choc, jauge vide, fond, portail.</p>
+    <p>Au sol : la route se tient-elle 3 secondes, que se passe-t-il si je sors par le bord, vitesse sûre du virage, couloirs, ligne parfaite, aimant, palier.</p>
+    <p class="f">commit <code>384387572</code> · <code>ml/bot/yeux.js</code> (92 → 737 lignes)</p>
+  </div>
+  <div class="carte">
+    <h3>4 · Les doigts v2 : une main par bot</h3>
+    <p>Chaque cerveau porte un <code>profil</code> : temps de réaction, volant par petits coups de durées irrégulières, nitro hachée, drift, erreurs, et la seconde chance prise en touchant CONTINUER comme un joueur.</p>
+    <p>Le hasard de la main a une graine : même graine, même course, et le journal des touches suffit à la rejouer.</p>
+    <p class="f">commit <code>1ca66a1bf</code> · <code>ml/bot/doigts.js</code> (438 lignes)</p>
+  </div>
+</div>
+
+<h2>Ce que les mesures disent</h2>
+<p class="sous">Les bonnes nouvelles et les mauvaises.</p>
+
+<div class="alerte">
+  <b>Trouvé en route : le canyon du simulateur n'a pas de parois.</b> Dans le simulateur, le calcul du relief du canyon part dans un travailleur qui ne répond jamais : ni paroi, ni rivière, ni mur de couloir. Les bots n'y meurent donc jamais de cette façon, et leurs notes au canyon sont trop belles. <b>Décision prise :</b> je l'allume avant de dépenser le moindre euro, sinon la boucle paierait pour des pilotes notés sur du faux. Conséquence possible : l'empreinte témoin et la note de départ du bot de référence changent. Ce sera écrit noir sur blanc dans le compte rendu n° 2.
+</div>
+
+<div class="tab">
+<table>
+  <thead><tr><th>La main, mesurée</th><th class="n">Joueurs au clavier</th><th class="n">Main « clavier » du bot</th></tr></thead>
+  <tbody>
+    <tr><td>Coups de volant par minute</td><td class="n">111,3</td><td class="n">84,7</td></tr>
+    <tr><td>Durée médiane d'un coup</td><td class="n">0,2 s</td><td class="n">0,3 s</td></tr>
+    <tr><td>Changements de sens par seconde</td><td class="n">1,36</td><td class="n">0,88</td></tr>
+    <tr><td>Nitro allumée</td><td class="n">60,4 %</td><td class="n">13 %</td></tr>
+  </tbody>
+</table>
+</div>
+<ul class="net">
+  <li><b>La main a l'allure d'une main, pas encore celle des joueurs</b> : un quart de coups en moins, plus longs. La relecture en cours la règle sur les parties enregistrées (10 parties au clavier, 4 au doigt).</li>
+  <li><b>Conduire avec une main humaine coûte cher</b> : le bot de référence, avec cette main, meurt à 72 s en médiane contre 157 s avec sa main de machine, et ramasse 159 pièces par minute contre 402. Le pilote de l'étape C doit être écrit pour sa main.</li>
+  <li><b>La nitro à 60 % ne viendra pas de la main</b> : c'est au cerveau de la demander.</li>
+  <li><b>Le PC limite plus que l'argent</b> : le simulateur joue 2,5 fois plus vite que le temps réel. Un tour de boucle prend 30 à 100 minutes pour environ 2 €. Les 200 € demandent une centaine d'heures de calcul : 7 heures par nuit sur deux semaines.</li>
+</ul>
+
+<h2>À tester toi-même</h2>
+<p class="sous">Dans PowerShell. Coche au fur et à mesure : les cases sont gardées sur cet ordinateur.</p>
+
+<div class="essai">
+  <label><input type="checkbox" data-k="t1"><span>La clé est acceptée par les quatre modèles <span class="duree">10 secondes · 0,002 $</span></span></label>
+  <div class="cmd"><pre>cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\ecurie; node essai-api.js</pre><button>Copier</button></div>
+  <p class="attendu">Attendu : quatre lignes <b>« OK » · fin end_turn</b>, puis <code>total de l'essai : 0.002… $</code>. À lancer depuis un terminal ouvert après la pose de la clé.</p>
+</div>
+
+<div class="essai">
+  <label><input type="checkbox" data-k="t2"><span>Le contrat tient : tout passe, même empreinte <span class="duree">11 minutes</span></span></label>
+  <div class="cmd"><pre>cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\bot; node verifier.js</pre><button>Copier</button></div>
+  <p class="attendu">Attendu : <b>TOUT PASSE</b>, et en section 3 <code>course a7b3171768ca / a7b3171768ca</code>. Relancé le 25/11 après les deux commits : TOUT PASSE en 690 s, même empreinte.</p>
+</div>
+
+<div class="essai">
+  <label><input type="checkbox" data-k="t3"><span>Les quatre courses gardées se rejouent à l'image près <span class="duree">3 minutes</span></span></label>
+  <div class="cmd"><pre>cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\labo; node rejouer.js --tout --coeurs 2</pre><button>Copier</button></div>
+  <p class="attendu">Attendu : <b>4 rejeu(x) exact(s) sur 4</b>. Relancé le 25/11 : 4 sur 4, au même argent près.</p>
+</div>
+
+<div class="essai">
+  <label><input type="checkbox" data-k="t4"><span>Le radar prévoit juste <span class="duree">5 minutes</span></span></label>
+  <div class="cmd"><pre>cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\bot; node justesse.js --graines 5 --tmax 90</pre><button>Copier</button></div>
+  <p class="attendu">Attendu : <b>issue juste 57/57</b> à la première vue du vol, 51/51 une seconde avant la fin, <code>Erreurs 0, tirages 0</code>.</p>
+</div>
+
+<div class="essai">
+  <label><input type="checkbox" data-k="t5"><span>La main du bot face à celle des joueurs <span class="duree">5 minutes</span></span></label>
+  <div class="cmd"><pre>cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\bot; node noter.js essai-main.js --regime allege --coeurs 2 --tmax 120 --graines 8 --parties --sortie results\note-essai-main-allege-t120-parties.json; node appuis.js results\note-essai-main-allege-t120-parties.json --nom essai-main-allege-t120</pre><button>Copier</button></div>
+  <p class="attendu">Attendu : le tableau joueurs contre profil, avec <b>111,3</b> contre <b>84,7</b> coups de volant par minute (avant le réglage de la relecture).</p>
+</div>
+
+<div class="essai">
+  <label><input type="checkbox" data-k="t6"><span>La boucle fait un tour sans rien dépenser <span class="duree">25 minutes · 0 €</span></span></label>
+  <div class="cmd"><pre>cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\ecurie; node boucle.js --a-blanc --tours 1 --candidats 3 --depuis ..\bot\reference.js</pre><button>Copier</button></div>
+  <p class="attendu">Attendu : le départ noté, 3 variantes triées, <b>génération 1 close</b>, et <code>0 €</code>. Rien n'entre dans le vrai labo.</p>
+</div>
+
+<div class="essai">
+  <label><input type="checkbox" data-k="t7"><span>Les euros dépensés, à tout moment <span class="duree">1 seconde</span></span></label>
+  <div class="cmd"><pre>cd C:\Users\sacha\code\CASH-CAR-bots-ecurie; node ml\labo\labo.js</pre><button>Copier</button></div>
+  <p class="attendu">Attendu aujourd'hui : <b>depenses : 0 €</b> (aucun appel à l'API inscrit).</p>
+</div>
+
+<h2>La suite</h2>
+<p class="sous">Elle s'enchaîne sans toi. Seule limite : jamais plus de 4 courses à la fois sur le PC.</p>
+<div class="cal">
+  <div><div class="q">Maintenant</div><div class="e">Relecture</div><p>Six relecteurs, chaque trouvaille attaquée par des sceptiques, corrections, canyon avec ses parois, main réglée sur les joueurs.</p></div>
+  <div><div class="q">Puis</div><div class="e">Premier pilote</div><p><code>ml/ecurie/pilote.js</code>, écrit pour sa main, noté sur 20 courses, inscrit au labo.</p></div>
+  <div><div class="q">10 €</div><div class="e">Calibrage</div><p>Les mêmes tours avec les 4 modèles : paliers gagnés par euro, et par heure de PC.</p></div>
+  <div><div class="q">Jusqu'au 8 déc.</div><div class="e">La boucle</div><p>Le meilleur modèle, 13 à 14 € par jour, plafond général à 200 €. Un compte rendu comme celui-ci à chaque fin de contexte.</p></div>
+</div>
+
+<h2>Pas fait, pas vérifié</h2>
+<ul class="net">
+  <li>La relecture de l'étape B n'est pas finie : les yeux et les doigts n'ont été contrôlés que par les agents qui les ont écrits, et par mes relances de <code>verifier.js</code> et des rejeux.</li>
+  <li>Le radar est mesuré sur 57 vols : c'est peu. Trois façons de piloter (cabrer, piquer, revenir vers la route sans nitro) n'ont jamais été tirées. Un saut annoncé avant le premier saut de la course est prévu 0,7 s trop tôt.</li>
+  <li>Les temps de réaction des joueurs ne sont mesurés nulle part : ceux de la main sont des ordres de grandeur.</li>
+  <li>Le juge « humain ou bot » n'a pas encore été passé sur la nouvelle main.</li>
+  <li>Aucun pilote de l'écurie n'existe encore, et la boucle n'a jamais tourné pour de vrai.</li>
+  <li>La salle de projection lit la nouvelle lettre du journal (la seconde chance), mais ce n'est pas essayé dans un navigateur.</li>
+</ul>
+
+<footer>
+  Compte rendu n° 1 · écrit le 25 novembre 2026 · branche <code>bots-ecurie</code> · le détail technique est dans <code>ml/ecurie/ETAPES.md</code> et <code>ml/bot/README.md</code>.
+</footer>
+
+</div>
+<script>
+(function(){
+  var cle='ecurie-compte-rendu-01';
+  var etat={};
+  try{etat=JSON.parse(localStorage.getItem(cle)||'{}')||{};}catch(e){etat={};}
+  document.querySelectorAll('input[data-k]').forEach(function(c){
+    c.checked=!!etat[c.dataset.k];
+    c.addEventListener('change',function(){etat[c.dataset.k]=c.checked;try{localStorage.setItem(cle,JSON.stringify(etat));}catch(e){}});
+  });
+  document.querySelectorAll('.cmd button').forEach(function(b){
+    b.addEventListener('click',function(){
+      var t=b.parentNode.querySelector('pre').textContent;
+      function ok(){b.textContent='Copié';setTimeout(function(){b.textContent='Copier';},1400);}
+      function secours(){var r=document.createRange();r.selectNodeContents(b.parentNode.querySelector('pre'));var s=getSelection();s.removeAllRanges();s.addRange(r);try{document.execCommand('copy');ok();}catch(e){}}
+      try{navigator.clipboard.writeText(t).then(ok,secours);}catch(e){secours();}
+    });
+  });
+})();
+</script>
+</body>
+</html>
