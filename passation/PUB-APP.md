@@ -66,6 +66,11 @@ Rien sur `main`, rien d'envoyé à Apple, rien d'installé sur l'iPhone sans le 
   le départ). **Le figement vient du simulateur, PAS d'AdMob.** Conséquence : la pub À L'ÉCRAN (vidéo, plein écran) ne peut se voir que sur
   un vrai iPhone (build Debug, pubs de test ; installation sur le oui de Sacha, app remplacée sans suppression). Le simulateur garde
   l'app de la base (sans pub) : la réinstaller depuis pub-admob-app si besoin.
+- 24/11, 14 h (oui de Sacha « Oui, installe ») : **build 131 INSTALLÉ sur l'iPhone 13 Pro** (FE6F8B40…), app remplacée SANS suppression.
+  Recette des builds 127-130 depuis `~/cash-car/pub-admob` (jamais finition-build) : COMPLET=1, `--maj http://127.0.0.1:1/`,
+  `--qs "&perfrec=2&sans=radiopause"`, Debug, équipe M532TDYCH2, CURRENT_PROJECT_VERSION=131 ; copie `~/cash-car/ios-ultime-mesures/builds/build131.app`.
+  Pubs de TEST de Google (App ID ca-app-pub-3940256099942544~1458002511, admob.json test:true). Vérifié installé : CASH CAR 1.0.0 (131).
+  À VOIR PAR SACHA : CONTINUER ▶ PUB, ×2, plein écran au 3e REJOUER, mode avion (gris), son coupé pendant la pub.
 - Le 24/11 j'ai arrêté 4 Chrome sans fenêtre laissés par mes passages du banc (profils banc-achats-*) ; le banc les ferme désormais toujours.
 
 ## LE BANC (`node outils/banc-pub/banc.cjs`, Chrome sans fenêtre et muet, faux module AdMob ; `--sonde` : l'écran de fin toutes les 400 ms)
