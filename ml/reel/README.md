@@ -62,3 +62,21 @@ compter 2 à 4 × le temps réel sur une course de plusieurs minutes, contre 6,8
   son état de départ, l'horloge revient à l'heure de la chauffe, et **~2 700 variables du jeu** (données pures, champs de données des
   objets, réserves de particules, propriétés des fonctions comme `loop._ms`, pose de la caisse et de la caméra) sont remises comme à la
   chauffe. Ce qui tient un maillage, une matière, le DOM n'est jamais touché : `resetGame()` / `newTrack()` le rebâtissent.
+
+## État au 24/11/2026 — étape 1 bis (`ml/labo/README.md`)
+
+Trois ouvertures, sans effet tant qu'on ne s'en sert pas (contrôle : les 20 courses du bot de référence redonnent leurs 20 empreintes
+du 23/11, et les 4 rejeux gardés sont exacts) :
+- `jeu-reel.js` : `creer({charge, noms})` accepte un autre chargeur que le faux navigateur. La salle de projection y met le jeu chargé
+  dans un **vrai** navigateur ; la chauffe, la photo, la remise et la graine restent ce même code.
+- `sim-env-reel.js` : les portes de lecture (`__EV`, `__TRK`, `__S`) sont sorties dans `PORTES`, pour que le navigateur pose les mêmes ;
+  le générateur de hasard rend son état (`Math.random.__etat()`, et `__etat(v)` pour le poser).
+
+**Ce que cette étape a montré du simulateur.**
+- Sa fausse page ne fait pas tourner la couche d'effets du vrai jeu comme un navigateur : `classList.contains` y répond toujours non (la
+  flamme du bouton NITRO ne s'anime jamais), et presque chaque image tire un nombre de valeurs au hasard différent de celui d'un vrai
+  navigateur. Pour la conduite, les routes et l'argent, ça ne change rien **une fois le hasard recalé** (`HASARD_CODE`, `ml/bot/piloter.js`).
+- **Il tourne au régime MAXIMUM du jeu, quel que soit le PC** (`POSTE.r = 3`, `ALLEGE = false`) : sans carte graphique à juger, le jeu le
+  prend pour un poste récent. Crypto City est donc à son tirage. Sur un PC à puce intégrée ou un téléphone, le vrai jeu est en version
+  allégée, sans Crypto City : c'est le cas des 14 parties de l'étalon. Voir `passation/BOTS-ML.md`, étape 1 bis, et le point 6 de la section 7.
+- Course de quatre maps rejouée dans un vrai navigateur, au même régime, hasard recalé : **la même course, à chaque décision** : 1 879 décisions sur 1 879, 11 268 images, trois portails, même fin (roche) et même argent (52 545,35) ; aucune image n'a eu besoin d'être rattrapée.

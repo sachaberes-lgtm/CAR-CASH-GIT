@@ -1,0 +1,43 @@
+{
+ "format": "cashcar-rejeu-1",
+ "cerveau": {
+  "id": "c0001",
+  "nom": "reference",
+  "sha": "fec3305d8725e2b5e68f449f8e5125b26afb9358",
+  "code": "cerveaux/c0001-reference.js"
+ },
+ "etape": "1",
+ "generation": 0,
+ "jeu": {
+  "version": "cashcar-v1627",
+  "sha": "e7e1eed4718f",
+  "commit": "f1719eca5",
+  "propre": true
+ },
+ "graine": 910407,
+ "carte": null,
+ "meteo": null,
+ "tmax": 300,
+ "images": 2394,
+ "empreinte": "2b6e2fc56891",
+ "fin": {
+  "t": 39.9,
+  "cause": "pic",
+  "argent": 1621.75,
+  "pieces": 165,
+  "figures": 3,
+  "bumps": 1,
+  "zones": 0,
+  "vmax": 563
+ },
+ "cartes": [
+  "jade"
+ ],
+ "pourquoi": [
+  "champion : sa course la plus courte",
+  "la pire course de la generation (la plus courte)"
+ ],
+ "trajectoire": "trajectoires/c0001-g910407.json.gz",
+ "aide": "touches : le nombre d'images (1/60 s) depuis le changement d'avant, puis la touche — MAJUSCULE enfoncee, minuscule relachee ; G D H B N = gauche droite haut bas ESPACE",
+ "touches": "0D0N36n12d12G48g18D4d17D4d16D4d12D4d8D6d8D5d7D4d9G5N5n5N5n0g0D35d4D4d9G4g8G5g9G4g12G4g15G4g18G4g21G4g44G4g14G4g8D4d2G4g38G4g20D4d9D4d13G4g2D4d8D7d5D6d6D6d6D6d48D4d20D4d26D4d14D4d56D4d8D4d7D5d7D5d8D5d15D4d9D4d7D5d8D5d6D5d6D5d7D5d12D6d24G4g10G4g10G4g22G4g2D4d10D4d18G27g4G5g8G6g6G7g13G5g6G8g4G9g6D27d4D8d6D7d6D6d6D6d6D6d6D6d7D6d5D7d6D7d6D7d5D7d5D8d4D7d4D7d5D7d12D4d8D5d4D6d3G56g4G8g4G7g5D5N5n5N5n4d6G29g13D4d14N9D4d5n30D4d8G4g56G4g14G4g15G4g13G4g8G7g5G7g6G7g6G6g6G6g7G5g8G6g7G6g6G6g5G6g2D5N5n5N5n0d4G25g4G6g31N6D4d2n16D4d14D4d17D4d16D4d23D4d26D4d8D5d6D6d6D5d7D5d7D5d6D5d10D4d7D4d12D2G2d5N5n5N5n0g2D24N12n0G0d5N5n5N5n0g0D4d"
+}

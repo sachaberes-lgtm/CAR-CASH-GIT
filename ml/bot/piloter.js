@@ -10,7 +10,7 @@
 const fs=require('fs'),path=require('path'),vm=require('vm'),crypto=require('crypto');
 const {creer}=require('../reel/jeu-reel');
 const Y=require('./yeux');
-const {Doigts,HUMAIN}=require('./doigts');
+const {Doigts,HUMAIN,TOUCHE}=require('./doigts');
 const {mesures}=require('./mesures');
 
 /* L'ENREGISTREUR DU JEU, tenu a la main : dans un navigateur il bat par requestAnimationFrame (qui ne bat jamais ici) et range ses
@@ -40,13 +40,16 @@ function charger(fichier,o){
   vm.runInContext(src,ctx,{filename:path.basename(fichier),timeout:1000});
   const c=mod.exports;if(!c||typeof c.decide!=='function')throw new Error(fichier+' : pas de decide(vue, memoire)');
   ctx.__c=c;
-  /* 500 ms : large expres. Une limite serree couperait une decision sur un simple hoquet de l'ordinateur, et la course ne serait plus
-     repetable (MESURE : a 25 ms, 1 decision sur ~2 000 coupee). Elle n'arrete que les boucles sans fin ; une panne se voit dans le bilan. */
-  const appel=new vm.Script('__r=__c.decide(__v,__m)'),ms=o.ms||500;
+  /* 5 s : TRES large, expres. La limite ne sert qu'a arreter une boucle sans fin ; elle compte en vraie montre, donc un ordinateur charge peut
+     la franchir sans que le cerveau y soit pour rien — et la course n'est plus repetable. MESURES : a 25 ms, 1 decision sur ~2 000 coupee ;
+     a 500 ms, le 24/11, PC charge par ailleurs (jeu sans ecran a 0,68 x le temps reel) : 3 et 10 decisions coupees sur la meme graine, deux
+     courses differentes. En echange, une course s'ABANDONNE a la 3e panne (PANNES_MAX, dans course) : un cerveau qui boucle coute 15 s, pas des heures. */
+  const appel=new vm.Script('__r=__c.decide(__v,__m)'),ms=o.ms||5000;
   return {nom:c.nom||path.basename(fichier,'.js'),fichier:fichier,source:src,pannes:0,
     decide(vue,mem){ctx.__v=vue;ctx.__m=mem;try{appel.runInContext(ctx,{timeout:ms});return ctx.__r;}catch(e){this.pannes++;this.derniere=String(e&&e.message||e);return null;}}};
 }
 
+const PANNES_MAX=3; /* decisions coupees avant d'abandonner la course */
 /* UNE COURSE. o : { carte, meteo (imposer la map ; sinon la graine la tire), tmax (s de jeu, 180), trace (garder la vue de chaque decision),
    sansEnregistreur, yeuxEnPlus (controles de verifier.js) } */
 function course(J,cerveau,graine,o){
@@ -56,7 +59,7 @@ function course(J,cerveau,graine,o){
   J.ev('__JR.debut()');
   const D=new Doigts(J,()=>Y.modeDe(J)),mem={},JR=J.g.sandbox.__JR;
   const h=crypto.createHash('sha1'),vues=[];
-  let fr=0,vue=null,decisions=0,vide=0,pannes0=cerveau.pannes|0;
+  let fr=0,vue=null,decisions=0,vide=0,pannes0=cerveau.pannes|0,abandon=false;
   const t1=Date.now();
   while(fr<N){
     if(fr%HUMAIN.decision===0){
@@ -65,6 +68,7 @@ function course(J,cerveau,graine,o){
       if(vue.fini)break;
       vue.image=fr;vue.t=+(fr/60).toFixed(2);
       let ordre=null;try{ordre=cerveau.decide(vue,mem);}catch(e){ordre=null;}
+      if((cerveau.pannes|0)-pannes0>=PANNES_MAX){abandon=true;break;}   /* le cerveau boucle (ou l'ordinateur est a genoux) : cette course ne vaut rien */
       if(!ordre||typeof ordre!=='object'){ordre={};vide++;}
       D.ordre(ordre,vue);decisions++;
       if(o.trace)vues.push({image:fr,vue:vue,ordre:ordre});
@@ -77,7 +81,7 @@ function course(J,cerveau,graine,o){
   const ms=Date.now()-t1,vivant=!(vue&&vue.fini);
   D.lache();J.lacher();
   const partie=JSON.parse(J.ev('__JR.fin()'));
-  if(vivant&&partie.fin)partie.fin.cause='temps'; /* arretee par la limite de temps, pas par une mort */
+  if(vivant&&partie.fin)partie.fin.cause=abandon?'panne':'temps'; /* arretee par la limite de temps (ou abandonnee : le cerveau en panne), pas par une mort */
   partie.bot={nom:cerveau.nom,graine:graine,carte:o.carte||null,meteo:o.meteo||null,jeu:J.version,tmax:tmax};
   delete partie.ecran;
   const bilan=Object.assign({graine:graine,images:fr,ms:ms,foisTempsReel:+(fr/60/Math.max(.001,ms/1000)).toFixed(2),
@@ -85,4 +89,68 @@ function course(J,cerveau,graine,o){
     empreinte:h.digest('hex').slice(0,12)},mesures(partie));
   return {partie:partie,touches:D.touches,bilan:bilan,vues:o.trace?vues:undefined};
 }
-module.exports={ouvrir,charger,course};
+/* ===== LE REJEU (2026-11-24, etape 1 bis BOTS-ML : « les rejeux : la graine, la version du jeu, les touches image par image ») =====
+   Rejoue une course SANS cerveau : la graine, la map, et le journal des touches ([image, touche, 1|0]) remis image par image.
+   Meme boucle que course() (les yeux regardent aux memes images : l'empreinte se compare a celle de la course d'origine).
+   La course s'arrete comme l'originale : a la mort (vue par les yeux, a une image de decision) ou a tmax — jamais « au nombre d'images » du rejeu,
+   sinon la derniere decision, celle qui voit la mort, ne serait pas regardee (MESURE : 4 rejeux « differents » dont l'argent etait pourtant le meme).
+   o : { carte, meteo, tmax, serie (garder l'etat a chaque decision : pour chercher l'image ou deux rejeux se separent),
+         hasard (noter l'etat du generateur a chaque image et a l'entree de chaque fonction qui tire : voir LE RECALAGE DU HASARD) } */
+/* ===== LE RECALAGE DU HASARD (2026-11-24, etape 1 bis : la salle de projection) =====
+   Le jeu tire TOUT du meme hasard (Math.random) : la flamme d'un reacteur comme la graine de la route suivante. Or un vrai navigateur anime
+   plus de choses que le simulateur, et pas autant de fois (MESURE : presque chaque image tire un nombre different de valeurs — 723 contre 403
+   a la 1re ; la flamme du bouton NITRO ne vit que si la page a la classe « play »). Sans rien faire : course identique 56,6 s, puis une AUTRE
+   route apres le premier portail. Recale une fois par image : identique 127,4 s, puis la map crypto tire la date de son prochain record de prix
+   au milieu d'une image, apres des effets. D'ou la regle, sans liste a tenir, sans changer ni le jeu ni le simulateur :
+     · le rejeu sans ecran NOTE l'etat du generateur au debut de chaque image, et a l'ENTREE de chaque fonction du jeu qui tire au hasard
+       (toute fonction de haut niveau dont le code contient Math.random ; un appel fait depuis une autre de ces fonctions n'est pas note :
+       il suit le sien) ;
+     · le navigateur POSE ces etats aux memes appels de la meme image ;
+     · un appel que SEUL le navigateur fait (un effet d'ecran) est mis de cote : l'etat du generateur est remis apres lui.
+   Lire l'etat ne change rien a la course sans ecran (controle : le rejeu qui note redonne la meme empreinte).
+   Ce qui reste hors d'atteinte : un tirage fait ailleurs que dans une fonction de haut niveau (une methode, une fonction interne, loop elle-meme).
+   `loop` n'est pas enveloppee : jeu-reel la tient par son nom, et son entree est le debut de l'image, deja recale. */
+const HASARD_CODE=`window.__HAS={mode:null,cur:null,pos:null,prof:0,noms:[]};
+(function(){const H=window.__HAS;
+  for(const n of window.__NOMS){if(n==='loop')continue;let v;try{v=eval(n);}catch(x){continue;}if(typeof v!=='function')continue;
+    let src;try{src=Function.prototype.toString.call(v);}catch(x){continue;}if(src.indexOf('Math.random')<0||src.slice(0,6)==='class ')continue;
+    const gen=!!(v.constructor&&v.constructor.name==='GeneratorFunction');
+    if(!gen&&v.prototype&&Object.getOwnPropertyNames(v.prototype).length>1)continue; /* un constructeur : on n'y touche pas */
+    const i=H.noms.length;
+    /* l'entree d'un appel de premier niveau : rend l'etat a remettre apres lui (un appel que le simulateur n'a pas fait), sinon null */
+    const entree=function(){const e=Math.random.__etat;if(H.mode==='note'){H.cur.push(i,e());return null;}
+      if(H.mode==='pose'){const q=H.pos&&H.pos[i];if(q&&q.length){e(q.shift());return null;}return e();}return null;};
+    const f=gen?function*(){const g=v.apply(this,arguments);for(;;){if(H.prof!==0){const r0=g.next();if(r0.done)return r0.value;yield r0.value;continue;}
+        const iso=entree();H.prof++;let r;try{r=g.next();}finally{H.prof--;if(iso!==null)Math.random.__etat(iso);}if(r.done)return r.value;yield r.value;}}
+      :function(){if(H.prof!==0)return v.apply(this,arguments);const iso=entree();H.prof++;try{return v.apply(this,arguments);}finally{H.prof--;if(iso!==null)Math.random.__etat(iso);}};
+    try{Object.assign(f,v);eval(n+'=f');H.noms.push(n);}catch(x){}}
+})()`;
+function rejouer(J,graine,touches,o){
+  o=o||{};
+  const N=Math.round((o.tmax||180)*60),JR=J.g.sandbox.__JR,h=crypto.createHash('sha1'),serie=[];
+  J.lancer(graine,o.carte?{carte:o.carte,meteo:o.meteo}:{});
+  J.ev('__JR.debut()');
+  let fr=0,k=0,vue=null,HAS=null;const hasard=[],appels=[],etat=o.hasard?J.ev('Math.random.__etat'):null;
+  if(o.hasard){J.ev(HASARD_CODE);HAS=J.g.sandbox.__HAS;HAS.mode='note';}
+  while(fr<N){
+    if(etat){hasard.push(etat());HAS.cur=[];HAS.prof=0;}
+    if(fr%HUMAIN.decision===0){
+      vue=Y.voir(J);
+      h.update(vue.mode+'|'+(vue.s||0)+'|'+(vue.lat||0)+'|'+(vue.vitesse||0)+'|'+vue.nitro+'|'+vue.argent+';');
+      if(o.serie)serie.push([fr,vue.mode,vue.s||0,vue.lat||0,vue.vitesse||0,vue.nitro,vue.argent]);
+      if(vue.fini)break;
+    }
+    while(k<touches.length&&touches[k][0]<=fr){if(touches[k][0]===fr)J.touche(TOUCHE[touches[k][1]],!!touches[k][2]);k++;}
+    J.image();JR.image();fr++;
+    if(etat)appels.push(HAS.cur);
+  }
+  if(HAS)HAS.mode=null;
+  const vivant=!(vue&&vue.fini);
+  J.lacher();
+  const partie=JSON.parse(J.ev('__JR.fin()'));
+  if(vivant&&partie.fin)partie.fin.cause='temps';
+  delete partie.ecran;
+  /* hasard : images[i] = l'etat au debut de l'image i · appels[i] = [fonction, etat, fonction, etat…] dans l'ordre des appels de l'image i · noms = les fonctions */
+  return {partie:partie,images:fr,empreinte:h.digest('hex').slice(0,12),serie:o.serie?serie:undefined,hasard:o.hasard?{images:hasard,noms:HAS.noms,appels:appels}:undefined,bilan:mesures(partie)};
+}
+module.exports={ouvrir,charger,course,rejouer,JR_CODE,HASARD_CODE};

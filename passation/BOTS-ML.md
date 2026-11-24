@@ -2,8 +2,10 @@
 
 Statut : **proposé, pas encore validé par Sacha. Étape 0 faite le 22/11** (`ml/reel` tourne sur le jeu actuel : 6,8 × le temps réel ;
 même graine = même course au bit près dans un processus neuf, presque dans le même processus — détails et limites dans `ml/reel/README.md`).
-**Étape 1 faite le 23/11, sauf les 20 parties de Sacha, qui restent à enregistrer** (le contrat du bot, le bot de référence et l'outil
-de l'étalon : `ml/bot/README.md` ; le compte rendu est à la fin de la section 3). Le reste n'est pas codé.
+**Étape 1 faite le 23/11** (le contrat du bot, le bot de référence, l'outil de l'étalon : `ml/bot/README.md`). L'étalon en est à
+**14 parties sur 20** au 24/11 (10 de Sacha au clavier, 4 de Léo au doigt) : la barre est provisoire, il en manque 6.
+**Étape 1 bis faite le 24/11** (la boîte noire du labo : `ml/labo/README.md`). Les comptes rendus sont à la fin de la section 3.
+La boucle (étapes 2 à 8) n'est pas codée : aucun euro d'API n'a été dépensé.
 Demande : des bots qui jouent vraiment à CASH CAR (rouler, voler, figures, raccourcis), un plan qui dépense surtout les ~200 € de crédit API, et un projet qui sert au portfolio (RCA — je suppose Royal College of Art, à confirmer).
 
 ---
@@ -14,7 +16,8 @@ Demande : des bots qui jouent vraiment à CASH CAR (rouler, voler, figures, racc
 |---|---|---|
 | `ml/train/` (juillet → septembre) | 24 voitures à petit réseau, mutées au hasard, dans une **copie** du jeu | La copie a divergé du vrai jeu. Après 300 générations : 0 figure, 9 % de poses réussies. Le champion ne finissait aucune course alors que les totaux du run étaient bons. |
 | `ml/reel/` (20 octobre) | Le **vrai jeu publié** tourne sans écran dans Node, piloté par les touches du clavier, horloge à 1/60 s | Cerveau de 16 neurones, noté à la distance seule. 3 à 4 fois le temps réel d'après son README (pas remesuré depuis). |
-| `ml/bot/` (23 novembre, étape 1) | Le **contrat du bot** : yeux, gestes, doigts, pilote, mesures, bot de référence, outil de l'étalon | Les 20 parties de Sacha. |
+| `ml/bot/` (23 novembre, étape 1) | Le **contrat du bot** : yeux, gestes, doigts, pilote, mesures, bot de référence, outil de l'étalon | 6 parties de joueurs (14 sur 20). |
+| `ml/labo/` (24 novembre, étape 1 bis) | La **boîte noire** : journal des cerveaux, dépenses, rejeux, arbre, salle de projection (rejeu avec l'image, film) | La boucle qui l'alimentera (étape 2). |
 
 À lire avant tout : `ml/reel/README.md`, `ml/train/README.md` (les quatre règles de travail y sont toujours valables).
 
@@ -106,9 +109,109 @@ grotte bâtie à un portail n'arrivait jamais. L'étape 0 ne les avait pas vues 
 **Vitesse réelle.** Sur des courses de plusieurs minutes (maps bâties en route), 4 cœurs jouent environ 6 fois le temps réel au total :
 47 min de jeu en 8 min. Un tour de boucle (50 cerveaux × 20 graines) tient en une nuit, comme prévu.
 
-**Ce qui reste pour clore l'étape 1 : les 20 parties de Sacha.** Mode d'emploi dans `ml/bot/README.md`, section 5. En bref :
-allumer l'enregistreur (`?jeurec=1`), jouer, exporter **toutes les 8 parties au plus** (il n'en garde que 8), déposer les fichiers dans
-`ml/bot/etalon/`, lancer `node ml/bot/etalon.js`. Le tableau « Sacha contre la référence » sort tout seul.
+**L'étalon (au 24/11) : 14 parties sur 20, deux joueurs.** Décision de Sacha le 24/11 : les parties de Léo comptent « dans les 20 ».
+10 parties au clavier (Sacha), 4 au doigt sur téléphone (Léo). Il en manque 6 : la barre est **provisoire**.
+
+| mesure | les joueurs (14 parties) | référence (20 courses) | bot ÷ joueurs |
+|---|---|---|---|
+| survie médiane | 156,8 s | 142,6 s | 91 % |
+| argent par minute | 25 013 | 17 383 | 69 % |
+| pièces par minute | 416 | 391 | 94 % |
+| figures posées par minute | 4,96 | 5,9 | 119 % |
+| temps en l'air | 28,7 % | 9,6 % | 33 % |
+| vols par minute | 7,91 | 3,67 | 46 % |
+| raccourcis par minute | 2,66 | 0,04 | 2 % |
+| distance par minute | 11 034 m | 8 108 m | 73 % |
+| nitro tenue | 60,1 % | 17,6 % | 29 % |
+
+Lecture : le bot ramasse les pièces et pose des figures comme les joueurs ; l'écart est dans le temps en l'air, les raccourcis et la nitro.
+Réserves : une partie de 400 s à 324 000 d'argent pèse lourd dans l'argent par minute (20 597 sans elle) ; les joueurs ont la seconde
+chance, le bot non ; les courses du bot sont coupées à 300 s ; trois versions du jeu se côtoient (parties en `60aa15e` et `ccdca9b`,
+bot en `cashcar-v1627`), écarts non vérifiés. Chacun à part : `ml/bot/results/etalon-sacha.json`, `etalon-leo.json`.
+
+Pour finir : jouer, exporter **toutes les 4 ou 5 parties** (l'enregistreur garde 8 parties **et** 1,6 Mo au plus), déposer les fichiers
+dans `ml/bot/etalon/`, lancer `node ml/bot/etalon.js`. Mode d'emploi : `ml/bot/README.md`, section 5.
+
+### Étape 1 bis — ce qui est sorti (24/11/2026)
+
+Tout est dans `ml/labo/` (mode d'emploi : `ml/labo/README.md`). Le jeu n'a pas été modifié. Aucun euro dépensé.
+
+**La règle.** Un cerveau n'entre au labo que par une commande, `inscrire.js`. Elle le note dans le vrai jeu (20 graines, un processus
+neuf par course) et écrit d'un coup : son code, ses parents, **la raison de son changement**, sa note, chaque course (graine, empreinte,
+fin, endroit de la fin), son coût en jetons et en euros. Elle refuse une inscription sans raison, avec un parent inconnu, ou un cerveau
+d'API sans son coût — et elle refuse avant de jouer.
+
+| Trace du plan (5.1) | Où | État |
+|---|---|---|
+| le journal des cerveaux | `journal/cerveaux.jsonl` + `cerveaux/<id>-<nom>.js` | fait |
+| les dépenses | `journal/depenses.jsonl`, cumul par étape (`node labo.js`) | fait ; les tarifs se mesurent à l'étape 2 |
+| les rejeux | `rejeux/<id>-g<graine>.json` : graine, version du jeu, touches image par image | fait |
+| les trajectoires | `trajectoires/` : les courses gardées en entier, et la trace fine de toutes les courses d'une génération | fait |
+| l'arbre | `arbre.html` (`node arbre.js`) : un nœud par cerveau, sa raison, sa note contre son parent et contre les joueurs, les lignes changées, ses courses, son film | fait |
+| les vidéos | `projection.js` : le rejeu dans le vrai jeu avec l'image, filmé | fait |
+
+**Le premier inscrit : le bot de référence, `c0001`.** Ses 20 courses redonnent les 20 empreintes de la note du 23/11 : même jeu, mêmes
+graines, même course, au bit près, un jour après. Génération 0 close ; 4 courses gardées (sa meilleure, sa plus courte, son plus long vol
+posé — 10,3 s, avec un raccourci de 1 722 m —, son vol à 2 figures).
+
+**Contrôlé.**
+- *Un rejeu sans le cerveau redonne la course.* Les touches seules, dans un processus neuf : 4 rejeux exacts sur 4 (même empreinte, même
+  nombre d'images, même fin, même argent). `node rejouer.js --tout` est le contrôle à refaire après chaque mise à jour du jeu.
+- *Les outils ne salissent pas le journal.* `LABO_DIR` : tous les essais ont tourné dans un labo jetable.
+
+**Les deux points à vérifier de la section 5.5.**
+
+1. *Filmer sans ffmpeg : oui.* Le navigateur encode chaque image du jeu (VideoEncoder, VP9) et `projection.js` écrit lui-même le fichier
+   `.webm`, chaque image datée à n / 60 s. Essayé : une course de 39,9 s → 2 485 images, 41,4 s, 1280 × 720, 26 Mo ; le film se lit, a sa
+   durée, on s'y déplace. La vitesse du PC ne compte pas (ce PC dessine 30 à 40 images par seconde : la projection dure deux fois la
+   course). Le premier essai, l'enregistreur vidéo du navigateur en direct, ne gardait que ~12 images par seconde. Le film montre l'image
+   du jeu, **pas le HUD** (c'est du HTML par-dessus) : pour un film avec le HUD, la projection se filme à l'écran avec OBS.
+2. *Un rejeu n'est exact que sur sa version du jeu : c'est noté et gardé.* Chaque rejeu porte le commit et l'empreinte de
+   `index.html` + `figures.js` ; `rejouer.js` et la salle de projection préviennent quand le jeu a changé.
+
+**Le rejeu avec l'image — ce qui est vérifié.** La salle de projection sert le vrai `index.html` à un navigateur, avec les règles du
+simulateur (horloge du jeu, hasard à graine, aucune entrée, aucun son), et compare toute seule : l'état de la caisse à chaque décision,
+contre la même course sans écran.
+- *Une course sur une seule map : la même, à chaque décision.* Course de 39,9 s sur jade : les 400 décisions du navigateur sont celles de
+  la course sans écran, jusqu'à la mort à la même image (2 394). Son film montre donc exactement la course du journal.
+- *Une course qui traverse des portails.* Course de 187,8 s sur quatre maps (nuages > jade > crypto > grotte). Résultat : **la même course, à chaque décision** : 1 879 décisions sur 1 879, 11 268 images, trois portails, même fin (roche) et même argent (52 545,35) ; aucune image n'a eu besoin d'être rattrapée.
+  Il a fallu deux choses pour y arriver, et elles valent pour tout rejeu avec l'image :
+  1. **Le recalage du hasard.** Le navigateur tire plus de nombres au hasard que le simulateur (effets d'écran), et le jeu tire la route
+     suivante du même hasard : sans rien faire, la course est identique 56,6 s, puis c'est une **autre route** après le premier portail.
+     Le rejeu sans écran note donc où en est le hasard (à chaque image, et à l'entrée de chaque fonction du jeu qui tire au sort), et le
+     navigateur s'y remet (`HASARD_CODE`, `ml/bot/piloter.js`).
+  2. **Le même régime que le simulateur** (`&poste=3`). Voir ci-dessous : c'était la cause de l'écart de 127,4 s.
+- *Ce qui protège.* Le verdict est automatique et écrit (`tampon/projection-<course>.json`) : un film n'est « la course du journal » que si
+  la projection l'a dit.
+
+**Découverte : le simulateur note un jeu que les joueurs de l'étalon ne jouent pas.** Au chargement, le jeu juge la machine
+(`POSTE`, `rendu/soleil-planete.js`). Une puce graphique intégrée ou un téléphone → version **allégée**, où **Crypto City est retirée du
+tirage** (`SF_HORS`) : la « cryptoville » n'y a que ses nuits (la ville). Le simulateur n'a pas de carte graphique à juger : il tourne au
+régime **maximum**, avec Crypto City.
+- Mesuré le 24/11 : au deuxième portail, même état du hasard des deux côtés, le simulateur tire « crypto, midi » et le navigateur de ce PC
+  « ville, orage ». Même route (même graine), mais les pièces de la ville valent 0,75 ou 1,5, celles de Crypto City 1 : d'où 127,4 s
+  d'accord parfait, puis des gains à × 0,75, puis une conduite qui se sépare.
+- Les 14 parties de l'étalon sont **toutes** en version allégée (PC de Sacha, téléphone de Léo) : aucune ne passe par Crypto City.
+  Le bot de référence, lui, y roule dans 4 courses sur 20.
+- Ni le simulateur ni la salle de projection ne s'écartent du vrai jeu : ce sont **deux régimes** du même jeu. La projection se met dans
+  celui du simulateur ; `&regime=2` la met dans celui de ce PC (la course n'est alors plus celle du journal).
+- **À trancher par Sacha avant l'étape 3** (section 7, point 6) : noter les bots au régime maximum (aujourd'hui) ou en allégé comme les joueurs.
+
+**Ce que cette étape a appris sur le jeu.**
+- Le jeu tire **tout** du même hasard : la flamme d'un réacteur comme la graine de la route suivante (`newTrackG`). Un vrai navigateur
+  anime plus de choses que le simulateur ; sans précaution, la route d'après le premier portail n'est plus la même.
+- Le simulateur est donc exact sur ce qu'il simule (la conduite, les routes, l'argent), mais il **n'est pas** la couche d'effets du
+  vrai jeu. Pour noter des bots c'est sans importance ; pour montrer une course, c'est la salle de projection qui fait le pont.
+- L'ancienne intro du jeu se lance à la première touche si un écran titre existe : le prélude le retire dès le chargement.
+
+**Un défaut de l'étape 1 trouvé et corrigé en passant : une note dépendait de la charge du PC.** Chaque décision du cerveau avait
+500 ms de vraie montre. Le 24/11, avec le PC occupé par ailleurs, `verifier.js` a raté : deux processus neufs, même graine, deux courses
+différentes (3 et 10 décisions coupées). La limite est maintenant de 5 s, et une course s'abandonne à la 3e décision coupée (fin
+« panne ») : une boucle sans fin coûte 15 s, pas des heures. `verifier.js` repasse en entier sur le PC chargé, avec l'empreinte du 23/11.
+Les pannes restent comptées course par course au journal, et `inscrire.js` les signale : **une course avec une panne ne vaut pas**.
+
+**Pas fait, et dit.** Le bêtisier, les cartes, les planches et le journal de bord (5.2) sont des fabrications à partir de ces traces :
+elles viendront avec les générations (il n'y a qu'un cerveau au journal). Les traces qu'il leur faut, elles, s'écrivent déjà.
 
 ---
 
@@ -154,12 +257,13 @@ On ne garde pas chaque course en rejeu (trop lourd) : le champion de chaque gén
 
 - **Dans git** : journal, rejeux, trajectoires, champions, images, la page de l'arbre. Leçon de `ml/train` : un dossier `results/` hors git a été effacé une fois.
 - **Hors git** : les vidéos (lourdes), dans un dossier à part avec un index. Elles se refont à partir des rejeux.
-- Proposition de rangement : `ml/labo/journal/`, `ml/labo/rejeux/`, `ml/labo/jalons/<étape>/`, `ml/labo/arbre.html`.
+- Le rangement (posé à l'étape 1 bis) : `ml/labo/journal/`, `cerveaux/`, `rejeux/`, `trajectoires/`, `arbre.html` dans git ; `tampon/` et `videos/` hors git.
+  `ml/labo/jalons/<étape>/` viendra avec le premier jalon (étape 3).
 
-### 5.5 Deux points à vérifier à l'étape 1 bis
+### 5.5 Deux points à vérifier à l'étape 1 bis — vérifiés le 24/11
 
-- **Filmer sans ffmpeg** : le PC n'a ni ffmpeg ni Python. Piste : l'enregistreur vidéo du navigateur branché sur l'image du jeu, ou OBS que Sacha utilise déjà. Non testé.
-- **Un rejeu n'est exact que sur la version du jeu qui l'a produit.** On note donc le commit avec chaque rejeu, et on filme les vidéos d'un jalon avant de changer de version.
+- **Filmer sans ffmpeg** : fait. Le navigateur encode image par image, `ml/labo/projection.js` écrit le `.webm` : 60 images par seconde exactes. OBS reste utile pour un film avec le HUD. Détail : compte rendu de l'étape 1 bis (section 3).
+- **Un rejeu n'est exact que sur la version du jeu qui l'a produit.** Le commit et l'empreinte du jeu sont dans chaque rejeu ; les outils préviennent. On filme les vidéos d'un jalon avant de changer de version.
 
 ### 5.6 Pour le portfolio
 
@@ -181,10 +285,14 @@ Le fil : deux tentatives ratées, un changement de méthode, puis des cerveaux q
 1. **Bots dans le jeu** : fantômes (courses calculées d'avance sur la piste du jour, rejouées chez le joueur — recommandé) ou rivaux en direct (demande de refaire la physique pour plusieurs voitures) ?
 2. **Ses parties** : étalon seulement (sa décision de septembre) ou aussi point de départ à imiter ?
 3. **RCA** : confirmer l'école et le programme visé, pour régler le format des pièces (vidéo, page, imprimé).
-4. **L'étalon, sur quel appareil ?** (né de l'étape 1) Le bot joue au clavier. Si Sacha enregistre au téléphone (pouce analogique), la
-   comparaison mélange deux façons de jouer ; s'il enregistre sur l'ordinateur, elle est à armes égales. L'enregistrement note l'appareil.
+4. **L'étalon, sur quel appareil ?** (né de l'étape 1) **Tranché le 24/11 : les deux.** Sacha au clavier, Léo au doigt sur téléphone,
+   « dans les 20 ». La barre commune mélange donc deux façons de jouer ; la barre de chacun est gardée à côté.
 5. **Quelle sauvegarde pour le bot ?** (né de l'étape 1) Il joue une sauvegarde neuve : première voiture, deux figures (salto, tail whip),
    premier palier de moteur au départ. Sacha joue la sienne. À égaliser, ou à assumer.
+6. **Dans quel régime noter les bots ?** (né de l'étape 1 bis) Le simulateur tourne au régime maximum (Crypto City au tirage). Sacha et
+   Léo jouent en version allégée (sans). « Le bot contre Sacha sur les mêmes graines » demande le même régime des deux côtés : soit le
+   simulateur passe en allégé (`?allege=1`, toutes les notes à refaire : 8 minutes pour la référence), soit l'étalon se rejoue sur un PC
+   au maximum. Non mesuré : ce que l'allégé change d'autre que le tirage des maps.
 
 ---
 

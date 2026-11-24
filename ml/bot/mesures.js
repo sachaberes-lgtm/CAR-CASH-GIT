@@ -36,6 +36,9 @@ function mesures(c){
     vols:vols.length,vols_min:+(vols.length/min).toFixed(2),
     air_s:+vols.reduce((a,v)=>a+(v.duree||0),0).toFixed(1),air_pct:+(E.length?100*enVol/E.length:0).toFixed(1),
     vol_moyen_s:+moy(vols.map(v=>v.duree||0)).toFixed(2),vol_max_s:+Math.max(0,...vols.map(v=>v.duree||0)).toFixed(2),
+    /* (2026-11-24, etape 1 bis) les courses « remarquables » du labo : le plus long vol POSE, le plus de figures en un vol, le plus gros raccourci */
+    vol_pose_max_s:+Math.max(0,...vols.filter(v=>!v.mort).map(v=>v.duree||0)).toFixed(2),combo_max:Math.max(0,...vols.map(v=>v.figs|0)),
+    raccourci_max_m:Math.max(0,...vols.map(v=>v.gain|0)),
     decollages:{bord:vols.filter(v=>v.origine==='bord').length,trou:vols.filter(v=>v.origine==='trou').length,saut:vols.filter(v=>v.origine==='saut').length},
     poses:vols.filter(v=>!v.mort).length,morts_en_vol:vols.filter(v=>v.mort).length,
     raccourcis:racc,raccourcis_m:Math.round(raccM),

@@ -1,47 +1,50 @@
 {
- "date": "2026-11-24T11:11:02.761Z",
+ "date": "2026-11-24T12:14:19.182Z",
  "fichiers": [
   "cashcar-parties-2026-11-23-1950.json",
-  "cashcar-parties-2026-11-23-2020.json"
+  "cashcar-parties-2026-11-23-2020.json",
+  "cashcar-parties-2026-11-24-1213.json"
  ],
  "versions": [
-  "60aa15e"
+  "60aa15e",
+  "ccdca9b"
  ],
  "voitures": [
   "LA HONTE"
  ],
  "barre": {
-  "parties": 8,
-  "minutes": 23.6,
+  "parties": 10,
+  "minutes": 30.5,
   "survie_mediane_s": 156.8,
-  "survie_moyenne_s": 177.1,
-  "argent_min": 22582.6,
+  "survie_moyenne_s": 183,
+  "argent_min": 28117.2,
   "argent_mediane": 8360.6,
-  "pieces_min": 394,
-  "figures_min": 5.17,
-  "figures_lancees_min": 3.26,
-  "vols_min": 8.51,
-  "air_pct": 33.5,
-  "vol_moyen_s": 2.36,
-  "raccourcis_min": 3.39,
-  "raccourcis_m_min": 1985.1,
-  "bumps_min": 1.65,
-  "distance_m_min": 12101,
-  "nitro_pct": 59.2,
+  "pieces_min": 393.2,
+  "figures_min": 5.02,
+  "figures_lancees_min": 2.75,
+  "vols_min": 8.39,
+  "air_pct": 32.9,
+  "vol_moyen_s": 2.35,
+  "raccourcis_min": 3.31,
+  "raccourcis_m_min": 2016.8,
+  "bumps_min": 1.97,
+  "distance_m_min": 11984,
+  "nitro_pct": 59.7,
   "causes": {
    "glace": 1,
    "pic": 3,
    "paroi": 2,
-   "air": 1,
-   "roche": 1
+   "air": 2,
+   "roche": 1,
+   "tour": 1
   },
   "cartes": {
-   "grotte": 7,
-   "nuages": 8,
-   "jade": 7,
-   "espace": 6,
-   "canyon": 3,
-   "ville": 5
+   "grotte": 8,
+   "nuages": 10,
+   "jade": 8,
+   "espace": 8,
+   "canyon": 4,
+   "ville": 8
   }
  },
  "parties": [
@@ -400,6 +403,96 @@
    "vmax": 1602,
    "nitro_pct": 69.5,
    "drift_pct": 0
+  },
+  {
+   "debut": "2026-11-24T12:05:51.734Z",
+   "duree_s": 13.6,
+   "cause": "air",
+   "cartes": [
+    "ville"
+   ],
+   "routes": 1,
+   "voiture": "LA HONTE",
+   "appareil": "version allegee (telephone ou PC lent)",
+   "clavier": true,
+   "chances": 0,
+   "argent": 65.96,
+   "argent_min": 290.4,
+   "pieces": 14,
+   "pieces_min": 61.6,
+   "figures_lancees": 0,
+   "figures_payees": 0,
+   "figures_min": 0,
+   "vols": 1,
+   "vols_min": 4.4,
+   "air_s": 6,
+   "air_pct": 43.9,
+   "vol_moyen_s": 6,
+   "vol_max_s": 6,
+   "decollages": {
+    "bord": 1,
+    "trou": 0,
+    "saut": 0
+   },
+   "poses": 0,
+   "morts_en_vol": 1,
+   "raccourcis": 0,
+   "raccourcis_m": 0,
+   "bumps": 0,
+   "distance_m": 372,
+   "kmh_moyen": 263,
+   "vmax": 239,
+   "nitro_pct": 0,
+   "drift_pct": 0
+  },
+  {
+   "debut": "2026-11-24T12:06:25.761Z",
+   "duree_s": 400,
+   "cause": "tour",
+   "cartes": [
+    "espace",
+    "nuages",
+    "grotte",
+    "canyon",
+    "ville",
+    "nuages",
+    "espace",
+    "jade",
+    "ville"
+   ],
+   "routes": 9,
+   "voiture": "LA HONTE",
+   "appareil": "version allegee (telephone ou PC lent)",
+   "clavier": true,
+   "chances": 1,
+   "argent": 324418.53,
+   "argent_min": 48659.1,
+   "pieces": 2677,
+   "pieces_min": 401.5,
+   "figures_lancees": 7,
+   "figures_payees": 31,
+   "figures_min": 4.65,
+   "vols": 54,
+   "vols_min": 8.1,
+   "air_s": 121.1,
+   "air_pct": 30.2,
+   "vol_moyen_s": 2.24,
+   "vol_max_s": 6.37,
+   "decollages": {
+    "bord": 52,
+    "trou": 0,
+    "saut": 2
+   },
+   "poses": 52,
+   "morts_en_vol": 2,
+   "raccourcis": 21,
+   "raccourcis_m": 14650,
+   "bumps": 21,
+   "distance_m": 79475,
+   "kmh_moyen": 764,
+   "vmax": 2247,
+   "nitro_pct": 63.2,
+   "drift_pct": 0.1
   }
  ]
 }

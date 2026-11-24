@@ -69,3 +69,8 @@ AUTRE VERSION/
 outils/banc-routes/sorties/*/*.json
 outils/banc-routes/sorties/*/*.png
 !outils/banc-routes/sorties/*/garde-*.png
+
+# --- Labo des bots (ml/labo) : le tampon de la generation en cours et les videos restent en local ---
+# (le journal, les cerveaux, les rejeux et les trajectoires gardees SONT dans git : voir ml/labo/README.md)
+ml/labo/tampon/
+ml/labo/videos/

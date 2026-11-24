@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>Projection</title>
+<!-- ===== LA SALLE DE PROJECTION, cote navigateur (2026-11-24, etape 1 bis BOTS-ML) =====
+     Charge le vrai jeu dans un cadre de 1280 × 720 (les regles du simulateur : projection/prelude.js), lui applique LE MEME code de mise en
+     route que le simulateur (ml/reel/jeu-reel.js : chauffe, photo, remise, graine), puis remet les touches du rejeu image par image.
+     ?rejeu=<course>  [&mode=cerveau]  [&film=1 | &film=direct]  [&debit=5]  [&cadence=libre]  — voir ml/labo/projection.js -->
+<style>
+body{margin:0;background:#111;color:#eee;font:14px/1.4 system-ui,sans-serif}
+#barre{padding:8px 14px;display:flex;gap:18px;align-items:baseline;flex-wrap:wrap;background:#1c1b18;border-bottom:1px solid #333}
+#barre b{font-size:15px}#etat{color:#fbbf24}#verdict{font-weight:700}a{color:#fb923c}
+#scene{position:relative;transform-origin:0 0}iframe{width:1280px;height:720px;border:0;display:block;background:#000}
+</style></head><body>
+<div id="barre"><b id="titre">projection</b><span id="etat">…</span><span id="verdict"></span><a href="/">← les rejeux</a></div>
+<div id="scene"><iframe id="jeu" allow="autoplay"></iframe></div>
+<script>
+/* ----- les modules de ml/ (CommonJS), tels que Node les charge : le serveur les emballe, on leur donne un require ----- */
+const MODS={},CACHE={};window.__def=function(n,f){MODS[n]=f;};
+const VIDES={fs:{readFileSync(){return '';},existsSync(){return false;}},path:{join(){return [].join.call(arguments,'/');},basename(p){return String(p).split(/[\\/]/).pop();},sep:'/'},vm:{},crypto:{},os:{},child_process:{}};
+function requis(de){return function(n){
+  if(VIDES[n])return VIDES[n];
+  if(n==='./sim-env-reel')return {loadGame:null};
+  const base=de.split('/').slice(0,-1);for(const s of n.split('/')){if(s==='.')continue;if(s==='..')base.pop();else base.push(s);}
+  let k=base.join('/');if(!/\.js$/.test(k))k+='.js';
+  if(CACHE[k])return CACHE[k].exports;
+  if(!MODS[k])throw new Error('module non charge : '+k);
+  const m={exports:{}};CACHE[k]=m;MODS[k](m,m.exports,requis(k));return m.exports;};}
+const script=src=>new Promise((ok,ko)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>ko(new Error('script illisible : '+src));document.head.appendChild(s);});
+const $=id=>document.getElementById(id),Q=new URLSearchParams(location.search),attends=ms=>new Promise(ok=>setTimeout(ok,ms));
+const E=window.__etat={phase:'depart',images:0,fini:false,resultat:null,film:null,erreur:null};
+const dit=t=>{$('etat').textContent=t;};
+function echelle(){const k=Math.min(1,(innerWidth)/1280,(innerHeight-44)/720);$('scene').style.transform='scale('+k+')';}
+addEventListener('resize',echelle);echelle();
+
+async function projette(){
+  const nom=Q.get('rejeu'),mode=Q.get('mode')==='cerveau'?'cerveau':'touches',film=!!Q.get('film')&&Q.get('film')!=='0',libre=Q.get('cadence')==='libre'&&!film,DEBIT=(+Q.get('debit')||5)*1e6;
+  if(!nom){dit('il manque ?rejeu=<course>');return;}
+  $('titre').textContent=nom+(mode==='cerveau'?' · le cerveau en direct':' · les touches du rejeu')+(film?' · filmé':'');
+  E.phase='chargement';dit('chargement du rejeu et du jeu…');
+  const R=await (await fetch('/__rejeu?f='+nom)).json(),N9=await (await fetch('/__noms')).json();
+  if(!R.touches){dit('rejeu introuvable : '+nom);return;}
+  if(R.jeu.sha!==N9.jeu.sha){dit('⚠ ce rejeu vient d\'une autre version du jeu ('+R.jeu.version+', commit '+R.jeu.commit+') : il ne se rejoue que sur elle');return;}
+  /* LE RECALAGE DU HASARD (voir ml/bot/piloter.js) : la course est d'abord rejouee sans ecran (1 a 2 minutes pour une longue course, puis gardee) */
+  const RECALE=Q.get('recale')!=='0';let HAS0=null;
+  if(RECALE){dit('la course est d\'abord rejouée sans écran (pour recaler le hasard) : 1 à 2 minutes la première fois…');
+    const r=await fetch('/__hasard?f='+nom);if(r.ok)HAS0=await r.json();if(!HAS0||!HAS0.images){dit('la course sans écran n\'a pas pu être rejouée');E.erreur='hasard';return;}}
+  for(const f of ['reel/jeu-reel.js','bot/yeux.js','bot/doigts.js','bot/mesures.js','bot/piloter.js'])await script('/__cjs?f='+f);
+  const {creer}=requis('x.js')('reel/jeu-reel'),Y=requis('x.js')('bot/yeux'),{Doigts,HUMAIN,TOUCHE}=requis('x.js')('bot/doigts'),{JR_CODE,HASARD_CODE}=requis('x.js')('bot/piloter');
+  let cerveau=null;
+  if(mode==='cerveau'){await script('/__cjs?f=labo:'+R.cerveau.code);cerveau=requis('x.js')('labo:'+R.cerveau.code);}
+  const cadre=$('jeu');
+  /* LE MEME REGIME QUE LE SIMULATEUR : `&poste=3`. Au chargement, le jeu juge la machine (rendu/soleil-planete.js, POSTE) : une puce graphique
+     integree → version ALLEGEE, ou Crypto City est HORS DU TIRAGE (SF_HORS). Le simulateur n'a pas de carte graphique a juger : il tourne au
+     regime maximum, avec Crypto City. MESURE (24/11, ce PC) : au 2e portail, meme etat du hasard des deux cotes, « crypto, midi » sans ecran,
+     « ville, orage » dans le navigateur — meme route (meme graine), mais des pieces a 0,75 fois leur valeur : c'etait l'ecart de 127,4 s.
+     `?regime=<0..3|max>` pour projeter dans un autre regime (la course ne sera alors plus celle du journal). */
+  const REGIME=Q.get('regime')||'3';
+  await new Promise(ok=>{cadre.onload=ok;cadre.src='/jeu/__projection.html'+N9.requete+'&poste='+REGIME.replace(/[^a-z0-9]/gi,'');});
+  const w=cadre.contentWindow,env=w.__ENV;
+  if(!env||!w.__EV){dit('le jeu ne s\'est pas chargé (pas de porte de lecture)');E.erreur='chargement';return;}
+  await attends(2500);                                   /* les textures et les polices arrivent (l'horloge du jeu, elle, ne bouge pas) */
+  E.phase='chauffe';dit('mise en route du jeu (la même que le simulateur)…');await attends(30);
+  const g={sandbox:w,ev:e=>w.__EV(e),clk:env.clk,tick:env.tick,minuteries:env.minuteries,raf:env.raf,fire:env.fire,seed:env.seed};
+  const J=creer({silence:Q.get('bruit')!=='1',charge:()=>g,noms:N9.noms}); /* &bruit=1 : les erreurs de loop() s'affichent dans la console (pour chercher une panne) */
+  Y.installer(J);J.ev(JR_CODE);
+  /* L'IMAGE QUI SE COUPE : si la carte graphique lache le canevas (contexte WebGL perdu), le jeu se met en pause de lui-meme et la course n'est
+     plus celle du rejeu. Ca ne se rattrape pas : on le compte, et le verdict le dit (relancer la projection). */
+  E.imageCoupee=0;try{w.__NATIF.ecoute.call(J.ev('renderer.domElement'),'webglcontextlost',function(){E.imageCoupee++;});}catch(e){}
+  J.lancer(R.graine,R.carte?{carte:R.carte,meteo:R.meteo}:{});
+  J.ev('__JR.debut()');
+  /* LE RECALAGE DU HASARD (ml/bot/piloter.js) : les memes enveloppes que le rejeu sans ecran, en mode « pose » */
+  let poseEtat=null,HAS=null,trad=null;
+  if(HAS0){J.ev(HASARD_CODE);HAS=w.__HAS;HAS.mode='pose';poseEtat=J.ev('Math.random.__etat');trad=HAS0.noms.map(n=>HAS.noms.indexOf(n));}
+  /* LE CONTROLE DU HASARD : a la fin de chaque image, le generateur doit en etre exactement la ou le simulateur en etait au debut de la suivante.
+     Sinon le navigateur a tire plus ou moins de nombres dans cette image (hors des appels recales) : on compte ces images et on garde les premieres. */
+  const INV=(function(){const x=0x6D2B79F5|0;let v=x;for(let i=0;i<6;i++)v=Math.imul(v,2-Math.imul(x,v));return v;})(),tirages=(a,b)=>Math.imul((b-a)|0,INV)>>>0;
+  const ecartsHasard={images:0,premieres:[]};
+  /* (&diag=1) QUI TIRE AU HASARD : chaque appel a Math.random du jeu est compte, par endroit du code — pour trouver ce que le vrai navigateur
+     tire en plus ou en moins que le simulateur (la route d'apres un portail sort de ce hasard). Lent : pour chercher, pas pour filmer. */
+  const DIAG=Q.get('diag')==='1',cumul=[];
+  if(DIAG){w.Error.stackTraceLimit=4;J.ev("(function(){const vrai=Math.random,S={};let n=0;Math.random=function(){n++;const l=(new Error().stack||'').split(String.fromCharCode(10))[2]||'?';S[l]=(S[l]||0)+1;return vrai();};window.__TIR={total:function(){return n;},sites:function(){return S;}};})()");}
+  /* (&espion=<nom>) UN ESPION : le code de tampon/<nom>.js est evalue dans le jeu, apres le depart (pour chercher ce qui differe du simulateur :
+     le meme fichier se donne au rejeu sans ecran). Il range ce qu'il voit dans window.__ESP ; window.__IMG = l'image en cours. */
+  if(Q.get('espion')){const c=await (await fetch('/labo/tampon/'+Q.get('espion').replace(/[^a-z0-9-]/gi,'')+'.js')).text();J.ev(c);}
+  const JR=w.__JR,T=(function(s){const A=[];let d=0;for(const m of String(s).matchAll(/(\d+)([GDHBNgdhbn])/g)){d+=+m[1];A.push([d,m[2].toUpperCase(),m[2]===m[2].toUpperCase()?1:0]);}return A;})(R.touches);
+  const D=mode==='cerveau'?new Doigts(J,()=>Y.modeDe(J)):null,mem={},serie=[],NMAX=Math.min(+Q.get('images')||1e9,Math.round((R.tmax||180)*60)); /* comme l'originale : la mort (vue par les yeux) ou tmax arretent la course, pas un nombre d'images */
+  let fr=0,k=0,vue=null,fini=false,apres=film?90:0;
+  /* UNE IMAGE DU JEU : la meme boucle que piloter.js (rejouer / course) — regarder, remettre les touches, avancer d'un soixantieme */
+  function pas(){
+    if(fini){if(apres>0){apres--;J.image();return true;}return false;}
+    if(poseEtat&&fr<HAS0.images.length){poseEtat(HAS0.images[fr]);       /* le hasard repart d'ou il en etait, a cette image, dans la course sans ecran */
+      const a=HAS0.appels[fr]||[],P={};for(let j=0;j<a.length;j+=2){const i=trad[a[j]];if(i>=0)(P[i]=P[i]||[]).push(a[j+1]);}HAS.pos=P;HAS.prof=0;}
+    else if(HAS)HAS.pos=null;
+    w.__IMG=fr;
+    if(fr%HUMAIN.decision===0){
+      vue=Y.voir(J);serie.push([fr,vue.mode,vue.s||0,vue.lat||0,vue.vitesse||0,vue.nitro,vue.argent]);if(DIAG)cumul.push(w.__TIR.total());
+      if(vue.fini){fini=true;return apres>0;}
+      if(D){vue.image=fr;vue.t=+(fr/60).toFixed(2);let o=null;try{o=cerveau.decide(vue,mem);}catch(e){}D.ordre(o&&typeof o==='object'?o:{},vue);}
+    }
+    if(D)D.image();else while(k<T.length&&T[k][0]<=fr){if(T[k][0]===fr)J.touche(TOUCHE[T[k][1]],!!T[k][2]);k++;}
+    J.image();JR.image();
+    if(poseEtat&&fr+1<HAS0.images.length){const vu=poseEtat(),du=HAS0.images[fr+1];
+      if(vu!==du){ecartsHasard.images++;if(ecartsHasard.premieres.length<12)ecartsHasard.premieres.push({image:fr,seconde:+(fr/60).toFixed(2),sansEcran:tirages(HAS0.images[fr],du),avecImage:tirages(HAS0.images[fr],vu)});}}
+    fr++;E.images=fr;
+    if(fr>=NMAX){fini=true;return apres>0;}
+    return true;
+  }
+  /* LE DESSIN SE SAUTE, LE CALCUL JAMAIS : `sansImage` coupe le dessin d'une image. Dans le simulateur le dessin n'existe pas du tout :
+     la course n'en depend pas. Sert a tenir la vitesse du jeu quand l'ordinateur peine (projection sans film, film direct). */
+  let sansImage=false;
+  try{const moteur=J.ev('renderer'),vrai=moteur.render;moteur.render=function(){if(sansImage)return;return vrai.apply(this,arguments);};}catch(e){}
+  /* ===== LE FILM, SANS FFMPEG =====
+     EXACT (film=1) : chaque image du jeu est dessinee, encodee par le navigateur (VideoEncoder, VP9) et DATEE a 1/60 s ; le serveur local
+     ecrit le fichier .webm. 60 images par seconde quelle que soit la vitesse de l'ordinateur — la projection dure alors plus longtemps que la course.
+     DIRECT (film=direct, ou un navigateur sans VideoEncoder) : l'enregistreur du navigateur (MediaRecorder) filme a la vitesse du jeu ; un
+     ordinateur lent y perd des images (MESURE sur ce PC, 1280 × 720 : ~12 images par seconde dans le film). */
+  let canevas=null,enc=null,rec=null,nFilm=0;const paquets=[],morceaux=[];
+  const direct=film&&(Q.get('film')==='direct'||typeof VideoEncoder!=='function');
+  if(film){
+    try{canevas=J.ev('renderer.domElement');}catch(e){}
+    if(!canevas)canevas=[...w.document.querySelectorAll('canvas')].sort((a,b)=>b.width*b.height-a.width*a.height)[0];
+    E.film={mode:direct?'direct':'exact',canevas:[canevas.width,canevas.height]};
+    if(direct){
+      const type=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));
+      rec=new MediaRecorder(canevas.captureStream(60),{mimeType:type,videoBitsPerSecond:DEBIT});
+      rec.ondataavailable=e=>{if(e.data&&e.data.size)morceaux.push(e.data);};rec.start(1000);
+    }else{
+      enc=new VideoEncoder({output:c=>{const d=new Uint8Array(c.byteLength);c.copyTo(d);paquets.push({t:c.timestamp,k:c.type==='key'?1:0,d:d});},error:e=>{E.erreur='encodeur video : '+e.message;}});
+      enc.configure({codec:'vp09.00.31.08',width:canevas.width,height:canevas.height,bitrate:DEBIT,framerate:60});
+    }
+  }
+  /* une image du film : le canevas tel que le jeu vient de le dessiner, a sa date exacte (une image cle toutes les 2 s : on peut s'y deplacer) */
+  function filme(){const f=new VideoFrame(canevas,{timestamp:Math.round(nFilm*1e6/60)});enc.encode(f,{keyFrame:nFilm%120===0});f.close();nFilm++;}
+  E.phase='course';const t0=performance.now();
+  await new Promise(ok=>{
+    function tour(){
+      let encore=true;const t=performance.now();
+      if(enc){while(encore&&performance.now()-t<14&&enc.encodeQueueSize<6){encore=pas();if(encore)filme();}}                 /* film exact : chaque image, a son rythme */
+      else if(libre){while(encore&&performance.now()-t<14)encore=pas();}                                                      /* au plus vite */
+      else{const dues=Math.min(6,Math.floor((t-t0)*60/1000)-(fr+(film?90-apres:0)));let n=0;                                  /* a l'heure du jeu */
+        while(encore&&n<dues){sansImage=n<dues-1;encore=pas();n++;}sansImage=false;}
+      dit('course : '+(fr/60).toFixed(1)+' s sur '+(NMAX/60).toFixed(0)+' au plus · '+Math.round(fr/Math.max(.001,(performance.now()-t0)/1000))+' images/s'+(enc?' · film exact, '+nFilm+' images':''));
+      if(encore)canal.port2.postMessage(0);else ok();
+    }
+    const canal=new MessageChannel();canal.port1.onmessage=tour;
+    /* pas requestAnimationFrame : il s'arrete quand la page n'est pas a l'ecran (MESURE : volet cache, la course ne partait pas). Un canal de
+       messages bat toujours ; l'heure de la vraie montre dit combien d'images du jeu sont dues. */
+    canal.port2.postMessage(0);
+  });
+  const duree=(performance.now()-t0)/1000;
+  if(DIAG)E.tirages={total:w.__TIR.total(),cumul:cumul,sites:w.__TIR.sites()};
+  if(D)D.lache();J.lacher();
+  let partie=null;try{partie=JSON.parse(J.ev('__JR.fin()'));}catch(e){}
+  E.phase='comparaison';dit('course finie : comparaison avec la même course sans écran…');
+  E.serie=serie; /* gardee sous la main : pour comparer champ par champ depuis la console */
+  const envoi={rejeu:nom,mode:mode,imageCoupee:E.imageCoupee,recale:RECALE,hasard:HAS0?ecartsHasard:null,images:fr,serie:serie,fin:partie&&partie.fin,imagesParSeconde:Math.round(fr/Math.max(.001,duree)),duree_s:+duree.toFixed(1),film:E.film};
+  const B=await (await fetch('/__resultat',{method:'POST',body:JSON.stringify(envoi)})).json();
+  E.resultat=B;
+  $('verdict').textContent=B.erreur?B.erreur:B.exact?'✔ la même course que sans écran, à chaque décision':'✘ différente de la course sans écran'+(B.premiereDifference?' à partir de '+B.premiereDifference.seconde+' s':'')+' (écart max '+B.ecartMaxMetres+' m)';
+  if(E.imageCoupee)$('verdict').textContent+=" · ⚠ l'image s'est coupée "+E.imageCoupee+" fois (carte graphique) : relancer la projection";
+  $('verdict').style.color=B.exact?'#4ade80':'#f87171';
+  const nomFilm=nom+(mode==='cerveau'?'-cerveau':'');
+  if(enc){
+    E.phase='film';dit('écriture du film ('+nFilm+' images)…');
+    await enc.flush();enc.close();
+    /* les images encodees partent au serveur, qui ecrit le .webm : [taille, image cle, date en microsecondes] puis les octets, pour chacune */
+    const parts=[];for(const p of paquets){const h=new DataView(new ArrayBuffer(16));h.setUint32(0,p.d.length,true);h.setUint32(4,p.k,true);h.setFloat64(8,p.t,true);parts.push(h.buffer,p.d);}
+    const V=await (await fetch('/__film?f='+nomFilm+'&w='+canevas.width+'&h='+canevas.height,{method:'POST',body:new Blob(parts)})).json();
+    E.film=Object.assign(E.film,V);
+  }else if(rec){
+    E.phase='film';dit('écriture du film…');
+    await new Promise(ok=>{rec.onstop=ok;rec.stop();});
+    const V=await (await fetch('/__video?f='+nomFilm,{method:'POST',body:new Blob(morceaux,{type:'video/webm'})})).json();
+    E.film=Object.assign(E.film,V);
+  }
+  E.phase='fini';E.fini=true;dit('fini · '+fr+' images du jeu en '+duree.toFixed(1)+' s'+(E.film&&E.film.fichier?' · film : '+E.film.fichier+' ('+Math.round(E.film.octets/1024)+' Ko'+(E.film.images?', '+E.film.images+' images, '+E.film.duree_film_s+' s':'')+')':''));
+}
+projette().catch(e=>{E.erreur=String(e&&e.stack||e);E.phase='erreur';dit('ERREUR : '+(e&&e.message||e));});
+</script></body></html>

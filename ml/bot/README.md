@@ -9,12 +9,12 @@ rend un *ordre*, dix fois par seconde. Il ne touche jamais le jeu : ses yeux lis
 |---|---|
 | `yeux.js` | la vue : ce que le joueur voit, en nombres (route devant, pièces, jauges, vol, tronçons en contrebas) |
 | `doigts.js` | les gestes → les cinq touches du clavier, aux délais d'une main (`HUMAIN`) ; le journal des touches |
-| `piloter.js` | une course : charge le jeu, charge le cerveau dans un bac fermé, fait tourner l'enregistreur du jeu |
+| `piloter.js` | une course : charge le jeu, charge le cerveau dans un bac fermé, fait tourner l'enregistreur du jeu ; `rejouer` remet les touches d'une course sans le cerveau (étape 1 bis) |
 | `mesures.js` | les chiffres d'une partie et d'un lot — les mêmes pour Sacha et pour les bots |
 | `reference.js` | le bot écrit à la main : le point de départ à battre, et l'exemple du contrat |
 | `noter.js` | note un cerveau sur N graines → `results/note-<nom>.json` |
 | `autopsie.js` | raconte les dernières secondes d'une course (ce qu'il voyait, ce qu'il a ordonné) |
-| `etalon.js` | lit les parties de Sacha (`etalon/`) → la barre, et la compare aux notes des bots |
+| `etalon.js` | lit les parties des joueurs (`etalon/` : Sacha au clavier, Léo au doigt) → la barre, et la compare aux notes des bots |
 | `verifier.js` | les contrôles du contrat dans le vrai jeu. **À relancer après chaque mise à jour du jeu.** |
 
 ```bash
@@ -39,7 +39,9 @@ module.exports = { nom: 'mon-cerveau', decide: function (vue, memoire) { return 
 - `decide` est appelé **toutes les 6 images (10 fois par seconde)**. Il rend un ordre (§ 3), ou rien.
 - `memoire` est un objet à lui, vide au départ de chaque course.
 - Il tourne dans un **bac fermé** (`charger`, dans `piloter.js`) : pas de `require`, pas de fichiers, pas de réseau, pas d'horloge, pas de
-  `Math.random`. Une décision de plus de 500 ms est coupée et comptée comme une panne. Ce bac est un garde-fou, pas un coffre-fort.
+  `Math.random`. Une décision de plus de 5 s est coupée et comptée comme une panne ; à la 3e panne la course est abandonnée (fin « panne »).
+  Ce bac est un garde-fou, pas un coffre-fort. ⚠ Une panne rend la course non répétable : `noter.js` l'affiche (« PANNES n »), le journal
+  du labo la garde course par course. La limite était de 500 ms jusqu'au 24/11 : un PC chargé la franchissait tout seul.
 - Pas de hasard, donc : **même version du jeu + même graine + même cerveau = même course**, au bit près, dans un processus neuf
   (contrôlé par `verifier.js`). Dans un même processus, une course dépend un peu de celles d'avant (limite de `ml/reel`, étape 0) :
   `noter.js` et `autopsie.js` lancent donc **un processus neuf par course**.
@@ -134,23 +136,27 @@ totaux divisés par le temps total.
 
 ---
 
-## 5. L'étalon : les parties de Sacha
+## 5. L'étalon : les parties des joueurs
 
 Le jeu a déjà son enregistreur (`passation/ENREGISTREUR-JEU.md`). Le pilote fait tourner **le même** pour les bots : mêmes chiffres, même format.
 
 1. **Allumer**, une fois : ouvrir https://car-cash-git.vercel.app/jouer/?jeurec=1 (ordinateur ou téléphone ; c'est gardé).
    Dans l'app : RÉGLAGES → 5 touchers rapides sur la ligne de version → BOÎTE NOIRE → PARTIES → ALLUMER.
 2. **Jouer normalement.** « PARTIE ENREGISTRÉE · n » s'affiche à chaque fin de partie.
-3. ⚠ **L'enregistreur ne garde que les 8 dernières parties.** Exporter toutes les 8 parties au plus : même chemin → PARTIES → PARTAGER
-   (le fichier `cashcar-parties-….json`), ou COPIER puis coller dans un fichier `.json`. 20 parties = 3 exports. Une partie présente dans
-   deux exports n'est comptée qu'une fois. (L'export n'a pas été essayé sur l'ordinateur pendant l'étape 1 : si PARTAGER n'offre pas
-   d'enregistrer le fichier, COPIER marche partout.)
-4. **Déposer** les fichiers dans `ml/bot/etalon/`, puis `node etalon.js` : la barre s'affiche, et le tableau « Sacha contre le bot » pour chaque note déjà écrite.
+3. ⚠ **L'enregistreur garde les 8 dernières parties, et 1,6 Mo au plus** (de longues parties : 6, parfois moins). Exporter **toutes les
+   4 ou 5 parties** : même chemin → PARTIES → PARTAGER (le fichier `cashcar-parties-….json`), ou COPIER puis coller dans un fichier `.json`.
+   Une partie présente dans deux exports n'est comptée qu'une fois. Sur l'ordinateur, COPIER marche (essayé le 24/11).
+4. **Déposer** les fichiers dans `ml/bot/etalon/`, puis `node etalon.js` : la barre s'affiche, et le tableau « les joueurs contre le bot » pour chaque note déjà écrite.
+   La barre d'un seul joueur, à côté : `node etalon.js <ses fichiers> --nom=Leo` → `results/etalon-leo.json`.
+
+**Où en est l'étalon (24/11) : 14 parties sur 20** — 10 au clavier (Sacha), 4 au doigt sur téléphone (Léo, décision de Sacha : « dans les 20 »).
+Il en manque 6 : la barre est provisoire.
 
 À savoir pour lire la comparaison :
 
 - le bot joue une **sauvegarde neuve** (voiture LA HONTE, deux figures : salto et tail whip, moteur au premier palier au départ) ; Sacha joue la sienne ;
-- le bot joue **au clavier** ; l'enregistrement note si la partie vient d'un téléphone ou d'un ordinateur ;
+- le bot joue **au clavier** ; chaque partie dit si elle a été jouée au clavier ou au doigt (`etalon.js` les compte à part dans son titre) ;
+- une reprise par **seconde chance** est recollée à sa partie ; le bot, lui, n'a pas de seconde chance ;
 - les courses du bot sont **coupées à `--tmax`** : sa survie est plafonnée, ses taux par minute ne le sont pas ;
 - l'enregistreur ne note pas la graine de la piste : « le bot contre Sacha sur les mêmes graines » (le test final du plan) demandera `?pistegraine=`.
 

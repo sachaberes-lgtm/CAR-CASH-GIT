@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CASH CAR — l'arbre des cerveaux</title>
+<style>
+:root{--fond:#f6f4ef;--carte:#fffdf8;--encre:#1d1b16;--doux:#6b665b;--trait:#ddd7c9;--plus:#e3f4e1;--moins:#fbe4e1;--accent:#c2410c}
+@media(prefers-color-scheme:dark){:root{--fond:#15140f;--carte:#1e1c16;--encre:#efeadd;--doux:#a39d8e;--trait:#38342a;--plus:#1d3a22;--moins:#4a2320;--accent:#fb923c}}
+*{box-sizing:border-box}body{margin:0;background:var(--fond);color:var(--encre);font:14px/1.45 system-ui,Segoe UI,sans-serif}
+header{padding:18px 22px 10px;display:flex;flex-wrap:wrap;gap:8px 28px;align-items:baseline;border-bottom:1px solid var(--trait)}
+h1{font-size:20px;margin:0;letter-spacing:.02em}header span{color:var(--doux)}header b{color:var(--encre)}
+select{font:inherit;padding:3px 6px;background:var(--carte);color:var(--encre);border:1px solid var(--trait);border-radius:6px}
+main{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,520px);min-height:calc(100vh - 60px)}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+#gauche{overflow:auto;border-right:1px solid var(--trait)}#arbre{display:block}
+#fiche{padding:16px 20px 60px;overflow:auto;max-height:calc(100vh - 60px);background:var(--carte)}
+#fiche h2{margin:0 0 2px;font-size:18px}#fiche .sous{color:var(--doux);margin-bottom:10px}
+.raison{border-left:3px solid var(--accent);padding:6px 10px;margin:10px 0 14px;font-size:15px}
+table{border-collapse:collapse;width:100%;margin:6px 0 14px;font-variant-numeric:tabular-nums}.large{overflow-x:auto}
+th,td{text-align:right;padding:3px 6px;border-bottom:1px solid var(--trait);white-space:nowrap}th:first-child,td:first-child{text-align:left}
+th{color:var(--doux);font-weight:600;font-size:12px}h3{font-size:13px;margin:16px 0 4px;color:var(--doux);text-transform:uppercase;letter-spacing:.06em}
+pre{margin:0;font:12px/1.4 ui-monospace,Consolas,monospace;overflow:auto;border:1px solid var(--trait);border-radius:6px;max-height:420px}
+pre div{padding:0 8px;white-space:pre}pre .p{background:var(--plus)}pre .m{background:var(--moins)}pre .t{color:var(--doux);text-align:center}
+.mieux{color:#15803d}.pire{color:#b91c1c}@media(prefers-color-scheme:dark){.mieux{color:#4ade80}.pire{color:#f87171}}
+.noeud{cursor:pointer}.noeud text{font-size:11px;fill:var(--encre);pointer-events:none}.col{font-size:12px;fill:var(--doux)}
+.lien{fill:none;stroke:var(--trait);stroke-width:1.5}.lien.vif{stroke:var(--accent);stroke-width:2.5}
+#courbes{padding:8px 22px 24px;border-top:1px solid var(--trait)}#courbes svg{max-width:100%}
+code{font:12px ui-monospace,Consolas,monospace;background:var(--fond);padding:1px 5px;border-radius:4px}
+.vide{color:var(--doux);padding:30px 22px}
+</style></head><body>
+<header><h1>L'arbre des cerveaux</h1><span id="compte"></span><span>taille des nœuds : <select id="mesure"></select></span><span id="sous"></span></header>
+<main><div id="gauche"><svg id="arbre"></svg><div id="courbes"></div></div><aside id="fiche"></aside></main>
+<script>
+const D={"fait":"2026-11-24T15:50:05.533Z","jeu":{"version":"cashcar-v1627","sha":"e7e1eed4718f","commit":"f1719eca5","propre":true},"noeuds":[{"id":"c0001","nom":"reference","date":"2026-11-24T13:44:47.936Z","etape":"1","generation":0,"parents":[],"modele":"main","raison":"Le point de départ, écrit à la main à l'étape 1 : il tient la route, suit les pièces, les plaques, les fruits et les orbes, pose des figures sur la route, saute une fois sur deux dans les droites, revient se poser. Il ne cherche aucun raccourci, ne drifte pas, n'enchaîne pas.","code":"cerveaux/c0001-reference.js","octets":5941,"jumeau":null,"jeu":"cashcar-v1627","commit":"f1719eca5","tmax":300,"note":{"survie_mediane_s":142.6,"argent_min":17383.2,"pieces_min":390.5,"figures_min":5.9,"air_pct":9.6,"vols_min":3.67,"vol_moyen_s":1.57,"raccourcis_min":0.04,"distance_m_min":8108,"nitro_pct":17.6},"parties":20,"fins":{"roche":5,"air":2,"vide":12,"pic":1},"cout":null,"courses":[[910000,200,"roche",22074,20,3.9,0,"espace > nuages > grotte"],[910037,189.6,"air",20156,17,5.6,0,"grotte > jade > espace"],[910074,187.8,"roche",52545,20,10.3,0,"nuages > jade > crypto > grotte"],[910111,56.4,"vide",1499,4,10.3,0,"canyon"],[910148,230,"vide",70948,31,13.4,1,"grotte > jade > nuages > canyon"],[910185,103.3,"vide",5358,10,13.8,0,"grotte > nuages"],[910222,101.3,"vide",4991,9,6.8,0,"nuages > canyon"],[910259,138.6,"roche",8267,19,4.9,0,"espace > grotte"],[910296,113.1,"vide",11791,12,14.5,0,"nuages > jade"],[910333,63.2,"vide",2040,3,26.2,0,"jade"],[910370,74.8,"vide",5855,4,9.5,0,"ville > nuages"],[910407,39.9,"pic",1622,3,1.3,0,"jade"],[910444,226.8,"vide",136214,28,13.1,1,"espace > crypto > nuages > canyon"],[910481,156.2,"roche",17489,11,1.9,0,"crypto > grotte"],[910518,189.4,"vide",24731,15,10.5,0,"grotte > nuages > jade"],[910555,134.1,"roche",14153,16,5,0,"espace > ville > grotte"],[910592,216.1,"vide",222673,18,12.6,0,"grotte > nuages > ville > jade"],[910629,146.5,"vide",13999,14,6.6,0,"espace > nuages > ville"],[910666,64,"vide",1877,4,9.5,0,"jade"],[910703,217.4,"air",186984,22,10.5,0,"grotte > nuages > crypto > espace"]],"validation":null,"champion":true,"ecart":null,"source":["/* ===== LE BOT DE REFERENCE (2026-11-23, etape 1 BOTS-ML : « un bot ecrit a la main sert de reference ») =====","   Un programme LISIBLE, ecrit a la main, sans rien d'appris : c'est le point de depart que les cerveaux ecrits par Claude devront battre,","   et l'exemple du contrat (decide(vue, memoire) → un ordre ; voir README.md).","   Ce qu'il sait faire : tenir la route, suivre les pieces et les plaques, eviter les flaques, pousser la NITRO dans les droites,","   lancer une figure sur la route quand la jauge le permet, se reposer sur la route apres une sortie, tourner une figure en vol quand","   il a le temps. Ce qu'il ne fait PAS : chercher un raccourci (il ne quitte jamais la route expres), le drift, les combos. */","const REGLAGES={","  marge:9,          /* m gardes entre la caisse et le bord de la route */","  virageDoux:.22,   /* rad : en dessous, a 150 m, la route est « droite » */","  nitroMin:.45,     /* part de jauge au-dessus de laquelle on pousse la NITRO dans une droite */","  figureMin:.6,     /* part de jauge pour lancer une figure sur la route (elle coute 35 %, sa pose en rend 40 %) */","  figureTous:4,     /* s au moins entre deux figures sur la route */","  sautVirage:.12,   /* rad : la route doit tourner moins que ca a 300 m pour qu'on ose sauter */","  sautDevers:.2,    /* rad : …et se pencher moins que ca jusqu'a 550 m */","  sautPente:.07,    /* rad : …et ne pas descendre plus que ca (7 %) */","  piqueDelai:2,     /* s : en vol, au-dela de ce delai avant de retrouver la route, on pique */","  volFigure:1.1     /* s de vol qu'il doit rester pour lancer une figure en l'air */","};","const cl=(v,a,b)=>v\u003ca?a:v>b?b:v;","","function auSol(vue,m){","  const R=REGLAGES,max=vue.demi-R.marge;","  const v100=vue.route[2].virage,v150=vue.route[3].virage,v300=vue.route[5].virage;","  /* LA LIGNE : l'interieur du virage qui vient (on y arrive avant lui), sinon le milieu */","  let ligne=cl(v150*60,-max*.7,max*.7);","  /* ce qui se ramasse, du plus proche au plus loin : la file de pieces, puis les plaques, les fruits et les orbes a portee de volant */","  const portee=d=>Math.max(4,d*.22);","  const prend=(o)=>Math.abs(o.lat-vue.lat)\u003cportee(o.d)&&Math.abs(o.lat)\u003cmax;","  const file=vue.piecesDevant.find(p=>p.d>20&&p.d\u003c160&&prend(p));","  if(file)ligne=file.lat;","  for(const liste of [vue.fruits,vue.orbes,vue.plaques]){const o=liste.find(x=>x.d>25&&x.d\u003c220&&prend(x));if(o){ligne=o.lat;break;}}","  /* une flaque sur la ligne : on passe a cote, du cote ou il y a le plus de place */","  for(const f of vue.flaques){if(f.d\u003c5||f.d>140)continue;if(Math.abs(f.lat-ligne)\u003cf.rayon+3)ligne=f.lat+(f.lat>0?-1:1)*(f.rayon+5);}","  ligne=cl(ligne,-max,max);","  const droit=Math.abs(v100)\u003cR.virageDoux*.7&&Math.abs(v150)\u003cR.virageDoux&&Math.abs(v300)\u003cR.virageDoux*2.2;","  const pose=Math.abs(vue.lat)\u003cmax&&Math.abs(vue.cap)\u003c.18&&!vue.glisse&&!vue.rebond&&!vue.dessous;","  const ordre={ligne:ligne,nitro:droit&&pose&&(vue.nitroLibre||vue.nitro+vue.reserve>R.nitroMin)};","  /* UNE FIGURE SUR LA ROUTE : dans une droite, bien pose, la jauge assez pleine, pas trop souvent, pas juste avant le portail.","     UN SAUT a la place, une fois sur deux, si la route reste droite et ne remonte pas sur 400 m (de quoi se reposer dessus). */","  if(droit&&pose&&!vue.figureRoute&&vue.fin>600&&vue.vitesse>45&&vue.nitro>R.figureMin&&vue.t-(m.tFigure||-99)>R.figureTous){","    /* …et ne se penche pas : devant une route qui se vrille ou passe a l'envers, un saut ne retombe sur rien (MESURE : canyon, mort « vide ») */","    const v400=vue.route[6].virage,aPlat=Math.abs(vue.devers)\u003cR.sautDevers&&vue.route.every(r=>!r.envers&&Math.abs(r.devers)\u003cR.sautDevers);","    /* …et ne plonge pas : sur une forte descente, un petit saut pris vite ne retombe plus (MESURE : jade et canyon, morts « air ») */","    const pentu=vue.pente\u003c-R.sautPente||vue.route[6].monte\u003c-400*R.sautPente;","    const libre=aPlat&&!pentu&&Math.abs(v300)\u003cR.sautVirage&&Math.abs(v400)\u003cR.sautVirage*1.6&&vue.route[6].monte\u003c2&&!vue.route.some(r=>r.trou);","    m.tFigure=vue.t;m.n=(m.n|0)+1;","    if(libre&&Math.abs(vue.lat)\u003cvue.demi*.5&&m.n%2===0){ordre.geste='saut';ordre.direction='avant';}","    else{ordre.geste='figure';ordre.direction=m.n%4\u003c2?'gauche':'droite';}","    ordre.nitro=false;}","  return ordre;","}","","function enVol(vue,m){","  const R=REGLAGES,f=vue.vol,ordre={volant:0,manche:0,nitro:false};","  /* REVENIR SE POSER : l'anneau de pose quand le jeu le montre, sinon la route la plus proche (se remettre dans son axe, au-dessus d'elle) */","  if(f.anneau)ordre.volant=cl(f.anneau.gisement*2.2,-1,1);","  else if(f.proche&&Math.abs(f.proche.axe)\u003c1.6){","    const versAxe=cl(-f.proche.lat/40,-.6,.6);            /* le cap qui ramene au-dessus de la route */","    ordre.volant=cl((versAxe-f.proche.axe)*1.6,-1,1);","    /* sous le niveau de la route et a cote d'elle : planer pour ne pas passer dessous */","    if(Math.abs(f.proche.lat)>vue.demi&&f.proche.haut\u003c4&&f.proche.haut>-12&&vue.nitro>.1)ordre.nitro=true;","  }","  /* TROP HAUT : la route descend sous la caisse plus vite qu'elle ne tombe (MESURE : jade, 198 m au-dessus de la route apres 5 s, mort « air »).","     Si on n'y sera pas dans les 2 s, ou pas avant la fin du temps d'air : piquer (↑), le nez vers la route. */","  if(f.proche&&f.proche.haut>10&&Math.abs(f.proche.lat)\u003cvue.demi*2){","    const delaiRoute=f.proche.haut/Math.max(1,f.proche.versRoute);","    if(delaiRoute>R.piqueDelai||delaiRoute>f.reste-1)ordre.manche=-1;}","  /* UNE FIGURE EN VOL : si le jeu annonce assez de temps avant la pose, et que rien ne tourne deja */","  const delai=f.anneau?f.anneau.delai:0;","  if(!f.figure&&delai>R.volFigure&&f.reste>delai+.5&&vue.nitro>.4&&vue.t-(m.tVol||-99)>1.2){","    m.tVol=vue.t;m.nv=(m.nv|0)+1;","    ordre.geste='figure';ordre.direction=['avant','gauche','arriere','droite'][m.nv%4];}","  return ordre;","}","","module.exports={","  nom:'reference',","  REGLAGES:REGLAGES,","  decide:function(vue,m){return vue.mode==='sol'?auSol(vue,m):vue.mode==='vol'?enVol(vue,m):{};}","};",""],"rejeux":[{"course":"c0001-g910074","graine":910074,"pourquoi":["le plus de figures en un vol : 2"],"fin":"roche","t":187.8,"video":null},{"course":"c0001-g910407","graine":910407,"pourquoi":["champion : sa course la plus courte","la pire course de la generation (la plus courte)"],"fin":"pic","t":39.9,"video":"videos/c0001-g910407.webm"},{"course":"c0001-g910444","graine":910444,"pourquoi":["le plus long vol pose : 10.3 s","le plus gros raccourci : 1722 m"],"fin":"vide","t":226.8,"video":null},{"course":"c0001-g910592","graine":910592,"pourquoi":["champion : sa meilleure course"],"fin":"vide","t":216.1,"video":null}]}],"generations":[{"etape":"1","generation":0,"champion":"c0001","critere":"argent_min","candidats":1}],"depenses":{"etapes":[],"total":0,"aChiffrer":0},"etalon":{"parties":14,"note":{"survie_mediane_s":156.8,"argent_min":25013,"pieces_min":416.2,"figures_min":4.96,"air_pct":28.7,"vols_min":7.91,"vol_moyen_s":2.18,"raccourcis_min":2.66,"distance_m_min":11034,"nitro_pct":60.1}}};
+const NOMS={survie_mediane_s:'survie médiane (s)',argent_min:'argent par minute',pieces_min:'pièces par minute',figures_min:'figures posées par minute',air_pct:'temps en l\'air (%)',
+  vols_min:'vols par minute',vol_moyen_s:'vol moyen (s)',raccourcis_min:'raccourcis par minute',distance_m_min:'distance (m par minute)',nitro_pct:'nitro tenue (%)'};
+const TEINTES=['#2563eb','#c2410c','#15803d','#7c3aed','#b45309','#0e7490','#be185d','#4d7c0f','#475569'];
+const $=id=>document.getElementById(id),esc=s=>String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const f=x=>x==null?'—':(Math.abs(x)>=1000?Math.round(x).toLocaleString('fr-FR'):String(Math.round(x*100)/100).replace('.',','));
+const N=D.noeuds,par={};N.forEach(n=>par[n.id]=n);
+const etapes=[...new Set(N.map(n=>n.etape))],teinte=e=>TEINTES[etapes.indexOf(e)%TEINTES.length];
+let mesure=localStorage.getItem('arbreMesure')||'argent_min',choisi=null;
+$('mesure').innerHTML=Object.keys(NOMS).map(k=>'<option value="'+k+'">'+NOMS[k]+'</option>').join('');$('mesure').value=mesure;
+$('mesure').onchange=e=>{mesure=e.target.value;try{localStorage.setItem('arbreMesure',mesure);}catch(x){}dessine();};
+const dep=D.depenses;
+$('compte').innerHTML='<b>'+N.length+'</b> cerveau'+(N.length>1?'x':'')+' · <b>'+D.generations.length+'</b> génération'+(D.generations.length>1?'s':'')+' close'+(D.generations.length>1?'s':'')+' · <b>'+f(dep.total)+' €</b> d\'API'+(dep.aChiffrer?' (+ '+dep.aChiffrer+' appel(s) sans prix)':'');
+$('sous').textContent='jeu '+D.jeu.version+' · page faite le '+new Date(D.fait).toLocaleString('fr-FR');
+
+/* LA MISE EN PLACE : une colonne par generation (dans l'ordre ou elles sont nees), un noeud sous l'autre, les enfants pres de leur parent */
+function place(){
+  const cles=[];N.forEach(n=>{const k=n.etape+'|'+n.generation;if(!cles.includes(k))cles.push(k);});
+  const pos={},cols=cles.map((k,c)=>{const A=N.filter(n=>n.etape+'|'+n.generation===k);
+    A.sort((a,b)=>{const ya=a.parents[0]&&pos[a.parents[0]]?pos[a.parents[0]].y:0,yb=b.parents[0]&&pos[b.parents[0]]?pos[b.parents[0]].y:0;return ya-yb||(b.note[mesure]||0)-(a.note[mesure]||0);});
+    A.forEach((n,i)=>pos[n.id]={x:110+c*170,y:78+i*44});return {k:k,n:A.length};});
+  return {pos:pos,cols:cols};
+}
+function dessine(){
+  const P=place(),max=Math.max(1e-9,...N.map(n=>n.note[mesure]||0)),ray=n=>6+15*Math.sqrt(Math.max(0,n.note[mesure]||0)/max);
+  const W=Math.max(520,110+P.cols.length*170+90),H=Math.max(260,78+Math.max(1,...P.cols.map(c=>c.n))*44+20);
+  let s='';
+  P.cols.forEach((c,i)=>{const q=c.k.split('|');s+='<text class="col" x="'+(110+i*170)+'" y="30" text-anchor="middle">étape '+esc(q[0])+' · génération '+esc(q[1])+'</text><text class="col" x="'+(110+i*170)+'" y="46" text-anchor="middle">'+c.n+' candidat'+(c.n>1?'s':'')+'</text>';});
+  N.forEach(n=>n.parents.forEach(p=>{const a=P.pos[p],b=P.pos[n.id];if(!a||!b)return;const vif=choisi&&(choisi===n.id||choisi===p);
+    s+='<path class="lien'+(vif?' vif':'')+'" d="M'+a.x+','+a.y+(a.x===b.x?' C'+(a.x-60)+','+a.y+' '+(b.x-60)+','+b.y:' C'+(a.x+85)+','+a.y+' '+(b.x-85)+','+b.y)+' '+b.x+','+b.y+'"/>';}));
+  N.forEach(n=>{const p=P.pos[n.id],r=ray(n);
+    s+='<g class="noeud" data-id="'+n.id+'"><circle cx="'+p.x+'" cy="'+p.y+'" r="'+r.toFixed(1)+'" fill="'+teinte(n.etape)+'" fill-opacity="'+(choisi===n.id?1:.78)+'" stroke="'+(n.champion?'var(--encre)':'none')+'" stroke-width="'+(n.champion?2.5:0)+'"/>'
+      +'<text x="'+(p.x+r+5)+'" y="'+(p.y+4)+'">'+esc(n.id)+' '+esc(n.nom)+'</text><title>'+esc(n.id+' '+n.nom+' — '+NOMS[mesure]+' : '+f(n.note[mesure]))+'</title></g>';});
+  const svg=$('arbre');svg.setAttribute('width',W);svg.setAttribute('height',H);svg.innerHTML=s;
+  svg.querySelectorAll('.noeud').forEach(g=>g.onclick=()=>{choisi=g.dataset.id;dessine();fiche();});
+  courbes();
+}
+/* LA FICHE : la raison, la note (contre le parent et contre les joueurs), ce qui a change dans le code, chaque course, les rejeux gardes */
+function fiche(){
+  const n=par[choisi];if(!n){$('fiche').innerHTML='<div class="vide">Clique un nœud : sa raison, sa note, ce qui a changé dans son code, ses courses.</div>';return;}
+  const p=n.parents[0]&&par[n.parents[0]];
+  let h='<h2>'+esc(n.nom)+' <span style="color:var(--doux);font-weight:400">'+esc(n.id)+'</span>'+(n.champion?' · champion de sa génération':'')+'</h2>';
+  h+='<div class="sous">étape '+esc(n.etape)+' · génération '+n.generation+' · écrit par <b>'+esc(n.modele==='main'?'la main (pas l\'API)':n.modele)+'</b> · '+new Date(n.date).toLocaleDateString('fr-FR')
+    +' · '+(n.parents.length?'descend de '+n.parents.map(esc).join(', '):'une racine')+(n.jumeau?' · même code que '+esc(n.jumeau):'')+'</div>';
+  h+='<div class="raison">'+esc(n.raison)+'</div>';
+  h+='<h3>La note · '+n.parties+' courses, '+n.tmax+' s au plus, jeu '+esc(n.jeu)+'</h3><div class="large"><table><tr><th>mesure</th><th>lui</th>'+(p?'<th>parent '+esc(p.id)+'</th><th>écart</th>':'')+(n.validation?'<th>graines neuves</th>':'')+(D.etalon?'<th>les joueurs</th>':'')+'</tr>';
+  for(const k in NOMS){const v=n.note[k];h+='<tr><td>'+NOMS[k]+'</td><td><b>'+f(v)+'</b></td>';
+    if(p){const q=p.note[k],d=v-q;h+='<td>'+f(q)+'</td><td class="'+(d>0?'mieux':d<0?'pire':'')+'">'+(d>0?'+':'')+f(d)+'</td>';}
+    if(n.validation)h+='<td>'+f(n.validation.note[k])+'</td>';if(D.etalon)h+='<td>'+f(D.etalon.note[k])+'</td>';h+='</tr>';}
+  h+='</table></div>';
+  if(n.fins)h+='<div class="sous">fins : '+Object.entries(n.fins).sort((a,b)=>b[1]-a[1]).map(e=>esc(e[0])+' '+e[1]).join(' · ')+(D.etalon?' · les joueurs : '+D.etalon.parties+' parties (provisoire tant qu\'il n\'y en a pas 20)':'')+'</div>';
+  if(n.cout)h+='<h3>Le coût</h3><div>'+f(n.cout.entree)+' jetons lus, '+f(n.cout.sortie)+' écrits · '+(n.cout.euros==null?'prix à chiffrer':f(n.cout.euros)+' €')+'</div>';
+  const lignes=n.ecart||null;
+  if(lignes){h+='<h3>Ce qui a changé dans le code (contre '+esc(p.id)+')</h3>'+(lignes.length?'<pre>'+lignes.map(d=>'<div class="'+(d.t==='+'?'p':d.t==='-'?'m':d.t==='~'?'t':'')+'">'+(d.t==='~'?'':d.t+' ')+esc(d.l)+'</div>').join('')+'</pre>':'<div class="sous">rien : le même code que son parent</div>');}
+  else if(n.source)h+='<h3>Le code (une racine : en entier)</h3><pre>'+n.source.map(l=>'<div>'+esc(l)+'</div>').join('')+'</pre>';
+  h+='<div class="sous" style="margin-top:6px">le fichier : <a href="'+esc(n.code)+'">'+esc(n.code)+'</a> ('+f(n.octets)+' octets)</div>';
+  if(n.rejeux.length){h+='<h3>Les courses gardées</h3>';for(const r of n.rejeux)h+='<div style="margin:0 0 8px"><b>'+esc(r.course)+'</b> — '+r.pourquoi.map(esc).join(' ; ')+' · '+f(r.t)+' s, fin : '+esc(r.fin)
+    +(r.video?'<br><video controls preload="none" src="'+esc(r.video)+'" style="max-width:100%;margin-top:4px"></video>':'<br><code>node rejouer.js '+esc(r.course)+'</code> · pas encore filmée')+'</div>';}
+  h+='<h3>Ses courses</h3><table><tr><th>graine</th><th>durée</th><th>fin</th><th>argent</th><th>figures</th><th>air %</th><th>racc.</th></tr>'
+    +n.courses.map(c=>'<tr title="'+esc(c[7])+'"><td>'+c[0]+'</td><td>'+f(c[1])+' s</td><td>'+esc(c[2])+'</td><td>'+f(c[3])+'</td><td>'+c[4]+'</td><td>'+f(c[5])+'</td><td>'+c[6]+'</td></tr>').join('')+'</table>';
+  $('fiche').innerHTML=h;
+}
+/* LES COURBES : le champion de chaque generation close pour la mesure choisie (et la barre des joueurs), puis les euros par etape */
+function courbes(){
+  const C=D.generations.map(g=>({g:g,n:par[g.champion]})).filter(x=>x.n);let h='';
+  if(C.length){const w=Math.max(360,70+C.length*70),H=170,vals=C.map(x=>x.n.note[mesure]||0),e=D.etalon?D.etalon.note[mesure]:null,max=Math.max(1e-9,...vals,e||0)*1.1,
+      X=i=>55+i*((w-80)/Math.max(1,C.length-1||1)),Y=v=>H-28-(H-50)*v/max;
+    h+='<h3>Le champion de chaque génération — '+NOMS[mesure]+'</h3><svg width="'+w+'" height="'+H+'">';
+    if(e!=null)h+='<line x1="40" x2="'+(w-10)+'" y1="'+Y(e)+'" y2="'+Y(e)+'" stroke="var(--accent)" stroke-dasharray="5 4"/><text x="'+(w-12)+'" y="'+(Y(e)-5)+'" text-anchor="end" font-size="11" fill="var(--accent)">les joueurs : '+f(e)+'</text>';
+    h+='<polyline fill="none" stroke="var(--encre)" stroke-width="2" points="'+C.map((x,i)=>X(i)+','+Y(vals[i])).join(' ')+'"/>';
+    C.forEach((x,i)=>{h+='<circle cx="'+X(i)+'" cy="'+Y(vals[i])+'" r="4.5" fill="'+teinte(x.g.etape)+'"/><text x="'+X(i)+'" y="'+(Y(vals[i])-9)+'" text-anchor="middle" font-size="11" fill="var(--encre)">'+f(vals[i])+'</text>'
+      +'<text x="'+X(i)+'" y="'+(H-8)+'" text-anchor="middle" font-size="11" fill="var(--doux)">e'+esc(x.g.etape)+' g'+x.g.generation+'</text>';});
+    h+='</svg>';}
+  else h+='<h3>Le champion de chaque génération</h3><div class="sous">aucune génération close pour l\'instant</div>';
+  h+='<h3>Les euros d\'API par étape</h3>'+(dep.etapes.length?'<table style="max-width:520px"><tr><th>étape</th><th>appels</th><th>jetons lus</th><th>jetons écrits</th><th>euros</th></tr>'
+    +dep.etapes.map(p=>'<tr><td>étape '+esc(p.etape)+'</td><td>'+p.appels+'</td><td>'+f(p.entree)+'</td><td>'+f(p.sortie)+'</td><td>'+f(p.euros)+' €'+(p.aChiffrer?' (+'+p.aChiffrer+' sans prix)':'')+'</td></tr>').join('')
+    +'<tr><td><b>total</b></td><td></td><td></td><td></td><td><b>'+f(dep.total)+' €</b></td></tr></table>':'<div class="sous">0 € : aucun appel à l\'API inscrit</div>');
+  $('courbes').innerHTML=h;
+}
+if(!N.length){$('gauche').innerHTML='<div class="vide">Le journal est vide : aucun cerveau inscrit (node inscrire.js …).</div>';}
+else{choisi=(D.generations.length?D.generations[D.generations.length-1].champion:null)||N[N.length-1].id;dessine();}
+fiche();
+</script></body></html>

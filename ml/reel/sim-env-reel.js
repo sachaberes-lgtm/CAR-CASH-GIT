@@ -8,7 +8,12 @@ const vm=require('vm');
 /* three : celui de ml/sim s'il est installe, sinon LA COPIE DU JEU (vendor/three.min.js, meme r128) — rien a telecharger (2026-11-22, etape 0 BOTS-ML) */
 const THREE=(function(){ try{ return require('../sim/node_modules/three'); }catch(e){ return require(path.join(__dirname,'..','..','VERSION PRINCIPALE','vendor','three.min.js')); } })();
 
-const SEED_CODE=n=>'(function(a){Math.random=function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};})('+(n|0)+')';
+/* LES PORTES DE LECTURE posees a la fin du script du jeu (dans sa fonction : elles voient ses variables). (2026-11-24) sorties d'ici pour que la salle
+   de projection (ml/labo/projection.js) pose EXACTEMENT les memes dans le vrai navigateur. */
+const PORTES='window.__EV=function(e){return eval(e);};\nwindow.__TRK=function(){return{pts:pts,T:T,B:B,Nn:Nn,NP:NP,L:L};};\nwindow.__S=function(){return{mode:mode,s:s,lat:lat,psi:psi,vA:vA,nitroR:nitroR,nitroX:nitroX,nitroOn:nitroOn,gameOver:gameOver,started:started,hopY:hopY,graceT:graceT,fvx:fallVel.x,fvy:fallVel.y,fvz:fallVel.z,fpx:fallPos.x,fpy:fallPos.y,fpz:fallPos.z,eta:CAMV.eta,lmvu:LM.vu,lmx:landMark.position.x,lmy:landMark.position.y,lmz:landMark.position.z,chaPts:CHA.pts,chaN:CHA.n,fx2n:FX2.n,fx2pts:FX2.pts,tricks:runStats.tricks,NP:NP,L:L,rh:ROAD_HALF,airT:fallTR};};\n';
+/* (2026-11-24, etape 1 bis) `Math.random.__etat()` lit l'etat du generateur, `__etat(v)` le pose : le rejeu note ou en est le hasard, la salle de
+   projection (vrai navigateur) s'y recale. Tant que personne ne l'appelle, la suite tiree est exactement celle d'avant. */
+const SEED_CODE=n=>'(function(a){Math.random=function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};Math.random.__etat=function(v){if(v!==undefined)a=v|0;return a|0;};})('+(n|0)+')';
 /* graineChargement (2026-11-22) : le hasard du CHARGEMENT (decors, boutique du jour...) est tire lui aussi d'une graine fixe : deux processus = le meme jeu */
 function loadGame(search,graineChargement){
   const html=fs.readFileSync(path.join(__dirname,'..','..','VERSION PRINCIPALE','index.html'),'utf8');
@@ -169,7 +174,7 @@ function loadGame(search,graineChargement){
     const RP=path.join(__dirname,'..','..','VERSION PRINCIPALE')+path.sep;
     for(const b of blocks){ if(b===code)continue; try{ vm.runInContext(b,sandbox,{filename:'preambule'}); }catch(e){ console.error('preambule:',e.message); } }
     for(const f of ['figures.js']){ try{ vm.runInContext(fs.readFileSync(RP+f,'utf8'),sandbox,{filename:f}); }catch(e){ console.error('script externe',f,':',e.message); } }
-    const k9=code.lastIndexOf('})();'); const code2=code.slice(0,k9)+'window.__EV=function(e){return eval(e);};\nwindow.__TRK=function(){return{pts:pts,T:T,B:B,Nn:Nn,NP:NP,L:L};};\nwindow.__S=function(){return{mode:mode,s:s,lat:lat,psi:psi,vA:vA,nitroR:nitroR,nitroX:nitroX,nitroOn:nitroOn,gameOver:gameOver,started:started,hopY:hopY,graceT:graceT,fvx:fallVel.x,fvy:fallVel.y,fvz:fallVel.z,fpx:fallPos.x,fpy:fallPos.y,fpz:fallPos.z,eta:CAMV.eta,lmvu:LM.vu,lmx:landMark.position.x,lmy:landMark.position.y,lmz:landMark.position.z,chaPts:CHA.pts,chaN:CHA.n,fx2n:FX2.n,fx2pts:FX2.pts,tricks:runStats.tricks,NP:NP,L:L,rh:ROAD_HALF,airT:fallTR};};\n'+code.slice(k9);
+    const k9=code.lastIndexOf('})();'); const code2=code.slice(0,k9)+PORTES+code.slice(k9);
     vm.runInContext(code2,sandbox,{filename:'index.html'});
   }catch(e){
     console.error('ERREUR AU CHARGEMENT:',e.message);
@@ -185,4 +190,4 @@ function loadGame(search,graineChargement){
     seed:function(n){ vm.runInContext(SEED_CODE(n),sandbox); }
   };
 }
-module.exports={loadGame:loadGame,THREE:THREE};
+module.exports={loadGame:loadGame,THREE:THREE,PORTES:PORTES};

@@ -96,6 +96,7 @@ const PROPRE_CODE=`window.__propre=(function(){
   };
 })()`;
 
+const REQUETE='?sim=1&fps=0&intro=ancien&prebati=0&grotteworker=0';
 function creer(opts){
   opts=opts||{};
   /* (2026-11-22, etape 0 BOTS-ML) `intro=ancien` : l'intro du studio (moteur/intro-161.js) partait a la 1re touche du bot et posait
@@ -103,7 +104,9 @@ function creer(opts){
      L'ancienne intro (init.js) s'efface d'elle-meme sans #splash (voir sim-env-reel.js). */
   /* (2026-11-23, etape 1 BOTS-ML) `grotteworker=0` : au PORTAIL, la grotte se creuse dans un Worker ; celui d'ici ne repond jamais (sim-env-reel.js) et la
      construction attendait sans fin, la caisse tenue au portail (MESURE : 3e course d'une serie, 2e portail). L'interrupteur du jeu la creuse sur place. */
-  const g=loadGame('?sim=1&fps=0&intro=ancien&prebati=0&grotteworker=0'+(opts.query||''),opts.graineChargement);
+  /* (2026-11-24, etape 1 bis BOTS-ML) `opts.charge` : un autre chargeur que le faux navigateur — la salle de projection (ml/labo/projection.js) y met
+     le jeu charge dans un VRAI navigateur, avec l'image ; tout ce qui suit (chauffe, photo, remise, graine) reste le meme code. */
+  const g=(opts.charge||loadGame)(REQUETE+(opts.query||''),opts.graineChargement);
   const d0=g.sandbox.document, gi=d0.getElementById.bind(d0);
   d0.getElementById=id=>id==='splash'?null:gi(id);          /* start() refuse de partir tant qu'un #splash existe */
   const ce=g.sandbox.console.error;
@@ -138,7 +141,7 @@ function creer(opts){
      du jeu qui n'est QUE des donnees (nombres, booleens, textes, objets et tableaux de donnees — rien de three.js ni du DOM) ; avant chaque
      course, on la remet en place (dans le meme objet : les references tenues ailleurs restent bonnes). Les objets qui tiennent des maillages
      ne sont pas touches : resetGame() / newTrack() les rebâtissent. */
-  g.sandbox.__NOMS=nomsHautNiveau();
+  g.sandbox.__NOMS=opts.noms||nomsHautNiveau();
   ev(PROPRE_CODE);
   J.proprePhoto=ev('__propre.photo()');
   /* L'HEURE DU DEPART : chaque course part a la MEME heure de l'horloge virtuelle (celle de la photo). L'horloge avance de 1000/60 par
@@ -164,4 +167,4 @@ function creer(opts){
   };
   return J;
 }
-module.exports={creer:creer};
+module.exports={creer:creer,nomsHautNiveau:nomsHautNiveau,REQUETE:REQUETE};
