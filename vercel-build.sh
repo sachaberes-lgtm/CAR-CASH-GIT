@@ -101,6 +101,9 @@ printf '{"v":"%s","commit":"%s"}\n' "$JEU" "$SHA" > .vercel-static/jouer/version
 # (2026-10-14, Sacha : « publie ») LES DEUX PAGES QUE L'APP STORE EXIGE, à la racine du site : /confidentialite.html et /assistance.html
 # (dossier pages-app/ ; leur source est app-ios/fiche/ sur la branche ios-capacitor). Rien du jeu n'en dépend.
 cp pages-app/confidentialite.html pages-app/assistance.html .vercel-static/
+# (2026-11-24, la pub AdMob de l'app iPhone, oui de Sacha « juste les pages ») app-ads.txt à la RACINE du site : Google le cherche sur le domaine
+# de l'URL marketing de la fiche App Store. Posé seulement s'il porte un vrai identifiant d'éditeur. Rien du jeu n'en dépend.
+if [ -f pages-app/app-ads.txt ] && grep -q 'pub-[0-9]\{16\}' pages-app/app-ads.txt && ! grep -q 'pub-0000000000000000' pages-app/app-ads.txt; then cp pages-app/app-ads.txt .vercel-static/app-ads.txt; fi
 # (2026-10-15 soir, Sacha : « branche les vraies pubs sur le site web avec Google AdSense ») /ads.txt à la RACINE du site, tiré de
 # l'identifiant d'éditeur posé UNE fois dans le jeu (var CC_ADSENSE='ca-pub-…' dans le <head> de index.html, « LA RÉGIE ADSENSE »).
 # Identifiant vide = pas de régie = pas d'ads.txt. f08c47fec0942fa0 = l'identifiant de Google dans le registre des vendeurs (TAG-ID).
