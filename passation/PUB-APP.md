@@ -60,8 +60,12 @@ Rien sur `main`, rien d'envoyé à Apple, rien d'installé sur l'iPhone sans le 
   Simulator AU PREMIER PLAN (ou sur l'iPhone, oui de Sacha). Rien à voir avec la pub (au navigateur les courses tournent).
 - 24/11, 13 h 25 (Sacha devant le Mac, fenêtre Simulator AU PREMIER PLAN) : même figement. Le mode d'origine `chaleur=course` (immortel, aucune
   mort, aucune pub touchée) se fige AUSSI : ~20 s à 30 i/s puis 0 i/s, vitesse 0, aucune erreur JS. Donc pas le scénario de pub. Reste ouvert :
-  le simulateur (WebGL) ou le kit Google lui-même ? Contrôle à faire : le même essai sur un build SANS le module AdMob (base qa/tuto-finitions),
-  ou sur l'iPhone (oui de Sacha).
+  le simulateur (WebGL) ou le kit Google lui-même ?
+- 24/11, 13 h 50 — CONTRÔLE (choix de Sacha) : la base `ebf48e138` (qa/tuto-finitions, SANS le module AdMob : 5 modules) compilée pour le
+  simulateur, même essai `chaleur=course`, fenêtre au premier plan : MÊME FIGEMENT (km/h 337 → 122 → 0, 19,7 → 29,7 → 0 i/s, ~20 s après
+  le départ). **Le figement vient du simulateur, PAS d'AdMob.** Conséquence : la pub À L'ÉCRAN (vidéo, plein écran) ne peut se voir que sur
+  un vrai iPhone (build Debug, pubs de test ; installation sur le oui de Sacha, app remplacée sans suppression). Le simulateur garde
+  l'app de la base (sans pub) : la réinstaller depuis pub-admob-app si besoin.
 - Le 24/11 j'ai arrêté 4 Chrome sans fenêtre laissés par mes passages du banc (profils banc-achats-*) ; le banc les ferme désormais toujours.
 
 ## LE BANC (`node outils/banc-pub/banc.cjs`, Chrome sans fenêtre et muet, faux module AdMob ; `--sonde` : l'écran de fin toutes les 400 ms)
