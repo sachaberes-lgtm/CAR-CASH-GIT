@@ -84,6 +84,8 @@ Rien sur `main`, rien d'envoyé à Apple, rien d'installé sur l'iPhone sans le 
   marche » (vraies pubs de test). Mais : « la pub se met en mode vertical même si on joue en horizontal ». Cause : Google fige la pub dans
   l'orientation du CHARGEMENT (préchargée debout au lancement). Correction (traces-pneus.js, `sens`/`retourne`) : chaque pub garde son sens ;
   le téléphone tourne → la pub de l'autre sens est rechargée (0,6 s après la rotation). `dbgPub().admob.sens` / journal `sens=` (r puis i : h/v).
+- 24/11, 14 h 45 (oui de Sacha « Oui, installe ») : **build 133 INSTALLÉ sur l'iPhone** (pub qui suit l'orientation), app remplacée SANS
+  suppression ; vérifié : CASH CAR 1.0.0 (133). Copie : `~/cash-car/ios-ultime-mesures/builds/build133.app`. À vérifier par Sacha : pub couchée en jeu couché.
 - Le 24/11 j'ai arrêté 4 Chrome sans fenêtre laissés par mes passages du banc (profils banc-achats-*) ; le banc les ferme désormais toujours.
 
 ## LE BANC (`node outils/banc-pub/banc.cjs`, Chrome sans fenêtre et muet, faux module AdMob ; `--sonde` : l'écran de fin toutes les 400 ms)
