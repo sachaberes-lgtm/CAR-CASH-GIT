@@ -86,6 +86,11 @@ Rien sur `main`, rien d'envoyé à Apple, rien d'installé sur l'iPhone sans le 
   le téléphone tourne → la pub de l'autre sens est rechargée (0,6 s après la rotation). `dbgPub().admob.sens` / journal `sens=` (r puis i : h/v).
 - 24/11, 14 h 45 (oui de Sacha « Oui, installe ») : **build 133 INSTALLÉ sur l'iPhone** (pub qui suit l'orientation), app remplacée SANS
   suppression ; vérifié : CASH CAR 1.0.0 (133). Copie : `~/cash-car/ios-ultime-mesures/builds/build133.app`. À vérifier par Sacha : pub couchée en jeu couché.
+- 24/11, 15 h — **VALIDÉ PAR SACHA SUR SON IPHONE (build 133)** : « c'est bon ça marche » — vraies pubs de TEST de Google à l'écran, dans le
+  bon sens (la pub de démonstration de Google « Flood-It », bandeau « Test mode » : normal avec les blocs de test). Pubs maison seulement
+  quand Google ne livre rien (NordVPN et sa protection contre les menaces).
+- RESTE (Sacha) : la liste « CE QUE SACHA DOIT FAIRE » plus bas (compte AdMob, blocs, paiement, message européen, App Store Connect). Puis
+  les vrais identifiants dans `admob.json` (test reste true jusqu'à l'archive), MARKETING_VERSION 1.1.0, fusion sur main (oui de Sacha).
 - Le 24/11 j'ai arrêté 4 Chrome sans fenêtre laissés par mes passages du banc (profils banc-achats-*) ; le banc les ferme désormais toujours.
 
 ## LE BANC (`node outils/banc-pub/banc.cjs`, Chrome sans fenêtre et muet, faux module AdMob ; `--sonde` : l'écran de fin toutes les 400 ms)
