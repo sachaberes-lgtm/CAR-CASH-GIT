@@ -146,6 +146,10 @@ async function demande(parent,k){
     reponses.push(await une(0));
     if(!reponses[0].stop){const reste=await Promise.all(Array.from({length:NC-1},(x,i)=>une(i+1)));reponses.push(...reste);}
     const budgetAtteint=reponses.some(r=>r.stop);
+    /* TOUTES les demandes ont echoue (solde a zero, modele inconnu, panne de l'API…) : inutile de continuer a noter le parent pour rien.
+       MESURE (24/11) : cle acceptee mais « credit balance is too low » → chaque appel rendait une erreur 400, sans rien depenser. */
+    {const faites=reponses.filter(r=>!r.stop);if(!BLANC&&faites.length&&faites.every(r=>r.erreur&&!r.usage)){
+      dire('AUCUNE demande n\'a abouti : '+faites[0].erreur+'\n  → rien n\'est depense. Lance `node essai-api.js` pour voir ce que l\'API repond, corrige (solde, cle, modele), puis relance.');break;}}
     /* chaque reponse : lue, chargee, triee */
     const candidats=[];
     for(const r of reponses){if(r.stop)continue;
