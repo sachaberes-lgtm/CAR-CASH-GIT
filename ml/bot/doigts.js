@@ -118,5 +118,22 @@ Doigts.prototype.image=function(){
   if(!pris.N)this.veut('N',o.nitro);
   this.i++;};
 Doigts.prototype.lache=function(){for(const n in TOUCHE)if(this.k[n].bas)this.pose(n,0);this.geste=null;};
+/* (2026-11-24, yeux v2) LES DELAIS DE LA MAIN, pour le radar : dans combien d'images chaque touche POURRA changer d'etat (0 = a la prochaine image).
+   Une touche enfoncee le reste HUMAIN.appui images, relachee HUMAIN.repos ; la NITRO attend aussi apres un appui bref (nBloque, seul) ; pendant un
+   geste, toutes les touches lui appartiennent jusqu'a sa fin (comptee sur son deroule : le saut lache la NITRO et le manche 5 images apres son
+   dernier appui, une fois en vol). LECTURE SEULE : rien ne change dans les doigts. Les yeux gardent l'etat du moment de chaque touche pendant son
+   delai (yeux.js, LE PRELUDE) : sans cela le radar suppose l'ordre obei a l'image suivante, ce qu'aucune main ne fait. */
+Doigts.prototype.delais=function(){
+  const H=HUMAIN,o={};let g=0;
+  if(this.geste){const G9=this.geste,t=G9.t-1,a=H.repos,d=a+H.tap+H.entre+H.tap;
+    g=G9.t===0?H.repos:0;
+    if(G9.nom==='redresser')g+=Math.max(0,a+H.tap-t)+1;
+    else if(G9.nom==='figure')g+=Math.max(0,d-t)+1;
+    else g+=Math.max(0,d+H.repos+H.appui+1-t);}
+  for(const n in TOUCHE){const k=this.k[n];let r=Math.max(0,(k.bas?H.appui:H.repos)-(this.i-k.depuis));
+    if(n==='N'&&!k.bas){r=Math.max(r,this.nBloque-this.i);if(k.duree<18)r=Math.max(r,H.seul-(this.i-k.debut));}
+    o[n]=Math.max(0,r,g);}
+  if(g>0&&this.geste.nom==='saut')o.N=Math.max(o.N,g+H.repos); /* le saut bloque la NITRO 4 images de plus apres l'avoir lachee */
+  return o;};
 
 module.exports={Doigts,HUMAIN,TOUCHE,traduire};

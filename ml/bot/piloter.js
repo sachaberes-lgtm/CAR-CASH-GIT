@@ -108,7 +108,8 @@ function charger(fichier,o){
   return {nom:pose.slice(1)||path.basename(fichier,'.js'),fichier:fichier,source:src,pannes:0,erreurs:0,
     neuve(){vm.runInContext('__bac.neuve()',ctx,{timeout:1000});},
     decide(vue){let r;
-      try{r=vm.runInContext('__bac.appel('+JSON.stringify(JSON.stringify(vue,encHote))+')',ctx,{timeout:ms});}
+      const txt=JSON.stringify(vue,encHote);this.texte=txt; /* (2026-11-24, yeux v2) le texte de la vue, tel qu'il entre dans le bac : course() en tire l'empreinte des vues et leur poids */
+      try{r=vm.runInContext('__bac.appel('+JSON.stringify(txt)+')',ctx,{timeout:ms});}
       catch(e){let code=null;try{code=e&&e.code;}catch(x){} /* seule une erreur de Node sort d'ici (__bac attrape tout le reste) ; avec microtaskMode, elle est faite dans le contexte : pas d'instanceof */
         if(code==='ERR_SCRIPT_EXECUTION_TIMEOUT'){this.pannes++;this.derniere='decision coupee apres '+ms+' ms';}
         else{this.erreurs++;this.derniere='le bac a leve une erreur';}return null;}
@@ -119,7 +120,16 @@ function charger(fichier,o){
 
 const PANNES_MAX=2; /* decisions coupees par la limite de temps avant d'abandonner la course (un cerveau qui boucle : 2 minutes perdues, pas des heures) */
 /* UNE COURSE. o : { carte, meteo (imposer la map ; sinon la graine la tire), tmax (s de jeu, TMAX_DEFAUT = 900), trace (garder la vue de chaque decision),
-   sansEnregistreur, yeuxEnPlus (controles de verifier.js) } */
+   sansEnregistreur, yeuxEnPlus (controles de verifier.js), demande, temoin, image } */
+/* ===== LES YEUX V2 DANS LA COURSE (2026-11-24, Sacha : « des bots du palier 1 au palier 30 qu'on ne distingue pas de vrais joueurs ») =====
+   · LA DEMANDE : un ordre qui porte « regarder:'sorties' » fait calculer, a la vue SUIVANTE, les sorties a la demande (yeux.js : une sortie a gauche,
+     a droite, un saut). o.demande (controles) impose la meme demande a chaque vue : { radar:false } = la vue d'avant, { sorties:true }.
+   · LA MESURE, hors de l'empreinte (comme ms) : bilan.yeux = le temps des yeux par vue (l'horloge de l'hote : la page n'en a pas), au sol et en
+     vol, les comptes d'images et de sondes au pire (yeux.js, BUDGET), le poids moyen de la vue en texte, les erreurs, les noms du jeu qui manquent ;
+     bilan.yeuxTirages = les vues pendant lesquelles le hasard du jeu a bouge (ce doit etre 0 : l'etat du generateur est lu avant et apres chaque
+     vue ; le lire ne change rien) ; bilan.empreinteVues = sha1 du texte de toutes les vues donnees au cerveau (le radar est repetable) ;
+     bilan.cerveau_ms_moy = le temps d'une decision.
+   · o.temoin (verifier.js, controle 6e) : une fonction appelee une fois par seconde de jeu, juste avant la vue, avec (J, image). */
 function course(J,cerveau,graine,o){
   o=o||{};
   const tmax=o.tmax||TMAX_DEFAUT,N=Math.round(tmax*60);
@@ -127,27 +137,46 @@ function course(J,cerveau,graine,o){
   J.ev('__JR.debut()');
   const D=new Doigts(J,()=>Y.modeDe(J)),JR=J.g.sandbox.__JR;
   cerveau.neuve(); /* la memoire du cerveau : vide au depart de chaque course (un objet de SON contexte) */
-  const h=crypto.createHash('sha1'),vues=[];
+  const h=crypto.createHash('sha1'),hv=crypto.createHash('sha1'),vues=[];
   let fr=0,vue=null,decisions=0,vide=0,pannes0=cerveau.pannes|0,erreurs0=cerveau.erreurs|0,abandon=false;
+  /* l'etat du hasard du jeu (lu APRES lancer : chaque course a son generateur) et les comptes des yeux */
+  let etat=null;try{const f=J.ev('Math.random.__etat');if(typeof f==='function')etat=f;}catch(e){}
+  const MY={sol:0,vol:0,msSol:0,msVol:0,msMax:0,pas:0,sondes:0,route:0,pasVol:0,dallesVol:0,octets:0,textes:0,erreurs:0,tirages:0,msCerveau:0},horloge=process.hrtime.bigint;
+  let dem=undefined;
   const t1=Date.now();
   while(fr<N){
     if(fr%HUMAIN.decision===0){
-      vue=Y.voir(J);
+      if(o.temoin&&fr%60===0)o.temoin(J,fr);
+      /* (yeux v2) la demande : celle du cerveau (ou du controle), plus les delais de la main — le radar garde chaque touche dans son etat tant
+         que les doigts ne peuvent pas la changer (doigts.js, delais). Rien pour la vue d'avant ({ radar:false }). */
+      const dem0=o.demande||dem,demande=dem0&&dem0.radar===false?dem0:Object.assign({},dem0,{doigts:D.delais()}),e0=etat?etat():0,h0=horloge();
+      vue=Y.voir(J,demande);
+      const dv=Number(horloge()-h0)/1e6,ct=Y.coutDe(J);
+      if(etat&&etat()!==e0)MY.tirages++;
+      if(vue.mode==='vol'){MY.vol++;MY.msVol+=dv;MY.pasVol+=ct.pas;MY.dallesVol+=ct.dalles;}else{MY.sol++;MY.msSol+=dv;}
+      if(dv>MY.msMax)MY.msMax=dv;if(ct.pas>MY.pas)MY.pas=ct.pas;if(ct.sondes>MY.sondes)MY.sondes=ct.sondes;if(ct.route>MY.route)MY.route=ct.route;MY.erreurs+=ct.erreurs|0;
       h.update(vue.mode+'|'+(vue.s||0)+'|'+(vue.lat||0)+'|'+(vue.vitesse||0)+'|'+vue.nitro+'|'+vue.argent+';');
       if(vue.fini)break;
       vue.image=fr;vue.t=+(fr/60).toFixed(2);
+      cerveau.texte=null;const c0=horloge();
       let ordre=null;try{ordre=cerveau.decide(vue);}catch(e){ordre=null;}
+      MY.msCerveau+=Number(horloge()-c0)/1e6;
+      {const txt=typeof cerveau.texte==='string'?cerveau.texte:JSON.stringify(vue);hv.update(txt);MY.octets+=txt.length;MY.textes++;}
       if((cerveau.pannes|0)-pannes0>=PANNES_MAX){abandon=true;break;}   /* le cerveau boucle (ou l'ordinateur est a genoux) : cette course ne vaut rien */
       if(!ordre||typeof ordre!=='object'){ordre={};vide++;}
+      dem=ordre.regarder==='sorties'?{sorties:true}:undefined;   /* (yeux v2) la demande vaut pour la vue suivante */
       D.ordre(ordre,vue);decisions++;
-      if(o.trace)vues.push({image:fr,vue:vue,ordre:ordre});
+      if(o.trace)vues.push({image:fr,vue:vue,ordre:ordre,demande:demande});
     }
     D.image();J.image();
     if(!o.sansEnregistreur)JR.image();
-    if(o.yeuxEnPlus)Y.voir(J);   /* (controle, verifier.js) regarder plus souvent ne doit rien changer a la course */
+    if(o.image)o.image(J,fr);   /* (justesse.js, verifier.js) un regard de l'hote apres chaque image : il ne doit rien ecrire dans le jeu */
+    if(o.yeuxEnPlus)Y.voir(J,o.yeuxEnPlus===true?undefined:o.yeuxEnPlus);   /* (controle, verifier.js) regarder plus souvent ne doit rien changer a la course */
     fr++;
   }
-  const ms=Date.now()-t1;
+  const ms=Date.now()-t1,a3=x=>+x.toFixed(3);
+  const yeux={ms_moy:a3((MY.msSol+MY.msVol)/Math.max(1,MY.sol+MY.vol)),ms_max:a3(MY.msMax),ms_sol_moy:a3(MY.msSol/Math.max(1,MY.sol)),ms_vol_moy:a3(MY.msVol/Math.max(1,MY.vol)),
+    vues_sol:MY.sol,vues_vol:MY.vol,pas_vol_moy:Math.round(MY.pasVol/Math.max(1,MY.vol)),dalles_vol_moy:Math.round(MY.dallesVol/Math.max(1,MY.vol)),pas_max:MY.pas,sondes_max:MY.sondes,route_max:MY.route,octets_moy:Math.round(MY.octets/Math.max(1,MY.textes)),erreurs:MY.erreurs,manque:Y.manqueDe(J)};
   D.lache();J.lacher();
   const partie=JSON.parse(J.ev('__JR.fin()'));
   /* (2026-11-24, defaut 24 : « une mort dans les 5 dernieres images notee temps ») morte ou non, c'est l'ENREGISTREMENT qui le dit (l'evenement
@@ -158,7 +187,7 @@ function course(J,cerveau,graine,o){
   delete partie.ecran;
   const bilan=Object.assign({graine:graine,images:fr,ms:ms,foisTempsReel:+(fr/60/Math.max(.001,ms/1000)).toFixed(2),
     decisions:decisions,ordresVides:vide,pannes:(cerveau.pannes|0)-pannes0,erreurs:(cerveau.erreurs|0)-erreurs0,derniereErreur:((cerveau.erreurs|0)-erreurs0||(cerveau.pannes|0)-pannes0)?(cerveau.derniere||null):null,gestesRefuses:D.refus,appuis:D.touches.filter(x=>x[2]).length,
-    empreinte:h.digest('hex').slice(0,12)},mesures(partie));
+    empreinte:h.digest('hex').slice(0,12),empreinteVues:hv.digest('hex').slice(0,12),yeux:yeux,yeuxTirages:etat?MY.tirages:null,cerveau_ms_moy:a3(MY.msCerveau/Math.max(1,MY.textes))},mesures(partie));
   return {partie:partie,touches:D.touches,bilan:bilan,vues:o.trace?vues:undefined};
 }
 /* ===== LE REJEU (2026-11-24, etape 1 bis BOTS-ML : « les rejeux : la graine, la version du jeu, les touches image par image ») =====
@@ -207,7 +236,7 @@ function rejouer(J,graine,touches,o){
   while(fr<N){
     if(etat){hasard.push(etat());HAS.cur=[];HAS.prof=0;}
     if(fr%HUMAIN.decision===0){
-      vue=Y.voir(J);
+      vue=Y.voir(J,{radar:false});   /* (yeux v2) la vue d'avant suffit : l'empreinte ne lit que six champs de base */
       h.update(vue.mode+'|'+(vue.s||0)+'|'+(vue.lat||0)+'|'+(vue.vitesse||0)+'|'+vue.nitro+'|'+vue.argent+';');
       if(o.serie)serie.push([fr,vue.mode,vue.s||0,vue.lat||0,vue.vitesse||0,vue.nitro,vue.argent]);
       if(vue.fini)break;

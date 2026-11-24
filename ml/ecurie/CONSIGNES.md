@@ -29,7 +29,11 @@ ne passe plus au palier 20 sans anticiper.
 - **Dans la grotte**, quitter la route c'est tomber sous sa dalle : la roche est à quelques dizaines de mètres. Jamais de sortie par le
   bord, jamais de saut dans un boyau.
 - Le **radar** de la vue (yeux v2) prévoit l'issue d'un vol pour plusieurs façons de piloter : s'en servir avant de décoller et pendant
-  le vol est la première chose qui sépare un pilote qui survit d'un pilote qui meurt.
+  le vol est la première chose qui sépare un pilote qui survit d'un pilote qui meurt. En vol : `vue.vol.radar.rayons` (pour `tenu`, `rien`,
+  `gauche`, `droite`, `cabre`, `pique`, `plane`, `planeCabre`, `versRoute`, `versRoutePlane` : `issue` — pose, levre, choc, air, fond,
+  portail, libre —, `t` en secondes, et pour une pose `s`, `lat`, `axe`, `note`, `propre`). Au sol : `vue.tenue` (la route se tient-elle ?),
+  `vue.sorties` (le même radar depuis le bord ; à gauche, à droite ou par un saut si l'ordre d'avant porte `regarder:'sorties'`),
+  `vue.virage.vSure` (la vitesse au-delà de laquelle le prochain virage ne se tient plus). Le détail : `ml/bot/README.md` § 2 bis.
 
 ## Ce qui rapporte
 

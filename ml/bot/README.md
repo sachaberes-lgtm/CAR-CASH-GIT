@@ -7,7 +7,7 @@ rend un *ordre*, dix fois par seconde. Il ne touche jamais le jeu : ses yeux lis
 
 | Fichier | Rôle |
 |---|---|
-| `yeux.js` | la vue : ce que le joueur voit, en nombres (route devant, pièces, jauges, vol, tronçons en contrebas) |
+| `yeux.js` | la vue : ce que le joueur voit, en nombres (route devant, pièces, jauges, vol, tronçons en contrebas) — et, depuis le 24/11 (yeux v2), **le radar** : l'issue prévue d'un vol pour plusieurs façons de piloter, les sorties de route, le virage, les couloirs, la ligne parfaite, l'aimant, le palier |
 | `doigts.js` | les gestes → les cinq touches du clavier, aux délais d'une main (`HUMAIN`) ; le journal des touches |
 | `piloter.js` | une course : charge le jeu, charge le cerveau dans un bac fermé, fait tourner l'enregistreur du jeu ; `rejouer` remet les touches d'une course sans le cerveau (étape 1 bis) |
 | `mesures.js` | les chiffres d'une partie et d'un lot — les mêmes pour Sacha et pour les bots ; `partiesJoueurs` : les vraies parties des joueurs (doublons, pause, mort, seconde chance), pour `etalon.js` et `discerner.js` |
@@ -15,12 +15,15 @@ rend un *ordre*, dix fois par seconde. Il ne touche jamais le jeu : ses yeux lis
 | `noter.js` | note un cerveau sur N graines → `results/note-<nom>[-allege][-t<tmax>].json` |
 | `autopsie.js` | raconte les dernières secondes d'une course (ce qu'il voyait, ce qu'il a ordonné) |
 | `etalon.js` | lit les parties des joueurs (`etalon/` : Sacha au clavier, Léo au doigt) → la barre, et la compare aux notes des bots |
-| `verifier.js` | les contrôles du contrat dans le vrai jeu, dont le bac fermé. **À relancer après chaque mise à jour du jeu.** |
+| `verifier.js` | les contrôles du contrat dans le vrai jeu, dont le bac fermé et, pour les yeux v2, « le radar ne touche pas le jeu », son coût, sa justesse. **À relancer après chaque mise à jour du jeu.** |
+| `justesse.js` | la justesse du radar : ce qu'il **prévoit** contre ce qui **arrive**, sur de vraies courses (§ 2 ter) |
+| `voltigeur.js` | le cerveau de mesure : il sort de la route exprès et tient une façon de piloter par vol (pour `justesse.js` et `verifier.js`) |
 | `discerner.js` | le juge « humain ou bot » : un bot se distingue-t-il d'un vrai joueur, sur ce qui se voit d'une course ? (§ 4 bis) |
 
 ```bash
 cd ml/bot
-node verifier.js                         # le contrat tient-il ? (2 processus à la fois ; --regime allege pour l'autre version du jeu)
+node verifier.js                         # le contrat tient-il ? (2 processus à la fois, 9 min ; --regime allege pour l'autre version du jeu ; --carte nuages : les contrôles du radar sur une seule map)
+node justesse.js                         # le radar dit-il juste ? (le voltigeur, 6 maps × 3 graines ; --pas : les places image par image ; --cerveau reference.js)
 node noter.js --tmax 300                 # LA note de référence documentée (20 graines, régime max, 300 s) → results/note-reference.json
 node noter.js mon-cerveau.js --regime allege --coeurs 2     # 900 s au plus par défaut → results/note-mon-cerveau-allege-t900.json
 node autopsie.js mon-cerveau.js --graine 910037 --regime allege --avant 6   # le MÊME régime et la MÊME --tmax que la note
@@ -61,26 +64,113 @@ Repères : mètres, secondes, radians. **Tout ce qui est latéral est positif à
 `vitesse` (m/s) · `volant` (le braquage en cours) · `demi` (demi-largeur de la route, 28 m) ·
 `nitro` (part de la jauge, 0 à 1), `reserve` (réserve bleue), `nitroOn`, `nitroLibre` (elle est offerte : départ ou pouvoir) ·
 `flow`, `flowNiveau` (0 à 4) · `argent`, `pieces`, `figures`, `chaine`, `moteur` (palier) · `pouvoirs` (secondes restantes : nitro, vitesse, air, aimant) ·
-`troncons` (voir plus bas).
+`troncons` (voir plus bas) ·
+`vitMult` (ce qui multiplie l'avance : 1 à 2,6) · `palier` : `n` (1 à 30), `pieces`, `manque` (pièces avant le suivant ; `null` au 30), `pousse` (poussée de la nitro), `jauge` (taille de la jauge), `elan`, `vmax` (m/s) ·
+`aimant` : `moteur` (acquis au palier 16), `sol` [m en long, m de côté], `prise` (m), `vol` (m), `pomme` (rayon de la pomme dorée, 0 sans elle : les pièces seulement) ·
+`invulnerable` (s restantes après une seconde chance).
 
 **Au sol** : `lat` (écart à l'axe), `cap` (angle de la caisse par rapport à la route), `pente`, `devers` · `dessous` (roule sous la dalle) ·
 `drift`, `glisse` (flaque), `rebond`, `sursis` · `figureRoute`, `bond` (hauteur du bond d'une figure sur la route) ·
 `lacetRoute`, `lacetMax` (pour tenir une ligne) ·
 `route` : à 30, 60, 100, 150, 220, 300, 400, 550 m devant — `virage` (de combien elle a tourné), `monte`, `devers`, `envers`, `trou` ·
 `piecesDevant` (par tranches de 25 m : `d`, `lat` moyen, `n`) · `plaques` · `fruits` (ils remplissent la réserve) · `orbes` (pouvoirs) · `flaques` (`rayon`) ·
-`modules` (les deux prochains morceaux nommés de la route).
+`modules` (les deux prochains morceaux nommés de la route) ·
+`arret` (s passées sous 22 km/h : la caisse explose à 6) · `rayonMin` (le plus petit rayon qu'elle tient à cette vitesse, volant à fond) ·
+`virage` : le prochain virage sur 400 m ou 4 s de route — `d`, `sens` (+1 à gauche), `rayon`, `angle`, `vSure`, `vSureDrift`, `vCorde`, `marge` (`vSure` − ma vitesse), `braquage` (part de volant qu'il demande ; au-dessus de 1 il ne passe pas). **Au-dessus de `vSure` l'axe ne se tient plus ; `vCorde` est la borne en coupant le virage** (optimiste) ·
+`couloirs` (jusqu'à 900 m : `d0`, `d1`, `genre` — couloir, tunnel, mine, ville —, `plafond`) et `mur` (`ici`, `bord`, `angle`, `mortel`) : **dans un couloir le bord est un mur ; il tue au-delà de 0,52 rad et de 200 km/h** ·
+`ligne` : la ligne parfaite — `cadence` (s entre deux objets), `don` (nitro rendue par objet : 1,15, contre 0,8 perdu par seconde nitro tenue — 1 brûlé, 0,2 refait), `prises` (un fruit se prend à 4,5 m de côté, une plaque à 5,6 m), `objets` (les 4 prochains : `d`, `lat`, `type` fruit ou plaque, `don`) ; `null` hors course ·
+`sautRefuse` (le jeu refusera le saut : sous la dalle, avant une crête ou un retournement, pendant un rebond) ·
+`tenue` : la route se tient-elle 3 s, volant au mieux ? `tient`, sinon `t` (s avant le bord), `cote`, `s`, `mur`, `mortel` ·
+`sorties` : le radar lancé depuis le bord (voir « Le radar »).
 
 **En vol** (`vue.vol`) : `t` (temps en l'air), `reste` (avant l'explosion des 6 s), `monte` (vitesse verticale), `plancher` (hauteur au-dessus du fond mortel) ·
 `proche` : la route la plus proche — `lat` (à côté), `haut` (au-dessus, le long de SA normale), `avant`, `cote`, `versRoute` (vitesses), `axe` (angle d'arrivée) ·
 `anneau` : l'anneau de pose que le joueur voit — `delai`, `dist`, `dessous`, `gisement` ·
-`figure` : `enCours`, `reste` (s pour finir), `angle` (rad restants), `ecart` (à l'endroit), `budget` (s avant la pose, selon le jeu) · `figuresDuVol`.
+`figure` : `enCours`, `reste` (s pour finir), `angle` (rad restants), `ecart` (à l'endroit), `budget` (s avant la pose, selon le jeu) · `figuresDuVol` ·
+`air` : `reste` (la **vraie** marge avant l'explosion — `vol.reste` ment sous le raisin, qui double la jauge : lire `air.reste`), `jauges` (2 tant que la première du raisin court) ·
+`perdu` (s passées « perdu » sous la route : au-delà de 2,2 la mort par jauge s'écrit « vide ») · `hautRoute` (sur la route sans haut ni bas, le haut du vol est la face quittée ; `monte` et `plancher` restent ceux du monde) ·
+`bascule` (s depuis la sortie par le bord : la lèvre raccroche tant qu'elle est sous 1) · `bumps` (rebonds sur la tranche pendant ce vol) · `radar`.
 
 **Les tronçons** (`vue.troncons`, au sol et en vol) : les morceaux de route en contrebas que la caisse peut atteindre — la matière des raccourcis.
 Jusqu'à quatre, le plus gros gain d'abord : `s`, `gain` (piste sautée moins distance volée ; le jeu crie RACCOURCI à 60 m), `dist`, `chute`,
 `gisement` (à gauche ou à droite de ma trajectoire), `axe` (angle d'arrivée ; pose propre sous 55°), `tChute`, `tTrajet`, `longueur`.
 
-Ce que les yeux **ne voient pas** : les obstacles hors de la route (tours, pics, rochers, eau) — le bot les apprend en mourant, l'autopsie donne la cause.
+### 2 bis. Le radar (yeux v2, 24/11)
+
+En vol, `vue.vol.radar` rejoue le vol **image par image, avec les lois du jeu**, pour plusieurs façons de piloter, et donne pour chacune l'**issue**.
+`radar` : `pas` (1/60 s), `court` (2 s) et `long` (ce qu'il reste d'air, 6 s au plus : les deux horizons), `decor` (ce qui est sondé : grotte, jade, canyon,
+ville, espace), `maille` (m entre deux sondes du décor), `aveugle` (ce qui ne l'est pas ici), `approx`, et `rayons`, toujours dans cet ordre :
+
+| Rayon `m` | L'ordre à tenir pour l'obtenir | Horizon |
+|---|---|---|
+| `tenu` | rien de neuf : les touches telles qu'elles sont | long |
+| `rien` | `{}` | long |
+| `gauche`, `droite` | `{volant:1}`, `{volant:-1}` | court |
+| `cabre`, `pique` | `{manche:1}`, `{manche:-1}` | court |
+| `plane` | `{nitro:true}` (un coup de réacteur à l'allumage, puis le plané) | long |
+| `planeCabre` | `{nitro:true, manche:1}` | court |
+| `versRoute`, `versRoutePlane` | la loi ci-dessous, redécidée à chaque vue (sans, puis avec la nitro) | long |
+
+Chaque rayon : `issue`, `t` (**secondes de jeu** avant elle), `d` (m volés), `bumps` (s'il rebondit sur la tranche en route), `nitro` (part de jauge à l'issue, rayons à nitro), puis selon l'issue :
+
+- `pose` : `s`, `lat` (+ à gauche, sur la face de pose), `axe` (rad ; au-delà de 55° — 0,96 — la pose est ratée, au-delà de π/2 c'est un contresens), `impact` (m/s vers la dalle),
+  `note` (`parfaite` sous 2,16 m/s, `lourde` à partir de 4,8, sinon `bonne`), `dessous`, `centre` (à moins de 0,3 × `demi` de l'axe : PILE AU CENTRE), `gain` (le raccourci, comme le jeu le compte),
+  `air` (jauge restante), `propre` (axe sous 55° et plus aucune figure qui tourne) ;
+- `levre` : le pneu raccroche le bord (`s`, `cote`) — la caisse est sauvée, rien n'est payé ;
+- `choc` : `cause`, le mot du jeu (roche, lave, eau, pic, tour, sol, paroi, riviere, canyon…) ;
+- `air` (jauge vide), `fond` (120 m sous le point le plus bas de la piste), `portail` ;
+- `libre` : rien avant l'horizon — `haut`, `lat`, `s` par rapport à la route la plus proche à ce moment-là ; `coupe` : le budget de calcul est épuisé (même chose).
+
+**La loi `versRoute`**, pour qu'un cerveau puisse la suivre (c'est celle du bot de référence sans son anneau) : avec `p = vue.vol.proche`,
+`volant = borne((borne(-p.lat/40, ±0,6) − p.axe) × 1,6, ±1)` si `|p.axe| < 1,6` ; `manche = -1` (piquer) si `p.haut > 10`, `|p.lat| < 2 × demi`
+et que la route est à plus de 2 s dessous (`p.haut / max(1, p.versRoute)`) ou trop loin pour l'air qu'il reste.
+
+**Au sol, `vue.sorties`** : le même radar lancé depuis la sortie de route. `null`, ou `{pourquoi, bord, gauche, droite, saut}`, chaque sortie
+`{t (s avant de décoller), s, cote, approx, rayons}` (ou `{issue}` si elle n'a pas lieu : la route tient, un mur, le portail) :
+- `bord`, **d'office**, quand `tenue` annonce le bord dans 1,5 s : rayons `rien`, `versRoute`, `plane` ;
+- `gauche`, `droite` (plein volant dès maintenant jusqu'au bord) et `saut` (le geste `saut` : 0,42 s de route puis le décollage ; absent si `sautRefuse`),
+  **à la demande** : l'ordre d'avant doit porter `regarder:'sorties'` (§ 3). Rayons `rien` et `plane`, sur 3 s.
+
+À savoir pour s'en servir :
+
+- **Le radar compte les délais de la main.** Un ordre ne passe pas à l'image suivante : une touche enfoncée ou relâchée le reste 4 images, et après le
+  geste `saut` les doigts tiennent encore la NITRO et le manche quelques images (`doigts.js`, `delais` ; `piloter.js` les donne aux yeux à chaque vue).
+  Chaque rayon garde donc chaque touche dans son état du moment pendant son délai, puis applique son ordre. Un **geste** en vol (figure, redresser)
+  n'est pas prévu : l'appui seul donne un coup de réacteur. Hors d'une course (`voir(J)` sans les doigts), l'ordre est supposé tenu dès l'image suivante.
+- Un rayon dont l'ordre est déjà celui des touches recopie `tenu` (son horizon est alors le long).
+- **Tout ce qui part du sol est une estimation** (`approx`) : la vitesse est tenue, sans drift ni flaque. Le saut prend l'impulsion du dernier saut de la
+  course (`saut.mesure` vrai) ; avant le premier, le plancher du jeu (`mesure` faux : le vrai saut monte plus haut et retombe plus loin).
+- **Les rayons `versRoute`** sont joués volant dosé, redécidés 10 fois par seconde : au clavier le dosage se fait en tapotant (`approx`).
+- `t` est en secondes de jeu ; pendant le ralenti de la frénésie, `radar.approx` est vrai.
+
+**Ce que les yeux ne voient toujours pas** : le glacier et les dunes (hors du tirage : `aveugle`), la ville vitrée au-delà de son sol, la route d'après le portail,
+un obstacle plus mince que `maille`, les montagnes de jade qui tombent (elles sont vues à leur place du moment), les filets de virage. **Au canyon, dans le
+simulateur `ml/reel`, il n'y a rien à voir : le relief n'y existe pas** (son calcul part dans un travailleur qui ne répond jamais ; `?cyw=0` le calcule sur
+place) — ni paroi, ni rivière, ni mur de couloir. Défaut connu, laissé tel quel : sous la dalle, les `lat` des pièces, fruits et orbes de la vue d'avant sont en miroir
+(`ligne.objets` est dans le bon repère).
 Les tronçons sont un calcul simple (chute verticale, sans le plané ni les maps où le haut suit la route) : une piste, pas une promesse.
+
+### 2 ter. Ce que vaut le radar (`justesse.js`)
+
+Le radar ne vaut que par son tableau « prévu / arrivé ». **Mesuré le 24/11/2026**, version allégée, le voltigeur sur 6 maps × 5 graines (57 vols, `results/justesse-allege.json`) :
+
+| Où le rayon est pris | Issue juste | Poses : écart médian (90 % des poses sous…) |
+|---|---|---|
+| à la première vue du vol | 57 / 57 | 0 s (0,02) · 0,2 m le long de la piste (2,3) · 0,03 m de côté (0,16) |
+| à la première vue où les doigts tiennent la façon | 57 / 57 | 0 s (0) · 0,2 m (0,4) · 0,03 m (0,86) |
+| une seconde avant la fin du vol | 51 / 51 | 0 s (0,02) · 0,2 m (1,5) · 0,03 m (0,11) |
+
+- la **note** de la pose (parfaite, bonne, lourde) est la bonne 22 fois sur 22 ; les 8 **chocs** contre le décor (roche, pic, tour) sont vus : 6 avec leur cause dès la première vue, 2 par un rayon court (2 s) qui les dit « libre » parce qu'ils arrivent plus loin que son horizon ;
+- **le pas à pas** (`--pas`, 44 vols, `results/justesse-allege-pas.json`) : les places prévues image par image sont celles du jeu **au centimètre sur tout le vol, 44 fois sur 44** ; l'issue tombe à l'image près 38 fois sur 41 (3 chocs vus une image trop tard : la grotte et les pics de jade sont sondés une image sur deux) ;
+- **les sorties du sol** (50) : une sortie franche est annoncée à 0,07 s près (médiane ; 0,5 s pour une sur dix) et l'issue du vol qui suit est juste 16 fois sur 17 ; un saut décolle à l'image annoncée, mais **avant le premier saut de la course sa pose est annoncée 0,7 s et 45 m trop tôt** (voir « Le radar ») ;
+- **le bot de référence** (rayon `tenu`, 12 vols, `results/justesse-allege-reference.json`) : 10 sur 12 — il change d'ordre pendant ses vols, et `tenu` ne dit que ce qui arrive si rien ne change ;
+- **le canyon avec son relief** (`--requete "&cyw=0"`, 8 vols) : 8 sur 8, les 4 chocs « paroi » prévus avec leur cause.
+
+Ce que cette mesure ne dit pas : 57 vols, c'est peu. Le voltigeur meurt vite (2 à 3 vols par course) et n'a tiré ni `cabre`, ni `pique`, ni `versRoute` sans nitro ; les rayons `versRoute*` ne sont jugés que sur 8 vols. **Ce qui a rendu la première vue juste** (elle ne l'était que 54 fois sur 57) : le radar tient compte des **délais de la main** (`Doigts.prototype.delais`, `doigts.js`) — au décollage, les doigts tiennent encore quelques images les touches d'avant (une flèche du volant, la NITRO et le manche du geste `saut`) ; ces images-là suffisent à déplacer la pose de 9 m.
+
+`node justesse.js` refait le tableau (6 maps × 3 graines, le voltigeur ; `--pas` : les places image par image ; `--cerveau reference.js` : le rayon `tenu`
+d'un vrai cerveau ; `--requete "&cyw=0"` : le canyon avec son relief). C'est aussi le **détecteur de dérive** : une loi du jeu qui change sans que sa copie
+dans `yeux.js` suive se voit là. **Ce que ça coûte** : sur la course du contrôle 3 de `verifier.js` (150 s, le bot de référence, 4 % des vues en vol), **0,74 ms par vue contre 0,39 sans le radar** (au sol 0,66 ms, en vol 2,6), et une vue de 2 360 caractères contre 1 640. Une vue en vol coûte de 1 à 2 ms sans décor, **2 à 4,5 ms devant la ville, la grotte ou les pics de jade** (les sondes du décor sont des fonctions du jeu : la cible de 2,5 ms n'y est pas tenue), et 13 à 18 ms au canyon avec son relief (une sonde y coûte 134 µs). Un pilote qui volerait autant qu'un joueur (29 % du temps) paierait de l'ordre de 1,5 ms par vue.
 
 ---
 
@@ -98,6 +188,7 @@ L'ordre rendu par `decide` :
 | `geste:'figure'` + `direction` | deux appuis brefs sur NITRO, la direction tenue : `avant`, `arriere`, `gauche`, `droite` | direction + ESPACE ×2 |
 | `geste:'saut'` + `direction` | une figure sur la route, puis manche vers soi et un nouvel appui NITRO pendant le bond : la caisse décolle | idem, puis ↓ + ESPACE |
 | `geste:'redresser'` | un appui bref, seul, en vol : la figure en cours s'arrête, la caisse se remet droite | ESPACE |
+| `regarder:'sorties'` | *pas un geste* : demande aux yeux, pour la vue **suivante**, les sorties à gauche, à droite et par un saut (`vue.sorties`, § 2 bis) | aucune |
 
 Ce que ces gestes font dans le jeu (vérifié par `verifier.js`, sauvegarde neuve) :
 

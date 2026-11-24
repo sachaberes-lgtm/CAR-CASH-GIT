@@ -10,7 +10,7 @@ Le plan d'ensemble est dans `PLAN.md`, l'étude dans `etude/`.
 | # | Étape | État |
 |---|---|---|
 | A | L'étude : ce qui donne des pièces, ce qui tue, les vrais joueurs mesurés | **faite** (commit `67ea1f009`) |
-| B | Les fondations : défauts corrigés, yeux v2, doigts v2 | **à moitié** : les défauts sont corrigés et validés ; les yeux v2, les doigts v2 et la relecture restent à faire |
+| B | Les fondations : défauts corrigés, yeux v2, doigts v2 | **aux deux tiers** : les défauts sont corrigés et validés ; **les yeux v2 sont écrits et mesurés** (24/11, nuit) ; les doigts v2 et la relecture restent à faire |
 | C | Le pilote d'élite, amélioré par tours | à faire |
 | C bis | La boucle automatique sur le crédit API (les 200 €), avec un plafond de dépense | **écrite** (`boucle.js`), **jamais essayée** (ni à blanc, ni pour de vrai) ; la clé est posée par Sacha |
 | D | Le facteur humain et les 30 niveaux | à faire |
@@ -29,9 +29,39 @@ Le plan d'ensemble est dans `PLAN.md`, l'étude dans `etude/`.
 - la note de départ : le bot de référence en version allégée, **palier médian 9, meilleur 25** (`ml/bot/results/note-reference-allege.json`) ;
 - la boucle sur le crédit API : `boucle.js`, `CONSIGNES.md`, `essai-api.js`.
 
+**Fait depuis (24/11, nuit) — les yeux v2** (`ml/bot/yeux.js`, décrits dans `ml/bot/README.md` § 2, 2 bis, 2 ter) :
+- **en vol, le radar** : le vol rejoué image par image avec les lois du jeu, pour 10 façons de piloter (les touches telles qu'elles sont, rien,
+  gauche, droite, cabrer, piquer, planer, planer en cabrant, revenir vers la route sans et avec la nitro) → pose (où, quand, dans quel axe, quel
+  choc), lèvre, choc contre le décor (grotte, jade, ville, géants de l'orbite ; la cause et le délai), jauge vide, fond du monde, portail ;
+- **au sol** : `tenue` (la route se tient-elle 3 s ?), `sorties` (le même radar depuis le bord, d'office ; depuis une sortie à gauche, à droite
+  ou un saut, à la demande : `regarder:'sorties'`), `virage` (rayon, vitesse sûre), `couloirs` et `mur`, `ligne` (la ligne parfaite),
+  `sautRefuse`, `arret` ; et toujours `palier`, `aimant`, `vitMult`, `invulnerable`, `vol.air` (la vraie marge sous le raisin) ;
+- **mesuré** (`ml/bot/justesse.js`, le voltigeur `ml/bot/voltigeur.js`) : sur 57 vols de 6 maps (le voltigeur, version allégée), l'issue prévue est la bonne **57 fois sur 57 à la première vue du vol et 51 sur 51 une seconde avant sa fin** ; une pose
+  est annoncée à 0 s, 0,2 m le long de la piste et 0,03 m de côté près (médianes), sa note 22 fois sur 22 ; les 8 chocs contre le décor sont vus. Image par
+  image (`--pas`, 44 vols), **les places prévues sont celles du jeu au centimètre, 44 fois sur 44**. Pour le bot de référence, qui change d'ordre en vol, le
+  rayon `tenu` dit juste 10 fois sur 12. Une sortie franche du sol est annoncée à 0,07 s près (médiane), l'issue du vol qui suit 16 fois sur 17. Limite : 57
+  vols, c'est peu, et ni `cabre`, ni `pique`, ni `versRoute` sans nitro n'ont été tirés ;
+- **contrôlé** (`node ml/bot/verifier.js`, sections 3 bis à 8) : `TOUT PASSE` en 9 min (21 processus neufs, 2 à la fois) : l'empreinte de la section 3 reste
+  `a7b3171768ca` et égale le témoin écrit dans le fichier ; les vues sont les mêmes dans deux processus ; sans le radar, ou les yeux ouverts à chaque image
+  avec les sorties, même course ; aucun tirage du hasard du jeu ; l'état du jeu intact sur 110 contrôles (seuls bougent deux brouillons des heurts du jeu,
+  `V9J` et `CY_H9`). `node ml/labo/rejouer.js --tout` : 4 rejeux exacts sur 4.
+
+**Ce que les yeux v2 ne font pas, ou mal** (dit aussi dans le README) :
+- **le canyon du simulateur n'a pas de relief** : dans `ml/reel` son calcul part dans un travailleur qui ne répond jamais — ni paroi, ni rivière,
+  ni mur de couloir, donc aucune mort « paroi », « riviere » ou « canyon » dans les notes des bots. L'interrupteur du jeu `?cyw=0` le calcule sur
+  place (`node ml/bot/justesse.js --cartes canyon --requete "&cyw=0"`). **À décider** : l'ajouter à `ml/reel/jeu-reel.js` change toutes les
+  courses qui passent au canyon (notes, rejeux gardés). Avec le relief, une sonde du canyon coûte 134 µs : 13 à 18 ms par vue en vol — il faudra un mémo du relief avant de l'allumer
+  pour de bon ;
+- **le saut** des sorties prend l'impulsion du dernier saut de la course ; avant le premier, le plancher du jeu : la pose est alors annoncée 0,7 s et 45 m trop tôt
+  (mesuré sur 18 sauts) ; le décollage, lui, est à l'image près ;
+- pas de rayon `viser` (vers un tronçon en contrebas), pas de plafonds hors des tables (voûtes, boyaux) ; le miroir de `lat` sous la dalle
+  dans les champs d'avant n'est pas corrigé ;
+- le coût : 0,74 ms par vue contre 0,39 sans le radar sur la course du contrôle 3 (bot de référence, 150 s) ; une vue en vol coûte 1 à 2 ms sans décor, mais
+  **2 à 4,5 ms devant la ville, la grotte ou les pics de jade : la cible de 2,5 ms n'y est pas tenue** ; la vue pèse 2 360 caractères contre 1 640.
+
 **Pas fait** :
-- **les yeux v2** (le radar de vol, les dangers du décor) : l'agent venait de commencer, rien n'est écrit dans `yeux.js` ;
-- **les doigts v2** (profil, appuis humains, seconde chance) : pas commencés ;
+- **les doigts v2** (profil, appuis humains, seconde chance) : pas commencés. ⚠ Le radar lit les délais de la main (`Doigts.prototype.delais`,
+  `doigts.js`) : les doigts v2 devront tenir cette fonction à jour (temps de réaction compris), sinon la première vue d'un vol ment ;
 - **la relecture** des corrections par trois agents : pas faite. Les 4 défauts de documents (n° 4, 19, 20, 22) et le n° 7 (les raccourcis
   ne se comptent pas tout à fait comme le jeu) restent ouverts ;
 - **la boucle n'a jamais tourné**, même à blanc (l'essai a été interrompu) ;
@@ -44,7 +74,7 @@ répondaient « credit balance is too low ». Une session ouverte avant le `setx
 > Dans `C:\Users\sacha\code\CASH-CAR-bots-ecurie` (branche `bots-ecurie`), lis `ml/ecurie/ETAPES.md` (la section « Où on en est »),
 > `ml/ecurie/PLAN.md` et `ml/ecurie/etude/*.md`. Fais dans l'ordre, en validant dans git à la fin de chaque point et en mettant
 > `ETAPES.md` à jour : (1) `node ml/ecurie/essai-api.js` puis `node ml/ecurie/boucle.js --a-blanc --tours 1 --candidats 3 --depuis ml/bot/reference.js`,
-> et corrige ce qui casse ; (2) finis l'étape B : les yeux v2 puis les doigts v2, comme décrits à l'étape B, avec `node ml/bot/verifier.js`
+> et corrige ce qui casse ; (2) finis l'étape B : les doigts v2 (les yeux v2 sont faits), comme décrits à l'étape B, avec `node ml/bot/verifier.js`
 > qui passe et l'empreinte `a7b3171768ca` ; (3) écris le premier pilote `ml/ecurie/pilote.js` (étape C) ; (4) lance le calibrage de
 > l'étape C bis (10 €), puis la boucle par tranches de 20 €, sans dépasser 200 € au total. Jamais plus de 4 courses à la fois. Si la limite
 > d'usage du modèle bloque des agents, lance-les avec un autre modèle. Ne me pose pas de question.
@@ -78,6 +108,7 @@ node discerner.js ..\labo\trajectoires           # le bot de référence : recon
 ```
 cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\bot
 node verifier.js                 # TOUT PASSE, et l'empreinte de la section 3 reste a7b3171768ca (un cerveau sans profil conduit comme avant)
+node justesse.js                 # le radar : prévu / arrivé, par map (5 min) ; --pas : les places image par image
 cd ..\labo
 node rejouer.js --tout           # 4 rejeu(x) exact(s) sur 4
 ```
