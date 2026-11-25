@@ -74,3 +74,9 @@ outils/banc-routes/sorties/*/*.png
 # (le journal, les cerveaux, les rejeux et les trajectoires gardees SONT dans git : voir ml/labo/README.md)
 ml/labo/tampon/
 ml/labo/videos/
+
+# --- Ecurie : journaux des agents payes par la cle (lourds) ---
+ml/ecurie/agents/*.jsonl
+ml/ecurie/agents/*.log
+ml/ecurie/agents/chaine-etat.json
+ml/ecurie/agents/STOP
