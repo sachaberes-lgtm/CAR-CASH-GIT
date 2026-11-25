@@ -20,7 +20,9 @@ if(!x){
   /* (2026-11-24, defaut 12 : « le rejeu oubliait la map et la meteo imposees : la course n'etait pas la meme ») la ligne du journal les porte
      depuis le 24/11 ; une ligne plus ancienne n'en a pas : sa note les tirait de la graine, sauf --carte, que l'on retape ici. */
   const carte=opt('carte',ligne.carte||null),meteo=opt('meteo',ligne.meteo||null);
-  const r=L.ensilence(()=>{const J=ouvrir({regime:ligne.jeu&&ligne.jeu.regime}),C=charger(path.join(L.RACINE,ligne.code));return course(J,C,graine,{tmax:ligne.tmax,carte:carte,meteo:meteo});});
+  /* (2026-11-25, simulateur fidele) dans le simulateur de la note (une ligne d'avant le 25/11 : « avant-relief », le canyon sans relief) */
+  const sim=L.simulateurDe(ligne.jeu);if(sim!==L.SIMULATEUR)console.log('⚠ '+id+' a ete note dans le simulateur « '+sim+' » (avant le relief du canyon du 25/11) : la course est refaite dans ce simulateur-la');
+  const r=L.ensilence(()=>{const J=ouvrir({regime:ligne.jeu&&ligne.jeu.regime,simulateur:sim}),C=charger(path.join(L.RACINE,ligne.code));return course(J,C,graine,{tmax:ligne.tmax,carte:carte,meteo:meteo});});
   if(r.bilan.empreinte!==c0.empreinte){console.log(`la course rejouee n'est pas celle du journal (empreinte ${r.bilan.empreinte} ≠ ${c0.empreinte} ; regime ${(ligne.jeu&&ligne.jeu.regime)||'max'}, map ${carte||'tiree par la graine'}${c0.pannes?' ; cette course avait des decisions coupees : elle n\'est pas repetable':''}) : rien n'est garde`);process.exit(1);}
   x={graine:graine,bilan:r.bilan,partie:r.partie,touches:r.touches};
   console.log('course rejouee a partir du code : meme empreinte que le journal ('+c0.empreinte+')');

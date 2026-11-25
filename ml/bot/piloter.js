@@ -1,5 +1,6 @@
 /* ===== LE PILOTE (2026-11-23, etape 1 BOTS-ML) : un cerveau conduit le VRAI jeu, par ses yeux et ses doigts =====
-   ouvrir({regime})             charge le jeu une fois (ml/reel), pose les yeux et branche l'enregistreur du jeu ; J.version, J.sha (l'empreinte chargee)
+   ouvrir({regime,simulateur})  charge le jeu une fois (ml/reel), pose les yeux et branche l'enregistreur du jeu ; J.version, J.sha (l'empreinte chargee),
+                                J.simulateur (la version du simulateur : 'relief-canyon' depuis le 25/11, 'avant-relief' pour les vieux rejeux)
    charger(fichier,{source,ms}) charge un cerveau dans un bac ferme (ni fichiers, ni reseau, ni horloge, ni hasard, temps limite par decision) ;
                                 source : son texte, s'il est deja lu (noter.js le lit une fois pour toutes les courses)
    course(J,cerveau,graine,o)   une course : rend { partie, touches, bilan }
@@ -34,7 +35,9 @@ function shaJeu(){try{return crypto.createHash('sha1').update(Buffer.concat([fs.
 function ouvrir(o){
   o=o||{};
   const regime=o.regime==='allege'?'allege':'max',v0=fs.readFileSync(path.join(JEU_DIR,'sw.js'),'utf8'),s0=shaJeu();
-  const J=creer({silence:true,query:(regime==='allege'?'&allege=1':'')+(o.query||'')});J.regime=regime;
+  /* (2026-11-25, simulateur fidele) o.simulateur : la version du simulateur (ml/reel/jeu-reel.js, REQUETES) — par defaut celle du jour (le relief du
+     canyon allume) ; 'avant-relief' pour rejouer un rejeu enregistre avant le 25/11. J.simulateur la dit. */
+  const J=creer({silence:true,simulateur:o.simulateur,query:(regime==='allege'?'&allege=1':'')+(o.query||'')});J.regime=regime;
   Y.installer(J);J.ev(JR_CODE);
   const v1=fs.readFileSync(path.join(JEU_DIR,'sw.js'),'utf8'),s1=shaJeu();
   J.version=v0===v1?(v1.match(/cashcar-v\d+/)||['?'])[0]:'?';
@@ -243,7 +246,7 @@ function course(J,cerveau,graine,o){
      le collage, la mort d'avant la reprise est dans les evenements, et une course coupee par le temps apres une reprise serait notee morte. */
   const morte=!!(RC.fin&&(RC.fin.ev||[]).some(e=>e[1]==='mort'));
   if(partie.fin&&(abandon||!morte))partie.fin.cause=abandon?'panne':'temps'; /* arretee par la limite de temps (ou abandonnee : le cerveau en panne), pas par une mort */
-  partie.bot={nom:cerveau.nom,graine:graine,carte:o.carte||null,meteo:o.meteo||null,jeu:J.version,jeu_sha:J.sha||null,regime:J.regime||'max',tmax:tmax,main:cerveau.profilSha||null};
+  partie.bot={nom:cerveau.nom,graine:graine,carte:o.carte||null,meteo:o.meteo||null,jeu:J.version,jeu_sha:J.sha||null,regime:J.regime||'max',tmax:tmax,main:cerveau.profilSha||null,simulateur:J.simulateur||null};
   delete partie.ecran;
   const bilan=Object.assign({graine:graine,images:fr,ms:ms,foisTempsReel:+(fr/60/Math.max(.001,ms/1000)).toFixed(2),
     decisions:decisions,ordresVides:vide,pannes:(cerveau.pannes|0)-pannes0,erreurs:(cerveau.erreurs|0)-erreurs0,derniereErreur:((cerveau.erreurs|0)-erreurs0||(cerveau.pannes|0)-pannes0)?(cerveau.derniere||null):null,gestesRefuses:D.refus,appuis:D.touches.filter(x=>x[2]&&x[1]!=='C').length,

@@ -1,5 +1,5 @@
 {
- "date": "2026-11-25T03:21:35.064Z",
+ "date": "2026-11-25T04:46:31.915Z",
  "graine": 910000,
  "tmax": 150,
  "regime": "max",
@@ -206,7 +206,7 @@
   },
   "tirages": {
    "ok": true,
-   "courses": 10
+   "courses": 9
   },
   "cartes": {
    "nuages": {
@@ -277,19 +277,6 @@
    "canyon": {
     "ok": true,
     "coupe": {
-     "empreinte": "add7b7ca38d6",
-     "touches": "fd497eeb4d10",
-     "images": 1020
-    },
-    "plein": {
-     "empreinte": "add7b7ca38d6",
-     "touches": "fd497eeb4d10",
-     "images": 1020
-    }
-   },
-   "canyon+relief": {
-    "ok": true,
-    "coupe": {
      "empreinte": "97a6bfb554d4",
      "touches": "b4f9898ff1e9",
      "images": 672
@@ -301,13 +288,42 @@
     }
    }
   },
+  "decorDur": {
+   "ok": true,
+   "cartes": {
+    "grotte": {
+     "expr": "GROTTE.root",
+     "vu": 18,
+     "sur": 18
+    },
+    "ville": {
+     "expr": "CITY.col",
+     "vu": 10,
+     "sur": 10
+    },
+    "jade": {
+     "expr": "JADE.col",
+     "vu": 18,
+     "sur": 18
+    },
+    "canyon": {
+     "expr": "CY.on",
+     "vu": 12,
+     "sur": 12
+    }
+   }
+  },
+  "travailleurs": {
+   "ok": true,
+   "hors": []
+  },
   "erreurs": {
    "ok": true
   },
   "etat": {
    "ok": true,
-   "photos": 110,
-   "ms_par_controle": 1241,
+   "photos": 92,
+   "ms_par_controle": 1303,
    "changes": {},
    "brouillons": {
     "V9J": 1,
@@ -390,10 +406,10 @@
    "sondes": 2920
   },
   "a": {
-   "ms_moy": 0.523,
-   "ms_max": 9.578,
-   "ms_sol_moy": 0.463,
-   "ms_vol_moy": 1.964,
+   "ms_moy": 0.532,
+   "ms_max": 11.914,
+   "ms_sol_moy": 0.474,
+   "ms_vol_moy": 1.936,
    "vues_sol": 1440,
    "vues_vol": 60,
    "pas_vol_moy": 923,
@@ -406,10 +422,10 @@
    "manque": []
   },
   "b": {
-   "ms_moy": 0.529,
-   "ms_max": 10.516,
+   "ms_moy": 0.524,
+   "ms_max": 11.31,
    "ms_sol_moy": 0.472,
-   "ms_vol_moy": 1.882,
+   "ms_vol_moy": 1.79,
    "vues_sol": 1440,
    "vues_vol": 60,
    "pas_vol_moy": 923,
@@ -424,10 +440,10 @@
   "ok": true,
   "cartes": {
    "nuages": {
-    "ms_moy": 0.785,
-    "ms_max": 2.59,
-    "ms_sol_moy": 0.591,
-    "ms_vol_moy": 1.048,
+    "ms_moy": 0.789,
+    "ms_max": 2.428,
+    "ms_sol_moy": 0.625,
+    "ms_vol_moy": 1.012,
     "vues_sol": 98,
     "vues_vol": 72,
     "pas_vol_moy": 1074,
@@ -440,10 +456,10 @@
     "manque": []
    },
    "espace": {
-    "ms_moy": 0.774,
-    "ms_max": 2.902,
-    "ms_sol_moy": 0.548,
-    "ms_vol_moy": 0.974,
+    "ms_moy": 0.836,
+    "ms_max": 11.992,
+    "ms_sol_moy": 0.55,
+    "ms_vol_moy": 1.088,
     "vues_sol": 76,
     "vues_vol": 86,
     "pas_vol_moy": 1077,
@@ -456,10 +472,10 @@
     "manque": []
    },
    "grotte": {
-    "ms_moy": 1.841,
-    "ms_max": 6.117,
-    "ms_sol_moy": 0.761,
-    "ms_vol_moy": 3.327,
+    "ms_moy": 1.864,
+    "ms_max": 8.535,
+    "ms_sol_moy": 0.768,
+    "ms_vol_moy": 3.371,
     "vues_sol": 99,
     "vues_vol": 72,
     "pas_vol_moy": 987,
@@ -472,10 +488,10 @@
     "manque": []
    },
    "ville": {
-    "ms_moy": 1.049,
-    "ms_max": 3.089,
-    "ms_sol_moy": 0.561,
-    "ms_vol_moy": 1.827,
+    "ms_moy": 1.036,
+    "ms_max": 2.937,
+    "ms_sol_moy": 0.57,
+    "ms_vol_moy": 1.778,
     "vues_sol": 59,
     "vues_vol": 37,
     "pas_vol_moy": 720,
@@ -488,10 +504,10 @@
     "manque": []
    },
    "jade": {
-    "ms_moy": 3.429,
-    "ms_max": 12.518,
-    "ms_sol_moy": 1.391,
-    "ms_vol_moy": 5.747,
+    "ms_moy": 3.331,
+    "ms_max": 11.078,
+    "ms_sol_moy": 1.343,
+    "ms_vol_moy": 5.591,
     "vues_sol": 91,
     "vues_vol": 80,
     "pas_vol_moy": 984,
@@ -504,26 +520,10 @@
     "manque": []
    },
    "canyon": {
-    "ms_moy": 0.77,
-    "ms_max": 3.353,
-    "ms_sol_moy": 0.645,
-    "ms_vol_moy": 0.934,
-    "vues_sol": 97,
-    "vues_vol": 74,
-    "pas_vol_moy": 1158,
-    "dalles_vol_moy": 253,
-    "pas_max": 2152,
-    "sondes_max": 0,
-    "route_max": 329,
-    "octets_moy": 2173,
-    "erreurs": 0,
-    "manque": []
-   },
-   "canyon+relief": {
-    "ms_moy": 2.494,
-    "ms_max": 17.899,
-    "ms_sol_moy": 0.98,
-    "ms_vol_moy": 11.675,
+    "ms_moy": 2.346,
+    "ms_max": 16.807,
+    "ms_sol_moy": 0.902,
+    "ms_vol_moy": 11.1,
     "vues_sol": 97,
     "vues_vol": 16,
     "pas_vol_moy": 625,
@@ -539,7 +539,7 @@
   "lourd": []
  },
  "justesse": {
-  "vols": 14,
+  "vols": 12,
   "cartes": {
    "nuages": {
     "vols": 2,
@@ -983,93 +983,6 @@
      "justes": 2,
      "table": {
       "pose|pose": 1,
-      "air|air": 1
-     },
-     "lignes": [
-      "pose",
-      "levre",
-      "choc",
-      "air",
-      "fond",
-      "portail",
-      "libre",
-      "coupe"
-     ],
-     "colonnes": [
-      "pose",
-      "choc",
-      "air",
-      "fond",
-      "portail",
-      "temps",
-      "autre"
-     ],
-     "dt_med": 0.02,
-     "dt_p90": 0.02,
-     "ds_med": 1.5,
-     "ds_p90": 1.5,
-     "dlat_med": 0.11,
-     "dlat_p90": 0.11,
-     "dimpact_med": 0.49,
-     "poses": 1,
-     "notes": 1,
-     "notesOk": 1,
-     "causes": 0,
-     "causesOk": 0,
-     "chocs": 0,
-     "chocsNonPrevus": [],
-     "chocsHorsHorizon": 0
-    },
-    "b": {
-     "n": 2,
-     "justes": 2,
-     "table": {
-      "pose|pose": 1,
-      "air|air": 1
-     },
-     "lignes": [
-      "pose",
-      "levre",
-      "choc",
-      "air",
-      "fond",
-      "portail",
-      "libre",
-      "coupe"
-     ],
-     "colonnes": [
-      "pose",
-      "choc",
-      "air",
-      "fond",
-      "portail",
-      "temps",
-      "autre"
-     ],
-     "dt_med": 0.02,
-     "dt_p90": 0.02,
-     "ds_med": 1.5,
-     "ds_p90": 1.5,
-     "dlat_med": 0.11,
-     "dlat_p90": 0.11,
-     "dimpact_med": 0.49,
-     "poses": 1,
-     "notes": 1,
-     "notesOk": 1,
-     "causes": 0,
-     "causesOk": 0,
-     "chocs": 0,
-     "chocsNonPrevus": [],
-     "chocsHorsHorizon": 0
-    }
-   },
-   "canyon+relief": {
-    "vols": 2,
-    "a": {
-     "n": 2,
-     "justes": 2,
-     "table": {
-      "pose|pose": 1,
       "choc|choc": 1
      },
      "lignes": [
@@ -1151,11 +1064,11 @@
    }
   },
   "a": {
-   "n": 14,
-   "justes": 14,
+   "n": 12,
+   "justes": 12,
    "table": {
-    "pose|pose": 6,
-    "air|air": 4,
+    "pose|pose": 5,
+    "air|air": 3,
     "libre|pose": 1,
     "libre|air": 1,
     "choc|choc": 2
@@ -1186,9 +1099,9 @@
    "dlat_med": 0.02,
    "dlat_p90": 0.11,
    "dimpact_med": 0.05,
-   "poses": 6,
-   "notes": 6,
-   "notesOk": 6,
+   "poses": 5,
+   "notes": 5,
+   "notesOk": 5,
    "causes": 2,
    "causesOk": 2,
    "chocs": 2,
@@ -1196,11 +1109,11 @@
    "chocsHorsHorizon": 0
   },
   "b": {
-   "n": 13,
-   "justes": 13,
+   "n": 11,
+   "justes": 11,
    "table": {
-    "pose|pose": 7,
-    "air|air": 5,
+    "pose|pose": 6,
+    "air|air": 4,
     "choc|choc": 1
    },
    "lignes": [
@@ -1224,14 +1137,14 @@
    ],
    "dt_med": 0,
    "dt_p90": 0.02,
-   "ds_med": 0.3,
+   "ds_med": 0.2,
    "ds_p90": 1.5,
-   "dlat_med": 0.04,
+   "dlat_med": 0.02,
    "dlat_p90": 0.11,
    "dimpact_med": 0.05,
-   "poses": 7,
-   "notes": 7,
-   "notesOk": 7,
+   "poses": 6,
+   "notes": 6,
+   "notesOk": 6,
    "causes": 1,
    "causesOk": 1,
    "chocs": 1,
@@ -1240,11 +1153,11 @@
   },
   "controles": {
    "sauts": {
-    "ordres": 7,
-    "prevus": 7,
+    "ordres": 6,
+    "prevus": 6,
     "refuses": 0,
     "figure": 0,
-    "decolles": 7,
+    "decolles": 6,
     "prevusSansDecol": 0,
     "refusesMaisDecol": 0
    },
@@ -1253,14 +1166,14 @@
     "max": 1.04
    },
    "latC": {
-    "objets": 4767,
+    "objets": 3983,
     "dessous": 0,
     "faux": 0
    }
   },
   "saut": {
-   "n": 7,
-   "prevues": 7,
+   "n": 6,
+   "prevues": 6,
    "dt_med": 0,
    "dt_max": 0.05
   }

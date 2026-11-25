@@ -30,7 +30,11 @@ Le contrat du bot (ses yeux, ses gestes, ses doigts, sa note) est dans **`ml/bot
 Deux réparations du simulateur ce jour-là, trouvées dès que les courses ont dépassé 110 s (celles de l'étape 0 faisaient 60 s) :
 - **Le portail de fin de piste ne passait pas.** Le jeu attend deux images d'écran (`requestAnimationFrame`) avant de bâtir la piste suivante ;
   ici elles ne battaient jamais, la caisse restait tenue à la bouche du portail. `sim-env-reel.js` laisse maintenant passer ces demandes
-  pendant l'attente du portail (`PORTV.att`), et seulement là — `loop()` exclue, c'est `jeu-reel` qui l'appelle.
+  pendant l'attente du portail (`PORTV.att`), et seulement là. (Corrigé le 25/11 : il était écrit « `loop()` exclue, c'est `jeu-reel` qui
+  l'appelle ». C'est faux : le jeu enrobe `requestAnimationFrame` dès le chargement — la sonde du démarrage, `code/page/debut-corps.html`, qui ne se
+  referme jamais ici —, ce qui arrive à la porte est toujours cette enveloppe, jamais `loop`. Pendant l'attente, `loop` tourne donc une fois de plus
+  par image, à la même heure : 4 fois de trop pour 2 portails sur la course témoin. L'empreinte témoin `a7b3171768ca` dépend de cet accident ; sans
+  lui, c'est une autre course. Pas corrigé : rien ne dit laquelle des deux est la plus proche d'un navigateur. Voir `jeu-reel.js`.)
 - **La grotte bâtie à un portail n'arrivait jamais** : elle se creuse dans un Worker, et celui du simulateur ne répond pas. `jeu-reel.js`
   passe `grotteworker=0`, l'interrupteur du jeu qui la creuse sur place.
 
@@ -76,7 +80,51 @@ du 23/11, et les 4 rejeux gardés sont exacts) :
 - Sa fausse page ne fait pas tourner la couche d'effets du vrai jeu comme un navigateur : `classList.contains` y répond toujours non (la
   flamme du bouton NITRO ne s'anime jamais), et presque chaque image tire un nombre de valeurs au hasard différent de celui d'un vrai
   navigateur. Pour la conduite, les routes et l'argent, ça ne change rien **une fois le hasard recalé** (`HASARD_CODE`, `ml/bot/piloter.js`).
-- **Il tourne au régime MAXIMUM du jeu, quel que soit le PC** (`POSTE.r = 3`, `ALLEGE = false`) : sans carte graphique à juger, le jeu le
-  prend pour un poste récent. Crypto City est donc à son tirage. Sur un PC à puce intégrée ou un téléphone, le vrai jeu est en version
-  allégée, sans Crypto City : c'est le cas des 14 parties de l'étalon. Voir `passation/BOTS-ML.md`, étape 1 bis, et le point 6 de la section 7.
-- Course de quatre maps rejouée dans un vrai navigateur, au même régime, hasard recalé : **la même course, à chaque décision** : 1 879 décisions sur 1 879, 11 268 images, trois portails, même fin (roche) et même argent (52 545,35) ; aucune image n'a eu besoin d'être rattrapée.
+- **Le régime** (corrigé le 25/11 : ce paragraphe disait « au régime MAXIMUM, quel que soit le PC », ce qui n'est plus vrai depuis le 24/11).
+  Par défaut, régime maximum (`POSTE.r = 3`, Crypto City au tirage) : sans carte graphique à juger, le jeu prend le simulateur pour un poste récent.
+  `ouvrir({regime:'allege'})` dans `ml/bot/piloter.js`, donc `--regime allege` de `noter.js`, `inscrire.js`, `justesse.js` et le défaut de
+  `ml/ecurie/boucle.js`, charge le jeu avec `?allege=1` : la version allégée, sans Crypto City, celle des joueurs de l'étalon (14 parties, PC à puce
+  intégrée ou téléphone) et de l'écurie. Le POSTE reste à 3. Ce que l'allégé change d'autre que le tirage des maps n'est pas mesuré.
+- Course de quatre maps rejouée dans un vrai navigateur, au même régime, hasard recalé : **la même course, à chaque décision** : 1 879 décisions sur 1 879, 11 268 images, trois portails, même fin (roche) et même argent (52 545,35) ; aucune image n'a eu besoin d'être rattrapée. (Graine 910074 : nuages, jade, crypto, grotte —
+  ce contrôle ne dit **rien du canyon**, et le relief du canyon n'a jamais été rejoué dans un vrai navigateur.)
+
+## 25/11/2026 — le simulateur fidèle (relecture du simulateur)
+
+Décision de la session principale, pour Sacha : avant de dépenser les 200 € de la boucle, le simulateur doit avoir **les mêmes obstacles que le
+vrai jeu**. Un pilote noté sur un canyon sans parois est noté sur du faux. C'est le seul lot qui a eu le droit de changer la course d'un cerveau
+sans profil.
+
+- **Le relief du canyon est allumé** (`REQUETE` de `jeu-reel.js` porte `&cyw=0`, l'interrupteur du jeu, comme `grotteworker=0`). Avant, le jeu
+  envoyait le relief à un travailleur qui ne répond jamais ici : `CY.on` restait faux, donc **ni paroi, ni rivière, ni tunnel, ni mur de couloir** ;
+  une sortie de route au canyon était un vol gratuit, quand le vrai jeu tue en 0,2 s. MESURÉ (version allégée, bot de référence, 900 s) sur les
+  4 graines de la note de départ qui passent au canyon : 910222 passe du palier 25 (333,8 s, « roche », 6 maps) au palier 5 (76,6 s, « paroi ») ;
+  910444 du palier 20 (211,3 s, « vide ») au palier 12 (130,1 s, « paroi ») ; 910481 du palier 13 (166,8 s, « vide ») au palier 11 (152,2 s,
+  « paroi ») ; 910111 reste au palier 4 mais meurt « rivière » à 52,1 s au lieu de « vide » à 56,4 s. Les 16 autres courses de la note, qui ne
+  passent pas au canyon, redonnent exactement leur course (même empreinte). La note de départ refaite : `ml/bot/README.md`, § 7 bis.
+  Le coût : le relief se calcule en 3 à 4 s à chaque canyon bâti (le vrai jeu fait le même calcul dans son travailleur) ; les yeux coûtent moins de
+  3 % du temps d'une course entière (radar coupe / ouvert sur ces 4 courses : 19,7 / 19,8 s, 27,0 / 26,3 s, 39,0 / 39,3 s, 77,6 / 78,2 s de calcul),
+  même si une vue en vol au canyon coûte 4 à 20 ms. Pas de mémo du relief : il n'est pas nécessaire au seuil fixé (10 %).
+  Mêmes nombres que le travailleur du vrai jeu : le texte de ce travailleur, exécuté à part, rend les mêmes octets que le calcul sur place
+  (relecture, 4 canyons ; pas vérifié dans un vrai navigateur). ⚠ Le travailleur du vrai jeu plante sur certains canyons (il lui manque
+  `cyNiveauEau`) et le jeu se rabat alors sur le calcul sur place : c'est un défaut **du jeu**, transmis, pas corrigé ici.
+- **La version du simulateur** (`SIMULATEUR` = `relief-canyon` ; l'ancienne : `avant-relief`) s'écrit dans chaque note (`ml/bot/noter.js`), chaque
+  ligne du journal du labo et chaque rejeu (`ml/labo/labo.js`, `versionJeu`). Une note ou un rejeu sans elle est d'avant le relief.
+  `creer({simulateur:'avant-relief'})` (et `ouvrir({simulateur})` de `ml/bot/piloter.js`) recharge l'ancien simulateur : c'est ainsi que
+  `ml/labo/rejouer.js`, `garder.js` et la salle de projection rejouent un vieux rejeu **dans le simulateur de son enregistrement** ; la boucle
+  ne compare que des notes du même simulateur ; `inscrire.js --note` refuse une note d'un autre simulateur.
+- **Une course ne dépend plus de la NITRO en vol de la course d'avant** (même processus). `loop._nAirT` (l'heure du dernier coup de réacteur en
+  vol) naissait après la photo de l'état propre et n'était jamais effacé ; l'horloge revenant à T0, le jeu refusait le réacteur en vol à la course
+  suivante. Désormais `remet()` efface sur les fonctions du jeu les propriétés de données nées après la photo (une quarantaine par course :
+  `loop._nAir`, `loop._nAirT`, `loop._nk`, `tryLand._bi`, `dalleProche.bd`, `engBig.*`… ; un contexte de dessin ou une instance n'est pas touché). La première course d'un processus ne change pas (les notes, un
+  processus par course, non plus). `repetable.js` tient désormais la NITRO en vol et contrôle l'effacement. MESURÉ (`node repetable.js --tmax 30`,
+  25/11) : le même processus redonne la même course sur 5 maps sur 7 (nuages, ville, jade, crypto, canyon) et le même processus égale un processus
+  neuf ; le 23/11 (sans la NITRO en vol, même durée) : 3 sur 7, et pas le même que le processus neuf. ⚠ L'espace et la grotte s'écartent encore,
+  à la même image que le 23/11 (1 038 et 1 248, un écart de NITRO) : un autre état reste. Les rejeux et les notes restent à un processus neuf par course.
+- **Le faux travailleur compte ce qu'il avale** (`sim-env-reel.js`, `travailleurs()` de `loadGame`) : qui l'a créé (les fonctions du jeu dans la
+  pile) et combien de messages sont restés sans réponse. `ml/bot/verifier.js` (contrôle 6c) refuse un travailleur en attente hors du décor permis
+  (le modèle des nuages, `cotonOuvrier` ; le ciel reflété sur la carrosserie, `envOuvrier`) et exige que le décor qui tue de chaque map soit
+  allumé (canyon `CY.on`, jade `JADE.col`, ville `CITY.col`, grotte `GROTTE.root`). Les dunes (`?dnw=0`) ont le même travailleur : hors du tirage
+  de main aujourd'hui, le contrôle le verra le jour où elles reviennent.
+- **Pas corrigé, écrit** : la double boucle à l'attente du portail (voir plus haut) ; chaque course du bot est la toute première partie d'un
+  débutant (`SAVE.d.ex.runs` = 0 : premier pouvoir un aimant près de l'axe, aimant tiré 30 % du temps contre 19 % pour un habitué — l'effet sur
+  les pièces n'est pas mesuré ; à décider à l'étape D).

@@ -62,13 +62,15 @@ async function projette(){
      de la machine (r = 3, palier 2, « essai a la main ») — dans le simulateur comme ici. `&poste=3` n'y change donc rien aujourd'hui ; il est
      la pour le dire, et pour que la page reste au regime du simulateur si cet ordre changeait un jour.) */
   const REGIME=Q.get('regime')||(R.jeu.regime==='allege'?'allege':'3');
-  await new Promise(ok=>{cadre.onload=ok;cadre.src='/jeu/__projection.html'+N9.requete+(REGIME==='allege'?'&allege=1&poste=3':'&poste='+REGIME.replace(/[^a-z0-9]/gi,''));});
+  /* (2026-11-25, simulateur fidele) la requete du simulateur DE L'ENREGISTREMENT (un rejeu sans jeu.simulateur est d'avant le relief du canyon) */
+  const SIM9=(R.jeu&&R.jeu.simulateur)||'avant-relief',REQ9=(N9.requetes&&N9.requetes[SIM9])||N9.requete;
+  await new Promise(ok=>{cadre.onload=ok;cadre.src='/jeu/__projection.html'+REQ9+(REGIME==='allege'?'&allege=1&poste=3':'&poste='+REGIME.replace(/[^a-z0-9]/gi,''));});
   const w=cadre.contentWindow,env=w.__ENV;
   if(!env||!w.__EV){dit('le jeu ne s\'est pas chargé (pas de porte de lecture)');E.erreur='chargement';return;}
   await attends(2500);                                   /* les textures et les polices arrivent (l'horloge du jeu, elle, ne bouge pas) */
   E.phase='chauffe';dit('mise en route du jeu (la même que le simulateur)…');await attends(30);
   const g={sandbox:w,ev:e=>w.__EV(e),clk:env.clk,tick:env.tick,minuteries:env.minuteries,raf:env.raf,fire:env.fire,seed:env.seed};
-  const J=creer({silence:Q.get('bruit')!=='1',charge:()=>g,noms:N9.noms}); /* &bruit=1 : les erreurs de loop() s'affichent dans la console (pour chercher une panne) */
+  const J=creer({silence:Q.get('bruit')!=='1',charge:()=>g,noms:N9.noms,simulateur:SIM9}); /* &bruit=1 : les erreurs de loop() s'affichent dans la console (pour chercher une panne) */
   Y.installer(J);J.ev(JR_CODE);
   /* L'IMAGE QUI SE COUPE : si la carte graphique lache le canevas (contexte WebGL perdu), le jeu se met en pause de lui-meme et la course n'est
      plus celle du rejeu. Ca ne se rattrape pas : on le compte, et le verdict le dit (relancer la projection). */

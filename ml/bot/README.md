@@ -201,10 +201,12 @@ const revient = !!(vr && (vr.issue === 'pose' || vr.issue === 'levre'));
 - `t` est en secondes de jeu ; pendant le ralenti de la frénésie, `radar.approx` est vrai.
 
 **Ce que les yeux ne voient toujours pas** : le glacier et les dunes (hors du tirage : `aveugle`), la ville vitrée au-delà de son sol, la route d'après le portail,
-un obstacle plus mince que `maille`, les montagnes de jade qui tombent (elles sont vues à leur place du moment), les filets de virage. **Au canyon, dans le
-simulateur `ml/reel`, il n'y a rien à voir : le relief n'y existe pas** (son calcul part dans un travailleur qui ne répond jamais ; `?cyw=0` le calcule sur
-place) — ni paroi, ni rivière, ni mur de couloir ; le jour où ce relief sera allumé, le radar ne le sondera qu'une image sur huit (une sonde y coûte 134 µs) et
-pourra passer à travers un rocher mince, comme il le faisait à la grotte avant le 25/11. Sous la dalle, les `lat` des pièces, fruits et orbes sont en miroir :
+un obstacle plus mince que `maille`, les montagnes de jade qui tombent (elles sont vues à leur place du moment), les filets de virage. **Au canyon**, le relief
+existe dans le simulateur depuis le 25/11 (`ml/reel/jeu-reel.js`, `cyw=0` ; avant, ni paroi, ni rivière, ni mur de couloir) : le radar le sonde **une image sur
+huit** (une sonde y coûte 134 µs) et peut passer à travers un rocher mince entre deux sondes, comme il le faisait à la grotte avant le 25/11 — MESURÉ
+(`node justesse.js --cartes canyon --graines 16`, allégé) : 32 vols, issue juste 32 sur 32 à la première vue, les 16 chocs prévus avec leur cause (paroi,
+canyon, rivière), aucun choc non prévu ; pas de mesure image par image au canyon. Les murs de couloir (`vue.mur`) : sur une course de 200 s du bot de
+référence (graine 910037), `mur.ici` a dit vrai aux 33 vues au sol où le jeu avait un mur (`cyCouloirIci`), et jamais ailleurs (1 918 vues). Sous la dalle, les `lat` des pièces, fruits et orbes sont en miroir :
 lire `latC` (voir en tête du § 2). **Pas de rayon `viser`** : l'aide `viser` (un tronçon en contrebas, l'anneau) n'a aucun rayon — le radar ne dit pas où
 elle mène ; et la loi des rayons `versRoute` n'a pas d'aide : pour la suivre il faut la recopier en `volant` chiffré à chaque décision.
 Les tronçons sont un calcul simple (chute verticale, sans le plané ni les maps où le haut suit la route) : une piste, pas une promesse.
@@ -226,6 +228,12 @@ le voltigeur sur 6 maps × 5 graines (57 vols, `results/justesse-allege.json`, `
 - **le saut** (30, tous le **premier** de leur course : le voltigeur n'en fait qu'un) : il décolle à l'image annoncée (écart médian 0, au pire 0,05 s). Le vol qui suit : issue juste **17 fois sur 18** (le 24/11 : 15 sur 18), la pose annoncée **0,36 s et 25 m trop tôt** en médiane (le 24/11 : 0,71 s et 45 m), 5,2 m de côté, la note juste 6 fois sur 16. Ce qui reste d'écart vient de l'impulsion : avant le premier saut, le radar prend le plancher du jeu (`mesure` faux). L'erreur restante : une pose annoncée pour un choc contre un pic, sur la jade ;
 - **le bot de référence** (rayon `tenu`, 12 vols, `results/justesse-allege-reference.json`) : 10 sur 12 — il change d'ordre pendant ses vols, et `tenu` ne dit que ce qui arrive si rien ne change. Ses courses passent sous la dalle : `latC` y est contrôlé sur 3 325 objets vus dessous, 0 faux ;
 - **le canyon avec son relief** (`--requete "&cyw=0"`, 8 vols, `results/justesse-allege-cyw0.json`) : 8 sur 8, les 4 chocs « paroi » prévus avec leur cause (ce sont 5 vols distincts : les 3 sauts `versRoutePlane` sont presque les mêmes, 1,40 à 1,45 s).
+- (25/11, **simulateur fidèle** : le relief du canyon est allumé dans `ml/reel`, `--requete "&cyw=0"` n'est plus utile) **le canyon, 16 graines**
+  (`node justesse.js --cartes canyon --graines 16 --coeurs 4`, `results/justesse-allege-canyon-relief.json`) : 32 vols, issue juste **32 sur 32** à la première
+  vue et 17 sur 17 une seconde avant la fin ; **16 chocs prévus avec la bonne cause, aucun non prévu** ; les 16 courses finissent contre le décor (paroi 14,
+  canyon 1, rivière 1) en 11 à 15 s : le voltigeur sort exprès, et au canyon la sortie tue. Les yeux : 2,5 à 9,6 ms par vue (10 à 17 ms en vol).
+  ⚠ Les fichiers d'avant le 25/11 (`justesse-allege.json`, `-pas`, `-reference`, `-voltigeur-route`, `-main-clavier`…) ont leurs courses du canyon **sans
+  relief** : leurs chiffres du canyon ne disent rien du vrai canyon.
 
 **Le second cerveau de mesure, `voltigeur-route.js`** (25/11, 6 maps × 5 graines, 86 vols, `results/justesse-allege-voltigeur-route.json`) : il fait ce qu'un pilote fera — plusieurs sauts par course, et après une sortie par le bord la loi `versRoute`.
 
@@ -256,13 +264,14 @@ profil, adresse — n'est plus écrasé sans `--force` : `node justesse.js` tout
 | `justesse-allege.json` | `node justesse.js --graines 5` |
 | `justesse-allege-pas.json` | `node justesse.js --pas` |
 | `justesse-allege-reference.json` | `node justesse.js --cerveau reference.js --cartes libre --graines 4 --tmax 150` |
-| `justesse-allege-cyw0.json` | `node justesse.js --cartes canyon --graines 4 --tmax 60 --requete "&cyw=0"` |
+| `justesse-allege-cyw0.json` | `node justesse.js --cartes canyon --graines 4 --tmax 60 --requete "&cyw=0"` (avant le 25/11) |
+| `justesse-allege-canyon-relief.json` | `node justesse.js --cartes canyon --graines 16 --coeurs 4` (25/11, le relief allumé dans le simulateur) |
 | `justesse-allege-voltigeur-route.json` | `node justesse.js --cerveau voltigeur-route.js --graines 5` |
 | `justesse-allege-main-clavier.json` | `node justesse.js --profil clavier --graines 5` |
 | `justesse-allege-voltigeur-route-main-clavier.json` | `node justesse.js --cerveau voltigeur-route.js --profil clavier --graines 5` |
 
 Les options : `--pas` (les places image par image), `--cerveau` (un autre cerveau que le voltigeur : `reference.js`, le rayon `tenu` ; `voltigeur-route.js`, la façon
-que l'ordre porte), `--profil clavier` (une main à profil), `--requete "&cyw=0"` (le canyon avec son relief), `--sortie` (un autre fichier). C'est aussi le **détecteur de dérive** : une loi du jeu qui change sans que sa copie
+que l'ordre porte), `--profil clavier` (une main à profil), `--requete "&…"` (un morceau de plus dans l'adresse du jeu ; `&cyw=0`, le canyon avec son relief, n'est plus utile depuis le 25/11 : le simulateur le porte), `--sortie` (un autre fichier). C'est aussi le **détecteur de dérive** : une loi du jeu qui change sans que sa copie
 dans `yeux.js` suive se voit là. **Ce que ça coûte** : sur la course du contrôle 3 de `verifier.js` (150 s, le bot de référence, 4 % des vues en vol), **0,74 ms par vue contre 0,39 sans le radar** (au sol 0,66 ms, en vol 2,6), et une vue de 2 360 caractères contre 1 640. Une vue en vol coûte de 1 à 2 ms sans décor, **2,5 à 4 ms devant la ville ou la grotte, 5,5 à 6 ms devant les pics de jade** depuis que le décor est sondé à chaque image (le 24/11, une image sur deux : 2 à 4,5 ms ; les sondes du décor sont des fonctions du jeu : la cible de 2,5 ms n'y est pas tenue), et 13 à 18 ms au canyon avec son relief (une sonde y coûte 134 µs). Un pilote qui volerait autant qu'un joueur (29 % du temps) paierait de l'ordre de 1,5 ms par vue.
 
 ---
@@ -642,6 +651,11 @@ Il en manque 6 : la barre est provisoire.
 À savoir pour lire la comparaison :
 
 - le bot joue une **sauvegarde neuve** (voiture LA HONTE, deux figures : salto et tail whip, moteur au premier palier au départ) ; Sacha joue la sienne ;
+- (25/11, relecture du simulateur) chaque course du bot est donc **la toute première partie d'un débutant** (`SAVE.d.ex.runs` = 0, remis avant chaque course
+  par `ml/reel/jeu-reel.js`) : son premier pouvoir est toujours un AIMANT posé près de l'axe, et l'aimant sort 30 % du temps (vitesse 12 %, aura ×2 16 %)
+  contre 19 % pour un habitué de plus de 30 parties (16 %, 27 % ; `code/gameplay/pouvoirs-grisants.js`). Le palier se compte en pièces et l'aimant en
+  ramène : un petit avantage sur les joueurs de l'étalon, qui ont des dizaines de parties. **L'effet n'est pas mesuré** ; une sauvegarde de départ
+  d'habitué changerait toutes les courses : à décider à l'étape D (le rythme de ramassage) ;
 - le bot joue **au clavier** ; chaque partie dit si elle a été jouée au clavier ou au doigt (`etalon.js` les compte à part dans son titre) ;
 - une reprise par **seconde chance** est recollée à sa partie ; le bot en prend une si son profil le dit (`chance.prend`, § 3.5 : recollée pareil) — sans profil, jamais ;
 - les courses du bot sont **coupées à `--tmax`** (900 s par défaut depuis le 24/11) : une course coupée a une survie et un palier plafonnés, ses taux
@@ -670,5 +684,38 @@ l'ancienne façon (explosion, raccourcis) ; la refaire : `node noter.js --tmax 3
 - **Le portail** : le jeu attend deux images d'écran avant de bâtir la piste suivante ; le simulateur n'en donnait jamais, la caisse restait
   tenue à la bouche du portail (plus un mètre après ~110 s). Les demandes d'image comptent maintenant pendant l'attente du portail, et seulement là.
 - **La grotte au portail** : elle se creuse dans un travailleur qui ne répond pas dans le simulateur ; `grotteworker=0` (l'interrupteur du jeu) la creuse sur place.
+- **(25/11) Le relief du canyon** : même défaut, plus grave — le relief partait dans le même travailleur muet, et le canyon des bots n'avait **ni paroi, ni
+  rivière, ni tunnel, ni mur de couloir** (une sortie de route y était un vol gratuit). `cyw=0` (l'interrupteur du jeu) le calcule sur place. **C'est le
+  seul changement du simulateur qui change la course d'un cerveau sans profil** : toute course qui passe au canyon. La course du témoin (graine 910000,
+  150 s, régime max : espace > nuages > grotte) n'y passe pas : **l'empreinte `a7b3171768ca` ne change pas** (contrôlé, `verifier.js` TOUT PASSE). Les
+  notes, les lignes du journal et les rejeux d'avant portent la version du simulateur `avant-relief` (absente du fichier = avant) ; ceux d'après,
+  `relief-canyon`. Détail et mesures : `ml/reel/README.md`, section du 25/11.
+- **(25/11) La NITRO en vol d'une course à l'autre**, l'**ouvrier qui compte ce qu'il avale**, la **version du simulateur** : voir la même section.
+  La note de départ refaite dans ce simulateur : § 7 bis.
 
 Le jeu lui-même n'est pas modifié.
+
+## 7 bis. La note de départ, avant et après le relief du canyon (25/11)
+
+Le bot de référence, version allégée, 20 graines (910000 + 37 × i), 900 s au plus, un processus neuf par course
+(`node noter.js --regime allege --tmax 900 --graines 20 --coeurs 4`, puis renommée `results/note-reference-allege.json` ; 6 min sur ce PC).
+L'ancienne est gardée : `results/note-reference-allege-avant-relief.json` (24/11).
+
+| | palier médian | meilleur | survie médiane | pièces par minute | argent par minute | en l'air | les fins |
+|---|---|---|---|---|---|---|---|
+| avant le relief (24/11) | 9 | 25 | 157,3 s | 402,5 | 28 821 | 9,9 % | vide 11 · pic 4 · roche 4 · tour 1 |
+| avec le relief (25/11) | **8,5** | **18** | **141,1 s** | **351,7** | 11 523 | 7,9 % | vide 8 · pic 4 · **paroi 3** · roche 3 · **rivière 1** · tour 1 |
+
+**Seules les 4 courses qui passent au canyon ont changé** ; les 16 autres redonnent exactement leur course (même empreinte) :
+
+| graine | avant | après |
+|---|---|---|
+| 910111 | canyon, 56,4 s, vide, palier 4 | canyon, 52,1 s, **rivière**, palier 4 |
+| 910222 | nuages > canyon > jade > espace > ville > grotte, 333,9 s, roche, **palier 25** | nuages > canyon, **76,6 s, paroi, palier 5** |
+| 910444 | espace > ville > canyon, 211,3 s, vide, palier 20 | espace > ville > canyon, 130,1 s, **paroi**, palier 12 |
+| 910481 | ville > grotte > canyon, 166,8 s, vide, palier 13 | ville > grotte > canyon, 152,2 s, **paroi**, palier 11 |
+
+Les deux meilleures courses de la note d'avant (paliers 25 et 20) passaient au canyon : elles y volaient sans risque là où le vrai jeu tue. Le
+meilleur palier tombe de 25 à 18 (910629, qui ne passe pas au canyon), la médiane de 9 à 8,5. **Les 4 courses qui atteignent le canyon y meurent toutes, contre le décor** (3 parois, 1 rivière) ; avant, elles y
+mouraient « vide » ou le traversaient. Les joueurs de l'étalon meurent 2 fois sur 14 « paroi »
+(`ml/ecurie/etude/humains.md`). Toute note faite avant le 25/11 (simulateur `avant-relief`) ne se compare plus à une note d'après.

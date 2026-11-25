@@ -31,12 +31,12 @@ if(A.includes('--enfant')){
   process.on('message',function(m){
     const J=ouvrir({regime:m.regime}),C=charger(m.fichier,{source:m.source});
     const r=course(J,C,m.graine,{carte:m.carte,meteo:m.meteo,tmax:m.tmax});
-    process.send({bilan:r.bilan,partie:r.partie,touches:r.touches,jeu:J.version,jeu_sha:J.sha,nom:C.nom},function(){process.exit(0);});
+    process.send({bilan:r.bilan,partie:r.partie,touches:r.touches,jeu:J.version,jeu_sha:J.sha,simulateur:J.simulateur,nom:C.nom},function(){process.exit(0);});
   });
   return;
 }
 
-const {barre,lignes}=require('./mesures'),{shaJeu,TMAX_DEFAUT}=require('./piloter');
+const {barre,lignes}=require('./mesures'),{shaJeu,TMAX_DEFAUT}=require('./piloter'),{SIMULATEUR}=require('../reel/jeu-reel');
 const fichier=path.resolve(A[0]&&!A[0].startsWith('--')?A[0]:path.join(__dirname,'reference.js'));
 const NG=+opt('graines',20),G0=+opt('depart',910000),TMAX=+opt('tmax',TMAX_DEFAUT),CARTE=opt('carte',null),METEO=opt('meteo',null),REGIME=opt('regime','max')==='allege'?'allege':'max';
 const K=Math.max(1,Math.min(NG,+opt('coeurs',Math.max(1,Math.min(4,os.cpus().length-2)))));
@@ -49,7 +49,7 @@ const suffixe=(REGIME!=='max'?'-allege':'')+(TMAX!==300?'-t'+TMAX:'')+(CARTE?'-'
 const SORTIE=path.resolve(opt('sortie',path.join(__dirname,'results','note-'+nom+suffixe+'.json')));
 if(fs.existsSync(SORTIE)&&!A.includes('--force')){
   let v=null;try{v=JSON.parse(fs.readFileSync(SORTIE,'utf8'));}catch(e){}
-  const pareil=v&&v.graines&&v.graines.n===NG&&v.graines.depart===G0&&v.tmax===TMAX&&(v.regime||'max')===REGIME&&(v.carte||null)===CARTE&&(v.meteo||null)===METEO;
+  const pareil=v&&v.graines&&v.graines.n===NG&&v.graines.depart===G0&&v.tmax===TMAX&&(v.regime||'max')===REGIME&&(v.carte||null)===CARTE&&(v.meteo||null)===METEO&&(v.simulateur||'avant-relief')===SIMULATEUR; /* (25/11) une note d'un autre simulateur n'est pas ecrasee non plus */
   if(!pareil){console.log(`${path.relative(process.cwd(),SORTIE)} existe deja`+(v?` avec d'autres reglages (${v.graines&&v.graines.n} graines depuis ${v.graines&&v.graines.depart}, ${v.tmax} s, regime ${v.regime||'max'}${v.carte?', map '+v.carte:''})`:' (illisible)')+
     ` : rien n'est joue. Choisir --sortie autre.json, ou --force pour l'ecraser.`);process.exit(1);}
 }
@@ -74,6 +74,7 @@ function pourquoiEcartee(m){
   const b=m.bilan;
   if(b.pannes>0||b.cause==='panne')return `${b.pannes} decision(s) coupee(s) par la limite de temps${b.cause==='panne'?', course abandonnee':''} : pas repetable`;
   if(!m.jeu_sha)return 'le jeu a ete reecrit pendant son chargement (empreinte instable)';
+  if(m.simulateur!==SIMULATEUR)return `jouee dans un autre simulateur (${m.simulateur}, la note est faite dans ${SIMULATEUR})`;
   if(m.jeu_sha!==SHA0||m.jeu!==V0)return `jouee sur un autre jeu (${m.jeu} ${m.jeu_sha}, la note est sur ${V0} ${SHA0})`;
   return null;}
 function bilan(){
@@ -86,11 +87,11 @@ function bilan(){
   if(erreurs.length)console.log(`⚠ ${erreurs.length} course(s) avec des ERREURS DU CERVEAU (repetables, comptees dans la note) : graines ${erreurs.map(m=>m.bilan.graine).join(' ')}`);
   if(!bonnes.length){console.log('aucune course valable : pas de note');process.exit(1);}
   const B=barre(bonnes.map(r=>r.partie));
-  console.log('\n=== NOTE de « '+nom+' » ('+V0+' '+SHA0+', regime '+REGIME+', '+TMAX+' s au plus) sur '+bonnes.length+' course(s) ===\n'+lignes(B).join('\n'));
+  console.log('\n=== NOTE de « '+nom+' » ('+V0+' '+SHA0+', regime '+REGIME+', simulateur '+SIMULATEUR+', '+TMAX+' s au plus) sur '+bonnes.length+' course(s) ===\n'+lignes(B).join('\n'));
   fs.mkdirSync(path.dirname(SORTIE),{recursive:true});
   delete B.detail;
   /* courses et parties restent ALIGNEES (meme indice) et comptent TOUTES les courses rendues ; `note` ne compte que les bonnes */
-  fs.writeFileSync(SORTIE,JSON.stringify({date:new Date().toISOString(),jeu:V0,jeu_sha:SHA0,cerveau:nom,sha_cerveau:SHA_CERVEAU,graines:{n:NG,depart:G0,pas:37},tmax:TMAX,regime:REGIME,carte:CARTE,meteo:METEO,
+  fs.writeFileSync(SORTIE,JSON.stringify({date:new Date().toISOString(),jeu:V0,jeu_sha:SHA0,cerveau:nom,sha_cerveau:SHA_CERVEAU,graines:{n:NG,depart:G0,pas:37},tmax:TMAX,regime:REGIME,carte:CARTE,meteo:METEO,simulateur:SIMULATEUR,
     note:B,courses:ok.map(r=>r.bilan),echecs:NG-ok.length,ecartees:ecartees,
     parties:A.includes('--parties')?ok.map(r=>({partie:r.partie,touches:r.touches})):undefined},null,1));
   console.log('\necrit :',path.relative(process.cwd(),SORTIE),'·',Math.round((Date.now()-t0)/1000),'s');

@@ -73,32 +73,63 @@ const PROPRE_CODE=`window.__propre=(function(){
     if(!p[PART]){ if(Array.isArray(cur)) cur.length=p.length; else for(const k of Object.keys(cur)) if(!(k in p)) delete cur[k]; }
     for(const k of Object.keys(p)){ try{ const n9=remet(cur[k],p[k]); if(cur[k]!==n9) cur[k]=n9; }catch(e){} }
     return cur;};
-  let photo=null, poses=null;
+  let photo=null, poses=null, fonctions=null, nesApres=0;
   /* LA POSE DES OBJETS 3D DE HAUT NIVEAU (la caisse, la camera...) : position, orientation, echelle. MESURE : apres une mort, la caisse
      repartait de l'endroit de l'explosion et la 1re image de physique la lisait (ecart 1e-14 des l'image 1). */
   const poseDe=function(o){ return {p:o.position.clone(),q:o.quaternion.clone(),s:o.scale.clone(),v:o.visible}; };
   return {
     noms:function(){ return photo?Object.keys(photo):[]; },
     partiels:function(){ return photo?Object.keys(photo).filter(function(n){ return photo[n]&&photo[n][PART]; }):[]; },
-    photo:function(){ photo={}; poses=new Map(); vus=new Set(); let n=0; for(const nom of window.__NOMS){ let v; try{ v=eval(nom); }catch(e){ continue; }
+    photo:function(){ photo={}; poses=new Map(); fonctions=new Map(); vus=new Set(); let n=0; for(const nom of window.__NOMS){ let v; try{ v=eval(nom); }catch(e){ continue; }
         if(v&&v.isObject3D){ try{ poses.set(v,poseDe(v)); }catch(e){} continue; }
         /* une FONCTION du jeu porte parfois son etat (loop._ms, loop._r30T, loop._nOn, loop._nAir...) : ses proprietes de donnees, en partiel */
-        if(typeof v==='function'){ const ks=Object.keys(v); if(!ks.length) continue; const o={}; o[PART]=true; let k9=0;
+        if(typeof v==='function'){ const ks=Object.keys(v); fonctions.set(nom,new Set(ks)); if(!ks.length) continue; const o={}; o[PART]=true; let k9=0;
           for(const k of ks){ let d; try{ d=donnee(v[k],1); }catch(e){ d=PAS; } if(d!==PAS){ o[k]=d; k9++; } } if(k9){ photo[nom]=o; n++; } continue; }
         let d; try{ d=donnee(v,0); }catch(e){ continue; } if(d===PAS) continue; photo[nom]=d; n++; } vus=null; return n; },
     nPoses:function(){ return poses?poses.size:0; },
+    nesApres:function(){ return nesApres; },
     remet:function(){ let n=0; for(const nom in photo){ const p=photo[nom]; try{ const v=eval(nom);
         /* (eval direct : il voit nouv9, et la variable du jeu ; une const leve une erreur, et se garde) */
         const nouv9=(p!==null&&typeof p==='object')?remet(v,p):p;
         if(nouv9!==v) eval(nom+'=nouv9'); n++; }catch(e){} }
+      /* ===== LES PROPRIETES NEES APRES LA PHOTO, sur les FONCTIONS du jeu (2026-11-25, relecture du simulateur, trouvaille radar-6 : « une course
+         depend des courses d'avant des qu'on allume la NITRO en vol ») =====
+         MESURE : loop._nAirT (l'heure du dernier coup de reacteur en vol, code/moteur/boucle-3-physique.js) nait au premier coup, donc APRES la photo,
+         et la remise partielle ne l'effacait pas. L'horloge revient a T0 a chaque course : a la course suivante, le jeu refusait le reacteur en vol
+         tant que l'horloge n'avait pas depasse l'heure du dernier coup de la course d'avant. Desormais une propriete de DONNEES (nombre, texte,
+         tableau ou objet de donnees) qu'une fonction n'avait pas a la photo est effacee : la fonction redevient celle d'un processus neuf.
+         Ce qui n'est pas une donnee (un maillage, une Map...) n'est pas touche. La premiere course d'un processus ne change pas : entre la photo
+         et elle, rien n'a tourne. nesApres() : combien de proprietes ont ete effacees depuis le chargement. */
+      for(const [nom,ks] of fonctions){ try{ const f=eval(nom); if(typeof f!=='function') continue;
+        for(const k of Object.keys(f)){ if(ks.has(k)) continue; const x=f[k]; let d=PAS;
+          if(x===null||(typeof x!=='object'&&typeof x!=='function'&&typeof x!=='symbol')) d=x;
+          else if(x&&typeof x==='object'&&(Array.isArray(x)||ArrayBuffer.isView(x)||Object.getPrototypeOf(x)===PROTO9||Object.getPrototypeOf(x)===null)){
+            vus=new Set(); try{ d=donnee(x,1); }catch(e){ d=PAS; } vus=null; } /* (un objet d'une autre sorte — contexte de dessin, instance — reste) */
+          if(d!==PAS){ try{ delete f[k]; nesApres++; }catch(e){} } } }catch(e){} }
       for(const [o,ps] of poses){ try{ o.position.copy(ps.p); o.quaternion.copy(ps.q); o.scale.copy(ps.s); o.visible=ps.v; o.updateMatrix(); o.updateMatrixWorld(true); }catch(e){} }
       return n; }
   };
 })()`;
 
-const REQUETE='?sim=1&fps=0&intro=ancien&prebati=0&grotteworker=0';
+/* ===== LE RELIEF DU CANYON ALLUME (2026-11-25, decision de la session principale pour Sacha : « avant de depenser les 200 euros de la boucle, le
+   simulateur doit avoir les memes obstacles que le vrai jeu ») =====
+   `cyw=0` : l'interrupteur du jeu (lu seulement dans code/maps/canyon-route.js, cyAvPart et cyMondePret) qui calcule le relief du canyon SUR PLACE au
+   lieu de l'envoyer a un travailleur. Celui d'ici ne repond jamais (sim-env-reel.js) : jusqu'au 25/11 le canyon du simulateur n'avait ni paroi, ni
+   riviere, ni tunnel, ni mur de couloir (CY.on restait faux), et une sortie de route y etait un vol gratuit, quand le vrai jeu tue en 0,2 s.
+   Memes nombres que le travailleur du vrai jeu (le texte du travailleur rend les memes octets, mesure sur 4 canyons), au meme moment a la construction.
+   CELA CHANGE TOUTE COURSE QUI PASSE AU CANYON : les notes, les rejeux gardes et les lignes du journal d'avant ne se comparent plus a celles d'apres.
+   D'ou LA VERSION DU SIMULATEUR (SIMULATEUR), ecrite dans chaque note (ml/bot/noter.js), chaque ligne du journal et chaque rejeu du labo
+   (ml/labo/labo.js, versionJeu) ; un rejeu sans elle est « avant-relief » et se rejoue dans le simulateur de son enregistrement (REQUETES). */
+const REQUETES={
+  'avant-relief':'?sim=1&fps=0&intro=ancien&prebati=0&grotteworker=0',     /* jusqu'au 25/11/2026 : le canyon sans relief */
+  'relief-canyon':'?sim=1&fps=0&intro=ancien&prebati=0&grotteworker=0&cyw=0' /* depuis le 25/11/2026 */
+};
+const SIMULATEUR='relief-canyon';
+const REQUETE=REQUETES[SIMULATEUR];
 function creer(opts){
   opts=opts||{};
+  const SIM9=opts.simulateur||SIMULATEUR;
+  if(!REQUETES[SIM9]) throw new Error('simulateur inconnu : '+SIM9+' (connus : '+Object.keys(REQUETES).join(', ')+')');
   /* (2026-11-22, etape 0 BOTS-ML) `intro=ancien` : l'intro du studio (moteur/intro-161.js) partait a la 1re touche du bot et posait
      window.__introCouvre=true -> loop() ne calculait plus rien (son film avance par requestAnimationFrame, qui ne bat jamais ici).
      L'ancienne intro (init.js) s'efface d'elle-meme sans #splash (voir sim-env-reel.js). */
@@ -106,7 +137,7 @@ function creer(opts){
      construction attendait sans fin, la caisse tenue au portail (MESURE : 3e course d'une serie, 2e portail). L'interrupteur du jeu la creuse sur place. */
   /* (2026-11-24, etape 1 bis BOTS-ML) `opts.charge` : un autre chargeur que le faux navigateur — la salle de projection (ml/labo/projection.js) y met
      le jeu charge dans un VRAI navigateur, avec l'image ; tout ce qui suit (chauffe, photo, remise, graine) reste le meme code. */
-  const g=(opts.charge||loadGame)(REQUETE+(opts.query||''),opts.graineChargement);
+  const g=(opts.charge||loadGame)(REQUETES[SIM9]+(opts.query||''),opts.graineChargement);
   const d0=g.sandbox.document, gi=d0.getElementById.bind(d0);
   d0.getElementById=id=>id==='splash'?null:gi(id);          /* start() refuse de partir tant qu'un #splash existe */
   const ce=g.sandbox.console.error;
@@ -115,9 +146,16 @@ function creer(opts){
   ev('CAD.ok=false');
   const loop=ev('loop'), keys=ev('keys');
   /* (2026-11-23, etape 1 BOTS-ML) LE PORTAIL : pendant qu'il attend (PORTV.att), ses demandes d'image d'ecran comptent — sauf loop(), que l'on appelle nous-memes (voir sim-env-reel.js) */
+  /* (2026-11-25, relecture du simulateur, trouvaille simulateur-6) CE QUI SE PASSE VRAIMENT : l'exclusion de loop() ne marche pas. Le jeu enrobe
+     requestAnimationFrame des le chargement (code/page/debut-corps.html, la sonde du demarrage, qui ne se referme jamais ici) : ce qui arrive a la
+     porte est toujours cette enveloppe, jamais loop, et `f!==loop` est toujours vrai. Pendant l'attente du portail, la demande d'image de loop
+     passe donc aussi : loop tourne une fois par la minuterie, puis une fois par J.image, a la meme heure (dt nul au second passage). MESURE
+     (graine 910000, regime max, 150 s) : 8 appels de loop par la minuterie pour 2 portails, dont 4 pendant l'attente. L'empreinte temoin
+     a7b3171768ca DEPEND de cet accident : neutralises, la course est une autre (0de46dc189e3). On ne corrige PAS : rien ne dit laquelle des deux
+     est la plus proche d'un navigateur laisse libre (les deux passent les portails). A corriger, si un jour, avec un changement de temoin decide. */
   const PORTV9=ev('PORTV');
   g.raf.porte=function(f){ return f!==loop&&PORTV9.att>0; };
-  const J={g:g, ev:ev, keys:keys, partie:0};
+  const J={g:g, ev:ev, keys:keys, partie:0, simulateur:SIM9};
   J.etat=function(){ return g.sandbox.__S(); };
   J.image=function(){ g.clk.t+=1000/60; g.tick(); loop(g.clk.t); }; /* les minuteries du jeu partent a l'heure du jeu, avant l'image (sim-env-reel.js) */
   J.touche=function(code,bas){ g.fire(bas?'keydown':'keyup',{code:code}); };
@@ -167,4 +205,4 @@ function creer(opts){
   };
   return J;
 }
-module.exports={creer:creer,nomsHautNiveau:nomsHautNiveau,REQUETE:REQUETE};
+module.exports={creer:creer,nomsHautNiveau:nomsHautNiveau,REQUETE:REQUETE,REQUETES:REQUETES,SIMULATEUR:SIMULATEUR};

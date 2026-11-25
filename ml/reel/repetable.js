@@ -8,6 +8,11 @@
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),{fork}=require('child_process');
 const arg=(n,d)=>{ const i=process.argv.indexOf('--'+n); return i>0?process.argv[i+1]:d; };
 const TMAX=+arg('tmax',20);
+/* ===== LA NITRO EN VOL (2026-11-25, relecture du simulateur, trouvaille radar-6 : « une course depend des courses d'avant des qu'on allume la NITRO en vol ») =====
+   Le champion d'octobre n'allumait presque jamais le reacteur en vol : l'etat qu'il laisse (loop._nAirT, l'heure du dernier coup) n'etait pas exerce.
+   Il tient desormais la NITRO a chaque decision en vol (--sans-nitro-vol : comme avant le 25/11). Et un controle direct, a la fin : un depart
+   apres une course qui a laisse loop._nAirT doit le trouver efface (ml/reel/jeu-reel.js, les proprietes nees apres la photo). */
+const NITRO_VOL=!process.argv.includes('--sans-nitro-vol');
 const C=require('./cerveau');
 const W=Float64Array.from(JSON.parse(fs.readFileSync(path.join(__dirname,'results','champion-reel-g1.json'),'utf8')).w);
 const KEYS={L:'ArrowLeft',R:'ArrowRight',U:'ArrowUp',D:'ArrowDown',N:'Space'};
@@ -26,7 +31,7 @@ function course(graine,carte){
       if(e.gameOver||e.mode==='boom') break;
       if(e.s<prevS-500) trk=trk0(); prevS=e.s;
       C.entrees(e,trk,inp); C.forward(W,inp,out);
-      poser('U',out[1]>0); poser('D',out[3]>0); poser('L',out[0]>.33); poser('R',out[0]<-.33); poser('N',out[2]>0); }
+      poser('U',out[1]>0); poser('D',out[3]>0); poser('L',out[0]>.33); poser('R',out[0]<-.33); poser('N',out[2]>0||(NITRO_VOL&&e.mode==='fall')); }
     J.image(); fr++; }
   J.lacher();
   return {graine, carte:vraie, Lpiste:Lp, h:crypto.createHash('sha1').update(JSON.stringify(tr)).digest('hex').slice(0,12), tr};
@@ -59,7 +64,12 @@ if(process.argv.includes('--enfant')){
     const ref=course(g0,c0); const d2=m1&&m1.h===ref.h?null:ecart(ref.tr,m1?m1.tr:[]);
     console.log((d2?'NON':'oui').padEnd(4),'meme processus contre processus neuf,',c0,'| empreintes',ref.h,m1&&m1.h,d2?'| 1er ecart image '+d2.image+' '+JSON.stringify(d2.a)+' vs '+JSON.stringify(d2.b):'');
     if(d2) ok=false;
-    fs.writeFileSync(path.join(__dirname,'results','repetable.json'),JSON.stringify({date:new Date().toISOString(),tmax:TMAX,cartes:R,deuxProcessusNeufs:{carte:c0,graine:g0,identique:neufsOk,ecart:d},memeContreNeuf:{identique:!d2,ecart:d2}},null,1));
+    /* l'heure du dernier coup de reacteur en vol ne passe plus d'une course a l'autre */
+    J.lancer(g0,{carte:c0}); J.ev('loop._nAirT=987654'); J.lancer(g0,{carte:c0});
+    const nAirOk=J.ev('typeof loop._nAirT')==='undefined', effacees=J.ev('__propre.nesApres()');
+    console.log((nAirOk?'oui':'NON').padEnd(4),'loop._nAirT efface au depart suivant ('+effacees+' propriete(s) de fonctions nees apres la photo effacees depuis le chargement)');
+    if(!nAirOk) ok=false;
+    fs.writeFileSync(path.join(__dirname,'results','repetable.json'),JSON.stringify({date:new Date().toISOString(),tmax:TMAX,nitroVol:NITRO_VOL,cartes:R,deuxProcessusNeufs:{carte:c0,graine:g0,identique:neufsOk,ecart:d},memeContreNeuf:{identique:!d2,ecart:d2},nAirTEfface:nAirOk,effacees:effacees},null,1));
     console.log('\nREJEUX (processus neuf) :',neufsOk?'REPETABLES':'PAS REPETABLES','| MEME PROCESSUS :',ok?'REPETABLE sur toutes les maps testees':'PAS REPETABLE (voir les lignes NON)');
     process.exit(ok&&neufsOk?0:1);
   });

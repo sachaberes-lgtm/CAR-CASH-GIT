@@ -93,11 +93,13 @@ const deLEtape=()=>L.lire(L.F.cerveaux).filter(l=>l.etape===ETAPE);
    (documents-6) Et seulement les lignes notees comme CE lancement (meme tmax, meme regime) : une note a 300 s ou au regime max ne se compare pas
    a une note a 900 s en allege — elles sont laissees de cote, et on le dit. */
 const regimeDe=l=>(l.jeu&&l.jeu.regime)||'max';
+/* (2026-11-25, simulateur fidele) et LE MEME SIMULATEUR : une note d'avant le relief du canyon (« avant-relief ») ne se compare pas a une note d'apres */
+const simDe=l=>L.simulateurDe(l.jeu);
 function sacres(){const V=L.lire(L.F.validations);return new Set(V.filter(v=>v.etape===ETAPE&&v.role==='candidat'&&v.tient===true).map(v=>v.id));}
 function meilleur(dire9){
   const S=sacres(),autres=[];let b=null;
   for(const l of deLEtape()){if(l.lot!=='entrainement')continue;
-    if(l.tmax!==TMAX||regimeDe(l)!==REGIME){autres.push(l.id+' ('+l.tmax+' s, '+regimeDe(l)+')');continue;}
+    if(l.tmax!==TMAX||regimeDe(l)!==REGIME||simDe(l)!==L.SIMULATEUR){autres.push(l.id+' ('+l.tmax+' s, '+regimeDe(l)+(simDe(l)!==L.SIMULATEUR?', simulateur '+simDe(l):'')+')');continue;}
     if(!(l.generation===0&&!(l.parents||[]).length)&&!S.has(l.id))continue;
     if(!b||mieux(valeur(l.note),valeur(b.note)))b=l;}
   if(dire9&&autres.length)dire(`⚠ ${autres.length} pilote(s) de l'etape ${ETAPE} note(s) avec un autre reglage que ce lancement (${TMAX} s, ${REGIME}) : laisse(s) de cote — ${autres.slice(0,6).join(', ')}`);
@@ -191,7 +193,7 @@ async function demande(parent,k){
   /* LA BARRE DU PARENT SUR LES GRAINES NEUVES : notee une fois par parent (et gardee au journal des validations, role « barre ») */
   function barreDe(Q,fQ){
     if(barreVal[Q.id])return barreVal[Q.id];
-    const v=L.lire(L.F.validations).filter(x=>x.id===Q.id&&x.graines&&x.graines.depart===GV&&x.graines.n===NG&&x.tmax===TMAX&&regimeDe(x)===REGIME).pop();
+    const v=L.lire(L.F.validations).filter(x=>x.id===Q.id&&x.graines&&x.graines.depart===GV&&x.graines.n===NG&&x.tmax===TMAX&&regimeDe(x)===REGIME&&simDe(x)===L.SIMULATEUR).pop();
     if(v)return (barreVal[Q.id]=valeur(v.note));
     dire(`  la barre du parent ${Q.id} sur ${NG} graines neuves (depuis ${GV})…`);
     const N=noter(fQ,NG,TMAX,'val-'+Q.id,GV);if(!N)return null;
@@ -252,7 +254,7 @@ async function demande(parent,k){
     /* LA VALIDATION (2026-11-25, relecture) : les notees en grand de cette generation qui battent le parent, la meilleure d'abord, sont renotees
        sur NG graines NEUVES ; la premiere qui y tient la barre du parent (notee sur ces memes graines) est sacree. Les deux chiffres au journal
        (validations.jsonl : role « candidat », tient, barre). A blanc, la meilleure est validee meme sans battre le parent : pour exercer le chemin. */
-    const nees=deLEtape().filter(l=>l.generation===gen&&l.lot==='entrainement'&&l.tmax===TMAX&&regimeDe(l)===REGIME).sort((x,y)=>mieux(valeur(x.note),valeur(y.note))?-1:1);
+    const nees=deLEtape().filter(l=>l.generation===gen&&l.lot==='entrainement'&&l.tmax===TMAX&&regimeDe(l)===REGIME&&simDe(l)===L.SIMULATEUR).sort((x,y)=>mieux(valeur(x.note),valeur(y.note))?-1:1);
     const aValider=nees.filter(l=>mieux(valeur(l.note),valeur(P.note))).concat(BLANC&&nees.length&&!mieux(valeur(nees[0].note),valeur(P.note))?[nees[0]]:[]);
     let sacre=null;
     for(const M of aValider){

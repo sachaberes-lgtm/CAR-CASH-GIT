@@ -160,7 +160,19 @@ function loadGame(search,graineChargement){
   /* (2026-11-22) UN OUVRIER QUI NE REPOND JAMAIS : dans un navigateur, le modele des nuages (nuage8Calc, pur decor) part dans un Web Worker.
      Sans Worker, le jeu le calcule par tranches de « 8 ms » sur le fil principal — et l'horloge ne bouge pas pendant une image : 82 s d'un bloc
      (MESURE, cotonTrancheSuite). Ici l'ouvrier prend le travail et ne rend rien : les nuages gardent leur ebauche, comme avant l'horloge virtuelle. */
-  sandbox.Worker=function(){ return {postMessage(){},terminate(){},addEventListener(){},removeEventListener(){},onmessage:null,onerror:null}; };
+  /* ===== LE FAUX TRAVAILLEUR COMPTE CE QU'IL AVALE (2026-11-25, relecture du simulateur, trouvaille simulateur-4 : « le faux travailleur avale les
+     messages sans rien dire, et aucun controle ne verifie que le decor dur d'une map existe ») =====
+     Deux fois deja un calcul qui porte des REGLES est parti dans un travailleur muet : la grotte (23/11, grotteworker=0) et le relief du canyon
+     (25/11, cyw=0). Chaque creation note desormais QUI l'a demandee (les fonctions du jeu dans la pile, « cyTravailleur < cyBatitG ») et combien
+     de messages elle a recus sans reponse. Le compte vit ICI, hors du bac a sable et de tout objet rendu au jeu : ni la photo de jeu-reel.js ni
+     le marcheur du controle 6e ne le voient, et compter ne change aucune course. loadGame le rend : travailleurs(). verifier.js (controle 6c)
+     refuse un travailleur qui a des messages en attente hors d'une liste permise (le decor : nuages, ciel reflete sur la carrosserie). */
+  const TRAV=[];
+  sandbox.Worker=function(){
+    let qui='?'; try{ const L9=String(new Error().stack||'').split('\n').slice(2).filter(l=>l.indexOf('index.html')>=0).slice(0,3)
+      .map(l=>{ const m=/at (?:new )?([\w$.<>]+) \(/.exec(l); return m?m[1]:'(anonyme)'; }); if(L9.length) qui=L9.join(' < '); }catch(e){}
+    const t={qui:qui,messages:0}; TRAV.push(t);
+    return {postMessage(){ t.messages++; },terminate(){},addEventListener(){},removeEventListener(){},onmessage:null,onerror:null}; };
   sandbox.Blob=Blob; sandbox.URL=URL;
   if(!sandbox['requestIdleCallback']) sandbox['requestIdleCallback']=new Proxy(function(){},{get:(t,k)=>k===Symbol.toPrimitive?()=>0:(typeof k==='symbol'?undefined:t[k]||function(){return{};}),construct:()=>({observe(){},disconnect(){}}),apply:()=>({})});
   if(!sandbox['apresPolice']) sandbox['apresPolice']=new Proxy(function(){},{get:(t,k)=>k===Symbol.toPrimitive?()=>0:(typeof k==='symbol'?undefined:t[k]||function(){return{};}),construct:()=>({observe(){},disconnect(){}}),apply:()=>({})});
@@ -186,6 +198,7 @@ function loadGame(search,graineChargement){
     get:function(expr){ return vm.runInContext(expr,sandbox); },
     ev:function(expr){ return sandbox.__EV(expr); },
     clk:CLK, tick:tick, minuteries:TIM, raf:RAF,
+    travailleurs:function(){ return TRAV.map(t=>({qui:t.qui,messages:t.messages})); }, /* (2026-11-25) les travailleurs crees, et leurs messages restes sans reponse */
     fire:function(type,evt){ const e=Object.assign({preventDefault(){},stopPropagation(){},repeat:false},evt); for(const f of (LISTENERS[type]||[])){ try{f(e);}catch(x){} } },
     seed:function(n){ vm.runInContext(SEED_CODE(n),sandbox); }
   };

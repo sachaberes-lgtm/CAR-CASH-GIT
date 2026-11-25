@@ -24,6 +24,9 @@ const F={cerveaux:path.join(D.journal,'cerveaux.jsonl'),validations:path.join(D.
   depenses:path.join(D.journal,'depenses.jsonl')};
 const sha=t=>crypto.createHash('sha1').update(t).digest('hex');
 const r2=x=>Math.round(x*100)/100;
+/* (2026-11-25) la version du simulateur d'aujourd'hui, et celle d'un objet `jeu` (une ligne du journal, un rejeu) : sans le champ, « avant-relief » */
+const {SIMULATEUR}=require('../reel/jeu-reel');
+const simulateurDe=jeu=>(jeu&&jeu.simulateur)||'avant-relief';
 
 /* ----- les fichiers ----- */
 function lire(f){
@@ -47,7 +50,10 @@ function lireGz(f){return JSON.parse(zlib.gunzipSync(fs.readFileSync(f)).toStrin
    (index.html + figures.js) : c'est elle qui tranche. `propre` = ces deux fichiers sont ceux du commit (rien de modifie a la main). */
 function versionJeu(){
   const lis=f=>fs.readFileSync(path.join(JEU,f));
-  const v={version:(String(lis('sw.js')).match(/cashcar-v\d+/)||['?'])[0],sha:sha(Buffer.concat([lis('index.html'),lis('figures.js')])).slice(0,12),commit:null,propre:null};
+  /* (2026-11-25, simulateur fidele) `simulateur` : la version du simulateur (ml/reel/jeu-reel.js, SIMULATEUR ; « relief-canyon » depuis le 25/11). Une
+     ligne ou un rejeu qui ne la porte pas est d'avant : « avant-relief », le canyon sans paroi ni riviere. Elle s'ecrit dans chaque ligne du journal
+     et chaque rejeu ; rejouer.js et garder.js rejouent dans le simulateur de l'enregistrement, et la boucle ne compare que les notes d'un meme simulateur. */
+  const v={version:(String(lis('sw.js')).match(/cashcar-v\d+/)||['?'])[0],sha:sha(Buffer.concat([lis('index.html'),lis('figures.js')])).slice(0,12),commit:null,propre:null,simulateur:SIMULATEUR};
   try{v.commit=execFileSync('git',['rev-parse','--short','HEAD'],{cwd:DEPOT,encoding:'utf8'}).trim();
     v.propre=!execFileSync('git',['status','--porcelain','--','VERSION PRINCIPALE/index.html','VERSION PRINCIPALE/figures.js'],{cwd:DEPOT,encoding:'utf8'}).trim();}catch(e){}
   return v;
@@ -230,7 +236,7 @@ function clore(etape,generation,o){
 /* le jeu bavarde en se chargeant (ses propres messages, des erreurs de decor sans ecran) : on ne garde que ce que l'outil a a dire */
 function ensilence(f){const c=console,l=c.log,e=c.error,w=c.warn;c.log=c.error=c.warn=function(){};try{return f();}finally{c.log=l;c.error=e;c.warn=w;}}
 
-module.exports={sansCout,ensilence,RACINE,DEPOT,D,F,sha,lire,ajouter,ecrireAtomique,ecrireGz,lireGz,versionJeu,NOM_OK,nettoyerNom,generationClose,marquerInscription,inscriptionsEnCours,coderTouches,decoderTouches,resumeCourse,inscrire,valider,depense,depenses,
+module.exports={SIMULATEUR,simulateurDe,sansCout,ensilence,RACINE,DEPOT,D,F,sha,lire,ajouter,ecrireAtomique,ecrireGz,lireGz,versionJeu,NOM_OK,nettoyerNom,generationClose,marquerInscription,inscriptionsEnCours,coderTouches,decoderTouches,resumeCourse,inscrire,valider,depense,depenses,
   garder,tampon,nomCourse,traceFine,clore};
 
 /* ----- lance seul : l'etat du labo ----- */
@@ -238,7 +244,8 @@ if(require.main===module){
   const J=lire(F.cerveaux),G=lire(F.generations),V=lire(F.validations),dep=depenses(),v=versionJeu();
   const n=d=>fs.existsSync(d)?fs.readdirSync(d).filter(f=>!f.startsWith('.')).length:0;
   console.log('labo : '+RACINE);
-  console.log('jeu  : '+v.version+' · commit '+v.commit+' · empreinte '+v.sha+(v.propre===false?' · ⚠ index.html ou figures.js modifie depuis le commit':''));
+  console.log('jeu  : '+v.version+' · commit '+v.commit+' · empreinte '+v.sha+' · simulateur '+v.simulateur+(v.propre===false?' · ⚠ index.html ou figures.js modifie depuis le commit':''));
+  {const vieux=J.filter(l=>simulateurDe(l.jeu)!==SIMULATEUR).map(l=>l.id);if(vieux.length)console.log(`  ${vieux.length} candidat(s) note(s) dans un autre simulateur (avant le relief du canyon, 25/11) : ${vieux.join(' ')} — leurs notes ne se comparent pas aux nouvelles`);}
   console.log(`${J.length} candidat(s) au journal · ${G.length} generation(s) close(s) · ${V.length} validation(s) · ${n(D.rejeux)} rejeu(x) garde(s) · ${fs.existsSync(D.tampon)?fs.readdirSync(D.tampon).filter(f=>/^c\d+\.json\.gz$/.test(f)).length:0} candidat(s) au tampon`);
   const parGen={};for(const l of J){const k='etape '+l.etape+' · generation '+l.generation;(parGen[k]=parGen[k]||[]).push(l);}
   for(const k in parGen){const A=parGen[k],g=G.find(q=>'etape '+q.etape+' · generation '+q.generation===k);

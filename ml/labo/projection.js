@@ -11,7 +11,7 @@
    ecran (rejouer.js --serie) et dit si l'image montre LA MEME course, ou a quelle seconde elles se separent (tampon/projection-<course>.json). */
 const http=require('http'),fs=require('fs'),path=require('path'),{spawnSync}=require('child_process');
 const L=require('./labo');
-const {nomsHautNiveau,REQUETE}=require('../reel/jeu-reel');
+const {nomsHautNiveau,REQUETE,REQUETES}=require('../reel/jeu-reel');
 const {PORTES}=require('../reel/sim-env-reel');
 const A=process.argv.slice(2),opt=(n,d)=>{const i=A.indexOf('--'+n);return i>=0?A[i+1]:d;};
 const PORT=+opt('port',process.env.PORT||3161),JEU=path.join(L.DEPOT,'VERSION PRINCIPALE'),ML=path.join(L.DEPOT,'ml'),ICI=path.join(__dirname,'projection');
@@ -159,7 +159,7 @@ http.createServer(async function(req,res){
     if(p==='/'){res.writeHead(200,{'Content-Type':MIME['.html']});return res.end(accueil());}
     if(p==='/projection')return statique(ICI,'page.html',res);
     if(p==='/__labo/prelude.js')return statique(ICI,'prelude.js',res);
-    if(p==='/__noms'){res.writeHead(200,{'Content-Type':MIME['.json']});return res.end(JSON.stringify({noms:nomsHautNiveau(),requete:REQUETE,jeu:L.versionJeu()}));}
+    if(p==='/__noms'){res.writeHead(200,{'Content-Type':MIME['.json']});return res.end(JSON.stringify({noms:nomsHautNiveau(),requete:REQUETE,requetes:REQUETES,jeu:L.versionJeu()}));} /* (25/11) requetes : celle de chaque version du simulateur (un rejeu d'avant le relief du canyon se projette sans lui) */
     if(p==='/__cjs'){const m=module9(u.searchParams.get('f')||'');if(!m){res.writeHead(404);return res.end('module introuvable');}res.writeHead(200,{'Content-Type':MIME['.js'],'Cache-Control':'no-store'});return res.end(m);}
     if(p==='/__rejeu'){const f=rejeuDe(u.searchParams.get('f'));if(!f){res.writeHead(404);return res.end('{}');}return statique(L.D.rejeux,path.basename(f),res);}
     if(p==='/__hasard'){const j=sansEcran(nomCourse9(u.searchParams.get('f')));if(!j){res.writeHead(404);return res.end('{}');}res.writeHead(200,{'Content-Type':MIME['.json']});return res.end(JSON.stringify(j.hasard));}

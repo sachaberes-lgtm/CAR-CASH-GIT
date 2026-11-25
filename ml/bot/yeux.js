@@ -248,7 +248,11 @@ const YEUX_CODE=`window.__YEUX=(function(){
        relief se lit par cinq hauteurs de terrain a chaque sonde).
        (2026-11-25, relecture) LA GROTTE ET LES PICS DE JADE AUSSI A CHAQUE IMAGE (c'etait une sur deux). MESURE : grotte, graine 910037, 2e saut — le
        jeu touche la roche a la 65e image (impaire, non sondee) et pas aux images 64, 66, 67, 68 : le radar passait a travers et annoncait le choc
-       87 images plus loin. ⚠ Le canyon, a une image sur huit, aura le meme defaut en pire le jour ou son relief sera allume dans le simulateur. */
+       87 images plus loin. ⚠ Le canyon, a une image sur huit, aura le meme defaut en pire le jour ou son relief sera allume dans le simulateur.
+       (2026-11-25, simulateur fidele) LE RELIEF EST ALLUME (ml/reel/jeu-reel.js, cyw=0). MESURE (justesse.js --cartes canyon --graines 16, allege) :
+       32 vols, l'issue juste 32 fois sur 32 a la premiere vue, les 16 chocs prevus avec la bonne cause (paroi, canyon, riviere), aucun choc non
+       prevu ; et les yeux coutent moins de 3 % du temps d'une course entiere du bot de reference (radar coupe / ouvert, 4 graines). La cadence reste
+       une image sur huit : un choc qui frole une paroi entre deux sondes n'est PAS exclu (pas de mesure image par image au canyon). */
     K.cad=K.dCanyon?8:1;
     K.volrOn=volrOn();
     K.approx=AIR_RATE!==1||TBORD.t>0||(VOLR.on&&!VOLR_FIGE)||K.park||!!(TCTL.act||TCTL.incl||TCTL.pad)||(typeof RALENTI!=='undefined'&&RALENTI.t>0);

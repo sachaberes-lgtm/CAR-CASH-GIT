@@ -40,7 +40,8 @@ for(const k of ['regime','carte','meteo']){const v=opt(k,null);if(v!=null)impose
 if(imposes.regime!=null&&!['max','allege'].includes(imposes.regime))stop('--regime : max ou allege');
 if(VAL){const r0=(ligne0.jeu&&ligne0.jeu.regime)||'max';
   if(imposes.regime!==r0)console.log(`⚠ ${VAL} a ete note au regime ${r0} : cette validation au regime ${imposes.regime} ne se comparera pas a sa note`);
-  if(ligne0.carte&&imposes.carte!==ligne0.carte)console.log(`⚠ ${VAL} a ete note sur la map ${ligne0.carte} : cette validation ne se comparera pas a sa note`);}
+  if(ligne0.carte&&imposes.carte!==ligne0.carte)console.log(`⚠ ${VAL} a ete note sur la map ${ligne0.carte} : cette validation ne se comparera pas a sa note`);
+  if(L.simulateurDe(ligne0.jeu)!==L.SIMULATEUR)console.log(`⚠ ${VAL} a ete note dans le simulateur « ${L.simulateurDe(ligne0.jeu)} » (avant le relief du canyon, 25/11) : cette validation, faite dans celui d'aujourd'hui, ne se comparera pas a sa note`);}
 
 /* (2026-11-24, defaut 25) refuser AVANT de jouer 10 minutes : la MEME verification que le journal (labo.js inscrire), sur ce qu'on sait deja.
    Avant, un nom « élan », une --generation x ou un parent inconnu n'etaient refuses qu'apres la note, et la note etait perdue. */
@@ -80,6 +81,8 @@ if(opt('note',null)){
     if(apres.length)console.log(`⚠ ${apres.join(' et ')} ont ete reecrits apres cette note (${N.date}) et la note ne porte pas l'empreinte du jeu : si le contenu a change, ses rejeux seront DIFFERENTS`);}
   for(const k of ['regime','carte','meteo']){const vu=k==='regime'?(N.regime||'max'):(N[k]||null);
     if(k in imposes&&vu!==imposes[k])stop(`cette note a ete faite avec ${k} = ${vu}, pas ${imposes[k]} : rien n'est inscrit`);}
+  /* (2026-11-25, simulateur fidele) et dans CE simulateur : une note d'avant le relief du canyon (sans le champ) ne s'inscrit plus */
+  if((N.simulateur||'avant-relief')!==L.SIMULATEUR)stop(`cette note a ete faite dans le simulateur « ${N.simulateur||'avant-relief'} », aujourd'hui « ${L.SIMULATEUR} » (le relief du canyon, 25/11) : renoter`);
 }else{
   tmp=path.join(L.D.tampon,'note-en-cours-'+process.pid+'.json');
   const args=[path.join(__dirname,'..','bot','noter.js'),fichier,'--graines',String(NG),'--depart',String(G0),'--tmax',String(TMAX),'--sortie',tmp,'--parties'];

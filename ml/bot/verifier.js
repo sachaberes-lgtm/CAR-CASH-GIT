@@ -24,8 +24,10 @@
      6. LE RADAR NE TOUCHE PAS LE JEU
         6a. sans le radar ({ radar:false } a chaque vue : la vue d'avant) : meme course, memes touches, memes images ;
         6b. aucun tirage du hasard du jeu pendant une vue (l'etat du generateur lu avant et apres chacune) ;
-        6c. par carte (nuages, espace, grotte, ville, jade, canyon, et le canyon avec son relief), le voltigeur (voltigeur.js : il ne lit pas le radar), 40 s, deux processus :
+        6c. par carte (nuages, espace, grotte, ville, jade, canyon — avec son relief depuis le 25/11), le voltigeur (voltigeur.js : il ne lit pas le radar), 40 s, deux processus :
             radar coupe / radar a chaque vue ET sorties demandees a chaque image → meme course, memes touches ;
+            (2026-11-25) et sur chacune : le decor qui tue de la map est allume (DECOR_DUR), aucun travailleur du jeu n'a de message sans reponse hors
+            du decor permis (TRAVAILLEURS_PERMIS) ;
         6d. aucune erreur dans les yeux, aucun nom du jeu manquant ;
         6e. L'ETAT INTACT : un marcheur pose par ce fichier seul (__YEUX_TEMOIN) hache chaque variable de haut niveau du jeu (donnees, tableaux
             types, proprietes des fonctions, place des objets 3D) juste avant et juste apres une vue avec sorties, une fois par seconde des
@@ -33,7 +35,8 @@
         6f. le texte des yeux n'appelle aucune fonction du jeu qui ecrit, et ne tire rien au hasard.
      7. LE COUT : les comptes d'images et de sondes au pire restent sous le budget des yeux et sont les memes dans deux processus (echec dur) ;
         le temps par vue et le poids de la vue sont AFFICHES par carte (l'horloge de l'hote depend de la charge du PC : echec au-dela de 3 ms de
-        moyenne sur la course du bot de reference, de 6 ms sur celles du voltigeur, qui vole la moitie du temps).
+        moyenne sur la course du bot de reference, de 6 ms sur celles du voltigeur, qui vole la moitie du temps ; le canyon avec son relief, depuis le
+        25/11, est juge pareil, et la part des yeux dans le temps de chaque course est affichee).
      8. LA JUSTESSE : le tableau « prevu / arrive » de justesse.js sur les courses de 6c, affiche (les seuils : SEUILS, plus bas). */
 /* ===== LES CONTROLES DES DOIGTS V2 (2026-11-24, Sacha : « des bots du palier 1 au palier 30 qu'on ne distingue pas de vrais joueurs ») =====
    Un cerveau peut regler sa main par un `profil` (doigts.js). Sans profil RIEN ne change : c'est le controle 3 bis (le temoin) qui le dit.
@@ -92,9 +95,16 @@ const TEMOIN={regime:'max',graine:910000,tmax:150,empreinte:'a7b3171768ca',touch
    V9J : jadeHeurt · CY_H9, CY_O9, T2F, T2P, T2B : canyonHeurt et sa coque du tunnel · CY_VF, CY_VD : la voute · CY_V3O : les toits du canyon ·
    GT_F2 : geantsHeurt · JSP : jadeEnversRefuse (le saut predit de Jade). */
 const BROUILLONS=['V9J','CY_H9','CY_O9','T2F','T2P','T2B','CY_VF','CY_VD','CY_V3O','GT_F2','JSP'];
-/* LES CARTES DES CONTROLES 6c, 6e, 7, 8. « canyon+relief » : le canyon avec son relief calcule sur place (?cyw=0). Dans ml/reel ce calcul part dans un
-   travailleur qui ne repond jamais : le canyon du simulateur n'a ni paroi, ni riviere, ni mur de couloir. Le radar, lui, doit savoir sonder le vrai. */
-const CARTES6=[{nom:'nuages',carte:'nuages'},{nom:'espace',carte:'espace'},{nom:'grotte',carte:'grotte'},{nom:'ville',carte:'ville'},{nom:'jade',carte:'jade'},{nom:'canyon',carte:'canyon'},{nom:'canyon+relief',carte:'canyon',requete:'&cyw=0'}];
+/* LES CARTES DES CONTROLES 6c, 6e, 7, 8. (2026-11-25, simulateur fidele) Le canyon du simulateur a desormais son relief (ml/reel/jeu-reel.js : cyw=0
+   dans REQUETE) : l'entree « canyon+relief » (?cyw=0 en plus) est retiree, la carte « canyon » EST le canyon avec son relief, jugee comme les autres. */
+const CARTES6=[{nom:'nuages',carte:'nuages'},{nom:'espace',carte:'espace'},{nom:'grotte',carte:'grotte'},{nom:'ville',carte:'ville'},{nom:'jade',carte:'jade'},{nom:'canyon',carte:'canyon'}];
+/* ===== LE DECOR DUR ALLUME, LES TRAVAILLEURS MUETS (2026-11-25, relecture du simulateur, trouvaille simulateur-4) — controle 6c (suite) =====
+   Sur chaque course par carte : a une vue au moins, le decor qui TUE de la map est allume dans le jeu (DECOR_DUR : canyon CY.on, jade JADE.col, ville
+   CITY.col, grotte GROTTE.root ; nuages et espace n'en ont pas a exiger) ; et aucun travailleur du jeu n'a de message reste sans reponse, sauf ceux
+   de TRAVAILLEURS_PERMIS (du decor, sans regle : le modele des nuages, le ciel reflete sur la carrosserie). Une mise a jour du jeu qui deplace un
+   calcul dans un travailleur casse ce controle au lieu de fausser les notes. */
+const DECOR_DUR={canyon:'CY.on',jade:'JADE.col',ville:'CITY.col',grotte:'GROTTE.root'};
+const TRAVAILLEURS_PERMIS=[/^cotonOuvrier\b/,/^envOuvrier\b/];
 /* LES SEUILS DE JUSTESSE (controle 8), sur l'ensemble des vols des courses de 6c (juges a partir de 8 vols). MESURE le 24/11/2026 sur 57 vols de
    6 maps (node justesse.js --graines 5) : l'issue est juste 57/57 a la premiere vue du vol et 51/51 une seconde avant sa fin. null = affiche seulement. */
 const SEUILS={a_juste:.8,b_juste:.85,min:8};
@@ -162,13 +172,16 @@ if(A.includes('--enfant')){
       /* (yeux v2, controles 6c, 6e, 7, 8) le voltigeur sur une map imposee : radar coupe, ou radar a chaque vue et sorties a chaque image */
       const C=charger(VOLT);
       if(m.coupe){const x=course(J,C,m.graine,{carte:m.carte,tmax:m.tmax,demande:{radar:false}});
-        r={empreinte:x.bilan.empreinte,touches:sha(x.touches),images:x.bilan.images,cause:x.bilan.cause,duree:x.bilan.duree_s,vols:x.bilan.vols};}
+        r={empreinte:x.bilan.empreinte,touches:sha(x.touches),images:x.bilan.images,cause:x.bilan.cause,duree:x.bilan.duree_s,vols:x.bilan.vols,xReel:x.bilan.foisTempsReel};}
       else{
-        J.ev(TEMOIN_CODE);const TM=J.g.sandbox.__YEUX_TEMOIN,change={};let photos=0,msPhoto=0;
+        J.ev(TEMOIN_CODE);const TM=J.g.sandbox.__YEUX_TEMOIN,change={};let photos=0,msPhoto=0,dur=0;
+        /* (2026-11-25) le decor dur de la map, lu une fois par seconde, AVANT la premiere photo (lire ne change rien) */
+        const durE=DECOR_DUR[m.carte]?'!!('+DECOR_DUR[m.carte]+')':null;
         const x=require('./justesse').mesure(J,C,{graine:m.graine,carte:m.carte,tmax:m.tmax},course,{yeuxEnPlus:{sorties:true},
-          temoin:function(J9){const t0=Date.now(),a=TM.photo();Y.voir(J9,{sorties:true});const b=TM.photo();msPhoto+=Date.now()-t0;photos++;for(const n of TM.diff(a,b))change[n]=(change[n]||0)+1;}});
+          temoin:function(J9){if(durE){try{if(J9.ev(durE))dur++;}catch(e){}}const t0=Date.now(),a=TM.photo();Y.voir(J9,{sorties:true});const b=TM.photo();msPhoto+=Date.now()-t0;photos++;for(const n of TM.diff(a,b))change[n]=(change[n]||0)+1;}});
         r={empreinte:x.bilan.empreinte,touches:x.bilan.touches,images:x.bilan.images,cause:x.bilan.cause,duree:x.bilan.duree,yeux:x.bilan.yeux,tirages:x.bilan.tirages,xReel:x.bilan.xReel,
-           justesse:x.vols,controles:x.controles,temoin:{photos:photos,ms:photos?Math.round(msPhoto/photos):0,change:change},budget:Y.budgetDe(J)};}
+           justesse:x.vols,controles:x.controles,temoin:{photos:photos,ms:photos?Math.round(msPhoto/photos):0,change:change},budget:Y.budgetDe(J),
+           decorDur:durE?{expr:DECOR_DUR[m.carte],vu:dur,sur:photos}:null,travailleurs:J.g.travailleurs(),simulateur:J.simulateur};}
     }else if(m.quoi==='envers'){
       /* (relecture, controle 6g) la caisse lachee par le banc du jeu, a l'endroit (u = 1) puis tete en bas (u = -1) : ou finit le rayon versRoute ? */
       const essai=function(u){
@@ -356,6 +369,14 @@ function mainSeule(profil,graine,ordre,images){
   R.radar.cartes={};
   for(const p of P6){const ok=meme(p.coupe,p.plein);R.radar.cartes[p.carte]={ok:ok,coupe:p.coupe&&{empreinte:p.coupe.empreinte,touches:p.coupe.touches,images:p.coupe.images},plein:p.plein&&{empreinte:p.plein.empreinte,touches:p.plein.touches,images:p.plein.images}};
     dit(ok,`6c. ${p.carte.padEnd(13)} radar coupe / radar et sorties a chaque image : `+(p.coupe&&p.plein?`${p.coupe.empreinte} / ${p.plein.empreinte} · touches ${p.coupe.touches} / ${p.plein.touches} · ${p.coupe.images} / ${p.plein.images} images (${p.plein.duree} s, fin « ${p.plein.cause} », ${p.coupe.vols} vol(s))`:'une des deux courses n\'a rien rendu'));}
+  /* 6c (suite, 2026-11-25, simulateur fidele) le decor dur allume et les travailleurs muets, sur chaque course par carte */
+  {const D9={},T9=[];let okD=true;
+    for(const p of P6){const x=p.plein;if(!x){okD=false;continue;}
+      if(x.decorDur){const vu=x.decorDur.vu>0;D9[p.carte]={expr:x.decorDur.expr,vu:x.decorDur.vu,sur:x.decorDur.sur};if(!vu)okD=false;}
+      for(const t of (x.travailleurs||[]))if(t.messages>0&&!TRAVAILLEURS_PERMIS.some(re=>re.test(t.qui)))T9.push(p.carte+' : '+t.qui+' ('+t.messages+' message(s) sans reponse)');}
+    R.radar.decorDur={ok:okD,cartes:D9};R.radar.travailleurs={ok:!T9.length,hors:T9};
+    dit(okD,'6c. le decor qui tue est allume (vu a une vue au moins) : '+Object.keys(D9).map(k=>`${k} ${D9[k].expr} ${D9[k].vu}/${D9[k].sur}`).join(' · '));
+    dit(!T9.length,'6c. aucun travailleur du jeu avec des messages sans reponse hors du decor permis (nuages, ciel de la carrosserie)'+(T9.length?' — EN ATTENTE : '+T9.join(' ; '):''));}
   {const C6=[['a',a],['yeux ouverts',yeux]].concat(P6.map(p=>[p.carte,p.plein])),err=C6.filter(x=>!x[1]||!x[1].yeux||x[1].yeux.erreurs>0),mq=C6.filter(x=>x[1]&&x[1].yeux&&x[1].yeux.manque&&x[1].yeux.manque.length);
     R.radar.erreurs={ok:!err.length&&!mq.length};
     dit(R.radar.erreurs.ok,'6d. aucune erreur dans les yeux, aucun nom du jeu manquant'+(err.length?' — ERREURS : '+err.map(x=>x[0]+' '+(x[1]&&x[1].yeux?x[1].yeux.erreurs:'?')).join(', '):'')+(mq.length?' — MANQUE : '+mq[0][1].yeux.manque.join(' '):''));}
@@ -383,8 +404,20 @@ function mainSeule(profil,graine,ordre,images){
     for(const p of P6){const y=p.plein&&p.plein.yeux;if(!y)continue;R.cout.cartes[p.carte]=y;
       /* (relecture) le voltigeur demande les sorties : le budget de ses vues au sol est celui de la demande (2 900), pas celui du vol (2 400) */
       const okC=y.pas_max<=Math.max(B.vol,B.demande)&&y.sondes_max<=B.sondes&&y.route_max<=B.route;if(!okC)dit(false,`${p.carte} : le budget est depasse (${y.pas_max} images, ${y.sondes_max} sondes, ${y.route_max} images de route)`);
-      if(y.ms_moy>6&&!p.hors)lourd.push(p.carte); /* 6 ms : le voltigeur vole la moitie du temps (un joueur : 29 %, le bot de reference : 5 a 10 %), et MESURE le 24/11 la map la plus chere (jade) est a 2,7 ms sur un PC charge par ailleurs ; le canyon avec relief n'est pas le simulateur d'aujourd'hui : affiche, pas juge */
-      console.log(`  ·    ${p.carte.padEnd(24)} ${y.ms_moy} ms par vue (sol ${y.ms_sol_moy}, vol ${y.ms_vol_moy}, pire ${y.ms_max}) · ${y.vues_vol} vues en vol sur ${y.vues_sol+y.vues_vol} · au pire ${y.pas_max} images, ${y.sondes_max} sondes · ${y.octets_moy} caracteres par vue${p.hors?' · (hors du simulateur : pas juge)':''}`);}
+      /* 6 ms : le voltigeur vole la moitie du temps (un joueur : 29 %, le bot de reference : 5 a 10 %), et MESURE le 24/11 la map la plus chere (jade) est a 2,7 ms sur un PC charge par ailleurs.
+         (2026-11-25, simulateur fidele) LE CANYON AVEC SON RELIEF : une vue en vol y coute 10 a 20 ms (le relief se lit par cinq hauteurs de terrain a
+         chaque sonde, 134 microsecondes), mais le voltigeur, qui sort expres, meurt contre la paroi en 11 s : sa moyenne reste sous 6 ms (2,6 le 25/11).
+         Ce qui compte est ce que les yeux coutent a une COURSE ENTIERE (seuil de la decision du 25/11 : 10 %). MESURE le 25/11 (allege), temps de calcul
+         radar coupe / radar ouvert, construction des pistes comprise : le bot de reference sur les 4 graines de la note qui passent au canyon, 19,7 / 19,8 s,
+         27,0 / 26,3 s, 39,0 / 39,3 s, 77,6 / 78,2 s (moins de 3 %, le bruit du PC) ; le voltigeur au canyon, 11,3 / 11,6 s (+2,7 %). */
+      /* (le temps de la course : celui de la course RADAR COUPE — celle du radar ouvert porte aussi les photos du controle 6e, une par seconde) */
+      const tCourse=p.coupe&&p.coupe.xReel>0?p.coupe.duree/p.coupe.xReel:null,part=tCourse?(y.ms_moy*(y.vues_sol+y.vues_vol)/1000)/tCourse:null;
+      /* (2026-11-25) LE CANYON EST JUGE COMME LES AUTRES (6 ms par vue en moyenne). La part des yeux est AFFICHEE seulement : elle se rapporte a la
+         boucle de la course radar coupe, sans la construction de la piste (3 a 4 s de relief au canyon) ni les sorties demandees a chaque image de
+         la course pleine — MESURE le 25/11 : 12 % au canyon sur ce calcul, quand la course entiere du voltigeur, construction comprise, ne prend que
+         2,7 % de plus radar ouvert, et celles du bot de reference moins de 3 %. */
+      if(y.ms_moy>6)lourd.push(p.carte);
+      console.log(`  ·    ${p.carte.padEnd(24)} ${y.ms_moy} ms par vue (sol ${y.ms_sol_moy}, vol ${y.ms_vol_moy}, pire ${y.ms_max}) · ${y.vues_vol} vues en vol sur ${y.vues_sol+y.vues_vol} · au pire ${y.pas_max} images, ${y.sondes_max} sondes · ${y.octets_moy} caracteres par vue`+(part!=null?` · les yeux : ${Math.round(1000*part)/10} % du temps de la course`:''));}
     R.cout.lourd=lourd;dit(!lourd.length,lourd.length?'trop cher par vue en moyenne (3 ms pour la course du controle 3, 6 ms pour celles du voltigeur) : '+lourd.join(', '):'moins de 3 ms par vue en moyenne sur la course du controle 3, moins de 6 sur celles du voltigeur (l\'horloge de l\'hote : elle depend de la charge du PC)');}
   /* ===== 8. LA JUSTESSE ===== */
   console.log('\n8. LA JUSTESSE DU RADAR (le voltigeur, 40 s par carte ; le tableau complet : node justesse.js)');

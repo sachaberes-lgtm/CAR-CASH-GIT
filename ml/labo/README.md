@@ -154,6 +154,24 @@ d'images, même fin, même argent → **EXACT**.
 et la salle de projection préviennent quand le jeu a changé. Pour rejouer un vieux rejeu : revenir au commit noté (`git worktree add`).
 `node rejouer.js --tout` après une mise à jour du jeu dit lesquels ne se rejouent plus — donc si le jeu se conduit encore pareil.
 
+**Un rejeu n'est exact que dans la version du SIMULATEUR qui l'a produit** (25/11/2026, le simulateur fidèle). Ce jour-là, le canyon de `ml/reel`
+a reçu son relief (parois, rivière, tunnel, murs de couloir ; `ml/reel/jeu-reel.js`, `cyw=0`) : toute course qui passe au canyon a changé. Chaque
+ligne du journal et chaque rejeu portent désormais `jeu.simulateur` (`relief-canyon`) ; ceux qui ne le portent pas sont **d'avant le relief**
+(`avant-relief`). `rejouer.js`, `garder.js` et la salle de projection rejouent chacun **dans le simulateur de son enregistrement**, et le disent.
+Rien n'est effacé ni réécrit : les 4 rejeux de c0001 (24/11) restent tels quels, exacts dans leur simulateur.
+- **`c0001-g910444` est une course « canyon sans relief »** (espace > crypto > nuages > canyon, « vide » à 226,8 s) : impossible dans le vrai jeu.
+  Rejouée dans le simulateur d'aujourd'hui, ses touches donnent une autre course : morte contre une **paroi** du canyon, 11 814 images au lieu de
+  13 608, 102 231 d'argent au lieu de 136 213. À ne pas filmer comme une vraie course. Les trois autres (910074, 910407, 910592) ne passent pas
+  au canyon : rejouées dans le simulateur d'aujourd'hui, elles sont **exactes** aussi (contrôlé le 25/11).
+- **c0001 a été renoté** dans le simulateur d'aujourd'hui, par l'outil d'entrée (`inscrire.js cerveaux/c0001-reference.js --etape 1 --generation 1
+  --parents c0001 --tmax 300 --regime max`) : c'est **c0002**, le même code (à la fin de ligne près : git sous Windows rend ce fichier avec des CRLF,
+  d'où une autre empreinte sha1 et un `jumeau` vide), la raison le dit. Régime max, 300 s, 20 graines : palier médian 10, record 20 (c0001 : les
+  mêmes), survie médiane 142,6 s (142,6), 392,4 pièces par minute (390,5) ; ses 4 courses au canyon finissent « rivière » (910111, 52,1 s), « paroi »
+  (910148, 225,1 s ; 910444, 196,9 s) et « canyon » (910222, 96,6 s) — c0001 y mourait 4 fois « vide ». Les notes de c0001 et de c0002 ne se comparent
+  pas (`node labo.js` le dit, la boucle les sépare). La génération 1 de l'étape 1 reste **ouverte** (ses courses sont au tampon, hors git).
+- **`c0002-g910444`** (gardé par `garder.js`) : la même graine, le même cerveau, dans le simulateur d'aujourd'hui : mort contre une paroi du canyon à
+  196,9 s, 11 814 images, 102 231 d'argent — exactement ce que donnent les touches de `c0001-g910444` rejouées avec le relief.
+
 ---
 
 ## 5. La salle de projection : revoir une course avec l'image, et la filmer
