@@ -37,7 +37,10 @@ const dedans=(racine,f)=>{const r=path.relative(racine,f);return !!r&&!r.startsW
 function module9(f){
   const base=path.resolve(f.startsWith('labo:')?path.join(L.RACINE,f.slice(5)):path.join(ML,f)),ok=/\.js$/i.test(base)&&(dedans(ML,base)||dedans(L.RACINE,base));
   if(!ok||!fs.existsSync(base))return null;
-  return '__def('+JSON.stringify(f)+',function(module,exports,require){'+fs.readFileSync(base,'utf8')+'\n});';
+  /* (2026-11-25, Sacha veut tester les bots : la page s'arretait sur « __dirname is not defined ») un module de Node peut lire __dirname des
+     son chargement (piloter.js, labo.js) : la page lui donne son dossier, en chemin du depot (les lectures de fichiers y sont vides) */
+  const rel=path.relative(L.DEPOT,base).split(path.sep).join('/');
+  return '__def('+JSON.stringify(f)+',function(module,exports,require){var __filename='+JSON.stringify(rel)+',__dirname='+JSON.stringify(rel.replace(/\/[^/]*$/,''))+';'+fs.readFileSync(base,'utf8')+'\n});';
 }
 function statique(racine,rel,res,transforme,req){
   const f=path.resolve(racine,decodeURIComponent(rel));
