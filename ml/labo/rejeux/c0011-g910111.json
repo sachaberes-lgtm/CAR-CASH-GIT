@@ -1,0 +1,44 @@
+{
+ "format": "cashcar-rejeu-1",
+ "cerveau": {
+  "id": "c0011",
+  "nom": "pilote",
+  "sha": "abca97dcd543df56c48828bdbd092aab0b59d215",
+  "code": "cerveaux/c0011-pilote.js"
+ },
+ "etape": "K-sonnet",
+ "generation": 1,
+ "jeu": {
+  "version": "cashcar-v1627",
+  "sha": "e7e1eed4718f",
+  "commit": "e4942eb0a",
+  "propre": true,
+  "simulateur": "relief-canyon",
+  "regime": "allege"
+ },
+ "graine": 910111,
+ "carte": null,
+ "meteo": null,
+ "tmax": 900,
+ "images": 7362,
+ "empreinte": "bce303ca1d75",
+ "fin": {
+  "t": 122.7,
+  "cause": "paroi",
+  "argent": 6589.61,
+  "pieces": 529,
+  "figures": 1,
+  "bumps": 0,
+  "zones": 0,
+  "vmax": 621
+ },
+ "cartes": [
+  "canyon"
+ ],
+ "pourquoi": [
+  "champion : sa course la plus courte"
+ ],
+ "trajectoire": "trajectoires/c0011-g910111.json.gz",
+ "aide": "touches : le nombre d'images (1/60 s) depuis le changement d'avant, puis la touche — MAJUSCULE enfoncee, minuscule relachee ; G D H B N = gauche droite haut bas ESPACE ; C = la plaque CONTINUER de la seconde chance touchee (c : attente abandonnee)",
+ "touches": "16N106n10N37n9N157G6g117G18n3g5D8d5D14d9D5d18D13d8D12d11G7g21G9g26D6d21D23d11D3N14d4n8G37g13G7g5G5g100G26g4G13g12D22d10D17d3G4g5G23g11G7g11D39d19D8d11D5d43G7g8G6g8G16g10G13g61G4g10N4G5g20n16N22D6d11n40D7d14D13d7D24d27D20d43D15d14D4d10D4d4D19d11N2D5d2n13D5d20G6g27D11d6D42d6D8d7D5d13D4d4D37d7D3N7d7G3n4g6G4g5G4g9N5G25g8n7D26d23G7g4G21g8G0N5g9G6g19n4D5d13N4n3D10d104D25d12D6d22G50g22G23g5D32d11D33d56D4d9D23d15D6d25G26g6G4g14G9g15G15g64G19g7G4g36D17d5D10d7D8d22G9g16D14d9D23d8G54g11G8g75D9d26G4N1g48n12D10N3d27n3D13d14G14g5G6g9G12g10G9g43G4g20G14g44D5d9D15d7D4d13D17d5D5d35G16g5G10g37N47n1D13d3N9G3n7g11G7g113D24d8D6d16G4g57D15d13N11G9g22G16g4D4d7n6D7d15D1N16d3n13G4g4G24g14G18g15D41d5D6d71D18d14D5d25G8g8G4g6G13g9G9g49G7g13G6g30D23d9D13d7D11d47G5g4G39g20G22g4D30d12D28d1H27D4d9h11D18d6G66g10G17g26D5d12D26d5D9d61D22d19G40g7G15g6G7g24D2N5d6D7d15n11N9G7g18G5g12n10N3D3n3d19N23n17N26n17N4n8G11g12D9d8D11d10D8d8D6d7D7d13G5g9G8g9G4g11D5d5D31d7D13d11G6g5G24g8G6g8G21g18D17d16G7g10G7g8G8g6D10d14D17d14N53n2G14g12D17d13D28d15D8d9D17d7D4d11D6d42G355g35D35N41n1d35G17g7G6g7G4g6G8g17D5d25G4g16G41g8G13g9G16g4N1D3n24d11D5d9D4d16G5g5G7g14G2N22n1g6D1N4n13d12D18d14G55g7G8g10D24d"
+}
