@@ -11,7 +11,7 @@ Le plan d'ensemble est dans `PLAN.md`, l'étude dans `etude/`.
 |---|---|---|
 | A | L'étude : ce qui donne des pièces, ce qui tue, les vrais joueurs mesurés | **faite** (commit `67ea1f009`) |
 | B | Les fondations : défauts corrigés, yeux v2, doigts v2 | **faite** (25/11/2026) : défauts corrigés, yeux v2 et doigts v2 écrits, relus par des agents, corrigés, puis contrôlés une dernière fois (`verifier.js` TOUT PASSE en régime max et en régime allégé, 5 rejeux exacts sur 5, la boucle à blanc va au bout avec un cerveau à profil). Ce qui reste faux ou non mesuré est écrit plus bas : ce sont des limites connues, pas des oublis |
-| C | Le pilote d'élite, amélioré par tours | **à faire — c'est la prochaine étape** |
+| C | Le pilote d'élite, amélioré par tours | **commencée (25/11/2026) : le premier pilote existe** (`ml/ecurie/pilote.js`, main `clavier`). Au tri (12 graines, 600 s, allégé) : **palier médian 12,5, meilleur 20**, contre 6 et 17 pour le bot de référence sur les mêmes graines. **Pas encore fait** : la note de 20 graines de 900 s, l'inscription au labo, les tours payés de la boucle |
 | C bis | La boucle automatique sur le crédit API (les 200 €), avec un plafond de dépense | **prête, essayée à blanc** : un tour complet le 24/11 puis de nouveau le 25/11 avec un cerveau à profil (0 €) ; la clé d'API est acceptée par les quatre modèles (`essai-api.js` du 24/11 : Opus 5.5, Sonnet 5.5 et Fable 5.2 avec repli, Haiku 5.5 sans) ; `boucle.js` a un plafond général de 200 € lu au journal des dépenses (`--plafond`, commit `71f3c7bea`). **Aucun tour payé n'a encore tourné** |
 | D | Le facteur humain et les 30 niveaux | à faire |
 | E | Le juge, niveau par niveau | à faire |
@@ -19,7 +19,87 @@ Le plan d'ensemble est dans `PLAN.md`, l'étude dans `etude/`.
 
 ---
 
-## OÙ ON EN EST — à lire en premier (25/11/2026, matin, contrôle final de l'étape B)
+## OÙ ON EN EST — à lire en premier (25/11/2026 : l'étape B est contrôlée, l'étape C est commencée)
+
+### L'étape C, premier temps : le premier pilote (25/11/2026, après-midi)
+
+**Ce qui existe.** `ml/ecurie/pilote.js` : un cerveau à profil, écrit à la main en cinq tours (écrire, noter, lire les morts, corriger).
+La boucle l'accepte : `node boucle.js --a-blanc --tours 1 --candidats 2 --depuis pilote.js` va au bout (0 €, profil `bb745b50cdb1`).
+Rien n'a changé dans `ml/bot`, `ml/labo`, `code/` ni « VERSION PRINCIPALE/ ».
+
+**Son profil — celui que la boucle gardera fixe.** `{ modele: 'clavier', graine: 1, chance: { prend: 1, palierMin: 12 } }` : la main
+`clavier` telle que réglée à l'étape B, sans rien écrire par-dessus, aucune erreur ajoutée ; la seconde chance prise une fois, seulement
+si la partie a déjà atteint le palier 12 (les joueurs l'ont prise aux paliers 14 et 28, dans leurs deux meilleures parties).
+
+**Sa stratégie** (elle est écrite en tête du fichier).
+- *Au sol* : il vise de loin ce qui se ramasse (la ligne parfaite, puis les pièces, puis les pouvoirs) et sa ligne glisse vers sa cible
+  au lieu d'y sauter ; il lit la route devant (`vue.route`) pour se placer à l'intérieur du virage **d'après** et donne à la main un cap
+  d'avance sur le changement de sens ; la nitro est demandée là où la route se tient (`vue.tenue`, `vue.virage`) et où le virage demande
+  peu de volant, moins volontiers sur les maps à décor ; un fond de jauge est gardé pour planer.
+- *En vol* : la loi « vers la route » au décollage ; tant que le radar annonce une pose, la lèvre ou le portail pour la façon tenue, il
+  n'en change pas ; sinon il prend la façon du rayon dont l'issue vaut le plus (une pose droite et qui reste sur la dalle d'abord).
+- Il ne saute pas, ne fait pas de figure, ne cherche pas de raccourci, ne drifte pas, ne freine pas.
+
+**Ses chiffres de tri, contre le bot de référence sur les mêmes graines et la même durée** (12 graines de 910000 à 910407, 600 s au
+plus, version allégée, simulateur `relief-canyon` ; `ml/bot/results/note-pilote-allege-t600.json` et `note-reference-allege-t600.json`).
+Aucune course n'est coupée par le temps, d'un côté comme de l'autre.
+
+| | le pilote (main `clavier`) | le bot de référence (main de machine) |
+|---|---|---|
+| palier médian | **12,5** | 6 |
+| meilleur palier | **20** | 17 |
+| les 12 paliers | 5 9 10 10 11 12 13 13 13 14 18 20 | 4 4 4 5 6 6 6 8 8 13 16 17 |
+| survie médiane | 239,6 s | 103,5 s |
+| pièces par minute | 325 | 316 |
+| nitro tenue | 28,5 % du temps | 15 % |
+| vols par minute, part du temps en l'air | 5,2 · 16,1 % | 2,67 · 6,5 % |
+| fins | paroi 4 (les 4 au canyon), roche 3 (grotte), vide 3, tour 2 | pic 4, vide 3, roche 2, paroi 1, rivière 1, tour 1 |
+
+Graine par graine, le pilote fait mieux 10 fois sur 12 (moins bien sur 910000 : 12 contre 16, et sur 910370 : 13 contre 17).
+Le but de l'étape (médian 8,5, meilleur 18, mesurés sur 20 graines de 900 s) est donc dépassé **au tri** ; ce n'est pas encore la note
+de 20 graines.
+
+**Ce qu'il faut savoir avant de se fier à ces chiffres.**
+- **12 graines, pas 20.** Le palier médian bouge de 7 à 12 par le seul hasard des courses (mesuré à l'étape B) : l'écart avec la référence
+  (12,5 contre 6, 10 graines sur 12) est net, le chiffre 12,5 lui-même ne l'est pas.
+- **La seconde chance compte dans le meilleur palier.** 7 courses sur 12 l'ont prise (elles avaient donc déjà le palier 12 à leur
+  première mort : le médian resterait à 12 ou plus sans elle). Les deux plus hautes (20 et 18) l'ont prise : ce qu'elles auraient fait
+  sans elle n'est pas mesuré. Le bot de référence, lui, ne la prend jamais.
+- Les mesures intermédiaires des cinq tours portent sur 4 graines de 300 s (8 au canyon) : elles ont servi à choisir, pas à prouver.
+- Le juge (`discerner.js`) n'a pas été passé sur ce pilote ; `verifier.js` et les rejeux n'ont pas été refaits (rien n'a changé sous eux).
+
+**Les cinq tours, et ce que chacun a appris** (4 graines, 300 s ; les paliers obtenus entre parenthèses).
+1. Tenir la route avec une marge, la nitro selon `vSure`, le radar en vol (3 5 11 11). Lu dans les morts : 15 décollages dans une course,
+   aucun par un virage trop rapide pour la caisse (`vSure` gardait 300 m/s de marge) — c'est la main qui prend le virage en retard.
+2. La ligne qui glisse, l'intérieur du virage, la nitro coupée quand le virage demande du volant (5 5 8 17). Lu : la moitié des sorties
+   sont des sorties **en chaîne** — la caisse revient en travers, se pose (« propre » pour le jeu jusqu'à 55°) et ressort par l'autre bord.
+3. En vol, changer de façon dès qu'un rayon annonce une pose plus droite (4 9 11 11). Lu : pire — deux morts jauge vide, la caisse
+   zigzague au-dessus de la route ; la main met 0,2 à 0,3 s à obéir et le vol tourne de 3 rad par seconde.
+4. Au sol, le virage **d'après** et le cap d'avance (5 10 10 12) : les sorties premières passent de 3,4 à 2,2 par minute de route.
+5. En vol, la façon **tenue** tant que le radar lui annonce une pose (5 11 12 18) : 70 décollages, 4 morts, une course encore en vie à 300 s. C'est la version gardée.
+   (Les sorties premières y remontent à 3,4 par minute : les courses durent plus longtemps, donc roulent plus vite.)
+
+**Ce qui le tue encore.**
+- **Le canyon.** Il y sort 1,5 fois par minute de route et la paroi est à une dizaine de mètres du bord : au banc (8 graines forcées au
+  canyon, 150 s), 7 courses sur 8 y meurent, en 36 à 85 s ; au tri, les 4 courses passées par le canyon y finissent. Essayé sans effet
+  mesurable : rouler dans l'axe sans nitro (1,35 sortie par minute contre 1,54), une avance de cap plus forte (1,74). Non essayé : freiner.
+- **Les S serrés** : la loi `ligne` de la main suit le virage sous les roues, perçu 0,15 s plus tard ; au changement de sens elle braque
+  encore du mauvais côté. Le cap d'avance en rattrape une partie.
+- **Les coups de volant longs** (0,3 à 0,45 s, un sur dix) : à 400 km/h, un seul met la caisse au bord depuis l'axe en une seconde.
+  Le pilote n'y peut rien par la ligne qu'il vise ; un joueur sort lui aussi (8 vols par minute).
+- **Les poses en travers**, puis la roche de la grotte et les tours de la ville quand la chaîne de sorties s'allonge.
+
+**Trouvé en chemin dans `ml/bot`, non corrigé (interdit ici).**
+- `vue.virage` ne décrit que le **premier** virage devant (celui sous les roues tant qu'il dure) : le virage inverse d'un S n'apparaît
+  qu'à 20 m. Le pilote le reconstitue depuis `vue.route` ; un champ « le virage d'après » dans les yeux servirait à tous les cerveaux.
+- `node autopsie.js --json` écrit le JSON **après** les lignes de console du jeu (« CASH CAR — build… », « photoDev ReferenceError… ») :
+  la sortie ne se relit pas telle quelle par `JSON.parse`.
+- À chaque seconde chance le simulateur écrit deux erreurs (`ImageData is not defined`, `cv.toDataURL is not a function`, la photo de
+  la pub) : sans effet sur la course, mais elles noient la sortie de `noter.js`.
+
+**La suite.** La note de 20 graines de 900 s et les tours payés sont le travail de la boucle (`node boucle.js --budget … --depuis pilote.js`),
+qui part de ce pilote et garde sa main. Les outils jetables de ces cinq tours (un banc qui compte les sorties premières et les sorties en
+chaîne, par map) sont restés hors de git dans `ml/ecurie/agents/tmp-pilote/`.
 
 ### ⚠ Le simulateur a changé le 25/11 : le canyon a enfin son relief
 
@@ -130,11 +210,12 @@ avant le `setx` ne voit pas la clé : lancer depuis un terminal neuf.
 
 **Le texte à coller dans la prochaine session :**
 > Dans `C:\Users\sacha\code\CASH-CAR-bots-ecurie` (branche `bots-ecurie`), lis `ml/ecurie/ETAPES.md` (la section « Où on en est »),
-> `ml/ecurie/PLAN.md`, `ml/ecurie/etude/*.md` et `ml/bot/README.md` (§ 2 à 3.8). L'étape B est faite. Fais dans l'ordre, en validant
-> dans git à la fin de chaque point et en mettant `ETAPES.md` à jour : (3) l'étape C : écris le premier pilote `ml/ecurie/pilote.js`, un
-> cerveau à profil (modèle `clavier`) écrit POUR sa main et qui se sert du radar des yeux v2 ; améliore-le par tours (autopsie des morts,
-> correction, note sur 20 graines en `--regime allege --tmax 900`, inscription au labo, étape `C`) ; la note de départ à battre est celle du
-> bot de référence AVEC le relief du canyon : palier médian 8,5, meilleur 18 ; (4) le calibrage de l'étape C bis (10 € : les quatre modèles
+> `ml/ecurie/PLAN.md`, `ml/ecurie/etude/*.md` et `ml/bot/README.md` (§ 2 à 3.8). L'étape B est faite, le premier pilote de l'étape C existe
+> (`ml/ecurie/pilote.js`, main `clavier` ; au tri, médian 12,5 et meilleur 20 sur 12 graines). Fais dans l'ordre, en validant dans git à la
+> fin de chaque point et en mettant `ETAPES.md` à jour : (3) la suite de l'étape C : note ce pilote sur 20 graines en
+> `--regime allege --tmax 900`, inscris-le au labo (étape `C`, génération 0), puis améliore-le par tours (autopsie des morts, correction,
+> note, inscription) sans changer son `profil` ; ce qui le tue d'abord : le canyon ; la note de départ à battre reste celle du bot de
+> référence AVEC le relief du canyon : palier médian 8,5, meilleur 18 ; (4) le calibrage de l'étape C bis (10 € : les quatre modèles
 > sur le même parent, un nombre égal de variantes), puis la boucle par tranches de 20 €, sans dépasser 200 € au total (`--plafond 200`,
 > `node ml/labo/labo.js` donne le cumul) et en étalant la dépense jusqu'au 08/12/2026 (13 à 14 € par jour). Jamais plus de 4 courses à la
 > fois. Le contrat à garder : `node ml/bot/verifier.js` passe en entier avec l'empreinte `a7b3171768ca`, `node ml/labo/rejouer.js --tout`
