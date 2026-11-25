@@ -1,0 +1,813 @@
+{
+ "date": "2026-11-25T14:02:46.595Z",
+ "regime": "allege",
+ "requete": null,
+ "cerveau": "voltigeur",
+ "profil": null,
+ "cartes": [
+  "canyon"
+ ],
+ "graines": {
+  "n": 16,
+  "depart": 910000,
+  "pas": 37
+ },
+ "tmax": 90,
+ "mode": "pas",
+ "courses": [
+  {
+   "carte": "canyon",
+   "graine": 910037,
+   "images": 660,
+   "cause": "paroi",
+   "duree": 11,
+   "cartes": [
+    "canyon"
+   ],
+   "vols": 2,
+   "empreinte": "939d7aa61f02"
+  },
+  {
+   "carte": "canyon",
+   "graine": 910000,
+   "images": 672,
+   "cause": "paroi",
+   "duree": 11.1,
+   "cartes": [
+    "canyon"
+   ],
+   "vols": 2,
+   "empreinte": "97a6bfb554d4"
+  },
+  {
+   "carte": "canyon",
+   "graine": 910074,
+   "images": 660,
+   "cause": "paroi",
+   "duree": 10.9,
+   "cartes": [
+    "canyon"
+   ],
+   "vols": 2,
+   "empreinte": "ab188ce5466e"
+  },
+  {
+   "carte": "canyon",
+   "graine": 910111,
+   "images": 672,
+   "cause": "paroi",
+   "duree": 11.1,
+   "cartes": [
+    "canyon"
+   ],
+   "vols": 2,
+   "empreinte": "d85ef047767f"
+  },
+  {
+   "carte": "canyon",
+   "graine": 910148,
+   "images": 726,
+   "cause": "canyon",
+   "duree": 12.1,
+   "cartes": [
+    "canyon"
+   ],
+   "vols": 2,
+   "empreinte": "149b03dfcb87"
+  },
+  {
+   "carte": "canyon",
+   "graine": 910185,
+   "images": 672,
+   "cause": "paroi",
+   "duree": 11.1,
+   "cartes": [
+    "canyon"
+   ],
+   "vols": 2,
+   "empreinte": "534948760357"
+  },
+  {
+   "carte": "canyon",
+   "graine": 910222,
+   "images": 660,
+   "cause": "paroi",
+   "duree": 11,
+   "cartes": [
+    "canyon"
+   ],
+   "vols": 2,
+   "empreinte": "4086a88868cf"
+  },
+  {
+   "carte": "canyon",
+   "graine": 910259,
+   "images": 666,
+   "cause": "paroi",
+   "duree": 11.1,
+   "cartes": [
+    "canyon"
+   ],
+   "vols": 2,
+   "empreinte": "77f17fb70868"
+  },
+  {
+   "carte": "canyon",
+   "graine": 910296,
+   "images": 666,
+   "cause": "paroi",
+   "duree": 11.1,
+   "cartes": [
+    "canyon"
+   ],
+   "vols": 2,
+   "empreinte": "8ebb9258e5d7"
+  },
+  {
+   "carte": "canyon",
+   "graine": 910333,
+   "images": 672,
+   "cause": "paroi",
+   "duree": 11.1,
+   "cartes": [
+    "canyon"
+   ],
+   "vols": 2,
+   "empreinte": "e0d06529bc0e"
+  },
+  {
+   "carte": "canyon",
+   "graine": 910407,
+   "images": 672,
+   "cause": "paroi",
+   "duree": 11.1,
+   "cartes": [
+    "canyon"
+   ],
+   "vols": 2,
+   "empreinte": "90819952fbe7"
+  },
+  {
+   "carte": "canyon",
+   "graine": 910370,
+   "images": 894,
+   "cause": "riviere",
+   "duree": 14.8,
+   "cartes": [
+    "canyon"
+   ],
+   "vols": 2,
+   "empreinte": "435e0e31a2f4"
+  },
+  {
+   "carte": "canyon",
+   "graine": 910444,
+   "images": 666,
+   "cause": "paroi",
+   "duree": 11.1,
+   "cartes": [
+    "canyon"
+   ],
+   "vols": 2,
+   "empreinte": "599a80002d61"
+  },
+  {
+   "carte": "canyon",
+   "graine": 910481,
+   "images": 666,
+   "cause": "paroi",
+   "duree": 11.1,
+   "cartes": [
+    "canyon"
+   ],
+   "vols": 2,
+   "empreinte": "43d327587c16"
+  },
+  {
+   "carte": "canyon",
+   "graine": 910518,
+   "images": 672,
+   "cause": "paroi",
+   "duree": 11.1,
+   "cartes": [
+    "canyon"
+   ],
+   "vols": 2,
+   "empreinte": "cc45a2e32571"
+  },
+  {
+   "carte": "canyon",
+   "graine": 910555,
+   "images": 666,
+   "cause": "paroi",
+   "duree": 11.1,
+   "cartes": [
+    "canyon"
+   ],
+   "vols": 2,
+   "empreinte": "fc51b599b21a"
+  }
+ ],
+ "pas": {
+  "canyon": {
+   "vols": 20,
+   "images_med": 76,
+   "exacts": 20,
+   "ecart_max_med": 0,
+   "ecart_max_p90": 0,
+   "ecart_a_05s_med": 0,
+   "ecart_a_1s_med": 0,
+   "issue_a_l_image": 18,
+   "issues": 18
+  },
+  "TOUT": {
+   "vols": 20,
+   "images_med": 76,
+   "exacts": 20,
+   "ecart_max_med": 0,
+   "ecart_max_p90": 0,
+   "ecart_a_05s_med": 0,
+   "ecart_a_1s_med": 0,
+   "issue_a_l_image": 18,
+   "issues": 18
+  }
+ },
+ "pires": [],
+ "vols": [
+  {
+   "image": 657,
+   "t": [
+    0,
+    0,
+    1
+   ],
+   "issue": "choc",
+   "k": 2,
+   "cause": "paroi",
+   "ecartMax": 0,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": null,
+   "ecart60": null,
+   "n": 1,
+   "carte": "canyon",
+   "volr": false,
+   "bord": true,
+   "nitro": true,
+   "vu": 2,
+   "fin": "boom",
+   "issueOk": true
+  },
+  {
+   "image": 339,
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "issue": "pose",
+   "k": 78,
+   "cause": null,
+   "ecartMax": 7.105427357601002e-15,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": 0,
+   "ecart60": 0,
+   "n": 77,
+   "carte": "canyon",
+   "volr": false,
+   "bord": false,
+   "nitro": false,
+   "vu": 78,
+   "fin": "sol",
+   "issueOk": true
+  },
+  {
+   "image": 357,
+   "t": [
+    0,
+    1,
+    1
+   ],
+   "issue": "pose",
+   "k": 193,
+   "cause": null,
+   "ecartMax": 2.7335124829152373e-13,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": 1.865174681370263e-14,
+   "ecart60": 3.552713678800501e-14,
+   "n": 192,
+   "carte": "canyon",
+   "volr": false,
+   "bord": false,
+   "nitro": true,
+   "vu": 193,
+   "fin": "sol",
+   "issueOk": true
+  },
+  {
+   "image": 672,
+   "t": [
+    0,
+    0,
+    1
+   ],
+   "issue": "choc",
+   "k": 50,
+   "cause": "canyon",
+   "ecartMax": 8.038873388460929e-14,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": 0,
+   "ecart60": null,
+   "n": 49,
+   "carte": "canyon",
+   "volr": false,
+   "bord": true,
+   "nitro": true,
+   "vu": 50,
+   "fin": "boom",
+   "issueOk": true
+  },
+  {
+   "image": 339,
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "issue": "pose",
+   "k": 76,
+   "cause": null,
+   "ecartMax": 7.105427357601002e-15,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": 7.105427357601002e-15,
+   "ecart60": 0,
+   "n": 75,
+   "carte": "canyon",
+   "volr": false,
+   "bord": false,
+   "nitro": false,
+   "vu": 76,
+   "fin": "sol",
+   "issueOk": true
+  },
+  {
+   "image": 658,
+   "t": [
+    1,
+    0,
+    1
+   ],
+   "issue": "choc",
+   "k": 1,
+   "cause": "paroi",
+   "ecartMax": 0,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": null,
+   "ecart60": null,
+   "n": 0,
+   "carte": "canyon",
+   "volr": false,
+   "bord": true,
+   "nitro": true,
+   "vu": 1,
+   "fin": "boom",
+   "issueOk": true
+  },
+  {
+   "image": 339,
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "issue": "pose",
+   "k": 77,
+   "cause": null,
+   "ecartMax": 1.4210854715202004e-14,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": 7.105427357601002e-15,
+   "ecart60": 1.4210854715202004e-14,
+   "n": 76,
+   "carte": "canyon",
+   "volr": false,
+   "bord": false,
+   "nitro": false,
+   "vu": 77,
+   "fin": "sol",
+   "issueOk": true
+  },
+  {
+   "image": 339,
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "issue": "pose",
+   "k": 81,
+   "cause": null,
+   "ecartMax": 0,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": 0,
+   "ecart60": 0,
+   "n": 80,
+   "carte": "canyon",
+   "volr": false,
+   "bord": false,
+   "nitro": false,
+   "vu": 81,
+   "fin": "sol",
+   "issueOk": true
+  },
+  {
+   "image": 660,
+   "t": [
+    0,
+    0,
+    1
+   ],
+   "issue": "choc",
+   "k": 2,
+   "cause": "paroi",
+   "ecartMax": 0,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": null,
+   "ecart60": null,
+   "n": 1,
+   "carte": "canyon",
+   "volr": true,
+   "bord": true,
+   "nitro": true,
+   "vu": 2,
+   "fin": "boom",
+   "issueOk": true
+  },
+  {
+   "image": 339,
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "issue": "pose",
+   "k": 82,
+   "cause": null,
+   "ecartMax": 4.0351070721557915e-14,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": 2.842170943040401e-14,
+   "ecart60": 2.842170943040401e-14,
+   "n": 81,
+   "carte": "canyon",
+   "volr": false,
+   "bord": false,
+   "nitro": false,
+   "vu": 82,
+   "fin": "sol",
+   "issueOk": true
+  },
+  {
+   "image": 664,
+   "t": [
+    0,
+    0,
+    1
+   ],
+   "issue": "choc",
+   "k": 3,
+   "cause": "paroi",
+   "ecartMax": 0,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": null,
+   "ecart60": null,
+   "n": 2,
+   "carte": "canyon",
+   "volr": false,
+   "bord": true,
+   "nitro": true,
+   "vu": 3,
+   "fin": "boom",
+   "issueOk": true
+  },
+  {
+   "image": 339,
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "issue": "pose",
+   "k": 77,
+   "cause": null,
+   "ecartMax": 7.105427357601002e-15,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": 7.105427357601002e-15,
+   "ecart60": 7.105427357601002e-15,
+   "n": 76,
+   "carte": "canyon",
+   "volr": false,
+   "bord": false,
+   "nitro": false,
+   "vu": 77,
+   "fin": "sol",
+   "issueOk": true
+  },
+  {
+   "image": 665,
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "issue": "choc",
+   "k": 1,
+   "cause": "paroi",
+   "ecartMax": 0,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": null,
+   "ecart60": null,
+   "n": 0,
+   "carte": "canyon",
+   "volr": false,
+   "bord": true,
+   "nitro": false,
+   "vu": 1,
+   "fin": "boom",
+   "issueOk": true
+  },
+  {
+   "image": 357,
+   "t": [
+    0,
+    1,
+    1
+   ],
+   "issue": "pose",
+   "k": 193,
+   "cause": null,
+   "ecartMax": 4.1127168618064196e-13,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": 6.417050666196801e-14,
+   "ecart60": 2.0507499257379623e-13,
+   "n": 192,
+   "carte": "canyon",
+   "volr": false,
+   "bord": false,
+   "nitro": true,
+   "vu": 193,
+   "fin": "sol",
+   "issueOk": true
+  },
+  {
+   "image": 692,
+   "t": [
+    1,
+    0,
+    0
+   ],
+   "issue": "choc",
+   "k": 297,
+   "cause": "paroi",
+   "ecartMax": 7.105427357601002e-15,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": 7.105427357601002e-15,
+   "ecart60": null,
+   "n": 39,
+   "carte": "canyon",
+   "volr": false,
+   "bord": true,
+   "nitro": false,
+   "vu": 40,
+   "fin": "touches",
+   "issueOk": null
+  },
+  {
+   "image": 746,
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "issue": "choc",
+   "k": 106,
+   "cause": "canyon",
+   "ecartMax": 0,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": null,
+   "ecart60": null,
+   "n": 27,
+   "carte": "canyon",
+   "volr": false,
+   "bord": true,
+   "nitro": false,
+   "vu": 28,
+   "fin": "touches",
+   "issueOk": null
+  },
+  {
+   "image": 339,
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "issue": "pose",
+   "k": 82,
+   "cause": null,
+   "ecartMax": 7.105427357601002e-15,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": 0,
+   "ecart60": 7.105427357601002e-15,
+   "n": 81,
+   "carte": "canyon",
+   "volr": false,
+   "bord": false,
+   "nitro": false,
+   "vu": 82,
+   "fin": "sol",
+   "issueOk": true
+  },
+  {
+   "image": 339,
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "issue": "pose",
+   "k": 81,
+   "cause": null,
+   "ecartMax": 1.4210854715202004e-14,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": 0,
+   "ecart60": 7.105427357601002e-15,
+   "n": 80,
+   "carte": "canyon",
+   "volr": false,
+   "bord": false,
+   "nitro": false,
+   "vu": 81,
+   "fin": "sol",
+   "issueOk": true
+  },
+  {
+   "image": 661,
+   "t": [
+    1,
+    0,
+    1
+   ],
+   "issue": "choc",
+   "k": 3,
+   "cause": "paroi",
+   "ecartMax": 0,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": null,
+   "ecart60": null,
+   "n": 2,
+   "carte": "canyon",
+   "volr": true,
+   "bord": true,
+   "nitro": true,
+   "vu": 3,
+   "fin": "boom",
+   "issueOk": true
+  },
+  {
+   "image": 339,
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "issue": "pose",
+   "k": 82,
+   "cause": null,
+   "ecartMax": 0,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": 0,
+   "ecart60": 0,
+   "n": 81,
+   "carte": "canyon",
+   "volr": false,
+   "bord": false,
+   "nitro": false,
+   "vu": 82,
+   "fin": "sol",
+   "issueOk": true
+  },
+  {
+   "image": 666,
+   "t": [
+    -1,
+    0,
+    0
+   ],
+   "issue": "choc",
+   "k": 1,
+   "cause": "paroi",
+   "ecartMax": 0,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": null,
+   "ecart60": null,
+   "n": 0,
+   "carte": "canyon",
+   "volr": false,
+   "bord": true,
+   "nitro": false,
+   "vu": 1,
+   "fin": "boom",
+   "issueOk": true
+  },
+  {
+   "image": 339,
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "issue": "pose",
+   "k": 80,
+   "cause": null,
+   "ecartMax": 5.859285502108464e-14,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": 3.1776437161565096e-14,
+   "ecart60": 5.859285502108464e-14,
+   "n": 79,
+   "carte": "canyon",
+   "volr": false,
+   "bord": false,
+   "nitro": false,
+   "vu": 80,
+   "fin": "sol",
+   "issueOk": true
+  },
+  {
+   "image": 662,
+   "t": [
+    0,
+    0,
+    1
+   ],
+   "issue": "choc",
+   "k": 3,
+   "cause": "paroi",
+   "ecartMax": 0,
+   "aLImage": null,
+   "divImage": null,
+   "divEcart": null,
+   "ecart30": null,
+   "ecart60": null,
+   "n": 2,
+   "carte": "canyon",
+   "volr": false,
+   "bord": true,
+   "nitro": true,
+   "vu": 3,
+   "fin": "boom",
+   "issueOk": true
+  }
+ ]
+}

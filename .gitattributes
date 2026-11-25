@@ -9,3 +9,8 @@ code/** -text
 app-ios/www/** -text
 app-ios/natif/** -text
 app-ios/ios/App/App/public/** -text
+
+# (2026-11-25, BOTS-ML) LE LABO GARDE LES OCTETS DE CHAQUE CERVEAU : son journal (ml/labo/journal/cerveaux.jsonl) inscrit l'empreinte sha1 du fichier
+# tel qu'il a ete note. Avec core.autocrlf=true, Git rendait ces copies en CRLF a l'extraction et les rangeait en LF : sur ce PC c0001 ne
+# correspondait plus a son empreinte (fec3305d), et sur un autre c0002 (a4d1eb92) non plus. `-text` : ce qui est commite est ce qui a ete note.
+ml/labo/cerveaux/*.js -text

@@ -10,8 +10,8 @@ Le plan d'ensemble est dans `PLAN.md`, l'étude dans `etude/`.
 | # | Étape | État |
 |---|---|---|
 | A | L'étude : ce qui donne des pièces, ce qui tue, les vrais joueurs mesurés | **faite** (commit `67ea1f009`) |
-| B | Les fondations : défauts corrigés, yeux v2, doigts v2 | **faite** (25/11/2026) : défauts corrigés, yeux v2 et doigts v2 écrits, relus par des agents, corrigés, puis contrôlés une dernière fois (`verifier.js` TOUT PASSE en régime max et en régime allégé, 5 rejeux exacts sur 5, la boucle à blanc va au bout avec un cerveau à profil). Ce qui reste faux ou non mesuré est écrit plus bas : ce sont des limites connues, pas des oublis |
-| C | Le pilote d'élite, amélioré par tours | **commencée (25/11/2026) : le premier pilote existe** (`ml/ecurie/pilote.js`, main `clavier`). Au tri (12 graines, 600 s, allégé) : **palier médian 12,5, meilleur 20**, contre 6 et 17 pour le bot de référence sur les mêmes graines. **Pas encore fait** : la note de 20 graines de 900 s, l'inscription au labo, les tours payés de la boucle |
+| B | Les fondations : défauts corrigés, yeux v2, doigts v2 | **faite** (25/11/2026) : défauts corrigés, yeux v2 et doigts v2 écrits, relus par des agents, corrigés, puis contrôlés une dernière fois (`verifier.js` TOUT PASSE en régime max et en régime allégé, 5 rejeux exacts sur 5, la boucle à blanc va au bout avec un cerveau à profil) ; **finitions du 25/11 au soir** : le radar sonde le canyon à chaque image (exact, +0,2 % de coût), la justesse refaite avec la main réglée, les fins de ligne du labo. Ce qui reste faux ou non mesuré est écrit plus bas : ce sont des limites connues, pas des oublis |
+| C | Le pilote d'élite, amélioré par tours | **commencée (25/11/2026) : le premier pilote existe** (`ml/ecurie/pilote.js`, main `clavier`). Au tri (12 graines, 600 s, allégé) : **palier médian 12,5, meilleur 20**, contre 6 et 17 pour le bot de référence sur les mêmes graines. **Contrôlé le 25/11 au soir** (aucune erreur ; sur 8 graines de 600 s : médian 11,5 et meilleur 18, contre 7 et 16). **Pas encore fait** (le travail de la chaîne) : la note de 20 graines de 900 s, l'inscription au labo, les tours payés de la boucle |
 | C bis | La boucle automatique sur le crédit API (les 200 €), avec un plafond de dépense | **prête, essayée à blanc** : un tour complet le 24/11 puis de nouveau le 25/11 avec un cerveau à profil (0 €) ; la clé d'API est acceptée par les quatre modèles (`essai-api.js` du 24/11 : Opus 5.5, Sonnet 5.5 et Fable 5.2 avec repli, Haiku 5.5 sans) ; `boucle.js` a un plafond général de 200 € lu au journal des dépenses (`--plafond`, commit `71f3c7bea`). **Aucun tour payé n'a encore tourné** |
 | D | Le facteur humain et les 30 niveaux | à faire |
 | E | Le juge, niveau par niveau | à faire |
@@ -19,7 +19,102 @@ Le plan d'ensemble est dans `PLAN.md`, l'étude dans `etude/`.
 
 ---
 
-## OÙ ON EN EST — à lire en premier (25/11/2026 : l'étape B est contrôlée, l'étape C est commencée)
+## OÙ ON EN EST — à lire en premier (25/11/2026 : l'étape B est finie, le premier pilote est contrôlé, la chaîne tourne)
+
+### Les finitions de l'étape B et le contrôle du premier pilote (25/11/2026, soir)
+
+Fait par une session payée sur la clé d'API (le relais `relais.js`, agent « finitions-b », Opus 5.5), entre le premier pilote et le calibrage.
+Rien n'a changé dans `code/` ni dans « VERSION PRINCIPALE/ ».
+
+**1. Le radar sonde le canyon à chaque image, comme le jeu juge le choc** (`boucle-3-physique.js` appelle `canyonHeurt` à chaque image de vol ;
+avant, `yeux.js` le sondait une image sur huit). Sonde par sonde, c'était trop cher : une sonde coûte 134 µs, dont 115 pour le terrain (cinq
+`cyHauteur`). D'où **la borne du relief** (`borneCanyon`, `yeux.js`) : une borne haute de la hauteur du terrain, lue dans les grilles du jeu
+d'après le texte de `cyHauteur` ; au-dessus d'elle le terrain ne peut pas toucher et seuls les ouvrages sont appelés (5 µs), sinon `canyonHeurt`
+entier. La réponse est donc celle du jeu, image par image.
+- **Exact** : 0 écart sur 1,3 million de points tirés autour de 5 canyons (graines 910000, 910037, 910111, 910222, 910481 ; 56 % des points
+  dispensés du terrain ; l'outil, jetable, est hors git : `ml/ecurie/agents/tmp-pilote/bench-borne.js`). Une signature des textes du jeu
+  (`canyonHeurt`, `cyHauteur`, `cyButtesH`, `cyNiveauEau`, `cyBil`, `cyNz`, `JH`) éteint la borne et s'inscrit dans `__YEUX.manque` si une mise à
+  jour du jeu les change (`verifier.js` exige `manque` vide ; la nouvelle signature se lit par `__YEUX.signatureCanyon()`).
+- **Le coût d'une course entière au canyon** (8 graines imposées au canyon, 150 s, allégé, les mêmes courses avant et après ; temps de boucle, sans
+  la construction de la piste) : sonde par sonde, **+18 %** pour le pilote (la vue en vol de 18 à 125 ms) et +5,3 % pour le bot de référence ;
+  avec la borne, **+0,2 %** pour le pilote (yeux 5,2 → 5,4 s sur 83 s) et **+0,5 %** pour la référence (8,9 → 10,2 s sur 278 s). Sous les +10 % demandés.
+- **Pas à pas au canyon** (`node justesse.js --cartes canyon --pas --graines 16`, sortie `results/justesse-allege-pas-canyon.json` — à part pour ne
+  pas écraser les 44 vols de `justesse-allege-pas.json`) : 20 vols, **les places au centimètre 20 sur 20** (écart au pire 0 m), **l'issue à
+  l'image près 18 sur 18**.
+- `justesse.js` et `verifier.js` (contrôle 8 bis) comptent maintenant le canyon dans « le décor est sondé à chaque image ».
+- La course d'un cerveau sans profil ne change pas (les yeux ne font que lire). Les 8 courses du pilote sur les graines de la note sont **les mêmes au
+  bit près** qu'avant le changement (même empreinte, graine par graine), comme les 8 du bot de référence.
+
+**2. La justesse avec la main réglée** (`node justesse.js --profil clavier --graines 5`, 6 maps × 5 graines, 55 vols ; README § 2 ter) :
+l'issue juste **50 fois sur 55 à la première vue du vol** (le 24/11 : 36 sur 50), **55 sur 55 dès que les doigts tiennent la façon**, **41 sur 43
+une seconde avant la fin** ; au canyon 8 sur 8 aux trois moments ; le vol qui suit un saut 14 sur 20 (avant 14 sur 26). Avec une main à profil, la
+première vue reste une estimation (9 fois sur 10).
+
+**3. Le labo : les fins de ligne de `c0002`.** La cause : Git (`core.autocrlf=true` sur ce PC) rendait les copies de `ml/labo/cerveaux/` en CRLF et
+les rangeait en LF — le fichier de `c0001` ne correspondait plus à son empreinte ici, celui de `c0002` ne l'aurait plus ailleurs. Corrigé :
+`.gitattributes` porte `ml/labo/cerveaux/*.js -text`, `c0001` est rangé avec ses octets LF (`fec3305d`), `c0002` avec ses octets CRLF (`a4d1eb92`).
+La ligne du journal de `c0002` (`jumeau` vide pour le même code que `c0001`) n'est pas réécrite (aucun outil du labo ne le fait) : la différence
+est écrite dans `ml/labo/README.md` (§ 2).
+
+**4. Le premier pilote, contrôlé sans le réécrire.** `ml/ecurie/pilote.js` lu en entier contre la vue réelle :
+- **les champs existent et sont lus comme il faut** : `route` (tableau `{d, virage}`), `lacetRoute` / `lacetMax`, `virage.d` / `marge`, `tenue.tient` /
+  `cote`, `couloirs` (`d0`, `d1`), `mur.ici`, `flaques`, `ligne.objets`, `piecesDevant` et `orbes` par `latC` (le miroir sous la dalle est évité),
+  `vol.proche` (`envers` compris), `vol.air.reste` ; **`rayons` est cherché par son nom dans le tableau** (`find(x => x.m === …)`) ; `vue.carte` vaut bien
+  `canyon`, `grotte`, `jade`, `ville` (vérifié dans le jeu) ; positif à gauche partout ; unités cohérentes (rad, rad/s, m, s) ;
+- **les ordres sont ceux que la main lit** : `{ligne, nitro}` au sol, `{volant, manche, nitro, ensuite: {ligne: 0}}` en vol (`ensuite` avec `ligne` vaut :
+  la main `clavier` a le suivi) ;
+- **rien ne triche** : il ne lit que `vue` et sa mémoire ; profil `{modele: 'clavier', graine: 1, chance: {prend: 1, palierMin: 12}}`, dans les bornes ;
+- **aucune vraie erreur trouvée : rien n'a été corrigé.** Un point discutable, laissé parce que c'est de la stratégie : en vol, la façon tenue est
+  toujours jugée comme un rayon long (`vaut(mien, true, v)`), même quand c'est un rayon court (`gauche`, `cabre`…) dont « libre » veut dire « on ne
+  sait pas » ; il quitte donc plus vite une façon courte. À laisser à la boucle ;
+- **la note, mêmes graines et même durée que la référence** (8 graines de 910000 à 910259, 600 s au plus, allégé ; `results/note-pilote-allege-t600-g8.json`
+  et `note-reference-allege-t600-g8.json`, à part pour ne pas écraser les notes de 12 graines) :
+
+  | | le pilote | le bot de référence |
+  |---|---|---|
+  | palier médian | **11,5** | 7 |
+  | meilleur palier | **18** | 16 |
+  | les 8 paliers | 5 9 10 11 12 13 14 18 | 4 5 6 6 8 8 13 16 |
+  | survie médiane | 232,8 s | 136,2 s |
+  | pièces par minute | 295,8 | 286,5 |
+  | fins | paroi 3, tour 2, vide 2, roche 1 | vide 3, rivière, tour, pic, paroi, roche |
+
+  Graine par graine le pilote fait mieux 7 fois sur 8 (moins bien sur 910000 : 12 contre 16). 4 courses sur 8 ont pris la seconde chance. Aucune
+  erreur du cerveau, aucune panne. Ce sont exactement les 8 premières courses de la note de 12 graines de Fable (mêmes empreintes) ;
+- **l'essai à blanc de la boucle** (`node boucle.js --a-blanc --tours 1 --candidats 2 --depuis pilote.js --coeurs 2`, 0 €) : **elle va au bout** : le pilote est noté et inscrit (`c0001` du labo jetable, profil `bb745b50cdb1`, celui que la boucle gardera), les 2 variantes (des jumeaux, à blanc) triées, la meilleure notée en grand puis validée sur 2 graines neuves contre la barre du parent (« TIENT »), la génération close, « pas de progrès ce tour », 0 €. Rien n'est refusé.
+
+**À la fin** : `node ml/bot/verifier.js` **TOUT PASSE** (625 s, régime max ; empreinte de la section 3 **`a7b3171768ca`**, égale au témoin ; contrôle 8 bis : une sonde toutes les 1,04 image au pire, canyon compris ; au canyon le voltigeur coûte 3,8 ms par vue, sous la limite de 6) ; `node ml/labo/rejouer.js --tout --coeurs 2` : **5 rejeux exacts sur 5**.
+
+### LA CHAÎNE DES DEUX SEMAINES (`ml/ecurie/chaine.js`, `ml/ecurie/agent-api.js`)
+
+**Ce qu'elle est.** Un programme qui tourne seul, détaché de toute session Claude Code, et qui enchaîne le travail de l'étape C jusqu'au 08/12/2026.
+**Elle ne paie que sur la clé d'API, jamais sur l'abonnement** : elle retire de son environnement tout ce qui vient d'une session Claude Code
+(`CLAUDE*`, `ANTHROPIC_*`) et n'y remet que `ANTHROPIC_API_KEY` (lue dans la portée Utilisateur de Windows si besoin).
+- **`agent-api.js`** lance une session Claude Code sans écran : `claude -p --bare` (en mode `--bare`, seule la clé d'API est lue : ni OAuth, ni
+  trousseau), avec un plafond en dollars par session (`--max-budget-usd`), les deux `CLAUDE.md` joints à la consigne, `git push` interdit. Au premier
+  message il lit la source de facturation annoncée (`apiKeySource`) et **coupe la session si ce n'est pas la clé d'API**. Le coût final est inscrit au
+  journal des dépenses du labo (`ml/labo/journal/depenses.jsonl`), que le plafond de 200 € compte. Le récit de chaque session :
+  `agents/<date>-<nom>.jsonl` et `.md`.
+- **`chaine.js`**, dans l'ordre :
+  1. **le premier pilote** (agent Fable 5.2, consigne `consignes-agents/pilote.md`, 25 $ au plus ; Opus 5.5 en second essai) — **fait le 25/11** :
+     `ml/ecurie/pilote.js`, 11,63 € ;
+  2. **le calibrage** : `boucle.js` une fois par modèle, même départ, un tour de 6 variantes, 5 € chacun — étapes **K-haiku, K-sonnet, K-opus,
+     K-fable** — puis un compte rendu (agent Sonnet 5.5, `consignes-agents/compte-rendu.md`) ;
+  3. **le choix** du modèle et du départ (agent Opus 5.5, `consignes-agents/choix-modele.md`) → `agents/choix.json` (Opus 5.5 par défaut s'il manque) ;
+  4. **la boucle de l'étape C par tranches de 20 €** (`boucle.js --budget 20 --tours 20 --etape C`), la dépense étalée : **au plus 14 € par jour**
+     depuis le 25/11 (si moins de 5 € sont permis, elle attend une heure), **jusqu'au 08/12/2026 23 h 59** ; **un compte rendu après chaque
+     tranche**. Deux tranches de suite sans dépense l'arrêtent ; une tranche ratée fait une pause de 30 min.
+
+  Le plafond général de 200 € est tenu par `boucle.js` et `agent-api.js`. Une seule chose à la fois : jamais plus de 4 courses du jeu. Le PC est
+  tenu éveillé tant qu'elle tourne (une demande du processus, aucun réglage changé).
+- **Son journal** : `ml/ecurie/agents/chaine.log` (une ligne par pas, les lignes `[boucle]` et `[agent-api]` recopiées) ; la sortie complète de
+  chaque pas dans `agents/sortie-<pas>.log` ; ce qui est fait dans `agents/chaine-etat.json`.
+- **L'arrêter** : créer le fichier `ml/ecurie/agents/STOP` ; elle s'arrête au pas suivant (le pas en cours va au bout). Elle s'arrête aussi seule au
+  plafond de 200 € ou à l'échéance du 08/12.
+- **La relancer** : retirer `STOP`, puis `node chaine.js` dans `ml/ecurie` : elle **reprend où elle en était** (d'après `chaine-etat.json` ; un pas
+  fait n'est pas refait).
+- **Glisser un agent entre deux pas** : `node relais.js --pid <pid de la chaîne> --consigne consignes-agents/<x>.md --nom <x> --modele … --budget …
+  --etape …` pose `STOP`, attend l'arrêt, lance l'agent, retire `STOP` et relance la chaîne (c'est ainsi que ces finitions ont été faites).
 
 ### L'étape C, premier temps : le premier pilote (25/11/2026, après-midi)
 
@@ -195,32 +290,23 @@ Les chiffres ci-dessous sont ceux des correcteurs ; je n'ai refait moi-même que
   les joueurs ; des vols six fois plus rares. Ce n'est pas la main : c'est la trajectoire du cerveau d'essai. C'est le travail de l'étape C (et D).
 - **Les temps de réaction, le retard du suivi, les gestes et l'avance du drift** sont des ordres de grandeur : l'étalon des joueurs n'a que
   10 échantillons par seconde. Le modèle `doigt` n'a eu que 2 tours de réglage, sur 4 parties de Léo.
-- **Le radar au canyon** est sondé une image sur huit (la grotte et la jade à chaque image) : 32 vols prévus justes sur 32 et 16 chocs sur 16,
-  mais aucune mesure image par image au canyon ; un frôlement de paroi entre deux sondes n'est pas exclu. Une vue en vol au canyon coûte 10 à 20 ms.
-- **Avec une main à profil, le radar est une estimation à la première vue d'un vol** (environ 7 fois sur 10 juste ; 49 sur 50 une fois la façon tenue) ; `justesse.js --profil clavier` n'a pas été refait avec les dernières valeurs de la main.
-- **Aucun pilote ne se sert encore du radar** : qu'il aide à survivre n'est pas mesuré.
+- ~~Le radar au canyon sondé une image sur huit~~ : **réglé le 25/11 au soir** (à chaque image, par la borne du relief ; pas à pas 20 vols sur 20 au
+  centimètre, 18 sur 18 à l'image près). Ce que le radar ne voit toujours pas reste écrit au README (§ 2 bis : glacier, dunes, ville vitrée au-delà de son sol…).
+- **Avec une main à profil, le radar est une estimation à la première vue d'un vol** : refait le 25/11 au soir avec la main réglée, 50 fois sur 55 juste
+  (55 sur 55 une fois la façon tenue depuis une réaction).
+- **Un seul pilote se sert du radar** (`pilote.js`, en vol) : ce que le radar lui apporte n'est pas mesuré à part.
 - **Aucun tour payé n'a tourné** : ni le refus « main changée », ni une variante qui bat son parent, ni la validation sur 20 graines n'ont été vus en vrai.
 - Dans un même processus, l'espace et la grotte ne sont pas encore répétables : les notes et les rejeux gardent un processus neuf par course.
 - La salle de projection n'a pas été essayée dans un navigateur avec la lettre `C` ni avec le relief du canyon.
-- Le fichier `ml/labo/cerveaux/c0002-reference.js` a des fins de ligne Windows : son empreinte diffère de `c0001` pour un code identique (sans effet sur les courses).
+- `c0002` a des fins de ligne Windows : son empreinte diffère de `c0001` pour un code identique et son `jumeau` est vide (sans effet sur les courses ;
+  la cause est corrigée, la ligne gardée telle quelle : `ml/labo/README.md` § 2).
 - `ml/bot/results/note-essai-main-allege-t120-parties.json` (2,9 Mo, les enregistrements de l'essai de la main) reste hors de git : il se refait à l'identique.
 
 **La clé d'API.** Sacha l'a posée (`setx ANTHROPIC_API_KEY`) ; `node essai-api.js` du 24/11 passe pour les quatre modèles. Une session ouverte
 avant le `setx` ne voit pas la clé : lancer depuis un terminal neuf.
 
 **Le texte à coller dans la prochaine session :**
-> Dans `C:\Users\sacha\code\CASH-CAR-bots-ecurie` (branche `bots-ecurie`), lis `ml/ecurie/ETAPES.md` (la section « Où on en est »),
-> `ml/ecurie/PLAN.md`, `ml/ecurie/etude/*.md` et `ml/bot/README.md` (§ 2 à 3.8). L'étape B est faite, le premier pilote de l'étape C existe
-> (`ml/ecurie/pilote.js`, main `clavier` ; au tri, médian 12,5 et meilleur 20 sur 12 graines). Fais dans l'ordre, en validant dans git à la
-> fin de chaque point et en mettant `ETAPES.md` à jour : (3) la suite de l'étape C : note ce pilote sur 20 graines en
-> `--regime allege --tmax 900`, inscris-le au labo (étape `C`, génération 0), puis améliore-le par tours (autopsie des morts, correction,
-> note, inscription) sans changer son `profil` ; ce qui le tue d'abord : le canyon ; la note de départ à battre reste celle du bot de
-> référence AVEC le relief du canyon : palier médian 8,5, meilleur 18 ; (4) le calibrage de l'étape C bis (10 € : les quatre modèles
-> sur le même parent, un nombre égal de variantes), puis la boucle par tranches de 20 €, sans dépasser 200 € au total (`--plafond 200`,
-> `node ml/labo/labo.js` donne le cumul) et en étalant la dépense jusqu'au 08/12/2026 (13 à 14 € par jour). Jamais plus de 4 courses à la
-> fois. Le contrat à garder : `node ml/bot/verifier.js` passe en entier avec l'empreinte `a7b3171768ca`, `node ml/labo/rejouer.js --tout`
-> donne tous les rejeux exacts. Rien dans `code/` ni dans « VERSION PRINCIPALE/ ». Aucun `git push`. Si la limite d'usage du modèle
-> bloque des agents, lance-les avec un autre modèle. Ne me pose pas de question.
+> la chaîne tourne ; pour reprendre, lire `ml/ecurie/agents/chaine.log` et relancer `node chaine.js` (dans `ml/ecurie`).
 
 ---
 

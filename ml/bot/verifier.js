@@ -79,7 +79,7 @@
          l'endroit puis tete en bas : `vol.proche.envers` le dit, et dans les deux cas le rayon versRoute finit plus pres de l'axe qu'au depart
          (avant : tete en bas il finissait au bord, a 27,9 m) ; le voltigeur retourne sa loi lui aussi (son texte lit `envers`).
      7 (suite). le budget d'une vue avec sorties demandees est celui de la demande (2 900 images), pas celui du vol.
-     8 bis. LE DECOR SONDE A CHAQUE IMAGE (hors canyon) : la maille du radar vaut la distance volee en une image (c'etait deux a la grotte et a la jade) ;
+     8 bis. LE DECOR SONDE A CHAQUE IMAGE (le canyon aussi depuis le 25/11, finitions de l'etape B) : la maille du radar vaut la distance volee en une image (c'etait deux a la grotte et a la jade) ;
      8 ter. LE SAUT : un saut que les yeux prevoient DECOLLE (aucun « prevu sans decollage »), un saut dit refuse ne decolle pas, et il decolle a
             l'image annoncee (ecart median nul) ;
      8 quater. « latC » (pieces, fruits, orbes) vaut « lat » au-dessus de la dalle et son oppose dessous, sur chaque objet de chaque vue au sol
@@ -434,7 +434,7 @@ function mainSeule(profil,graine,ordre,images){
     const C9=JU.controles(P6.map(p=>p.plein&&p.plein.controles)),S9=JU.sorties(tous).saut,nC=P6.filter(p=>p.plein&&p.plein.controles).length;R.justesse.controles=C9;R.justesse.saut={n:S9.n,prevues:S9.prevues,dt_med:S9.dt_med,dt_max:S9.dt_max};
     if(!nC)dit(false,'8 bis. pas de comptes : aucune course de 6c n\'a rendu ses controles');
     else{
-      if(C9.cadence.vues)dit(C9.cadence.max<1.5,`8 bis. le decor est sonde a chaque image (hors canyon) : une sonde toutes les ${C9.cadence.max} image(s) au pire, sur ${C9.cadence.vues} vues en vol devant un decor`);
+      if(C9.cadence.vues)dit(C9.cadence.max<1.5,`8 bis. le decor est sonde a chaque image (canyon compris) : une sonde toutes les ${C9.cadence.max} image(s) au pire, sur ${C9.cadence.vues} vues en vol devant un decor`);
       else console.log('  ·    8 bis. aucune vue en vol devant un decor sonde (affiche seulement)');
       if(C9.sauts.ordres){
         dit(C9.sauts.prevusSansDecol===0,`8 ter. un saut prevu decolle : ${C9.sauts.ordres} saut(s) ordonne(s), ${C9.sauts.prevus} prevu(s) par les yeux dont ${C9.sauts.prevusSansDecol} sans decollage · ${C9.sauts.decolles} decolle(s)`);

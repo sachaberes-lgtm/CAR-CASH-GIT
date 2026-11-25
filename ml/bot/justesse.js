@@ -71,7 +71,7 @@ const PRINCIPAL=require.main===module;
         G.ordres++;if(dec)G.decolles++;if(prevu){G.prevus++;if(!dec)G.prevusSansDecol.push(q.image);}
         if(S&&S.issue==='figure')G.figure++;
         if(w.sautRefuse===true){G.refuses++;if(dec)G.refusesMaisDecol.push(q.image);}}
-      if(w.mode==='vol'&&w.vol&&w.vol.radar&&w.vol.radar.decor&&w.vol.radar.maille!=null&&w.vitesse>20&&w.vol.radar.decor.indexOf('canyon')<0){
+      if(w.mode==='vol'&&w.vol&&w.vol.radar&&w.vol.radar.decor&&w.vol.radar.maille!=null&&w.vitesse>20){ /* (2026-11-25, finitions de l'etape B) le canyon compte aussi : il est sonde a chaque image */
         const c=w.vol.radar.maille*60/w.vitesse;ctl.cadence.vues++;if(c>ctl.cadence.max)ctl.cadence.max=r2(c);}
       if(w.mode==='sol')for(const L of [w.piecesDevant,w.fruits,w.orbes])for(const p of L||[]){ctl.latC.objets++;if(w.dessous)ctl.latC.dessous++;
         if(typeof p.latC!=='number'||Math.abs(p.latC-(w.dessous?-p.lat:p.lat))>.11)ctl.latC.faux++;}}
@@ -202,7 +202,7 @@ function controles(L){
   return o;}
 function ecritControles(c){
   console.log('\n  LES CONTROLES · sauts ordonnes '+c.sauts.ordres+' : prevus '+c.sauts.prevus+' (dont sans decollage '+c.sauts.prevusSansDecol+'), dits refuses '+c.sauts.refuses+' (dont decolles quand meme '+c.sauts.refusesMaisDecol+'), « figure en cours » '+c.sauts.figure+', decolles '+c.sauts.decolles
-    +' · sondes du decor : une toutes les '+c.cadence.max+' image(s) au pire ('+c.cadence.vues+' vues, hors canyon) · latC : '+c.latC.objets+' objets vus, dont '+c.latC.dessous+' sous la dalle, '+c.latC.faux+' faux');}
+    +' · sondes du decor : une toutes les '+c.cadence.max+' image(s) au pire ('+c.cadence.vues+' vues, canyon compris) · latC : '+c.latC.objets+' objets vus, dont '+c.latC.dessous+' sous la dalle, '+c.latC.faux+' faux');}
 module.exports.controles=controles;module.exports.ecritControles=ecritControles;
 function ecritSorties(S){
   console.log('\n  LES SORTIES DU SOL (demandees une decision avant ; « approx » : la vitesse tenue, ni drift ni flaque)');

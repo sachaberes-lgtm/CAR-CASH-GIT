@@ -110,8 +110,8 @@ Jusqu'à quatre, le plus gros gain d'abord : `s`, `gain` (piste sautée moins di
 
 En vol, `vue.vol.radar` rejoue le vol **image par image, avec les lois du jeu**, pour plusieurs façons de piloter, et donne pour chacune l'**issue**.
 `radar` : `pas` (1/60 s), `court` (2 s) et `long` (ce qu'il reste d'air, 6 s au plus : les deux horizons), `decor` (ce qui est sondé : grotte, jade, canyon,
-ville, espace), `maille` (m entre deux sondes du décor : depuis le 25/11 le décor est sondé **à chaque image**, comme le jeu le juge — sauf au canyon, une image
-sur huit), `aveugle` (ce qui ne l'est pas ici : `glacier`, `dunes`, `roches`), `approx`, et `rayons`.
+ville, espace), `maille` (m entre deux sondes du décor : depuis le 25/11 le décor est sondé **à chaque image**, comme le jeu le juge — le canyon aussi depuis
+les finitions de l'étape B, par une borne du relief qui évite le calcul du terrain là où il ne peut pas toucher : la réponse reste celle du jeu), `aveugle` (ce qui ne l'est pas ici : `glacier`, `dunes`, `roches`), `approx`, et `rayons`.
 
 **`rayons` est un TABLEAU** d'objets `{ m, issue, t, … }` — le nom du rayon est dans le champ `m`, toujours dans l'ordre du tableau ci-dessous. On ne lit donc
 pas `rayons.versRoute` (toujours `undefined`, sans aucune erreur) : on cherche le rayon par son nom. Et on teste avant de lire : `vue.vol` n'existe qu'en vol,
@@ -202,8 +202,12 @@ const revient = !!(vr && (vr.issue === 'pose' || vr.issue === 'levre'));
 
 **Ce que les yeux ne voient toujours pas** : le glacier et les dunes (hors du tirage : `aveugle`), la ville vitrée au-delà de son sol, la route d'après le portail,
 un obstacle plus mince que `maille`, les montagnes de jade qui tombent (elles sont vues à leur place du moment), les filets de virage. **Au canyon**, le relief
-existe dans le simulateur depuis le 25/11 (`ml/reel/jeu-reel.js`, `cyw=0` ; avant, ni paroi, ni rivière, ni mur de couloir) : le radar le sonde **une image sur
-huit** (une sonde y coûte 134 µs) et peut passer à travers un rocher mince entre deux sondes, comme il le faisait à la grotte avant le 25/11 — MESURÉ
+existe dans le simulateur depuis le 25/11 (`ml/reel/jeu-reel.js`, `cyw=0` ; avant, ni paroi, ni rivière, ni mur de couloir) : le radar le sonde **à chaque image** depuis les
+finitions de l'étape B (25/11 au soir ; avant, une image sur huit : une sonde coûte 134 µs, dont 115 pour le terrain). La sonde passe d'abord par une
+**borne haute du relief** (`borneCanyon`, `yeux.js`, écrite d'après le texte de `cyHauteur`) : si la caisse est au-dessus, le terrain ne peut pas la
+toucher et seuls les ouvrages sont appelés ; sinon `canyonHeurt` entier. La réponse est celle du jeu : **0 écart sur 1,3 million de points** tirés
+autour de 5 canyons (`ml/ecurie/agents/tmp-pilote/bench-borne.js`, hors git) ; une signature des textes du jeu éteint la borne et s'inscrit dans
+`manque` s'ils changent. Le coût d'une course entière au canyon ne bouge pas (voir « Ce que ça coûte »). MESURÉ AVANT (une image sur huit)
 (`node justesse.js --cartes canyon --graines 16`, allégé) : 32 vols, issue juste 32 sur 32 à la première vue, les 16 chocs prévus avec leur cause (paroi,
 canyon, rivière), aucun choc non prévu ; pas de mesure image par image au canyon. Les murs de couloir (`vue.mur`) : sur une course de 200 s du bot de
 référence (graine 910037), `mur.ici` a dit vrai aux 33 vues au sol où le jeu avait un mur (`cyCouloirIci`), et jamais ailleurs (1 918 vues). Sous la dalle, les `lat` des pièces, fruits et orbes sont en miroir :
@@ -223,7 +227,7 @@ le voltigeur sur 6 maps × 5 graines (57 vols, `results/justesse-allege.json`, `
 | une seconde avant la fin du vol | 51 / 51 | 0 s (0,02) · 0,2 m (1,5) · 0,03 m (0,11) |
 
 - la **note** de la pose (parfaite, bonne, lourde) est la bonne 22 fois sur 22 ; les 8 **chocs** contre le décor (roche, pic, tour) sont vus : 6 avec leur cause dès la première vue, 2 par un rayon court (2 s) qui les dit « libre » parce qu'ils arrivent plus loin que son horizon ;
-- **le pas à pas** (`--pas`, 44 vols, `results/justesse-allege-pas.json`) : les places prévues image par image sont celles du jeu **au centimètre sur tout le vol, 44 fois sur 44** ; l'issue tombe à l'image près **41 fois sur 41** (le 24/11 : 38 sur 41 — ce n'étaient pas des chocs « vus une image trop tard » mais des roches **manquées** : la grotte et les pics de jade n'étaient sondés qu'une image sur deux, et une roche touchée pendant une seule image impaire passait inaperçue ; depuis le 25/11 ils sont sondés à chaque image, comme le jeu les juge ; le canyon reste à une sur huit) ;
+- **le pas à pas** (`--pas`, 44 vols, `results/justesse-allege-pas.json`) : les places prévues image par image sont celles du jeu **au centimètre sur tout le vol, 44 fois sur 44** ; l'issue tombe à l'image près **41 fois sur 41** (le 24/11 : 38 sur 41 — ce n'étaient pas des chocs « vus une image trop tard » mais des roches **manquées** : la grotte et les pics de jade n'étaient sondés qu'une image sur deux, et une roche touchée pendant une seule image impaire passait inaperçue ; depuis le 25/11 ils sont sondés à chaque image, comme le jeu les juge) ; **le canyon pas à pas** (finitions de l'étape B, le canyon sondé à chaque image : `node justesse.js --cartes canyon --pas --graines 16 --sortie results/justesse-allege-pas-canyon.json`) : 20 vols, les places **au centimètre sur tout le vol 20 fois sur 20** (écart au pire : 0 m), l'issue **à l'image près 18 fois sur 18** (16 courses, fins paroi 14, canyon 1, rivière 1) ;
 - **les sorties du sol** : une sortie franche est annoncée à 0,07 s près (médiane ; 0,5 s pour une sur dix) ; l'issue du vol qui suit est juste 16 fois sur 17, **mais 15 de ces 16 sont des « libre » avant 3 s pour des vols morts ensuite, jauge vide** : les rayons `rien` et `plane` d'une sortie à gauche ou à droite ne disent pas si elle est vivable (d'où le rayon `versRoute` ajouté, mesuré plus bas) ;
 - **le saut** (30, tous le **premier** de leur course : le voltigeur n'en fait qu'un) : il décolle à l'image annoncée (écart médian 0, au pire 0,05 s). Le vol qui suit : issue juste **17 fois sur 18** (le 24/11 : 15 sur 18), la pose annoncée **0,36 s et 25 m trop tôt** en médiane (le 24/11 : 0,71 s et 45 m), 5,2 m de côté, la note juste 6 fois sur 16. Ce qui reste d'écart vient de l'impulsion : avant le premier saut, le radar prend le plancher du jeu (`mesure` faux). L'erreur restante : une pose annoncée pour un choc contre un pic, sur la jade ;
 - **le bot de référence** (rayon `tenu`, 12 vols, `results/justesse-allege-reference.json`) : 10 sur 12 — il change d'ordre pendant ses vols, et `tenu` ne dit que ce qui arrive si rien ne change. Ses courses passent sous la dalle : `latC` y est contrôlé sur 3 325 objets vus dessous, 0 faux ;
@@ -247,14 +251,19 @@ le voltigeur sur 6 maps × 5 graines (57 vols, `results/justesse-allege.json`, `
 
 Sur 46 sauts ordonnés : 45 prévus, tous décollés ; 1 dit refusé (jauge trop basse), qui n'a pas décollé.
 
-**Avec la main « clavier »** (`--profil clavier`, une main à profil : réactions tirées, volant par coups) : le voltigeur, 50 vols (`results/justesse-allege-main-clavier.json`) —
-**36 sur 50 seulement à la première vue du vol** (les touches du décollage et l'ordre en route ne sont qu'estimés), 49 sur 50 dès que les doigts tiennent la façon,
-42 sur 43 une seconde avant la fin ; le saut : 14 sur 26 (la main décolle plus tard et autrement que la main de machine). Le voltigeur de la route avec cette main
+**Avec la main « clavier »** (`--profil clavier`, une main à profil : réactions tirées, volant par coups) — **refait le 25/11 au soir avec la main réglée de la relecture
+et le canyon sondé à chaque image** (`node justesse.js --profil clavier --graines 5`, 6 maps × 5 graines, 55 vols, `results/justesse-allege-main-clavier.json`) :
+**50 sur 55 à la première vue du vol** (91 % ; le 24/11, avant les corrections de la main et du radar : 36 sur 50), **55 sur 55 dès que les doigts tiennent la façon**
+(avant 49 sur 50 ; poses à 0,3 m le long de la piste et 0,03 m de côté en médiane), **41 sur 43 une seconde avant la fin** (avant 42 sur 43 : deux chocs prévus pour des
+poses, un à la grotte, un à la ville) ; les causes des chocs sont les bonnes 10 sur 10, 12 sur 12 et 7 sur 7 ; au canyon 8 sur 8 aux trois moments. Les sorties franches : annoncées 17 sur 17
+à 0,09 s près, le vol qui suit juste 10 fois sur 12 ; le saut : décollé à l'image annoncée 30 sur 30 (0,03 s), le vol qui suit juste **14 sur 20** (avant 14 sur 26 ; le premier
+saut d'une course part du plancher du jeu). Les sondes du décor : une toutes les 1,14 image au pire, sur 979 vues, canyon compris. Chiffres d'avant le 25/11 au soir pour
+le voltigeur de la route avec cette main (non refait) : Le voltigeur de la route avec cette main
 (`results/justesse-allege-voltigeur-route-main-clavier.json`) : 44 sur 58 à la première vue, 58 sur 58 ensuite ; `versRoute` après une sortie franche 16 sur 20 ;
 un saut prévu n'a pas décollé (1 sur 35). **Conclusion : avec une main à profil, ne se fier au radar en vol qu'une fois la façon tenue depuis une réaction.**
 
-Ce que ces mesures ne disent pas : `cabre`, `pique` et `viser` n'ont jamais été tirés ; **aucun pilote n'a encore décidé en lisant le radar** (les deux voltigeurs, la
-référence et essai-main ne le lisent pas) ; les sorties à gauche et à droite du premier voltigeur n'ont pas de vol `versRoute` (il tient `rien` ou `plane`). **Ce qui a rendu la première vue juste** (elle ne l'était que 54 fois sur 57) : le radar tient compte des **délais de la main** (`Doigts.prototype.delais`, `doigts.js`) — au décollage, les doigts tiennent encore quelques images les touches d'avant (une flèche du volant, la NITRO et le manche du geste `saut`) ; ces images-là suffisent à déplacer la pose de 9 m.
+Ce que ces mesures ne disent pas : `viser` n'a jamais été tiré (`cabre` et `pique` : deux vols chacun, avec la main clavier, le 25/11) ; **un seul pilote décide en lisant le radar** (`ml/ecurie/pilote.js`,
+le 25/11 ; ce que le radar lui apporte n'est pas mesuré à part) ; les sorties à gauche et à droite du premier voltigeur n'ont pas de vol `versRoute` (il tient `rien` ou `plane`). **Ce qui a rendu la première vue juste** (elle ne l'était que 54 fois sur 57) : le radar tient compte des **délais de la main** (`Doigts.prototype.delais`, `doigts.js`) — au décollage, les doigts tiennent encore quelques images les touches d'avant (une flèche du volant, la NITRO et le manche du geste `saut`) ; ces images-là suffisent à déplacer la pose de 9 m.
 
 **Refaire ces mesures, à l'identique** (depuis le 25/11, un fichier qui existe avec un autre réglage — graines, départ, durée, maps, régime, mode, cerveau,
 profil, adresse — n'est plus écrasé sans `--force` : `node justesse.js` tout court, 3 graines, refuse donc de remplacer les 57 vols et dit les bonnes options) :
@@ -267,12 +276,13 @@ profil, adresse — n'est plus écrasé sans `--force` : `node justesse.js` tout
 | `justesse-allege-cyw0.json` | `node justesse.js --cartes canyon --graines 4 --tmax 60 --requete "&cyw=0"` (avant le 25/11) |
 | `justesse-allege-canyon-relief.json` | `node justesse.js --cartes canyon --graines 16 --coeurs 4` (25/11, le relief allumé dans le simulateur) |
 | `justesse-allege-voltigeur-route.json` | `node justesse.js --cerveau voltigeur-route.js --graines 5` |
-| `justesse-allege-main-clavier.json` | `node justesse.js --profil clavier --graines 5` |
+| `justesse-allege-pas-canyon.json` | `node justesse.js --cartes canyon --pas --graines 16 --sortie results/justesse-allege-pas-canyon.json` (25/11 au soir, le canyon sondé à chaque image) |
+| `justesse-allege-main-clavier.json` | `node justesse.js --profil clavier --graines 5` (refait le 25/11 au soir) |
 | `justesse-allege-voltigeur-route-main-clavier.json` | `node justesse.js --cerveau voltigeur-route.js --profil clavier --graines 5` |
 
 Les options : `--pas` (les places image par image), `--cerveau` (un autre cerveau que le voltigeur : `reference.js`, le rayon `tenu` ; `voltigeur-route.js`, la façon
 que l'ordre porte), `--profil clavier` (une main à profil), `--requete "&…"` (un morceau de plus dans l'adresse du jeu ; `&cyw=0`, le canyon avec son relief, n'est plus utile depuis le 25/11 : le simulateur le porte), `--sortie` (un autre fichier). C'est aussi le **détecteur de dérive** : une loi du jeu qui change sans que sa copie
-dans `yeux.js` suive se voit là. **Ce que ça coûte** : sur la course du contrôle 3 de `verifier.js` (150 s, le bot de référence, 4 % des vues en vol), **0,74 ms par vue contre 0,39 sans le radar** (au sol 0,66 ms, en vol 2,6), et une vue de 2 360 caractères contre 1 640. Une vue en vol coûte de 1 à 2 ms sans décor, **2,5 à 4 ms devant la ville ou la grotte, 5,5 à 6 ms devant les pics de jade** depuis que le décor est sondé à chaque image (le 24/11, une image sur deux : 2 à 4,5 ms ; les sondes du décor sont des fonctions du jeu : la cible de 2,5 ms n'y est pas tenue), et 13 à 18 ms au canyon avec son relief (une sonde y coûte 134 µs). Un pilote qui volerait autant qu'un joueur (29 % du temps) paierait de l'ordre de 1,5 ms par vue.
+dans `yeux.js` suive se voit là. **Ce que ça coûte** : sur la course du contrôle 3 de `verifier.js` (150 s, le bot de référence, 4 % des vues en vol), **0,74 ms par vue contre 0,39 sans le radar** (au sol 0,66 ms, en vol 2,6), et une vue de 2 360 caractères contre 1 640. Une vue en vol coûte de 1 à 2 ms sans décor, **2,5 à 4 ms devant la ville ou la grotte, 5,5 à 6 ms devant les pics de jade** depuis que le décor est sondé à chaque image (le 24/11, une image sur deux : 2 à 4,5 ms ; les sondes du décor sont des fonctions du jeu : la cible de 2,5 ms n'y est pas tenue), et 13 à 18 ms au canyon avec son relief (une sonde y coûte 134 µs). **Le canyon sondé à chaque image** (finitions de l'étape B, MESURÉ sur 8 graines imposées au canyon, 150 s, allégé, mêmes courses avant et après) : sonde par sonde, la vue en vol passait de 18 à 125 ms et les yeux ajoutaient **18 %** au temps de boucle des courses du pilote (5,3 % à celles du bot de référence) ; avec la borne du relief, **+0,2 %** (pilote : yeux 5,2 → 5,4 s sur 83 s de boucle) et **+0,5 %** (référence : 8,9 → 10,2 s sur 278 s). Le voltigeur, qui demande les sorties à chaque vue, paie 11 ms par vue au canyon avec la main clavier (30 ms en vol). Un pilote qui volerait autant qu'un joueur (29 % du temps) paierait de l'ordre de 1,5 ms par vue.
 
 ---
 

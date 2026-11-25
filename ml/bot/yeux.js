@@ -127,7 +127,7 @@ const YEUX_CODE=`window.__YEUX=(function(){
      bord 1 080 + gauche 720 + droite 720 + saut 360 = 2 880) ; sondes : 2 420 → 2 920 — le decor est sonde a CHAQUE image (une sonde par image au plus). */
   const BUDGET={vol:2400,sol:1100,demande:2900,route:900,sondes:2920};
   const H60=1/60,PAS_MS=1000/60,COURT=2,LONG=6,TENUE=3,MOYEN=3;
-  const COUT={pas:0,route:0,dalles:0,sondes:0,erreurs:0};
+  const COUT={pas:0,route:0,dalles:0,sondes:0,erreurs:0,cyb:0};
   const MANQUE=[];
   const SONDE=new THREE.Vector3();
   const M=Math;
@@ -135,6 +135,7 @@ const YEUX_CODE=`window.__YEUX=(function(){
      depuis ce texte passe par une recherche lente (le texte est evalue dans le jeu), et une image de vol en lit des dizaines */
   let gP=null,gT=null,gN=null,gB=null,gNP=0,gL=0,gTR=null,gSolY=0;
   let jLacetVol=null,jTient=null,jBump=null,jGrotte=null,jJade=null,jCanyon=null,jVille=null,jGeants=null;
+  let gCY=null,gZ=null,gF=null,gBG=null,gBut=null,jMonu=null,jCouloir=null,jTun2=null,jMine=null,jVoute=null,jToit=null;
   const lirePiste=function(){gP=pts;gT=T;gN=Nn;gB=B;gNP=NP;gL=L;gTR=TROU;if(BX.gP===gP&&BX.sig!==signe())BX.gP=null;if(CB.gP===gP&&CB.sig!==signe())CB.gP=null;};
   const cl=function(x,a,b){return x<a?a:x>b?b:x;};
   const fini=function(x,k){return (typeof x==='number'&&x===x&&x!==Infinity&&x!==-Infinity)?M.round(x*k)/k:null;};
@@ -154,7 +155,17 @@ const YEUX_CODE=`window.__YEUX=(function(){
     saut:present('sautRefuse','jadeEnversRefuse villeEnversRefuse NUA_SS nua2On MODS hopY hopV POSE_F DMT TUTO nitroOn FDC FR GSOL VEQ VEQ_K NITRO2 nitroCap nitroR nitroX pwrNitroT startBoostT PARK'),
     vol:present('vol','fallPos fallVel FLY_U FLY_R VOLR VEQ VEQ_K VIRVOL pitchS fallVH0 fallT fallTR bascOn bascT fallStartSide sideCd bounceN nitroR nitroX nitroOn pwrNitroT startBoostT pwrAirT RAI TUTO FLOW FLOW2 JEAU tryLand loop keys FALL_G gK airMax volInv lacetVol nitroCap nitroTientDe nitroBumpDe NITRO2 NITRO_BLEU_K BASC_T LEVRE_H LEVRE_POSE BUMP_VY CARS level TROU trackMinY PARK TBORD VOLR_FIGE AIR_RATE TCTL MIR FX2 volrOn murRoule'),
     portail:present('portail','PORTAL PCUBE PORTV portalMesh'),
-    decor:present('decor','GROTTE grotteHeurt JADE jadeHeurt CY canyonHeurt CITY villeHeurt GEANTS geantsHeurt LVL BANQ DN')};
+    decor:present('decor','GROTTE grotteHeurt JADE jadeHeurt CY canyonHeurt CITY villeHeurt GEANTS geantsHeurt LVL BANQ DN'),
+    /* (2026-11-25, finitions de l'etape B) la borne du relief du canyon (voir canyonSonde) : les lois qu'elle majore et les heurts qu'elle rappelle */
+    cyb:present('canyonBorne','cyHauteur cyButtesH cyNiveauEau cyNz cyBil JH cyMonuHeurt cyCouloirHeurt cyTun2Heurt cyMineHeurt cyVouteHeurt cyToitHeurt')};
+  /* LA SIGNATURE DES LOIS DU RELIEF DU CANYON (2026-11-25, finitions de l'etape B) : canyonSonde majore cyHauteur par une borne ecrite d'apres son
+     texte et rappelle la suite de canyonHeurt dans son ordre. Si une mise a jour du jeu change l'un de ces textes, la borne n'est plus prouvee : elle
+     s'eteint (le canyon est sonde par canyonHeurt entier, toujours juste, plus lent) et « canyonBorne:signature » s'inscrit dans __YEUX.manque, que
+     verifier.js exige vide — il faut alors relire la borne contre le nouveau texte et recopier la signature (__YEUX.signatureCanyon()). */
+  const CYB_SIG='b3674394a5bee13c-4017';
+  const signeCanyon=function(){let t='';try{t=[canyonHeurt,cyHauteur,cyButtesH,cyNiveauEau,cyBil,cyNz].map(function(f){return String(f);}).join('|')+'|'+JSON.stringify(JH);}catch(e){return 'illisible';}
+    let h1=5381,h2=52711;for(let i=0;i<t.length;i++){const c=t.charCodeAt(i);h1=(h1*33)^c;h2=(h2*33)^c;h1|=0;h2=(h2*7)|0;}return (h1>>>0).toString(16)+(h2>>>0).toString(16)+'-'+t.length;};
+  const CYB_OK=LA.cyb&&LA.decor&&(function(){const s=signeCanyon();if(s===CYB_SIG)return true;MANQUE.push('canyonBorne:signature '+s);return false;})();
 
   /* ---- L'INDEX PRIVE DES DALLES : le radar de dalle en casiers du jeu (portail-passage.js, « LE RADAR DE DALLE EN CASIERS ») sur ses propres tableaux —
      celui du jeu ecrit son resultat et rebatit son index. MEME POINT ELU que le jeu : les candidats sont balayes dans le meme ordre (indices croissants),
@@ -214,7 +225,7 @@ const YEUX_CODE=`window.__YEUX=(function(){
      et la mesure de justesse le voit) ---- */
   const K={SPD:.5,g:.5,RH:.5,TH:.5,w:.5,BASC_T:.5,LEVRE_H:.5,LEVRE_POSE:.5,bump:.5,lis:.5,l12:.5,push:.5,cap:.5,regen:.5,fren:.5,conso:.5,coup:.5,bleu:.5,
     veq:false,niv:.5,latch:.5,inv:.5,airM:.5,fond:.5,tutoPa:false,wB:.5,park:false,balade:false,vMin:.5,angle:.5,portOk:false,cube:false,cx:.5,cy:.5,cz:.5,pe:null,pR2:.5,
-    dGrotte:false,dJade:false,dCanyon:false,dSol:false,dVille:false,dGeants:false,decor:false,cad:2,volrOn:false,approx:false,
+    dGrotte:false,dJade:false,dCanyon:false,dSol:false,dVille:false,dGeants:false,decor:false,cad:2,cyb:false,volrOn:false,approx:false,
     lvK:.5,lvC:.5,lvOk:false,seuil:.5,ntOk:false,nivF:.5,vLis:.5,hC:.5};
   /* DEUX PETITES LOIS DU JEU, appelees a chaque image de vol, RECOPIEES pour le cout (un appel au jeu depuis ce texte coute dix fois le calcul) :
      le lacet du vol au plein volant (vol-equilibre.js) et « le reacteur tient-il ? » (frole-contrats.js). A CHAQUE vue la copie est comparee a la
@@ -228,6 +239,7 @@ const YEUX_CODE=`window.__YEUX=(function(){
     K.seuil=NITRO2.seuil;K.ntOk=true;K.ntOk=tient(1,.0166,true)===nitroTientDe(1,.0166,true)&&tient(.004,0,true)===nitroTientDe(.004,0,true)&&tient(.01,.0166,true)===nitroTientDe(.01,.0166,true)
       &&tient(K.seuil+.01,0,false)===nitroTientDe(K.seuil+.01,0,false)&&tient(K.seuil-.01,0,false)===nitroTientDe(K.seuil-.01,0,false);
     if(LA.decor){jGrotte=grotteHeurt;jJade=jadeHeurt;jCanyon=canyonHeurt;jVille=villeHeurt;jGeants=geantsHeurt;gSolY=CITY.solY;}
+    if(CYB_OK){gCY=CY;gZ=CY.Z;gF=CY.F;gBG=CY.bg;gBut=CY.buttes;jMonu=cyMonuHeurt;jCouloir=cyCouloirHeurt;jTun2=cyTun2Heurt;jMine=cyMineHeurt;jVoute=cyVouteHeurt;jToit=cyToitHeurt;}
     K.SPD=SPD;K.g=FALL_G*gk;K.RH=ROAD_HALF;K.TH=THICK;K.w=CARS[level].w;
     K.BASC_T=BASC_T;K.LEVRE_H=LEVRE_H;K.LEVRE_POSE=LEVRE_POSE;K.bump=BUMP_VY*M.sqrt(gk);
     K.vLis=VOL_LIS;K.hC=H60;K.lis=1-M.exp(-H60*VOL_LIS);K.l12=1-M.exp(-H60*12);
@@ -252,8 +264,11 @@ const YEUX_CODE=`window.__YEUX=(function(){
        (2026-11-25, simulateur fidele) LE RELIEF EST ALLUME (ml/reel/jeu-reel.js, cyw=0). MESURE (justesse.js --cartes canyon --graines 16, allege) :
        32 vols, l'issue juste 32 fois sur 32 a la premiere vue, les 16 chocs prevus avec la bonne cause (paroi, canyon, riviere), aucun choc non
        prevu ; et les yeux coutent moins de 3 % du temps d'une course entiere du bot de reference (radar coupe / ouvert, 4 graines). La cadence reste
-       une image sur huit : un choc qui frole une paroi entre deux sondes n'est PAS exclu (pas de mesure image par image au canyon). */
-    K.cad=K.dCanyon?8:1;
+       une image sur huit : un choc qui frole une paroi entre deux sondes n'est PAS exclu (pas de mesure image par image au canyon).
+       (2026-11-25, finitions de l'etape B) LE CANYON AUSSI A CHAQUE IMAGE, comme le jeu le juge (boucle-3-physique.js : canyonHeurt a chaque image de
+       vol). Sonde par sonde, il couterait 125 ms par vue en vol (MESURE, le pilote sur 8 graines au canyon : +18 % sur la boucle des courses) ; la
+       borne du relief (canyonSonde, plus bas) evite le calcul du terrain la ou il ne peut pas toucher, sans rien changer a la reponse. */
+    K.cad=1;K.cyb=CYB_OK&&K.dCanyon&&!!(gZ&&gF&&gBG&&gBut&&gZ.d&&gF.c&&gF.m&&gBG.i);
     K.volrOn=volrOn();
     K.approx=AIR_RATE!==1||TBORD.t>0||(VOLR.on&&!VOLR_FIGE)||K.park||!!(TCTL.act||TCTL.incl||TCTL.pad)||(typeof RALENTI!=='undefined'&&RALENTI.t>0);
   };
@@ -380,11 +395,56 @@ const YEUX_CODE=`window.__YEUX=(function(){
     return passe&&K.portOk;};
   /* ---- LE DECOR QUI TUE, dans l'ordre du jeu, chacun derriere sa garde. Les heurts du jeu sont APPELES (lecture : ils n'ecrivent que leurs
      brouillons). Rend la cause, ou ''. Ni le glacier, ni les dunes, ni les roches de l'orbite (hors du jeu par defaut) : voir « aveugle ». ---- */
+  /* ---- LA BORNE DU RELIEF DU CANYON (2026-11-25, finitions de l'etape B : « le canyon sonde comme le jeu juge le choc, le cout d'une course sous
+     +10 % ») ----
+     canyonHeurt (maps/canyon-relief.js) lit d'abord le TERRAIN en cinq points (JH : le centre et ±1,4 m ; cinq cyHauteur, 115 µs sur 134 — MESURE),
+     puis les ouvrages (monuments, couloir, tunnel, mine, voute, toits : 5 µs). Le terrain ne tue que si p.y < h + 0,7. borneCanyon rend une BORNE
+     HAUTE de h sur le carre [x ± 1,5] × [z ± 1,5], lue dans les grilles du jeu, d'apres le texte de cyHauteur :
+       · le plateau P = P0 + bruit (16 × (n − 0,5) + 6 × (n' − 0,5), au plus +11, fois un facteur ≤ 1) + la butte (au plus la plus haute des
+         cases de 760 m que cyButtesH lit, seulement si le canal des buttes passe 0,003) ; P0 est bilineaire : au plus le plus haut texel lu ;
+       · dans la taille fine (12 m) : h = min(P, c) si le lit c est sous P + 8, puis g s'il est plus haut — donc toujours h ≤ max(g, min(P, c)) ;
+         hors d'elle h = P ;
+       · les strates deplacent h d'au plus S9 × rk (S9 = 15 + 11 × bruit ≤ 26 ; rk ≤ max(1, canal 3)) ;
+       · l'eau : une moyenne des cases mouillees (c + d), au plus la plus haute.
+     Si p.y ≥ borne + 0,71, le terrain ne peut pas toucher : seule la suite de canyonHeurt est rappelee, dans son ordre ; sinon canyonHeurt entier.
+     La reponse est donc TOUJOURS celle du jeu (controle du 25/11 : ml/ecurie/agents/tmp-pilote/bench-borne.js, et justesse.js --pas au canyon).
+     Rien n'est garde d'une vue a l'autre. Si le texte des lois change, la signature l'eteint (CYB_SIG). */
+  const borneCanyon=function(x,z){
+    const Z=gZ,F=gF,d=Z.d,a=1.5,nx=Z.nx,nz=Z.nz;
+    const i0=M.max(0,M.min(nx-1,M.floor((x-a-Z.x0)/Z.ts))),i1=M.max(0,M.min(nx-1,M.floor((x+a-Z.x0)/Z.ts)+1));
+    const j0=M.max(0,M.min(nz-1,M.floor((z-a-Z.z0)/Z.ts))),j1=M.max(0,M.min(nz-1,M.floor((z+a-Z.z0)/Z.ts)+1));
+    let p0=-1e9,b2=-1e9,rk=1;
+    for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const o=(j*nx+i)*4;if(d[o]>p0)p0=d[o];if(d[o+2]>b2)b2=d[o+2];if(d[o+3]>rk)rk=d[o+3];}
+    let P=p0+11;
+    if(b2>.003){const CS=760,BG=gBG;let hb=0;
+      const c0=M.floor((x-a)/CS)-1,c1=M.floor((x+a)/CS)+1,e0=M.floor((z-a)/CS)-1,e1=M.floor((z+a)/CS)+1;
+      for(let cz=e0;cz<=e1;cz++)for(let cx=c0;cx<=c1;cx++){const gx=cx-BG.cx0,gz=cz-BG.cz0;if(gx<0||gz<0||gx>=BG.nx||gz>=BG.nz)continue;
+        const bi=BG.i[gz*BG.nx+gx];if(bi<0)continue;const b=gBut[bi];if(b.ht>hb)hb=b.ht;}
+      P+=hb;}
+    const fL=F.x0-F.ts*.5,fT=F.z0-F.ts*.5,dedans=x-a>fL&&x+a<fL+F.nx*F.ts&&z-a>fT&&z+a<fT+F.nz*F.ts,fx=F.nx,fz=F.nz,FC=F.c,FM=F.m;
+    const k0=M.max(0,M.min(fx-1,M.floor((x-a-F.x0)/F.ts))),k1=M.max(0,M.min(fx-1,M.floor((x+a-F.x0)/F.ts)+1));
+    const l0=M.max(0,M.min(fz-1,M.floor((z-a-F.z0)/F.ts))),l1=M.max(0,M.min(fz-1,M.floor((z+a-F.z0)/F.ts)+1));
+    let cM=-1e9,gM=-1e9,wM=-1e9;
+    for(let l=l0;l<=l1;l++)for(let k=k0;k<=k1;k++){const o=l*fx+k,c=FC[o*2],g=FC[o*2+1],dd=FM[o*4]/10;if(c>cM)cM=c;if(g>gM)gM=g;if(dd>.03&&c+dd>wM)wM=c+dd;}
+    let h=dedans?M.max(gM,M.min(P,cM)):M.max(gM,P);
+    h+=26*rk;
+    return wM>h?wM:h;};
+  const canyonSonde=function(p){
+    if(!K.cyb||p.y<borneCanyon(p.x,p.z)+.71)return jCanyon(p);
+    COUT.cyb++;
+    const C=gCY;
+    if(C.monu&&jMonu(p))return 'paroi';
+    if(C.couT&&jCouloir(p,C.couT))return 'paroi';
+    if(C.tunT){if(C.tunT.v2){const c9=jTun2(p,C.tunT);if(c9)return c9;}else if(jCouloir(p,C.tunT))return 'paroi';}
+    if(C.mineT&&jMine(p,C.mineT))return 'paroi';
+    if(C.vouT){for(const V9 of C.vouT)if(jVoute(p,V9))return 'paroi';}
+    if(C.toits&&C.toits.length&&jToit(p))return 'paroi';
+    return '';};
   const decor=function(e){
     COUT.sondes++;SONDE.set(e.px,e.py,e.pz);
     if(K.dGrotte){const c=jGrotte(SONDE);if(c)return c;}
     if(K.dJade&&jJade(SONDE))return 'pic';
-    if(K.dCanyon){const c=jCanyon(SONDE);if(c)return c;}
+    if(K.dCanyon){const c=canyonSonde(SONDE);if(c)return c;}
     if(K.dSol&&e.py<gSolY+1.4)return 'sol';
     if(K.dVille&&jVille(SONDE))return 'tour';
     if(K.dGeants){const c=jGeants(SONDE);if(c)return c;}
@@ -746,7 +806,7 @@ const YEUX_CODE=`window.__YEUX=(function(){
   const yeux=function(dem){
     const v=vue1();
     DG=dem&&dem.doigts&&typeof dem.doigts==='object'?dem.doigts:null;
-    COUT.pas=0;COUT.route=0;COUT.dalles=0;COUT.sondes=0;COUT.erreurs=0;
+    COUT.pas=0;COUT.route=0;COUT.dalles=0;COUT.sondes=0;COUT.erreurs=0;COUT.cyb=0;
     if(dem&&dem.radar===false)return v;
     const sol=v.mode==='sol',vol=v.mode==='vol';
     if(LA.route)lirePiste();
@@ -803,7 +863,14 @@ const YEUX_CODE=`window.__YEUX=(function(){
         v.sorties=S;}
     }catch(e){v.tenue=dit(e);v.sorties=null;}
     return v;};
-  yeux.manque=MANQUE;yeux.cout=COUT;yeux.budget=BUDGET;
+  yeux.manque=MANQUE;yeux.signatureCanyon=signeCanyon;yeux.cout=COUT;yeux.budget=BUDGET;
+  /* (2026-11-25, banc de la borne du canyon) des points [x, y, z, x, y, z…] : combien la sonde bornee et canyonHeurt entier jugent autrement, combien
+     de points la borne a dispenses du terrain, et si la borne est allumee. Lecture seule, comme une vue. */
+  yeux.bancCanyon=function(P){
+    lireJeu();const o={points:0,ecarts:0,dispenses:0,chocs:0,borne:!!K.cyb,premier:null};if(!K.dCanyon)return o;
+    for(let i=0;i+2<P.length;i+=3){COUT.cyb=0;SONDE.set(P[i],P[i+1],P[i+2]);const a=canyonSonde(SONDE);o.dispenses+=COUT.cyb;SONDE.set(P[i],P[i+1],P[i+2]);const b=jCanyon(SONDE);
+      o.points++;if(b)o.chocs++;if(a!==b){o.ecarts++;if(!o.premier)o.premier=[P[i],P[i+1],P[i+2],a,b];}}
+    COUT.cyb=0;return o;};
   /* (banc de justesse) le vol rejoue image par image depuis l'etat du moment, commandes tenues : les places prevues [x, y, z, x, y, z…] et l'issue.
      L'outil de mesure les compare aux places que le jeu donne ensuite, image par image. */
   yeux.essai=function(cv,cm,cn,n){

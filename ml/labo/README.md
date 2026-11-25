@@ -112,6 +112,20 @@ la renote sur 20 graines neuves (950000 + 37 × i), note le parent une fois sur 
 tient la barre du parent ET le battait à l'entraînement). **Seul un candidat qui tient devient champion** : sinon il reste au journal, mais n'est
 jamais repris comme parent.
 
+**Les octets d'un cerveau, et la ligne `c0002` (25/11/2026, finitions de l'étape B).** L'empreinte `sha` d'une ligne est celle des **octets** du fichier
+noté (fins de ligne comprises), et `jumeau` ne se remplit que si un autre cerveau a exactement ces octets. Sur le PC de Sacha, Git est réglé
+`core.autocrlf=true` : il rend les `.js` extraits avec des fins de ligne Windows (CRLF) et les range en LF. Conséquences, constatées le 25/11 :
+- `c0001` a été inscrit depuis un `ml/bot/reference.js` en LF (empreinte `fec3305d`) ; `c0002`, le **même code**, depuis le même fichier extrait en
+  CRLF (empreinte `a4d1eb92`, 6 021 octets au lieu de 5 941). Son champ `jumeau` est donc vide alors qu'il est le jumeau de `c0001` : **c'est la seule
+  différence entre les deux lignes, sans effet sur les courses** (le JavaScript est le même ; les rejeux sont exacts). Aucun outil du labo ne réécrit
+  une ligne déjà inscrite : la ligne reste telle quelle, la différence est écrite ici.
+- Git rangeait ces copies en LF et les rendait en CRLF : sur ce PC le fichier de `c0001` ne correspondait plus à son empreinte, et sur un autre PC
+  celui de `c0002` non plus. **Corrigé à la cause** : `.gitattributes` porte `ml/labo/cerveaux/*.js -text` (Git ne touche plus aux fins de ligne de
+  ces copies) ; `c0001` est rangé en LF et `c0002` en CRLF, chacun avec les octets de son empreinte, partout.
+- Ce qui reste : un fichier source **hors** de `ml/labo/cerveaux/` (`ml/bot/reference.js`, un pilote de `ml/ecurie/`) extrait par Git sur ce PC
+  porte des CRLF ; inscrit, il n'aura pas l'empreinte du même code inscrit depuis un fichier en LF (un fichier écrit par un outil ou un agent est en
+  LF). Cela ne fausse rien — une note n'est comparée qu'à un code de même empreinte — mais un jumeau peut ne pas être reconnu comme tel.
+
 ---
 
 ## 3. Ce qui est gardé d'une génération

@@ -1,5 +1,5 @@
 {
- "date": "2026-11-25T04:58:08.612Z",
+ "date": "2026-11-25T14:27:36.931Z",
  "graine": 910000,
  "tmax": 150,
  "regime": "max",
@@ -323,11 +323,10 @@
   "etat": {
    "ok": true,
    "photos": 92,
-   "ms_par_controle": 1412,
+   "ms_par_controle": 1376,
    "changes": {},
    "brouillons": {
-    "V9J": 1,
-    "CY_H9": 1
+    "V9J": 1
    }
   },
   "texte": {
@@ -406,10 +405,10 @@
    "sondes": 2920
   },
   "a": {
-   "ms_moy": 0.664,
-   "ms_max": 13.639,
-   "ms_sol_moy": 0.596,
-   "ms_vol_moy": 2.294,
+   "ms_moy": 0.657,
+   "ms_max": 11.191,
+   "ms_sol_moy": 0.59,
+   "ms_vol_moy": 2.277,
    "vues_sol": 1440,
    "vues_vol": 60,
    "pas_vol_moy": 923,
@@ -422,10 +421,10 @@
    "manque": []
   },
   "b": {
-   "ms_moy": 0.631,
-   "ms_max": 15.236,
-   "ms_sol_moy": 0.571,
-   "ms_vol_moy": 2.064,
+   "ms_moy": 0.652,
+   "ms_max": 11.609,
+   "ms_sol_moy": 0.583,
+   "ms_vol_moy": 2.313,
    "vues_sol": 1440,
    "vues_vol": 60,
    "pas_vol_moy": 923,
@@ -440,10 +439,10 @@
   "ok": true,
   "cartes": {
    "nuages": {
-    "ms_moy": 0.834,
-    "ms_max": 3.258,
-    "ms_sol_moy": 0.645,
-    "ms_vol_moy": 1.092,
+    "ms_moy": 0.787,
+    "ms_max": 2.534,
+    "ms_sol_moy": 0.592,
+    "ms_vol_moy": 1.053,
     "vues_sol": 98,
     "vues_vol": 72,
     "pas_vol_moy": 1074,
@@ -456,10 +455,10 @@
     "manque": []
    },
    "espace": {
-    "ms_moy": 0.929,
-    "ms_max": 3.885,
-    "ms_sol_moy": 0.673,
-    "ms_vol_moy": 1.155,
+    "ms_moy": 0.753,
+    "ms_max": 2.822,
+    "ms_sol_moy": 0.547,
+    "ms_vol_moy": 0.935,
     "vues_sol": 76,
     "vues_vol": 86,
     "pas_vol_moy": 1077,
@@ -472,10 +471,10 @@
     "manque": []
    },
    "grotte": {
-    "ms_moy": 2.011,
-    "ms_max": 8.92,
-    "ms_sol_moy": 0.805,
-    "ms_vol_moy": 3.668,
+    "ms_moy": 1.874,
+    "ms_max": 6.95,
+    "ms_sol_moy": 0.797,
+    "ms_vol_moy": 3.356,
     "vues_sol": 99,
     "vues_vol": 72,
     "pas_vol_moy": 987,
@@ -488,10 +487,10 @@
     "manque": []
    },
    "ville": {
-    "ms_moy": 1.327,
-    "ms_max": 5.143,
-    "ms_sol_moy": 0.658,
-    "ms_vol_moy": 2.394,
+    "ms_moy": 1.079,
+    "ms_max": 4.65,
+    "ms_sol_moy": 0.544,
+    "ms_vol_moy": 1.931,
     "vues_sol": 59,
     "vues_vol": 37,
     "pas_vol_moy": 720,
@@ -504,10 +503,10 @@
     "manque": []
    },
    "jade": {
-    "ms_moy": 3.826,
-    "ms_max": 18.658,
-    "ms_sol_moy": 1.595,
-    "ms_vol_moy": 6.363,
+    "ms_moy": 4.108,
+    "ms_max": 16.649,
+    "ms_sol_moy": 1.537,
+    "ms_vol_moy": 7.032,
     "vues_sol": 91,
     "vues_vol": 80,
     "pas_vol_moy": 984,
@@ -520,16 +519,16 @@
     "manque": []
    },
    "canyon": {
-    "ms_moy": 2.65,
-    "ms_max": 26.149,
-    "ms_sol_moy": 1.058,
-    "ms_vol_moy": 12.304,
+    "ms_moy": 3.84,
+    "ms_max": 40.235,
+    "ms_sol_moy": 2.314,
+    "ms_vol_moy": 13.089,
     "vues_sol": 97,
     "vues_vol": 16,
-    "pas_vol_moy": 625,
-    "dalles_vol_moy": 848,
-    "pas_max": 960,
-    "sondes_max": 121,
+    "pas_vol_moy": 617,
+    "dalles_vol_moy": 844,
+    "pas_max": 955,
+    "sondes_max": 955,
     "route_max": 329,
     "octets_moy": 2426,
     "erreurs": 0,
@@ -1162,7 +1161,7 @@
     "refusesMaisDecol": 0
    },
    "cadence": {
-    "vues": 189,
+    "vues": 205,
     "max": 1.04
    },
    "latC": {
