@@ -44,20 +44,22 @@ function fenetres(c){
   if(E.length<FEN*10)return F;
   const rh=r=>((c.routes||[])[r]||{}).rh||28;
   for(let a=0;a+FEN*10<=E.length;a+=FEN*10){
-    const W=E.slice(a,a+FEN*10),t0=g(W[0],'t'),t1=g(W[W.length-1],'t'),dt=.1;
+    /* (2026-11-25, relecture : « un echantillon dure 0,11 s, pas 0,1 ») la fenetre fait 100 echantillons ; sa VRAIE duree (dur) divise les taux,
+       et la vitesse laterale se divise par le vrai ecart entre deux echantillons (avant : 0,1 s, un biais de 4 a 8 % en faveur de « humain ») */
+    const W=E.slice(a,a+FEN*10),t0=g(W[0],'t'),t1=g(W[W.length-1],'t'),dur=Math.max(1e-6,(t1-t0)*W.length/Math.max(1,W.length-1));
     const sol=W.filter(e=>g(e,'m')===0);if(sol.length<20)continue;                      /* une fenetre presque toute en vol ou en explosion : pas de conduite a lire */
     const lat=sol.map(e=>g(e,'lat')/rh(g(e,'r'))),moy=x=>x.reduce((s,v)=>s+v,0)/Math.max(1,x.length),et=x=>{const m=moy(x);return Math.sqrt(moy(x.map(v=>(v-m)*(v-m))));};
     /* la vitesse laterale et son acceleration : seulement entre deux echantillons au sol qui se suivent sur la meme route */
     const vl=[],al=[];let vPrec=null,sens=0,bascules=0;
-    for(let i=1;i<W.length;i++){const p=W[i-1],q=W[i];if(g(p,'m')!==0||g(q,'m')!==0||g(p,'r')!==g(q,'r')){vPrec=null;continue;}
+    for(let i=1;i<W.length;i++){const p=W[i-1],q=W[i],dt=g(q,'t')-g(p,'t');if(g(p,'m')!==0||g(q,'m')!==0||g(p,'r')!==g(q,'r')||!(dt>0&&dt<.25)){vPrec=null;continue;}
       const v=(g(q,'lat')-g(p,'lat'))/dt;vl.push(v);if(vPrec!=null)al.push((v-vPrec)/dt);vPrec=v;
       const s=v>1.5?1:v<-1.5?-1:0;if(s&&sens&&s!==sens)bascules++;if(s)sens=s;}
     const kmh=W.map(e=>g(e,'kmh')),air=W.filter(e=>g(e,'m')===1||g(e,'m')===2).length/W.length;
     const evW=ev.filter(e=>e[0]>=t0&&e[0]<=t1),poses=evW.filter(e=>e[1]==='pose');
     let nit=0,bn=0;for(let i=0;i<W.length;i++){const n=g(W[i],'nit')?1:0;nit+=n;if(i&&n!==(g(W[i-1],'nit')?1:0))bn++;}
-    F.push([moy(lat.map(Math.abs)),et(lat),et(vl),bascules/FEN,et(kmh)/Math.max(1,moy(kmh)),air,evW.filter(e=>e[1]==='decol').length*10/FEN,
-      poses.length?moy(poses.map(e=>e[5])):0,poses.length?Math.max(...poses.map(e=>e[6]||0)):0,nit/W.length,bn*10/FEN,
-      sol.filter(e=>g(e,'drift')).length/sol.length,evW.filter(e=>e[1]==='fig').length*10/FEN,evW.filter(e=>e[1]==='piece').reduce((s,e)=>s+(e[2]|0),0)/FEN,
+    F.push([moy(lat.map(Math.abs)),et(lat),et(vl),bascules/dur,et(kmh)/Math.max(1,moy(kmh)),air,evW.filter(e=>e[1]==='decol').length*10/dur,
+      poses.length?moy(poses.map(e=>e[5])):0,poses.length?Math.max(...poses.map(e=>e[6]||0)):0,nit/W.length,bn*10/dur,
+      sol.filter(e=>g(e,'drift')).length/sol.length,evW.filter(e=>e[1]==='fig').length*10/dur,evW.filter(e=>e[1]==='piece').reduce((s,e)=>s+(e[2]|0),0)/dur,
       lat.filter(v=>Math.abs(v)>.8).length/lat.length,et(al)]);}
   return F;}
 

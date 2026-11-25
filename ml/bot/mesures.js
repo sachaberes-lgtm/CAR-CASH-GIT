@@ -172,27 +172,36 @@ function barre(parties){
      · une TENUE DE NITRO = une suite d'echantillons ou la flamme est allumee (nit = nitroOn, pas la touche : une jauge vide tenue la fait battre) ;
      · un CHANGEMENT DE SENS = la vitesse laterale au sol (a plus de 1,5 m/s) qui change de signe — le compte de discerner.js.
    mainDe(partie) rend les listes brutes (elles se mettent en commun) ; mainLot(parties) le resume d'un lot, les memes chiffres pour tous. */
+/* (2026-11-25, relecture : « mainDe compte 0,1 s par echantillon ») L'enregistreur ne prend un echantillon que lorsque 0,1 s est DEPASSEE
+   (moteur/enregistreur-jeu.js : 6 ou 7 images) : 0,1095 s en moyenne chez les joueurs, 0,1055 s chez le bot. Compter 0,1 s gonflait tous les
+   « par minute » (les joueurs : 111,3 coups au lieu de 101,6), et pas autant des deux cotes. Desormais chaque echantillon pese SON ecart au
+   precedent (dt) ; un coup ou une tenue = la somme des dt de ses echantillons (un coup d'un seul echantillon vaut son dt, pas 0). Sans
+   precedent, ou apres un trou de 0,25 s ou plus, l'echantillon pese l'ecart median de la partie. La vitesse laterale est divisee par le vrai dt.
+   Les tenues de nitro sont aussi comptees AU SOL et EN VOL a part (le mode de leur premier echantillon) : au sol la touche, en vol et jauge
+   vide la flamme qui bat seule (relecture : la nitro hachee etait calee sur les deux meles). */
+function dtMedian(E,ti){const D=[];for(let i=1;i<E.length;i++){const d=E[i][ti]-E[i-1][ti];if(d>0&&d<.25)D.push(d);}D.sort((a,b)=>a-b);return D.length?D[D.length>>1]:.1;}
 function mainDe(c){
   c=finVraie(c);
   const col={};(c.cols||[]).forEach((n,i)=>col[n]=i);const E=c.ech||[],g=(e,n)=>e[col[n]];
-  const o={duree_s:0,sol_s:0,braque_s:0,drift_s:0,nitro_s:0,coups:[],ecarts:[],tenues:[],bascules:0};
+  const o={duree_s:0,sol_s:0,braque_s:0,drift_s:0,nitro_s:0,nitro_sol_s:0,coups:[],ecarts:[],tenues:[],tenues_sol:[],tenues_vol:[],bascules:0};
   if(!E.length||col.steer==null)return o;
-  let cur=null,dernier=null,nit=0,sens=0;
-  const fermeCoup=()=>{if(cur){o.coups.push(+(cur.n*.1).toFixed(1));cur=null;}},fermeNit=()=>{if(nit){o.tenues.push(+(nit*.1).toFixed(1));nit=0;}};
+  const dt0=dtMedian(E,col.t),r2=x=>+x.toFixed(2);
+  let cur=null,dernier=null,nit=null,sens=0;
+  const fermeCoup=()=>{if(cur){o.coups.push(r2(cur.s));cur=null;}},fermeNit=()=>{if(nit){o.tenues.push(r2(nit.s));(nit.sol?o.tenues_sol:o.tenues_vol).push(r2(nit.s));nit=null;}};
   for(let i=0;i<E.length;i++){
-    const e=E[i],p=i?E[i-1]:null,suit=!!p&&g(e,'t')-g(p,'t')<.25&&g(e,'r')===g(p,'r'),sol=g(e,'m')===0;
-    o.duree_s+=.1;
+    const e=E[i],p=i?E[i-1]:null,ec=p?g(e,'t')-g(p,'t'):0,suit=!!p&&ec<.25&&g(e,'r')===g(p,'r'),sol=g(e,'m')===0,dt=p&&ec>0&&ec<.25?ec:dt0;
+    o.duree_s+=dt;
     if(!suit)fermeNit();
-    if(g(e,'nit')){o.nitro_s+=.1;nit++;}else fermeNit();
+    if(g(e,'nit')){o.nitro_s+=dt;if(sol)o.nitro_sol_s+=dt;if(!nit)nit={s:0,sol:sol};nit.s+=dt;}else fermeNit();
     if(!sol||!suit){fermeCoup();dernier=null;sens=0;}
     if(!sol)continue;
-    o.sol_s+=.1;if(g(e,'drift'))o.drift_s+=.1;
+    o.sol_s+=dt;if(g(e,'drift'))o.drift_s+=dt;
     const st=g(e,'steer'),cote=st>.3?1:st<-.3?-1:0;
-    if(cote){o.braque_s+=.1;
-      if(cur&&cur.cote===cote)cur.n++;
-      else{fermeCoup();cur={cote:cote,n:1};const t=g(e,'t');if(dernier!=null)o.ecarts.push(+(t-dernier).toFixed(1));dernier=t;}}
+    if(cote){o.braque_s+=dt;
+      if(cur&&cur.cote===cote)cur.s+=dt;
+      else{fermeCoup();cur={cote:cote,s:dt};const t=g(e,'t');if(dernier!=null)o.ecarts.push(r2(t-dernier));dernier=t;}}
     else fermeCoup();
-    if(suit&&g(p,'m')===0){const v=(g(e,'lat')-g(p,'lat'))/.1,s=v>1.5?1:v<-1.5?-1:0;if(s&&sens&&s!==sens)o.bascules++;if(s)sens=s;}
+    if(suit&&g(p,'m')===0&&ec>0){const v=(g(e,'lat')-g(p,'lat'))/ec,s=v>1.5?1:v<-1.5?-1:0;if(s&&sens&&s!==sens)o.bascules++;if(s)sens=s;}
   }
   fermeCoup();fermeNit();
   return o;
@@ -200,13 +209,16 @@ function mainDe(c){
 function mainLot(parties){
   const M=parties.map(mainDe),som=k=>M.reduce((a,m)=>a+m[k],0),tous=k=>[].concat(...M.map(m=>m[k])).sort((a,b)=>a-b);
   const q=(A,p)=>A.length?A[Math.round(p*(A.length-1))]:null,r=(x,k)=>x==null?null:+x.toFixed(k==null?1:k);
-  const C=tous('coups'),X=tous('ecarts'),T=tous('tenues'),sol=Math.max(1e-9,som('sol_s')),dur=Math.max(1e-9,som('duree_s'));
+  const C=tous('coups'),X=tous('ecarts'),T=tous('tenues'),TS=tous('tenues_sol'),TV=tous('tenues_vol'),sol=Math.max(1e-9,som('sol_s')),dur=Math.max(1e-9,som('duree_s')),vol=Math.max(1e-9,dur-som('sol_s'));
   const mx=X.length?X.reduce((a,b)=>a+b,0)/X.length:0,cv=X.length&&mx?Math.sqrt(X.reduce((a,b)=>a+(b-mx)*(b-mx),0)/X.length)/mx:null;
   return {parties:M.length,minutes:r(dur/60),sol_min:r(sol/60),
     coups:C.length,coups_min:r(C.length/(sol/60)),coup_p10_s:q(C,.1),coup_p50_s:q(C,.5),coup_p90_s:q(C,.9),coup_max_s:C.length?C[C.length-1]:null,
     ecart_p10_s:q(X,.1),ecart_p50_s:q(X,.5),ecart_p90_s:q(X,.9),ecart_cv:r(cv,2),
     braquage_pct:r(100*som('braque_s')/sol),sens_s:r(som('bascules')/sol,2),drift_pct:r(100*som('drift_s')/sol),
-    nitro_pct:r(100*som('nitro_s')/dur),nitro_appuis_min:r(T.length/(dur/60)),tenue_p10_s:q(T,.1),tenue_p50_s:q(T,.5),tenue_p90_s:q(T,.9),tenue_max_s:T.length?T[T.length-1]:null};
+    nitro_pct:r(100*som('nitro_s')/dur),nitro_appuis_min:r(T.length/(dur/60)),tenue_p10_s:q(T,.1),tenue_p50_s:q(T,.5),tenue_p90_s:q(T,.9),tenue_max_s:T.length?T[T.length-1]:null,
+    /* (relecture) la nitro au sol et hors du sol, a part */
+    nitro_sol_pct:r(100*som('nitro_sol_s')/sol),nitro_sol_min:r(TS.length/(sol/60)),tenue_sol_p10_s:q(TS,.1),tenue_sol_p50_s:q(TS,.5),tenue_sol_p90_s:q(TS,.9),
+    nitro_vol_min:r(TV.length/(vol/60)),tenue_vol_p50_s:q(TV,.5)};
 }
 /* un fichier exporte par le jeu ({format, parties:[…]}), une partie seule, ou une liste de parties → la liste des parties */
 function partiesDe(j){

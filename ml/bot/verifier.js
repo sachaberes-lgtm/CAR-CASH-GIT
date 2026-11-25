@@ -42,8 +42,17 @@
          9b. le hasard a graine rend les trois nombres ecrits ici ; une loi tiree est croissante ;
          9c. un profil qui triche est ramene aux planchers ; un champ inconnu ou un mauvais type : refuses, par normaliserProfil et par charger ;
          9d. le texte des doigts n'a ni le hasard ni l'horloge de l'hote ;
-         9e. la main seule (profil clavier, volant 0,36 pendant une minute) : 75 a 125 coups par minute, braquage 0,31 a 0,41, des durees
+         9e. la main seule (profil clavier, volant 0,36 pendant une minute) : 90 a 150 coups par minute (relecture : les coups du modele sont plus courts, 0,13 s en mediane ; a 36 % de braquage cela fait 130 a 135 appuis par minute — les joueurs : 105 appuis par minute de sol pour 33 % du sol braque), braquage 0,31 a 0,41, des durees
              variees (la plus frequente sous 40 %, 6 durees au moins), les limites d'une main tenues, meme graine = memes touches.
+         (2026-11-25, relecture de la main : un controle par defaut corrige, sans le jeu)
+         9c (suite). le suivi actif lit l'etat vieux de 6 images au moins (retard nul ou 91 ms : ramenes a 6) ; un infini est refuse ;
+         9f. aucun coup a contresens (volant 0,09 / 0,12 / 0,2 : aucun appui a droite, le braquage demande) ; un volant lache a 0 ne donne plus de coup ;
+         9g. la NITRO hachee et les gestes : le detecteur du double appui du jeu, rejoue sur le journal, ne lit chaque figure et chaque saut qu'a son
+             2e appui (aucun geste ouvert sur un tapotement) ;
+         9h. erreur.parasite donne le nombre d'embardees par minute demande (a 15 % pres) ;
+         9i. les deux horloges du repos (la fleche d'en face n'attend que coups.inversion, jamais moins) ; la fin du drift (↓ lache avant la
+             fleche) et l'avance de la fleche sur ↓, tiree a chaque drift ;
+         9j. `ensuite` : la fleche du vol lachee 6 a 12 images apres la pose ; la vue de la main (etatMain) se lit.
      10. LA MAIN V2 SANS EFFET = LA MAIN D'AVANT : le bot de reference avec un profil qui fait passer toute la course par le chemin neuf sans rien
          y changer ({chance:{prend:1}} : si la course finit « temps », la chance ne joue pas) → la course, les touches et les vues du controle 3.
      11. UNE MAIN HUMAINE (profil clavier, 60 s) : (a) deux processus, meme course et memes touches ; (b) les limites d'une main ; (c) le rejeu
@@ -125,6 +134,8 @@ const NTRICHE=TRICHES.length;
 /* LES PROFILS DES CONTROLES 10 A 12 (ajoutes au texte du bot de reference : `module.exports.profil=…`), et la course de la seconde chance */
 const PROFILS9={neutre:{chance:{prend:1}},clavier1:{modele:'clavier',graine:1},clavier2:{modele:'clavier',graine:2},chance:{chance:{prend:1,delai:800}},jamais:{chance:{prend:1,palierMin:30}}};
 const CHANCE9={graine:910407,tmax:90};
+/* (relecture, controle 9g) la main clavier avec la nitro hachee d'avant le reglage (des tenues de 0,1 a 3 s) : beaucoup de tapotements, le cas difficile */
+const PROFIL9G={modele:'clavier',graine:1,nitro:{tenue:[100,400,3000],pause:[130,220,500]}};
 /* LE DRIFTEUR du controle 13 (le texte d'un cerveau) : tout droit, la NITRO 5 s, puis un drift a gauche de 6 s a 6,5 s */
 const DRIFTEUR=p=>"module.exports={nom:'drifteur',"+(p?"profil:"+JSON.stringify(p)+",":"")+"decide:function(v){if(v.mode!=='sol')return {};return {ligne:0,nitro:v.t<5,drift:v.t>=6&&v.t<6.5?1:0};}};";
 /* les trois premiers nombres du flux « volant » de la course 910000, profil de graine 0 (controle 9b) */
@@ -398,23 +409,87 @@ function mainSeule(profil,graine,ordre,images){
     R.main.hasard={ok:graineDe('doigts-v2|910000|0|volant')===HASARD9.graine&&suite.every((x,i)=>x===HASARD9.suite[i])&&croit,suite:suite};
     dit(R.main.hasard.ok,'9b. le hasard a graine : '+suite.map(x=>x.toFixed(6)).join(' · ')+' (attendu '+HASARD9.suite.map(x=>x.toFixed(6)).join(' · ')+') ; une loi tiree est croissante et reste dans ses bornes');
     /* 9c */
-    const tr=normaliserProfil({coups:{actif:true,duree:1},reaction:{volant:-50},geste:{tap:1,entre:1},chance:{prend:9,delai:0},nitro:{tenue:1,pause:1},suivi:{actif:true,retard:9999},drift:{avance:0}});
-    const planchers=!!tr&&tr.coups.duree.every(x=>x===HUMAIN.appui)&&tr.reaction.volant.every(x=>x===0)&&tr.geste.tap.every(x=>x===4)&&tr.geste.entre.every(x=>x===4)&&tr.chance.delai.every(x=>x===36)&&tr.chance.prend===1
-      &&tr.nitro.tenue.every(x=>x===6)&&tr.nitro.pause.every(x=>x===4)&&tr.suivi.retard===30&&tr.drift.avance===2;
+    const tr=normaliserProfil({coups:{actif:true,duree:1,inversion:1},reaction:{volant:-50},geste:{tap:1,entre:1},chance:{prend:9,delai:0},nitro:{tenue:1,pause:1},suivi:{actif:true,retard:9999},drift:{avance:0}});
+    /* (relecture) nitro.tenue : plancher 67 ms (4 images ; avant 100 ms, un pic de 11 % des tenues a 6 images pile) ; drift.avance est une loi ;
+       le suivi actif ne lit jamais l'etat de moins de 6 images (retard nul, le defaut, ou 91 ms = 5 images : ramenes a 6) */
+    const sv0=normaliserProfil({suivi:{actif:true}}),sv91=normaliserProfil({suivi:{actif:true,retard:91}}),svSans=normaliserProfil({coups:{actif:true}});
+    const planchers=!!tr&&tr.coups.duree.every(x=>x===HUMAIN.appui)&&tr.coups.inversion.every(x=>x===2)&&tr.reaction.volant.every(x=>x===0)&&tr.geste.tap.every(x=>x===4)&&tr.geste.entre.every(x=>x===4)&&tr.chance.delai.every(x=>x===36)&&tr.chance.prend===1
+      &&tr.nitro.tenue.every(x=>x===4)&&tr.nitro.pause.every(x=>x===4)&&tr.suivi.retard===30&&tr.drift.avance.every(x=>x===2)
+      &&!!sv0&&sv0.suivi.retard===HUMAIN.decision&&!!sv91&&sv91.suivi.retard===HUMAIN.decision&&!!svSans&&svSans.suivi.retard===0;
     const refus=[['un champ inconnu',()=>normaliserProfil({vitesse:2})],['un sous-champ inconnu',()=>normaliserProfil({coups:{cadence:3}})],['un mauvais type',()=>normaliserProfil({reaction:{volant:'vite'}})],
-      ['un modele inconnu',()=>normaliserProfil({modele:'robot'})],['un profil qui n\'est pas un objet (au chargement)',()=>PL.charger('x.js',{source:src('"clavier"')})],['un champ inconnu (au chargement)',()=>PL.charger('x.js',{source:src('{turbo:true}')})]]
+      ['un modele inconnu',()=>normaliserProfil({modele:'robot'})],['un profil qui n\'est pas un objet (au chargement)',()=>PL.charger('x.js',{source:src('"clavier"')})],['un champ inconnu (au chargement)',()=>PL.charger('x.js',{source:src('{turbo:true}')})],
+      /* (relecture) un infini n'est pas un nombre : [Infinity, Infinity, Infinity] laissait des NaN dans la loi (un canal mort, une plaque attendue sans fin) */
+      ['une duree infinie',()=>normaliserProfil({coups:{actif:true,duree:[Infinity,Infinity,Infinity]}})],['une reaction infinie',()=>normaliserProfil({reaction:{volant:Infinity}})],
+      ['un nombre infini',()=>normaliserProfil({erreur:{parasite:-Infinity}})],['un delai infini (au chargement, a travers le bac)',()=>PL.charger('x.js',{source:src('{chance:{prend:1,delai:1/0}}')})]]
       .map(x=>[x[0],leve(x[1])]),passes=refus.filter(x=>!x[1]);
     R.main.bornes={ok:planchers&&!passes.length,planchers:planchers,refus:refus};
-    dit(R.main.bornes.ok,'9c. un profil qui triche est ramene aux planchers (4 images d\'appui, 600 ms avant la plaque…)'+(planchers?'':' — NON : '+JSON.stringify(tr))+' ; '+refus.length+' profils mal ecrits refuses'+(passes.length?' — PASSENT : '+passes.map(x=>x[0]).join(', '):''));
+    dit(R.main.bornes.ok,'9c. un profil qui triche est ramene aux planchers (4 images d\'appui, 600 ms avant la plaque, le suivi a 6 images au moins…)'+(planchers?'':' — NON : '+JSON.stringify(tr)+' · suivi '+JSON.stringify([sv0&&sv0.suivi,sv91&&sv91.suivi,svSans&&svSans.suivi]))+' ; '+refus.length+' profils mal ecrits refuses'+(passes.length?' — PASSENT : '+passes.map(x=>x[0]).join(', '):''));
     /* 9d */
     const txt=fs.readFileSync(path.join(__dirname,'doigts.js'),'utf8'),pris=['Math.random','Date'].filter(x=>txt.indexOf(x)>=0);
     R.main.texte={ok:!pris.length,trouve:pris};dit(!pris.length,'9d. le texte des doigts n\'a ni le hasard ni l\'horloge de l\'hote'+(pris.length?' — TROUVE : '+pris.join(' '):''));
     /* 9e */
     const N9=3600,T1=mainSeule(PROFILS9.clavier1,910000,{volant:.36},N9),T1b=mainSeule(PROFILS9.clavier1,910000,{volant:.36},N9),T2=mainSeule(PROFILS9.clavier2,910000,{volant:.36},N9),T3=mainSeule(PROFILS9.clavier1,910037,{volant:.36},N9);
     const k=coups(T1,N9),m9=mains(T1,N9),lim=normaliserProfil(PROFILS9.clavier1).coups.duree;
-    const ok9=k.parMinute>=75&&k.parMinute<=125&&k.braquage>=.31&&k.braquage<=.41&&k.min>=lim[0]&&k.max<=lim[4]&&k.plusFrequente<.4&&k.durees>=6&&m9.ok&&sha(T1)===sha(T1b)&&sha(T1)!==sha(T2)&&sha(T1)!==sha(T3);
+    const ok9=k.parMinute>=90&&k.parMinute<=150&&k.braquage>=.31&&k.braquage<=.41&&k.min>=lim[0]&&k.max<=lim[4]&&k.plusFrequente<.4&&k.durees>=6&&m9.ok&&sha(T1)===sha(T1b)&&sha(T1)!==sha(T2)&&sha(T1)!==sha(T3);
     R.main.seule={ok:ok9,coups:k,mains:m9,repetable:sha(T1)===sha(T1b),autreGraineProfil:sha(T1)!==sha(T2),autreGraineCourse:sha(T1)!==sha(T3)};
-    dit(ok9,`9e. la main seule (clavier, volant 0,36, 60 s) : ${k.parMinute} coups par minute (75 a 125) · braquage ${k.braquage} (0,31 a 0,41) · ${k.durees} durees de ${k.min} a ${k.max} images (bornes ${lim[0]} a ${lim[4]}), la plus frequente ${Math.round(100*k.plusFrequente)} % · limites d'une main ${m9.ok?'tenues':'DEPASSEES : '+m9.problemes.join(' ; ')} · meme graine = memes touches ${sha(T1)===sha(T1b)?'oui':'NON'} · autre graine (du profil, de la course) = d'autres touches ${sha(T1)!==sha(T2)&&sha(T1)!==sha(T3)?'oui':'NON'}`);}
+    dit(ok9,`9e. la main seule (clavier, volant 0,36, 60 s) : ${k.parMinute} coups par minute (90 a 150) · braquage ${k.braquage} (0,31 a 0,41) · ${k.durees} durees de ${k.min} a ${k.max} images (bornes ${lim[0]} a ${lim[4]}), la plus frequente ${Math.round(100*k.plusFrequente)} % · limites d'une main ${m9.ok?'tenues':'DEPASSEES : '+m9.problemes.join(' ; ')} · meme graine = memes touches ${sha(T1)===sha(T1b)?'oui':'NON'} · autre graine (du profil, de la course) = d'autres touches ${sha(T1)!==sha(T2)&&sha(T1)!==sha(T3)?'oui':'NON'}`);
+    /* ===== 9f a 9j (2026-11-25, relecture de la main) : un controle par defaut corrige qui pouvait revenir en silence ===== */
+    /* 9f. JAMAIS DE COUP A CONTRESENS : un volant doux a gauche (0,09 / 0,12 / 0,2) ne donne aucun appui a droite, et le braquage reste celui
+       demande ; puis un volant de 0,3 lache a 0 (mort 0) : aucun appui d'un cote ni de l'autre apres le lache (avant : 1 appui sur 4 a droite a 0,12) */
+    {const res=[];let okF=true;
+      for(const vv of [.09,.12,.2]){const T=mainSeule(PROFILS9.clavier1,910000,{volant:vv},N9*3),kk=coups(T,N9*3),dr9=T.filter(t=>t[1]==='D'&&t[2]).length;
+        const ok=dr9===0&&Math.abs(kk.braquage-vv)<=Math.max(.02,vv*.15);okF=okF&&ok;res.push(`${vv} → ${dr9} a droite, braquage ${kk.braquage}`);}
+      const P0={modele:'clavier',graine:1,coups:{mort:0}},D0=new Doigts9({touche(){},ev(){return false;}},()=>'sol',{profil:normaliserProfil(P0),graine:910000});
+      for(let fr=0;fr<N9*3;fr++){if(fr%HUMAIN.decision===0)D0.ordre({volant:Math.floor(fr/120)%2?0:.3},{mode:'sol'},null);D0.image(null);}
+      const apres=D0.touches.filter(t=>t[2]&&(t[1]==='G'||t[1]==='D')&&Math.floor(t[0]/120)%2&&t[0]%120>=60).length,droite0=D0.touches.filter(t=>t[1]==='D'&&t[2]).length;
+      okF=okF&&droite0===0&&apres===0;
+      R.main.contresens={ok:okF,detail:res,lache:{droite:droite0,apresLache:apres}};
+      dit(okF,'9f. aucun coup a contresens : '+res.join(' · ')+` · 0,3 puis 0 (mort 0) : ${droite0} appui(s) a droite, ${apres} appui(s) plus d'une seconde apres le lache`);}
+    /* 9g. LE GESTE NE S'OUVRE PAS SUR UN TAPOTEMENT : la main clavier, la NITRO demandee au sol en continu (hachee), un geste toutes les 3,5 s
+       (figure, saut, redresser) ; le detecteur du double appui du jeu (gameplay/vol-equilibre.js, veqDoigt) rejoue sur le journal, en images et
+       du cote prudent (un appui de 18 images compte pour bref, 26 images de debut a debut pour hors fenetre). Attendu : un double appui au 2e appui
+       de chaque figure et de chaque saut, nulle part ailleurs (avant : un geste sur six lu au 1er appui). */
+    {const D9=new Doigts9({touche(){},ev(){return false;}},()=>'sol',{profil:normaliserProfil(PROFIL9G),graine:910000}),NOMS9=['figure','saut','redresser'],G9=[];let dern=null;
+      for(let fr=0;fr<N9*5;fr++){if(fr%HUMAIN.decision===0){const kG=Math.floor(fr/210);D9.ordre(fr%210===0&&fr>0?{nitro:true,geste:NOMS9[kG%3],direction:'avant'}:{nitro:true},{mode:'sol'},null);}
+        D9.image(null);if(D9.geste&&D9.geste!==dern){G9.push({nom:D9.geste.nom,i:D9.i});}dern=D9.geste;}
+      const N=D9.touches.filter(t=>t[1]==='N'),bas=N.filter(t=>t[2]).map(t=>t[0]);
+      let dDn=-1,dUp=-1;const doubles=new Set();for(const [i,,b] of N){if(!b){dUp=i;continue;}if(dDn>=0&&i-dDn<26&&dUp>=dDn&&dUp-dDn<=18){dDn=-1;doubles.add(i);}else dDn=i;}
+      const attendus=new Set();for(const g of G9){if(g.nom==='redresser')continue;const p=bas.filter(i=>i>=g.i);if(p.length>=2)attendus.add(p[1]);}
+      const faux=[...doubles].filter(i=>!attendus.has(i)).length,rates=[...attendus].filter(i=>!doubles.has(i)).length,m9g=mains(D9.touches,N9*5);
+      const ok=G9.length>=30&&faux===0&&rates===0&&m9g.ok;R.main.gestesNitro={ok:ok,gestes:G9.length,doubles:doubles.size,attendus:attendus.size,faux:faux,rates:rates};
+      dit(ok,`9g. le double appui lu par le jeu, la NITRO hachee : ${G9.length} gestes joues · ${doubles.size} doubles appuis lus, ${attendus.size} attendus · ${faux} lu(s) au mauvais appui · ${rates} geste(s) sans le sien · limites d'une main ${m9g.ok?'tenues':'DEPASSEES'}`);}
+    /* 9h. L'EMBARDEE AU TAUX DEMANDE : erreur.parasite 6 par minute, volant 0, 10 minutes → 6 par minute a 15 % pres (avant : 4,7) */
+    {const D9=new Doigts9({touche(){},ev(){return false;}},()=>'sol',{profil:normaliserProfil({modele:'clavier',graine:1,erreur:{parasite:6}}),graine:910000});
+      for(let fr=0;fr<36000;fr++){if(fr%HUMAIN.decision===0)D9.ordre({volant:0},{mode:'sol'},null);D9.image(null);}
+      const pm=+(D9.err.parasites/10).toFixed(2),ok=Math.abs(pm-6)<=.9;R.main.parasite={ok:ok,parMinute:pm};
+      dit(ok,`9h. erreur.parasite 6 par minute : ${pm} embardees par minute obtenues (5,1 a 6,9)`);}
+    /* 9i. LES DEUX HORLOGES DU REPOS ET LA FIN DU DRIFT : un volant qui change de cote toutes les 0,5 s — la fleche d'en face attend son blanc a
+       elle (coups.inversion, au moins 2 images), jamais moins ; le drift (40 drifts de 0,5 s) : ↓ lache AVANT la fleche, l'avance de la fleche
+       sur ↓ varie d'un drift a l'autre */
+    {const D9=new Doigts9({touche(){},ev(){return false;}},()=>'sol',{profil:normaliserProfil(PROFILS9.clavier1),graine:910000}),inv=normaliserProfil(PROFILS9.clavier1).coups.inversion;
+      for(let fr=0;fr<N9*3;fr++){if(fr%HUMAIN.decision===0)D9.ordre({volant:Math.floor(fr/30)%2?-.5:.5},{mode:'sol'},null);D9.image(null);}
+      const blancs=[];let lache={G:null,D:null};for(const [i,k,b] of D9.touches){if(k!=='G'&&k!=='D')continue;const o=k==='G'?'D':'G';if(!b)lache[k]=i;else if(lache[o]!=null&&(lache[k]==null||lache[o]>lache[k]))blancs.push(i-lache[o]);}
+      const bmin=blancs.length?Math.min(...blancs):null,sous4=blancs.filter(x=>x<HUMAIN.repos).length,m9i=mains(D9.touches,N9*3);
+      const DD=new Doigts9({touche(){},ev(){return false;}},()=>'sol',{profil:normaliserProfil(PROFILS9.clavier1),graine:910037});
+      for(let fr=0;fr<40*120;fr++){if(fr%HUMAIN.decision===0)DD.ordre(fr%120<30?{drift:1}:{},{mode:'sol'},null);DD.image(null);}
+      const T=DD.touches,av=[],ordreFin=[];let gB=null;
+      for(let j=0;j<T.length;j++){const [i,k,b]=T[j];if(k==='B'&&b){const g0=T.slice(0,j).filter(t=>t[1]==='G'&&t[2]).pop();if(g0)av.push(i-g0[0]);}
+        if(k==='B'&&!b)gB=i;if(k==='G'&&!b&&gB!=null){ordreFin.push(i-gB);gB=null;}}
+      const okI=blancs.length>=20&&bmin>=inv[0]&&m9i.ok,okD=av.length>=35&&new Set(av).size>=3&&ordreFin.length>=35&&ordreFin.every(x=>x>0);
+      R.main.horloges={ok:okI&&okD,inversions:blancs.length,blancMin:bmin,sous4:sous4,avances:[...new Set(av)].sort((a,b)=>a-b),flecheApresBas:ordreFin.length?[Math.min(...ordreFin),Math.max(...ordreFin)]:null};
+      dit(okI,`9i. la fleche d'en face : ${blancs.length} inversions, blanc le plus court ${bmin} image(s) (plancher ${inv[0]}), ${sous4} sous le repos d'une touche (${HUMAIN.repos} images) · limites d'une main ${m9i.ok?'tenues':'DEPASSEES : '+m9i.problemes.join(' ; ')}`);
+      dit(okD,`9i. le drift : ${av.length} drifts, la fleche ${[...new Set(av)].sort((a,b)=>a-b).join('/')} images avant ↓ · ↓ lache avant la fleche ${ordreFin.filter(x=>x>0).length} fois sur ${ordreFin.length} (de ${R.main.horloges.flecheApresBas?R.main.horloges.flecheApresBas.join(' a '):'?'} images avant)`);}
+    /* 9j. « ensuite » A LA POSE : un ordre donne en vol, plein volant a gauche et ensuite:{volant:0}, puis plus aucun ordre ; la caisse se pose a
+       l'image 90 → la fleche est lachee 6 a 12 images apres la pose (la main voit le sol 6 images apres) ; sans « ensuite », elle reste tenue ;
+       et la vue de la main (etatMain, ce que piloter.js met dans vue.main) se lit */
+    {const run=ens=>{let md='vol';const D9=new Doigts9({touche(){},ev(){return false;}},()=>md,{profil:normaliserProfil(PROFILS9.clavier1),graine:910000});
+        for(let fr=0;fr<240;fr++){md=fr<90?'vol':'sol';if(fr===0)D9.ordre(Object.assign({volant:1},ens?{ensuite:{volant:0}}:{}),{mode:'vol'},{mode:'vol',capVol:0});
+          D9.image({mode:md,lat:0,cap:0,vitesse:60,lacetRoute:0,lacetMax:1,capVol:0});}
+        const lG=D9.touches.filter(t=>t[1]==='G'&&!t[2]&&t[0]>=90).map(t=>t[0]);return {bas:D9.touches.some(t=>t[1]==='G'&&t[2]),lache:lG.length?lG[0]-90:null,vue:D9.etatMain()};};
+      const a9=run(true),b9=run(false),ok=a9.bas&&a9.lache!=null&&a9.lache>=6&&a9.lache<=12&&b9.bas&&b9.lache==null&&!!a9.vue&&a9.vue.attente&&a9.vue.geste===null;
+      R.main.ensuite={ok:ok,avec:a9,sans:b9};
+      dit(ok,`9j. « ensuite » a la pose : fleche lachee ${a9.lache==null?'JAMAIS':a9.lache+' images'} apres la pose (6 a 12) · sans « ensuite » : ${b9.lache==null?'tenue jusqu\'au bout':'lachee '+b9.lache+' images apres'} · la vue de la main : ${JSON.stringify(a9.vue)}`);}
+  }
   /* ===== 10. LA MAIN V2 SANS EFFET = LA MAIN D'AVANT ===== */
   console.log('\n10. LA MAIN V2 SANS EFFET = LA MAIN D\'AVANT (le bot de reference, profil {chance:{prend:1}})');
   {const ok=!!(neutre&&neutre.profil&&meme(a,neutre)&&a.vues===neutre.vues),joue=!!(neutre&&neutre.chance&&neutre.chance.voulue);

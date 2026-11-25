@@ -246,6 +246,7 @@ L'ordre rendu par `decide` :
 | `geste:'figure'` + `direction` | deux appuis brefs sur NITRO, la direction tenue : `avant`, `arriere`, `gauche`, `droite` | direction + ESPACE ×2 |
 | `geste:'saut'` + `direction` | une figure sur la route, puis manche vers soi et un nouvel appui NITRO pendant le bond : la caisse décolle | idem, puis ↓ + ESPACE |
 | `geste:'redresser'` | un appui bref, seul, en vol : la figure en cours s'arrête, la caisse se remet droite | ESPACE |
+| `ensuite` `{ ligne }` ou `{ volant }` | *main à profil seulement* (relecture du 25/11) : l'ordre du volant pour le mode **d'après** — donné en vol, celui de la pose ; donné au sol, celui du décollage. La main l'applique dès qu'elle voit le mode changer (6 images après), sans attendre la décision suivante. `ligne` n'y vaut qu'avec le suivi (sans lui : volant à zéro) | ← → |
 | `regarder:'sorties'` | *pas un geste* : demande aux yeux, pour la vue **suivante**, les sorties à gauche, à droite et par un saut (`vue.sorties`, § 2 bis) | aucune |
 
 Ce que ces gestes font dans le jeu (vérifié par `verifier.js`, sauvegarde neuve) :
@@ -273,6 +274,8 @@ Tenues dans `doigts.js`, pas dans le cerveau — aucun cerveau ne peut les dépa
 **Le bot joue au clavier** (les touches de la version ordinateur). Un joueur au téléphone a un pouce analogique, plus fin : le bot n'a pas cet avantage.
 
 `HUMAIN` ne change pas avec les doigts v2 : **un profil peut ralentir la main, jamais l'accélérer.** Chaque touche passe encore par ces limites.
+(Relecture du 25/11 : ce n'était pas vrai du suivi — avec un retard nul, le défaut, il lisait l'image même, 83 ms avant ce qu'une décision peut
+ordonner. Le suivi actif lit désormais l'état du jeu **vieux de 6 images au moins** ; contrôle 9c.)
 
 ### 3.1 Le profil : régler la main (doigts v2, 24/11)
 
@@ -285,8 +288,8 @@ module.exports = {
   profil: {
     modele: 'clavier', graine: 3,                 /* le point de départ ; la graine : deux pilotes du même réglage n'ont pas la même main */
     reaction: { volant: [120, 200, 320] },        /* ms : [p10, p50, p90], ou un nombre seul pour une constante */
-    coups:    { duree: [100, 200, 400] },         /* le volant par appuis de durée tirée */
-    nitro:    { tenue: [100, 375, 3200] },        /* la nitro tapotée au sol ; null = tenue tant que demandée */
+    coups:    { duree: [70, 130, 300] },          /* le volant par appuis de durée tirée */
+    nitro:    { tenue: [320, 1000, 4100] },       /* la nitro hachée au sol ; null = tenue tant que demandée */
     chance:   { prend: 0.2, palierMin: 8 },       /* la seconde chance : une fois sur cinq, à partir du palier 8 */
     erreur:   { manque: 0.03, parasite: 2 }       /* 3 % d'appuis manqués, 2 embardées par minute */
   },
@@ -306,17 +309,18 @@ Les durées sont en **millisecondes** (converties en images de 1/60 s) ; une dur
 | `reaction.manche` (drift compris) | ms | 0 | 0 à 1000 | pas mesuré ; `clavier` : `[150, 240, 380]` |
 | `reaction.geste` | ms | 0 | 0 à 1000 | pas mesuré ; `clavier` : `[180, 260, 420]` |
 | `suivi.actif` | vrai / faux | faux | — | vrai : avec `ligne` ou `viser`, le volant est recalculé **à chaque image** |
-| `suivi.retard` | ms | 0 | 0 à 500 | le retard de perception de la main ; pas mesuré ; `clavier` : 100 |
+| `suivi.retard` | ms | 0 | 0 à 500 ; **6 images (100 ms) au moins si le suivi est actif** | le retard de perception de la main ; pas mesuré ; `clavier` : 150 |
 | `coups.actif` | vrai / faux | faux | — | faux : le dosage régulier d'avant |
-| `coups.duree` | ms | `[100, 200, 400]` | 67 à 1500 | **mesuré** : p10 100, p50 200, p90 400, le plus long 1500 (Léo au doigt : p50 200, 900 au plus) |
-| `coups.repos` | ms | `[70, 110, 200]` | 67 à 1000 | la pause après un coup ; pas mesuré. Mesuré entre deux débuts de coup : p10 200, p50 500, p90 900 |
-| `coups.seuil` | part du prochain coup | 0,5 | 0,2 à 1,5 | plus haut : des coups plus rares et plus tardifs |
+| `coups.duree` | ms | `[100, 200, 400]` | 67 à 1500 | les VRAIS appuis des joueurs au clavier, reconstruits du volant lissé : p10 77, p25 117, p50 153, p75 220, p90 347, p99 697 ms. (La mesure d'avant, 100 · 200 · 400, était celle de la **trace lissée**, qui reste au-dessus du seuil 2 à 3 images après le relâché.) `clavier` : `[70, 130, 300]`, `doigt` : `[80, 150, 330]` — réglés sur `appuis.js` (§ 3.8) |
+| `coups.repos` | ms | `[70, 110, 200]` | 67 à 1000 | la pause de **la flèche lâchée** après un coup ; pas mesuré ; `clavier` et `doigt` : `[90, 140, 250]` |
+| `coups.inversion` | ms ou `null` | `null` | 33 à 1000 | (relecture du 25/11) la pause de **la flèche d'en face** après un coup : un autre doigt, une autre touche. `null` : un seul repos pour les deux, comme avant. Les joueurs : 68 % de leurs appuis successifs changent de côté, souvent dans les 100 ms ; `clavier` : `[50, 90, 200]` |
+| `coups.seuil` | part du prochain coup | 0,5 | 0,2 à 1,5 | plus haut : des coups plus rares et plus tardifs ; `clavier` et `doigt` : 0,4 |
 | `coups.plein` / `coups.mort` / `coups.contre` | part de volant | 0,92 / 0,08 / 0,5 | 0,5 à 1 / 0 à 0,4 / 0,1 à 1 | au-dessus de `plein` la touche est tenue ; sous `mort` rien ; au-dessus de `contre` un ordre inverse coupe le coup en cours |
-| `nitro.tenue` | ms ou `null` | `null` | 100 à 30 000 | `null` : tenue tant que demandée. Mesuré **sur la flamme** : p10 100, p50 300 à 400, p90 2600 à 3900, 25 s au plus ; 26 à 35 allumages par minute |
-| `nitro.pause` | ms | `[130, 220, 500]` | 67 à 2000 | pas mesuré |
-| `geste.tap` | ms | 83 | 67 à 233 | la durée d'un appui du double appui (le jeu exige moins de 300 ms) |
-| `geste.entre` | ms | 83 | 67 à 167 | le blanc entre les deux (appui + blanc : 367 ms au plus, le jeu exige moins de 420) |
-| `drift.avance` | ms | 33 | 33 à 200 | de combien la flèche précède ↓ (§ 3.4) |
+| `nitro.tenue` | ms ou `null` | `null` | 67 à 30 000 | `null` : tenue tant que demandée. Mesuré **sur la flamme, au sol** (joueurs au clavier) : allumée 76 % du sol, 16 à 22 allumages par minute de sol, tenues p10 0,32 · p50 1,0 à 1,2 · p90 4,1 s. Les tenues courtes (médiane 0,2 s, 51 par minute) sont **en vol**, et au sol jauge vide la flamme bat toute seule, touche tenue : ce ne sont pas des tapotements. `clavier` : `[320, 1000, 4100]` ; `doigt` : `null` |
+| `nitro.pause` | ms | `[130, 220, 500]` | 67 à 2000 | pas mesuré ; `clavier` : `[120, 220, 450]` (le mode court des pauses au sol) |
+| `geste.tap` | ms | 83 | 67 à 233 | la durée d'un appui du double appui (le jeu exige moins de 300 ms) ; `clavier` : `[70, 90, 130]`, pas mesuré |
+| `geste.entre` | ms | 83 | 67 à 167 | le blanc entre les deux (appui + blanc : 367 ms au plus, le jeu exige moins de 420) ; `clavier` : `[70, 90, 140]`, pas mesuré |
+| `drift.avance` | ms | 33 | 33 à 200 | de combien la flèche précède ↓ (§ 3.4), tiré une fois par drift ; `clavier` : `[33, 70, 150]`, pas mesuré |
 | `chance.prend` | probabilité | 0 | 0 à 1 | 2 parties sur les 12 de plus de 20 s l'ont prise — les deux meilleures |
 | `chance.palierMin` | palier | 1 | 1 à 30 | prises aux paliers 14 et 28 |
 | `chance.delai` | ms après l'apparition de la plaque | `[900, 1500, 3000]` | 600 à 4500 | pas mesuré ; la plaque est sourde 600 ms, l'offre dure 5,5 s |
@@ -324,15 +328,18 @@ Les durées sont en **millisecondes** (converties en images de 1/60 s) ; une dur
 | `erreur.retard` / `erreur.retardK` | probabilité par réaction / facteur | 0 / 2,5 | 0 à 0,5 / 1 à 5 | pas mesuré |
 | `erreur.sur` / `erreur.surK` | probabilité par coup / `[mini, maxi]` | 0 / `[1.5, 2.5]` | 0 à 0,5 / 1 à 3 | pas mesuré |
 | `erreur.bruit` | ± part du volant, par coup | 0 | 0 à 0,5 | pas mesuré |
-| `erreur.parasite` | coups par minute | 0 | 0 à 20 | pas mesuré |
+| `erreur.parasite` | coups par minute | 0 | 0 à 20 | pas mesuré ; le taux obtenu est celui demandé (contrôle 9h ; avant le 25/11, 20 à 28 % de moins) |
 
-Les modèles : **`machine`** = les défauts. **`clavier`** = les réactions ci-dessus, `suivi` (retard 100 ms), `coups` (`[100, 200, 400]`, repos `[70, 110, 200]`),
-`nitro.tenue [100, 400, 3000]` et `pause [130, 220, 500]` ; ni seconde chance, ni erreurs. **`doigt`** = le même avec des coups `[100, 200, 350]` — provisoire
-(4 parties de Léo). Ces valeurs de départ ne sont pas un réglage fini : seules les durées des coups et des tenues viennent d'une mesure.
+Les modèles : **`machine`** = les défauts. **`clavier`** = les réactions ci-dessus, `suivi` (retard 150 ms), `coups` (`[70, 130, 300]`, repos `[90, 140, 250]`,
+inversion `[50, 90, 200]`, seuil 0,4), `nitro.tenue [320, 1000, 4100]` et `pause [120, 220, 450]`, `geste.tap [70, 90, 130]`, `geste.entre [70, 90, 140]`,
+`drift.avance [33, 70, 150]` ; ni seconde chance, ni erreurs. **`doigt`** = le même avec des coups `[80, 150, 330]` (repos, inversion et seuil du clavier)
+et la nitro tenue (`null`) — provisoire (4 parties de Léo). Réglés le 25/11 sur la mesure d'`appuis.js` (§ 3.8) pour les coups ; les réactions, le
+retard du suivi, les gestes et le drift restent des ordres de grandeur.
 
-À savoir : la nitro des joueurs est lue sur la flamme (`nitroOn`), pas sur la touche — une jauge vide tenue la fait battre toute seule : une partie
-de leurs « tapotements » vient de là. Et après un appui de moins de 300 ms la main attend 450 ms depuis son début avant de rappuyer (sinon deux
-tapotements feraient une figure) : `nitro.tenue` court donne donc une nitro allumée peu de temps.
+À savoir : la nitro des joueurs est lue sur la flamme (`nitroOn`), pas sur la touche — une jauge vide tenue la fait battre toute seule (elle se
+rallume quand la jauge repasse 0,3, soit 1,5 s plus tard) : au sol, une bonne part de leurs coupures vient de là. Et après un appui de 18 images
+(300 ms) ou moins, la main attend 450 ms depuis son début avant de rappuyer (sinon deux tapotements feraient une figure) : `nitro.tenue` court
+donne donc une nitro allumée peu de temps.
 
 ### 3.2 Ce que la main à profil fait, image par image
 
@@ -348,17 +355,34 @@ un geste en attente :
 - puis, à chaque image, dans cet ordre : le geste en cours (il tient ses touches) · le volant · le manche · la nitro.
 
 **Le suivi** (`suivi.actif`). Avec `ligne` (au sol) ou `viser` (en vol), la main ne reçoit plus un volant chiffré dix fois par seconde : elle reçoit
-la cible, et recalcule le volant **à chaque image** sur l'état du jeu qu'elle perçoit (celui d'il y a `suivi.retard`), avec la loi du § 3. C'est donc
-**la cible** qui a le temps de réaction, pas la boucle. Une aide qui ne va plus avec le mode (un `viser` arrivé après la pose, une `ligne` après le
-décollage) est lâchée : volant à zéro jusqu'à l'ordre suivant. `volant` écrit en clair n'est pas suivi : il est tenu tel quel.
+la cible, et recalcule le volant **à chaque image** sur l'état du jeu qu'elle perçoit (celui d'il y a `suivi.retard`, **6 images au moins** ; au
+départ et après une seconde chance, tant qu'elle n'a pas cet état-là, elle ne voit rien : volant à zéro), avec la loi du § 3. C'est donc **la cible**
+qui a le temps de réaction, pas la boucle. Une aide qui ne va plus avec le mode (un `viser` arrivé après la pose, une `ligne` après le décollage)
+est lâchée : volant à zéro jusqu'à l'ordre suivant. **`volant` écrit en clair n'est pas suivi : il est tenu tel quel, même quand le mode change** —
+mesuré : le plein volant donné en vol reste enfoncé au sol 7 à 30 images après la pose (médiane 12) ; à 100 m/s le bord est à moins d'une seconde.
+Pour l'éviter : donner `ensuite` avec l'ordre (`{ volant: 1, ensuite: { ligne: 0 } }` : la flèche est lâchée 6 images après la pose, contrôle 9j),
+ou lâcher le volant 0,3 s avant la pose annoncée par le radar.
 
 **Les coups** (`coups.actif`). La part de volant voulue s'accumule ; quand elle vaut `coups.seuil` × le prochain coup, la main appuie **à fond** pendant
 une durée tirée de `coups.duree`, puis se repose (`coups.repos`). En moyenne le braquage est celui demandé ; mais à 400 km/h un coup médian de 0,2 s
 tourne déjà la caisse de l'ordre d'un quart de radian (calculé sur la loi du lacet) : **la trajectoire ondule** d'un bord à l'autre, comme celle d'un
 joueur au clavier, et un cerveau écrit pour la main d'avant sort de la route avec celle-ci (§ 3.8). Au-dessus de `coups.plein` la touche est tenue.
+(Relecture du 25/11.) **Un coup ne part que du côté de l'ordre** : avant, la dette passée sous zéro faisait partir un coup à contresens, à fond (pour
+un volant de 0,12, un appui sur quatre) — contrôle 9f. **Deux horloges** : après un coup, la flèche lâchée attend `coups.repos`, la flèche d'en face
+seulement `coups.inversion` (contrôle 9i).
 
 **La nitro hachée** (`nitro.tenue`), au sol seulement : chaque appui dure une tenue tirée, puis une pause tirée. En vol la nitro reste tenue tant que
 demandée (chaque allumage y coûte de la jauge, et un appui seul redresse une figure).
+
+**Un geste n'ouvre pas sur un tapotement** (relecture du 25/11, une main à profil qui change les touches) : le jeu lance la figure dès qu'un appui
+NITRO suit un appui de moins de 300 ms commencé moins de 420 ms plus tôt. Avec la nitro hachée, un geste sur six partait au 1er appui (le saut :
+son 3e appui lu comme un double). Le geste attend donc que le dernier tapotement sorte de cette fenêtre — 0,35 s au plus, le volant et le manche
+restant à l'ordre pendant ce temps ; le radar le compte (`delais`). Contrôle 9g : le détecteur du jeu rejoué sur le journal.
+
+**Ce que la main sait d'elle-même** (`vue.main`, cerveau à profil seulement, relecture du 25/11) : `attente` (`volant`, `manche`, `nitro` : dans
+combien d'images le dernier ordre donné atteindra la main, 0 = arrivé), `geste` (`'attend'` : en route ; `'joue'` : en cours ; `null`) et `refuse`
+(le dernier geste demandé n'est pas parti : refusé, trop tôt, un autre en cours, ou manqué). Lecture seule ; ce champ n'entre pas dans
+`empreinteVues` (contrôle 10).
 
 Le bilan d'une course dit ce que la main a fait : `main` (`sha` du profil, `graine`, `modele`), `gestesRefuses`, `gestesRates`, `erreursMain`,
 `chance`, `imagesMortes`.
@@ -373,8 +397,9 @@ ordre qui change, un appui, une mort — jamais par image : allumer une erreur n
 ### 3.4 Le drift
 
 `drift: +1` (à gauche) ou `−1` (à droite), **tenu à chaque décision** tant qu'on veut drifter ; `0` ou rien pour finir. La main tient la flèche à fond,
-attend `drift.avance`, puis tient ↓ ; elle ignore `ligne`, `volant` et les coups pendant ce temps. À la fin elle relâche ↓ d'abord : jamais ↓ seul, qui
-freinerait. Hors du sol l'ordre est ignoré (↓ en vol cabre). L'ordre voyage avec le manche : il attend `reaction.manche`.
+attend `drift.avance` (tiré une fois par drift), puis tient ↓ ; elle ignore `ligne`, `volant` et les coups pendant ce temps. À la fin elle relâche ↓
+d'abord, puis la flèche — à la même image pour une main sans coups, un repos tiré plus tard pour une main à coups (relecture du 25/11 : avant,
+les deux à la même image, 1465 drifts sur 1466) : jamais ↓ seul, qui freinerait. Hors du sol l'ordre est ignoré (↓ en vol cabre). L'ordre voyage avec le manche : il attend `reaction.manche`.
 
 Ce que le jeu en fait (lu dans `code/moteur/boucle-2-conduite.js` et `code/gameplay/sensations-flow.js`) : il faut de la vitesse (plus de 42 % de la
 vitesse maximale du palier), sinon ↓ **freine**. `vue.drift` dit s'il a pris. Sa durée appartient au cerveau :
@@ -431,43 +456,57 @@ ni du profil, ni de son hasard, et redonne la course à l'image près, seconde c
 
 `node appuis.js <note faite avec --parties>` compte la main d'un bot et celle des joueurs **par la même fonction** (`mesures.js`, `mainLot`), sur
 ce qui se lit de l'enregistrement du jeu : le volant lissé (`|steer| > 0,3`, au sol) et la flamme de la nitro, 10 fois par seconde.
+(Relecture du 25/11.) **Chaque échantillon pèse son vrai écart au précédent** : l'enregistreur ne prend un échantillon que lorsque 0,1 s est
+*dépassée* (6 ou 7 images : 0,1095 s en moyenne chez les joueurs, 0,1055 s chez le bot). Compter 0,1 s gonflait tous les « par minute », et pas
+autant des deux côtés : les joueurs au clavier font **101,6** coups de volant par minute vraie de sol et **1,24** changement de sens par seconde,
+pas 111,3 et 1,36 comme écrit avant. `discerner.js` divise lui aussi par la vraie durée. La nitro est comptée en plus **au sol** et **hors du sol** à part.
 
-**Mesuré le 24/11/2026** : le cerveau d'essai `essai-main.js` (la conduite du bot de référence sans ses gestes, profil `clavier` aux plages mesurées,
+**Mesuré le 25/11/2026, après la relecture et le réglage** : le cerveau d'essai `essai-main.js` (la conduite du bot de référence sans ses gestes ;
+sa main est le modèle `clavier` tel quel — avant, il écrivait par-dessus les durées d'avant, et un réglage du modèle n'aurait rien changé à la mesure ;
 seconde chance prise à chaque mort), 8 graines, version allégée, 120 s au plus (`results/note-essai-main-allege-t120.json` : les bilans ;
-`results/appuis-essai-main-allege-t120.json` : ce tableau). Les enregistrements des 8 courses pèsent 2,8 Mo et ne sont pas dans git ; ils se
-refont à l'identique : `node noter.js essai-main.js --regime allege --coeurs 2 --tmax 120 --graines 8 --parties --sortie results/note-essai-main-allege-t120-parties.json`,
-puis `node appuis.js results/note-essai-main-allege-t120-parties.json --nom essai-main-allege-t120` :
+`results/appuis-essai-main-allege-t120.json` : ce tableau ; `results/discerner-essai-main-allege-t120.json` : le juge). Les enregistrements des 8 courses
+pèsent 2,9 Mo et ne sont pas dans git ; ils se refont à l'identique : `node noter.js essai-main.js --regime allege --coeurs 4 --tmax 120 --graines 8 --parties --sortie results/note-essai-main-allege-t120-parties.json`,
+puis `node appuis.js results/note-essai-main-allege-t120-parties.json --nom essai-main-allege-t120` (4 minutes en tout) :
 
-| | les joueurs au clavier (10 parties) | la main `clavier` (8 courses) |
-|---|---|---|
-| coups de volant par minute de sol | 111,3 | 84,7 |
-| durée d'un coup : p10 · p50 · p90 · le plus long | 0,1 · 0,2 · 0,4 · 1,5 s | 0,1 · 0,3 · 0,6 · 1,7 s |
-| écart entre deux débuts de coup : p10 · p50 · p90 | 0,2 · 0,5 · 0,9 s | 0,3 · 0,6 · 1,3 s |
-| irrégularité de cet écart (CV) | 0,57 | 0,64 |
-| part du sol volant braqué | 40,5 % | 47,6 % |
-| changements de sens par seconde de sol | 1,36 | 0,88 |
-| part du temps nitro allumée | 60,4 % | 13 % |
-| allumages de nitro par minute | 35,2 | 17,8 |
-| tenue de nitro : p10 · p50 · p90 · la plus longue | 0,1 · 0,3 · 2,6 · 24,9 s | 0,1 · 0,3 · 1,0 · 4,6 s |
+| | les joueurs au clavier (10 parties) | la main `clavier` avant (24/11, recompté) | la main `clavier` réglée (25/11) |
+|---|---|---|---|
+| coups de volant par minute de sol | 101,6 | 80,0 | **99,9** |
+| durée d'un coup lue : p10 · p50 · p90 | 0,10 · 0,22 · 0,43 s | 0,12 · 0,30 · 0,60 s | 0,10 · **0,20** · 0,59 s |
+| écart entre deux débuts : p10 · p50 · p90 (CV) | 0,23 · 0,45 · 0,90 s (0,54) | 0,30 · 0,60 · 1,30 s (0,64) | 0,23 · 0,50 · 1,10 s (0,68) |
+| part du sol volant braqué | 40,5 % | 47,7 % | 47,7 % |
+| changements de sens par seconde de sol | 1,24 | 0,83 | **0,89** |
+| nitro allumée, au sol | 75,8 % du sol, 22,5 allumages par minute | 12,4 %, 16,5 | 14,5 %, 14,5 |
+| tenue de nitro au sol : p10 · p50 · p90 | 0,32 · 1,19 · 4,23 s | 0,10 · 0,30 · 1,00 s | 0,12 · 0,40 · 1,17 s |
 
-Ses vraies touches (le journal) : 83 appuis de flèche par minute, tenus 0,10 · 0,25 · 0,52 s (p10 · p50 · p90).
+Ses vraies touches (le journal) : 111,6 appuis de flèche par minute, tenus 0,07 · 0,15 · 0,43 s (p10 · p50 · p90) — les joueurs, reconstruits :
+104,6 par minute de sol, 0,08 · 0,15 · 0,35 s. Le modèle `doigt`, mesuré de même (le même cerveau, `modele:'doigt'`, contre les 4 parties de Léo) :
+93,9 coups par minute (Léo 88,8), p50 0,24 s (0,22), 0,84 changement de sens par seconde (1,12).
+
+Les quatre tours du réglage (clavier) : (1) les vraies durées `[80, 155, 345]` : 89,6 coups, p50 0,30 s, sens 0,88 ; (2) des coups plus courts
+`[70, 130, 300]`, un repos de la même flèche plus long `[90, 140, 250]`, seuil 0,4, retard du suivi 150 ms : 99,9 · 0,20 · 0,89 — **retenu** ; (3) le
+même avec 8 embardées par minute et 10 % d'appuis trop longs : 99,5 · 0,23 · **0,81**, et 3 morts de plus — abandonné ; (4) le tour 2 refait, à
+l'identique (même graine = même course). Le doigt : un tour avec `[100, 220, 450]` (70,1 coups, p50 0,40 s), un second avec les réglages du tour 2
+et `[80, 150, 330]` — retenu.
 
 Ce que ça dit, et ce que ça ne dit pas :
 
-- **l'allure est celle d'une main** — des coups de 0,1 à 0,6 s à intervalles irréguliers (CV 0,64 contre 0,57), là où la main d'avant battait à
-  cadence fixe ; **mais elle n'est pas encore celle des joueurs** : des coups un quart moins nombreux et plus longs (p50 0,3 s contre 0,2), un
-  tiers de changements de sens en moins. Les durées lues dépassent celles du profil (`[100, 200, 400]`) : le volant lissé du jeu rallonge chaque
-  coup, et les pleins braquages sont tenus. Les leviers : `coups.duree` plus court, `coups.seuil` plus bas, `coups.plein` à 1 — à régler par le juge ;
-- **la nitro tient au cerveau, pas à la main** : celui-ci ne la demande que dans les droites (13 % du temps, comme le bot de référence) ; les
-  joueurs la tiennent 60 % du temps. La main hache bien (tenue médiane 0,3 s, comme eux), mais sur peu de demandes ;
-- **la seconde chance tourne** : prise et réussie dans 7 courses sur 8 (la 8e est morte 1,5 s avant la limite de temps : la plaque n'a pas eu le
-  temps de paraître), 463 à 685 images de temps mort (7,7 à 11,4 s) ;
-- **cette main coûte cher à un cerveau écrit pour l'ancienne** : les 8 courses meurent une première fois, toutes en vol après une sortie par le
-  bord (26 décollages, tous « bord »), à 72 s en médiane (27 à 118 s) — le bot de référence, avec la main d'avant, survit 157 s en médiane dans
-  le même jeu ; 159 pièces par minute contre 402. Un pilote doit être écrit **pour** sa main : viser plus tôt, garder de la marge au bord,
-  compter son temps de réaction, savoir revenir d'une sortie ;
-- 8 courses, un seul profil, un seul cerveau : c'est une première mesure, pas un réglage. Les temps de réaction ne sont mesurés nulle part chez
-  les joueurs. Le juge `discerner.js` n'a pas été passé sur ces courses.
+- **les coups sont maintenant ceux des joueurs** : leur nombre (à 2 % près) et leur durée médiane (à 10 % près). La queue reste trop longue (p90
+  0,59 s contre 0,43) : ce sont surtout les pleins braquages, que le cerveau demande (le sol braqué 48 % du temps contre 40 %), et les coups d'un même
+  côté qui se suivent (repos de 90 à 250 ms) et que le volant lissé du jeu recolle en un seul ;
+- **les changements de sens résistent** (0,89 contre 1,24, à −28 %) : ni un retard du suivi plus long, ni des erreurs n'y font rien (les erreurs les
+  font même baisser). Ils tiennent à la **trajectoire** que le cerveau demande — une ligne lisse, quand les joueurs slaloment sur toute la largeur
+  pour les pièces. C'est au pilote de l'étape C de le faire, pas à la main ;
+- **la nitro tient au cerveau, pas à la main** : celui-ci ne la demande que dans les droites (15 % du temps) ; les joueurs l'ont allumée 76 % du
+  sol, par tenues d'une seconde. Le modèle tient maintenant la touche comme eux (tenues de 0,3 à 4,1 s), mais les tenues lues (0,4 s) sont coupées
+  par les ordres du cerveau ;
+- **la main ne fait plus mourir le cerveau** : 7 courses sur 8 vont jusqu'à la limite de temps (avant : les 8 mouraient une première fois en vol, à
+  72 s en médiane) ; 5 meurent une fois (vers 38 à 70 s) et la seconde chance les reprend ; 193 pièces par minute (avant : 159 ; le bot de
+  référence avec la main d'avant : 402) ;
+- **LE JUGE** (`node discerner.js results/note-essai-main-allege-t120-parties.json --nom essai-main-allege-t120`) : **AUC 0,991, « DISCERNABLE À COUP
+  SÛR »** (le témoin à étiquettes mélangées : 0,47). Ce qui trahit le plus : **les décollages** (0,21 par 10 s contre 1,3 : z −3,1), la part du temps en
+  l'air (z −2,8), le vol moyen, la nitro (z −2,2), la hauteur — tout cela tient au cerveau (ce cerveau d'essai ne vole presque pas). Ce qui tient
+  à la main est dans les joueurs : **changements de côté par seconde z −0,02**, ondulation −0,6, accélération latérale −0,9 ;
+- 8 courses, un seul cerveau : les réactions, le retard du suivi, les gestes et le drift ne sont mesurés nulle part chez les joueurs.
 
 ---
 
@@ -496,7 +535,9 @@ totaux divisés par le temps total. Comptés **pareil pour un joueur et pour un 
   reprend un ensuite. `pieces` reste le chiffre de fin, `pieces_ramassees` la somme des gains ;
 - **les raccourcis comme le jeu les paie** : pose sur la même route, ou vol qui passe le **portail** (gain = L − 80 − s du décollage − distance
   volée). ⚠ Le jeu ne paie pas une pose dans le **filet** de son virage ; les filets ne sont pas dans l'enregistrement : ces poses restent
-  comptées (pour les joueurs comme pour les bots), il faudrait que le jeu enregistre ses raccourcis ;
+  comptées (pour les joueurs comme pour les bots), il faudrait que le jeu enregistre ses raccourcis (à décider par Sacha : cela change le jeu, et
+  les parties déjà enregistrées ne l'auront pas). En attendant, **« raccourcis par minute » n'est ni un critère de la boucle ni une mesure du juge**
+  (relu le 25/11 : `boucle.js` juge sur `palier_median`, `discerner.js` ne le lit pas) ;
 - **au-delà de 10 min**, l'enregistreur ne garde que les 6000 derniers échantillons : distance et raccourcis se rapportent à la fenêtre couverte
   (`fenetre_s`, `tronquee`), et un vol sans échantillon à moins de 0,3 s n'est pas compté.
 

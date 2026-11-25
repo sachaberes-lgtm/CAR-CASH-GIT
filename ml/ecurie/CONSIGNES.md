@@ -54,9 +54,11 @@ ne passe plus au palier 20 sans anticiper.
 ## Ce qu'un vrai joueur fait, et qu'un pilote doit faire pour lui ressembler
 
 Mesuré sur 14 parties de deux joueurs :
-- un slalom permanent sur toute la largeur de la route, 1,2 à 1,8 changement de sens par seconde ;
-- le volant par petits coups de 0,1 à 0,4 s, une centaine par minute, à intervalles irréguliers ;
-- la nitro tenue 60 % du temps, par tapotements ;
+- un slalom permanent sur toute la largeur de la route, 1,1 à 1,6 changement de sens par seconde (1,24 en moyenne au clavier) — la main
+  réglée n'en donne que 0,9 sur une ligne lisse : **le slalom est au pilote de le demander**, la main ne l'invente pas ;
+- le volant par petits coups de 0,1 à 0,4 s, une centaine par minute, à intervalles irréguliers (la main `clavier` le fait déjà : 99,9 par minute) ;
+- la nitro allumée 76 % du temps au sol, par tenues d'une seconde environ (0,3 à 4 s) ; jauge vide, la flamme bat toute seule, touche tenue. Ce
+  n'est pas la main qui la demande : c'est le pilote (le cerveau d'essai ne la demande que 15 % du temps) ;
 - 8 vols par minute, presque tous en sortant par le bord, 2 s chacun, 30 à 50 m de haut ;
 - la seconde chance, une fois, dans les longues parties.
 
@@ -68,9 +70,13 @@ erreurs.
 
 - Un fichier JavaScript qui pose `module.exports = { nom, profil, decide }`. Pas de `require`, pas d'horloge, pas de `Math.random`
   (retiré) : même graine, même course. Un hasard, s'il en faut un, est un générateur à graine rangé dans `memoire`.
-- `profil` ne règle QUE la main (temps de réaction, volant par coups, nitro tapotée, drift, seconde chance, erreurs : README § 3.1) ; un champ
+- `profil` ne règle QUE la main (temps de réaction, volant par coups, nitro hachée, drift, seconde chance, erreurs : README § 3.1) ; un champ
   qu'il ne connaît pas REFUSE le pilote au chargement. Les réglages de la conduite restent des constantes nommées en tête du fichier. Sans
   `profil`, la main est une machine ; avec un profil, les ordres arrivent en retard et le volant ondule : le pilote doit être écrit pour sa main.
+- Avec un profil, la vue porte `vue.main` : `attente` (dans combien d'images chaque ordre donné atteindra la main), `geste` (`'attend'`,
+  `'joue'` ou `null`) et `refuse` (le dernier geste demandé n'est pas parti). Lire `refuse` avant de compter sur un saut.
+- Un volant chiffré (`volant: ±1`) reste tenu quand le mode change : en vol, donner `ensuite: { ligne: 0 }` (ou `{ volant: 0 }`) avec l'ordre,
+  sinon le plein volant du vol reste enfoncé 0,1 à 0,5 s au sol après la pose (README § 3.2).
 - Lisible : des réglages nommés en tête, des fonctions courtes, un commentaire qui dit POURQUOI devant chaque règle, avec la mesure qui la
   justifie quand il y en a une (« MESURE : … »). Commentaires en français, sans accents dans le code, `/* … */`.
 - Une vue peut manquer d'un champ selon la map ou le moment : ne jamais supposer qu'un tableau a une case, tester avant de lire.

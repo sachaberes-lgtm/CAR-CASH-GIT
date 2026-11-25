@@ -3,11 +3,13 @@
    distingue pas de vrais joueurs ») =====
    Compare ce qui se LIT de la main dans l'enregistrement du jeu — les coups de volant (combien par minute, leur duree, l'ecart entre deux), les
    changements de sens, la nitro (la part du temps, les tenues) — pour les parties des joueurs (ml/bot/etalon/) et pour celles d'un bot.
-   La MEME fonction compte les deux (mesures.js, mainDe / mainLot) : 10 echantillons par seconde, |steer| > 0,3 au sol.
+   La MEME fonction compte les deux (mesures.js, mainDe / mainLot) : 10 echantillons par seconde, |steer| > 0,3 au sol ; (2026-11-25, relecture)
+   chaque echantillon pese son vrai ecart au precedent (0,105 a 0,11 s, pas 0,1).
    usage : node appuis.js <note-du-bot.json> [--humains clavier|doigt|tous] [--nom x] [--sortie f.json]
      la note : une sortie de noter.js faite avec --parties (ou un tampon du labo, une trajectoire gardee, un dossier : comme discerner.js)
    Pour le bot seulement, le journal des touches donne aussi les VRAIS appuis (a l'image pres) : un joueur n'a pas de journal.
-   LIMITE, a dire a chaque fois : 14 parties de 2 joueurs ; les durees lues sont a 0,1 s pres ; la colonne nitro est la flamme, pas la touche. */
+   LIMITE, a dire a chaque fois : 14 parties de 2 joueurs ; les durees lues sont a un echantillon (0,11 s) pres, sur le volant LISSE (un coup lu
+   dure 2 a 3 images de plus que l'appui) ; la colonne nitro est la flamme, pas la touche. */
 const fs=require('fs'),path=require('path'),zlib=require('zlib');
 const {partiesDe,partiesJoueurs,finVraie,mainLot}=require('./mesures');
 const A=process.argv.slice(2),opt=(n,d)=>{const i=A.indexOf('--'+n);return i>=0?A[i+1]:d;};
@@ -40,13 +42,16 @@ const H=mainLot(HUM),B=mainLot(BOT.map(b=>b.partie)),JT=BOT.every(b=>b.touches)?
 const LIGNES=[['coups_min','coups de volant par minute de sol'],['coup_p10_s','duree d\'un coup : p10 (s)'],['coup_p50_s','duree d\'un coup : p50 (s)'],['coup_p90_s','duree d\'un coup : p90 (s)'],['coup_max_s','duree d\'un coup : le plus long (s)'],
   ['ecart_p10_s','ecart entre deux debuts : p10 (s)'],['ecart_p50_s','ecart entre deux debuts : p50 (s)'],['ecart_p90_s','ecart entre deux debuts : p90 (s)'],['ecart_cv','ecart entre deux debuts : irregularite (CV)'],
   ['braquage_pct','part du sol volant braque (%)'],['sens_s','changements de sens par seconde de sol'],['drift_pct','part du sol en drift (%)'],
-  ['nitro_pct','part du temps nitro allumee (%)'],['nitro_appuis_min','allumages de nitro par minute'],['tenue_p10_s','tenue de nitro : p10 (s)'],['tenue_p50_s','tenue de nitro : p50 (s)'],['tenue_p90_s','tenue de nitro : p90 (s)'],['tenue_max_s','tenue de nitro : la plus longue (s)']];
+  ['nitro_pct','part du temps nitro allumee (%)'],['nitro_appuis_min','allumages de nitro par minute'],['tenue_p10_s','tenue de nitro : p10 (s)'],['tenue_p50_s','tenue de nitro : p50 (s)'],['tenue_p90_s','tenue de nitro : p90 (s)'],['tenue_max_s','tenue de nitro : la plus longue (s)'],
+  /* (2026-11-25, relecture) la nitro AU SOL a part (la ou la main la tient) et hors du sol (la ou la jauge la fait battre) */
+  ['nitro_sol_pct','AU SOL : part du sol nitro allumee (%)'],['nitro_sol_min','AU SOL : allumages par minute de sol'],['tenue_sol_p10_s','AU SOL : tenue p10 (s)'],['tenue_sol_p50_s','AU SOL : tenue p50 (s)'],['tenue_sol_p90_s','AU SOL : tenue p90 (s)'],
+  ['nitro_vol_min','HORS DU SOL : allumages par minute hors du sol'],['tenue_vol_p50_s','HORS DU SOL : tenue p50 (s)']];
 const nomBot=opt('nom',null)||path.basename(sources[0]).replace(/\.json(\.gz)?$/,'').replace(/^note-/,'');
 console.log(`LA MAIN · joueurs (${QUI}) : ${H.parties} parties, ${H.minutes} min lues, ${H.sol_min} au sol, ${H.coups} coups · ${nomBot} : ${B.parties} parties, ${B.minutes} min, ${B.sol_min} au sol, ${B.coups} coups`);
 console.log('  '+'mesure'.padEnd(46)+'joueurs'.padStart(9)+nomBot.slice(0,18).padStart(20));
 for(const [k,t] of LIGNES)console.log('  '+t.padEnd(46)+String(H[k]).padStart(9)+String(B[k]).padStart(20));
 if(JT)console.log(`les VRAIES touches de ${nomBot} (journal, ${JT.minutes} min) : fleches ${JT.volant_min} appuis par minute, tenues p10 ${JT.volant_p10_s} s · p50 ${JT.volant_p50_s} s · p90 ${JT.volant_p90_s} s ; NITRO ${JT.nitro_min} appuis par minute, tenues p10 ${JT.nitro_p10_s} s · p50 ${JT.nitro_p50_s} s · p90 ${JT.nitro_p90_s} s`);
-console.log('⚠ '+H.parties+' parties de joueurs (2 joueurs en tout) ; durees lues a 0,1 s pres sur le volant lisse du jeu ; la nitro lue est la flamme, pas la touche.');
+console.log('⚠ '+H.parties+' parties de joueurs (2 joueurs en tout) ; durees lues a un echantillon (0,11 s) pres sur le volant lisse du jeu ; la nitro lue est la flamme, pas la touche.');
 const sortie=opt('sortie',path.join(__dirname,'results','appuis-'+nomBot+'.json'));
 fs.mkdirSync(path.dirname(sortie),{recursive:true});
 fs.writeFileSync(sortie,JSON.stringify({date:new Date().toISOString(),humains:Object.assign({qui:QUI},H),bot:Object.assign({nom:nomBot,sources:sources.map(s=>path.basename(s))},B),journal:JT},null,1));

@@ -1,16 +1,12 @@
 /* ===== LE CERVEAU D'ESSAI DE LA MAIN (2026-11-24, doigts v2, Sacha : « des bots du palier 1 au palier 30 qu'on ne distingue pas de vrais joueurs ») =====
    Il ne sert qu'a MESURER la main (node appuis.js) : ce n'est pas un pilote de l'ecurie. Sa conduite est celle du bot de reference sans ses
-   gestes (tenir la route, suivre les pieces, pousser la NITRO dans les droites, revenir se poser) ; sa main est un profil « humain » : les plages
-   mesurees sur les joueurs (ml/ecurie/etude/humains.md), ecrites en entier ci-dessous pour servir d'exemple.
-   CE QUI EST MESURE dans ce profil : les durees des coups de volant (p10 0,1 s, p50 0,2 s, p90 0,4 s) et les tenues de nitro (p10 0,1 s,
-   p50 0,35 a 0,4 s, p90 2,7 a 3,8 s). CE QUI NE L'EST PAS : les temps de reaction, le retard du suivi, les repos et les pauses — des ordres de
-   grandeur. La seconde chance est prise A CHAQUE mort (les joueurs : 2 parties sur 12) : expres, pour l'exercer dans chaque course de l'essai. */
+   gestes (tenir la route, suivre les pieces, pousser la NITRO dans les droites, revenir se poser) ; sa main est le modele « clavier » de
+   doigts.js (MAIN_CLAVIER), sans rien y ecrire par-dessus : ce que mesure appuis.js est donc LE MODELE, celui que l'etape C reprendra.
+   (2026-11-25, relecture) Avant, ce profil recopiait en dur les durees des coups [100, 200, 400] et des tenues de nitro [100, 375, 3200] : un
+   reglage du modele n'aurait rien change a la mesure. Les valeurs et ce qui en est mesure ou non : doigts.js (LES MODELES) et README § 3.8.
+   La seconde chance est prise A CHAQUE mort (les joueurs : 2 parties sur 12) : expres, pour l'exercer dans chaque course de l'essai. */
 const PROFIL={
   modele:'clavier',graine:1,
-  reaction:{volant:[120,200,320],nitro:[110,180,300],manche:[150,240,380],geste:[180,260,420]},
-  suivi:{actif:true,retard:100},
-  coups:{actif:true,duree:[100,200,400],repos:[70,110,200],seuil:.5},
-  nitro:{tenue:[100,375,3200],pause:[130,220,500]},
   chance:{prend:1,palierMin:1,delai:[900,1500,3000]}
 };
 const REGLAGES={marge:9,virageDoux:.22,nitroMin:.2,piqueDelai:2};

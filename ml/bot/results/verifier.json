@@ -1,5 +1,5 @@
 {
- "date": "2026-11-25T01:58:20.414Z",
+ "date": "2026-11-25T02:57:51.930Z",
  "graine": 910000,
  "tmax": 150,
  "regime": "max",
@@ -307,7 +307,7 @@
   "etat": {
    "ok": true,
    "photos": 110,
-   "ms_par_controle": 1471,
+   "ms_par_controle": 1377,
    "changes": {},
    "brouillons": {
     "V9J": 1,
@@ -390,10 +390,10 @@
    "sondes": 2920
   },
   "a": {
-   "ms_moy": 0.544,
-   "ms_max": 10.21,
-   "ms_sol_moy": 0.484,
-   "ms_vol_moy": 1.98,
+   "ms_moy": 0.653,
+   "ms_max": 11.17,
+   "ms_sol_moy": 0.584,
+   "ms_vol_moy": 2.316,
    "vues_sol": 1440,
    "vues_vol": 60,
    "pas_vol_moy": 923,
@@ -406,10 +406,10 @@
    "manque": []
   },
   "b": {
-   "ms_moy": 0.531,
-   "ms_max": 13.291,
-   "ms_sol_moy": 0.476,
-   "ms_vol_moy": 1.855,
+   "ms_moy": 0.629,
+   "ms_max": 14.737,
+   "ms_sol_moy": 0.567,
+   "ms_vol_moy": 2.094,
    "vues_sol": 1440,
    "vues_vol": 60,
    "pas_vol_moy": 923,
@@ -424,10 +424,10 @@
   "ok": true,
   "cartes": {
    "nuages": {
-    "ms_moy": 0.926,
-    "ms_max": 3.485,
-    "ms_sol_moy": 0.718,
-    "ms_vol_moy": 1.208,
+    "ms_moy": 0.921,
+    "ms_max": 3.345,
+    "ms_sol_moy": 0.698,
+    "ms_vol_moy": 1.224,
     "vues_sol": 98,
     "vues_vol": 72,
     "pas_vol_moy": 1074,
@@ -440,10 +440,10 @@
     "manque": []
    },
    "espace": {
-    "ms_moy": 0.911,
-    "ms_max": 3.974,
-    "ms_sol_moy": 0.672,
-    "ms_vol_moy": 1.123,
+    "ms_moy": 0.97,
+    "ms_max": 3.032,
+    "ms_sol_moy": 0.736,
+    "ms_vol_moy": 1.177,
     "vues_sol": 76,
     "vues_vol": 86,
     "pas_vol_moy": 1077,
@@ -456,10 +456,10 @@
     "manque": []
    },
    "grotte": {
-    "ms_moy": 2.416,
-    "ms_max": 9.431,
-    "ms_sol_moy": 0.932,
-    "ms_vol_moy": 4.456,
+    "ms_moy": 1.962,
+    "ms_max": 10.071,
+    "ms_sol_moy": 0.835,
+    "ms_vol_moy": 3.513,
     "vues_sol": 99,
     "vues_vol": 72,
     "pas_vol_moy": 987,
@@ -472,10 +472,10 @@
     "manque": []
    },
    "ville": {
-    "ms_moy": 1.387,
-    "ms_max": 3.986,
-    "ms_sol_moy": 0.7,
-    "ms_vol_moy": 2.481,
+    "ms_moy": 1.249,
+    "ms_max": 4.942,
+    "ms_sol_moy": 0.746,
+    "ms_vol_moy": 2.051,
     "vues_sol": 59,
     "vues_vol": 37,
     "pas_vol_moy": 720,
@@ -488,10 +488,10 @@
     "manque": []
    },
    "jade": {
-    "ms_moy": 4.121,
-    "ms_max": 14.582,
-    "ms_sol_moy": 1.622,
-    "ms_vol_moy": 6.963,
+    "ms_moy": 4.178,
+    "ms_max": 15.682,
+    "ms_sol_moy": 1.683,
+    "ms_vol_moy": 7.016,
     "vues_sol": 91,
     "vues_vol": 80,
     "pas_vol_moy": 984,
@@ -504,10 +504,10 @@
     "manque": []
    },
    "canyon": {
-    "ms_moy": 0.965,
-    "ms_max": 3.6,
-    "ms_sol_moy": 0.843,
-    "ms_vol_moy": 1.126,
+    "ms_moy": 0.948,
+    "ms_max": 3.337,
+    "ms_sol_moy": 0.807,
+    "ms_vol_moy": 1.132,
     "vues_sol": 97,
     "vues_vol": 74,
     "pas_vol_moy": 1158,
@@ -520,10 +520,10 @@
     "manque": []
    },
    "canyon+relief": {
-    "ms_moy": 2.98,
-    "ms_max": 29.002,
-    "ms_sol_moy": 1.173,
-    "ms_vol_moy": 13.934,
+    "ms_moy": 2.603,
+    "ms_max": 19.641,
+    "ms_sol_moy": 1.017,
+    "ms_vol_moy": 12.217,
     "vues_sol": 97,
     "vues_vol": 16,
     "pas_vol_moy": 625,
@@ -1304,6 +1304,22 @@
     [
      "un champ inconnu (au chargement)",
      "x.js : profil : champ inconnu « turbo »"
+    ],
+    [
+     "une duree infinie",
+     "profil : coups.duree doit etre une duree en ms (un nombre, ou [p10, p50, p90])"
+    ],
+    [
+     "une reaction infinie",
+     "profil : reaction.volant doit etre une duree en ms (un nombre, ou [p10, p50, p90])"
+    ],
+    [
+     "un nombre infini",
+     "profil : erreur.parasite doit etre un nombre"
+    ],
+    [
+     "un delai infini (au chargement, a travers le bac)",
+     "x.js : profil : chance.delai doit etre une duree en ms (un nombre, ou [p10, p50, p90])"
     ]
    ]
   },
@@ -1314,25 +1330,100 @@
   "seule": {
    "ok": true,
    "coups": {
-    "coups": 105,
-    "parMinute": 105,
-    "braquage": 0.359,
-    "durees": 23,
+    "coups": 132,
+    "parMinute": 132,
+    "braquage": 0.358,
+    "durees": 19,
     "min": 4,
-    "max": 32,
-    "plusFrequente": 0.095
+    "max": 25,
+    "plusFrequente": 0.174
    },
    "mains": {
-    "appuis": 105,
+    "appuis": 132,
     "appuiLePlusCourt_images": 4,
-    "reposLePlusCourt_images": 5,
-    "appuisParSecondeMax": 4,
+    "reposLePlusCourt_images": 4,
+    "appuisParSecondeMax": 6,
     "problemes": [],
     "ok": true
    },
    "repetable": true,
    "autreGraineProfil": true,
    "autreGraineCourse": true
+  },
+  "contresens": {
+   "ok": true,
+   "detail": [
+    "0.09 → 0 a droite, braquage 0.09",
+    "0.12 → 0 a droite, braquage 0.119",
+    "0.2 → 0 a droite, braquage 0.199"
+   ],
+   "lache": {
+    "droite": 0,
+    "apresLache": 0
+   }
+  },
+  "gestesNitro": {
+   "ok": true,
+   "gestes": 85,
+   "doubles": 57,
+   "attendus": 57,
+   "faux": 0,
+   "rates": 0
+  },
+  "parasite": {
+   "ok": true,
+   "parMinute": 6
+  },
+  "horloges": {
+   "ok": true,
+   "inversions": 309,
+   "blancMin": 2,
+   "sous4": 22,
+   "avances": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+   ],
+   "flecheApresBas": [
+    5,
+    22
+   ]
+  },
+  "ensuite": {
+   "ok": true,
+   "avec": {
+    "bas": true,
+    "lache": 9,
+    "vue": {
+     "attente": {
+      "volant": 0,
+      "manche": 0,
+      "nitro": 0
+     },
+     "geste": null,
+     "refuse": false
+    }
+   },
+   "sans": {
+    "bas": true,
+    "lache": null,
+    "vue": {
+     "attente": {
+      "volant": 0,
+      "manche": 0,
+      "nitro": 0
+     },
+     "geste": null,
+     "refuse": false
+    }
+   }
   },
   "sansEffet": {
    "ok": true,
@@ -1349,32 +1440,32 @@
   "humaine": {
    "repetable": true,
    "mains": {
-    "appuis": 67,
+    "appuis": 53,
     "appuiLePlusCourt_images": 4,
     "reposLePlusCourt_images": 4,
-    "appuisParSecondeMax": 3,
+    "appuisParSecondeMax": 4,
     "problemes": [],
     "ok": true
    },
    "rejeu": true,
    "autreGraine": true,
    "coups": {
-    "coups": 50,
-    "parMinute": 92.9,
-    "braquage": 0.509,
-    "durees": 31,
+    "coups": 43,
+    "parMinute": 120.6,
+    "braquage": 0.539,
+    "durees": 22,
     "min": 4,
-    "max": 55,
-    "plusFrequente": 0.12
+    "max": 63,
+    "plusFrequente": 0.209
    },
    "course": {
-    "empreinte": "4e22b6137cf4",
-    "touches": "6eaab501c616",
-    "images": 1938,
+    "empreinte": "6f7a2f1b5782",
+    "touches": "68991a29cd15",
+    "images": 1284,
     "cause": "vide",
-    "duree": 32.3,
+    "duree": 21.3,
     "main": {
-     "sha": "beb383e90174",
+     "sha": "03f79d27e507",
      "graine": 1,
      "modele": "clavier"
     }

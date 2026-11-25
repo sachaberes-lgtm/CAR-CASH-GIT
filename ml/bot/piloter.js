@@ -171,7 +171,7 @@ function course(J,cerveau,graine,o){
   J.ev('__JR.debut()');
   const PROFIL=cerveau.profil||null;
   if(PROFIL&&!J.main){J.ev(MAIN_CODE);J.main=J.g.sandbox.__MAIN;}
-  const D=new Doigts(J,()=>Y.modeDe(J),PROFIL?{profil:PROFIL,graine:graine}:undefined),JR=J.g.sandbox.__JR,morceaux=[];let driftPerdus=0;
+  const D=new Doigts(J,()=>Y.modeDe(J),PROFIL?{profil:PROFIL,graine:graine}:undefined),JR=J.g.sandbox.__JR,morceaux=[];let driftPerdus=0,ensuitePerdus=0;
   cerveau.neuve(); /* la memoire du cerveau : vide au depart de chaque course (un objet de SON contexte) */
   const h=crypto.createHash('sha1'),hv=crypto.createHash('sha1'),vues=[];
   let fr=0,vue=null,decisions=0,vide=0,pannes0=cerveau.pannes|0,erreurs0=cerveau.erreurs|0,abandon=false;
@@ -206,14 +206,21 @@ function course(J,cerveau,graine,o){
         if(premiere)morceaux.push(JSON.parse(J.ev('__JR.fin()')));
       }else{
       vue.image=fr;vue.t=+(fr/60).toFixed(2);
+      /* (2026-11-25, relecture) CE QUE LA MAIN SAIT D'ELLE-MEME (un cerveau a profil seulement, la DERNIERE cle de la vue) : l'attente de ses
+         ordres en route, son geste, un geste refuse (doigts.js, etatMain : lecture seule). Il n'entre pas dans l'empreinte des vues : un profil
+         sans effet sur les touches doit garder les vues de la main d'avant (verifier.js, controle 10). */
+      const vMain=D.P?D.etatMain():null;if(vMain)vue.main=vMain;
       cerveau.texte=null;const c0=horloge();
       let ordre=null;try{ordre=cerveau.decide(vue);}catch(e){ordre=null;}
       MY.msCerveau+=Number(horloge()-c0)/1e6;
-      {const txt=typeof cerveau.texte==='string'?cerveau.texte:JSON.stringify(vue);hv.update(txt);MY.octets+=txt.length;MY.textes++;}
+      {const txt=typeof cerveau.texte==='string'?cerveau.texte:JSON.stringify(vue);let tv=txt;
+        if(vMain){const suf=',"main":'+JSON.stringify(vMain)+'}';if(txt.endsWith(suf))tv=txt.slice(0,txt.length-suf.length)+'}';}
+        hv.update(tv);MY.octets+=txt.length;MY.textes++;}
       if((cerveau.pannes|0)-pannes0>=PANNES_MAX){abandon=true;break;}   /* le cerveau boucle (ou l'ordinateur est a genoux) : cette course ne vaut rien */
       if(!ordre||typeof ordre!=='object'){ordre={};vide++;}
       dem=ordre.regarder==='sorties'?{sorties:true}:undefined;   /* (yeux v2) la demande vaut pour la vue suivante */
       if(ordre.drift&&!D.P)driftPerdus++;   /* (doigts v2) l'ordre « drift » n'est lu que par une main a profil : compte, pour le dire au bilan */
+      if(ordre.ensuite&&!D.P)ensuitePerdus++;   /* (relecture) « ensuite » non plus */
       D.ordre(ordre,vue,etatMain);decisions++;
       if(o.trace)vues.push({image:fr,vue:vue,ordre:ordre,demande:demande});
       }
@@ -240,7 +247,7 @@ function course(J,cerveau,graine,o){
   delete partie.ecran;
   const bilan=Object.assign({graine:graine,images:fr,ms:ms,foisTempsReel:+(fr/60/Math.max(.001,ms/1000)).toFixed(2),
     decisions:decisions,ordresVides:vide,pannes:(cerveau.pannes|0)-pannes0,erreurs:(cerveau.erreurs|0)-erreurs0,derniereErreur:((cerveau.erreurs|0)-erreurs0||(cerveau.pannes|0)-pannes0)?(cerveau.derniere||null):null,gestesRefuses:D.refus,appuis:D.touches.filter(x=>x[2]&&x[1]!=='C').length,
-    main:PROFIL?{sha:cerveau.profilSha,graine:PROFIL.graine,modele:PROFIL.modele}:null,driftSansProfil:driftPerdus||undefined,
+    main:PROFIL?{sha:cerveau.profilSha,graine:PROFIL.graine,modele:PROFIL.modele}:null,driftSansProfil:driftPerdus||undefined,ensuiteSansProfil:ensuitePerdus||undefined,
     empreinte:h.digest('hex').slice(0,12),empreinteVues:hv.digest('hex').slice(0,12),yeux:yeux,yeuxTirages:etat?MY.tirages:null,cerveau_ms_moy:a3(MY.msCerveau/Math.max(1,MY.textes))},D.resume()||{},mesures(partie));
   return {partie:partie,touches:D.touches,bilan:bilan,vues:o.trace?vues:undefined};
 }
