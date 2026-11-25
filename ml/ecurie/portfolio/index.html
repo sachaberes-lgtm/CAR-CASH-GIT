@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>L'écurie — des bots qui jouent à CASH CAR comme des humains</title>
+<style>
+:root{
+  --fond:#fbfaf7; --carte:#ffffff; --texte:#1c1c21; --texte2:#5b5b66; --trait:#d9d6cf; --doux:#f1efe9;
+  --accent:#9a6a00; --mieux:#1f7a4d; --moins:#b3261e; --egal:#8a8a93; --code:#f1efe9;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --fond:#121317; --carte:#1b1d22; --texte:#e9e7e2; --texte2:#a3a3ad; --trait:#33363e; --doux:#22252b;
+    --accent:#e0b04a; --mieux:#4cc38a; --moins:#f07167; --egal:#8d8d96; --code:#24272e;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--fond);color:var(--texte);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:980px;margin:0 auto;padding:28px 18px 40px}
+h1{font-size:clamp(1.55rem,4.2vw,2.3rem);line-height:1.2;margin:.2em 0 .35em;letter-spacing:-.01em}
+h2{font-size:1.3rem;margin:2.6em 0 .5em;padding-top:.6em;border-top:1px solid var(--trait)}
+h3{font-size:1.02rem;margin:0 0 .35em}
+p{margin:.55em 0}
+a{color:var(--accent)}
+code{font:.86em/1.3 ui-monospace,SFMono-Regular,Consolas,monospace;background:var(--code);padding:.08em .32em;border-radius:4px;overflow-wrap:anywhere}
+code.nw{white-space:nowrap}
+small,.petit{color:var(--texte2);font-size:.86rem}
+.surtitre{color:var(--accent);font-weight:650;letter-spacing:.08em;text-transform:uppercase;font-size:.8rem;margin:0}
+.chapo{font-size:1.08rem;max-width:46em}
+.chiffres{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:22px 0 6px}
+.chiffre{background:var(--carte);border:1px solid var(--trait);border-radius:10px;padding:14px 14px 12px}
+.chiffre b{display:block;font-size:1.7rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.chiffre b small{font-size:.9rem;font-weight:500}
+.chiffre span{display:block;font-size:.86rem;color:var(--texte2);margin-top:4px}
+.archi{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+figure{margin:0}
+.cartes>*,.archi>*,.arbres>*,.chiffres>*{min-width:0}
+figure svg{display:block;width:100%;height:auto}
+figcaption{font-size:.86rem;color:var(--texte2);margin-top:6px}
+.cartes{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.carte{background:var(--carte);border:1px solid var(--trait);border-radius:10px;padding:16px 16px 12px}
+.carte .preuve{display:block;font-size:1.25rem;font-weight:700;color:var(--accent);margin:.1em 0 .3em;font-variant-numeric:tabular-nums}
+.carte p{font-size:.95rem}
+.carte.large{grid-column:1/-1}
+.tableau{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:.92rem;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--trait);vertical-align:top}
+thead th{font-weight:650;border-bottom:2px solid var(--trait)}
+td.n,th.n{text-align:right;white-space:nowrap}
+.arbres{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.arbre-modele{background:var(--carte);border:1px solid var(--trait);border-radius:10px;padding:6px}
+.legende{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.84rem;color:var(--texte2);margin:8px 0 0}
+.legende i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+blockquote{margin:0;padding:10px 14px;border-left:3px solid var(--accent);background:var(--doux);border-radius:0 8px 8px 0;font-size:.95rem}
+.raisons{display:grid;gap:12px}
+.raison footer{font-size:.85rem;color:var(--texte2);margin-top:6px}
+.verdict-non{color:var(--moins);font-weight:650}
+ul{padding-left:1.2em}
+li{margin:.3em 0}
+video{width:100%;height:auto;border-radius:10px;background:#000;display:block}
+.frise{list-style:none;padding:0;margin:8px 0;border-left:2px solid var(--trait)}
+.frise li{padding:0 0 8px 14px;position:relative}
+.frise li::before{content:"";position:absolute;left:-6px;top:.55em;width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.frise b{font-variant-numeric:tabular-nums}
+footer.pied{margin-top:3em;padding-top:1em;border-top:1px solid var(--trait);font-size:.88rem;color:var(--texte2)}
+/* SVG : les couleurs suivent le mode clair ou sombre */
+.boite{fill:var(--carte);stroke:var(--trait);stroke-width:1.2}
+.boite-claude{fill:var(--doux);stroke:var(--accent);stroke-width:1.4}
+.fleche{fill:none;stroke:var(--texte2);stroke-width:1.4}
+.pointe{fill:var(--texte2)}
+.t-titre{fill:var(--texte);font:700 13px system-ui,sans-serif}
+.t-ligne{fill:var(--texte2);font:11.5px system-ui,sans-serif}
+.t-etiq{fill:var(--accent);font:600 11px system-ui,sans-serif}
+.t-petit{fill:var(--texte2);font:10.5px system-ui,sans-serif}
+.t-gen{fill:var(--texte2);font:italic 10.5px system-ui,sans-serif}
+.t-noeud{fill:var(--fond);font:700 10.5px system-ui,sans-serif}
+.t-id{fill:var(--texte);font:10px ui-monospace,Consolas,monospace}
+.t-grand{fill:var(--texte2);font:10px system-ui,sans-serif}
+.t-neuf{fill:var(--moins);font:600 10px system-ui,sans-serif}
+.lien{stroke:var(--trait);stroke-width:1.3}
+.lien.perdu{stroke-dasharray:4 3}
+.n-racine{fill:var(--accent)}
+.n-mieux{fill:var(--mieux)}
+.n-egal{fill:var(--egal)}
+.n-moins{fill:var(--moins)}
+.n-perdu{fill:none;stroke:var(--egal);stroke-dasharray:4 3;stroke-width:1.5}
+.n-champ{fill:none;stroke:var(--texte);stroke-width:1.4}
+@media (max-width:720px){
+  .chiffres{grid-template-columns:repeat(2,1fr)}
+  .archi,.cartes,.arbres{grid-template-columns:1fr}
+  main{padding:20px 14px 32px}
+  th,td{padding:5px 7px}
+  table{font-size:.84rem}
+  .chiffre b{font-size:1.4rem}
+}
+</style>
+</head>
+<body>
+<main>
+
+<header>
+<p class="surtitre">CASH CAR · ml/ecurie · portfolio</p>
+<h1>L'écurie&nbsp;: des bots qui apprennent à jouer à CASH CAR comme des humains</h1>
+<p class="chapo">CASH CAR est un runner arcade 3D (three.js) pour téléphone. Le but de l'écurie&nbsp;: des bots de chaque niveau, du palier 1 au palier 30,
+qu'on ne distingue pas de vrais joueurs. Ils conduisent le vrai jeu, sans écran, avec une main réglée sur celle des joueurs&nbsp;; leur cerveau est un
+fichier JavaScript lisible que Claude améliore par l'API, et que le jeu note.</p>
+
+<div class="chiffres">
+  <div class="chiffre"><b>11 <small>contre</small> 11,5</b><span>palier médian&nbsp;: le pilote (20 courses de 900 s) contre les joueurs (14 parties). Le bot de référence écrit à la main&nbsp;: 8,5</span></div>
+  <div class="chiffre"><b>324</b><span>courses notées au journal du labo, environ 1&#8239;060 minutes de jeu (sans les mesures des outils)</span></div>
+  <div class="chiffre"><b>26,02 €</b><span>d'API dépensés sur un plafond de 200 €, dont 4,63 € pour comparer quatre modèles</span></div>
+  <div class="chiffre"><b>5 / 5</b><span>rejeux exacts&nbsp;: les touches seules redonnent la même course au bit près</span></div>
+</div>
+<p class="petit">État au 25/11/2026 au soir. Tous les chiffres viennent des fichiers du dépôt (<code>ml/labo/journal/*.jsonl</code>,
+<code>ml/bot/results/*.json</code>, <code>ml/ecurie/ETAPES.md</code>)&nbsp;; chaque section dit lesquels.</p>
+</header>
+
+<section>
+<h2>L'architecture</h2>
+<p>Deux boucles. À gauche, une course&nbsp;: dix fois par seconde, le cerveau reçoit ce qu'un joueur voit et rend un ordre, qu'une main
+«&nbsp;humaine&nbsp;» traduit en touches. À droite, l'amélioration&nbsp;: on lit les morts du meilleur pilote, Claude écrit des variantes, le vrai jeu les juge,
+et seule une variante qui tient sur des graines jamais vues remplace son parent.</p>
+<div class="archi">
+<figure>
+<svg viewBox="0 0 340 392" role="img" aria-label="Une course : le jeu sans écran, les yeux, le cerveau, la main, puis les touches renvoyées au jeu">
+<defs><marker id="pa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="pointe" d="M0 0L10 5L0 10z"/></marker></defs>
+<text class="t-etiq" x="56" y="18">UNE COURSE · 10 DÉCISIONS PAR SECONDE</text>
+<rect class="boite" x="56" y="30" width="276" height="66" rx="8"/>
+<text class="t-titre" x="68" y="50">1 · Le vrai jeu, sans écran</text>
+<text class="t-ligne" x="68" y="68">ml/reel&nbsp;: l'index.html publié, dans Node</text>
+<text class="t-ligne" x="68" y="84">horloge 1/60 s, hasard du jeu à graine</text>
+<path class="fleche" d="M194 96V120" marker-end="url(#pa)"/>
+<text class="t-petit" x="202" y="112">l'état de la course</text>
+<rect class="boite" x="56" y="122" width="276" height="66" rx="8"/>
+<text class="t-titre" x="68" y="142">2 · Les yeux</text>
+<text class="t-ligne" x="68" y="160">la vue en nombres&nbsp;: route, pièces, jauges</text>
+<text class="t-ligne" x="68" y="176">le radar&nbsp;: le vol rejoué image par image</text>
+<path class="fleche" d="M194 188V212" marker-end="url(#pa)"/>
+<text class="t-petit" x="202" y="204">une copie de la vue</text>
+<rect class="boite-claude" x="56" y="214" width="276" height="66" rx="8"/>
+<text class="t-titre" x="68" y="234">3 · Le cerveau</text>
+<text class="t-ligne" x="68" y="252">un fichier JS lisible, dans un bac fermé&nbsp;:</text>
+<text class="t-ligne" x="68" y="268">ni horloge, ni hasard, ni réseau, ni fichier</text>
+<path class="fleche" d="M194 280V304" marker-end="url(#pa)"/>
+<text class="t-petit" x="202" y="296">un ordre</text>
+<rect class="boite" x="56" y="306" width="276" height="66" rx="8"/>
+<text class="t-titre" x="68" y="326">4 · La main</text>
+<text class="t-ligne" x="68" y="344">profil humain&nbsp;: réaction, coups de volant,</text>
+<text class="t-ligne" x="68" y="360">nitro hachée, erreurs · hasard à graine</text>
+<path class="fleche" d="M56 339H24V63H52" marker-end="url(#pa)"/>
+<text class="t-petit" transform="translate(16 270) rotate(-90)">les 5 touches du clavier</text>
+</svg>
+<figcaption>Le cerveau ne touche jamais le jeu&nbsp;: ses yeux lisent, sa main appuie sur les touches d'un joueur
+(<code>ml/bot/README.md</code>, § 1 à 3). Le cadre doré est la seule pièce que Claude réécrit.</figcaption>
+</figure>
+<figure>
+<svg viewBox="0 0 340 420" role="img" aria-label="La boucle : autopsie, Claude écrit 6 variantes, tri sur 6 graines, note sur 20, validation sur 20 graines neuves, le labo">
+<defs><marker id="pb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="pointe" d="M0 0L10 5L0 10z"/></marker></defs>
+<text class="t-etiq" x="56" y="18">LA BOUCLE · UN TOUR = UNE GÉNÉRATION</text>
+<rect class="boite" x="56" y="30" width="276" height="50" rx="8"/>
+<text class="t-titre" x="68" y="50">Autopsie</text>
+<text class="t-ligne" x="68" y="68">les 3 pires courses du parent, mort par mort</text>
+<path class="fleche" d="M194 80V90" marker-end="url(#pb)"/>
+<rect class="boite-claude" x="56" y="92" width="276" height="50" rx="8"/>
+<text class="t-titre" x="68" y="112">Claude écrit 6 variantes (API)</text>
+<text class="t-ligne" x="68" y="130">un angle chacune · la main du parent imposée</text>
+<path class="fleche" d="M194 142V152" marker-end="url(#pb)"/>
+<rect class="boite" x="56" y="154" width="276" height="50" rx="8"/>
+<text class="t-titre" x="68" y="174">Tri&nbsp;: 6 graines × 600 s</text>
+<text class="t-ligne" x="68" y="192">sous la barre du parent&nbsp;: écartée</text>
+<path class="fleche" d="M194 204V214" marker-end="url(#pb)"/>
+<rect class="boite" x="56" y="216" width="276" height="50" rx="8"/>
+<text class="t-titre" x="68" y="236">Note sur 20 graines × 900 s</text>
+<text class="t-ligne" x="68" y="254">le critère&nbsp;: le palier médian</text>
+<path class="fleche" d="M194 266V276" marker-end="url(#pb)"/>
+<rect class="boite" x="56" y="278" width="276" height="50" rx="8"/>
+<text class="t-titre" x="68" y="298">Validation&nbsp;: 20 graines NEUVES</text>
+<text class="t-ligne" x="68" y="316">contre le parent, sur ces mêmes graines</text>
+<path class="fleche" d="M194 328V338" marker-end="url(#pb)"/>
+<rect class="boite" x="56" y="340" width="276" height="50" rx="8"/>
+<text class="t-titre" x="68" y="360">Le labo</text>
+<text class="t-ligne" x="68" y="378">journal, coût, arbre, rejeux, films</text>
+<path class="fleche" d="M56 365H24V55H52" marker-end="url(#pb)"/>
+<text class="t-petit" transform="translate(16 272) rotate(-90)">le champion devient le parent</text>
+<text class="t-petit" x="56" y="410">Plafond général&nbsp;: 200 €, relu au journal des dépenses.</text>
+</svg>
+<figcaption><code>ml/ecurie/boucle.js</code>. Seules des notes du même simulateur, de la même durée et de la même version du jeu se comparent&nbsp;;
+une variante qui change la main est perdue avant d'être notée.</figcaption>
+</figure>
+</div>
+</section>
+
+<section>
+<h2>Les idées techniques, et ce qui les prouve</h2>
+<div class="cartes">
+
+<article class="carte">
+<h3>Le déterminisme&nbsp;: même graine, même course</h3>
+<span class="preuve">empreinte a7b3171768ca</span>
+<p>Le cerveau tourne dans un bac fermé&nbsp;: pas de <code>Date</code>, pas de <code>Math.random</code>, pas de <code>require</code>&nbsp;;
+<code>verifier.js</code> y tente 17 évasions à chaque passage. Le hasard de la main sort d'un générateur à graine, tiré par événement et jamais par image.
+D'où&nbsp;: même version du jeu, même graine, même cerveau = même course au bit près, dans un processus neuf.</p>
+<p>L'empreinte de la course témoin est restée <code>a7b3171768ca</code> à travers toutes les réparations des 24 et 25/11&nbsp;; <code class="nw">rejouer.js --tout</code>&nbsp;:
+5 rejeux exacts sur 5. Un rejeu n'a besoin que des touches. Rejouée dans un vrai navigateur (WebGL, bloom), une course de quatre maps reste
+la même à chaque décision&nbsp;: 1&#8239;879 sur 1&#8239;879, 11&#8239;268 images.</p>
+</article>
+
+<article class="carte">
+<h3>Le radar&nbsp;: le vol rejoué avant qu'il arrive</h3>
+<span class="preuve">57 vols sur 57 · au centimètre</span>
+<p>En vol, les yeux prévoient l'issue (pose, lèvre, choc contre le décor, jauge vide, fond, portail) pour 10 façons de piloter, en rejouant le vol
+image par image avec les lois du jeu. Mesuré contre ce qui arrive vraiment (<code>justesse.js</code>)&nbsp;: issue juste 57 fois sur 57&nbsp;; pas à pas, les places
+prévues sont celles du jeu au centimètre 44 fois sur 44, et 20 sur 20 au canyon&nbsp;; l'issue tombe à l'image près 41 sur 41 et 18 sur 18.</p>
+<p>Coût&nbsp;: 0,74 ms par vue contre 0,39 sans radar. Au canyon, une borne haute du relief évite le calcul du terrain quand il ne peut pas toucher&nbsp;:
+0 écart sur 1,3 million de points, +0,2 % de temps sur une course.</p>
+</article>
+
+<article class="carte large">
+<h3>La main humaine, mesurée contre les vrais joueurs</h3>
+<p>Le profil règle la main, pas la conduite&nbsp;: temps de réaction, volant par petits coups de durées tirées, suivi de la ligne, nitro hachée, drift,
+erreurs, seconde chance. Le modèle <code>clavier</code> a été réglé en quatre tours sur les 10 parties de Sacha au clavier, avec la même fonction
+de mesure des deux côtés (<code>appuis.js</code>&nbsp;; <code>ml/bot/results/appuis-essai-main-allege-t120.json</code>).</p>
+<div class="tableau"><table>
+<thead><tr><th></th><th class="n">les joueurs au clavier</th><th class="n">la main avant (24/11)</th><th class="n">la main réglée (25/11)</th></tr></thead>
+<tbody>
+<tr><td>coups de volant par minute de sol</td><td class="n">101,6</td><td class="n">80,0</td><td class="n"><b>99,9</b></td></tr>
+<tr><td>durée d'un coup (p10 · p50 · p90)</td><td class="n">0,10 · 0,22 · 0,43 s</td><td class="n">0,12 · 0,30 · 0,60 s</td><td class="n">0,10 · <b>0,20</b> · 0,59 s</td></tr>
+<tr><td>écart entre deux coups, médiane</td><td class="n">0,45 s</td><td class="n">0,60 s</td><td class="n">0,50 s</td></tr>
+<tr><td>changements de sens par seconde</td><td class="n">1,24</td><td class="n">0,83</td><td class="n">0,89</td></tr>
+<tr><td>nitro allumée, part du sol</td><td class="n">75,8 %</td><td class="n">12,4 %</td><td class="n">14,5 %</td></tr>
+</tbody></table></div>
+<p class="petit">Le nombre et la durée des coups sont ceux des joueurs à 2 % et 10 % près. Les changements de sens et la nitro ne bougent pas avec la main&nbsp;:
+ils tiennent à la trajectoire que demande le cerveau (voir «&nbsp;Ce qui n'a pas marché&nbsp;»). La relecture a aussi trouvé une erreur de mesure
+(0,1 s compté par échantillon au lieu de 0,11 environ)&nbsp;: les chiffres des joueurs étaient surestimés (111,3 coups par minute au lieu de 101,6).</p>
+</article>
+
+<article class="carte">
+<h3>Le juge «&nbsp;humain ou bot&nbsp;»</h3>
+<span class="preuve">AUC 0,993 · témoin 0,47</span>
+<p><code>discerner.js</code> coupe chaque partie en fenêtres de 10 s, mesure ce qu'un spectateur voit (écart au milieu, ondulation, vols, nitro…),
+entraîne une régression logistique en laissant une partie entière de côté à chaque tour, et donne l'AUC&nbsp;: 0,50 veut dire indiscernable.
+Le témoin à étiquettes mélangées donne 0,47&nbsp;: le juge ne voit pas de motif là où il n'y en a pas.</p>
+<p>Il ne lit pas les touches, seulement la trajectoire. Corrigé le 25/11&nbsp;: l'ondulation est divisée par la vitesse. Avant, le juge disait que
+le bot ondulait moins que les joueurs&nbsp;; à vitesse égale, il ondule plus. Qui aurait réglé la main sur l'ancien chiffre l'aurait réglée dans le mauvais sens.</p>
+</article>
+
+<article class="carte">
+<h3>Un simulateur rendu fidèle</h3>
+<span class="preuve">note de départ 9 / 25 → 8,5 / 18</span>
+<p>Jusqu'au 25/11, dans le simulateur, le canyon n'avait ni paroi, ni rivière, ni tunnel&nbsp;: son calcul partait vers un «&nbsp;travailleur&nbsp;» qui ne répondait jamais.
+Une sortie de route y était un vol gratuit. Le relief allumé (<code>cyw=0</code>), le bot de référence passe de 9 à 8,5 en palier médian
+et de 25 à 18 en meilleur palier. La graine 910222 tombe du palier 25 au palier 5 (paroi à 76,6 s)&nbsp;: <strong>le «&nbsp;meilleur 25&nbsp;» venait en partie
+d'un défaut du simulateur</strong>.</p>
+<p>La version du simulateur est maintenant écrite dans chaque note, chaque ligne du journal et chaque rejeu&nbsp;; la boucle refuse de comparer deux simulateurs.</p>
+</article>
+
+<article class="carte">
+<h3>La validation sur des graines neuves</h3>
+<span class="preuve">13,5 au tri → 10,5 contre 11</span>
+<p>Le palier médian d'un même pilote varie de 7 à 12 selon les graines&nbsp;: une variante peut gagner par chance. Une variante de Sonnet (<code>c0011</code>)
+fait 13,5 au tri sur 6 graines, puis 13 sur 20 graines, contre 11 pour son parent. Sur 20 graines neuves, elle fait <span class="verdict-non">10,5 contre 11</span>&nbsp;:
+elle ne tient pas et n'est pas sacrée. Sans cette étape, la boucle aurait gardé un gain de 2 paliers qui n'existe pas.</p>
+<p class="petit"><code>ml/labo/journal/validations.jsonl</code>&nbsp;: graines à partir de 950000, survie médiane 205 s contre 214 s.</p>
+</article>
+
+<article class="carte">
+<h3>Le budget tenu</h3>
+<span class="preuve">26,02 € sur 200</span>
+<p>Chaque appel est inscrit au journal des dépenses du labo (modèle, jetons lus et écrits, euros). <code class="nw">--budget</code> est obligatoire&nbsp;;
+<code class="nw">--plafond</code> relit le total du journal avant chaque lancement et rabote le budget à ce qu'il reste. Une variante payée puis refusée reste comptée.
+Le rythme fixé par Sacha&nbsp;: 13 à 14 € par jour jusqu'au 08/12.</p>
+<p class="petit">Détail&nbsp;: sessions Claude Code payées par l'API 20,34 € (le premier pilote 11,63 €, les finitions 8,71 €), calibrage 4,63 €, choix du modèle
+et compte rendu 1,05 €. Un euro compté pour un dollar&nbsp;: c'est une estimation, la facture fait foi.</p>
+</article>
+
+</div>
+</section>
+
+<section>
+<h2>L'arbre des cerveaux&nbsp;: le calibrage du 25/11</h2>
+<p>Pour choisir le modèle de la boucle, le même pilote de départ (<code>ml/ecurie/pilote.js</code>, noté 11 sur 20 graines) a été donné aux quatre
+modèles, pour un tour de 6 variantes chacun. Chaque disque est une variante&nbsp;: le chiffre est son palier médian au tri (6 graines × 600 s), la couleur
+le compare à la barre du parent au tri (11,5). Redessiné depuis <code>ml/labo/journal/cerveaux.jsonl</code>, <code>generations.jsonl</code> et
+<code>validations.jsonl</code>.</p>
+<div class="arbres">
+<figure class="arbre-modele"><svg viewBox="0 0 330 214" role="img" aria-label="Haiku 5.5 : le pilote de départ c0003 et ses variantes">
+<text class="t-titre" x="8" y="18">Haiku 5.5</text><text class="t-petit" x="322" y="18" text-anchor="end">K-haiku · 0,06 €</text>
+<text class="t-gen" x="8" y="52">gén. 0</text><text class="t-gen" x="8" y="98">gén. 1</text>
+<line class="lien" x1="165" y1="63" x2="35" y2="116"/><line class="lien" x1="165" y1="63" x2="87" y2="116"/><line class="lien" x1="165" y1="63" x2="139" y2="116"/><line class="lien" x1="165" y1="63" x2="191" y2="116"/><line class="lien" x1="165" y1="63" x2="243" y2="116"/><line class="lien" x1="165" y1="63" x2="295" y2="116"/>
+<circle class="n-racine" cx="165" cy="48" r="15"/><text class="t-noeud" x="165" y="52" text-anchor="middle">11</text><text class="t-petit" x="187" y="45">c0003 · pilote.js</text><text class="t-petit" x="187" y="59">tri 11,5 · 20 g&nbsp;: 11</text>
+<circle class="n-champ" cx="35" cy="130" r="19"/><circle class="n-egal" cx="35" cy="130" r="14"/><text class="t-noeud" x="35" y="134" text-anchor="middle">11,5</text><text class="t-id" x="35" y="160" text-anchor="middle">c0004</text>
+<circle class="n-egal" cx="87" cy="130" r="14"/><text class="t-noeud" x="87" y="134" text-anchor="middle">11,5</text><text class="t-id" x="87" y="160" text-anchor="middle">c0005</text><text class="t-grand" x="87" y="174" text-anchor="middle">20 g&nbsp;: 11</text>
+<circle class="n-moins" cx="139" cy="130" r="14"/><text class="t-noeud" x="139" y="134" text-anchor="middle">10</text><text class="t-id" x="139" y="160" text-anchor="middle">c0006</text>
+<circle class="n-moins" cx="191" cy="130" r="14"/><text class="t-noeud" x="191" y="134" text-anchor="middle">8</text><text class="t-id" x="191" y="160" text-anchor="middle">c0007</text>
+<circle class="n-egal" cx="243" cy="130" r="14"/><text class="t-noeud" x="243" y="134" text-anchor="middle">11,5</text><text class="t-id" x="243" y="160" text-anchor="middle">c0008</text>
+<circle class="n-mieux" cx="295" cy="130" r="14"/><text class="t-noeud" x="295" y="134" text-anchor="middle">12</text><text class="t-id" x="295" y="160" text-anchor="middle">c0009</text><text class="t-grand" x="295" y="174" text-anchor="middle">20 g&nbsp;: 10,5</text>
+</svg></figure>
+<figure class="arbre-modele"><svg viewBox="0 0 330 214" role="img" aria-label="Sonnet 5.5 : le pilote de départ c0010 et ses variantes">
+<text class="t-titre" x="8" y="18">Sonnet 5.5</text><text class="t-petit" x="322" y="18" text-anchor="end">K-sonnet · 0,77 €</text>
+<text class="t-gen" x="8" y="52">gén. 0</text><text class="t-gen" x="8" y="98">gén. 1</text>
+<line class="lien" x1="165" y1="63" x2="35" y2="116"/><line class="lien" x1="165" y1="63" x2="87" y2="116"/><line class="lien" x1="165" y1="63" x2="139" y2="116"/><line class="lien" x1="165" y1="63" x2="191" y2="116"/><line class="lien" x1="165" y1="63" x2="243" y2="116"/><line class="lien" x1="165" y1="63" x2="295" y2="116"/>
+<circle class="n-racine" cx="165" cy="48" r="15"/><text class="t-noeud" x="165" y="52" text-anchor="middle">11</text><text class="t-petit" x="187" y="45">c0010 · pilote.js</text><text class="t-petit" x="187" y="59">tri 11,5 · 20 g&nbsp;: 11</text>
+<circle class="n-champ" cx="35" cy="130" r="19"/><circle class="n-mieux" cx="35" cy="130" r="14"/><text class="t-noeud" x="35" y="134" text-anchor="middle">13,5</text><text class="t-id" x="35" y="160" text-anchor="middle">c0011</text><text class="t-grand" x="35" y="174" text-anchor="middle">20 g&nbsp;: 13</text><text class="t-neuf" x="35" y="188" text-anchor="middle">neuves&nbsp;:</text><text class="t-neuf" x="35" y="201" text-anchor="middle">10,5 &lt; 11 ✗</text>
+<circle class="n-egal" cx="87" cy="130" r="14"/><text class="t-noeud" x="87" y="134" text-anchor="middle">11,5</text><text class="t-id" x="87" y="160" text-anchor="middle">c0012</text>
+<circle class="n-moins" cx="139" cy="130" r="14"/><text class="t-noeud" x="139" y="134" text-anchor="middle">7,5</text><text class="t-id" x="139" y="160" text-anchor="middle">c0013</text>
+<circle class="n-mieux" cx="191" cy="130" r="14"/><text class="t-noeud" x="191" y="134" text-anchor="middle">12</text><text class="t-id" x="191" y="160" text-anchor="middle">c0014</text>
+<circle class="n-mieux" cx="243" cy="130" r="14"/><text class="t-noeud" x="243" y="134" text-anchor="middle">12</text><text class="t-id" x="243" y="160" text-anchor="middle">c0015</text><text class="t-grand" x="243" y="174" text-anchor="middle">20 g&nbsp;: 11</text>
+<circle class="n-moins" cx="295" cy="130" r="14"/><text class="t-noeud" x="295" y="134" text-anchor="middle">9,5</text><text class="t-id" x="295" y="160" text-anchor="middle">c0016</text>
+</svg></figure>
+<figure class="arbre-modele"><svg viewBox="0 0 330 214" role="img" aria-label="Opus 5.5 : le pilote de départ c0017 et ses variantes">
+<text class="t-titre" x="8" y="18">Opus 5.5</text><text class="t-petit" x="322" y="18" text-anchor="end">K-opus · 1,89 €</text>
+<text class="t-gen" x="8" y="52">gén. 0</text><text class="t-gen" x="8" y="98">gén. 1</text>
+<line class="lien" x1="165" y1="63" x2="35" y2="116"/><line class="lien" x1="165" y1="63" x2="87" y2="116"/><line class="lien" x1="165" y1="63" x2="139" y2="116"/><line class="lien" x1="165" y1="63" x2="191" y2="116"/><line class="lien" x1="165" y1="63" x2="243" y2="116"/><line class="lien" x1="165" y1="63" x2="295" y2="116"/>
+<circle class="n-racine" cx="165" cy="48" r="15"/><text class="t-noeud" x="165" y="52" text-anchor="middle">11</text><text class="t-petit" x="187" y="45">c0017 · pilote.js</text><text class="t-petit" x="187" y="59">tri 11,5 · 20 g&nbsp;: 11</text>
+<circle class="n-moins" cx="35" cy="130" r="14"/><text class="t-noeud" x="35" y="134" text-anchor="middle">10</text><text class="t-id" x="35" y="160" text-anchor="middle">c0018</text>
+<circle class="n-moins" cx="87" cy="130" r="14"/><text class="t-noeud" x="87" y="134" text-anchor="middle">9,5</text><text class="t-id" x="87" y="160" text-anchor="middle">c0019</text>
+<circle class="n-moins" cx="139" cy="130" r="14"/><text class="t-noeud" x="139" y="134" text-anchor="middle">9,5</text><text class="t-id" x="139" y="160" text-anchor="middle">c0020</text>
+<circle class="n-moins" cx="191" cy="130" r="14"/><text class="t-noeud" x="191" y="134" text-anchor="middle">8,5</text><text class="t-id" x="191" y="160" text-anchor="middle">c0021</text>
+<circle class="n-champ" cx="243" cy="130" r="19"/><circle class="n-moins" cx="243" cy="130" r="14"/><text class="t-noeud" x="243" y="134" text-anchor="middle">11</text><text class="t-id" x="243" y="160" text-anchor="middle">c0022</text>
+<circle class="n-moins" cx="295" cy="130" r="14"/><text class="t-noeud" x="295" y="134" text-anchor="middle">7,5</text><text class="t-id" x="295" y="160" text-anchor="middle">c0023</text>
+</svg></figure>
+<figure class="arbre-modele"><svg viewBox="0 0 330 214" role="img" aria-label="Fable 5.2 : le pilote de départ c0024 et ses variantes">
+<text class="t-titre" x="8" y="18">Fable 5.2</text><text class="t-petit" x="322" y="18" text-anchor="end">K-fable · 1,91 €</text>
+<text class="t-gen" x="8" y="52">gén. 0</text><text class="t-gen" x="8" y="98">gén. 1</text>
+<line class="lien perdu" x1="165" y1="63" x2="165" y2="116"/>
+<circle class="n-racine" cx="165" cy="48" r="15"/><text class="t-noeud" x="165" y="52" text-anchor="middle">11</text><text class="t-petit" x="187" y="45">c0024 · pilote.js</text><text class="t-petit" x="187" y="59">tri 11,5 · 20 g&nbsp;: 11</text>
+<circle class="n-perdu" cx="165" cy="130" r="14"/><text class="t-noeud" x="165" y="134" text-anchor="middle">—</text><text class="t-id" x="165" y="160" text-anchor="middle">1 variante perdue</text><text class="t-grand" x="165" y="174" text-anchor="middle">réponse coupée à 32&#8239;000 jetons</text>
+</svg></figure>
+</div>
+<div class="legende">
+<span><i style="background:var(--mieux)"></i>au-dessus de la barre</span>
+<span><i style="background:var(--egal)"></i>à égalité</span>
+<span><i style="background:var(--moins)"></i>en dessous</span>
+<span><i style="border:1.4px solid var(--texte);background:none"></i>champion de la génération, avant validation</span>
+<span>«&nbsp;20 g&nbsp;»&nbsp;: notée sur 20 graines × 900 s</span>
+</div>
+<p class="petit">Hors de cet arbre&nbsp;: <code>c0001</code>, le bot de référence du 24/11, et <code>c0002</code>, le même code renoté après la réparation du canyon.
+Au journal&nbsp;: 24 cerveaux, 8 générations closes, 2 validations, 34 rejeux gardés (<code>node ml/labo/labo.js</code>).</p>
+
+<h3 style="margin-top:1.4em">Quatre raisons écrites par Claude, citées telles quelles</h3>
+<p>Chaque variante arrive avec sa raison, inscrite au journal à côté de son code, de sa note et de son coût. Trois modèles, chacun de son côté, ont proposé les mêmes
+deux idées&nbsp;: resserrer la ligne au canyon (<code>c0008</code>, <code>c0015</code>, <code>c0022</code>) et faire passer les pièces avant les fruits
+(<code>c0007</code>, <code>c0014</code>, <code>c0021</code>). Aucune de ces six variantes n'a battu le parent.</p>
+<div class="raisons">
+<div class="raison"><blockquote>«&nbsp;Sur la graine 910592, <code>versRoute</code> annonçait «&nbsp;pose&nbsp;» pendant 1,5 s alors que la caisse mourait d'air. […] La variante ne fait donc plus
+confiance aveuglément à la loi&nbsp;: son rayon perd 8 points&nbsp;»</blockquote>
+<footer><code>c0011</code> · Sonnet 5.5 · 0,29 € — tri 13,5, puis 13 sur 20 graines&nbsp;; sur 20 graines neuves, 10,5 contre 11&nbsp;: <span class="verdict-non">ne tient pas</span>.</footer></div>
+<div class="raison"><blockquote>«&nbsp;Au canyon seulement, le pilote ne pousse plus la nitro, même offerte. Il reste aussi à 10 m de l'axe au plus, donc à 18 m du bord.&nbsp;»</blockquote>
+<footer><code>c0022</code> · Opus 5.5 · 0,22 € — tri 11&nbsp;: la meilleure variante d'Opus, mais sous la barre de 11,5&nbsp;; <span class="verdict-non">pas notée en grand</span>.</footer></div>
+<div class="raison"><blockquote>«&nbsp;Or le palier ne se gagne qu'en pièces. Cette variante met le fil des pièces avant tout le reste&nbsp;»</blockquote>
+<footer><code>c0021</code> · Opus 5.5 · 0,23 € — l'argument est juste sur le papier, mais le tri donne 8,5&nbsp;: <span class="verdict-non">écartée</span>.</footer></div>
+<div class="raison"><blockquote>«&nbsp;le pilote ne tente plus de revenir quand le radar d'office (<code>vue.sorties.bord</code>) promet une pose propre, dans l'axe et près du centre&nbsp;:
+il se laisse partir du côté du bord.&nbsp;»</blockquote>
+<footer><code>c0009</code> · Haiku 5.5 · 0,01 € — tri 12, la meilleure de Haiku&nbsp;; sur 20 graines, 10,5 contre 11&nbsp;: <span class="verdict-non">pas de progrès</span>.</footer></div>
+</div>
+</section>
+
+<section>
+<h2>Ce qui n'a pas marché</h2>
+<div class="cartes">
+<article class="carte">
+<h3>Le calibrage n'a pas de gagnant</h3>
+<p>Paliers validés gagnés par euro&nbsp;: <b>0</b> pour les quatre modèles. Moyennes des 6 tris&nbsp;: Haiku 10,75, Sonnet 11,0, Opus 9,3. Avec 6 variantes
+par modèle, et une médiane sur 6 graines qui bouge d'environ ±2 paliers, ces écarts sont dans le bruit. Fable 5.2 a dépensé 1,91 € pour une réponse
+coupée à 32&#8239;000 jetons, sans aucune variante&nbsp;: la limite est à corriger dans <code>boucle.js</code>.</p>
+<p>Le choix (Sonnet 5.5) s'est donc fait sur un autre critère. Le frein, c'est le PC, pas l'argent&nbsp;: un tour prend 30 à 100 minutes. Sonnet occupe le PC
+au rythme de 13 à 14 € par jour, et ses 6 variantes se sont toutes chargées. Haiku, à 0,06 € le tour, ferait passer chaque tranche sous le seuil
+de 0,5 € qui arrête la chaîne.</p>
+</article>
+<article class="carte">
+<h3>Le juge reconnaît encore le bot</h3>
+<p>Avec la main réglée et la conduite du bot de référence, l'AUC vaut 0,993&nbsp;: discernable à coup sûr. Ce qui le trahit d'abord, c'est le vol&nbsp;:
+0,21 décollage par 10 s contre 1,3 chez les joueurs. Ensuite les changements de sens (0,89 par seconde contre 1,24, soit −28 %) et la nitro.
+Les joueurs slaloment sur toute la largeur pour les pièces&nbsp;; le cerveau trace une ligne lisse.</p>
+<p>Le pilote actuel n'est pas encore passé devant le juge. Et le juge ne connaît que deux joueurs (14 parties, aucune de débutant)&nbsp;: il connaît
+Sacha et Léo, pas «&nbsp;les humains&nbsp;».</p>
+</article>
+<article class="carte large">
+<h3>Ce qui tue encore le pilote</h3>
+<ul>
+<li><b>Le canyon.</b> Sur la note de 20 graines, les 5 courses qui y passent y meurent contre la paroi&nbsp;: c'est la première cause de fin. La paroi est à une dizaine de mètres
+du bord, et le pilote sort de la route 1,5 fois par minute. Au banc (8 graines forcées au canyon), 7 courses sur 8 y meurent, en 36 à 85 s. Essayés sans effet mesurable&nbsp;:
+rouler dans l'axe sans nitro, une avance de cap plus forte, et les trois variantes «&nbsp;canyon&nbsp;» du calibrage.</li>
+<li><b>Les S serrés.</b> La main suit le virage sous les roues, perçu 0,15 s plus tard&nbsp;: au changement de sens, elle braque encore du mauvais côté.</li>
+<li><b>Les coups de volant longs</b> (0,3 à 0,45 s, un sur dix)&nbsp;: à 400 km/h, un seul met la caisse au bord en une seconde. Le pilote n'y peut rien par la ligne qu'il vise&nbsp;;
+un joueur sort lui aussi de la route (8 vols par minute).</li>
+<li><b>Les poses en travers.</b> La caisse se pose de biais et ressort par l'autre bord. Quand ces sorties s'enchaînent, elle finit contre la roche de la grotte ou les tours de la ville.</li>
+</ul>
+<p class="petit">Fins des 20 courses du pilote&nbsp;: paroi 5, vide 4, tour 3, roche 3, jauge d'air vide 3, pic 2 (<code>c0003</code> au journal).
+Le palier 30 demande environ 11 minutes de survie à une vitesse six fois plus grande&nbsp;: il n'est pas promis, il sera mesuré.</p>
+</article>
+</div>
+</section>
+
+<section>
+<h2>Le pilote, la référence et les joueurs</h2>
+<p>Même version allégée du jeu (celle du téléphone) des deux côtés. Le pilote (<code>ml/ecurie/pilote.js</code>, <code>c0003</code> au journal) et le bot de
+référence sont notés sur 20 graines de 900 s au plus. Les joueurs&nbsp;: les 14 parties de l'étalon (Sacha au clavier, Léo au doigt).</p>
+<div class="tableau"><table>
+<thead><tr><th></th><th class="n">les joueurs</th><th class="n">le pilote</th><th class="n">la référence</th></tr></thead>
+<tbody>
+<tr><td>parties</td><td class="n">14</td><td class="n">20</td><td class="n">20</td></tr>
+<tr><td><b>palier médian</b></td><td class="n"><b>11,5</b></td><td class="n"><b>11</b></td><td class="n"><b>8,5</b></td></tr>
+<tr><td>meilleur palier</td><td class="n">28</td><td class="n">20</td><td class="n">18</td></tr>
+<tr><td>paliers, du pire au meilleur</td><td class="n">1 à 28</td><td class="n">4 à 20</td><td class="n">4 à 18</td></tr>
+<tr><td>survie médiane</td><td class="n">154,9 s</td><td class="n">215,3 s</td><td class="n">141,1 s</td></tr>
+<tr><td>pièces par minute</td><td class="n">436,4</td><td class="n">309,1</td><td class="n">351,7</td></tr>
+<tr><td>vols par minute</td><td class="n">8,0</td><td class="n">4,8</td><td class="n">3,0</td></tr>
+<tr><td>part du temps en l'air</td><td class="n">29,1 %</td><td class="n">15,9 %</td><td class="n">7,9 %</td></tr>
+<tr><td>nitro tenue</td><td class="n">60,7 %</td><td class="n">27,9 %</td><td class="n">15,5 %</td></tr>
+<tr><td>figures par minute</td><td class="n">5,0</td><td class="n">1,9</td><td class="n">5,4</td></tr>
+<tr><td>raccourcis par minute</td><td class="n">2,79</td><td class="n">0,31</td><td class="n">0,09</td></tr>
+</tbody></table></div>
+<p>Le pilote atteint le palier médian des joueurs par un autre chemin&nbsp;: il survit plus longtemps (215 s contre 155), ramasse moins vite
+(309 pièces par minute contre 436), vole moins et fait peu de figures. Il a le niveau d'un joueur, pas encore son style.</p>
+<p class="petit">Sources&nbsp;: <code>ml/bot/results/etalon.json</code>, <code>ml/bot/results/note-reference-allege.json</code>, <code>ml/labo/journal/cerveaux.jsonl</code> (c0003).
+14 parties de 2 joueurs, c'est peu, et le palier médian d'un même pilote bouge de 7 à 12 selon les graines.</p>
+</section>
+
+<section>
+<h2>Une course, filmée</h2>
+<figure>
+<video controls preload="metadata" playsinline src="../../labo/videos/c0003-g910629.webm">
+<p>Le film <code>ml/labo/videos/c0003-g910629.webm</code> ne se lit pas ici (fichier local, VP9).</p>
+</video>
+<figcaption>Le pilote (<code>c0003</code>), graine 910629&nbsp;: espace, nuages, puis ville&nbsp;; 159,6 s, palier 8, 8 vols, dont le plus long vol posé de sa génération
+(9,68 s)&nbsp;; fin en vol au-dessus de la ville, jauge d'air vide. Ce n'est pas sa meilleure course&nbsp;: elle a été gardée pour ce vol. Filmée par la salle de projection
+(<code>ml/labo/projection.js</code>), qui remet les touches du rejeu dans le vrai jeu, rendu WebGL compris, et vérifie que c'est la même course que
+sans écran. 1280 × 720, 60 images par seconde exactes, sans le HUD.</figcaption>
+</figure>
+</section>
+
+<section>
+<h2>L'histoire, en cinq dates</h2>
+<ol class="frise">
+<li><b>07/09/2026</b> — premier module ML&nbsp;: un simulateur de circuits et de la neuroévolution (des réseaux de neurones, pas du code lisible). Le 20/10, sur les figures&nbsp;: «&nbsp;la récompense des figures était du bruit&nbsp;», puis un mode d'entraînement à part où 23 bots sur 24 en font.</li>
+<li><b>20/10</b> — <code>ml/reel</code>&nbsp;: les bots conduisent le vrai jeu publié, sans écran.</li>
+<li><b>23/11</b> — étape 0&nbsp;: 6,8 fois le temps réel, même graine = même course. Puis le contrat du bot, et les parties des joueurs pour l'étalonner.</li>
+<li><b>24/11</b> — le labo (journal, rejeux, arbre, salle de projection), l'étude (9 rapports, 28 défauts confirmés), le juge, le plan de l'écurie.</li>
+<li><b>25/11</b> — la relecture (58 trouvailles confirmées et corrigées), le canyon réparé, le premier pilote, le calibrage des quatre modèles sur l'API.</li>
+</ol>
+<p class="petit">96 commits touchent <code>ml/</code> (<code>git log --oneline -- ml</code>). Pour creuser&nbsp;: <code>ml/ecurie/PLAN.md</code> (le but),
+<code>ml/ecurie/ETAPES.md</code> (l'état, les chiffres, les décisions), <code>ml/bot/README.md</code> (la vue, le radar, la main, le contrat),
+<code>ml/labo/README.md</code> (le journal et les rejeux).</p>
+</section>
+
+<footer class="pied">
+<p><b>La pile.</b> Node.js (le jeu sans écran, la boucle, le labo) · three.js (le jeu, rendu WebGL dans la salle de projection) ·
+l'API Anthropic (les variantes&nbsp;: Haiku 5.5, Sonnet 5.5, Opus 5.5, Fable 5.2) · Claude Code (les sessions qui ont écrit les outils, le premier pilote
+et cette page). HTML, CSS et SVG écrits à la main, sans script.</p>
+<p>Page écrite le 25/11/2026. CASH CAR est un jeu de Sacha. Le jeu n'a pas changé pendant ce chantier.</p>
+</footer>
+
+</main>
+</body>
+</html>
