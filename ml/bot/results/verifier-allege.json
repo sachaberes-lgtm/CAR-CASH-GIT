@@ -1,0 +1,1525 @@
+{
+ "date": "2026-11-25T05:04:54.406Z",
+ "graine": 910000,
+ "tmax": 150,
+ "regime": "allege",
+ "humain": {
+  "decision": 6,
+  "appui": 4,
+  "repos": 4,
+  "tap": 5,
+  "entre": 5,
+  "gestes": 30,
+  "seul": 27
+ },
+ "gestes": [
+  {
+   "geste": "figure sur la route · avant",
+   "ok": true,
+   "vu": {
+    "route": "salto/avant",
+    "vol": false,
+    "enVol": [],
+    "redresse": 0
+   }
+  },
+  {
+   "geste": "figure sur la route · arriere",
+   "ok": true,
+   "vu": {
+    "route": "salto/arriere",
+    "vol": false,
+    "enVol": [],
+    "redresse": 0
+   }
+  },
+  {
+   "geste": "figure sur la route · gauche",
+   "ok": true,
+   "vu": {
+    "route": "tailwhip/",
+    "vol": false,
+    "enVol": [],
+    "redresse": 0
+   }
+  },
+  {
+   "geste": "figure sur la route · droite",
+   "ok": true,
+   "vu": {
+    "route": "tailwhip/",
+    "vol": false,
+    "enVol": [],
+    "redresse": 0
+   }
+  },
+  {
+   "geste": "saut",
+   "ok": true,
+   "vu": {
+    "route": "salto/avant",
+    "vol": true,
+    "enVol": [
+     "salto/avant"
+    ],
+    "redresse": 0
+   }
+  },
+  {
+   "geste": "figure en vol · avant",
+   "ok": true,
+   "vu": {
+    "route": "tailwhip/",
+    "vol": true,
+    "enVol": [
+     "tailwhip/",
+     "salto/avant"
+    ],
+    "redresse": 0
+   }
+  },
+  {
+   "geste": "figure en vol · arriere",
+   "ok": true,
+   "vu": {
+    "route": "tailwhip/",
+    "vol": true,
+    "enVol": [
+     "tailwhip/",
+     "salto/arriere"
+    ],
+    "redresse": 0
+   }
+  },
+  {
+   "geste": "figure en vol · gauche",
+   "ok": true,
+   "vu": {
+    "route": "salto/avant",
+    "vol": true,
+    "enVol": [
+     "salto/avant",
+     "tailwhip/"
+    ],
+    "redresse": 0
+   }
+  },
+  {
+   "geste": "figure en vol · droite",
+   "ok": true,
+   "vu": {
+    "route": "salto/avant",
+    "vol": true,
+    "enVol": [
+     "salto/avant",
+     "tailwhip/"
+    ],
+    "redresse": 0
+   }
+  },
+  {
+   "geste": "redresser",
+   "ok": true,
+   "vu": {
+    "route": "salto/avant",
+    "vol": true,
+    "enVol": [
+     "salto/avant"
+    ],
+    "redresse": 1
+   }
+  }
+ ],
+ "doigts": {
+  "appuis": 499,
+  "appuiLePlusCourt_images": 4,
+  "reposLePlusCourt_images": 4,
+  "appuisParSecondeMax": 6,
+  "problemes": [],
+  "ok": true
+ },
+ "course": {
+  "cartes": [
+   "espace",
+   "nuages",
+   "ville"
+  ],
+  "duree": 150,
+  "cause": "temps",
+  "argent": 13264.65,
+  "figures": 16,
+  "decisions": 1500
+ },
+ "repetable": {
+  "a": {
+   "empreinte": "f906ffa945fe",
+   "touches": "7be574c720ed",
+   "images": 9000
+  },
+  "b": {
+   "empreinte": "f906ffa945fe",
+   "touches": "7be574c720ed",
+   "images": 9000
+  },
+  "ok": true
+ },
+ "temoin": {
+  "juge": false,
+  "jeu_sha": "e7e1eed4718f",
+  "attendu": {
+   "regime": "max",
+   "graine": 910000,
+   "tmax": 150,
+   "empreinte": "a7b3171768ca",
+   "touches": "6195695442b6",
+   "images": 9000,
+   "jeu_sha": "e7e1eed4718f"
+  }
+ },
+ "vues": {
+  "a": "5b68d60e3af5",
+  "b": "5b68d60e3af5",
+  "ok": true
+ },
+ "sansEnregistreur": {
+  "ok": true
+ },
+ "yeuxEnPlus": {
+  "ok": true
+ },
+ "bac": {
+  "erreurs": 17,
+  "pannes": 0,
+  "decisions": 400,
+  "images": 2400,
+  "cause": "temps",
+  "duree": 40,
+  "pieces": 135,
+  "tentatives": 17,
+  "fuites": [],
+  "derniere": "Code generation from strings disallowed for this context"
+ },
+ "radar": {
+  "sansRadar": {
+   "ok": true
+  },
+  "tirages": {
+   "ok": true,
+   "courses": 9
+  },
+  "cartes": {
+   "nuages": {
+    "ok": true,
+    "coupe": {
+     "empreinte": "37c692adf8a7",
+     "touches": "f02ddb651b0c",
+     "images": 1014
+    },
+    "plein": {
+     "empreinte": "37c692adf8a7",
+     "touches": "f02ddb651b0c",
+     "images": 1014
+    }
+   },
+   "espace": {
+    "ok": true,
+    "coupe": {
+     "empreinte": "a02071e45528",
+     "touches": "433babe424cc",
+     "images": 966
+    },
+    "plein": {
+     "empreinte": "a02071e45528",
+     "touches": "433babe424cc",
+     "images": 966
+    }
+   },
+   "grotte": {
+    "ok": true,
+    "coupe": {
+     "empreinte": "9235ed17139f",
+     "touches": "9551fdfc7902",
+     "images": 1020
+    },
+    "plein": {
+     "empreinte": "9235ed17139f",
+     "touches": "9551fdfc7902",
+     "images": 1020
+    }
+   },
+   "ville": {
+    "ok": true,
+    "coupe": {
+     "empreinte": "7921cc095e0e",
+     "touches": "1021a6aacb46",
+     "images": 774
+    },
+    "plein": {
+     "empreinte": "7921cc095e0e",
+     "touches": "1021a6aacb46",
+     "images": 774
+    }
+   },
+   "jade": {
+    "ok": true,
+    "coupe": {
+     "empreinte": "4213195122a3",
+     "touches": "ed69c16dae7a",
+     "images": 1020
+    },
+    "plein": {
+     "empreinte": "4213195122a3",
+     "touches": "ed69c16dae7a",
+     "images": 1020
+    }
+   },
+   "canyon": {
+    "ok": true,
+    "coupe": {
+     "empreinte": "97a6bfb554d4",
+     "touches": "b4f9898ff1e9",
+     "images": 672
+    },
+    "plein": {
+     "empreinte": "97a6bfb554d4",
+     "touches": "b4f9898ff1e9",
+     "images": 672
+    }
+   }
+  },
+  "decorDur": {
+   "ok": true,
+   "cartes": {
+    "grotte": {
+     "expr": "GROTTE.root",
+     "vu": 18,
+     "sur": 18
+    },
+    "ville": {
+     "expr": "CITY.col",
+     "vu": 13,
+     "sur": 13
+    },
+    "jade": {
+     "expr": "JADE.col",
+     "vu": 18,
+     "sur": 18
+    },
+    "canyon": {
+     "expr": "CY.on",
+     "vu": 12,
+     "sur": 12
+    }
+   }
+  },
+  "travailleurs": {
+   "ok": true,
+   "hors": []
+  },
+  "erreurs": {
+   "ok": true
+  },
+  "etat": {
+   "ok": true,
+   "photos": 95,
+   "ms_par_controle": 1254,
+   "changes": {},
+   "brouillons": {
+    "V9J": 1,
+    "CY_H9": 1
+   }
+  },
+  "texte": {
+   "ok": true,
+   "interdits": []
+  },
+  "envers": {
+   "ok": true,
+   "endroit": {
+    "lache": {
+     "h": 12,
+     "face": 1
+    },
+    "mode": "vol",
+    "envers": false,
+    "lat": 14,
+    "versRoute": {
+     "issue": "pose",
+     "t": 0.67,
+     "lat": 8.5
+    },
+    "rien": {
+     "issue": "pose",
+     "t": 0.75,
+     "lat": 14
+    },
+    "gauche": {
+     "issue": "libre",
+     "t": 2,
+     "lat": 33.5
+    },
+    "droite": {
+     "issue": "pose",
+     "t": 0.85,
+     "lat": -7.9
+    }
+   },
+   "envers": {
+    "lache": {
+     "h": 12,
+     "face": 1
+    },
+    "mode": "vol",
+    "envers": true,
+    "lat": 14,
+    "versRoute": {
+     "issue": "pose",
+     "t": 0.67,
+     "lat": 8.5
+    },
+    "rien": {
+     "issue": "pose",
+     "t": 0.75,
+     "lat": 14
+    },
+    "gauche": {
+     "issue": "pose",
+     "t": 0.85,
+     "lat": -7.9
+    },
+    "droite": {
+     "issue": "libre",
+     "t": 2,
+     "lat": 33.5
+    }
+   },
+   "voltigeur": true
+  }
+ },
+ "cout": {
+  "budget": {
+   "vol": 2400,
+   "sol": 1100,
+   "demande": 2900,
+   "route": 900,
+   "sondes": 2920
+  },
+  "a": {
+   "ms_moy": 0.521,
+   "ms_max": 10.882,
+   "ms_sol_moy": 0.462,
+   "ms_vol_moy": 1.702,
+   "vues_sol": 1428,
+   "vues_vol": 72,
+   "pas_vol_moy": 1083,
+   "dalles_vol_moy": 615,
+   "pas_max": 1875,
+   "sondes_max": 792,
+   "route_max": 180,
+   "octets_moy": 2428,
+   "erreurs": 0,
+   "manque": []
+  },
+  "b": {
+   "ms_moy": 0.509,
+   "ms_max": 10.194,
+   "ms_sol_moy": 0.45,
+   "ms_vol_moy": 1.68,
+   "vues_sol": 1428,
+   "vues_vol": 72,
+   "pas_vol_moy": 1083,
+   "dalles_vol_moy": 615,
+   "pas_max": 1875,
+   "sondes_max": 792,
+   "route_max": 180,
+   "octets_moy": 2428,
+   "erreurs": 0,
+   "manque": []
+  },
+  "ok": true,
+  "cartes": {
+   "nuages": {
+    "ms_moy": 0.815,
+    "ms_max": 2.579,
+    "ms_sol_moy": 0.649,
+    "ms_vol_moy": 1.04,
+    "vues_sol": 98,
+    "vues_vol": 72,
+    "pas_vol_moy": 1074,
+    "dalles_vol_moy": 200,
+    "pas_max": 1983,
+    "sondes_max": 0,
+    "route_max": 335,
+    "octets_moy": 2212,
+    "erreurs": 0,
+    "manque": []
+   },
+   "espace": {
+    "ms_moy": 0.754,
+    "ms_max": 2.186,
+    "ms_sol_moy": 0.539,
+    "ms_vol_moy": 0.943,
+    "vues_sol": 76,
+    "vues_vol": 86,
+    "pas_vol_moy": 1077,
+    "dalles_vol_moy": 241,
+    "pas_max": 1727,
+    "sondes_max": 0,
+    "route_max": 331,
+    "octets_moy": 2145,
+    "erreurs": 0,
+    "manque": []
+   },
+   "grotte": {
+    "ms_moy": 1.731,
+    "ms_max": 5.81,
+    "ms_sol_moy": 0.75,
+    "ms_vol_moy": 3.08,
+    "vues_sol": 99,
+    "vues_vol": 72,
+    "pas_vol_moy": 992,
+    "dalles_vol_moy": 711,
+    "pas_max": 1819,
+    "sondes_max": 1819,
+    "route_max": 348,
+    "octets_moy": 2222,
+    "erreurs": 0,
+    "manque": []
+   },
+   "ville": {
+    "ms_moy": 1.063,
+    "ms_max": 3.006,
+    "ms_sol_moy": 0.569,
+    "ms_vol_moy": 1.473,
+    "vues_sol": 59,
+    "vues_vol": 71,
+    "pas_vol_moy": 875,
+    "dalles_vol_moy": 177,
+    "pas_max": 1402,
+    "sondes_max": 1402,
+    "route_max": 338,
+    "octets_moy": 2083,
+    "erreurs": 0,
+    "manque": []
+   },
+   "jade": {
+    "ms_moy": 2.239,
+    "ms_max": 7.256,
+    "ms_sol_moy": 1.056,
+    "ms_vol_moy": 3.584,
+    "vues_sol": 91,
+    "vues_vol": 80,
+    "pas_vol_moy": 982,
+    "dalles_vol_moy": 270,
+    "pas_max": 1934,
+    "sondes_max": 1934,
+    "route_max": 337,
+    "octets_moy": 2196,
+    "erreurs": 0,
+    "manque": []
+   },
+   "canyon": {
+    "ms_moy": 2.58,
+    "ms_max": 18.851,
+    "ms_sol_moy": 1,
+    "ms_vol_moy": 12.156,
+    "vues_sol": 97,
+    "vues_vol": 16,
+    "pas_vol_moy": 625,
+    "dalles_vol_moy": 848,
+    "pas_max": 960,
+    "sondes_max": 121,
+    "route_max": 329,
+    "octets_moy": 2427,
+    "erreurs": 0,
+    "manque": []
+   }
+  },
+  "lourd": []
+ },
+ "justesse": {
+  "vols": 12,
+  "cartes": {
+   "nuages": {
+    "vols": 2,
+    "a": {
+     "n": 2,
+     "justes": 2,
+     "table": {
+      "pose|pose": 1,
+      "air|air": 1
+     },
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": 0,
+     "dt_p90": 0,
+     "ds_med": 0.1,
+     "ds_p90": 0.1,
+     "dlat_med": 0.04,
+     "dlat_p90": 0.04,
+     "dimpact_med": 0.05,
+     "poses": 1,
+     "notes": 1,
+     "notesOk": 1,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    },
+    "b": {
+     "n": 2,
+     "justes": 2,
+     "table": {
+      "pose|pose": 1,
+      "air|air": 1
+     },
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": 0,
+     "dt_p90": 0,
+     "ds_med": 0.1,
+     "ds_p90": 0.1,
+     "dlat_med": 0.04,
+     "dlat_p90": 0.04,
+     "dimpact_med": 0.05,
+     "poses": 1,
+     "notes": 1,
+     "notesOk": 1,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    }
+   },
+   "espace": {
+    "vols": 2,
+    "a": {
+     "n": 2,
+     "justes": 2,
+     "table": {
+      "libre|pose": 1,
+      "air|air": 1
+     },
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": null,
+     "dt_p90": null,
+     "ds_med": null,
+     "ds_p90": null,
+     "dlat_med": null,
+     "dlat_p90": null,
+     "dimpact_med": null,
+     "poses": 0,
+     "notes": 0,
+     "notesOk": 0,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    },
+    "b": {
+     "n": 2,
+     "justes": 2,
+     "table": {
+      "pose|pose": 1,
+      "air|air": 1
+     },
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": 0,
+     "dt_p90": 0,
+     "ds_med": 0.4,
+     "ds_p90": 0.4,
+     "dlat_med": 0.05,
+     "dlat_p90": 0.05,
+     "dimpact_med": 0.02,
+     "poses": 1,
+     "notes": 1,
+     "notesOk": 1,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    }
+   },
+   "grotte": {
+    "vols": 2,
+    "a": {
+     "n": 2,
+     "justes": 2,
+     "table": {
+      "pose|pose": 1,
+      "libre|air": 1
+     },
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": 0,
+     "dt_p90": 0,
+     "ds_med": 0.3,
+     "ds_p90": 0.3,
+     "dlat_med": 0,
+     "dlat_p90": 0,
+     "dimpact_med": 0.05,
+     "poses": 1,
+     "notes": 1,
+     "notesOk": 1,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    },
+    "b": {
+     "n": 2,
+     "justes": 2,
+     "table": {
+      "pose|pose": 1,
+      "air|air": 1
+     },
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": 0,
+     "dt_p90": 0,
+     "ds_med": 0.3,
+     "ds_p90": 0.3,
+     "dlat_med": 0,
+     "dlat_p90": 0,
+     "dimpact_med": 0.05,
+     "poses": 1,
+     "notes": 1,
+     "notesOk": 1,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    }
+   },
+   "ville": {
+    "vols": 2,
+    "a": {
+     "n": 2,
+     "justes": 2,
+     "table": {
+      "pose|pose": 1,
+      "air|air": 1
+     },
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": 0,
+     "dt_p90": 0,
+     "ds_med": 0.2,
+     "ds_p90": 0.2,
+     "dlat_med": 0.02,
+     "dlat_p90": 0.02,
+     "dimpact_med": 0.05,
+     "poses": 1,
+     "notes": 1,
+     "notesOk": 1,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    },
+    "b": {
+     "n": 2,
+     "justes": 2,
+     "table": {
+      "pose|pose": 1,
+      "air|air": 1
+     },
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": 0,
+     "dt_p90": 0,
+     "ds_med": 0.2,
+     "ds_p90": 0.2,
+     "dlat_med": 0.02,
+     "dlat_p90": 0.02,
+     "dimpact_med": 0.05,
+     "poses": 1,
+     "notes": 1,
+     "notesOk": 1,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    }
+   },
+   "jade": {
+    "vols": 2,
+    "a": {
+     "n": 2,
+     "justes": 2,
+     "table": {
+      "pose|pose": 1,
+      "air|air": 1
+     },
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": 0,
+     "dt_p90": 0,
+     "ds_med": 0.2,
+     "ds_p90": 0.2,
+     "dlat_med": 0,
+     "dlat_p90": 0,
+     "dimpact_med": 0.01,
+     "poses": 1,
+     "notes": 1,
+     "notesOk": 1,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    },
+    "b": {
+     "n": 2,
+     "justes": 2,
+     "table": {
+      "pose|pose": 1,
+      "air|air": 1
+     },
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": 0,
+     "dt_p90": 0,
+     "ds_med": 0.2,
+     "ds_p90": 0.2,
+     "dlat_med": 0,
+     "dlat_p90": 0,
+     "dimpact_med": 0.01,
+     "poses": 1,
+     "notes": 1,
+     "notesOk": 1,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    }
+   },
+   "canyon": {
+    "vols": 2,
+    "a": {
+     "n": 2,
+     "justes": 2,
+     "table": {
+      "pose|pose": 1,
+      "choc|choc": 1
+     },
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": 0.02,
+     "dt_p90": 0.02,
+     "ds_med": 1.5,
+     "ds_p90": 1.5,
+     "dlat_med": 0.11,
+     "dlat_p90": 0.11,
+     "dimpact_med": 0.49,
+     "poses": 1,
+     "notes": 1,
+     "notesOk": 1,
+     "causes": 1,
+     "causesOk": 1,
+     "chocs": 1,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    },
+    "b": {
+     "n": 1,
+     "justes": 1,
+     "table": {
+      "pose|pose": 1
+     },
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": 0.02,
+     "dt_p90": 0.02,
+     "ds_med": 1.5,
+     "ds_p90": 1.5,
+     "dlat_med": 0.11,
+     "dlat_p90": 0.11,
+     "dimpact_med": 0.49,
+     "poses": 1,
+     "notes": 1,
+     "notesOk": 1,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    }
+   }
+  },
+  "a": {
+   "n": 12,
+   "justes": 12,
+   "table": {
+    "pose|pose": 5,
+    "air|air": 4,
+    "libre|pose": 1,
+    "libre|air": 1,
+    "choc|choc": 1
+   },
+   "lignes": [
+    "pose",
+    "levre",
+    "choc",
+    "air",
+    "fond",
+    "portail",
+    "libre",
+    "coupe"
+   ],
+   "colonnes": [
+    "pose",
+    "choc",
+    "air",
+    "fond",
+    "portail",
+    "temps",
+    "autre"
+   ],
+   "dt_med": 0,
+   "dt_p90": 0.02,
+   "ds_med": 0.2,
+   "ds_p90": 1.5,
+   "dlat_med": 0.02,
+   "dlat_p90": 0.11,
+   "dimpact_med": 0.05,
+   "poses": 5,
+   "notes": 5,
+   "notesOk": 5,
+   "causes": 1,
+   "causesOk": 1,
+   "chocs": 1,
+   "chocsNonPrevus": [],
+   "chocsHorsHorizon": 0
+  },
+  "b": {
+   "n": 11,
+   "justes": 11,
+   "table": {
+    "pose|pose": 6,
+    "air|air": 5
+   },
+   "lignes": [
+    "pose",
+    "levre",
+    "choc",
+    "air",
+    "fond",
+    "portail",
+    "libre",
+    "coupe"
+   ],
+   "colonnes": [
+    "pose",
+    "choc",
+    "air",
+    "fond",
+    "portail",
+    "temps",
+    "autre"
+   ],
+   "dt_med": 0,
+   "dt_p90": 0.02,
+   "ds_med": 0.2,
+   "ds_p90": 1.5,
+   "dlat_med": 0.02,
+   "dlat_p90": 0.11,
+   "dimpact_med": 0.05,
+   "poses": 6,
+   "notes": 6,
+   "notesOk": 6,
+   "causes": 0,
+   "causesOk": 0,
+   "chocs": 0,
+   "chocsNonPrevus": [],
+   "chocsHorsHorizon": 0
+  },
+  "controles": {
+   "sauts": {
+    "ordres": 6,
+    "prevus": 6,
+    "refuses": 0,
+    "figure": 0,
+    "decolles": 6,
+    "prevusSansDecol": 0,
+    "refusesMaisDecol": 0
+   },
+   "cadence": {
+    "vues": 223,
+    "max": 1.04
+   },
+   "latC": {
+    "objets": 3983,
+    "dessous": 0,
+    "faux": 0
+   }
+  },
+  "saut": {
+   "n": 6,
+   "prevues": 6,
+   "dt_med": 0,
+   "dt_max": 0.05
+  }
+ },
+ "main": {
+  "neutre": {
+   "ok": true
+  },
+  "hasard": {
+   "ok": true,
+   "suite": [
+    0.7287770616821945,
+    0.7914068624377251,
+    0.6164035510737449
+   ]
+  },
+  "bornes": {
+   "ok": true,
+   "planchers": true,
+   "refus": [
+    [
+     "un champ inconnu",
+     "profil : champ inconnu « vitesse »"
+    ],
+    [
+     "un sous-champ inconnu",
+     "profil : champ inconnu « coups.cadence »"
+    ],
+    [
+     "un mauvais type",
+     "profil : reaction.volant doit etre une duree en ms (un nombre, ou [p10, p50, p90])"
+    ],
+    [
+     "un modele inconnu",
+     "profil : modele inconnu (machine, clavier, doigt)"
+    ],
+    [
+     "un profil qui n'est pas un objet (au chargement)",
+     "x.js : profil illisible (un objet de reglages : voir ml/bot/README.md, « Le profil »)"
+    ],
+    [
+     "un champ inconnu (au chargement)",
+     "x.js : profil : champ inconnu « turbo »"
+    ],
+    [
+     "une duree infinie",
+     "profil : coups.duree doit etre une duree en ms (un nombre, ou [p10, p50, p90])"
+    ],
+    [
+     "une reaction infinie",
+     "profil : reaction.volant doit etre une duree en ms (un nombre, ou [p10, p50, p90])"
+    ],
+    [
+     "un nombre infini",
+     "profil : erreur.parasite doit etre un nombre"
+    ],
+    [
+     "un delai infini (au chargement, a travers le bac)",
+     "x.js : profil : chance.delai doit etre une duree en ms (un nombre, ou [p10, p50, p90])"
+    ]
+   ]
+  },
+  "texte": {
+   "ok": true,
+   "trouve": []
+  },
+  "seule": {
+   "ok": true,
+   "coups": {
+    "coups": 132,
+    "parMinute": 132,
+    "braquage": 0.358,
+    "durees": 19,
+    "min": 4,
+    "max": 25,
+    "plusFrequente": 0.174
+   },
+   "mains": {
+    "appuis": 132,
+    "appuiLePlusCourt_images": 4,
+    "reposLePlusCourt_images": 4,
+    "appuisParSecondeMax": 6,
+    "problemes": [],
+    "ok": true
+   },
+   "repetable": true,
+   "autreGraineProfil": true,
+   "autreGraineCourse": true
+  },
+  "contresens": {
+   "ok": true,
+   "detail": [
+    "0.09 → 0 a droite, braquage 0.09",
+    "0.12 → 0 a droite, braquage 0.119",
+    "0.2 → 0 a droite, braquage 0.199"
+   ],
+   "lache": {
+    "droite": 0,
+    "apresLache": 0
+   }
+  },
+  "gestesNitro": {
+   "ok": true,
+   "gestes": 85,
+   "doubles": 57,
+   "attendus": 57,
+   "faux": 0,
+   "rates": 0
+  },
+  "parasite": {
+   "ok": true,
+   "parMinute": 6
+  },
+  "horloges": {
+   "ok": true,
+   "inversions": 309,
+   "blancMin": 2,
+   "sous4": 22,
+   "avances": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+   ],
+   "flecheApresBas": [
+    5,
+    22
+   ]
+  },
+  "ensuite": {
+   "ok": true,
+   "avec": {
+    "bas": true,
+    "lache": 9,
+    "vue": {
+     "attente": {
+      "volant": 0,
+      "manche": 0,
+      "nitro": 0
+     },
+     "geste": null,
+     "refuse": false
+    }
+   },
+   "sans": {
+    "bas": true,
+    "lache": null,
+    "vue": {
+     "attente": {
+      "volant": 0,
+      "manche": 0,
+      "nitro": 0
+     },
+     "geste": null,
+     "refuse": false
+    }
+   }
+  },
+  "sansEffet": {
+   "ok": true,
+   "profil": true,
+   "chanceJouee": false,
+   "course": {
+    "empreinte": "f906ffa945fe",
+    "touches": "7be574c720ed",
+    "images": 9000,
+    "vues": "5b68d60e3af5",
+    "cause": "temps"
+   }
+  },
+  "humaine": {
+   "repetable": true,
+   "mains": {
+    "appuis": 53,
+    "appuiLePlusCourt_images": 4,
+    "reposLePlusCourt_images": 4,
+    "appuisParSecondeMax": 4,
+    "problemes": [],
+    "ok": true
+   },
+   "rejeu": true,
+   "autreGraine": true,
+   "coups": {
+    "coups": 43,
+    "parMinute": 120.6,
+    "braquage": 0.539,
+    "durees": 22,
+    "min": 4,
+    "max": 63,
+    "plusFrequente": 0.209
+   },
+   "course": {
+    "empreinte": "6f7a2f1b5782",
+    "touches": "68991a29cd15",
+    "images": 1284,
+    "cause": "vide",
+    "duree": 21.3,
+    "main": {
+     "sha": "03f79d27e507",
+     "graine": 1,
+     "modele": "clavier"
+    }
+   },
+   "varie": true
+  },
+  "chance": {
+   "jamais": {
+    "ok": true,
+    "sans": {
+     "empreinte": "2b6e2fc56891",
+     "touches": "8498f1184939",
+     "images": 2394,
+     "cause": "pic"
+    },
+    "avec": {
+     "empreinte": "2b6e2fc56891",
+     "touches": "8498f1184939",
+     "images": 2394,
+     "cause": "pic"
+    }
+   },
+   "juge": true,
+   "dansLeJeu": {
+    "ok": true,
+    "ecran_ms": 733.3333333332266,
+    "reste_ms": 4700,
+    "offre": true
+   },
+   "toucher": true,
+   "reprise": true,
+   "palier": true,
+   "rejeu": true,
+   "course": {
+    "empreinte": "a8cc67029a0c",
+    "touches": "c4e3f8d2dd80",
+    "images": 5400,
+    "cause": "temps",
+    "duree": 82.1,
+    "chance": {
+     "voulue": true,
+     "ok": 2508,
+     "image": 2556,
+     "prise": true,
+     "reprise": 2867
+    },
+    "moteur": {
+     "mort": 3,
+     "reprise": 2,
+     "invulnerable": 2.97
+    },
+    "imagesMortes": 473
+   }
+  },
+  "drift": {
+   "ok": true,
+   "decisionsEnDrift": 5,
+   "fleche": 360,
+   "bas": 362,
+   "relacheBas": 390,
+   "relacheFleche": 390,
+   "basSeul": 0,
+   "vitesse": [
+    92.1,
+    91.9,
+    90.4,
+    89.2,
+    88,
+    86.7,
+    85.4,
+    87.7
+   ],
+   "sansProfil": {
+    "perdus": 5,
+    "bas": 0
+   }
+  }
+ },
+ "outils": {
+  "lit": [
+   {
+    "nom": "la forme demandee",
+    "ok": true
+   },
+   {
+    "nom": "« **Raison** : », retours chariot, ```JavaScript",
+    "ok": true
+   },
+   {
+    "nom": "un extrait cite avant le fichier",
+    "ok": true
+   },
+   {
+    "nom": "exports.decide",
+    "ok": true
+   },
+   {
+    "nom": "sans raison",
+    "ok": true
+   }
+  ],
+  "charger": {
+   "ok": true,
+   "profilFaux": {
+    "erreur": "Error : profil-faux.js : profil : champ inconnu « reaction.volnt »",
+    "main": null
+   },
+   "syntaxe": {
+    "erreur": "SyntaxError : Unexpected token ';'",
+    "main": null
+   },
+   "jetteNull": {
+    "erreur": "null",
+    "main": null
+   },
+   "reference": {
+    "erreur": null,
+    "main": null
+   },
+   "essaiMain": {
+    "erreur": null,
+    "main": "6b1cce6c4905"
+   }
+  },
+  "journal": {
+   "ok": true,
+   "resume": {
+    "cause": "temps",
+    "chances": 1,
+    "morts": [
+     {
+      "t": 39.85,
+      "cause": "pic",
+      "carte": "jade",
+      "s": 3762,
+      "enVol": true,
+      "reprise": true
+     }
+    ],
+    "finEnVol": false,
+    "dernierVol": false
+   }
+  }
+ },
+ "ok": true
+}
