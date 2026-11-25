@@ -12,7 +12,7 @@ Le plan d'ensemble est dans `PLAN.md`, l'étude dans `etude/`.
 | A | L'étude : ce qui donne des pièces, ce qui tue, les vrais joueurs mesurés | **faite** (commit `67ea1f009`) |
 | B | Les fondations : défauts corrigés, yeux v2, doigts v2 | **faite** (25/11/2026) : défauts corrigés, yeux v2 et doigts v2 écrits, relus par des agents, corrigés, puis contrôlés une dernière fois (`verifier.js` TOUT PASSE en régime max et en régime allégé, 5 rejeux exacts sur 5, la boucle à blanc va au bout avec un cerveau à profil) ; **finitions du 25/11 au soir** : le radar sonde le canyon à chaque image (exact, +0,2 % de coût), la justesse refaite avec la main réglée, les fins de ligne du labo. Ce qui reste faux ou non mesuré est écrit plus bas : ce sont des limites connues, pas des oublis |
 | C | Le pilote d'élite, amélioré par tours | **commencée (25/11/2026) : le premier pilote existe** (`ml/ecurie/pilote.js`, main `clavier`). Au tri (12 graines, 600 s, allégé) : **palier médian 12,5, meilleur 20**, contre 6 et 17 pour le bot de référence sur les mêmes graines. **Contrôlé le 25/11 au soir** (aucune erreur ; sur 8 graines de 600 s : médian 11,5 et meilleur 18, contre 7 et 16). **Pas encore fait** (le travail de la chaîne) : la note de 20 graines de 900 s, l'inscription au labo, les tours payés de la boucle |
-| C bis | La boucle automatique sur le crédit API (les 200 €), avec un plafond de dépense | **prête, essayée à blanc** : un tour complet le 24/11 puis de nouveau le 25/11 avec un cerveau à profil (0 €) ; la clé d'API est acceptée par les quatre modèles (`essai-api.js` du 24/11 : Opus 5.5, Sonnet 5.5 et Fable 5.2 avec repli, Haiku 5.5 sans) ; `boucle.js` a un plafond général de 200 € lu au journal des dépenses (`--plafond`, commit `71f3c7bea`). **Aucun tour payé n'a encore tourné** |
+| C bis | La boucle automatique sur le crédit API (les 200 €), avec un plafond de dépense | **prête, essayée à blanc** : un tour complet le 24/11 puis de nouveau le 25/11 avec un cerveau à profil (0 €) ; la clé d'API est acceptée par les quatre modèles (`essai-api.js` du 24/11 : Opus 5.5, Sonnet 5.5 et Fable 5.2 avec repli, Haiku 5.5 sans) ; `boucle.js` a un plafond général de 200 € lu au journal des dépenses (`--plafond`, commit `71f3c7bea`). **Calibrée le 25/11** : un tour de 6 variantes par modèle sur le même pilote (4,63 €) ; aucun palier gagné validé, écart entre modèles dans le bruit ; **choix : Sonnet 5.5, départ `pilote.js`** (`agents/choix.json`, détails dans la partie C bis) |
 | D | Le facteur humain et les 30 niveaux | à faire |
 | E | Le juge, niveau par niveau | à faire |
 | F | Le paquet du matchmaking et le dossier du portfolio | à faire |
@@ -432,6 +432,54 @@ node ..\labo\labo.js                                                  # les euro
 
 **Pour lancer cette étape dans une autre session**, coller le texte de « Où on en est » (points 3 et 4) : la boucle suppose que le
 pilote de l'étape C existe.
+
+### Le calibrage (25/11/2026, 14 h 30 – 17 h 45) et le choix du modèle
+
+Même pilote de départ (`ml/ecurie/pilote.js`, identique octet pour octet aux cerveaux c0003, c0010, c0017, c0024), un lancement de
+`boucle.js` par modèle (`--tours 1 --candidats 6 --budget 5`), chacun dans son étape du labo. Le parent noté en grand (20 graines × 900 s,
+allégé) : **palier médian 11, record 20, survie médiane 215 s** ; au tri (6 graines × 600 s) : 11,5. Sources : `node ml/labo/labo.js`,
+`ml/labo/journal/{cerveaux,generations,validations,depenses}.jsonl`, `ml/ecurie/agents/chaine.log`.
+
+| | Haiku 5.5 (K-haiku) | Sonnet 5.5 (K-sonnet) | Opus 5.5 (K-opus) | Fable 5.2 (K-fable) |
+|---|---|---|---|---|
+| Variantes reçues / chargeables / refusées | 6 / 6 / 0 | 6 / 6 / 0 | 6 / 6 / 0 | 1 / 0 / 1 (réponse coupée à 32 000 jetons) |
+| Notes au tri (parent 11,5) | 11,5 · 11,5 · 10 · 8 · 11,5 · **12** | **13,5** · 11,5 · 7,5 · 12 · 12 · 9,5 | 10 · 9,5 · 9,5 · 8,5 · **11** · 7,5 | — |
+| Moyenne des 6 tris | 10,75 | 11,0 | 9,3 | — |
+| Meilleure au tri (médian · record · survie) | c0009 : 12 · — · — ; c0004 : 11,5 · 18 · 222 s | c0011 : 13,5 | c0022 : 11 · 18 · 220 s (sous la barre, pas notée en grand) | — |
+| En grand, 20 graines (parent 11 · 20 · 215 s) | c0005 : 11 · 20 · 215 s ; c0009 : 10,5 · 20 · 194 s | **c0011 : 13 · 19 · 230 s** ; c0015 : 11 · 20 · 207 s | — | — |
+| Validation sur 20 graines neuves | — (rien ne battait le parent) | c0011 : 10,5 · 18 · 205 s contre 11 · 18 · 214 s → **ne tient pas** | — | — |
+| Champion sacré | non | non | non | non |
+| Euros (journal des dépenses) | 0,06 € | 0,77 € | 1,89 € | 1,91 € |
+| Heures de PC (chaine.log) | 56 min | 74 min (dont la validation) | 41 min (rien de promu) | 24 min (la note du parent seule) |
+| Variantes chargeables par euro | ≈ 100 | ≈ 7,8 | ≈ 3,2 | 0 |
+| **Paliers gagnés validés, par euro / par heure de PC** | **0 / 0** | **0 / 0** | **0 / 0** | **0 / 0** |
+| (pour mémoire, gain non validé à l'entraînement) | 0 | +2 → 2,6 /€ · 1,6 /h | — | — |
+
+Chaque lancement comprend environ 10 minutes pour renoter le parent (le même code à chaque fois) : les heures de PC d'un vrai tour de
+l'étape C seront un peu plus courtes.
+
+**L'écart est-il au-dessus du hasard ? Non.** Personne n'a gagné un palier validé. Le seul gain (Sonnet, c0011, +2 en grand) est tombé à
+−0,5 sur des graines neuves : exactement le bruit annoncé (le parent va de 4 à 20 selon la graine ; une médiane sur 6 graines bouge d'environ
+±2 paliers). Les moyennes des tris (Haiku 10,75, Sonnet 11,0, Opus 9,3) ne se distinguent pas avec 6 variantes chacune ; Opus un peu plus
+bas est au plus un indice, pas une mesure. Le seul fait net : **Fable 5.2 ne passe pas avec `max_tokens` 32 000** (1,91 € pour une réponse
+coupée, aucune variante) — à corriger dans `boucle.js` avant de l'employer.
+
+**Le choix : Sonnet 5.5, en partant de `pilote.js`** (`ml/ecurie/agents/choix.json`).
+- Aucun champion sacré au calibrage : le départ de l'étape C reste `ml/ecurie/pilote.js` (pas de `depart-C.js`).
+- Gain indiscernable, donc la règle « le plus de variantes par euro sans perdre en qualité de code ». Sur le papier, Haiku gagne (6 sur 6
+  chargeables, ≈ 0,01 € la variante). **Mais le PC est le frein, pas l'argent** : à 30–100 min le tour, le PC fait au plus une vingtaine de
+  tours par jour. Sonnet (≈ 0,77 € le tour) remplit ces tours au rythme des 13–14 € par jour ; Haiku donnerait le **même nombre** de variantes
+  (celles que le PC peut noter) et laisserait l'argent dormir, Opus (≈ 1,9 € le tour) en ferait 2,5 fois moins pour le même argent.
+  À nombre de variantes égal, Sonnet garde la qualité de code (6 sur 6 chargeables) et a produit la seule variante qui ait passé le tri
+  et la note en grand.
+- Raison pratique, vérifiée dans le code : `chaine.js` arrête la chaîne après **deux tranches de suite à moins de 0,5 €**, et `boucle.js`
+  s'arrête après 4 tours sans progrès (`--patience 4`). Avec Haiku (≈ 0,06 € le tour), une tranche de 4 tours coûte 0,24 € : la chaîne se
+  serait arrêtée seule au bout de quelques heures. Avec Sonnet, 4 tours ≈ 3 €.
+- À surveiller : les prix du tableau de `boucle.js` (Haiku 0,10 / 0,50 $ le million) sont une estimation, la facture fait foi. Après le
+  calibrage, il reste **≈ 174,7 €** (200 − 25,31) avant la session de choix elle-même (plafond 4 $). Tel qu'écrit, `chaine.js` donne
+  tout ce reste à l'étape C au rythme de 14 € par jour, alors que le tableau des 200 € réservait 90 € à C et 60 € à D et E : à trancher par
+  Sacha avant que l'étape C ne dépasse 90 €.
+
 
 ## D — Le facteur humain et les 30 niveaux
 

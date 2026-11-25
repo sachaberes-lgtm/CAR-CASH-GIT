@@ -20,3 +20,4 @@
 {"date":"2026-11-25T17:20:52.652Z","etape":"K-opus","generation":1,"cerveau":"c0022","modele":"claude-opus-5-5","entree":62953,"sortie":10377,"euros":0.22,"pour":"candidat"}
 {"date":"2026-11-25T17:20:53.048Z","etape":"K-opus","generation":1,"cerveau":"c0023","modele":"claude-opus-5-5","entree":62967,"sortie":14636,"euros":0.31,"pour":"candidat"}
 {"date":"2026-11-25T17:45:08.839Z","etape":"K-fable","generation":1,"cerveau":null,"modele":"claude-fable-5-2","entree":62988,"sortie":32000,"euros":1.91,"pour":"variante perdue : reponse coupee (trop longue)"}
+{"date":"2026-11-25T17:47:09.915Z","etape":"recit","generation":null,"cerveau":null,"modele":"claude-sonnet-5-5","entree":389000,"sortie":17937,"euros":0.34,"pour":"agent sans ecran : compte-rendu"}
