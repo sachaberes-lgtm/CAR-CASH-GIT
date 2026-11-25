@@ -5,9 +5,10 @@
    (enregistrement du jeu + touches) vont au tampon : clore.js y choisira celles qu'on garde.
    usage : node inscrire.js <cerveau.js> --etape 3 --generation 0 --modele opus-5-5 --raison "pourquoi ce changement"
              [--parents c0001,c0004] [--entree 4200 --sortie 1800 --euros 0.09] [--echange demande-reponse.json]
-             [--graines 20] [--depart 910000] [--tmax 300] [--coeurs 4] [--carte ville] [--meteo nuit] [--regime allege|max]
+             [--graines 20] [--depart 910000] [--tmax 900] [--coeurs 4] [--carte ville] [--meteo nuit] [--regime allege|max]
              [--note note.json]
            node inscrire.js --valider c0007 [--depart 950000] [--graines 20] …   renote un candidat sur des graines jamais vues
+     --tmax      900 s par defaut, comme noter.js (300 jusqu'au 25/11) ; --valider reprend celui du candidat
      --modele    qui a ecrit le code : « main » (ecrit a la main, pas de cout), sinon le modele de l'API (le cout est alors exige)
      --raison    la phrase qui dit ce qui change et pourquoi : elle fait l'arbre et le recit
      --parents   le ou les candidats dont il descend (aucun : une racine)
@@ -21,7 +22,11 @@ const VAL=opt('valider',null),stop=m=>{console.log(m);process.exit(1);};
 let fichier=A[0]&&!A[0].startsWith('--')?path.resolve(A[0]):null,ligne0=null;
 if(VAL){ligne0=L.lire(L.F.cerveaux).find(l=>l.id===VAL);if(!ligne0)stop('candidat inconnu : '+VAL);fichier=path.join(L.RACINE,ligne0.code);}
 if(!fichier||!fs.existsSync(fichier))stop('usage : node inscrire.js <cerveau.js> --etape N --generation G --modele M --raison "…"   (detail en tete du fichier)');
-const NG=+opt('graines',20),G0=+opt('depart',VAL?950000:910000),TMAX=+opt('tmax',300);
+/* (2026-11-25, relecture : « inscrire.js note a 300 s par defaut, noter.js et la boucle a 900 s ») LE TEMPS : celui de noter.js par defaut
+   (TMAX_DEFAUT de piloter.js, 900 s) ; --valider reprend celui du candidat (une validation a un autre --tmax ne se compare pas a sa note). */
+const {TMAX_DEFAUT}=require('../bot/piloter');
+const NG=+opt('graines',20),G0=+opt('depart',VAL?950000:910000),TMAX=+opt('tmax',VAL&&ligne0.tmax>0?ligne0.tmax:TMAX_DEFAUT);
+if(VAL&&opt('tmax',null)!=null&&ligne0.tmax!==TMAX)console.log(`⚠ ${VAL} a ete note a ${ligne0.tmax} s : cette validation a ${TMAX} s ne se comparera pas a sa note`);
 const source=fs.readFileSync(fichier,'utf8'),jeu=L.versionJeu();
 if(jeu.propre===false)console.log('⚠ index.html ou figures.js differe du commit '+jeu.commit+' : un rejeu ne se refera que sur CE fichier (empreinte '+jeu.sha+')');
 /* le nom que le cerveau se donne (celui que noter.js ecrit dans sa note), puis celui du journal */

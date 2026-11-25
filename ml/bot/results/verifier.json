@@ -1,5 +1,5 @@
 {
- "date": "2026-11-25T02:57:51.930Z",
+ "date": "2026-11-25T03:21:35.064Z",
  "graine": 910000,
  "tmax": 150,
  "regime": "max",
@@ -307,7 +307,7 @@
   "etat": {
    "ok": true,
    "photos": 110,
-   "ms_par_controle": 1377,
+   "ms_par_controle": 1241,
    "changes": {},
    "brouillons": {
     "V9J": 1,
@@ -390,10 +390,10 @@
    "sondes": 2920
   },
   "a": {
-   "ms_moy": 0.653,
-   "ms_max": 11.17,
-   "ms_sol_moy": 0.584,
-   "ms_vol_moy": 2.316,
+   "ms_moy": 0.523,
+   "ms_max": 9.578,
+   "ms_sol_moy": 0.463,
+   "ms_vol_moy": 1.964,
    "vues_sol": 1440,
    "vues_vol": 60,
    "pas_vol_moy": 923,
@@ -406,10 +406,10 @@
    "manque": []
   },
   "b": {
-   "ms_moy": 0.629,
-   "ms_max": 14.737,
-   "ms_sol_moy": 0.567,
-   "ms_vol_moy": 2.094,
+   "ms_moy": 0.529,
+   "ms_max": 10.516,
+   "ms_sol_moy": 0.472,
+   "ms_vol_moy": 1.882,
    "vues_sol": 1440,
    "vues_vol": 60,
    "pas_vol_moy": 923,
@@ -424,10 +424,10 @@
   "ok": true,
   "cartes": {
    "nuages": {
-    "ms_moy": 0.921,
-    "ms_max": 3.345,
-    "ms_sol_moy": 0.698,
-    "ms_vol_moy": 1.224,
+    "ms_moy": 0.785,
+    "ms_max": 2.59,
+    "ms_sol_moy": 0.591,
+    "ms_vol_moy": 1.048,
     "vues_sol": 98,
     "vues_vol": 72,
     "pas_vol_moy": 1074,
@@ -440,10 +440,10 @@
     "manque": []
    },
    "espace": {
-    "ms_moy": 0.97,
-    "ms_max": 3.032,
-    "ms_sol_moy": 0.736,
-    "ms_vol_moy": 1.177,
+    "ms_moy": 0.774,
+    "ms_max": 2.902,
+    "ms_sol_moy": 0.548,
+    "ms_vol_moy": 0.974,
     "vues_sol": 76,
     "vues_vol": 86,
     "pas_vol_moy": 1077,
@@ -456,10 +456,10 @@
     "manque": []
    },
    "grotte": {
-    "ms_moy": 1.962,
-    "ms_max": 10.071,
-    "ms_sol_moy": 0.835,
-    "ms_vol_moy": 3.513,
+    "ms_moy": 1.841,
+    "ms_max": 6.117,
+    "ms_sol_moy": 0.761,
+    "ms_vol_moy": 3.327,
     "vues_sol": 99,
     "vues_vol": 72,
     "pas_vol_moy": 987,
@@ -472,10 +472,10 @@
     "manque": []
    },
    "ville": {
-    "ms_moy": 1.249,
-    "ms_max": 4.942,
-    "ms_sol_moy": 0.746,
-    "ms_vol_moy": 2.051,
+    "ms_moy": 1.049,
+    "ms_max": 3.089,
+    "ms_sol_moy": 0.561,
+    "ms_vol_moy": 1.827,
     "vues_sol": 59,
     "vues_vol": 37,
     "pas_vol_moy": 720,
@@ -488,10 +488,10 @@
     "manque": []
    },
    "jade": {
-    "ms_moy": 4.178,
-    "ms_max": 15.682,
-    "ms_sol_moy": 1.683,
-    "ms_vol_moy": 7.016,
+    "ms_moy": 3.429,
+    "ms_max": 12.518,
+    "ms_sol_moy": 1.391,
+    "ms_vol_moy": 5.747,
     "vues_sol": 91,
     "vues_vol": 80,
     "pas_vol_moy": 984,
@@ -504,10 +504,10 @@
     "manque": []
    },
    "canyon": {
-    "ms_moy": 0.948,
-    "ms_max": 3.337,
-    "ms_sol_moy": 0.807,
-    "ms_vol_moy": 1.132,
+    "ms_moy": 0.77,
+    "ms_max": 3.353,
+    "ms_sol_moy": 0.645,
+    "ms_vol_moy": 0.934,
     "vues_sol": 97,
     "vues_vol": 74,
     "pas_vol_moy": 1158,
@@ -520,10 +520,10 @@
     "manque": []
    },
    "canyon+relief": {
-    "ms_moy": 2.603,
-    "ms_max": 19.641,
-    "ms_sol_moy": 1.017,
-    "ms_vol_moy": 12.217,
+    "ms_moy": 2.494,
+    "ms_max": 17.899,
+    "ms_sol_moy": 0.98,
+    "ms_vol_moy": 11.675,
     "vues_sol": 97,
     "vues_vol": 16,
     "pas_vol_moy": 625,
@@ -1489,6 +1489,12 @@
     }
    },
    "juge": true,
+   "dansLeJeu": {
+    "ok": true,
+    "ecran_ms": 733.3333333332266,
+    "reste_ms": 4700,
+    "offre": true
+   },
    "toucher": true,
    "reprise": true,
    "palier": true,
@@ -1535,6 +1541,72 @@
    "sansProfil": {
     "perdus": 5,
     "bas": 0
+   }
+  }
+ },
+ "outils": {
+  "lit": [
+   {
+    "nom": "la forme demandee",
+    "ok": true
+   },
+   {
+    "nom": "« **Raison** : », retours chariot, ```JavaScript",
+    "ok": true
+   },
+   {
+    "nom": "un extrait cite avant le fichier",
+    "ok": true
+   },
+   {
+    "nom": "exports.decide",
+    "ok": true
+   },
+   {
+    "nom": "sans raison",
+    "ok": true
+   }
+  ],
+  "charger": {
+   "ok": true,
+   "profilFaux": {
+    "erreur": "Error : profil-faux.js : profil : champ inconnu « reaction.volnt »",
+    "main": null
+   },
+   "syntaxe": {
+    "erreur": "SyntaxError : Unexpected token ';'",
+    "main": null
+   },
+   "jetteNull": {
+    "erreur": "null",
+    "main": null
+   },
+   "reference": {
+    "erreur": null,
+    "main": null
+   },
+   "essaiMain": {
+    "erreur": null,
+    "main": "6b1cce6c4905"
+   }
+  },
+  "journal": {
+   "ok": true,
+   "resume": {
+    "cause": "temps",
+    "chances": 1,
+    "morts": [
+     {
+      "t": 39.85,
+      "cause": "pic",
+      "carte": "jade",
+      "s": 3762,
+      "enVol": true,
+      "reprise": true
+     }
+    ],
+    "finEnVol": false,
+    "dernierVol": false
    }
   }
  },

@@ -5,12 +5,16 @@ même graine = même course au bit près dans un processus neuf, presque dans le
 **Étape 1 faite le 23/11** (le contrat du bot, le bot de référence, l'outil de l'étalon : `ml/bot/README.md`). L'étalon en est à
 **14 parties sur 20** au 24/11 (10 de Sacha au clavier, 4 de Léo au doigt) : la barre est provisoire, il en manque 6.
 **Étape 1 bis faite le 24/11** (la boîte noire du labo : `ml/labo/README.md`). Les comptes rendus sont à la fin de la section 3.
-La boucle (étapes 2 à 8) n'est pas codée : aucun euro d'API n'a été dépensé.
+La boucle par API des étapes 2 à 8 ci-dessous n'a pas été codée telle quelle ; une autre boucle l'a été depuis, celle de l'écurie
+(`ml/ecurie/boucle.js`, voir l'encadré). Au 25/11, aucun tour payé n'a tourné : aucun euro d'API n'a été dépensé.
 
 > **NOUVEL OBJECTIF (24/11/2026, Sacha) : une écurie de bots pour le matchmaking, un par niveau de record du palier 1 au palier 30,
 > indiscernables de vrais joueurs.** Le plan de cet objectif, et l'état du chantier, sont dans **`ml/ecurie/PLAN.md`** ; l'étude qui le fonde
-> dans `ml/ecurie/etude/`. Il remplace les étapes 2 à 8 ci-dessous (la boucle par API), qui restent pour mémoire. Aucun euro d'API n'est
-> dépensé : le travail se fait sur l'abonnement, et le crédit ne sera touché qu'avec l'accord de Sacha.
+> dans `ml/ecurie/etude/`. Il remplace les étapes 2 à 8 ci-dessous, qui restent pour mémoire. **Le crédit API** (mise à jour du 25/11) : il se
+> dépense par `ml/ecurie/boucle.js`, à la demande de Sacha du 24/11 (« il faut que tu utilises les 200 euros dans ton plan »), sous un plafond
+> général de 200 € lu au journal des dépenses du labo (`--plafond`), par un calibrage de 10 € puis des tranches de 20 € (le détail :
+> `ml/ecurie/ETAPES.md`). Hors de ce cadre, pas un euro sans l'accord de Sacha. **À confirmer par Sacha** : ETAPES.md dit de dépenser ces
+> tranches « sans poser de question » ; c'est une phrase écrite par une session, pas par lui.
 Demande : des bots qui jouent vraiment à CASH CAR (rouler, voler, figures, raccourcis), un plan qui dépense surtout les ~200 € de crédit API, et un projet qui sert au portfolio (RCA — je suppose Royal College of Art, à confirmer).
 
 ---
@@ -117,22 +121,32 @@ grotte bâtie à un portail n'arrivait jamais. L'étape 0 ne les avait pas vues 
 **L'étalon (au 24/11) : 14 parties sur 20, deux joueurs.** Décision de Sacha le 24/11 : les parties de Léo comptent « dans les 20 ».
 10 parties au clavier (Sacha), 4 au doigt sur téléphone (Léo). Il en manque 6 : la barre est **provisoire**.
 
+Les joueurs : les chiffres de `ml/bot/results/etalon.json` (refaits le 25/11 : depuis le 24/11 l'explosion ne compte plus dans la durée
+d'une partie, d'où des chiffres un peu différents de ceux écrits avant). La référence : sa note du 23/11 (`ml/bot/results/note-reference.json`,
+20 graines, régime maximum, 300 s au plus), pas refaite. `node etalon.js` (dans `ml/bot`) refait la colonne des joueurs.
+
 | mesure | les joueurs (14 parties) | référence (20 courses) | bot ÷ joueurs |
 |---|---|---|---|
-| survie médiane | 156,8 s | 142,6 s | 91 % |
-| argent par minute | 25 013 | 17 383 | 69 % |
-| pièces par minute | 416 | 391 | 94 % |
-| figures posées par minute | 4,96 | 5,9 | 119 % |
-| temps en l'air | 28,7 % | 9,6 % | 33 % |
-| vols par minute | 7,91 | 3,67 | 46 % |
-| raccourcis par minute | 2,66 | 0,04 | 2 % |
-| distance par minute | 11 034 m | 8 108 m | 73 % |
-| nitro tenue | 60,1 % | 17,6 % | 29 % |
+| survie médiane | 154,9 s | 142,6 s | 92 % |
+| argent par minute | 25 316 | 17 383 | 69 % |
+| pièces par minute | 436 | 391 | 90 % |
+| figures posées par minute | 5,02 | 5,9 | 118 % |
+| temps en l'air | 29,1 % | 9,6 % | 33 % |
+| vols par minute | 8,01 | 3,67 | 46 % |
+| raccourcis par minute | 2,79 | 0,04 | 1 % |
+| distance par minute | 11 167 m | 8 108 m | 73 % |
+| nitro tenue | 60,7 % | 17,6 % | 29 % |
+| palier médian | 11,5 | 10 | 87 % |
+| record de palier | 28 | 20 (plafonné par les 300 s) | 71 % |
 
 Lecture : le bot ramasse les pièces et pose des figures comme les joueurs ; l'écart est dans le temps en l'air, les raccourcis et la nitro.
-Réserves : une partie de 400 s à 324 000 d'argent pèse lourd dans l'argent par minute (20 597 sans elle) ; les joueurs ont la seconde
-chance, le bot non ; les courses du bot sont coupées à 300 s ; trois versions du jeu se côtoient (parties en `60aa15e` et `ccdca9b`,
-bot en `cashcar-v1627`), écarts non vérifiés. Chacun à part : `ml/bot/results/etalon-sacha.json`, `etalon-leo.json`.
+Réserves : deux parties à seconde chance (545 s et 451 871 d'argent, palier 28 ; 396 s et 324 419, palier 22) font l'essentiel de l'argent :
+**10 236 par minute sans elles** (18 327 sans la première seule, 20 721 sans la seconde seule) ; le record de palier sans elles est 21.
+Les courses du bot sont coupées à 300 s. Les versions du jeu : `60aa15e` et `ccdca9b` sont des **empreintes du jeu publié** (les 7 premiers
+caractères de CC_VER, notées par l'enregistreur), **pas des commits** : pas de `git checkout` possible. Le commit de chacune est dans le
+`version.json` de sa publication Vercel (champ `commit`) — piste non vérifiée. Le bot, lui, joue la copie locale, étiquetée `cashcar-v1627`.
+On ne sait donc pas s'il y a deux ou trois versions en présence, ni si elles se conduisent pareil. Chacun à part :
+`ml/bot/results/etalon-sacha.json`, `etalon-leo.json`.
 
 Pour finir : jouer, exporter **toutes les 4 ou 5 parties** (l'enregistreur garde 8 parties **et** 1,6 Mo au plus), déposer les fichiers
 dans `ml/bot/etalon/`, lancer `node ml/bot/etalon.js`. Mode d'emploi : `ml/bot/README.md`, section 5.
@@ -294,7 +308,8 @@ Le fil : deux tentatives ratées, un changement de méthode, puis des cerveaux q
    « dans les 20 ». La barre commune mélange donc deux façons de jouer ; la barre de chacun est gardée à côté.
 5. **Quelle sauvegarde pour le bot ?** (né de l'étape 1) Il joue une sauvegarde neuve : première voiture, deux figures (salto, tail whip),
    premier palier de moteur au départ. Sacha joue la sienne. À égaliser, ou à assumer.
-6. **Dans quel régime noter les bots ?** (né de l'étape 1 bis) Le simulateur tourne au régime maximum (Crypto City au tirage). Sacha et
+6. **Dans quel régime noter les bots ?** **Tranché (`ml/ecurie/PLAN.md`) : en allégé (`--regime allege`)**, le jeu des joueurs de l'étalon.
+   Ce qui suit est la question telle qu'elle se posait : (né de l'étape 1 bis) Le simulateur tourne au régime maximum (Crypto City au tirage). Sacha et
    Léo jouent en version allégée (sans). « Le bot contre Sacha sur les mêmes graines » demande le même régime des deux côtés : soit le
    simulateur passe en allégé (`?allege=1`, toutes les notes à refaire : 8 minutes pour la référence), soit l'étalon se rejoue sur un PC
    au maximum. Non mesuré : ce que l'allégé change d'autre que le tirage des maps.

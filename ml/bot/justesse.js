@@ -222,6 +222,15 @@ const NG=Math.max(1,+opt('graines',3)||3),G0=+opt('depart',910000),TMAX=+opt('tm
 const REQUETE=opt('requete',''),CERVEAU=opt('cerveau',null),FICHIER=CERVEAU?path.resolve(CERVEAU):null,NOMC=FICHIER?path.basename(FICHIER,'.js'):'voltigeur';
 const PROFIL=opt('profil',null);if(PROFIL&&['machine','clavier','doigt'].indexOf(PROFIL)<0){console.log('--profil : machine, clavier ou doigt');process.exit(2);}
 const SORTIE=path.resolve(opt('sortie',path.join(__dirname,'results','justesse'+(REGIME==='allege'?'-allege':'')+(PAS?'-pas':'')+(FICHIER?'-'+NOMC:'')+(PROFIL?'-main-'+PROFIL:'')+(REQUETE?'-'+REQUETE.replace(/[^a-z0-9]+/gi,''):'')+'.json')));
+/* (2026-11-25, relecture : « node justesse.js, la commande ecrite dans Verifier, ecrase sans prevenir le fichier des 57 vols ») LA SORTIE PORTE SON
+   REGLAGE : un fichier qui existe avec un autre reglage (graines, depart, tmax, maps, regime, mode, cerveau, profil, adresse) n'est pas ecrase
+   sans --force — la meme garde que noter.js. Les fichiers suivis par git sont des mesures citees dans les documents (README § 2 ter). */
+if(fs.existsSync(SORTIE)&&!A.includes('--force')){let v=null;try{v=JSON.parse(fs.readFileSync(SORTIE,'utf8'));}catch(e){}
+  const voulu={regime:REGIME,requete:REQUETE||null,cerveau:NOMC,profil:PROFIL,cartes:CARTES.join(','),graines:NG,depart:G0,tmax:TMAX,mode:PAS?'pas':'issues'};
+  const deja=v?{regime:v.regime,requete:v.requete||null,cerveau:v.cerveau,profil:v.profil||null,cartes:(v.cartes||[]).join(','),graines:v.graines&&v.graines.n,depart:v.graines&&v.graines.depart,tmax:v.tmax,mode:v.mode}:null;
+  const diff=deja?Object.keys(voulu).filter(k=>String(voulu[k])!==String(deja[k])):['(fichier illisible)'];
+  if(diff.length){console.log(`${path.relative(process.cwd(),SORTIE)} existe deja avec un autre reglage (${diff.map(k=>deja?k+' '+deja[k]+' au lieu de '+voulu[k]:k).join(' ; ')}) : rien n'est joue.\n`
+    +`  Pour refaire CETTE mesure : les memes options (${deja?'--graines '+deja.graines+' --depart '+deja.depart+' --tmax '+deja.tmax+' --cartes '+deja.cartes+(deja.requete?' --requete "'+deja.requete+'"':''):'?'}) ; pour une autre : --sortie <fichier> ; pour l'ecraser : --force.`);process.exit(2);}}
 const taches=[];for(const c of CARTES)for(let i=0;i<NG;i++)taches.push({carte:c==='libre'?null:c,graine:G0+37*i});
 console.log(`justesse du radar${PAS?' (pas a pas)':''} · cerveau ${NOMC}${PROFIL?' (main '+PROFIL+')':''} · ${CARTES.join(', ')} · ${NG} graine(s) depuis ${G0} · ${TMAX} s au plus · regime ${REGIME}${REQUETE?' · adresse '+REQUETE:''} · ${K} a la fois`);
 const t0=Date.now(),R=[];let suivant=0,actifs=0;

@@ -4,8 +4,14 @@ Demande de Sacha, 24/11/2026 : « des bots qui peuvent faire des matchmaking du 
 faire la différence entre eux et des vrais joueurs. Les joueurs qui ne sont pas forts doivent avoir des bots de leur niveau, et les très
 bons joueurs aussi. » Et : « on garde bien des traces visuelles pour le portfolio ».
 
-Ce document remplace, pour la suite, les étapes 2 à 8 de `passation/BOTS-ML.md` (la boucle par API). Les étapes 0, 1 et 1 bis restent
+Ce document remplace, pour la suite, les étapes 2 à 8 de `passation/BOTS-ML.md` (l'ancien plan de la boucle). Les étapes 0, 1 et 1 bis restent
 le socle : `ml/reel` (le vrai jeu sans écran), `ml/bot` (le contrat du bot), `ml/labo` (la boîte noire).
+
+**Le crédit API (ajouté le 25/11).** Ce qui est remplacé, ce sont les étapes de l'ancien plan, pas l'usage du crédit : à la demande de Sacha du
+24/11 (« il faut que tu utilises les 200 euros dans ton plan »), une boucle sur l'API a été écrite pour l'écurie (`ml/ecurie/boucle.js` : Claude
+écrit des variantes du pilote, le vrai jeu les note). Elle dépense sous un plafond général de 200 € lu au journal des dépenses du labo
+(`--plafond`), par un calibrage de 10 € puis des tranches de 20 € (`ml/ecurie/ETAPES.md`). Hors de ce cadre, pas un euro sans l'accord de Sacha.
+Au 25/11, aucun tour payé n'a tourné.
 
 **État au 24/11 au soir : l'étude est faite, le socle est en cours de reprise, aucun pilote de l'écurie n'existe encore.**
 

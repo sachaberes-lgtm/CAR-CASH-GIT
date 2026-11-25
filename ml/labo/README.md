@@ -23,6 +23,9 @@ node inscrire.js cerveau.js --etape 3 --generation 1 --parents c0004 --modele op
 node garder.js c0012 910037 --pourquoi "mort absurde : il saute dans le portail"
 node clore.js --etape 3 --generation 1 --critere argent_min
 node inscrire.js cerveau.js … --regime allege      # noté dans le jeu des vrais joueurs (version allégée) ; max par défaut
+# l'étape C à la main, réglée comme la boucle (allégé, 900 s, le palier) — sinon la ligne n'est pas comparable à celles de boucle.js :
+node inscrire.js <le-pilote.js> --etape C --generation 0 --modele main --regime allege --tmax 900 --raison "…"
+node clore.js --etape C --generation 0 --critere palier_median
 node noter.js cerveau.js --parties --sortie n.json # (dans ml/bot) noter d'abord, puis inscrire SANS rejouer :
 node inscrire.js cerveau.js … --note n.json        #   refusé si la note vient d'un autre code ou d'une autre version du jeu
 node inscrire.js --valider c0012                   # le champion, sur 20 graines qu'aucun cerveau n'a vues (950000 + 37 × i),
@@ -68,10 +71,17 @@ jeu                      version (cashcar-vNNN), commit, empreinte de index.html
 graines, tmax            sur quoi il a été noté
 carte, meteo             la map et la météo imposées à la note (--carte, --meteo) ; null = tirées par la graine
 note                     les chiffres du lot (ceux de ml/bot/mesures.js, comptés comme pour les joueurs)
+main                     (25/11) l'empreinte du profil de la main (ml/bot/piloter.js, profilSha) ; null = la main de machine (pas de profil)
 courses[]                chaque course : graine, empreinte, durée, fin, argent, figures, vols, raccourcis,
-                         plus long vol posé, plus de figures en un vol, plus gros raccourci, et OÙ elle finit (map, route, s, x y z, en vol ?)
+                         plus long vol posé, plus de figures en un vol, plus gros raccourci, et OÙ elle finit (map, route, s, x y z, en vol ?) ;
+                         (25/11) palier, chances (les secondes chances prises) et morts[] : TOUTES les morts de la partie
+                         (t, cause, carte, s, enVol, reprise = suivie d'une seconde chance)
 cout                     jetons lus, jetons écrits, euros (null = prix à chiffrer, jamais deviné)
 ```
+
+**Une course reprise par la seconde chance** (une main à profil, `chance.prend`) puis coupée par le temps finit « temps » : avant le 25/11 sa ligne ne
+disait pas qu'elle était morte, et son `fin.enVol` venait de la vieille mort d'avant la reprise. Désormais `morts` garde chaque mort, et `fin.enVol`
+ne se lit sur la mort que si la course finit par elle (sinon : le dernier échantillon). `verifier.js`, contrôle 14c.
 
 Chaque course garde aussi ses `pannes` (décisions du cerveau coupées par la limite de temps). **Une course avec une panne ne vaut pas** :
 elle n'est pas répétable. `inscrire.js` le signale à la fin ; la cause est un cerveau trop lent, ou un PC surchargé pendant la note.
@@ -85,8 +95,22 @@ Il refuse avant de jouer, pas après. Si le journal refuse quand même après la
 si la note la porte, sinon le nom que le cerveau se donne) et de **cette version du jeu** (son empreinte si la note la porte, sinon
 `cashcar-vNNN` ; un avertissement si index.html a été réécrit depuis), dans le régime et sur la map demandés.
 
-`--valider` reprend le **régime**, la **map** et la **météo** de la ligne du candidat (un `--regime` tapé à la main l'emporte, avec un
-avertissement : la validation ne se compare plus à sa note).
+`--valider` reprend le **régime**, la **map**, la **météo** et (25/11) le **temps** (`--tmax`) de la ligne du candidat (un réglage tapé à la main
+l'emporte, avec un avertissement : la validation ne se compare plus à sa note).
+
+**Le temps par défaut est 900 s**, comme `noter.js` et la boucle (`TMAX_DEFAUT` de `ml/bot/piloter.js` ; 300 s jusqu'au 25/11 : une inscription à la
+main sans `--tmax` donnait une note plafonnée vers le palier 20, rangée à côté de notes à 900 s). Le **régime** reste `max` par défaut : pour l'étape C,
+taper `--regime allege` (la boucle note en allégé). La boucle laisse de côté, en le disant, les lignes de son étape notées avec un autre `tmax` ou un
+autre régime que le sien : elle ne compare que des notes comparables.
+
+Le code doit contenir `exports` (`module.exports = {…}` ou `exports.decide = …` : `piloter.js` charge les deux ; jusqu'au 25/11 seule la première forme
+était acceptée ici).
+
+**`journal/validations.jsonl`, écrit par la boucle** (25/11 ; avant, rien ne l'appelait) : quand une variante notée en grand bat son parent, `boucle.js`
+la renote sur 20 graines neuves (950000 + 37 × i), note le parent une fois sur les mêmes (`role: "barre"`), et écrit la ligne de la variante
+(`role: "candidat"`, `parent`, `barre`, `entrainement`, `parent_entrainement` : les valeurs [critère, record, survie] comparées ; `tient` : vrai si elle
+tient la barre du parent ET le battait à l'entraînement). **Seul un candidat qui tient devient champion** : sinon il reste au journal, mais n'est
+jamais repris comme parent.
 
 ---
 
@@ -108,7 +132,9 @@ Pendant qu'une inscription note ses courses, elle pose un marqueur au tampon : `
 qu'elle tourne (sinon le candidat arriverait après la clôture, et ne serait jamais trié).
 
 **Le champion se désigne par un critère écrit** (`--critere`, `argent_min` par défaut). Chaque étape du plan a le sien ; il est noté
-dans `generations.jsonl`. Aucune « note unique » n'est inventée ici.
+dans `generations.jsonl`. Aucune « note unique » n'est inventée ici. **L'étape C vise le palier** : `--critere palier_median`, celui de `boucle.js`.
+Le « champion » de `generations.jsonl` est celui d'une génération, sur ses graines d'entraînement ; celui que la boucle reprend comme parent doit en
+plus avoir tenu sa validation (§ 2).
 
 ---
 

@@ -15,9 +15,9 @@ rend un *ordre*, dix fois par seconde. Il ne touche jamais le jeu : ses yeux lis
 | `essai-main.js` | le cerveau d'essai de la main : la conduite du bot de référence sans ses gestes, et un profil « humain » écrit en entier (un exemple, pas un pilote) |
 | `reference.js` | le bot écrit à la main : le point de départ à battre, et l'exemple du contrat |
 | `noter.js` | note un cerveau sur N graines → `results/note-<nom>[-allege][-t<tmax>].json` |
-| `autopsie.js` | raconte les dernières secondes d'une course (ce qu'il voyait, ce qu'il a ordonné) |
+| `autopsie.js` | raconte les secondes d'avant chaque mort d'une course, puis sa fin (ce qu'il voyait, radar compris, ce qu'il a ordonné) |
 | `etalon.js` | lit les parties des joueurs (`etalon/` : Sacha au clavier, Léo au doigt) → la barre, et la compare aux notes des bots |
-| `verifier.js` | les contrôles du contrat dans le vrai jeu, dont le bac fermé ; pour les yeux v2, « le radar ne touche pas le jeu », son coût, sa justesse ; pour les doigts v2, la main sans profil inchangée, une main à profil répétable et rejouable par ses touches, la seconde chance. **À relancer après chaque mise à jour du jeu.** |
+| `verifier.js` | les contrôles du contrat dans le vrai jeu, dont le bac fermé ; pour les yeux v2, « le radar ne touche pas le jeu », son coût, sa justesse ; pour les doigts v2, la main sans profil inchangée, une main à profil répétable et rejouable par ses touches, la seconde chance (lue dans le jeu au toucher de la plaque) ; depuis le 25/11, les outils de la boucle (contrôle 14 : lire une réponse, la raison d'un pilote refusé, la ligne de journal d'une course reprise). **À relancer après chaque mise à jour du jeu.** |
 | `justesse.js` | la justesse du radar : ce qu'il **prévoit** contre ce qui **arrive**, sur de vraies courses (§ 2 ter) |
 | `voltigeur.js` | le cerveau de mesure : il sort de la route exprès et tient une façon de piloter par vol (pour `justesse.js` et `verifier.js`) |
 | `voltigeur-route.js` | le second cerveau de mesure (25/11) : après un saut il tient `rien` ou `plane`, après une sortie par le bord la loi `versRoute` — ce qu'un pilote fera (`justesse.js --cerveau voltigeur-route.js`, avec ou sans `--profil clavier`) |
@@ -26,7 +26,7 @@ rend un *ordre*, dix fois par seconde. Il ne touche jamais le jeu : ses yeux lis
 ```bash
 cd ml/bot
 node verifier.js                         # le contrat tient-il ? (33 processus neufs, 2 à la fois, 11 min ; --regime allege pour l'autre version du jeu ; --carte nuages : les contrôles du radar sur une seule map)
-node justesse.js                         # le radar dit-il juste ? (le voltigeur, 6 maps × 3 graines ; --pas : les places image par image ; --cerveau reference.js ; --cerveau voltigeur-route.js ; --profil clavier : une main à profil)
+node justesse.js --graines 5             # le radar dit-il juste ? (le voltigeur, 6 maps × 5 graines : refait results/justesse-allege.json ; les autres mesures du § 2 ter, commande par commande, sont sous son tableau)
 node noter.js --tmax 300                 # LA note de référence documentée (20 graines, régime max, 300 s) → results/note-reference.json
 node noter.js mon-cerveau.js --regime allege --coeurs 2     # 900 s au plus par défaut → results/note-mon-cerveau-allege-t900.json
 node autopsie.js mon-cerveau.js --graine 910037 --regime allege --avant 6   # le MÊME régime et la MÊME --tmax que la note
@@ -111,7 +111,19 @@ Jusqu'à quatre, le plus gros gain d'abord : `s`, `gain` (piste sautée moins di
 En vol, `vue.vol.radar` rejoue le vol **image par image, avec les lois du jeu**, pour plusieurs façons de piloter, et donne pour chacune l'**issue**.
 `radar` : `pas` (1/60 s), `court` (2 s) et `long` (ce qu'il reste d'air, 6 s au plus : les deux horizons), `decor` (ce qui est sondé : grotte, jade, canyon,
 ville, espace), `maille` (m entre deux sondes du décor : depuis le 25/11 le décor est sondé **à chaque image**, comme le jeu le juge — sauf au canyon, une image
-sur huit), `aveugle` (ce qui ne l'est pas ici : `glacier`, `dunes`, `roches`), `approx`, et `rayons`, toujours dans cet ordre :
+sur huit), `aveugle` (ce qui ne l'est pas ici : `glacier`, `dunes`, `roches`), `approx`, et `rayons`.
+
+**`rayons` est un TABLEAU** d'objets `{ m, issue, t, … }` — le nom du rayon est dans le champ `m`, toujours dans l'ordre du tableau ci-dessous. On ne lit donc
+pas `rayons.versRoute` (toujours `undefined`, sans aucune erreur) : on cherche le rayon par son nom. Et on teste avant de lire : `vue.vol` n'existe qu'en vol,
+`radar` peut valoir `null` (caisse tenue au portail, pas d'air) ou `{ erreur }` sans `rayons`.
+
+```js
+const R = vue.vol && vue.vol.radar && vue.vol.radar.rayons;          /* un tableau, ou rien */
+const r = Array.isArray(R) ? R.find(x => x.m === 'versRoute') : null;
+if (r && r.issue === 'pose') { /* … r.t, r.s, r.axe, r.note … */ }
+```
+
+Les rayons :
 
 | Rayon `m` | L'ordre à tenir pour l'obtenir | Horizon |
 |---|---|---|
@@ -121,7 +133,7 @@ sur huit), `aveugle` (ce qui ne l'est pas ici : `glacier`, `dunes`, `roches`), `
 | `cabre`, `pique` | `{manche:1}`, `{manche:-1}` | court |
 | `plane` | `{nitro:true}` (un coup de réacteur à l'allumage, puis le plané) | long |
 | `planeCabre` | `{nitro:true, manche:1}` | court |
-| `versRoute`, `versRoutePlane` | la loi ci-dessous, redécidée à chaque vue (sans, puis avec la nitro) | long |
+| `versRoute`, `versRoutePlane` | la loi ci-dessous, redécidée toutes les 6 images comme un cerveau — mais toutes les 30 images (deux fois par seconde) tant que la route la plus proche est à plus de 60 m (sans, puis avec la nitro) | long |
 
 Chaque rayon : `issue`, `t` (**secondes de jeu** avant elle), `d` (m volés), `bumps` (s'il rebondit sur la tranche en route), `nitro` (part de jauge à l'issue, rayons à nitro), puis selon l'issue :
 
@@ -136,7 +148,9 @@ Chaque rayon : `issue`, `t` (**secondes de jeu** avant elle), `d` (m volés), `b
 **La loi `versRoute`**, pour qu'un cerveau puisse la suivre (c'est celle du bot de référence sans son anneau) : avec `p = vue.vol.proche`,
 `volant = borne((borne(-p.lat/40, ±0,6) − p.axe) × 1,6, ±1) × (p.envers ? −1 : 1)` si `|p.axe| < 1,6` (tête en bas par rapport à la route, le volant se retourne :
 sans cela la caisse s'éloigne de l'axe — corrigé le 25/11) ; `manche = p.envers ? 1 : −1` (piquer vers la route ; tête en bas, c'est cabrer) si `p.haut > 10`,
-`|p.lat| < 2 × demi` et que le délai avant la route (`p.haut / max(1, p.versRoute)`) dépasse 2 s, ou dépasse l'air qu'il reste moins 1 s (`vol.reste − 1`).
+`|p.lat| < 2 × demi` et que le délai avant la route (`p.haut / max(1, p.versRoute)`) dépasse 2 s, ou dépasse l'air qu'il reste moins 1 s — **`vol.air.reste − 1`**,
+la vraie marge (raisin compris), pas `vol.reste`, qui ment sous le raisin. Sinon `manche = 0`. Le radar la recalcule toutes les 6 images, et deux fois par seconde
+seulement loin de la route (à plus de 60 m de la dalle la plus proche).
 Le bot de référence (`reference.js`) suit encore la loi d'avant, sans `envers` : il n'a pas été touché (sa course changerait dans ce cas-là).
 
 **Au sol, `vue.sorties`** : le même radar lancé depuis la sortie de route. `null`, ou `{pourquoi, bord, gauche, droite, saut}`, chaque sortie
@@ -153,6 +167,15 @@ Le bot de référence (`reference.js`) suit encore la loi d'avant, sans `envers`
   main : à la fin du geste elle applique en plein vol le volant du dernier ordre donné au sol (`ligne` ou `volant`), et le radar suppose que cet ordre est celui
   de la vue. **Pour sauter droit, donner `volant: 0` (et pas `ligne`) aux décisions qui suivent l'ordre de saut** : la flèche ne part pas ; le rayon, lui, l'aura
   comptée si `fleche` n'était pas 0 (4 à 5 m d'écart après 0,5 s de vol).
+
+Pour les lire, la même prudence qu'en vol : `vue.sorties` vaut `null` le plus souvent, chacune des quatre sorties peut valoir `null`, et une sortie qui n'a pas lieu
+est `{ issue, t, s }` **sans `rayons`** :
+
+```js
+const B = vue.sorties && vue.sorties.bord;                             /* null, { issue } ou { t, s, cote, rayons } */
+const vr = B && Array.isArray(B.rayons) ? B.rayons.find(x => x.m === 'versRoute') : null;
+const revient = !!(vr && (vr.issue === 'pose' || vr.issue === 'levre'));
+```
 
 À savoir pour s'en servir :
 
@@ -174,7 +197,7 @@ Le bot de référence (`reference.js`) suit encore la loi d'avant, sans `envers`
 - **Tout ce qui part du sol est une estimation** (`approx`) : la vitesse est tenue, sans drift ni flaque. Le saut prend l'impulsion du dernier saut de la
   course (`saut.mesure` vrai) ; avant le premier, le plancher du jeu (`mesure` faux : le vrai saut monte plus haut et retombe plus loin — § 2 ter). Dans le jeu,
   l'impulsion dépend de la figure et de l'instant du dernier appui : une main dont les appuis varient (profil) ne refait pas exactement le saut d'avant.
-- **Les rayons `versRoute`** sont joués volant dosé, redécidés 10 fois par seconde : au clavier le dosage se fait en tapotant (`approx`).
+- **Les rayons `versRoute`** sont joués volant dosé, redécidés 10 fois par seconde (2 fois à plus de 60 m de la route) : au clavier le dosage se fait en tapotant (`approx`).
 - `t` est en secondes de jeu ; pendant le ralenti de la frénésie, `radar.approx` est vrai.
 
 **Ce que les yeux ne voient toujours pas** : le glacier et les dunes (hors du tirage : `aveugle`), la ville vitrée au-delà de son sol, la route d'après le portail,
@@ -225,8 +248,21 @@ un saut prévu n'a pas décollé (1 sur 35). **Conclusion : avec une main à pro
 Ce que ces mesures ne disent pas : `cabre`, `pique` et `viser` n'ont jamais été tirés ; **aucun pilote n'a encore décidé en lisant le radar** (les deux voltigeurs, la
 référence et essai-main ne le lisent pas) ; les sorties à gauche et à droite du premier voltigeur n'ont pas de vol `versRoute` (il tient `rien` ou `plane`). **Ce qui a rendu la première vue juste** (elle ne l'était que 54 fois sur 57) : le radar tient compte des **délais de la main** (`Doigts.prototype.delais`, `doigts.js`) — au décollage, les doigts tiennent encore quelques images les touches d'avant (une flèche du volant, la NITRO et le manche du geste `saut`) ; ces images-là suffisent à déplacer la pose de 9 m.
 
-`node justesse.js` refait le tableau (6 maps × 3 graines, le voltigeur ; `--graines 5` pour les chiffres ci-dessus ; `--pas` : les places image par image ; `--cerveau reference.js` : le rayon `tenu`
-d'un vrai cerveau ; `--cerveau voltigeur-route.js` : la façon que l'ordre porte ; `--profil clavier` : une main à profil ; `--requete "&cyw=0"` : le canyon avec son relief). C'est aussi le **détecteur de dérive** : une loi du jeu qui change sans que sa copie
+**Refaire ces mesures, à l'identique** (depuis le 25/11, un fichier qui existe avec un autre réglage — graines, départ, durée, maps, régime, mode, cerveau,
+profil, adresse — n'est plus écrasé sans `--force` : `node justesse.js` tout court, 3 graines, refuse donc de remplacer les 57 vols et dit les bonnes options) :
+
+| Fichier | Commande |
+|---|---|
+| `justesse-allege.json` | `node justesse.js --graines 5` |
+| `justesse-allege-pas.json` | `node justesse.js --pas` |
+| `justesse-allege-reference.json` | `node justesse.js --cerveau reference.js --cartes libre --graines 4 --tmax 150` |
+| `justesse-allege-cyw0.json` | `node justesse.js --cartes canyon --graines 4 --tmax 60 --requete "&cyw=0"` |
+| `justesse-allege-voltigeur-route.json` | `node justesse.js --cerveau voltigeur-route.js --graines 5` |
+| `justesse-allege-main-clavier.json` | `node justesse.js --profil clavier --graines 5` |
+| `justesse-allege-voltigeur-route-main-clavier.json` | `node justesse.js --cerveau voltigeur-route.js --profil clavier --graines 5` |
+
+Les options : `--pas` (les places image par image), `--cerveau` (un autre cerveau que le voltigeur : `reference.js`, le rayon `tenu` ; `voltigeur-route.js`, la façon
+que l'ordre porte), `--profil clavier` (une main à profil), `--requete "&cyw=0"` (le canyon avec son relief), `--sortie` (un autre fichier). C'est aussi le **détecteur de dérive** : une loi du jeu qui change sans que sa copie
 dans `yeux.js` suive se voit là. **Ce que ça coûte** : sur la course du contrôle 3 de `verifier.js` (150 s, le bot de référence, 4 % des vues en vol), **0,74 ms par vue contre 0,39 sans le radar** (au sol 0,66 ms, en vol 2,6), et une vue de 2 360 caractères contre 1 640. Une vue en vol coûte de 1 à 2 ms sans décor, **2,5 à 4 ms devant la ville ou la grotte, 5,5 à 6 ms devant les pics de jade** depuis que le décor est sondé à chaque image (le 24/11, une image sur deux : 2 à 4,5 ms ; les sondes du décor sont des fonctions du jeu : la cible de 2,5 ms n'y est pas tenue), et 13 à 18 ms au canyon avec son relief (une sonde y coûte 134 µs). Un pilote qui volerait autant qu'un joueur (29 % du temps) paierait de l'ordre de 1,5 ms par vue.
 
 ---
@@ -298,6 +334,9 @@ module.exports = {
 ```
 
 **Sans profil, ou avec un profil dont tout est au défaut (`profil: {}`) : exactement la main d'avant**, au bit près (`verifier.js`, contrôles 3 bis et 10).
+**Dans la boucle (`ml/ecurie/boucle.js`), la main du parent est imposée** (relecture du 25/11) : une variante dont le profil normalisé n'a pas la même empreinte
+que celui du parent (`profilSha`, ou l'absence de profil) est refusée sans être notée, « main changée ». Changer la conduite, oui ; changer la main, non — sauf
+lancement avec `--main-libre` (les étapes où l'on règle la main).
 Les durées sont en **millisecondes** (converties en images de 1/60 s) ; une durée s'écrit `[p10, p50, p90]` ou un nombre seul.
 
 | Champ | Unité | Défaut (= la main d'avant) | Bornes | Ce que les joueurs font (`ml/ecurie/etude/humains.md`) |
@@ -502,10 +541,14 @@ Ce que ça dit, et ce que ça ne dit pas :
 - **la main ne fait plus mourir le cerveau** : 7 courses sur 8 vont jusqu'à la limite de temps (avant : les 8 mouraient une première fois en vol, à
   72 s en médiane) ; 5 meurent une fois (vers 38 à 70 s) et la seconde chance les reprend ; 193 pièces par minute (avant : 159 ; le bot de
   référence avec la main d'avant : 402) ;
-- **LE JUGE** (`node discerner.js results/note-essai-main-allege-t120-parties.json --nom essai-main-allege-t120`) : **AUC 0,991, « DISCERNABLE À COUP
+- **LE JUGE** (`node discerner.js results/note-essai-main-allege-t120-parties.json --nom essai-main-allege-t120`) : **AUC 0,993, « DISCERNABLE À COUP
   SÛR »** (le témoin à étiquettes mélangées : 0,47). Ce qui trahit le plus : **les décollages** (0,21 par 10 s contre 1,3 : z −3,1), la part du temps en
   l'air (z −2,8), le vol moyen, la nitro (z −2,2), la hauteur — tout cela tient au cerveau (ce cerveau d'essai ne vole presque pas). Ce qui tient
-  à la main est dans les joueurs : **changements de côté par seconde z −0,02**, ondulation −0,6, accélération latérale −0,9 ;
+  à la main : **changements de côté par seconde z −0,02** (dans les joueurs), mais **l'ondulation z +1,9 : le bot ondule PLUS que les joueurs**
+  (0,189 contre 0,168, en part de sa vitesse), l'accélération latérale −0,4. (Relecture des outils, 25/11 : le juge mesurait l'ondulation en m/s ;
+  elle grandit avec la vitesse, et ce bot, qui meurt tôt, roule lentement — il disait « ondulation −0,6, accélération −0,9 », donc « le bot ondule
+  moins », alors qu'à vitesse égale il ondule 5 à 20 % de plus. Elles sont maintenant divisées par la vitesse au sol, § 4 bis. L'AUC passe de 0,991
+  à 0,993 sur les mêmes 83 fenêtres. Qui réglerait la main sur l'ancien chiffre l'aurait fait onduler davantage : le mauvais sens) ;
 - 8 courses, un seul cerveau : les réactions, le retard du suivi, les gestes et le drift ne sont mesurés nulle part chez les joueurs.
 
 ---
@@ -543,6 +586,18 @@ totaux divisés par le temps total. Comptés **pareil pour un joueur et pour un 
 
 `autopsie.js` : une graine, les dernières secondes décision par décision. C'est le texte à donner à lire pour comprendre une mort.
 ⚠ Avec le **même `--regime` et la même `--tmax`** que la note : en allégé, Crypto City sort du tirage et la même graine donne une autre course.
+Depuis le 25/11 (relecture des outils) : **un bloc par mort** (`#### MORT n sur N : à t s de partie, cause, map, en vol ou au sol — puis reprise par la seconde
+chance`), puis `#### LA FIN` si la course ne finit pas par une mort. Avant, seule la fin était racontée : une course reprise par la seconde chance puis coupée par
+le temps montrait une fin sans mort, et la mort qui avait coûté un palier n'apparaissait nulle part. Chaque décision dit aussi le **radar** en vol (chaque rayon,
+son issue et dans combien de secondes ; « les 10 rayons → air » quand ils disent tous la même chose), la **tenue** de route et les **sorties** au sol, et tous les
+champs de l'ordre (`drift`, `ensuite`, `regarder` compris). `boucle.js` borne chaque bloc à 6 000 caractères en gardant sa fin (les décisions d'avant la mort).
+
+**Allégé, c'est la version « sobre » du jeu** (`--regime allege` = `?allege=1`) : celle du web sur téléphone et d'un PC lent — les 14 parties de l'étalon y ont été
+jouées. Ce n'est pas celle de l'app sur les iPhone 16, 16 Pro, 17 et après (classes 3 et 4 du jeu, dans l'app seulement, tant que le plafond appris en course
+reste N4) : eux ont les maps pleines, et la jade y pose ses pics avec le facteur 0,7 au lieu de 0,35 — **deux fois plus de pics**, le décor qui tue en vol sur la
+jade (4 morts « pic » sur 20 dans la note de départ). Les iPhone 12 à 15 Pro et le 16e, comme tout Safari, restent en sobre. Un pilote réglé ici rencontrera donc
+deux fois plus de pics sur les iPhone récents ; aucune note de contrôle ne rejoue aujourd'hui leur jeu (le simulateur n'est pas « dans l'app » : `&sobre=0` ne
+suffirait pas à le reproduire). Lu dans le code du jeu (`rendu/soleil-planete.js`, `rendu/palier-appareil.js`, `maps/jade-3.js`), pas mesuré.
 
 ### 4 bis. Le juge « humain ou bot » (`discerner.js`)
 
@@ -555,6 +610,12 @@ régression logistique humain / bot en laissant une partie entière de côté à
 - **Le bot se juge sur une note complète** : `node noter.js <cerveau> --parties`, puis `node discerner.js results/note-….json`.
   Les 4 courses de `ml/labo/trajectoires` sont les courses EXTRÊMES gardées par `clore.js` : un verdict sur elles (l'AUC de 0,97 du 24/11)
   n'est pas celui du bot ordinaire.
+- **L'ondulation et l'accélération latérale sont divisées par la vitesse au sol** (km/h ÷ 3,6, 10 m/s au moins), depuis le 25/11 : en m/s elles grandissent
+  avec la vitesse (chez les joueurs au clavier, l'écart-type de la vitesse latérale passe de 14,7 m/s sous 350 km/h à 46,8 au-dessus de 700), et un bot lent
+  paraissait onduler moins qu'eux. Le rapport vaut 0,17 à 0,21 chez les joueurs à toutes les vitesses. **Pas vérifié** : « hauteur max » et « pièces par
+  seconde » dépendent peut-être aussi de la vitesse.
+- **Le juge ne lit pas les touches** (ni `steer`, ni le journal) : un adversaire ne les voit pas. Un réglage du `profil` (durées des coups, repos, réactions) ne
+  peut le faire bouger que par la trajectoire qu'il donne ; la main elle-même se mesure avec `appuis.js` (§ 3.8).
 - Limite : une dizaine de parties de 2 joueurs ; le juge connaît Sacha et Léo, pas « les humains ».
 
 **Ne jamais annoncer ce que « le bot » sait faire sur une seule course** (règle de `ml/train`) : la note, sur 20 graines au moins.

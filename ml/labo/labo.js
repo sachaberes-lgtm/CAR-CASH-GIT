@@ -61,14 +61,27 @@ function coderTouches(T){let d=0,s='';for(const t of T){s+=(t[0]-d)+(t[2]?t[1]:t
 function decoderTouches(s){const T=[];let d=0;for(const m of String(s||'').matchAll(/(\d+)([GDHBNCgdhbnc])/g)){d+=+m[1];T.push([d,m[2].toUpperCase(),m[2]===m[2].toUpperCase()?1:0]);}return T;}
 
 /* ----- une course, en une ligne de journal : ce qu'il faut pour la retrouver, la comparer, et savoir OU elle s'est finie ----- */
+/* (2026-11-25, relecture : « quand la main prend la seconde chance, la mort qui a coute un palier disparait de tout ce que la boucle montre »)
+   LES MORTS DE LA PARTIE, toutes, dans l'ordre : `morts` = [{ t (s de partie, temps mort exclu), cause, carte, s, enVol, reprise }] — reprise :
+   une seconde chance l'a suivie (la partie recollee porte l'evenement « seconde_chance » juste apres). `chances` = les reprises. Et la fin ne
+   dit « en vol » d'apres la mort que si la course finit PAR cette mort (avant : une course reprise puis coupee par le temps finissait « temps »,
+   et « en vol » venait de la vieille mort d'avant la reprise). */
+function mortsDe(partie){
+  const ev=partie.ev||[],R=partie.routes||[],out=[];let r=0,der=null;
+  for(const e of ev){
+    if(e[1]==='route')r=e[2]|0;
+    else if(e[1]==='mort'){der={t:e[0],cause:e[2],carte:(R[r]||{}).carte||null,s:e[3],enVol:e[5]==='fall',reprise:false};out.push(der);}
+    else if(e[1]==='seconde_chance'&&der)der.reprise=true;}   /* l'evenement suit la mort qu'il reprend, avant toute autre mort */
+  return out;}
 function resumeCourse(b,partie){
   const E=partie.ech||[],col={};(partie.cols||[]).forEach((n,i)=>col[n]=i);
-  const d=E[E.length-1],R=partie.routes||[],m=(partie.ev||[]).filter(e=>e[1]==='mort').pop();
+  const d=E[E.length-1],R=partie.routes||[],M=mortsDe(partie),m=M.length&&!M[M.length-1].reprise?M[M.length-1]:null;
   return {graine:b.graine,empreinte:b.empreinte,images:b.images,duree_s:b.duree_s,cause:b.cause,cartes:b.cartes,argent:r2(b.argent),pieces:b.pieces,
     figures_payees:b.figures_payees,vols:b.vols,air_pct:b.air_pct,raccourcis:b.raccourcis,vol_pose_max_s:b.vol_pose_max_s,combo_max:b.combo_max,
     raccourci_max_m:b.raccourci_max_m,distance_m:b.distance_m,nitro_pct:b.nitro_pct,appuis:b.appuis,pannes:b.pannes,ordresVides:b.ordresVides,
+    palier:b.palier,chances:b.chances|0,morts:M,
     /* la fin : sur quelle map, a quel endroit de la route, a quel endroit du monde, en vol ou au sol */
-    fin:d?{carte:(R[d[col.r]]||{}).carte||null,route:d[col.r],s:d[col.s],lat:d[col.lat],x:d[col.x],y:d[col.y],z:d[col.z],enVol:m?m[5]==='fall':d[col.m]===1||d[col.m]===2}:null};
+    fin:d?{carte:(R[d[col.r]]||{}).carte||null,route:d[col.r],s:d[col.s],lat:d[col.lat],x:d[col.x],y:d[col.y],z:d[col.z],enVol:m?m.enVol:d[col.m]===1||d[col.m]===2}:null};
 }
 
 /* ----- INSCRIRE UN CANDIDAT : son code dans cerveaux/, sa ligne dans le journal, ses courses dans le tampon -----
@@ -97,11 +110,12 @@ function inscriptionsEnCours(etape,generation){
       if(m&&m.pid!==process.pid&&!vivant(m.pid)){try{fs.unlinkSync(g);}catch(e){}return null;}return m;}) /* le marqueur d'une inscription morte (tuee) s'efface */
     .filter(m=>m&&m.etape===String(etape)&&m.generation===generation&&m.pid!==process.pid);
 }
+function mainDe(c){if(c.main!==undefined)return c.main||null;const b=c.courses&&c.courses[0]&&c.courses[0].bilan;return (b&&b.main&&b.main.sha)||null;}
 function inscrire(c){
   const J=lire(F.cerveaux),ids=new Set(J.map(l=>l.id));
   const faute=m=>{throw new Error('inscription refusee : '+m);};
   if(!c.nom||!NOM_OK.test(c.nom))faute('un nom simple (lettres, chiffres, tirets)');
-  if(!c.source||!/module\.exports/.test(c.source))faute('le code du cerveau (module.exports={nom, decide})');
+  if(!c.source||!/\bexports\b/.test(c.source))faute('le code du cerveau (module.exports={nom, decide})'); /* (25/11) exports.decide=… se charge aussi (piloter.js) */
   if(c.etape==null||c.etape==='')faute('l\'etape du plan (--etape)');
   if(!Number.isInteger(c.generation)||c.generation<0)faute('la generation (--generation, un entier)');
   if(generationClose(c.etape,c.generation))faute('la generation '+c.generation+' de l\'etape '+c.etape+' est deja close : inscrire dans la suivante');
@@ -116,6 +130,9 @@ function inscrire(c){
   if(c.echange)ecrireGz(path.join(D.echanges,id+'.json.gz'),c.echange);
   const ligne={id:id,nom:c.nom,date:new Date().toISOString(),etape:String(c.etape),generation:c.generation,parents:parents,modele:c.modele,raison:String(c.raison).trim(),
     code:'cerveaux/'+code,sha:empreinte,octets:Buffer.byteLength(c.source),jumeau:jumeau,jeu:c.jeu,lot:c.lot||'entrainement',graines:c.graines,tmax:c.tmax,
+    /* (2026-11-25, relecture) LA MAIN : l'empreinte du profil (piloter.js, profilSha ; null = la main de machine), donnee par l'appelant ou lue au
+       bilan de la premiere course. Deux codes peuvent conduire pareil avec deux mains : sans elle, la ligne ne disait pas laquelle a ete notee. */
+    main:mainDe(c),
     /* la map et la meteo IMPOSEES a la note (--carte, --meteo ; null = tirees par la graine) : sans elles, garder.js ne refait pas la meme course (defaut 12) */
     carte:c.carte||null,meteo:c.meteo||null,note:c.note,courses:c.courses.map(x=>resumeCourse(x.bilan,x.partie)),echecs:c.echecs|0,cout:c.cout||null,echange:c.echange?'journal/echanges/'+id+'.json.gz':null};
   /* le tampon d'abord, le journal en dernier : une ligne du journal a toujours ses courses derriere elle */
@@ -125,9 +142,14 @@ function inscrire(c){
   return ligne;
 }
 /* un candidat RENOTE sur d'autres graines (« le champion est toujours valide sur des graines que Claude n'a jamais vues ») */
+/* (2026-11-25, relecture) ml/ecurie/boucle.js s'en sert enfin : avant, rien ne l'appelait et une variante etait sacree sur ses 20 graines
+   d'entrainement. Champs en plus, quand l'appelant les donne : etape, role (« candidat » : une variante a sacrer ; « barre » : le parent note sur
+   les memes graines neuves), parent, tient (vrai : la variante tient la barre du parent ET le battait a l'entrainement), barre, entrainement,
+   parent_entrainement (les valeurs comparees : [critere, record, survie]). */
 function valider(id,v){
   if(!lire(F.cerveaux).some(l=>l.id===id))throw new Error('candidat inconnu : '+id);
   const ligne={id:id,date:new Date().toISOString(),jeu:v.jeu,graines:v.graines,tmax:v.tmax,carte:v.carte||null,meteo:v.meteo||null,note:v.note,courses:v.courses.map(x=>resumeCourse(x.bilan,x.partie)),echecs:v.echecs|0};
+  for(const k of ['etape','role','parent','tient','barre','entrainement','parent_entrainement'])if(v[k]!==undefined)ligne[k]=k==='etape'?String(v[k]):v[k];
   ajouter(F.validations,ligne);return ligne;
 }
 /* UNE DEPENSE d'API (un candidat, une analyse, un calibrage) : euros = null si le tarif n'est pas encore connu (a chiffrer, jamais a deviner) */

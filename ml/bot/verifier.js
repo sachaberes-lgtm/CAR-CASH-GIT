@@ -58,11 +58,18 @@
      11. UNE MAIN HUMAINE (profil clavier, 60 s) : (a) deux processus, meme course et memes touches ; (b) les limites d'une main ; (c) le rejeu
          de son journal dans un processus neuf redonne la course ; (d) une autre graine du profil = d'autres touches ; (e) des appuis varies.
      12. LA SECONDE CHANCE (CHANCE9 : la graine 910407, 90 s — en regime max le bot de reference y meurt a 39,9 s) : un seul toucher de la
-         plaque, 36 a 330 images apres son apparition ; une reprise, un palier plus bas ; la course continue ; le rejeu du journal redonne la
-         meme course et le meme argent ; et une main v2 qui ne prend pas la chance meurt exactement comme la main d'avant.
+         plaque, 36 a 330 images apres son apparition, et (relecture du 25/11) LU DANS LE JEU a l'image du toucher : l'ecran de mort la depuis
+         600 ms au moins et l'offre ouverte (avant, la borne comparait la main a elle-meme) ; une reprise, un palier plus bas ; la course
+         continue ; le rejeu du journal redonne la meme course et le meme argent ; et une main v2 qui ne prend pas la chance meurt exactement
+         comme la main d'avant.
      13. LE DRIFT (un cerveau de quatre lignes, sur une droite des nuages : `drift:+1` pendant une demi-seconde) : le jeu drifte (vue.drift),
          ↓ part deux images apres la fleche, ↓ n'est jamais tenu sans fleche, et la fleche ne se relache pas avant ↓ ; sans profil, l'ordre
-         n'est pas lu (aucun ↓ au journal) et le bilan le dit. */
+         n'est pas lu (aucun ↓ au journal) et le bilan le dit.
+     14. (2026-11-25, relecture des outils) LES OUTILS DE LA BOUCLE, sans l'API : (a) lecture.js lit une reponse ecrite a peine autrement que la
+         forme demandee (« **Raison** : », ```JavaScript, retours chariot, un extrait avant le fichier, exports.decide) et refuse une reponse sans
+         raison ; (b) un pilote refuse dit POURQUOI (le champ fautif du profil, « SyntaxError », « null »), et la main lue est l'empreinte du profil ;
+         (c) la ligne de journal de la course du controle 12 garde la mort reprise par la seconde chance, et sa fin ne dit « en vol » d'apres la
+         vieille mort que si la course finit par une mort. */
 /* ===== LES CONTROLES DE LA RELECTURE DES YEUX V2 (2026-11-25, Sacha : « des bots du palier 1 au palier 30 qu'on ne distingue pas de vrais joueurs ») =====
    Un controle par defaut corrige qui pouvait revenir en silence. Les comptes viennent des courses de 6c (justesse.js, mesure.controles).
      6g. LA LOI « versRoute » TETE EN BAS : la caisse lachee par le banc du jeu (dbgLache) a 14 m a gauche de l'axe au-dessus de la ville, a
@@ -180,13 +187,23 @@ if(A.includes('--enfant')){
     }else if(m.quoi==='main'){
       /* (doigts v2, controles 10 a 12) le bot de reference, avec un profil ajoute a son texte (ou sans) */
       const C=charger('reference.js',{source:fs.readFileSync(REF,'utf8')+(m.profil?'\nmodule.exports.profil='+JSON.stringify(m.profil)+';':'')});
-      const x=course(J,C,m.graine,{tmax:m.tmax,trace:!!m.trace}),b=x.bilan,ch=b.chance||null;
+      /* (2026-11-25, relecture : « la borne 36 a 330 images compare la main a elle-meme ») LE JEU AU MOMENT DU TOUCHER : a chaque image du temps
+         mort, apres l'image, deux lectures du jeu — depuis combien de ms l'ecran de mort est la (la plaque est sourde 600 ms : TCTL.mortT,
+         moteur/mobile-tactile.js) et ce qui reste de l'offre (chanceEtat().reste, gameplay/seconde-chance.js). La main touche a l'image i, avant
+         l'image du jeu : l'etat qu'elle trouve est celui releve apres l'image i − 1. Lire ne change rien (le rejeu exact du controle le redit). */
+      const rel={},releve=m.releve?function(J9,fr){let md=null;try{md=Y.modeDe(J9);}catch(e){}if(md!=='boom')return;
+        try{rel[fr]=JSON.parse(J9.ev('JSON.stringify([TCTL.mortT?performance.now()-TCTL.mortT:null,chanceEtat().reste,chanceEtat().ok])'));}catch(e){rel[fr]=null;}}:undefined;
+      const x=course(J,C,m.graine,{tmax:m.tmax,trace:!!m.trace,image:releve}),b=x.bilan,ch=b.chance||null;
       /* le palier vu a la derniere decision d'avant la mort, et a la premiere d'apres la reprise */
       let moteur=null;if(m.trace&&ch&&ch.reprise>=0){const av=x.vues.filter(v=>v.image<ch.reprise).pop(),ap=x.vues.find(v=>v.image>=ch.reprise);moteur={mort:av?av.vue.moteur:null,reprise:ap?ap.vue.moteur:null,invulnerable:ap?ap.vue.invulnerable:null};}
       let used=null;try{used=!!J.ev('CHANCE.used');}catch(e){}
       r={empreinte:b.empreinte,touches:sha(x.touches),journal:m.journal?x.touches:undefined,images:b.images,cause:b.cause,duree:b.duree_s,argent:x.partie.fin.argent,vues:b.empreinteVues,
          profil:!!C.profil,main:b.main,chance:ch,imagesMortes:b.imagesMortes,chances:b.chances,secondes:(x.partie.ev||[]).filter(e=>e[1]==='seconde_chance').length,
-         morts:(x.partie.ev||[]).filter(e=>e[1]==='mort').map(e=>e[0]),used:used,moteur:moteur,erreurs:b.erreurs,pannes:b.pannes,jeu_sha:J.sha};
+         morts:(x.partie.ev||[]).filter(e=>e[1]==='mort').map(e=>e[0]),used:used,moteur:moteur,erreurs:b.erreurs,pannes:b.pannes,jeu_sha:J.sha,
+         toucher:m.releve&&ch&&ch.image>0?(rel[ch.image-1]===undefined?null:rel[ch.image-1]):undefined,
+         /* (relecture, controle 14c) la ligne de journal que le labo ecrirait pour cette course, et le mode du dernier echantillon */
+         resume:m.releve?(function(){const q=require('../labo/labo').resumeCourse(b,x.partie),P9=x.partie,im=(P9.cols||[]).indexOf('m'),d9=(P9.ech||[])[(P9.ech||[]).length-1];
+           return {cause:q.cause,chances:q.chances,morts:q.morts,finEnVol:q.fin?q.fin.enVol:null,dernierVol:d9?d9[im]===1||d9[im]===2:null};})():undefined};
     }else if(m.quoi==='drift'){
       /* (doigts v2, controle 13) le drifteur sur une droite des nuages, avec ou sans profil */
       const x=course(J,charger('drifteur.js',{source:DRIFTEUR(m.profil)}),920000,{carte:'nuages',tmax:9,trace:true});
@@ -284,7 +301,7 @@ function mainSeule(profil,graine,ordre,images){
     ...[].concat(...CARTES.map(c=>[enfant({quoi:'carte',carte:c.carte,requete:c.requete,graine:G,tmax:40,coupe:true}),enfant({quoi:'carte',carte:c.carte,requete:c.requete,graine:G,tmax:40})]))]);
   /* (doigts v2) les courses des controles 10 a 12, dans la meme file ; un rejeu part quand sa course a rendu son journal */
   const puisRejeu=(p,graine,tmax)=>p.then(x=>x&&x.journal?enfant({quoi:'rejeu',graine:graine,tmax:tmax,touches:x.journal}):null);
-  const h1p=enfant({quoi:'main',graine:G,tmax:60,profil:PROFILS9.clavier1,journal:true}),ccp=enfant({quoi:'main',graine:CHANCE9.graine,tmax:CHANCE9.tmax,profil:PROFILS9.chance,journal:true,trace:true});
+  const h1p=enfant({quoi:'main',graine:G,tmax:60,profil:PROFILS9.clavier1,journal:true}),ccp=enfant({quoi:'main',graine:CHANCE9.graine,tmax:CHANCE9.tmax,profil:PROFILS9.chance,journal:true,trace:true,releve:true});
   const lot2=Promise.all([
     enfant({quoi:'main',graine:G,tmax:TMAX,profil:PROFILS9.neutre}),
     h1p,enfant({quoi:'main',graine:G,tmax:60,profil:PROFILS9.clavier1}),enfant({quoi:'main',graine:G,tmax:60,profil:PROFILS9.clavier2}),puisRejeu(h1p,G,60),
@@ -519,6 +536,10 @@ function mainSeule(profil,graine,ordre,images){
     else{R.main.chance.juge=true;
       const C=cc.journal.filter(t=>t[1]==='C'),ch=cc.chance||{},delai=ch.image-ch.ok,un=C.length===1&&C[0][2]===1&&C[0][0]===ch.image&&delai>=36&&delai<=330;
       dit(un,`un seul toucher de la plaque : ${C.length} entree(s) C au journal${C.length?' ('+C.map(t=>'image '+t[0]+(t[2]?', acceptee':', abandon')).join(' ; ')+')':''} · la plaque parait a l'image ${ch.ok}, touchee ${delai} images apres (36 a 330)`);
+      /* (2026-11-25, relecture) LU DANS LE JEU, pas dans la main : au toucher, l'ecran de mort est la depuis 600 ms au moins (la garde de la plaque)
+         et l'offre court encore (chanceEtat : reste > 0, ok). Si le jeu deplacait sa garde ou raccourcissait l'offre, ce controle le dirait. */
+      const T9=cc.toucher,garde=!!(T9&&T9[0]!=null&&T9[0]>=600&&T9[1]>0&&T9[2]===true);R.main.chance.dansLeJeu={ok:garde,ecran_ms:T9?T9[0]:null,reste_ms:T9?T9[1]:null,offre:T9?T9[2]:null};
+      dit(garde,`au toucher, lu dans le jeu : l'ecran de mort est la depuis ${T9&&T9[0]!=null?Math.round(T9[0])+' ms':'?'} (600 au moins : la plaque est sourde avant) · l'offre court encore ${T9?T9[1]+' ms':'?'} (plus de 0)`);
       const repr=cc.chances===1&&cc.secondes===1&&cc.used===true&&ch.reprise>ch.image;
       dit(repr,`une reprise : ${cc.chances} seconde chance au bilan · ${cc.secondes} evenement seconde_chance · le jeu la dit prise : ${cc.used} · reprise a l'image ${ch.reprise} (${ch.reprise-ch.image} images apres le toucher, ${cc.imagesMortes} images de temps mort)`);
       const pal=!!(cc.moteur&&cc.moteur.mort!=null&&cc.moteur.reprise===cc.moteur.mort-1);
@@ -539,6 +560,33 @@ function mainSeule(profil,graine,ordre,images){
     dit(avance,`la fleche d'abord, ↓ ensuite : ← a l'image ${g0}, ↓ a l'image ${bB[0]} (2 images apres : le volant du jeu a passe 0,35, ↓ ne freine pas)`);
     dit(seul===0&&fin,`la fin : ↓ relache a l'image ${hB[0]}, ← a l'image ${g1} · ${seul} image(s) ou ↓ est tenu sans fleche`);
     dit(lu,`sans profil l'ordre n'est pas lu : ${dr0.journal.filter(t=>t[1]==='B').length} appui(s) sur ↓, ${dr0.drift.length} decision(s) en drift, ${dr0.perdus} ordre(s) « drift » comptes perdus au bilan`);}
+  /* ===== 14. LES OUTILS DE LA BOUCLE (2026-11-25, relecture des outils) : ce que la boucle payante lit, essaye sans rien depenser ===== */
+  console.log('\n14. LES OUTILS DE LA BOUCLE (ml/ecurie/lecture.js, ml/labo/labo.js : sans l\'API)');
+  {const {lit,chargeable}=require('../ecurie/lecture'),os=require('os'),code="module.exports={nom:'a',decide(){return {};}};",F3='```';R.outils={};
+    /* (a) lire une reponse : la forme demandee, et ce qu'un modele ecrit a peine autrement */
+    const essais=[['la forme demandee','RAISON: une phrase qui dit pourquoi.\n'+F3+'js\n'+code+'\n'+F3,true],
+      ['« **Raison** : », retours chariot, ```JavaScript','**Raison** : une phrase qui dit pourquoi.\r\n\r\n'+F3+'JavaScript\r\n'+code+'\r\n'+F3,true],
+      ['un extrait cite avant le fichier','Raison : une phrase qui dit pourquoi.\n'+F3+'js\nconst x=1;\n'+F3+'\nle fichier :\n'+F3+'js\n'+code+'\n'+F3,true],
+      ['exports.decide','RAISON: une phrase qui dit pourquoi.\n'+F3+"\nexports.nom='a';exports.decide=function(){return {};};\n"+F3,"exports.nom='a';exports.decide=function(){return {};};"],
+      ['sans raison','voici le fichier\n'+F3+'js\n'+code+'\n'+F3,null]];
+    const L14=essais.map(([nom,t,att])=>{const v=lit(t);const ok=att===null?v===null:!!(v&&v.raison==='une phrase qui dit pourquoi.'&&v.code===(att===true?code:att));return {nom:nom,ok:ok};});
+    R.outils.lit=L14;dit(L14.every(x=>x.ok),'(a) lire une reponse de l\'API : '+L14.map(x=>x.nom+(x.ok?' ✓':' ✗')).join(' · '));
+    /* (b) charger : la raison d'un refus est le champ fautif, pas une ligne de piloter.js ; la main d'un pilote est son empreinte */
+    const dir=fs.mkdtempSync(path.join(os.tmpdir(),'verifier-14-')),ecr=(n,s)=>{const f=path.join(dir,n);fs.writeFileSync(f,s);return f;};
+    const c1=chargeable(ecr('profil-faux.js',"module.exports={nom:'x',profil:{reaction:{volnt:100}},decide(){return {};}};")),c2=chargeable(ecr('syntaxe.js',"module.exports={nom:'x',decide(){return {};};")),
+      c3=chargeable(ecr('jette-null.js','throw null;')),c4=chargeable(REF),c5=chargeable(path.join(__dirname,'essai-main.js'));
+    const sha5=require('./piloter').charger(path.join(__dirname,'essai-main.js')).profilSha;
+    try{fs.rmSync(dir,{recursive:true,force:true});}catch(e){}
+    const okB=!!(c1.erreur&&/volnt/.test(c1.erreur)&&!/throw new Error/.test(c1.erreur)&&c2.erreur&&/^SyntaxError/.test(c2.erreur)&&c3.erreur==='null'&&!c4.erreur&&c4.main===null&&!c5.erreur&&c5.main&&c5.main===sha5);
+    R.outils.charger={ok:okB,profilFaux:c1,syntaxe:c2,jetteNull:c3,reference:c4,essaiMain:c5};
+    dit(okB,`(b) charger un pilote : profil faux → « ${c1.erreur} » · syntaxe → « ${c2.erreur} » · throw null → « ${c3.erreur} » · la main de reference.js ${c4.main===null?'aucune':c4.main}, d'essai-main.js ${c5.main} (charger : ${sha5})`);
+    /* (c) la ligne de journal d'une course reprise par la seconde chance (la course du controle 12) : la mort reprise y est, et la fin ne prend
+       pas « en vol » de la vieille mort quand la course finit par le temps */
+    const q=cc&&cc.resume;
+    if(!q)dit(false,'(c) la course de la seconde chance n\'a pas rendu sa ligne de journal');
+    else{const reprises=(q.morts||[]).filter(m=>m.reprise).length,okC=q.morts.length>=1&&q.morts[0].reprise===true&&reprises===q.chances&&(q.cause!=='temps'||q.finEnVol===q.dernierVol);
+      R.outils.journal={ok:okC,resume:q};
+      dit(okC,`(c) la ligne du journal (labo.js, resumeCourse) : ${q.morts.length} mort(s) — ${q.morts.map(m=>m.t+' s '+m.cause+' sur '+m.carte+(m.enVol?' en vol':' au sol')+(m.reprise?', reprise':'')).join(' ; ')} · ${q.chances} seconde chance · fin « ${q.cause} », en vol ${q.finEnVol} (dernier echantillon : ${q.dernierVol})`);}}
   R.ok=tout;
   fs.mkdirSync(path.join(__dirname,'results'),{recursive:true});
   if(a)delete a.journal;

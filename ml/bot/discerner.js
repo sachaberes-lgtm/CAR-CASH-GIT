@@ -35,9 +35,19 @@ function partiesDuFichier(f){
 function fichiersDe(a){if(!fs.existsSync(a))return [];if(fs.statSync(a).isDirectory())return fs.readdirSync(a).filter(f=>/\.json(\.gz)?$/i.test(f)&&!/toutes/.test(f)).sort().map(f=>path.join(a,f));return [a];}
 
 /* ----- LES MESURES D'UNE FENETRE : ce qu'un spectateur voit. Rien d'absolu qui depende du palier (la vitesse monte avec le moteur) : des rapports. ----- */
-const NOMS=['ecart au milieu (part de la demi-route)','ecart-type de l\'ecart','ondulation (ecart-type de la vitesse laterale, m/s)','changements de cote par seconde',
+/* (2026-11-25, relecture des outils : « le juge mesure l'ondulation en m/s : elle grandit avec la vitesse, et il dit que le bot ondule MOINS alors
+   qu'a vitesse egale il ondule PLUS ») L'ONDULATION ET L'ACCELERATION LATERALE SONT DIVISEES PAR LA VITESSE AU SOL (kmh / 3,6, 10 m/s au moins :
+   une caisse presque arretee ferait exploser le rapport). MESURE (joueurs au clavier) : l'ecart-type de la vitesse laterale passe de 14,7 m/s
+   sous 350 km/h a 46,8 au-dessus de 700 ; le bot d'essai, qui meurt tot, roule lentement — en m/s le juge le disait « 21,6 contre 32,7 », alors
+   qu'a vitesse egale il ondule 5 a 20 % de PLUS. Le rapport vaut 0,17 a 0,21 chez les joueurs a toutes les vitesses. Les changements de cote
+   gardent leur seuil de 1,5 m/s (le compte de mesures.js). NON VERIFIE : « hauteur max (m) » et « pieces par seconde » dependent peut-etre aussi
+   de la vitesse ; personne ne l'a mesure.
+   CE QUE LE JUGE NE LIT PAS : les touches (la colonne steer, le journal) — un adversaire ne les voit pas. Un reglage du `profil` (durees des coups,
+   repos, reactions) ne peut donc le faire bouger que par la trajectoire qu'il donne ; la main elle-meme se mesure par appuis.js (mainDe / mainLot). */
+const NOMS=['ecart au milieu (part de la demi-route)','ecart-type de l\'ecart','ondulation (ecart-type de la vitesse laterale / vitesse au sol)','changements de cote par seconde',
   'vitesse : ecart-type / moyenne','part du temps en l\'air','decollages par 10 s','vol moyen (s)','hauteur max (m)','part du temps nitro','bascules de nitro par 10 s',
-  'part du temps en drift','figures par 10 s','pieces par seconde','part du temps pres du bord (> 80 %)','acceleration laterale (ecart-type, m/s2)'];
+  'part du temps en drift','figures par 10 s','pieces par seconde','part du temps pres du bord (> 80 %)','acceleration laterale (ecart-type, / vitesse au sol, 1/s)'];
+const V_MIN=10; /* m/s : le plancher du diviseur */
 function fenetres(c){
   c=finVraie(c);
   const col={};(c.cols||[]).forEach((n,i)=>col[n]=i);const E=c.ech||[],ev=c.ev||[],g=(e,n)=>e[col[n]],F=[];
@@ -52,7 +62,7 @@ function fenetres(c){
     /* la vitesse laterale et son acceleration : seulement entre deux echantillons au sol qui se suivent sur la meme route */
     const vl=[],al=[];let vPrec=null,sens=0,bascules=0;
     for(let i=1;i<W.length;i++){const p=W[i-1],q=W[i],dt=g(q,'t')-g(p,'t');if(g(p,'m')!==0||g(q,'m')!==0||g(p,'r')!==g(q,'r')||!(dt>0&&dt<.25)){vPrec=null;continue;}
-      const v=(g(q,'lat')-g(p,'lat'))/dt;vl.push(v);if(vPrec!=null)al.push((v-vPrec)/dt);vPrec=v;
+      const v=(g(q,'lat')-g(p,'lat'))/dt,vs=Math.max(V_MIN,(g(q,'kmh')||0)/3.6);vl.push(v/vs);if(vPrec!=null)al.push((v-vPrec)/dt/vs);vPrec=v;
       const s=v>1.5?1:v<-1.5?-1:0;if(s&&sens&&s!==sens)bascules++;if(s)sens=s;}
     const kmh=W.map(e=>g(e,'kmh')),air=W.filter(e=>g(e,'m')===1||g(e,'m')===2).length/W.length;
     const evW=ev.filter(e=>e[0]>=t0&&e[0]<=t1),poses=evW.filter(e=>e[1]==='pose');

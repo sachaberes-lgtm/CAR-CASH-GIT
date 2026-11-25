@@ -28,9 +28,15 @@ ne passe plus au palier 20 sans anticiper.
 - **Au sol**, rien ne tue sur la dalle, sauf le mur d'un couloir touché à plus de 30° et plus de 200 km/h, et rester presque à l'arrêt 6 s.
 - **Dans la grotte**, quitter la route c'est tomber sous sa dalle : la roche est à quelques dizaines de mètres. Jamais de sortie par le
   bord, jamais de saut dans un boyau.
-- Le **radar** de la vue (yeux v2) prévoit l'issue d'un vol pour plusieurs façons de piloter. En vol : `vue.vol.radar.rayons` (pour `tenu`, `rien`,
-  `gauche`, `droite`, `cabre`, `pique`, `plane`, `planeCabre`, `versRoute`, `versRoutePlane` : `issue` — pose, levre, choc, air, fond,
-  portail, libre —, `t` en secondes, et pour une pose `s`, `lat`, `axe`, `note`, `propre`). Au sol : `vue.tenue` (la route se tient-elle ?),
+- Le **radar** de la vue (yeux v2) prévoit l'issue d'un vol pour plusieurs façons de piloter. En vol : `vue.vol.radar.rayons`, **un TABLEAU**
+  d'objets `{ m, issue, t, … }` où `m` est le nom du rayon (`tenu`, `rien`, `gauche`, `droite`, `cabre`, `pique`, `plane`, `planeCabre`,
+  `versRoute`, `versRoutePlane`) ; `issue` — pose, levre, choc, air, fond, portail, libre, coupe (le calcul s'est arrêté avant l'horizon : comme
+  libre) —, `t` en secondes, et pour une pose `s`, `lat`, `axe`, `note`, `propre`. **`rayons.versRoute` n'existe pas** (toujours `undefined`,
+  sans erreur) : on cherche par le nom, en testant chaque étage —
+  `const R = vue.vol && vue.vol.radar && vue.vol.radar.rayons; const r = Array.isArray(R) ? R.find(x => x.m === 'versRoute') : null;`
+  puis `if (r && r.issue === 'pose') …` (`radar` vaut `null` caisse tenue au portail, ou `{ erreur }` sans `rayons`). Au sol, même chose pour
+  `vue.sorties.bord.rayons` : `vue.sorties` vaut `null` le plus souvent, chaque sortie peut valoir `null`, et une sortie qui n'a pas lieu est
+  `{ issue }` sans `rayons`. Au sol : `vue.tenue` (la route se tient-elle ?),
   `vue.sorties` (le même radar depuis le bord ; à gauche, à droite — avec le rayon `versRoute`, celui qui dit si l'on revient — ou par un saut
   si l'ordre d'avant porte `regarder:'sorties'`), `vue.virage.vSure` (la vitesse au-delà de laquelle le prochain virage ne se tient plus).
   Le détail : `ml/bot/README.md` § 2 bis. **Ce qui est mesuré, et ce qui ne l'est pas** (README § 2 ter) : en vol, quand la main tient la façon
@@ -62,9 +68,9 @@ Mesuré sur 14 parties de deux joueurs :
 - 8 vols par minute, presque tous en sortant par le bord, 2 s chacun, 30 à 50 m de haut ;
 - la seconde chance, une fois, dans les longues parties.
 
-Le niveau d'un pilote ne se règle PAS par des réflexes surhumains (les limites de la main sont tenues par les doigts, hors du cerveau),
-ni par un rythme de ramassage anormal. Il se règle par ce qu'il regarde, sa prudence, sa qualité de vol, son temps de réaction et ses
-erreurs.
+Le niveau d'un pilote ne se règle PAS par des réflexes surhumains (les limites d'une main — 67 ms par touche, deux gestes par seconde — sont
+tenues par les doigts, hors du cerveau), ni par un rythme de ramassage anormal. Il se règle par ce qu'il regarde, sa prudence, sa qualité de
+vol — et, plus tard, par son temps de réaction et ses erreurs : ceux-là sont dans `profil`, qui ne se règle pas à cette étape (voir plus bas).
 
 ## Les règles d'écriture d'un pilote
 
@@ -73,6 +79,9 @@ erreurs.
 - `profil` ne règle QUE la main (temps de réaction, volant par coups, nitro hachée, drift, seconde chance, erreurs : README § 3.1) ; un champ
   qu'il ne connaît pas REFUSE le pilote au chargement. Les réglages de la conduite restent des constantes nommées en tête du fichier. Sans
   `profil`, la main est une machine ; avec un profil, les ordres arrivent en retard et le volant ondule : le pilote doit être écrit pour sa main.
+- **Ne change pas `profil` : la main est fixée pour cette étape.** Recopie celui du parent tel quel (ou son absence). La boucle compare l'empreinte
+  du profil de chaque variante à celle du parent : une variante dont la main change est refusée avant d'être notée, et elle est payée quand même.
+  Monter le palier en rendant la main plus vive, ou en prenant la seconde chance à chaque mort, n'est pas mieux conduire.
 - Avec un profil, la vue porte `vue.main` : `attente` (dans combien d'images chaque ordre donné atteindra la main), `geste` (`'attend'`,
   `'joue'` ou `null`) et `refuse` (le dernier geste demandé n'est pas parti). Lire `refuse` avant de compter sur un saut.
 - Un volant chiffré (`volant: ±1`) reste tenu quand le mode change : en vol, donner `ensuite: { ligne: 0 }` (ou `{ volant: 0 }`) avec l'ordre,
