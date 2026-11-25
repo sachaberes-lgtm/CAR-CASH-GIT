@@ -18,8 +18,9 @@ const cl=(x,a,b)=>x<a?a:x>b?b:x;
 function versRoute(v,nitro){
   const f=v.vol,p=f.proche,o={volant:0,manche:0,nitro:nitro};
   if(!p)return o;
-  if(Math.abs(p.axe)<1.6)o.volant=cl((cl(-p.lat/40,-.6,.6)-p.axe)*1.6,-1,1);
-  if(p.haut>10&&Math.abs(p.lat)<v.demi*2){const d=p.haut/Math.max(1,p.versRoute);if(d>2||d>f.reste-1)o.manche=-1;}
+  /* (2026-11-25, relecture) tete en bas par rapport a la route (p.envers), le volant tourne a l'envers de son repere : la loi se retourne, comme dans les yeux */
+  if(Math.abs(p.axe)<1.6)o.volant=cl((cl(-p.lat/40,-.6,.6)-p.axe)*1.6,-1,1)*(p.envers?-1:1);
+  if(p.haut>10&&Math.abs(p.lat)<v.demi*2){const d=p.haut/Math.max(1,p.versRoute);if(d>2||d>f.reste-1)o.manche=p.envers?1:-1;}   /* tete en bas, « piquer » eloigne de la route : cabrer */
   return o;}
 module.exports={
   nom:'voltigeur',

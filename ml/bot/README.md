@@ -20,12 +20,13 @@ rend un *ordre*, dix fois par seconde. Il ne touche jamais le jeu : ses yeux lis
 | `verifier.js` | les contrôles du contrat dans le vrai jeu, dont le bac fermé ; pour les yeux v2, « le radar ne touche pas le jeu », son coût, sa justesse ; pour les doigts v2, la main sans profil inchangée, une main à profil répétable et rejouable par ses touches, la seconde chance. **À relancer après chaque mise à jour du jeu.** |
 | `justesse.js` | la justesse du radar : ce qu'il **prévoit** contre ce qui **arrive**, sur de vraies courses (§ 2 ter) |
 | `voltigeur.js` | le cerveau de mesure : il sort de la route exprès et tient une façon de piloter par vol (pour `justesse.js` et `verifier.js`) |
+| `voltigeur-route.js` | le second cerveau de mesure (25/11) : après un saut il tient `rien` ou `plane`, après une sortie par le bord la loi `versRoute` — ce qu'un pilote fera (`justesse.js --cerveau voltigeur-route.js`, avec ou sans `--profil clavier`) |
 | `discerner.js` | le juge « humain ou bot » : un bot se distingue-t-il d'un vrai joueur, sur ce qui se voit d'une course ? (§ 4 bis) |
 
 ```bash
 cd ml/bot
-node verifier.js                         # le contrat tient-il ? (32 processus neufs, 2 à la fois, 11 min ; --regime allege pour l'autre version du jeu ; --carte nuages : les contrôles du radar sur une seule map)
-node justesse.js                         # le radar dit-il juste ? (le voltigeur, 6 maps × 3 graines ; --pas : les places image par image ; --cerveau reference.js)
+node verifier.js                         # le contrat tient-il ? (33 processus neufs, 2 à la fois, 11 min ; --regime allege pour l'autre version du jeu ; --carte nuages : les contrôles du radar sur une seule map)
+node justesse.js                         # le radar dit-il juste ? (le voltigeur, 6 maps × 3 graines ; --pas : les places image par image ; --cerveau reference.js ; --cerveau voltigeur-route.js ; --profil clavier : une main à profil)
 node noter.js --tmax 300                 # LA note de référence documentée (20 graines, régime max, 300 s) → results/note-reference.json
 node noter.js mon-cerveau.js --regime allege --coeurs 2     # 900 s au plus par défaut → results/note-mon-cerveau-allege-t900.json
 node autopsie.js mon-cerveau.js --graine 910037 --regime allege --avant 6   # le MÊME régime et la MÊME --tmax que la note
@@ -66,11 +67,13 @@ module.exports = { nom: 'mon-cerveau', decide: function (vue, memoire) { return 
 
 Repères : mètres, secondes, radians. **Tout ce qui est latéral est positif à GAUCHE** (lat, cap, volant, virage, gisement).
 `d` = distance le long de la route, devant la caisse.
+⚠ **Une seule exception, sous la dalle (`dessous`)** : le `lat` des pièces, des fruits et des orbes y est en miroir (c'est le champ d'origine, gardé tel quel).
+**Lire `latC` à la place, partout** : c'est le même côté dans le repère du conducteur, juste dessus comme dessous (ajouté le 25/11).
 
-**Toujours** : `mode` (`sol`, `vol`, `boom`) · `t`, `image` · `carte`, `meteo` · `s` (où j'en suis sur la piste), `fin` (distance au portail), `L` ·
+**Toujours** : `mode` (`sol`, `vol`, `boom`) · `fini`, `mort` (toujours `false` et `null` pour un cerveau : il n'est jamais appelé mort) · `t`, `image` · `carte`, `meteo` · `s` (où j'en suis sur la piste), `fin` (distance au portail), `L` ·
 `vitesse` (m/s) · `volant` (le braquage en cours) · `demi` (demi-largeur de la route, 28 m) ·
 `nitro` (part de la jauge, 0 à 1), `reserve` (réserve bleue), `nitroOn`, `nitroLibre` (elle est offerte : départ ou pouvoir) ·
-`flow`, `flowNiveau` (0 à 4) · `argent`, `pieces`, `figures`, `chaine`, `moteur` (palier) · `pouvoirs` (secondes restantes : nitro, vitesse, air, aimant) ·
+`flow`, `flowNiveau` (0 à 4) · `argent`, `pieces`, `figures`, `chaine`, `moteur` (**le palier moins 1** : 0 à 29 ; pour le palier de 1 à 30, lire `palier.n`) · `pouvoirs` (secondes restantes : nitro, vitesse, air, aimant) ·
 `troncons` (voir plus bas) ·
 `vitMult` (ce qui multiplie l'avance : 1 à 2,6) · `palier` : `n` (1 à 30), `pieces`, `manque` (pièces avant le suivant ; `null` au 30), `pousse` (poussée de la nitro), `jauge` (taille de la jauge), `elan`, `vmax` (m/s) ·
 `aimant` : `moteur` (acquis au palier 16), `sol` [m en long, m de côté], `prise` (m), `vol` (m), `pomme` (rayon de la pomme dorée, 0 sans elle : les pièces seulement) ·
@@ -80,18 +83,19 @@ Repères : mètres, secondes, radians. **Tout ce qui est latéral est positif à
 `drift`, `glisse` (flaque), `rebond`, `sursis` · `figureRoute`, `bond` (hauteur du bond d'une figure sur la route) ·
 `lacetRoute`, `lacetMax` (pour tenir une ligne) ·
 `route` : à 30, 60, 100, 150, 220, 300, 400, 550 m devant — `virage` (de combien elle a tourné), `monte`, `devers`, `envers`, `trou` ·
-`piecesDevant` (par tranches de 25 m : `d`, `lat` moyen, `n`) · `plaques` · `fruits` (ils remplissent la réserve) · `orbes` (pouvoirs) · `flaques` (`rayon`) ·
-`modules` (les deux prochains morceaux nommés de la route) ·
+`piecesDevant` (par tranches de 25 m : `d`, `lat` moyen, `n`, **`latC`**) · `plaques` (`d`, `lat`) · `fruits` (ils remplissent la réserve : `d`, `lat`, `nom`, `force`, **`latC`**) ·
+`orbes` (pouvoirs : `d`, `lat`, `pouvoir`, **`latC`**) · `flaques` (`d`, `lat`, `rayon`) — `latC` est le côté à viser (voir l'exception en tête) ; les plaques, les flaques et `ligne.objets` n'ont pas ce défaut ·
+`modules` (les deux prochains morceaux nommés de la route : `nom`, `d0`, `d1`, `climax`) ·
 `arret` (s passées sous 22 km/h : la caisse explose à 6) · `rayonMin` (le plus petit rayon qu'elle tient à cette vitesse, volant à fond) ·
 `virage` : le prochain virage sur 400 m ou 4 s de route — `d`, `sens` (+1 à gauche), `rayon`, `angle`, `vSure`, `vSureDrift`, `vCorde`, `marge` (`vSure` − ma vitesse), `braquage` (part de volant qu'il demande ; au-dessus de 1 il ne passe pas). **Au-dessus de `vSure` l'axe ne se tient plus ; `vCorde` est la borne en coupant le virage** (optimiste) ·
 `couloirs` (jusqu'à 900 m : `d0`, `d1`, `genre` — couloir, tunnel, mine, ville —, `plafond`) et `mur` (`ici`, `bord`, `angle`, `mortel`) : **dans un couloir le bord est un mur ; il tue au-delà de 0,52 rad et de 200 km/h** ·
-`ligne` : la ligne parfaite — `cadence` (s entre deux objets), `don` (nitro rendue par objet : 1,15, contre 0,8 perdu par seconde nitro tenue — 1 brûlé, 0,2 refait), `prises` (un fruit se prend à 4,5 m de côté, une plaque à 5,6 m), `objets` (les 4 prochains : `d`, `lat`, `type` fruit ou plaque, `don`) ; `null` hors course ·
-`sautRefuse` (le jeu refusera le saut : sous la dalle, avant une crête ou un retournement, pendant un rebond) ·
-`tenue` : la route se tient-elle 3 s, volant au mieux ? `tient`, sinon `t` (s avant le bord), `cote`, `s`, `mur`, `mortel` ·
+`ligne` : la ligne parfaite — `cadence` (s entre deux objets), `don` (nitro rendue par objet : 1,15, contre 0,8 perdu par seconde nitro tenue — 1 brûlé, 0,2 refait), `prises` (un fruit se prend à 4,5 m de côté, une plaque à 5,6 m), `objets` (les 4 prochains : `d`, `lat`, `type` fruit ou plaque, `don`) ; `null` hors course. ⚠ `don` et le 0,8 par seconde sont en **unités de jauge du jeu**, pas en parts de jauge comme `vue.nitro` et `vue.reserve` : diviser par `palier.jauge` (2,0 au palier 1, 3,6 au palier 30) pour les comparer — 1,15 vaut 57 % de la jauge au palier 1 et 32 % au palier 30 ·
+`sautRefuse` (le jeu refusera le saut : sous la dalle, avant une crête ou un retournement, pendant un rebond, pendant un demi-tour, **moins de 0,9 s après la figure d'avant, ou la jauge plus la réserve sous 35 %** — le prix de la figure qui porte le saut, sauf nitro offerte ; ajouté le 25/11. La main, elle, joue quand même le geste jusqu'au bout : ↓ tenu au sol, c'est le frein. Une figure déjà en cours — `figureRoute` — n'est pas un refus : voir `sorties.saut`) ·
+`tenue` : la route se tient-elle 3 s, volant au mieux ? `tient`, sinon `t` (s avant le bord), `cote`, `s`, `mur`, `mortel` ; `approx` toujours vrai (une estimation : la vitesse tenue, ni drift ni flaque) ·
 `sorties` : le radar lancé depuis le bord (voir « Le radar »).
 
-**En vol** (`vue.vol`) : `t` (temps en l'air), `reste` (avant l'explosion des 6 s), `monte` (vitesse verticale), `plancher` (hauteur au-dessus du fond mortel) ·
-`proche` : la route la plus proche — `lat` (à côté), `haut` (au-dessus, le long de SA normale), `avant`, `cote`, `versRoute` (vitesses), `axe` (angle d'arrivée) ·
+**En vol** (`vue.vol`) : `t` (temps en l'air), `reste` (avant l'explosion des 6 s), `monte` (vitesse verticale), `plancher` (hauteur au-dessus du fond mortel), `lacetMax` (rad/s : de combien le vol tourne au plein volant) ·
+`proche` : la route la plus proche — `lat` (à côté), `haut` (au-dessus, le long de SA normale), `avant`, `cote`, `versRoute` (vitesses), `axe` (angle d'arrivée), **`envers`** (la caisse vole tête en bas par rapport à cette route — après une sortie depuis le dessous de la dalle : **le volant y tourne à l'envers**, ← envoie vers la droite de la route ; ajouté le 25/11) ·
 `anneau` : l'anneau de pose que le joueur voit — `delai`, `dist`, `dessous`, `gisement` ·
 `figure` : `enCours`, `reste` (s pour finir), `angle` (rad restants), `ecart` (à l'endroit), `budget` (s avant la pose, selon le jeu) · `figuresDuVol` ·
 `air` : `reste` (la **vraie** marge avant l'explosion — `vol.reste` ment sous le raisin, qui double la jauge : lire `air.reste`), `jauges` (2 tant que la première du raisin court) ·
@@ -106,7 +110,8 @@ Jusqu'à quatre, le plus gros gain d'abord : `s`, `gain` (piste sautée moins di
 
 En vol, `vue.vol.radar` rejoue le vol **image par image, avec les lois du jeu**, pour plusieurs façons de piloter, et donne pour chacune l'**issue**.
 `radar` : `pas` (1/60 s), `court` (2 s) et `long` (ce qu'il reste d'air, 6 s au plus : les deux horizons), `decor` (ce qui est sondé : grotte, jade, canyon,
-ville, espace), `maille` (m entre deux sondes du décor), `aveugle` (ce qui ne l'est pas ici), `approx`, et `rayons`, toujours dans cet ordre :
+ville, espace), `maille` (m entre deux sondes du décor : depuis le 25/11 le décor est sondé **à chaque image**, comme le jeu le juge — sauf au canyon, une image
+sur huit), `aveugle` (ce qui ne l'est pas ici : `glacier`, `dunes`, `roches`), `approx`, et `rayons`, toujours dans cet ordre :
 
 | Rayon `m` | L'ordre à tenir pour l'obtenir | Horizon |
 |---|---|---|
@@ -129,39 +134,62 @@ Chaque rayon : `issue`, `t` (**secondes de jeu** avant elle), `d` (m volés), `b
 - `libre` : rien avant l'horizon — `haut`, `lat`, `s` par rapport à la route la plus proche à ce moment-là ; `coupe` : le budget de calcul est épuisé (même chose).
 
 **La loi `versRoute`**, pour qu'un cerveau puisse la suivre (c'est celle du bot de référence sans son anneau) : avec `p = vue.vol.proche`,
-`volant = borne((borne(-p.lat/40, ±0,6) − p.axe) × 1,6, ±1)` si `|p.axe| < 1,6` ; `manche = -1` (piquer) si `p.haut > 10`, `|p.lat| < 2 × demi`
-et que la route est à plus de 2 s dessous (`p.haut / max(1, p.versRoute)`) ou trop loin pour l'air qu'il reste.
+`volant = borne((borne(-p.lat/40, ±0,6) − p.axe) × 1,6, ±1) × (p.envers ? −1 : 1)` si `|p.axe| < 1,6` (tête en bas par rapport à la route, le volant se retourne :
+sans cela la caisse s'éloigne de l'axe — corrigé le 25/11) ; `manche = p.envers ? 1 : −1` (piquer vers la route ; tête en bas, c'est cabrer) si `p.haut > 10`,
+`|p.lat| < 2 × demi` et que le délai avant la route (`p.haut / max(1, p.versRoute)`) dépasse 2 s, ou dépasse l'air qu'il reste moins 1 s (`vol.reste − 1`).
+Le bot de référence (`reference.js`) suit encore la loi d'avant, sans `envers` : il n'a pas été touché (sa course changerait dans ce cas-là).
 
 **Au sol, `vue.sorties`** : le même radar lancé depuis la sortie de route. `null`, ou `{pourquoi, bord, gauche, droite, saut}`, chaque sortie
 `{t (s avant de décoller), s, cote, approx, rayons}` (ou `{issue}` si elle n'a pas lieu : la route tient, un mur, le portail) :
-- `bord`, **d'office**, quand `tenue` annonce le bord dans 1,5 s : rayons `rien`, `versRoute`, `plane` ;
-- `gauche`, `droite` (plein volant dès maintenant jusqu'au bord) et `saut` (le geste `saut` : 0,42 s de route puis le décollage ; absent si `sautRefuse`),
-  **à la demande** : l'ordre d'avant doit porter `regarder:'sorties'` (§ 3). Rayons `rien` et `plane`, sur 3 s.
+- `bord`, **d'office**, quand `tenue` annonce le bord dans 1,5 s : rayons `rien`, `versRoute`, `plane`, sur 6 s. Elle suppose une caisse qui essaie de tenir la route ;
+- `gauche`, `droite` (plein volant dès maintenant jusqu'au bord), **à la demande** : l'ordre d'avant doit porter `regarder:'sorties'` (§ 3). Rayons `rien` et `plane`
+  sur 3 s, et **`versRoute` sur 6 s** (ajouté le 25/11 : c'est lui qui dit si la sortie est vivable — `rien` et `plane` s'éloignent du bord et répondent presque toujours
+  « libre » pour des vols qui meurent ensuite, jauge vide) ;
+- `saut` (le geste `saut`), **à la demande** aussi : rayons `rien` et `plane` sur 3 s, plus `impulsion` (celle que le rayon suppose), `mesure` et `fleche`.
+  Absent si `sautRefuse` ; `{issue:'figure'}` si une figure tourne déjà sur la route (le geste peut alors faire décoller du bond en cours : **non prévu**).
+  Le radar joue le geste comme la main sans profil le joue, image par image (mesuré dans le jeu le 25/11) : 24 images de route (`t` = 0,42 s), puis en vol la
+  NITRO et le manche tenus **5** images, la NITRO **relâchée jusqu'à la 27e image** (la main ne peut pas la reprendre avant : le rayon `plane` du saut ne plane
+  donc qu'à partir de là), et **une flèche du volant des images 6 à 9** si l'ordre du moment braque (`fleche` : +1 ←, −1 →, 0 rien). Cette flèche vient de la
+  main : à la fin du geste elle applique en plein vol le volant du dernier ordre donné au sol (`ligne` ou `volant`), et le radar suppose que cet ordre est celui
+  de la vue. **Pour sauter droit, donner `volant: 0` (et pas `ligne`) aux décisions qui suivent l'ordre de saut** : la flèche ne part pas ; le rayon, lui, l'aura
+  comptée si `fleche` n'était pas 0 (4 à 5 m d'écart après 0,5 s de vol).
 
 À savoir pour s'en servir :
 
-- **Le radar compte les délais de la main.** Un ordre ne passe pas à l'image suivante : une touche enfoncée ou relâchée le reste 4 images, et après le
-  geste `saut` les doigts tiennent encore la NITRO et le manche quelques images (`doigts.js`, `delais` ; `piloter.js` les donne aux yeux à chaque vue).
-  Chaque rayon garde donc chaque touche dans son état du moment pendant son délai, puis applique son ordre. Un **geste** en vol (figure, redresser)
-  n'est pas prévu : l'appui seul donne un coup de réacteur. Hors d'une course (`voir(J)` sans les doigts), l'ordre est supposé tenu dès l'image suivante.
-  **Avec une main à profil** (§ 3.1), le temps de réaction du canal s'y ajoute (il est tiré d'avance : le radar lit le vrai). Ce que le radar ne
-  sait pas d'une telle main : les ordres déjà en route arriveront avant le sien, et un volant par coups ou tenu par le suivi n'est pas une touche fixe.
+- **En vol, le radar compte les délais de la main.** Un ordre ne passe pas à l'image suivante : une touche enfoncée ou relâchée le reste 4 images, et après le
+  geste `saut` les doigts tiennent encore la NITRO et le manche quelques images, puis la NITRO reste relâchée jusqu'à 27 images après son appui (`doigts.js`,
+  `delais` ; `piloter.js` les donne aux yeux à chaque vue). Chaque rayon garde donc chaque touche dans son état du moment pendant son délai, puis applique son
+  ordre. Un **geste** en vol (figure, redresser) n'est pas prévu : l'appui seul donne un coup de réacteur. Hors d'une course (`voir(J)` sans les doigts), l'ordre
+  est supposé tenu dès l'image suivante.
+- **Au sol, pour une main sans profil, aucun délai n'est compté** dans `vue.sorties` (seul le déroulé du geste `saut` l'est) : « gauche » et « droite » braquent
+  à fond dès l'image suivante, et chaque rayon applique son ordre dès la première image du vol.
+- **Avec une main à profil** (§ 3.1) — depuis le 25/11, mesuré une seule fois (§ 2 ter), à prendre comme une estimation :
+  au sol, la réaction déjà tirée est **roulée avant** le plein volant ou le geste (la caisse tient encore la route pendant ce temps), et une fois en l'air les touches
+  du décollage (la flèche de la sortie, la NITRO) tiennent encore le temps d'une réaction avant que l'ordre du rayon ne parte ; en vol, le temps de réaction du canal
+  s'ajoute au délai de chaque touche (il est tiré d'avance : le radar lit le vrai). Pour un **volant par coups ou tenu par le suivi**, la flèche du moment tient jusqu'à
+  la fin de son coup (déjà tirée), puis le radar joue **la part de braquage moyenne** de l'ordre en vigueur et des ordres déjà en route, jusqu'à l'arrivée de l'ordre du
+  rayon — les coups suivants sont tirés au hasard de la main, que les yeux ne lisent pas. `tenu` vaut alors « l'ordre en vigueur », et **tous les rayons sont `approx`**.
+  En vol, avec une telle main, seuls des ordres pleins (0, ±1) tenus plus longtemps que la réaction sont prévus au plus juste.
 - Un rayon dont l'ordre est déjà celui des touches recopie `tenu` (son horizon est alors le long).
 - **Tout ce qui part du sol est une estimation** (`approx`) : la vitesse est tenue, sans drift ni flaque. Le saut prend l'impulsion du dernier saut de la
-  course (`saut.mesure` vrai) ; avant le premier, le plancher du jeu (`mesure` faux : le vrai saut monte plus haut et retombe plus loin).
+  course (`saut.mesure` vrai) ; avant le premier, le plancher du jeu (`mesure` faux : le vrai saut monte plus haut et retombe plus loin — § 2 ter). Dans le jeu,
+  l'impulsion dépend de la figure et de l'instant du dernier appui : une main dont les appuis varient (profil) ne refait pas exactement le saut d'avant.
 - **Les rayons `versRoute`** sont joués volant dosé, redécidés 10 fois par seconde : au clavier le dosage se fait en tapotant (`approx`).
 - `t` est en secondes de jeu ; pendant le ralenti de la frénésie, `radar.approx` est vrai.
 
 **Ce que les yeux ne voient toujours pas** : le glacier et les dunes (hors du tirage : `aveugle`), la ville vitrée au-delà de son sol, la route d'après le portail,
 un obstacle plus mince que `maille`, les montagnes de jade qui tombent (elles sont vues à leur place du moment), les filets de virage. **Au canyon, dans le
 simulateur `ml/reel`, il n'y a rien à voir : le relief n'y existe pas** (son calcul part dans un travailleur qui ne répond jamais ; `?cyw=0` le calcule sur
-place) — ni paroi, ni rivière, ni mur de couloir. Défaut connu, laissé tel quel : sous la dalle, les `lat` des pièces, fruits et orbes de la vue d'avant sont en miroir
-(`ligne.objets` est dans le bon repère).
+place) — ni paroi, ni rivière, ni mur de couloir ; le jour où ce relief sera allumé, le radar ne le sondera qu'une image sur huit (une sonde y coûte 134 µs) et
+pourra passer à travers un rocher mince, comme il le faisait à la grotte avant le 25/11. Sous la dalle, les `lat` des pièces, fruits et orbes sont en miroir :
+lire `latC` (voir en tête du § 2). **Pas de rayon `viser`** : l'aide `viser` (un tronçon en contrebas, l'anneau) n'a aucun rayon — le radar ne dit pas où
+elle mène ; et la loi des rayons `versRoute` n'a pas d'aide : pour la suivre il faut la recopier en `volant` chiffré à chaque décision.
 Les tronçons sont un calcul simple (chute verticale, sans le plané ni les maps où le haut suit la route) : une piste, pas une promesse.
 
 ### 2 ter. Ce que vaut le radar (`justesse.js`)
 
-Le radar ne vaut que par son tableau « prévu / arrivé ». **Mesuré le 24/11/2026**, version allégée, le voltigeur sur 6 maps × 5 graines (57 vols, `results/justesse-allege.json`) :
+Le radar ne vaut que par son tableau « prévu / arrivé ». **Mesuré le 24/11/2026, refait le 25/11 après la relecture** (mêmes chiffres en vol), version allégée,
+le voltigeur sur 6 maps × 5 graines (57 vols, `results/justesse-allege.json`, `node justesse.js --graines 5`) :
 
 | Où le rayon est pris | Issue juste | Poses : écart médian (90 % des poses sous…) |
 |---|---|---|
@@ -170,16 +198,36 @@ Le radar ne vaut que par son tableau « prévu / arrivé ». **Mesuré le 24/11/
 | une seconde avant la fin du vol | 51 / 51 | 0 s (0,02) · 0,2 m (1,5) · 0,03 m (0,11) |
 
 - la **note** de la pose (parfaite, bonne, lourde) est la bonne 22 fois sur 22 ; les 8 **chocs** contre le décor (roche, pic, tour) sont vus : 6 avec leur cause dès la première vue, 2 par un rayon court (2 s) qui les dit « libre » parce qu'ils arrivent plus loin que son horizon ;
-- **le pas à pas** (`--pas`, 44 vols, `results/justesse-allege-pas.json`) : les places prévues image par image sont celles du jeu **au centimètre sur tout le vol, 44 fois sur 44** ; l'issue tombe à l'image près 38 fois sur 41 (3 chocs vus une image trop tard : la grotte et les pics de jade sont sondés une image sur deux) ;
-- **les sorties du sol** (50) : une sortie franche est annoncée à 0,07 s près (médiane ; 0,5 s pour une sur dix) et l'issue du vol qui suit est juste 16 fois sur 17 ; un saut décolle à l'image annoncée, mais **avant le premier saut de la course sa pose est annoncée 0,7 s et 45 m trop tôt** (voir « Le radar ») ;
-- **le bot de référence** (rayon `tenu`, 12 vols, `results/justesse-allege-reference.json`) : 10 sur 12 — il change d'ordre pendant ses vols, et `tenu` ne dit que ce qui arrive si rien ne change ;
-- **le canyon avec son relief** (`--requete "&cyw=0"`, 8 vols) : 8 sur 8, les 4 chocs « paroi » prévus avec leur cause.
+- **le pas à pas** (`--pas`, 44 vols, `results/justesse-allege-pas.json`) : les places prévues image par image sont celles du jeu **au centimètre sur tout le vol, 44 fois sur 44** ; l'issue tombe à l'image près **41 fois sur 41** (le 24/11 : 38 sur 41 — ce n'étaient pas des chocs « vus une image trop tard » mais des roches **manquées** : la grotte et les pics de jade n'étaient sondés qu'une image sur deux, et une roche touchée pendant une seule image impaire passait inaperçue ; depuis le 25/11 ils sont sondés à chaque image, comme le jeu les juge ; le canyon reste à une sur huit) ;
+- **les sorties du sol** : une sortie franche est annoncée à 0,07 s près (médiane ; 0,5 s pour une sur dix) ; l'issue du vol qui suit est juste 16 fois sur 17, **mais 15 de ces 16 sont des « libre » avant 3 s pour des vols morts ensuite, jauge vide** : les rayons `rien` et `plane` d'une sortie à gauche ou à droite ne disent pas si elle est vivable (d'où le rayon `versRoute` ajouté, mesuré plus bas) ;
+- **le saut** (30, tous le **premier** de leur course : le voltigeur n'en fait qu'un) : il décolle à l'image annoncée (écart médian 0, au pire 0,05 s). Le vol qui suit : issue juste **17 fois sur 18** (le 24/11 : 15 sur 18), la pose annoncée **0,36 s et 25 m trop tôt** en médiane (le 24/11 : 0,71 s et 45 m), 5,2 m de côté, la note juste 6 fois sur 16. Ce qui reste d'écart vient de l'impulsion : avant le premier saut, le radar prend le plancher du jeu (`mesure` faux). L'erreur restante : une pose annoncée pour un choc contre un pic, sur la jade ;
+- **le bot de référence** (rayon `tenu`, 12 vols, `results/justesse-allege-reference.json`) : 10 sur 12 — il change d'ordre pendant ses vols, et `tenu` ne dit que ce qui arrive si rien ne change. Ses courses passent sous la dalle : `latC` y est contrôlé sur 3 325 objets vus dessous, 0 faux ;
+- **le canyon avec son relief** (`--requete "&cyw=0"`, 8 vols, `results/justesse-allege-cyw0.json`) : 8 sur 8, les 4 chocs « paroi » prévus avec leur cause (ce sont 5 vols distincts : les 3 sauts `versRoutePlane` sont presque les mêmes, 1,40 à 1,45 s).
 
-Ce que cette mesure ne dit pas : 57 vols, c'est peu. Le voltigeur meurt vite (2 à 3 vols par course) et n'a tiré ni `cabre`, ni `pique`, ni `versRoute` sans nitro ; les rayons `versRoute*` ne sont jugés que sur 8 vols. **Ce qui a rendu la première vue juste** (elle ne l'était que 54 fois sur 57) : le radar tient compte des **délais de la main** (`Doigts.prototype.delais`, `doigts.js`) — au décollage, les doigts tiennent encore quelques images les touches d'avant (une flèche du volant, la NITRO et le manche du geste `saut`) ; ces images-là suffisent à déplacer la pose de 9 m.
+**Le second cerveau de mesure, `voltigeur-route.js`** (25/11, 6 maps × 5 graines, 86 vols, `results/justesse-allege-voltigeur-route.json`) : il fait ce qu'un pilote fera — plusieurs sauts par course, et après une sortie par le bord la loi `versRoute`.
 
-`node justesse.js` refait le tableau (6 maps × 3 graines, le voltigeur ; `--pas` : les places image par image ; `--cerveau reference.js` : le rayon `tenu`
-d'un vrai cerveau ; `--requete "&cyw=0"` : le canyon avec son relief). C'est aussi le **détecteur de dérive** : une loi du jeu qui change sans que sa copie
-dans `yeux.js` suive se voit là. **Ce que ça coûte** : sur la course du contrôle 3 de `verifier.js` (150 s, le bot de référence, 4 % des vues en vol), **0,74 ms par vue contre 0,39 sans le radar** (au sol 0,66 ms, en vol 2,6), et une vue de 2 360 caractères contre 1 640. Une vue en vol coûte de 1 à 2 ms sans décor, **2 à 4,5 ms devant la ville, la grotte ou les pics de jade** (les sondes du décor sont des fonctions du jeu : la cible de 2,5 ms n'y est pas tenue), et 13 à 18 ms au canyon avec son relief (une sonde y coûte 134 µs). Un pilote qui volerait autant qu'un joueur (29 % du temps) paierait de l'ordre de 1,5 ms par vue.
+| Ce qui est jugé | Issue juste | Ce que ça dit |
+|---|---|---|
+| en vol, à la première vue / quand les doigts tiennent la façon / 1 s avant la fin | 83 / 86 · 84 / 84 · 66 / 66 | poses à 0,3 m le long de la piste en médiane (11,7 m pour une sur dix à la première vue, 1,7 quand la façon est tenue) |
+| le rayon `versRoute` d'une sortie franche (gauche, droite), vu du sol | 22 / 27 | 9 posés, 11 morts jauge vide, 7 chocs sur les 27 jugées : **revenir après une sortie franche réussit une fois sur trois** ; poses annoncées à 0,12 s, 26 m le long, 3,2 m de côté |
+| le rayon `versRoute` de la sortie `bord` d'office | 9 / 10 | 9 posés (dont 5 rattrapés par la lèvre) ; poses à 0,47 s, 35 m le long (une fois sur dix plus de 400 m : la lèvre rattrape loin de l'endroit annoncé) |
+| le saut, impulsion connue (un 2e saut ou plus) | 14 / 15 | poses à 0,05 s et 4 m en médiane, mais 68 m et 23 m de côté pour un sur dix : l'impulsion dépend de la figure et de l'instant du 2e appui |
+| le saut, premier de la course | 30 / 30 | poses à 0,38 s et 27 m trop tôt (le plancher du jeu) |
+
+Sur 46 sauts ordonnés : 45 prévus, tous décollés ; 1 dit refusé (jauge trop basse), qui n'a pas décollé.
+
+**Avec la main « clavier »** (`--profil clavier`, une main à profil : réactions tirées, volant par coups) : le voltigeur, 50 vols (`results/justesse-allege-main-clavier.json`) —
+**36 sur 50 seulement à la première vue du vol** (les touches du décollage et l'ordre en route ne sont qu'estimés), 49 sur 50 dès que les doigts tiennent la façon,
+42 sur 43 une seconde avant la fin ; le saut : 14 sur 26 (la main décolle plus tard et autrement que la main de machine). Le voltigeur de la route avec cette main
+(`results/justesse-allege-voltigeur-route-main-clavier.json`) : 44 sur 58 à la première vue, 58 sur 58 ensuite ; `versRoute` après une sortie franche 16 sur 20 ;
+un saut prévu n'a pas décollé (1 sur 35). **Conclusion : avec une main à profil, ne se fier au radar en vol qu'une fois la façon tenue depuis une réaction.**
+
+Ce que ces mesures ne disent pas : `cabre`, `pique` et `viser` n'ont jamais été tirés ; **aucun pilote n'a encore décidé en lisant le radar** (les deux voltigeurs, la
+référence et essai-main ne le lisent pas) ; les sorties à gauche et à droite du premier voltigeur n'ont pas de vol `versRoute` (il tient `rien` ou `plane`). **Ce qui a rendu la première vue juste** (elle ne l'était que 54 fois sur 57) : le radar tient compte des **délais de la main** (`Doigts.prototype.delais`, `doigts.js`) — au décollage, les doigts tiennent encore quelques images les touches d'avant (une flèche du volant, la NITRO et le manche du geste `saut`) ; ces images-là suffisent à déplacer la pose de 9 m.
+
+`node justesse.js` refait le tableau (6 maps × 3 graines, le voltigeur ; `--graines 5` pour les chiffres ci-dessus ; `--pas` : les places image par image ; `--cerveau reference.js` : le rayon `tenu`
+d'un vrai cerveau ; `--cerveau voltigeur-route.js` : la façon que l'ordre porte ; `--profil clavier` : une main à profil ; `--requete "&cyw=0"` : le canyon avec son relief). C'est aussi le **détecteur de dérive** : une loi du jeu qui change sans que sa copie
+dans `yeux.js` suive se voit là. **Ce que ça coûte** : sur la course du contrôle 3 de `verifier.js` (150 s, le bot de référence, 4 % des vues en vol), **0,74 ms par vue contre 0,39 sans le radar** (au sol 0,66 ms, en vol 2,6), et une vue de 2 360 caractères contre 1 640. Une vue en vol coûte de 1 à 2 ms sans décor, **2,5 à 4 ms devant la ville ou la grotte, 5,5 à 6 ms devant les pics de jade** depuis que le décor est sondé à chaque image (le 24/11, une image sur deux : 2 à 4,5 ms ; les sondes du décor sont des fonctions du jeu : la cible de 2,5 ms n'y est pas tenue), et 13 à 18 ms au canyon avec son relief (une sonde y coûte 134 µs). Un pilote qui volerait autant qu'un joueur (29 % du temps) paierait de l'ordre de 1,5 ms par vue.
 
 ---
 
@@ -337,9 +385,10 @@ vitesse maximale du palier), sinon ↓ **freine**. `vue.drift` dit s'il a pris. 
 | 0,45 à 0,9 s | un mini-turbo, l'élan n'est pas rendu |
 | 0,9 s et plus | SUPER (ULTRA à 1,4 s) : l'élan revient |
 
-Puis 0,6 à 1,5 s avant de pouvoir recharger. Les joueurs : Sacha au clavier ne drifte presque jamais (0,1 % du sol), Léo au doigt 16 %.
+Puis une attente avant de pouvoir recharger : 0,9 s après un mini-turbo, 1,2 s après un SUPER, 1,5 s après un ULTRA (rien après un drift de moins de 0,45 s). Les joueurs : Sacha au clavier ne drifte presque jamais (0,1 % du sol), Léo au doigt 16 %.
 **Sans profil (ou profil vide), `drift` n'est pas lu** — écrire alors `manche: 1` avec `volant: ±1` comme avant ; le bilan compte ces ordres perdus
-(`driftSansProfil`). Pour drifter avec une main de machine : `profil: { drift: { avance: 50 } }`.
+(`driftSansProfil`). Pour drifter avec une main de machine : `profil: { drift: { avance: 50 } }` — **42 ms au moins** : de 33 à 41 ms la valeur
+s'arrondit à 2 images, c'est-à-dire au défaut, le profil est alors compté vide (« pas de profil ») et l'ordre `drift` n'est pas lu.
 
 ### 3.5 La seconde chance
 

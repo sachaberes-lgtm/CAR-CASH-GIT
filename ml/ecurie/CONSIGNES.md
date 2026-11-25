@@ -28,12 +28,19 @@ ne passe plus au palier 20 sans anticiper.
 - **Au sol**, rien ne tue sur la dalle, sauf le mur d'un couloir touché à plus de 30° et plus de 200 km/h, et rester presque à l'arrêt 6 s.
 - **Dans la grotte**, quitter la route c'est tomber sous sa dalle : la roche est à quelques dizaines de mètres. Jamais de sortie par le
   bord, jamais de saut dans un boyau.
-- Le **radar** de la vue (yeux v2) prévoit l'issue d'un vol pour plusieurs façons de piloter : s'en servir avant de décoller et pendant
-  le vol est la première chose qui sépare un pilote qui survit d'un pilote qui meurt. En vol : `vue.vol.radar.rayons` (pour `tenu`, `rien`,
+- Le **radar** de la vue (yeux v2) prévoit l'issue d'un vol pour plusieurs façons de piloter. En vol : `vue.vol.radar.rayons` (pour `tenu`, `rien`,
   `gauche`, `droite`, `cabre`, `pique`, `plane`, `planeCabre`, `versRoute`, `versRoutePlane` : `issue` — pose, levre, choc, air, fond,
   portail, libre —, `t` en secondes, et pour une pose `s`, `lat`, `axe`, `note`, `propre`). Au sol : `vue.tenue` (la route se tient-elle ?),
-  `vue.sorties` (le même radar depuis le bord ; à gauche, à droite ou par un saut si l'ordre d'avant porte `regarder:'sorties'`),
-  `vue.virage.vSure` (la vitesse au-delà de laquelle le prochain virage ne se tient plus). Le détail : `ml/bot/README.md` § 2 bis.
+  `vue.sorties` (le même radar depuis le bord ; à gauche, à droite — avec le rayon `versRoute`, celui qui dit si l'on revient — ou par un saut
+  si l'ordre d'avant porte `regarder:'sorties'`), `vue.virage.vSure` (la vitesse au-delà de laquelle le prochain virage ne se tient plus).
+  Le détail : `ml/bot/README.md` § 2 bis. **Ce qui est mesuré, et ce qui ne l'est pas** (README § 2 ter) : en vol, quand la main tient la façon
+  du rayon, l'issue annoncée est la bonne (141 vols sur 141 avec une main de machine, 107 sur 108 avec la main « clavier ») ; à la toute
+  première vue d'un vol, avec une main à profil, seulement 7 fois sur 10 ; depuis le sol c'est une estimation, moins sûre, et le premier saut
+  de la course est annoncé 0,4 s trop court. **Aucun pilote n'a encore décidé en lisant le radar** : qu'il fasse survivre est une
+  hypothèse à vérifier, pas un fait. La loi `versRoute` (README § 2 bis) est la seule façon de revenir qui ait été mesurée après une sortie
+  par le bord : après une sortie franche (volant à fond), elle n'a ramené la caisse qu'une fois sur trois.
+- **Sous la dalle** (`vue.dessous` : les joueurs y roulent 7 % du temps au sol, et une pose dessous paie double), le `lat` des pièces, des
+  fruits et des orbes est en miroir : lire **`latC`**, partout, à la place de `lat` (README § 2).
 
 ## Ce qui rapporte
 

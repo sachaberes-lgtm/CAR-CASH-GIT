@@ -1,8 +1,9 @@
 {
- "date": "2026-11-24T22:08:26.158Z",
+ "date": "2026-11-25T01:56:32.828Z",
  "regime": "allege",
  "requete": null,
  "cerveau": "voltigeur",
+ "profil": null,
  "cartes": [
   "nuages",
   "espace",
@@ -267,7 +268,7 @@
    "ecart_max_p90": 0,
    "ecart_a_05s_med": 0,
    "ecart_a_1s_med": 0,
-   "issue_a_l_image": 5,
+   "issue_a_l_image": 6,
    "issues": 6
   },
   "ville": {
@@ -289,7 +290,7 @@
    "ecart_max_p90": 0,
    "ecart_a_05s_med": 0,
    "ecart_a_1s_med": 0,
-   "issue_a_l_image": 3,
+   "issue_a_l_image": 5,
    "issues": 5
   },
   "canyon": {
@@ -311,7 +312,7 @@
    "ecart_max_p90": 0,
    "ecart_a_05s_med": 0,
    "ecart_a_1s_med": 0,
-   "issue_a_l_image": 38,
+   "issue_a_l_image": 41,
    "issues": 41
   }
  },
@@ -800,7 +801,7 @@
     1
    ],
    "issue": "choc",
-   "k": 88,
+   "k": 87,
    "cause": "roche",
    "ecartMax": 1.5173040782245993e-13,
    "aLImage": null,
@@ -815,7 +816,7 @@
    "nitro": true,
    "vu": 87,
    "fin": "boom",
-   "issueOk": false
+   "issueOk": true
   },
   {
    "image": 339,
@@ -1175,7 +1176,7 @@
     1
    ],
    "issue": "choc",
-   "k": 160,
+   "k": 159,
    "cause": "pic",
    "ecartMax": 3.491253015573477e-13,
    "aLImage": null,
@@ -1190,7 +1191,7 @@
    "nitro": true,
    "vu": 159,
    "fin": "boom",
-   "issueOk": false
+   "issueOk": true
   },
   {
    "image": 668,
@@ -1250,7 +1251,7 @@
     0
    ],
    "issue": "choc",
-   "k": 232,
+   "k": 231,
    "cause": "pic",
    "ecartMax": 1.302446348448666e-13,
    "aLImage": null,
@@ -1265,7 +1266,7 @@
    "nitro": false,
    "vu": 231,
    "fin": "boom",
-   "issueOk": false
+   "issueOk": true
   },
   {
    "image": 657,

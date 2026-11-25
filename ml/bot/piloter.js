@@ -186,8 +186,11 @@ function course(J,cerveau,graine,o){
     const etatMain=D.P&&!D.fin?J.main():null;
     if(fr%HUMAIN.decision===0){
       if(o.temoin&&fr%60===0)o.temoin(J,fr);
-      /* (yeux v2) la demande : celle du cerveau (ou du controle), plus les delais de la main — le radar garde chaque touche dans son etat tant
-         que les doigts ne peuvent pas la changer (doigts.js, delais). Rien pour la vue d'avant ({ radar:false }). */
+      /* (yeux v2) la demande : celle du cerveau (ou du controle), plus les delais de la main — EN VOL le radar garde chaque touche dans son etat
+         tant que les doigts ne peuvent pas la changer (doigts.js, delais). Rien pour la vue d'avant ({ radar:false }).
+         (2026-11-25, relecture) AU SOL (vue.sorties), pour une main sans profil, aucun delai n'est compte : seul le deroule du geste « saut »
+         l'est (et la fleche que la main pose a sa fin : delais().aide). Pour une main a profil, delais() donne aussi sa reaction deja tiree
+         (r), le deroule de son saut (saut) et, en vol, la fin de son coup de volant et la part de braquage de l'ordre en vigueur (vol). */
       const dem0=o.demande||dem,demande=dem0&&dem0.radar===false?dem0:Object.assign({},dem0,{doigts:D.delais()}),e0=etat?etat():0,h0=horloge();
       vue=Y.voir(J,demande);
       const dv=Number(horloge()-h0)/1e6,ct=Y.coutDe(J);

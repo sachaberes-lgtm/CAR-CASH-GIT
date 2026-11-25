@@ -54,6 +54,17 @@
      13. LE DRIFT (un cerveau de quatre lignes, sur une droite des nuages : `drift:+1` pendant une demi-seconde) : le jeu drifte (vue.drift),
          ↓ part deux images apres la fleche, ↓ n'est jamais tenu sans fleche, et la fleche ne se relache pas avant ↓ ; sans profil, l'ordre
          n'est pas lu (aucun ↓ au journal) et le bilan le dit. */
+/* ===== LES CONTROLES DE LA RELECTURE DES YEUX V2 (2026-11-25, Sacha : « des bots du palier 1 au palier 30 qu'on ne distingue pas de vrais joueurs ») =====
+   Un controle par defaut corrige qui pouvait revenir en silence. Les comptes viennent des courses de 6c (justesse.js, mesure.controles).
+     6g. LA LOI « versRoute » TETE EN BAS : la caisse lachee par le banc du jeu (dbgLache) a 14 m a gauche de l'axe au-dessus de la ville, a
+         l'endroit puis tete en bas : `vol.proche.envers` le dit, et dans les deux cas le rayon versRoute finit plus pres de l'axe qu'au depart
+         (avant : tete en bas il finissait au bord, a 27,9 m) ; le voltigeur retourne sa loi lui aussi (son texte lit `envers`).
+     7 (suite). le budget d'une vue avec sorties demandees est celui de la demande (2 900 images), pas celui du vol.
+     8 bis. LE DECOR SONDE A CHAQUE IMAGE (hors canyon) : la maille du radar vaut la distance volee en une image (c'etait deux a la grotte et a la jade) ;
+     8 ter. LE SAUT : un saut que les yeux prevoient DECOLLE (aucun « prevu sans decollage »), un saut dit refuse ne decolle pas, et il decolle a
+            l'image annoncee (ecart median nul) ;
+     8 quater. « latC » (pieces, fruits, orbes) vaut « lat » au-dessus de la dalle et son oppose dessous, sur chaque objet de chaque vue au sol
+            (le nombre d'objets vus SOUS la dalle est affiche : a zero, le retournement n'est pas exerce). */
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),{fork}=require('child_process');
 const A=process.argv.slice(2),opt=(n,d)=>{const i=A.indexOf('--'+n);return i>=0?A[i+1]:d;};
 const {HUMAIN,Doigts:Doigts9,normaliserProfil,hasard,graineDe,tirer}=require('./doigts');
@@ -139,7 +150,16 @@ if(A.includes('--enfant')){
         const x=require('./justesse').mesure(J,C,{graine:m.graine,carte:m.carte,tmax:m.tmax},course,{yeuxEnPlus:{sorties:true},
           temoin:function(J9){const t0=Date.now(),a=TM.photo();Y.voir(J9,{sorties:true});const b=TM.photo();msPhoto+=Date.now()-t0;photos++;for(const n of TM.diff(a,b))change[n]=(change[n]||0)+1;}});
         r={empreinte:x.bilan.empreinte,touches:x.bilan.touches,images:x.bilan.images,cause:x.bilan.cause,duree:x.bilan.duree,yeux:x.bilan.yeux,tirages:x.bilan.tirages,xReel:x.bilan.xReel,
-           justesse:x.vols,temoin:{photos:photos,ms:photos?Math.round(msPhoto/photos):0,change:change},budget:Y.budgetDe(J)};}
+           justesse:x.vols,controles:x.controles,temoin:{photos:photos,ms:photos?Math.round(msPhoto/photos):0,change:change},budget:Y.budgetDe(J)};}
+    }else if(m.quoi==='envers'){
+      /* (relecture, controle 6g) la caisse lachee par le banc du jeu, a l'endroit (u = 1) puis tete en bas (u = -1) : ou finit le rayon versRoute ? */
+      const essai=function(u){
+        J.lancer(m.graine,{carte:'ville'});for(let i=0;i<180;i++)J.image();
+        let lache=null;try{lache=J.ev('dbgLache({lat:14,h:12,u:'+u+'})');}catch(e){lache=String(e&&e.message||e);}
+        J.image();
+        const v=Y.voir(J),p=v.vol&&v.vol.proche,R9=(v.vol&&v.vol.radar&&v.vol.radar.rayons)||[],de=n=>{const y=R9.find(q=>q.m===n);return y?{issue:y.issue,t:y.t,lat:y.lat==null?null:y.lat}:null;};
+        return {lache:lache,mode:v.mode,envers:p?p.envers:null,lat:p?p.lat:null,versRoute:de('versRoute'),rien:de('rien'),gauche:de('gauche'),droite:de('droite')};};
+      r={endroit:essai(1),envers:essai(-1)};
     }else if(m.quoi==='bac'){
       /* LE TRICHEUR : une tentative par decision (une erreur attendue chacune), puis il conduit tout droit. Une tentative qui REUSSIT rend
          { fuite } : on la lit dans la trace. Il essaie aussi d'ecrire dans le jeu (coinsGot=5000) : les pieces de fin le diraient. */
@@ -239,7 +259,8 @@ function mainSeule(profil,graine,ordre,images){
   return D.touches;
 }
 (async function(){
-  const t0=Date.now(),NP9=18+2*CARTES.length;
+  const t0=Date.now(),NP9=19+2*CARTES.length;
+  const enversP=enfant({quoi:'envers',graine:G}); /* (relecture, controle 6g) */
   console.log(`controle du contrat · graine ${G} · ${TMAX} s · regime ${REGIME} · ${NP9} processus neufs, ${K} a la fois…`);
   const lot1=Promise.all([
     enfant({quoi:'gestes'}),
@@ -260,6 +281,7 @@ function mainSeule(profil,graine,ordre,images){
     enfant({quoi:'drift',profil:PROFILS9.jamais}),enfant({quoi:'drift'})]);
   const [g,a,b,sansRec,yeux,bac,sansRadar,...parCarte]=await lot1;
   const [neutre,h1,h1b,h2,h1r,c0,cj,cc,ccr,dr,dr0]=await lot2;
+  const env9=await enversP;
   const R={date:new Date().toISOString(),graine:G,tmax:TMAX,regime:REGIME,humain:HUMAIN};let tout=true;
   const dit=(ok,txt)=>{if(!ok)tout=false;console.log((ok?'  OK   ':'  RATE ')+txt);};
   console.log('\n1. LES GESTES dans le jeu');
@@ -315,6 +337,13 @@ function mainSeule(profil,graine,ordre,images){
     dit(R.radar.etat.ok,`6e. l'etat du jeu intact : ${photos} controles (une vue avec sorties entre deux photos de toutes les variables du jeu)`+(noms.length?' — CHANGE : '+noms.map(k=>k+' ('+tous[k].join(', ')+')').join(' ; '):' — rien ne change')+(Object.keys(vus).length?' · brouillons vus : '+Object.keys(vus).join(' '):''));}
   {const txt=require('./yeux').YEUX_CODE,pris=INTERDITS.filter(x=>txt.indexOf(x)>=0);R.radar.texte={ok:!pris.length,interdits:pris};
     dit(!pris.length,'6f. le texte des yeux n\'appelle aucune fonction du jeu qui ecrit et ne tire rien au hasard'+(pris.length?' — TROUVE : '+pris.join(' '):` (${INTERDITS.length} noms cherches)`));}
+  /* 6g. (relecture) la loi versRoute tete en bas */
+  {const E=env9,a9=E&&E.endroit,b9=E&&E.envers,pres=x=>!!(x&&x.versRoute&&x.versRoute.lat!=null&&x.lat!=null&&Math.abs(x.versRoute.lat)<Math.abs(x.lat)-3);
+    const volt=/p\.envers/.test(fs.readFileSync(VOLT,'utf8'));
+    const ok=!!(a9&&b9&&a9.mode==='vol'&&b9.mode==='vol'&&a9.envers===false&&b9.envers===true&&pres(a9)&&pres(b9)&&volt);
+    R.radar.envers={ok:ok,endroit:a9||null,envers:b9||null,voltigeur:volt};
+    const dire=x=>x&&x.versRoute?`depart a ${x.lat} m de l'axe, versRoute finit « ${x.versRoute.issue} » a ${x.versRoute.lat} m`:'rien';
+    dit(ok,'6g. la loi versRoute tete en bas : a l\'endroit (envers '+(a9?a9.envers:'?')+') '+dire(a9)+' · tete en bas (envers '+(b9?b9.envers:'?')+') '+dire(b9)+' · le voltigeur retourne sa loi : '+(volt?'oui':'NON'));}
   /* ===== 7. LE COUT ===== */
   console.log('\n7. LE COUT DES YEUX');
   {const B=(a&&a.budget)||{},ya=a&&a.yeux,yb=b&&b.yeux;
@@ -324,7 +353,8 @@ function mainSeule(profil,graine,ordre,images){
     if(ya)console.log(`  ·    ${(a.cartes||[]).join(' > ').padEnd(24)} ${ya.ms_moy} ms par vue (sol ${ya.ms_sol_moy}, vol ${ya.ms_vol_moy}, pire ${ya.ms_max}) · ${ya.vues_vol} vues en vol sur ${ya.vues_sol+ya.vues_vol} · sans le radar : ${sansRadar&&sansRadar.yeux?sansRadar.yeux.ms_moy:'?'} ms`);
     let lourd=ya&&ya.ms_moy>3?['course du controle 3']:[];
     for(const p of P6){const y=p.plein&&p.plein.yeux;if(!y)continue;R.cout.cartes[p.carte]=y;
-      const okC=y.pas_max<=B.vol&&y.sondes_max<=B.sondes&&y.route_max<=B.route;if(!okC)dit(false,`${p.carte} : le budget est depasse (${y.pas_max} images, ${y.sondes_max} sondes, ${y.route_max} images de route)`);
+      /* (relecture) le voltigeur demande les sorties : le budget de ses vues au sol est celui de la demande (2 900), pas celui du vol (2 400) */
+      const okC=y.pas_max<=Math.max(B.vol,B.demande)&&y.sondes_max<=B.sondes&&y.route_max<=B.route;if(!okC)dit(false,`${p.carte} : le budget est depasse (${y.pas_max} images, ${y.sondes_max} sondes, ${y.route_max} images de route)`);
       if(y.ms_moy>6&&!p.hors)lourd.push(p.carte); /* 6 ms : le voltigeur vole la moitie du temps (un joueur : 29 %, le bot de reference : 5 a 10 %), et MESURE le 24/11 la map la plus chere (jade) est a 2,7 ms sur un PC charge par ailleurs ; le canyon avec relief n'est pas le simulateur d'aujourd'hui : affiche, pas juge */
       console.log(`  ·    ${p.carte.padEnd(24)} ${y.ms_moy} ms par vue (sol ${y.ms_sol_moy}, vol ${y.ms_vol_moy}, pire ${y.ms_max}) · ${y.vues_vol} vues en vol sur ${y.vues_sol+y.vues_vol} · au pire ${y.pas_max} images, ${y.sondes_max} sondes · ${y.octets_moy} caracteres par vue${p.hors?' · (hors du simulateur : pas juge)':''}`);}
     R.cout.lourd=lourd;dit(!lourd.length,lourd.length?'trop cher par vue en moyenne (3 ms pour la course du controle 3, 6 ms pour celles du voltigeur) : '+lourd.join(', '):'moins de 3 ms par vue en moyenne sur la course du controle 3, moins de 6 sur celles du voltigeur (l\'horloge de l\'hote : elle depend de la charge du PC)');}
@@ -338,7 +368,21 @@ function mainSeule(profil,graine,ordre,images){
     const pa=ta.n?ta.justes/ta.n:null,pb=tb.n?tb.justes/tb.n:null;
     if(SEUILS.a_juste!=null&&ta.n>=SEUILS.min)dit(pa!=null&&pa>=SEUILS.a_juste,`issue juste a la premiere vue : ${ta.justes}/${ta.n} (seuil ${Math.round(100*SEUILS.a_juste)} %)`);
     if(SEUILS.b_juste!=null&&tb.n>=SEUILS.min)dit(pb!=null&&pb>=SEUILS.b_juste,`issue juste 1 s avant la fin : ${tb.justes}/${tb.n} (seuil ${Math.round(100*SEUILS.b_juste)} %)`);
-    if(ta.n<SEUILS.min||tb.n<SEUILS.min)console.log('  ·    (moins de '+SEUILS.min+' vols : affiche seulement)');}
+    if(ta.n<SEUILS.min||tb.n<SEUILS.min)console.log('  ·    (moins de '+SEUILS.min+' vols : affiche seulement)');
+    /* ===== 8 bis, ter, quater (relecture) : les comptes des courses de 6c ===== */
+    const C9=JU.controles(P6.map(p=>p.plein&&p.plein.controles)),S9=JU.sorties(tous).saut,nC=P6.filter(p=>p.plein&&p.plein.controles).length;R.justesse.controles=C9;R.justesse.saut={n:S9.n,prevues:S9.prevues,dt_med:S9.dt_med,dt_max:S9.dt_max};
+    if(!nC)dit(false,'8 bis. pas de comptes : aucune course de 6c n\'a rendu ses controles');
+    else{
+      if(C9.cadence.vues)dit(C9.cadence.max<1.5,`8 bis. le decor est sonde a chaque image (hors canyon) : une sonde toutes les ${C9.cadence.max} image(s) au pire, sur ${C9.cadence.vues} vues en vol devant un decor`);
+      else console.log('  ·    8 bis. aucune vue en vol devant un decor sonde (affiche seulement)');
+      if(C9.sauts.ordres){
+        dit(C9.sauts.prevusSansDecol===0,`8 ter. un saut prevu decolle : ${C9.sauts.ordres} saut(s) ordonne(s), ${C9.sauts.prevus} prevu(s) par les yeux dont ${C9.sauts.prevusSansDecol} sans decollage · ${C9.sauts.decolles} decolle(s)`);
+        dit(C9.sauts.refusesMaisDecol===0,`8 ter. un saut dit refuse ne decolle pas : ${C9.sauts.refuses} refus annonce(s), ${C9.sauts.refusesMaisDecol} decolle(s) quand meme · ${C9.sauts.figure} « figure en cours »`);
+        /* la mediane, pas le pire : un geste dont la mise en place attend une touche part 1 a 4 images plus tard, ce n'est pas un defaut des yeux ;
+           une image de route en trop ou en moins (le defaut corrige) decalerait TOUS les sauts de 0,01 ou 0,02 s */
+        if(S9.prevues)dit(S9.dt_med===0,`8 ter. le saut decolle a l'image annoncee : ecart median ${S9.dt_med} s (au pire ${S9.dt_max} s) sur ${S9.prevues} saut(s) juge(s)`);}
+      else console.log('  ·    8 ter. aucun saut ordonne (affiche seulement)');
+      dit(C9.latC.objets>0&&C9.latC.faux===0,`8 quater. latC = lat au-dessus de la dalle, son oppose dessous : ${C9.latC.objets} objets (pieces, fruits, orbes), ${C9.latC.faux} faux · ${C9.latC.dessous} vu(s) sous la dalle`+(C9.latC.dessous?'':' (le retournement n\'est PAS exerce par ces courses)'));}}
   /* ===== 9. LA MAIN, SANS LE JEU ===== */
   console.log('\n9. LA MAIN (doigts v2), sans le jeu');
   R.main={};

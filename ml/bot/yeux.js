@@ -23,6 +23,18 @@
      · chaque bloc est dans un try/catch : en cas d'erreur le champ vaut { erreur }, la course continue.
    `voir(J, demande)` : demande = rien | { sorties:true } (les sorties a la demande) | { radar:false } (la vue d'avant, sans rien de neuf) ;
    { doigts:{G,D,H,B,N} } : dans combien d'images la main pourra changer chaque touche (piloter.js le lit dans les doigts) — le radar en tient compte. */
+/* ===== LA RELECTURE DES YEUX V2 (2026-11-25, Sacha : « des bots du palier 1 au palier 30 qu'on ne distingue pas de vrais joueurs ») =====
+   Quinze defauts confirmes par des relecteurs ; ce qui change ici (rien dans la course d'un cerveau sans profil : les yeux ne font que lire) :
+     · LE DECOR EST SONDE A CHAQUE IMAGE, comme le jeu le juge (grotte, jade, ville, espace) : une image sur deux laissait passer une roche ;
+     · LE SAUT VU DU SOL suit la main image par image : 24 images de route, puis NITRO et manche tenus 5 images de vol, la NITRO relachee jusqu'a
+       la 27e (la main ne peut pas la reprendre avant), et la fleche que la main pose 4 images a la fin du geste (`saut.fleche`) ;
+     · `sautRefuse` compte aussi le refus de la FIGURE qui porte le saut (jauge sous 35 %, moins de 0,9 s apres la figure d'avant) ; une figure
+       deja en cours : `sorties.saut` vaut { issue:'figure' } (non prevu) ;
+     · LA LOI « versRoute » braque dans le bon sens tete en bas (`vol.proche.envers`) ;
+     · LES SORTIES A GAUCHE ET A DROITE portent aussi le rayon `versRoute` sur 6 s (LISTE_COTE) : survit-on ?
+     · UNE MAIN A PROFIL : au sol sa reaction est roulee avant la sortie ; en vol le coup de volant en cours finit a son heure, puis la part de
+       braquage de l'ordre en vigueur (doigts.js, delais : `r`, `vol`, `Nb`, `aide`, `saut`) ;
+     · CHAMPS NEUFS : `latC` (pieces, fruits, orbes : le cote dans le repere du conducteur, juste aussi sous la dalle ; `lat` ne change pas). */
 const YEUX_CODE=`window.__YEUX=(function(){
   const V1=new THREE.Vector3(),V2=new THREE.Vector3(),V3=new THREE.Vector3(),VIT=new THREE.Vector3();
   const DEVANT=[30,60,100,150,220,300,400,550],POUV={n:'nitro',a:'air',v:'vitesse',m:'aimant',x:'x2'};
@@ -74,10 +86,12 @@ const YEUX_CODE=`window.__YEUX=(function(){
       /* les pieces par tranches de 25 m (ou est la file, combien), les fruits et les bidons un par un */
       const tr={};v.fruits=[];v.orbes=[];
       for(let i=0;i<pickups.length;i++){const p=pickups[i];if(p.taken||p.face!==side||p.air)continue;const d=p.s-s;if(d<4||d>325)continue;
-        if(p.pow){v.orbes.push({d:Math.round(d),lat:r1(p.lat),pouvoir:POUV[p.pow]||p.pow});continue;}                       /* un orbe de pouvoir */
-        if(p.fruit>=0){const fd=FRUIT_DEFS[p.fruit]||{};v.fruits.push({d:Math.round(d),lat:r1(p.lat),nom:fd.n||null,force:fd.boost||0});continue;} /* un fruit : il remplit la reserve de nitro */
+        /* (2026-11-25, relecture) latC : le cote DANS LE REPERE DU CONDUCTEUR (celui de vue.lat et de l'aide « ligne »). Le jeu ramasse quand
+           p.lat = side × lat (gameplay/ramassage.js) : sous la dalle « lat » (garde tel quel) est donc en miroir, « latC » non. */
+        if(p.pow){v.orbes.push({d:Math.round(d),lat:r1(p.lat),pouvoir:POUV[p.pow]||p.pow,latC:r1(sd*p.lat)});continue;}                       /* un orbe de pouvoir */
+        if(p.fruit>=0){const fd=FRUIT_DEFS[p.fruit]||{};v.fruits.push({d:Math.round(d),lat:r1(p.lat),nom:fd.n||null,force:fd.boost||0,latC:r1(sd*p.lat)});continue;} /* un fruit : il remplit la reserve de nitro */
         const k=Math.floor(d/25),q=p.deux?2:1,t=tr[k]||(tr[k]={d:k*25+12,n:0,l:0});t.n+=q;t.l+=p.lat*q;}                 /* une piece (deux : elle compte double) */
-      v.piecesDevant=Object.keys(tr).map(function(k){const t=tr[k];return {d:t.d,lat:r1(t.l/t.n),n:t.n};}).sort(function(a,b){return a.d-b.d;});
+      v.piecesDevant=Object.keys(tr).map(function(k){const t=tr[k];return {d:t.d,lat:r1(t.l/t.n),n:t.n,latC:r1(sd*t.l/t.n)};}).sort(function(a,b){return a.d-b.d;});
       v.modules=[];try{for(const m of (MODS||[])){if(m.s1<s)continue;if(m.s0-s>900)break;v.modules.push({nom:m.fig||null,d0:Math.round(m.s0-s),d1:Math.round(m.s1-s),climax:!!m.climax});if(v.modules.length>=2)break;}}catch(e){}
       VIT.copy(T[bi]).multiplyScalar(Math.cos(psi)).addScaledVector(B[bi],sd*Math.sin(psi)).multiplyScalar(vit);
       v.troncons=sd>0?troncons(P,s,airMax()):[];
@@ -89,7 +103,8 @@ const YEUX_CODE=`window.__YEUX=(function(){
       /* la route la plus proche (le radar de la pose) : ou j'en suis le long de la piste, de combien je suis a cote et au-dessus */
       const sN=curNear?lastNearS:s;v.s=r1(sN);v.fin=Math.round(L-sN);
       if(curNear){const bi=idx(lastNearS);f.proche={lat:r1(curLatOff),haut:r1(curHOff),avant:r1(VIT.dot(T[bi])),cote:r1(VIT.dot(B[bi])),versRoute:r1(-VIT.dot(Nn[bi])),
-        axe:r3(Math.atan2(VIT.dot(B[bi]),VIT.dot(T[bi])))};}else f.proche=null;
+        axe:r3(Math.atan2(VIT.dot(B[bi]),VIT.dot(T[bi]))),
+        envers:typeof FLY_U!=='undefined'&&FLY_U.dot(Nn[bi])<0};}else f.proche=null; /* (2026-11-25, relecture) envers : la caisse vole tete en bas par rapport a CETTE route — le volant y tourne a l'envers du repere de la route */
       /* l'anneau de pose que le joueur voit : ou il est par rapport a ma trajectoire, dans combien de temps j'y suis */
       if(LM.vu&&CAMV.eta<90){const hx=landMark.position.x-P.x,hz=landMark.position.z-P.z;
         f.anneau={delai:r2(CAMV.eta),dist:Math.round(Math.hypot(hx,hz)),dessous:r1(P.y-landMark.position.y),gisement:r2(Math.atan2(VIT.z*hx-VIT.x*hz,VIT.x*hx+VIT.z*hz))};}else f.anneau=null;
@@ -108,7 +123,9 @@ const YEUX_CODE=`window.__YEUX=(function(){
      et 5 courts de 2 s : 2 400 au pire) ; sol : par vue au
      sol (la sortie par le bord, d'office) ; demande : par vue au sol avec les sorties demandees ; route : images de conduite par vue au sol ;
      sondes : les appels au decor par vue (a chaque image au plus, et a l'image de chaque issue). A bout de budget, les derniers rayons rendent « coupe ». */
-  const BUDGET={vol:2400,sol:1100,demande:2200,route:900,sondes:2420};
+  /* (2026-11-25, relecture) demande : 2 200 → 2 900 — les sorties a gauche et a droite portent un rayon « versRoute » de 6 s de plus chacune (au pire :
+     bord 1 080 + gauche 720 + droite 720 + saut 360 = 2 880) ; sondes : 2 420 → 2 920 — le decor est sonde a CHAQUE image (une sonde par image au plus). */
+  const BUDGET={vol:2400,sol:1100,demande:2900,route:900,sondes:2920};
   const H60=1/60,PAS_MS=1000/60,COURT=2,LONG=6,TENUE=3,MOYEN=3;
   const COUT={pas:0,route:0,dalles:0,sondes:0,erreurs:0};
   const MANQUE=[];
@@ -134,7 +151,7 @@ const YEUX_CODE=`window.__YEUX=(function(){
     route:present('route','pts T Nn B NP L TORD VOL_R0 VOL_RK VOL_TAU VOL_LIS lacetMax ROAD_HALF THICK side s lat psi vA steer yawR routeLacet driveDir graceT FREIN_L'),
     couloirs:present('couloirs','CY CITY'),
     ligne:present('ligne','LIGNE pickups PADS PADL'),
-    saut:present('sautRefuse','jadeEnversRefuse villeEnversRefuse NUA_SS nua2On MODS hopY hopV POSE_F DMT TUTO nitroOn FDC'),
+    saut:present('sautRefuse','jadeEnversRefuse villeEnversRefuse NUA_SS nua2On MODS hopY hopV POSE_F DMT TUTO nitroOn FDC FR GSOL VEQ VEQ_K NITRO2 nitroCap nitroR nitroX pwrNitroT startBoostT PARK'),
     vol:present('vol','fallPos fallVel FLY_U FLY_R VOLR VEQ VEQ_K VIRVOL pitchS fallVH0 fallT fallTR bascOn bascT fallStartSide sideCd bounceN nitroR nitroX nitroOn pwrNitroT startBoostT pwrAirT RAI TUTO FLOW FLOW2 JEAU tryLand loop keys FALL_G gK airMax volInv lacetVol nitroCap nitroTientDe nitroBumpDe NITRO2 NITRO_BLEU_K BASC_T LEVRE_H LEVRE_POSE BUMP_VY CARS level TROU trackMinY PARK TBORD VOLR_FIGE AIR_RATE TCTL MIR FX2 volrOn murRoule'),
     portail:present('portail','PORTAL PCUBE PORTV portalMesh'),
     decor:present('decor','GROTTE grotteHeurt JADE jadeHeurt CY canyonHeurt CITY villeHeurt GEANTS geantsHeurt LVL BANQ DN')};
@@ -227,9 +244,12 @@ const YEUX_CODE=`window.__YEUX=(function(){
     K.decor=K.dGrotte||K.dJade||K.dCanyon||K.dSol||K.dVille||K.dGeants;
     /* LA CADENCE DES SONDES DU DECOR, en images. Le jeu juge un point par image : une sonde plus rare manque le coin d'une tour frolee (MESURE le 24/11 :
        a 6 m de maille, une tour sur huit n'etait pas vue ; a chaque image ou une image sur deux, toutes). Elle se regle donc sur le PRIX de la sonde,
-       mesure dans le jeu : la ville (0,4 microseconde) et les geants de l'orbite a chaque image ; la grotte (1 a 7) et les pics de jade (2,6) une
-       image sur deux ; le canyon une sur huit (134 microsecondes : son relief se lit par cinq hauteurs de terrain a chaque sonde). */
-    K.cad=K.dCanyon?8:(K.dGrotte||K.dJade)?2:1;
+       mesure dans le jeu : la ville (0,4 microseconde) et les geants de l'orbite a chaque image ; le canyon une sur huit (134 microsecondes : son
+       relief se lit par cinq hauteurs de terrain a chaque sonde).
+       (2026-11-25, relecture) LA GROTTE ET LES PICS DE JADE AUSSI A CHAQUE IMAGE (c'etait une sur deux). MESURE : grotte, graine 910037, 2e saut — le
+       jeu touche la roche a la 65e image (impaire, non sondee) et pas aux images 64, 66, 67, 68 : le radar passait a travers et annoncait le choc
+       87 images plus loin. ⚠ Le canyon, a une image sur huit, aura le meme defaut en pire le jour ou son relief sera allume dans le simulateur. */
+    K.cad=K.dCanyon?8:1;
     K.volrOn=volrOn();
     K.approx=AIR_RATE!==1||TBORD.t>0||(VOLR.on&&!VOLR_FIGE)||K.park||!!(TCTL.act||TCTL.incl||TCTL.pad)||(typeof RALENTI!=='undefined'&&RALENTI.t>0);
   };
@@ -452,8 +472,13 @@ const YEUX_CODE=`window.__YEUX=(function(){
     const q=gP[bi],n=gN[bi],b=gB[bi],t=gT[bi],dx=e.px-q.x,dy=e.py-q.y,dz=e.pz-q.z,SP=K.SPD;
     const lt=dx*b.x+dy*b.y+dz*b.z,ht=dx*n.x+dy*n.y+dz*n.z;
     const vT=(e.vx*t.x+e.vy*t.y+e.vz*t.z)*SP,vB=(e.vx*b.x+e.vy*b.y+e.vz*b.z)*SP,vR=-(e.vx*n.x+e.vy*n.y+e.vz*n.z)*SP,axe=M.atan2(vB,vT);
-    if(M.abs(axe)<1.6)PIL.cv=cl((cl(-lt/40,-.6,.6)-axe)*1.6,-1,1);
-    if(ht>10&&M.abs(lt)<K.RH*2){const delai=ht/M.max(1,vR);if(delai>2||delai>resteAir(e.fTR,e.pwrA,e.stage)-1)PIL.cm=-1;}};
+    /* (2026-11-25, relecture) le vol tourne autour du haut de la CAISSE (boucle-3-physique.js), lt et axe sont mesures dans le repere de la ROUTE :
+       tete en bas par rapport a elle (une sortie depuis le dessous de la dalle), la fleche ← envoie vers sa droite — le volant de la loi se retourne */
+    /* …et le manche aussi : « piquer » tourne le nez vers le BAS DE LA CAISSE ; tete en bas au-dessus de la route, c'est s'en eloigner (MESURE au banc du
+       jeu, dbgLache, 12 m au-dessus de la ville : sans ce retournement le rayon finissait « air » apres 6 s, avec lui il se pose) */
+    const sg9=(e.ux*n.x+e.uy*n.y+e.uz*n.z)>=0?1:-1;
+    if(M.abs(axe)<1.6)PIL.cv=cl((cl(-lt/40,-.6,.6)-axe)*1.6,-1,1)*sg9;
+    if(ht>10&&M.abs(lt)<K.RH*2){const delai=ht/M.max(1,vR);if(delai>2||delai>resteAir(e.fTR,e.pwrA,e.stage)-1)PIL.cm=-sg9;}};
 
   /* ---- UN RAYON : le vol rejoue image par image jusqu'a sa premiere issue, a l'horizon (« libre ») ou au budget (« coupe »). A chaque image, l'ordre du
      jeu : l'avance, le portail, le decor, la pose, la jauge. Le decor est sonde une image sur K.cad, a la derniere, et a l'image d'une autre issue
@@ -463,21 +488,41 @@ const YEUX_CODE=`window.__YEUX=(function(){
      relachee aussi (ml/bot/doigts.js, HUMAIN), et un geste tient ses touches jusqu'a sa fin. Pendant ses premieres images, chaque rayon garde donc
      l'etat du moment de chaque touche (G, D : le volant ; H, B : le manche ; N : la nitro) tant que son delai n'est pas passe (dG… : en images).
      Les delais viennent de la demande (« doigts », que piloter.js lit dans les doigts) ; sans eux : zero, l'ordre tenu des l'image suivante. */
-  const PRE={n:0,G:0,D:0,H:0,B:0,N:0,dG:0,dD:0,dH:0,dB:0,dN:0};
-  const sansPrelude=function(){PRE.n=0;PRE.dG=0;PRE.dD=0;PRE.dH=0;PRE.dB=0;PRE.dN=0;};
+  /* (2026-11-25, relecture) LE PRELUDE A PLUSIEURS TEMPS. Tous a zero (le cas d'un cerveau sans profil hors d'un saut) : les lignes d'avant, au nombre pres.
+       · bN : la NITRO, une fois son delai passe, reste RELACHEE jusqu'a l'image bN — le geste « saut » la lache a sa fin et la main ne peut pas la
+         reprendre avant 27 images comptees depuis son appui (doigts.js, veut : HUMAIN.seul). MESURE (nuages 910000) : appui a l'image du decollage,
+         tenue 5 images de vol, reprise possible a la 28e ;
+       · fS, f0, f1 : UNE FLECHE que la main posera toute seule (fS : +1 ←, -1 →) des images f0 + 1 a f1 — a la fin du geste « saut », la main sans
+         profil applique le volant du dernier ordre donne au sol (« ligne ») : 4 images de fleche en plein vol ;
+       · mOn, mF, mC, mA, mV : UNE MAIN A COUPS OU A SUIVI (doigts v2). La fleche du moment tient jusqu'a la fin de SON coup (mF), puis la part de
+         braquage de l'ordre en vigueur (mC, une moyenne : les coups suivants sont tires au hasard de la main, que les yeux ne lisent pas), remplacee
+         par celle des ordres deja en route a leur image d'arrivee (mA, mV), jusqu'a l'arrivee de l'ordre du rayon. Le rayon « tenu » devient alors
+         « l'ordre en vigueur », et tous les rayons sont marques « approx ». */
+  const PRE={n:0,G:0,D:0,H:0,B:0,N:0,dG:0,dD:0,dH:0,dB:0,dN:0,bN:0,fS:0,f0:0,f1:0,mOn:false,mF:0,mC:0,mA:[],mV:[]};
+  const sansPrelude=function(){PRE.n=0;PRE.dG=0;PRE.dD=0;PRE.dH=0;PRE.dB=0;PRE.dN=0;PRE.bN=0;PRE.fS=0;PRE.f0=0;PRE.f1=0;PRE.mOn=false;PRE.mF=0;PRE.mC=0;PRE.mA.length=0;PRE.mV.length=0;};
+  const img60=function(x){x=+x;return x>0?M.min(60,M.round(x)):0;};
   const prelude=function(d){
-    const f=function(x){x=+x;return x>0?M.min(60,M.round(x)):0;};
+    const f=img60;
     PRE.G=TEN.G;PRE.D=TEN.D;PRE.H=TEN.H;PRE.B=TEN.B;PRE.N=TEN.N;PRE.dG=f(d.G);PRE.dD=f(d.D);PRE.dH=f(d.H);PRE.dB=f(d.B);PRE.dN=f(d.N);
-    PRE.n=M.max(PRE.dG,PRE.dD,PRE.dH,PRE.dB,PRE.dN);};
-  const rayon=function(e,loi,cv,cm,cn,N,plafond){
+    PRE.bN=f(d.Nb);if(PRE.bN<=PRE.dN)PRE.bN=0;
+    const m=d.vol;
+    if(m&&typeof m==='object'){PRE.mOn=true;PRE.mF=f(m.fin);PRE.mC=cl(+m.c||0,-1,1);
+      const F=m.file;if(F&&F.length)for(let j=0;j<F.length&&j<4;j++){PRE.mA.push(f(F[j][0]));PRE.mV.push(cl(+F[j][1]||0,-1,1));}}
+    PRE.n=M.max(PRE.dG,PRE.dD,PRE.dH,PRE.dB,PRE.dN,PRE.bN);};
+  /* la part de braquage de l'ordre en vigueur a l'image k (une main a coups ou a suivi) */
+  const braquage=function(k){let c=PRE.mC;for(let j=0;j<PRE.mA.length;j++)if(PRE.mA[j]<k)c=PRE.mV[j];return c;};
+  const rayon=function(e,loi,cv,cm,cn,N,plafond,tenu){
     const b0=e.bumps;let k=0;R.issue='libre';R.cause='';
     while(k<N){
       if(COUT.pas>=plafond){R.issue='coupe';break;}
       k++;COUT.pas++;
       if(loi&&(k-1)%6===0&&(e.dLow<=60||(k-1)%30===0)){versRoute(e);cv=PIL.cv;cm=PIL.cm;cn=loi===2;} /* loin de la route (60 m) : la dalle n'est cherchee que deux fois par seconde */
-      if(k<=PRE.n){ /* la main n'a pas fini de changer de touches */
+      if(k<=PRE.n||tenu){ /* la main n'a pas fini de changer de touches (tenu : une main a coups, dont « tenu » est l'ordre en vigueur) */
         const g=k<=PRE.dG?PRE.G:(cv>0?1:0),d=k<=PRE.dD?PRE.D:(cv<0?1:0),hh=k<=PRE.dH?PRE.H:(cm<0?1:0),b=k<=PRE.dB?PRE.B:(cm>0?1:0);
-        avance(e,loi&&k>PRE.dG&&k>PRE.dD?cv:g-d,b-hh,k<=PRE.dN?!!PRE.N:cn);}
+        let vol=loi&&k>PRE.dG&&k>PRE.dD?cv:g-d;
+        if(PRE.fS&&k>PRE.f0&&k<=PRE.f1)vol=PRE.fS;
+        if(PRE.mOn&&k>PRE.mF&&(tenu||k<=PRE.dG))vol=braquage(k);
+        avance(e,vol,b-hh,k<=PRE.dN?!!PRE.N:(k<=PRE.bN?false:cn));}
       else avance(e,cv,cm,cn);
       if(portail(e)){R.issue='portail';break;}
       const sonde=K.decor&&(k%K.cad===0||k===N);
@@ -509,14 +554,14 @@ const YEUX_CODE=`window.__YEUX=(function(){
     return o;};
   /* ---- L'EVENTAIL : depuis l'etat e0, les facons de piloter, toujours dans le meme ordre. Un rayon dont les commandes egalent celles de « tenu »
      recopie son resultat sans recalcul. liste : [nom, loi, volant, manche, nitro, horizon (s)]. ---- */
-  const eventail=function(e0,liste,plafond,approx,tFig){
-    const out=[];let tenu=null;
+  const eventail=function(e0,liste,plafond,approx,tFig,long){ /* long : l'horizon (s) qui remplace LONG dans la liste (les sorties du sol : la jauge d'air entiere) */
+    const out=[],main=PRE.mOn;let tenu=null; /* (2026-11-25, relecture) main : une main a coups ou a suivi — « tenu » n'est plus des touches figees, rien ne se recopie */
     for(let i=0;i<liste.length;i++){const q=liste[i];
       if(tenu&&!q[1]&&q[2]===tenu[2]&&q[3]===tenu[3]&&q[4]===tenu[4]){const o=JSON.parse(tenu[6]);o.m=q[0];out.push(o);continue;}
       copie(E,e0);
-      rayon(E,q[1],q[2],q[3],q[4],M.max(1,M.round(q[5]*60)),plafond);
-      const o=rendre(q[0],q[4]||q[1]===2,approx||q[1]>0,tFig);out.push(o);
-      if(i===0&&q[0]==='tenu'){tenu=q;tenu[6]=JSON.stringify(o);}}
+      rayon(E,q[1],q[2],q[3],q[4],M.max(1,M.round((long&&q[5]===LONG?long:q[5])*60)),plafond,main&&q[0]==='tenu');
+      const o=rendre(q[0],q[4]||q[1]===2,approx||q[1]>0||main,tFig);out.push(o);
+      if(i===0&&q[0]==='tenu'&&!main){tenu=q;tenu[6]=JSON.stringify(o);}}
     return out;};
 
   /* ---- LE RADAR DE VOL ---- */
@@ -538,14 +583,14 @@ const YEUX_CODE=`window.__YEUX=(function(){
      vise pris en VOL_TAU, le cap, l'ecart et l'avance (boucle-2-conduite.js), le virage de la route retire du cap ; en couloir le bord est un mur.
      loi : 0 = tenir la route au mieux (la loi « ligne:0 » des doigts, volant analogique) ; 1 = plein volant a gauche ; 2 = a droite ; 3 = volant lache.
      Rend 'tient' (rien avant N images), 'bord', 'mur' ou 'portail' ; G.k = les images roulees. ---- */
-  const G={s:0,lat:0,psi:0,st:0,yawR:0,vA:0,vm:1,sd:1,dir:1,k:0,vL:0,angle:0};
+  const G={s:0,lat:0,psi:0,st:0,yawR:0,vA:0,vm:1,sd:1,dir:1,k:0,vL:0,angle:0,lacet:0}; /* lacet : de combien la route tourne sous la caisse (rad/s), garde d'un appel de « rouler » au suivant */
   const COUL=[];
   const dansCouloir=function(sv){for(let i=0;i<COUL.length;i++){const c=COUL[i];if(c.mur&&sv>=c.s0&&sv<=c.s1)return true;}return false;};
-  const lireSol=function(g){g.s=s;g.lat=lat;g.psi=psi-slipB-((typeof BKV!=='undefined'&&BKV.gl)||0);g.st=steer;g.yawR=yawR;g.vA=FREIN_L<0?vA*M.exp(FREIN_L):vA;g.vm=vitMult();g.sd=side<0?-1:1;g.dir=driveDir;g.k=0;g.vL=0;g.angle=0;};
+  const lireSol=function(g){g.s=s;g.lat=lat;g.psi=psi-slipB-((typeof BKV!=='undefined'&&BKV.gl)||0);g.st=steer;g.yawR=yawR;g.vA=FREIN_L<0?vA*M.exp(FREIN_L):vA;g.vm=vitMult();g.sd=side<0?-1:1;g.dir=driveDir;g.k=0;g.vL=0;g.angle=0;g.lacet=routeLacet;};
   const rouler=function(g,loi,N){
     const h=H60,RH=K.RH,SP=K.SPD,lm=lacetMax(g.vA)*g.vm,vit=M.max(6,M.abs(g.vA)*SP*g.vm),tau=1-M.exp(-h*g.vm/VOL_TAU),gaz=cl(g.vA/8,-1,1);
     const fin=gL-(K.cube?24:32),tord=!!TORD.on;
-    cadre(g.s,CA,g.sd);let tx=CA.tx,ty=CA.ty,tz=CA.tz,lacet=routeLacet;
+    cadre(g.s,CA,g.sd);let tx=CA.tx,ty=CA.ty,tz=CA.tz,lacet=g.lacet;
     for(let k=1;k<=N;k++){
       if(COUT.route>=BUDGET.route)return 'tient';
       COUT.route++;g.k++;
@@ -561,7 +606,7 @@ const YEUX_CODE=`window.__YEUX=(function(){
       cadre(g.s,CA,g.sd);
       {const cx=ty*CA.tz-tz*CA.ty,cy=tz*CA.tx-tx*CA.tz,cz=tx*CA.ty-ty*CA.tx,dy=M.atan2(cx*CA.nx+cy*CA.ny+cz*CA.nz,tx*CA.tx+ty*CA.ty+tz*CA.tz);
         const rails=tord?0:cl((.5-g.sd*CA.ny)/.3,0,1);
-        g.psi=cl(g.psi-dy*(1-rails),-1.4,1.4);lacet=dy/h;tx=CA.tx;ty=CA.ty;tz=CA.tz;}
+        g.psi=cl(g.psi-dy*(1-rails),-1.4,1.4);lacet=dy/h;g.lacet=lacet;tx=CA.tx;ty=CA.ty;tz=CA.tz;}
       if(K.portOk&&g.s>fin)return 'portail';
       if(M.abs(g.lat)>RH-1.15&&dansCouloir(g.s)){const out=M.sign(g.lat)||1,into=g.vL*g.dir*out;g.angle=into>0?M.asin(M.min(1,into/M.max(1,M.abs(g.vA)))):0;return 'mur';}
       if(M.abs(g.lat)>RH)return 'bord';}
@@ -591,15 +636,38 @@ const YEUX_CODE=`window.__YEUX=(function(){
     e.s0=g.s;e.p0x=e.px;e.p0y=e.py;e.p0z=e.pz;};
   const GS=Object.assign({},G),ES=neuf();
   /* une sortie simulee : la route roulee selon « loi » jusqu'au bord (ou N images), puis l'eventail depuis le decollage */
+  /* (2026-11-25, relecture) LA MAIN AU SOL. DG = les delais de la main donnes avec la demande (doigts.js, delais), ou null.
+     · UNE MAIN A PROFIL (DG.r : la prochaine reaction de chaque canal, deja tiree) : la reaction est ROULEE avant la sortie (la main tient encore la
+       route : loi 0), puis le plein volant ou le geste ; une fois en l'air, les touches du decollage tiennent encore le temps d'une reaction (celle
+       d'apres n'est pas tiree : on reprend la meme, c'est une estimation). Sans profil, ou reactions nulles : rien de tout cela, les lignes d'avant.
+     · LE SAUT, image par image (MESURE dans le jeu, nuages 910000, ordre a l'image 306 : figure lancee a la 321e, NITRO du decollage posee a la
+       330e — la premiere image de VOL, le decollage part dans frTick avant la branche vol de la meme image —, NITRO et ↓ laches a la 335e, une fleche
+       → de la 335e a la 338e, NITRO reprenable a la 357e) : 24 images de route ; en vol, NITRO et manche tenus 5 images, la NITRO relachee jusqu'a
+       la 27e, et la fleche du dernier ordre du sol des images 6 a 9 (DG.aide : l'aide ou le volant de l'ordre en cours, retraduit sur l'etat de la
+       caisse au decollage, comme le fera « traduire » a la derniere decision au sol). */
+  let DG=null;
   const sortie=function(loi,N,impU,bord,voulu,liste,plafond,bond){
-    copieG(GS,G0);const r=rouler(GS,loi,N);
+    const R9=DG&&DG.r&&typeof DG.r==='object'?DG.r:null,rv=R9?img60(R9.v):0,rm=R9?img60(R9.m):0,rn=R9?img60(R9.n):0,rg=R9?img60(R9.g):0;
+    const att=loi===3?rg:(loi===1||loi===2)?rv:0;
+    copieG(GS,G0);let r;
+    if(att>0){r=rouler(GS,0,att);if(r==='tient')r=rouler(GS,loi,loi===3?N:M.max(1,N-att));}else r=rouler(GS,loi,N);
     if(r!==(bord?'bord':'tient'))return {issue:r,t:n2(GS.k*H60),s:n1(GS.s),approx:true}; /* la sortie n'a pas lieu : la route tient, un mur, le portail */
-    /* le saut : le geste tient la NITRO et le manche vers soi au decollage, et les lache 4 images apres (doigts.js) */
     const nit=bord?!!nitroOn:tient(nitroR+nitroX,0,!!nitroOn);
     lancer(ES,GS,impU,bord,voulu,nit,bond);
-    const o={t:n2(GS.k*H60),s:n1(GS.s),cote:bord?(M.sign(GS.lat)||1):0,approx:true,rayons:null};
-    if(!bord){PRE.G=0;PRE.D=0;PRE.H=0;PRE.B=1;PRE.N=1;PRE.dG=4;PRE.dD=4;PRE.dH=4;PRE.dB=4;PRE.dN=4;PRE.n=4;o.impulsion=n1(impU);}
-    try{o.rayons=eventail(ES,liste,plafond,true,0);}finally{sansPrelude();}
+    /* t : l'image du decollage. Pour le saut, la premiere image de vol est celle qui suit les images de route (d'ou le + 1 : 0,42 s sans profil) */
+    const o={t:n2((GS.k+(bord?0:1))*H60),s:n1(GS.s),cote:bord?(M.sign(GS.lat)||1):0,approx:true,rayons:null};
+    if(!bord){
+      let fl=0;const A9=DG&&DG.aide;
+      if(A9&&typeof A9==='object'){let v9=0;
+        if(typeof A9.ligne==='number'&&A9.ligne-A9.ligne===0){const vit=M.max(6,M.abs(GS.vA)*K.SPD*GS.vm),capV=cl((A9.ligne-GS.lat)/(vit*.9),-.4,.4);v9=cl((GS.lacet+(capV-GS.psi)*3)/M.max(.05,lacetMax(GS.vA)*GS.vm),-1,1);}
+        else if(typeof A9.volant==='number'&&A9.volant-A9.volant===0)v9=A9.volant;
+        fl=v9>=.08?1:v9<=-.08?-1:0;}
+      PRE.G=0;PRE.D=0;PRE.H=0;PRE.B=1;PRE.N=1;PRE.dG=M.max(5,rv);PRE.dD=PRE.dG;PRE.dH=5;PRE.dB=5;PRE.dN=5;PRE.bN=M.max(27,rn);PRE.fS=fl;PRE.f0=5;PRE.f1=9;PRE.n=M.max(PRE.dG,PRE.bN);
+      o.impulsion=n1(impU);o.fleche=fl;}
+    else if(rv||rm||rn){PRE.G=loi===1?1:0;PRE.D=loi===2?1:0;PRE.H=0;PRE.B=0;PRE.N=nit?1:0;PRE.dG=rv;PRE.dD=rv;PRE.dH=rm;PRE.dB=rm;PRE.dN=rn;PRE.n=M.max(rv,rm,rn);}
+    /* (2026-11-25, relecture) l'horizon long d'une sortie : la jauge d'air ENTIERE et 3 images (6,05 s ; 5,05 dans l'espace), pas 6 s rondes — a 6 s pile
+       un vol qui meurt jauge vide a l'image suivante sortait « libre » (MESURE : 6 sorties franches sur 13 suivies de « versRoute ») ; il sort « air ». */
+    try{o.rayons=eventail(ES,liste,plafond,true,0,M.min(LONG,M.max(0,resteAir(0,pwrAirT,0)))+.05);}finally{sansPrelude();}
     return o;};
   const G0=Object.assign({},G),GC=Object.keys(G);
   const copieG=function(a,b){for(let i=0;i<GC.length;i++){const k=GC[i];a[k]=b[k];}return a;};
@@ -644,7 +712,17 @@ const YEUX_CODE=`window.__YEUX=(function(){
     const k=(NP-1)/L,i0=M.max(0,M.round(s*k)),i1=M.min(NP-2,M.round(b*k));let d=0;
     for(let i=i0;i<i1;i++){const a9=T[i],b9=T[i+1],n9=Nn[i],x=(b9.x-a9.x)*n9.x+(b9.y-a9.y)*n9.y+(b9.z-a9.z)*n9.z;if(x<0)d-=x;}
     return v*d>(pl?NUA_SS.evn:NUA_SS.ev);};
-  const sautRefuse=function(){return !!(side<0||jadeEnversRefuse()||villeEnversRefuse()||creteRefuse()||TUTO.on||hopY>0||hopV!==0||POSE_F||DMT.act);};
+  /* (2026-11-25, relecture) LA FIGURE QUI PORTE LE SAUT : sans elle, pas de bond, donc pas de saut — la main joue quand meme le geste jusqu'au bout
+     (↓ tenu au sol : le frein). Les refus de son lancement (gameplay/figures-route.js, frLance), juges a l'image ou le geste pose son 2e appui,
+     15 images apres l'ordre : un geste du glisse, moins de 0,9 s apres la figure d'avant, et le PRIX — 35 % de la jauge (NITRO2.figN.cout), sauf
+     nitro offerte ; la jauge se refait un peu en 15 images (comptee au plus : un « refuse » est sur, sauf fruit ou plaque ramasses entre-temps).
+     UNE FIGURE DEJA EN COURS (FR.on) n'est PAS un refus : le geste peut faire decoller du bond en cours (frEnvol : un appui NITRO neuf et le manche
+     vers soi) — sautRefuse reste faux, et les sorties rendent { issue:'figure' } : le radar ne prevoit pas ce saut-la. */
+  const figRefuse=function(){
+    if(GSOL.k||performance.now()+15*PAS_MS-VEQ.sautT<VEQ_K.sautCd*1000)return true;
+    if(pwrNitroT>0||PARK.on||startBoostT>0)return false;
+    const c9=nitroCap();return M.min(c9,nitroR+NITRO2.regen*.25)+nitroX<NITRO2.figN.cout*c9;};
+  const sautRefuse=function(){return !!(side<0||jadeEnversRefuse()||villeEnversRefuse()||creteRefuse()||TUTO.on||hopY>0||hopV!==0||POSE_F||DMT.act||(!FR.on&&figRefuse()));};
   /* ---- LA LIGNE PARFAITE : les 4 prochains objets non pris de MA face (fruit, plaque, fruit, plaque…), dans le repere de la caisse ---- */
   const ligneDevant=function(sd){
     if(!LIGNE.on)return null;
@@ -657,8 +735,13 @@ const YEUX_CODE=`window.__YEUX=(function(){
   /* ===== LA VUE ===== */
   const LISTE_BORD=[['rien',0,0,0,false,LONG],['versRoute',1,0,0,false,LONG],['plane',0,0,0,true,LONG]];
   const LISTE_DEM=[['rien',0,0,0,false,MOYEN],['plane',0,0,0,true,MOYEN]];
+  /* (2026-11-25, relecture) LES SORTIES A GAUCHE ET A DROITE : « rien » et « plane » sur 3 s ne disaient jamais si la sortie est vivable (MESURE :
+     16 issues justes sur 17, dont 15 « libre » pour des vols morts ensuite, jauge vide). S'y ajoute « versRoute » sur 6 s, la facon qu'un pilote
+     jouera une fois en l'air. LISTE_DEM reste celle du saut. */
+  const LISTE_COTE=[['rien',0,0,0,false,MOYEN],['plane',0,0,0,true,MOYEN],['versRoute',1,0,0,false,LONG]];
   const yeux=function(dem){
     const v=vue1();
+    DG=dem&&dem.doigts&&typeof dem.doigts==='object'?dem.doigts:null;
     COUT.pas=0;COUT.route=0;COUT.dalles=0;COUT.sondes=0;COUT.erreurs=0;
     if(dem&&dem.radar===false)return v;
     const sol=v.mode==='sol',vol=v.mode==='vol';
@@ -704,12 +787,15 @@ const YEUX_CODE=`window.__YEUX=(function(){
         const S={pourquoi:dOff?'bord proche':'demande',bord:null,gauche:null,droite:null,saut:null},plaf=dDem?BUDGET.demande:BUDGET.sol;
         if(dOff)S.bord=sortie(0,TENUE*60,0,true,false,LISTE_BORD,plaf);
         if(dDem){
-          S.gauche=sortie(1,TENUE*60,0,true,false,LISTE_DEM,plaf);
-          S.droite=sortie(2,TENUE*60,0,true,false,LISTE_DEM,plaf);
-          /* LE SAUT (le geste « saut » des doigts : une figure sur la route, puis manche vers soi et NITRO pendant son bond) : 25 images de route,
-             puis le decollage. L'impulsion et la hauteur du bond dependent de la figure : celles du DERNIER saut de la course (le jeu les
-             garde, FDC.dv et FDC.lift), ou, avant le premier, le plancher du jeu (FDC.imp : le saut monte au moins autant). */
-          if(refuse===false){const connu=FDC.n>0;S.saut=sortie(3,25,connu?FDC.dv:FDC.imp,false,true,LISTE_DEM,plaf,connu?FDC.lift:FDC.haut);if(S.saut.rayons)S.saut.mesure=connu;}}
+          S.gauche=sortie(1,TENUE*60,0,true,false,LISTE_COTE,plaf);
+          S.droite=sortie(2,TENUE*60,0,true,false,LISTE_COTE,plaf);
+          /* LE SAUT (le geste « saut » des doigts : une figure sur la route, puis manche vers soi et NITRO pendant son bond) : 24 images de route
+             (une main a profil : le deroule de SON geste, DG.saut), puis le decollage. L'impulsion et la hauteur du bond dependent de la figure et
+             de l'instant du dernier appui : celles du DERNIER saut de la course (le jeu les garde, FDC.dv et FDC.lift), ou, avant le premier, le
+             plancher du jeu (FDC.imp : le saut monte au moins autant). Une figure deja en cours sur la route : non prevu (voir figRefuse). */
+          if(refuse===false){
+            if(FR.on)S.saut={issue:'figure',approx:true};
+            else{const connu=FDC.n>0,nS=DG&&DG.saut>0?M.min(90,M.round(DG.saut)):24;S.saut=sortie(3,nS,connu?FDC.dv:FDC.imp,false,true,LISTE_DEM,plaf,connu?FDC.lift:FDC.haut);if(S.saut.rayons)S.saut.mesure=connu;}}}
         v.sorties=S;}
     }catch(e){v.tenue=dit(e);v.sorties=null;}
     return v;};

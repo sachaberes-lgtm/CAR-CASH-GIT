@@ -238,13 +238,34 @@ Doigts.prototype.delais=function(){
   for(const n in TOUCHE){const k=this.k[n];let r=Math.max(0,(k.bas?H.appui:H.repos)-(this.i-k.depuis));
     if(n==='N'&&!k.bas){r=Math.max(r,this.nBloque-this.i);if(k.duree<18)r=Math.max(r,H.seul-(this.i-k.debut));}
     o[n]=Math.max(0,r,g);}
-  if(g>0&&this.geste.nom==='saut')o.N=Math.max(o.N,g+H.repos); /* le saut bloque la NITRO 4 images de plus apres l'avoir lachee */
+  /* (2026-11-25, relecture) LE SAUT ET LA NITRO, EN DEUX TEMPS. Avant : « N libre dans g + 4 images ». Or la NITRO du decollage est TENUE jusqu'a
+     la fin du geste (g images), puis RELACHEE, et `veut` interdit de la reprendre avant HUMAIN.seul images comptees depuis le DEBUT de cet appui
+     (MESURE, ville 910037 : lachee a l'image 758, reprise a la 780e — 27 images apres son appui de la 753e). N = le temps ou elle garde son etat ;
+     Nb = l'image jusqu'ou elle reste relachee ensuite. Les yeux jouent les deux (yeux.js, LE PRELUDE : bN). */
+  if(g>0&&this.geste.nom==='saut'){const kN=this.k.N;o.Nb=Math.max(g+H.repos,kN.bas?kN.debut+H.seul-this.i:g+H.seul);}
+  /* (2026-11-25, relecture) L'AIDE EN COURS, pour le saut vu du sol : a la fin du geste, la main sans profil applique en plein vol le volant du
+     dernier ordre donne au sol (une fleche de 4 images). Les yeux le retraduisent sur l'etat de la caisse au decollage. Pas pour une main a
+     suivi (elle lache l'aide en changeant de mode) ni a coups (sa fleche ne part pas a une image connue). */
+  if(!this.P||(!this.P.suivi.actif&&!this.P.coups.actif)){const q=this.o||{},l=+q.ligne;o.aide=q.ligne!=null&&l-l===0?{ligne:l}:{volant:+q.volant||0};}
   /* (2026-11-24, doigts v2) LE TEMPS DE REACTION compte aussi : un ordre NEUF n'atteint sa touche qu'apres la reaction de son canal (deja tiree :
      `rp`) et jamais avant les ordres deja en route (`dernier`). Sans profil, ou reactions nulles : rien ne s'ajoute. Ce que le radar ne sait
      toujours pas : les ordres deja en route changeront les touches avant le sien, et une main a coups ou a suivi ne tient pas une touche fixe. */
   if(this.P){const L=this.L,i=this.i,att=c=>Math.max(L[c].dernier,i+L[c].rp)-i,v=att('volant'),m=att('manche'),n=att('nitro');
-    o.G=Math.max(o.G,v);o.D=Math.max(o.D,v);o.H=Math.max(o.H,m);o.B=Math.max(o.B,m);o.N=Math.max(o.N,n);}
-  return o;};
+    o.G=Math.max(o.G,v);o.D=Math.max(o.D,v);o.H=Math.max(o.H,m);o.B=Math.max(o.B,m);o.N=Math.max(o.N,n);
+    /* (2026-11-25, relecture) CE QUE LA MAIN A PROFIL SAIT DEJA, pour le radar (LECTURE SEULE : aucun tirage, rien ne change dans la main) :
+       · r : la prochaine reaction de chaque canal, deja tiree (au sol, les sorties la roulent avant le plein volant ou le geste) ;
+       · saut : les images de route du geste « saut », de l'ordre au decollage, avec les durees MEDIANES de ses appuis (les vraies seront tirees) ;
+       · vol (une main a coups ou a suivi seulement) : fin = dans combien d'images la fleche enfoncee se relache (la fin du coup en cours, deja
+         tiree ; 0 : aucune fleche) ; c = la part de braquage de l'ordre en vigueur (l'aide recalculee sur l'etat percu) ; file = les ordres deja
+         en route, [images avant l'arrivee, part de braquage]. Les coups suivants ne sont pas tires : les yeux prennent la moyenne. */
+    const P=this.P,G9=P.geste,t1=G9.tap[2],en=Math.max(H.repos,Math.min(G9.entre[2],22-t1));
+    o.r={v:L.volant.rp,m:L.manche.rp,n:L.nitro.rp,g:L.geste.rp};
+    o.saut=1+H.repos+t1+en+G9.tap[2]+H.repos;
+    if(P.coups.actif||P.suivi.actif){
+      const e=this.e,cap=e&&e.mode==='vol'?e.capVol:null,plein=P.coups.actif?P.coups.plein:.92;
+      const part=d=>{const x=!d?0:d.k==='volant'?d.x:(d.k==='viser'&&cap!=null)?cl(angle(d.x-cap)*2.2,-1,1):0;return Math.abs(x)>=plein?(x>0?1:-1):x;}; /* au-dela de « plein » la touche est tenue */
+      const c=part(L.volant.v),enCoup=(this.k.G.bas||this.k.D.bas)&&P.coups.actif&&Math.abs(c)<1;
+      o.vol={fin:enCoup?Math.max(0,this.M.fin-i):0,c:c,file:L.volant.file.slice(0,4).map(x=>[Math.max(0,x.a-i),part(x.v)])};}}  return o;};
 
 /* ===== LA MAIN A PROFIL (2026-11-24, doigts v2) ===== */
 /* le montage : un generateur par usage (ajouter un tirage dans un flux ne decale pas les autres), les lignes a retard, les compteurs */

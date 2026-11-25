@@ -1,8 +1,9 @@
 {
- "date": "2026-11-24T22:05:34.290Z",
+ "date": "2026-11-25T02:10:55.292Z",
  "regime": "allege",
  "requete": "&cyw=0",
  "cerveau": "voltigeur",
+ "profil": null,
  "cartes": [
   "canyon"
  ],
@@ -25,18 +26,18 @@
    ],
    "vols": 2,
    "yeux": {
-    "ms_moy": 4.237,
-    "ms_max": 45.792,
-    "ms_sol_moy": 1.717,
-    "ms_vol_moy": 19.199,
+    "ms_moy": 2.938,
+    "ms_max": 31.253,
+    "ms_sol_moy": 1.173,
+    "ms_vol_moy": 13.416,
     "vues_sol": 95,
     "vues_vol": 16,
     "pas_vol_moy": 641,
     "dalles_vol_moy": 884,
     "pas_max": 957,
     "sondes_max": 121,
-    "route_max": 330,
-    "octets_moy": 2256,
+    "route_max": 329,
+    "octets_moy": 2319,
     "erreurs": 0,
     "manque": []
    },
@@ -44,7 +45,8 @@
    "empreinte": "939d7aa61f02",
    "touches": "b8559aac86d7",
    "erreurs": 0,
-   "xReel": 2.43
+   "xReel": 3.91,
+   "main": null
   },
   {
    "carte": "canyon",
@@ -57,18 +59,18 @@
    ],
    "vols": 2,
    "yeux": {
-    "ms_moy": 4.443,
-    "ms_max": 43.937,
-    "ms_sol_moy": 2.01,
-    "ms_vol_moy": 19.19,
+    "ms_moy": 3.252,
+    "ms_max": 32.502,
+    "ms_sol_moy": 1.511,
+    "ms_vol_moy": 13.803,
     "vues_sol": 97,
     "vues_vol": 16,
     "pas_vol_moy": 625,
     "dalles_vol_moy": 848,
     "pas_max": 960,
     "sondes_max": 121,
-    "route_max": 330,
-    "octets_moy": 2329,
+    "route_max": 329,
+    "octets_moy": 2427,
     "erreurs": 0,
     "manque": []
    },
@@ -76,7 +78,8 @@
    "empreinte": "97a6bfb554d4",
    "touches": "b4f9898ff1e9",
    "erreurs": 0,
-   "xReel": 2.4
+   "xReel": 3.75,
+   "main": null
   },
   {
    "carte": "canyon",
@@ -89,18 +92,18 @@
    ],
    "vols": 2,
    "yeux": {
-    "ms_moy": 3.859,
-    "ms_max": 44.087,
-    "ms_sol_moy": 1.954,
-    "ms_vol_moy": 16.054,
+    "ms_moy": 2.512,
+    "ms_max": 28.034,
+    "ms_sol_moy": 1.292,
+    "ms_vol_moy": 10.315,
     "vues_sol": 96,
     "vues_vol": 15,
     "pas_vol_moy": 552,
     "dalles_vol_moy": 858,
     "pas_max": 810,
     "sondes_max": 103,
-    "route_max": 343,
-    "octets_moy": 2276,
+    "route_max": 342,
+    "octets_moy": 2356,
     "erreurs": 0,
     "manque": []
    },
@@ -108,7 +111,8 @@
    "empreinte": "ab188ce5466e",
    "touches": "661a9035d396",
    "erreurs": 0,
-   "xReel": 2.6
+   "xReel": 4.14,
+   "main": null
   },
   {
    "carte": "canyon",
@@ -121,18 +125,18 @@
    ],
    "vols": 2,
    "yeux": {
-    "ms_moy": 3.811,
-    "ms_max": 31.748,
-    "ms_sol_moy": 1.818,
-    "ms_vol_moy": 15.89,
+    "ms_moy": 2.86,
+    "ms_max": 27.195,
+    "ms_sol_moy": 1.415,
+    "ms_vol_moy": 11.618,
     "vues_sol": 97,
     "vues_vol": 16,
     "pas_vol_moy": 564,
     "dalles_vol_moy": 812,
     "pas_max": 932,
     "sondes_max": 119,
-    "route_max": 330,
-    "octets_moy": 2269,
+    "route_max": 329,
+    "octets_moy": 2347,
     "erreurs": 0,
     "manque": []
    },
@@ -140,7 +144,8 @@
    "empreinte": "d85ef047767f",
    "touches": "0edcbae99c7b",
    "erreurs": 0,
-   "xReel": 2.74
+   "xReel": 3.89,
+   "main": null
   }
  ],
  "cartes_mesurees": {
@@ -408,6 +413,7 @@
    "refusees": 0,
    "dt_med": 0.03,
    "dt_p90": 0.05,
+   "dt_max": 0.05,
    "rayons": {
     "n": 3,
     "justes": 3,
@@ -448,6 +454,127 @@
     "chocs": 3,
     "chocsNonPrevus": [],
     "chocsHorsHorizon": 0
+   },
+   "parFacon": {
+    "rien": {
+     "n": 0,
+     "justes": 0,
+     "table": {},
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": null,
+     "dt_p90": null,
+     "ds_med": null,
+     "ds_p90": null,
+     "dlat_med": null,
+     "dlat_p90": null,
+     "dimpact_med": null,
+     "poses": 0,
+     "notes": 0,
+     "notesOk": 0,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    },
+    "plane": {
+     "n": 3,
+     "justes": 3,
+     "table": {
+      "choc|choc": 3
+     },
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": null,
+     "dt_p90": null,
+     "ds_med": null,
+     "ds_p90": null,
+     "dlat_med": null,
+     "dlat_p90": null,
+     "dimpact_med": null,
+     "poses": 0,
+     "notes": 0,
+     "notesOk": 0,
+     "causes": 3,
+     "causesOk": 3,
+     "chocs": 3,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    },
+    "versRoute": {
+     "n": 0,
+     "justes": 0,
+     "table": {},
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": null,
+     "dt_p90": null,
+     "ds_med": null,
+     "ds_p90": null,
+     "dlat_med": null,
+     "dlat_p90": null,
+     "dimpact_med": null,
+     "poses": 0,
+     "notes": 0,
+     "notesOk": 0,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    }
    }
   },
   "saut": {
@@ -456,6 +583,7 @@
    "refusees": 0,
    "dt_med": 0,
    "dt_p90": 0,
+   "dt_max": 0,
    "rayons": {
     "n": 1,
     "justes": 1,
@@ -481,22 +609,285 @@
      "temps",
      "autre"
     ],
-    "dt_med": 0.93,
-    "dt_p90": 0.93,
-    "ds_med": 67.5,
-    "ds_p90": 67.5,
-    "dlat_med": 3.1,
-    "dlat_p90": 3.1,
-    "dimpact_med": 10.39,
+    "dt_med": 0.37,
+    "dt_p90": 0.37,
+    "ds_med": 29,
+    "ds_p90": 29,
+    "dlat_med": 1.7,
+    "dlat_p90": 1.7,
+    "dimpact_med": 5.59,
     "poses": 1,
     "notes": 1,
+    "notesOk": 1,
+    "causes": 0,
+    "causesOk": 0,
+    "chocs": 0,
+    "chocsNonPrevus": [],
+    "chocsHorsHorizon": 0
+   },
+   "connu": {
+    "n": 0,
+    "justes": 0,
+    "table": {},
+    "lignes": [
+     "pose",
+     "levre",
+     "choc",
+     "air",
+     "fond",
+     "portail",
+     "libre",
+     "coupe"
+    ],
+    "colonnes": [
+     "pose",
+     "choc",
+     "air",
+     "fond",
+     "portail",
+     "temps",
+     "autre"
+    ],
+    "dt_med": null,
+    "dt_p90": null,
+    "ds_med": null,
+    "ds_p90": null,
+    "dlat_med": null,
+    "dlat_p90": null,
+    "dimpact_med": null,
+    "poses": 0,
+    "notes": 0,
     "notesOk": 0,
     "causes": 0,
     "causesOk": 0,
     "chocs": 0,
     "chocsNonPrevus": [],
     "chocsHorsHorizon": 0
+   },
+   "premier": {
+    "n": 1,
+    "justes": 1,
+    "table": {
+     "pose|pose": 1
+    },
+    "lignes": [
+     "pose",
+     "levre",
+     "choc",
+     "air",
+     "fond",
+     "portail",
+     "libre",
+     "coupe"
+    ],
+    "colonnes": [
+     "pose",
+     "choc",
+     "air",
+     "fond",
+     "portail",
+     "temps",
+     "autre"
+    ],
+    "dt_med": 0.37,
+    "dt_p90": 0.37,
+    "ds_med": 29,
+    "ds_p90": 29,
+    "dlat_med": 1.7,
+    "dlat_p90": 1.7,
+    "dimpact_med": 5.59,
+    "poses": 1,
+    "notes": 1,
+    "notesOk": 1,
+    "causes": 0,
+    "causesOk": 0,
+    "chocs": 0,
+    "chocsNonPrevus": [],
+    "chocsHorsHorizon": 0
    }
+  },
+  "bord": {
+   "n": 0,
+   "dt_med": null,
+   "dt_p90": null,
+   "rayons": {
+    "n": 0,
+    "justes": 0,
+    "table": {},
+    "lignes": [
+     "pose",
+     "levre",
+     "choc",
+     "air",
+     "fond",
+     "portail",
+     "libre",
+     "coupe"
+    ],
+    "colonnes": [
+     "pose",
+     "choc",
+     "air",
+     "fond",
+     "portail",
+     "temps",
+     "autre"
+    ],
+    "dt_med": null,
+    "dt_p90": null,
+    "ds_med": null,
+    "ds_p90": null,
+    "dlat_med": null,
+    "dlat_p90": null,
+    "dimpact_med": null,
+    "poses": 0,
+    "notes": 0,
+    "notesOk": 0,
+    "causes": 0,
+    "causesOk": 0,
+    "chocs": 0,
+    "chocsNonPrevus": [],
+    "chocsHorsHorizon": 0
+   },
+   "parFacon": {
+    "rien": {
+     "n": 0,
+     "justes": 0,
+     "table": {},
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": null,
+     "dt_p90": null,
+     "ds_med": null,
+     "ds_p90": null,
+     "dlat_med": null,
+     "dlat_p90": null,
+     "dimpact_med": null,
+     "poses": 0,
+     "notes": 0,
+     "notesOk": 0,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    },
+    "plane": {
+     "n": 0,
+     "justes": 0,
+     "table": {},
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": null,
+     "dt_p90": null,
+     "ds_med": null,
+     "ds_p90": null,
+     "dlat_med": null,
+     "dlat_p90": null,
+     "dimpact_med": null,
+     "poses": 0,
+     "notes": 0,
+     "notesOk": 0,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    },
+    "versRoute": {
+     "n": 0,
+     "justes": 0,
+     "table": {},
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": null,
+     "dt_p90": null,
+     "ds_med": null,
+     "ds_p90": null,
+     "dlat_med": null,
+     "dlat_p90": null,
+     "dimpact_med": null,
+     "poses": 0,
+     "notes": 0,
+     "notesOk": 0,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    }
+   }
+  }
+ },
+ "controles": {
+  "sauts": {
+   "ordres": 4,
+   "prevus": 4,
+   "refuses": 0,
+   "figure": 0,
+   "decolles": 4,
+   "prevusSansDecol": 0,
+   "refusesMaisDecol": 0
+  },
+  "cadence": {
+   "vues": 0,
+   "max": 0
+  },
+  "latC": {
+   "objets": 2427,
+   "dessous": 0,
+   "faux": 0
   }
  },
  "vols": [
@@ -569,7 +960,9 @@
     "issue": null,
     "dt": 0,
     "refuse": false
-   }
+   },
+   "bord": null,
+   "sb": null
   },
   {
    "i0": 647,
@@ -627,7 +1020,9 @@
     "issue": null,
     "dt": 0.02,
     "refuse": false
-   }
+   },
+   "bord": null,
+   "sb": null
   },
   {
    "i0": 330,
@@ -698,7 +1093,9 @@
     "issue": null,
     "dt": 0,
     "refuse": false
-   }
+   },
+   "bord": null,
+   "sb": null
   },
   {
    "i0": 658,
@@ -756,7 +1153,9 @@
     "issue": null,
     "dt": 0.04,
     "refuse": false
-   }
+   },
+   "bord": null,
+   "sb": null
   },
   {
    "i0": 330,
@@ -820,16 +1219,16 @@
     "image": 306,
     "avant": 1.45,
     "issue": "pose",
-    "t": 0.52,
+    "t": 1.08,
     "juste": true,
     "cause": null,
     "bumps": 0,
-    "dt": -0.93,
-    "ds": -67.5,
-    "dlat": 3.1,
+    "dt": -0.37,
+    "ds": -29,
+    "dlat": 1.7,
     "dessousOk": true,
-    "noteOk": false,
-    "dimpact": -10.39
+    "noteOk": true,
+    "dimpact": -5.59
    },
    "sol": {
     "genre": "saut",
@@ -841,7 +1240,9 @@
     "issue": null,
     "dt": 0,
     "refuse": false
-   }
+   },
+   "bord": null,
+   "sb": null
   },
   {
    "i0": 648,
@@ -889,7 +1290,9 @@
     "issue": null,
     "dt": 0.05,
     "refuse": false
-   }
+   },
+   "bord": null,
+   "sb": null
   },
   {
    "i0": 330,
@@ -960,7 +1363,9 @@
     "issue": null,
     "dt": 0,
     "refuse": false
-   }
+   },
+   "bord": null,
+   "sb": null
   },
   {
    "i0": 657,
@@ -1018,22 +1423,24 @@
     "issue": null,
     "dt": 0.03,
     "refuse": false
-   }
+   },
+   "bord": null,
+   "sb": null
   }
  ],
  "cout": {
   "canyon": {
-   "ms_moy": 4.088,
-   "ms_sol_moy": 1.875,
-   "ms_vol_moy": 17.608,
-   "ms_max": 45.792,
+   "ms_moy": 2.892,
+   "ms_sol_moy": 1.349,
+   "ms_vol_moy": 12.319,
+   "ms_max": 32.502,
    "part_vol": 0.141,
    "pas_max": 960,
    "sondes_max": 121,
-   "octets_moy": 2283,
+   "octets_moy": 2362,
    "erreurs": 0,
    "tirages": 0,
-   "x_reel": 2.54
+   "x_reel": 3.92
   }
  }
 }

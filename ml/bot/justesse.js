@@ -4,9 +4,12 @@
    VRAI jeu, sur de vraies courses. A relancer apres chaque mise a jour du jeu : c'est aussi le detecteur de derive (une loi du jeu qui
    change sans que la copie des yeux suive se voit ici).
    usage : node justesse.js [--regime allege|max] [--cartes nuages,espace,grotte,ville,jade,canyon] [--graines 3] [--depart 910000]
-                            [--tmax 90] [--coeurs 2] [--cerveau fichier.js] [--pas] [--requete "&cyw=0"] [--sortie fichier.json]
+                            [--tmax 90] [--coeurs 2] [--cerveau fichier.js] [--profil clavier] [--pas] [--requete "&cyw=0"] [--sortie fichier.json]
      --cartes    les maps a mesurer, une par une (imposees) ; « libre » = la graine tire la map et la course enchaine aux portails
-     --cerveau   un autre cerveau que le voltigeur (reference.js…) : le rayon juge est alors « tenu » (les touches telles qu'elles sont)
+     --cerveau   un autre cerveau que le voltigeur : si son ordre en vol porte « facon » (voltigeur-route.js), c'est ce rayon-la qui est juge ;
+                 sinon (reference.js…) le rayon « tenu » (les touches telles qu'elles sont)
+     --profil    (2026-11-25, relecture) donne au cerveau une main a profil (clavier, doigt, machine : doigts.js, MODELES) — le radar est-il encore
+                 juste quand les ordres arrivent en retard et que le volant va par coups ?
      --requete   un morceau de plus dans l'adresse du jeu. « &cyw=0 » : le relief du CANYON calcule sur place — dans ml/reel il part dans un
                  travailleur qui ne repond jamais : sans cela le canyon du simulateur n'a ni paroi, ni riviere, ni mur de couloir
      --pas       LE PAS A PAS : au lieu des issues, les PLACES. A chaque vol, le radar donne les places qu'il prevoit image par image pour les
@@ -23,6 +26,10 @@
    tiennent encore la NITRO et le manche du geste), (a2) a la premiere vue ou ils la tiennent, (b) a la DERNIERE vue situee au moins 1 s
    avant la fin du vol. LES SORTIES DU SOL que le voltigeur demande (une sortie franche, un saut) sont jugees a part : la sortie prevue
    a-t-elle lieu, quand, et le vol qui suit.
+   (2026-11-25, relecture) JUGES AUSSI : la sortie « bord » que les yeux donnent D'OFFICE (rayons rien, versRoute, plane), le rayon « versRoute »
+   des sorties a gauche et a droite, le saut dont l'impulsion est connue a part du premier saut de la course ; et LES CONTROLES (mesure.controles,
+   lus par verifier.js) : un saut prevu decolle-t-il, un saut dit refuse ne decolle-t-il pas, le decor est-il sonde a chaque image, « latC »
+   est-il le « lat » retourne sous la dalle.
    Une prevision est JUSTE si son issue est celle qui arrive (une levre prevue ou arrivee se lit « pose » ; « libre » est juste si rien
    n'arrive avant l'horizon du rayon). Une mort « air » ou « vide » est rangee par la derniere vue : a moins de 15 m du fond → fond, sinon jauge. */
 const fs=require('fs'),path=require('path'),{fork}=require('child_process');
@@ -55,18 +62,31 @@ const PRINCIPAL=require.main===module;
     const x=course(J,C,m.graine,Object.assign({carte:m.carte||undefined,tmax:m.tmax,trace:true,image:function(J9,fr){while(nPJ<PJ.length)PJ[nPJ++].image=fr;}},plus||{}));
     const b=x.bilan,vues=x.vues;
     const tenu=!!m.fichier&&path.basename(m.fichier)!=='voltigeur.js',vols=[];
+    /* ---- LES CONTROLES (2026-11-25, relecture) : des comptes lus dans la trace, pour verifier.js ---- */
+    const decols=(x.partie.ev||[]).filter(e=>e[1]==='decol').map(e=>({i:Math.round(e[0]*60)-1,origine:e[2]}));
+    const ctl={sauts:{ordres:0,prevus:0,refuses:0,figure:0,decolles:0,prevusSansDecol:[],refusesMaisDecol:[]},cadence:{vues:0,max:0},latC:{objets:0,dessous:0,faux:0}};
+    for(const q of vues){const w=q.vue;
+      if(q.ordre&&q.ordre.sortie==='saut'&&q.ordre.geste==='saut'&&w.mode==='sol'){
+        const S=w.sorties&&w.sorties.saut,prevu=!!(S&&S.rayons),dec=decols.some(d=>d.origine==='saut'&&d.i>q.image&&d.i<=q.image+50),G=ctl.sauts;
+        G.ordres++;if(dec)G.decolles++;if(prevu){G.prevus++;if(!dec)G.prevusSansDecol.push(q.image);}
+        if(S&&S.issue==='figure')G.figure++;
+        if(w.sautRefuse===true){G.refuses++;if(dec)G.refusesMaisDecol.push(q.image);}}
+      if(w.mode==='vol'&&w.vol&&w.vol.radar&&w.vol.radar.decor&&w.vol.radar.maille!=null&&w.vitesse>20&&w.vol.radar.decor.indexOf('canyon')<0){
+        const c=w.vol.radar.maille*60/w.vitesse;ctl.cadence.vues++;if(c>ctl.cadence.max)ctl.cadence.max=r2(c);}
+      if(w.mode==='sol')for(const L of [w.piecesDevant,w.fruits,w.orbes])for(const p of L||[]){ctl.latC.objets++;if(w.dessous)ctl.latC.dessous++;
+        if(typeof p.latC!=='number'||Math.abs(p.latC-(w.dessous?-p.lat:p.lat))>.11)ctl.latC.faux++;}}
     for(const V of volsDe(x.partie)){
       /* les vues du vol : celles prises en vol, entre le decollage et la fin */
       const fin=V.i1,vv=vues.filter(q=>q.image>V.i0&&q.image<=fin&&q.vue.mode==='vol'&&q.vue.vol&&q.vue.vol.radar&&q.vue.vol.radar.rayons);
       if(!vv.length)continue;
-      const der=vv[vv.length-1].vue,facon=tenu?'tenu':(vv[0].ordre&&vv[0].ordre.facon)||null;
+      const der=vv[vv.length-1].vue,facon=(vv[0].ordre&&vv[0].ordre.facon)||(tenu?'tenu':null); /* (2026-11-25, relecture) la facon que l'ordre porte, quel que soit le cerveau */
       if(!facon)continue;
       /* ce qui arrive */
       let arrive=V.fin,cause=null;
       if(V.fin==='mort'){cause=V.cause;arrive=CHOCS.indexOf(V.cause)>=0?'choc':(V.cause==='air'||V.cause==='vide')?(der.vol.plancher<=15?'fond':'air'):'autre';}
       const pj=V.fin==='pose'?PJ.find(q=>q.image===V.i1):null;
       const o={i0:V.i0,i1:V.i1,origine:V.origine,facon:facon,arrive:arrive,cause:cause,duree:r2((fin-V.i0)/60),bumps:V.bumps,carte:der.carte,decor:der.vol.radar.decor,approx:!!der.vol.radar.approx,
-        levre:V.fin==='pose'&&!pj,a:null,a2:null,b:null,s:null,sol:null};
+        levre:V.fin==='pose'&&!pj,a:null,a2:null,b:null,s:null,sol:null,bord:null,sb:null};
       /* un rayon contre ce qui arrive ; reel : les secondes entre la vue (ou la sortie) et la fin du vol */
       const juge=function(R,reel,image){
         if(!R)return null;
@@ -89,9 +109,15 @@ const PRINCIPAL=require.main===module;
       {const av=vues.filter(q=>q.image<=V.i0&&q.image>V.i0-240&&q.vue.mode==='sol'&&q.vue.sorties&&q.ordre&&q.ordre.sortie===(V.origine==='saut'?'saut':'franc')&&(V.origine==='saut'||V.origine==='bord'));
         if(av.length){const q=av[0],S9=q.vue.sorties,genre=q.ordre.sortie,S=genre==='saut'?S9.saut:(q.ordre.cote>0?S9.gauche:S9.droite),reel=(V.i0-q.image+1)/60;
           o.sol={genre:genre,image:q.image,reel:r2(reel),mesure:S?S.mesure:undefined,prevue:!!(S&&S.rayons),t:S?S.t:null,issue:S&&!S.rayons?(S.issue||null):null,dt:S&&S.rayons?r2(S.t-reel):null,refuse:genre==='saut'&&!S};
-          if(S&&S.rayons&&(facon==='rien'||facon==='plane'))o.s=juge(S.rayons.find(y=>y.m===facon),(fin-V.i0)/60,q.image);}}
+          if(S&&S.rayons&&(facon==='rien'||facon==='plane'||facon==='versRoute'))o.s=juge(S.rayons.find(y=>y.m===facon),(fin-V.i0)/60,q.image);}}
+      /* (2026-11-25, relecture) LA SORTIE « BORD » D'OFFICE : la premiere vue au sol, dans les 2 s d'avant le decollage par le bord, ou les yeux
+         l'annoncent d'eux-memes — quand, et le vol qui suit pour la facon tenue (rien, versRoute, plane). Pas apres une sortie FRANCHE : elle
+         a ses propres rayons (gauche, droite), et la sortie d'office suppose une caisse qui essaie de tenir la route, pas un volant a fond. */
+      if(V.origine==='bord'&&!(o.sol&&o.sol.genre==='franc')){const q=vues.find(q9=>q9.image<=V.i0&&q9.image>V.i0-120&&q9.vue.mode==='sol'&&q9.vue.sorties&&q9.vue.sorties.bord&&q9.vue.sorties.bord.rayons);
+        if(q){const S=q.vue.sorties.bord,reel=(V.i0-q.image+1)/60;o.bord={image:q.image,reel:r2(reel),t:S.t,dt:r2(S.t-reel)};
+          o.sb=juge(S.rayons.find(y=>y.m===facon),(fin-V.i0)/60,q.image);}}
       vols.push(o);}
-    return {bilan:{images:b.images,cause:b.cause,duree:b.duree_s,cartes:b.cartes,vols:b.vols,yeux:b.yeux,tirages:b.yeuxTirages,empreinte:b.empreinte,touches:require('crypto').createHash('sha1').update(JSON.stringify(x.touches)).digest('hex').slice(0,12),erreurs:b.erreurs,xReel:b.foisTempsReel},vols:vols};
+    return {bilan:{images:b.images,cause:b.cause,duree:b.duree_s,cartes:b.cartes,vols:b.vols,yeux:b.yeux,tirages:b.yeuxTirages,empreinte:b.empreinte,touches:require('crypto').createHash('sha1').update(JSON.stringify(x.touches)).digest('hex').slice(0,12),erreurs:b.erreurs,xReel:b.foisTempsReel,main:b.main||null},vols:vols,controles:ctl};
   }
   /* LE PAS A PAS : les places prevues contre les places du jeu, image par image, touches tenues */
   function pasApas(J,C,m,course,Y){
@@ -125,7 +151,9 @@ const PRINCIPAL=require.main===module;
 if(PRINCIPAL&&A.includes('--enfant')){
   const {ouvrir,charger,course}=require('./piloter'),Y=require('./yeux');
   process.on('message',function(m){
-    const J=ouvrir({regime:m.regime,query:m.requete||""}),C=charger(m.fichier||VOLT);
+    /* (2026-11-25, relecture) --profil : le meme cerveau, une main a profil (la ligne est ajoutee a son texte, comme verifier.js le fait) */
+    const F9=m.fichier||VOLT,J=ouvrir({regime:m.regime,query:m.requete||""});
+    const C=m.profil?charger(F9,{source:fs.readFileSync(F9,'utf8')+'\nmodule.exports.profil='+JSON.stringify({modele:m.profil})+';'}):charger(F9);
     let r;try{r=m.pas?module.exports.pasApas(J,C,m,course,Y):module.exports.mesure(J,C,m,course);}catch(e){r={erreur:String(e&&e.stack||e).slice(0,600)};}
     r.carte=m.carte||'libre';r.graine=m.graine;
     process.send(r,function(){process.exit(0);});
@@ -158,12 +186,33 @@ function ecrit(nom,S){
 function sorties(vols){
   const o={};
   for(const g of ['franc','saut']){const V=vols.filter(v=>v.sol&&v.sol.genre===g),P=V.filter(v=>v.sol.prevue),dt=P.map(v=>Math.abs(v.sol.dt));
-    o[g]={n:V.length,prevues:P.length,refusees:V.filter(v=>v.sol.refuse).length,dt_med:r2(med(dt)),dt_p90:r2(p90(dt)),rayons:tableau(V,'s')};}
+    o[g]={n:V.length,prevues:P.length,refusees:V.filter(v=>v.sol.refuse).length,dt_med:r2(med(dt)),dt_p90:r2(p90(dt)),dt_max:dt.length?r2(Math.max(...dt)):null,rayons:tableau(V,'s')};}
+  /* (2026-11-25, relecture) le saut dont l'impulsion est connue (un saut deja fait dans la course) a part du premier ; les sorties par facon ; la sortie « bord » d'office */
+  {const V=vols.filter(v=>v.sol&&v.sol.genre==='saut');o.saut.connu=tableau(V.filter(v=>v.sol.mesure===true),'s');o.saut.premier=tableau(V.filter(v=>v.sol.mesure===false),'s');}
+  {const V=vols.filter(v=>v.sol&&v.sol.genre==='franc');o.franc.parFacon={};for(const f of ['rien','plane','versRoute'])o.franc.parFacon[f]=tableau(V.filter(v=>v.facon===f),'s');}
+  {const V=vols.filter(v=>v.bord),dt=V.map(v=>Math.abs(v.bord.dt));o.bord={n:V.length,dt_med:r2(med(dt)),dt_p90:r2(p90(dt)),rayons:tableau(V,'sb'),parFacon:{}};
+    for(const f of ['rien','plane','versRoute'])o.bord.parFacon[f]=tableau(V.filter(v=>v.facon===f),'sb');}
   return o;}
+const unT=T=>T.n?T.justes+'/'+T.n+(T.poses?' (poses : |Δt| '+T.dt_med+' s, |Δs| '+T.ds_med+' m, |Δlat| '+T.dlat_med+' m)':'')+' '+JSON.stringify(T.table).replace(/"/g,''):'aucun';
+/* (2026-11-25, relecture) les comptes des controles de plusieurs courses, additionnes */
+function controles(L){
+  const o={sauts:{ordres:0,prevus:0,refuses:0,figure:0,decolles:0,prevusSansDecol:0,refusesMaisDecol:0},cadence:{vues:0,max:0},latC:{objets:0,dessous:0,faux:0}};
+  for(const c of L){if(!c)continue;const s=c.sauts;for(const k of ['ordres','prevus','refuses','figure','decolles'])o.sauts[k]+=s[k];o.sauts.prevusSansDecol+=s.prevusSansDecol.length;o.sauts.refusesMaisDecol+=s.refusesMaisDecol.length;
+    o.cadence.vues+=c.cadence.vues;if(c.cadence.max>o.cadence.max)o.cadence.max=c.cadence.max;for(const k of ['objets','dessous','faux'])o.latC[k]+=c.latC[k];}
+  return o;}
+function ecritControles(c){
+  console.log('\n  LES CONTROLES · sauts ordonnes '+c.sauts.ordres+' : prevus '+c.sauts.prevus+' (dont sans decollage '+c.sauts.prevusSansDecol+'), dits refuses '+c.sauts.refuses+' (dont decolles quand meme '+c.sauts.refusesMaisDecol+'), « figure en cours » '+c.sauts.figure+', decolles '+c.sauts.decolles
+    +' · sondes du decor : une toutes les '+c.cadence.max+' image(s) au pire ('+c.cadence.vues+' vues, hors canyon) · latC : '+c.latC.objets+' objets vus, dont '+c.latC.dessous+' sous la dalle, '+c.latC.faux+' faux');}
+module.exports.controles=controles;module.exports.ecritControles=ecritControles;
 function ecritSorties(S){
   console.log('\n  LES SORTIES DU SOL (demandees une decision avant ; « approx » : la vitesse tenue, ni drift ni flaque)');
   for(const g of ['franc','saut']){const x=S[g];if(!x.n){console.log('    '+g+' : aucune');continue;}
-    console.log(`    ${g.padEnd(5)} : ${x.n} sortie(s) · prevue ${x.prevues}/${x.n}${x.refusees?' ('+x.refusees+' saut(s) dit(s) refuse(s))':''} · |Δt| du decollage : mediane ${x.dt_med} s, p90 ${x.dt_p90} · le vol qui suit (rien ou plane) : issue juste ${x.rayons.justes}/${x.rayons.n}`+(x.rayons.poses?` · poses : |Δt| ${x.rayons.dt_med} s, |Δs| ${x.rayons.ds_med} m`:''));}}
+    console.log(`    ${g.padEnd(5)} : ${x.n} sortie(s) · prevue ${x.prevues}/${x.n}${x.refusees?' ('+x.refusees+' saut(s) dit(s) refuse(s))':''} · |Δt| du decollage : mediane ${x.dt_med} s, p90 ${x.dt_p90} · le vol qui suit (${g==='saut'?'rien ou plane':'rien, plane ou versRoute'}) : issue juste ${x.rayons.justes}/${x.rayons.n}`+(x.rayons.poses?` · poses : |Δt| ${x.rayons.dt_med} s, |Δs| ${x.rayons.ds_med} m, |Δlat| ${x.rayons.dlat_med} m`:''));
+    if(g==='saut'){console.log('            impulsion connue (un saut deja fait) : '+unT(x.connu));console.log('            premier saut de la course (plancher du jeu) : '+unT(x.premier));}
+    else for(const f of Object.keys(x.parFacon||{}))if(x.parFacon[f].n)console.log('            '+f.padEnd(10)+': '+unT(x.parFacon[f]));}
+  if(S.bord){const x=S.bord;if(!x.n)console.log('    bord d\'office : aucune');
+    else{console.log(`    bord d'office : ${x.n} sortie(s) annoncee(s) par les yeux · |Δt| du decollage : mediane ${x.dt_med} s, p90 ${x.dt_p90} · le vol qui suit (rien, versRoute ou plane) : issue juste ${x.rayons.justes}/${x.rayons.n}`);
+      for(const f of Object.keys(x.parFacon))if(x.parFacon[f].n)console.log('            '+f.padEnd(10)+': '+unT(x.parFacon[f]));}}}
 module.exports.tableau=tableau;module.exports.ecrit=ecrit;module.exports.sorties=sorties;module.exports.ecritSorties=ecritSorties;
 if(PRINCIPAL&&!A.includes('--enfant'))parent();
 /* ---------------- le parent : une course par processus, K a la fois ---------------- */
@@ -171,9 +220,10 @@ function parent(){
 const REGIME=opt('regime','allege')==='max'?'max':'allege',CARTES=String(opt('cartes','nuages,espace,grotte,ville,jade,canyon')).split(',').filter(Boolean);
 const NG=Math.max(1,+opt('graines',3)||3),G0=+opt('depart',910000),TMAX=+opt('tmax',90),K=Math.max(1,Math.min(2,+opt('coeurs',2)||2)),PAS=A.includes('--pas');
 const REQUETE=opt('requete',''),CERVEAU=opt('cerveau',null),FICHIER=CERVEAU?path.resolve(CERVEAU):null,NOMC=FICHIER?path.basename(FICHIER,'.js'):'voltigeur';
-const SORTIE=path.resolve(opt('sortie',path.join(__dirname,'results','justesse'+(REGIME==='allege'?'-allege':'')+(PAS?'-pas':'')+(FICHIER?'-'+NOMC:'')+(REQUETE?'-'+REQUETE.replace(/[^a-z0-9]+/gi,''):'')+'.json')));
+const PROFIL=opt('profil',null);if(PROFIL&&['machine','clavier','doigt'].indexOf(PROFIL)<0){console.log('--profil : machine, clavier ou doigt');process.exit(2);}
+const SORTIE=path.resolve(opt('sortie',path.join(__dirname,'results','justesse'+(REGIME==='allege'?'-allege':'')+(PAS?'-pas':'')+(FICHIER?'-'+NOMC:'')+(PROFIL?'-main-'+PROFIL:'')+(REQUETE?'-'+REQUETE.replace(/[^a-z0-9]+/gi,''):'')+'.json')));
 const taches=[];for(const c of CARTES)for(let i=0;i<NG;i++)taches.push({carte:c==='libre'?null:c,graine:G0+37*i});
-console.log(`justesse du radar${PAS?' (pas a pas)':''} · cerveau ${NOMC} · ${CARTES.join(', ')} · ${NG} graine(s) depuis ${G0} · ${TMAX} s au plus · regime ${REGIME}${REQUETE?' · adresse '+REQUETE:''} · ${K} a la fois`);
+console.log(`justesse du radar${PAS?' (pas a pas)':''} · cerveau ${NOMC}${PROFIL?' (main '+PROFIL+')':''} · ${CARTES.join(', ')} · ${NG} graine(s) depuis ${G0} · ${TMAX} s au plus · regime ${REGIME}${REQUETE?' · adresse '+REQUETE:''} · ${K} a la fois`);
 const t0=Date.now(),R=[];let suivant=0,actifs=0;
 function lance(){
   while(actifs<K&&suivant<taches.length){const T=taches[suivant++];actifs++;
@@ -184,9 +234,9 @@ function lance(){
       if(!recu||recu.erreur){console.log(`  ${T.carte||'libre'} ${T.graine} : RIEN (${recu?recu.erreur:err.replace(/\s+/g,' ').slice(-200)})`);}
       else{R.push(recu);const b=recu.bilan;console.log(`  ${String(T.carte||'libre').padEnd(8)} ${T.graine} · ${String(b.duree).padStart(5)} s · fin « ${b.cause} » · ${(recu.vols||recu.pas).length} vol(s) juge(s)`+(b.yeux?` · yeux ${b.yeux.ms_moy} ms/vue (sol ${b.yeux.ms_sol_moy}, vol ${b.yeux.ms_vol_moy}, pire ${b.yeux.ms_max}) · ${b.yeux.pas_max} images, ${b.yeux.sondes_max} sondes au pire · ${b.yeux.octets_moy} car.${b.yeux.erreurs?' · ERREURS '+b.yeux.erreurs:''}${b.tirages?' · TIRAGES '+b.tirages:''}`:''));}
       if(suivant>=taches.length&&actifs===0)bilan();else lance();});
-    c.send({regime:REGIME,carte:T.carte,graine:T.graine,tmax:TMAX,pas:PAS,fichier:FICHIER,requete:REQUETE});}}
+    c.send({regime:REGIME,carte:T.carte,graine:T.graine,tmax:TMAX,pas:PAS,fichier:FICHIER,requete:REQUETE,profil:PROFIL});}}
 function bilan(){
-  const out={date:new Date().toISOString(),regime:REGIME,requete:REQUETE||null,cerveau:NOMC,cartes:CARTES,graines:{n:NG,depart:G0,pas:37},tmax:TMAX,mode:PAS?'pas':'issues',courses:R.map(r=>Object.assign({carte:r.carte,graine:r.graine},r.bilan))};
+  const out={date:new Date().toISOString(),regime:REGIME,requete:REQUETE||null,cerveau:NOMC,profil:PROFIL,cartes:CARTES,graines:{n:NG,depart:G0,pas:37},tmax:TMAX,mode:PAS?'pas':'issues',courses:R.map(r=>Object.assign({carte:r.carte,graine:r.graine},r.bilan))};
   if(PAS){
     const tous=[].concat(...R.map(r=>r.pas||[]));out.pas={};
     console.log('\n=== LE PAS A PAS : les places prevues contre les places du jeu (touches tenues) ===');
@@ -203,7 +253,7 @@ function bilan(){
     if(rates.length)console.log('  issues pas a l\'image pres : '+rates.map(v=>`${v.carte} : ${v.issue}${v.cause?' '+v.cause:''} prevu a l'image ${v.k}, fin « ${v.fin} » a l'image ${v.vu}`).join(' ; '));
   }else{
     const tous=[].concat(...R.map(r=>r.vols||[]));out.cartes_mesurees={};
-    console.log(`\n=== LA JUSTESSE DU RADAR — ${NOMC}, rayon « ${FICHIER?'tenu':'la facon tenue'} » ===`);
+    console.log(`\n=== LA JUSTESSE DU RADAR — ${NOMC}${PROFIL?' (main '+PROFIL+')':''}, rayon « ${tous.length&&tous.every(v=>v.facon==='tenu')?'tenu':'la facon tenue'} » ===`);
     const groupes={};for(const v of tous){(groupes[v.carte]=groupes[v.carte]||[]).push(v);}
     for(const g of Object.keys(groupes).sort().concat(['TOUT'])){const V=g==='TOUT'?tous:groupes[g];
       console.log(`\n${g} — ${V.length} vol(s)${g!=='TOUT'&&V[0]&&V[0].decor?' · decor sonde : '+V[0].decor:''}`);
@@ -211,6 +261,7 @@ function bilan(){
       const a2=tableau(V,'a2');out.cartes_mesurees[g].a2=a2;
       ecrit('(a) a la premiere vue du vol',a);ecrit('(a2) a la premiere vue ou les doigts tiennent la facon',a2);ecrit('(b) a la derniere vue, 1 s au moins avant la fin',b);
       if(g==='TOUT'){const S=sorties(V);out.sorties=S;ecritSorties(S);
+        out.controles=controles(R.map(r=>r.controles));ecritControles(out.controles);
         console.log('\n  par facon (issue juste a la premiere vue · 1 s avant la fin) : '+[...new Set(V.map(v=>v.facon))].map(f=>{const W=V.filter(v=>v.facon===f),ta=tableau(W,'a'),tb=tableau(W,'b');return `${f} ${ta.justes}/${ta.n} · ${tb.justes}/${tb.n}`;}).join(' | '));}}
     out.vols=tous;
     /* le cout, par carte */

@@ -1,8 +1,9 @@
 {
- "date": "2026-11-24T22:04:54.351Z",
+ "date": "2026-11-25T02:10:26.784Z",
  "regime": "allege",
  "requete": null,
  "cerveau": "reference",
+ "profil": null,
  "cartes": [
   "libre"
  ],
@@ -27,10 +28,10 @@
    ],
    "vols": 5,
    "yeux": {
-    "ms_moy": 0.716,
-    "ms_max": 16.166,
-    "ms_sol_moy": 0.617,
-    "ms_vol_moy": 2.668,
+    "ms_moy": 0.502,
+    "ms_max": 10.087,
+    "ms_sol_moy": 0.443,
+    "ms_vol_moy": 1.667,
     "vues_sol": 1428,
     "vues_vol": 72,
     "pas_vol_moy": 1083,
@@ -38,7 +39,7 @@
     "pas_max": 1875,
     "sondes_max": 792,
     "route_max": 180,
-    "octets_moy": 2335,
+    "octets_moy": 2428,
     "erreurs": 0,
     "manque": []
    },
@@ -46,7 +47,8 @@
    "empreinte": "f906ffa945fe",
    "touches": "7be574c720ed",
    "erreurs": 0,
-   "xReel": 4.02
+   "xReel": 5.93,
+   "main": null
   },
   {
    "carte": "libre",
@@ -60,18 +62,18 @@
    ],
    "vols": 1,
    "yeux": {
-    "ms_moy": 1.017,
-    "ms_max": 26.468,
-    "ms_sol_moy": 0.722,
-    "ms_vol_moy": 6.308,
+    "ms_moy": 0.85,
+    "ms_max": 22.683,
+    "ms_sol_moy": 0.517,
+    "ms_vol_moy": 6.836,
     "vues_sol": 1131,
     "vues_vol": 63,
     "pas_vol_moy": 1240,
     "dalles_vol_moy": 188,
     "pas_max": 2198,
-    "sondes_max": 1099,
+    "sondes_max": 2198,
     "route_max": 180,
-    "octets_moy": 2329,
+    "octets_moy": 2402,
     "erreurs": 0,
     "manque": []
    },
@@ -79,7 +81,8 @@
    "empreinte": "1fc49067f598",
    "touches": "c33bd8311f96",
    "erreurs": 0,
-   "xReel": 2.36
+   "xReel": 3.26,
+   "main": null
   },
   {
    "carte": "libre",
@@ -93,18 +96,18 @@
    ],
    "vols": 4,
    "yeux": {
-    "ms_moy": 1.316,
-    "ms_max": 28.804,
-    "ms_sol_moy": 0.787,
-    "ms_vol_moy": 5.388,
+    "ms_moy": 1.052,
+    "ms_max": 14.154,
+    "ms_sol_moy": 0.574,
+    "ms_vol_moy": 4.731,
     "vues_sol": 778,
     "vues_vol": 101,
-    "pas_vol_moy": 1106,
-    "dalles_vol_moy": 320,
-    "pas_max": 2171,
-    "sondes_max": 1088,
+    "pas_vol_moy": 1069,
+    "dalles_vol_moy": 325,
+    "pas_max": 2081,
+    "sondes_max": 2081,
     "route_max": 180,
-    "octets_moy": 2319,
+    "octets_moy": 2389,
     "erreurs": 0,
     "manque": []
    },
@@ -112,7 +115,8 @@
    "empreinte": "4db568177c78",
    "touches": "7cf5360e7b1a",
    "erreurs": 0,
-   "xReel": 2.19
+   "xReel": 3.09,
+   "main": null
   },
   {
    "carte": "libre",
@@ -125,18 +129,18 @@
    ],
    "vols": 2,
    "yeux": {
-    "ms_moy": 0.853,
-    "ms_max": 13.157,
-    "ms_sol_moy": 0.762,
-    "ms_vol_moy": 1.568,
+    "ms_moy": 0.647,
+    "ms_max": 11.05,
+    "ms_sol_moy": 0.561,
+    "ms_vol_moy": 1.319,
     "vues_sol": 501,
     "vues_vol": 64,
-    "pas_vol_moy": 1164,
-    "dalles_vol_moy": 255,
-    "pas_max": 2015,
+    "pas_vol_moy": 1147,
+    "dalles_vol_moy": 266,
+    "pas_max": 1940,
     "sondes_max": 0,
     "route_max": 180,
-    "octets_moy": 2261,
+    "octets_moy": 2325,
     "erreurs": 0,
     "manque": []
    },
@@ -144,7 +148,8 @@
    "empreinte": "7fce626faeaa",
    "touches": "f279ebcd4f35",
    "erreurs": 0,
-   "xReel": 5.03
+   "xReel": 7.02,
+   "main": null
   }
  ],
  "cartes_mesurees": {
@@ -927,7 +932,252 @@
    "refusees": 0,
    "dt_med": null,
    "dt_p90": null,
+   "dt_max": null,
    "rayons": {
+    "n": 0,
+    "justes": 0,
+    "table": {},
+    "lignes": [
+     "pose",
+     "levre",
+     "choc",
+     "air",
+     "fond",
+     "portail",
+     "libre",
+     "coupe"
+    ],
+    "colonnes": [
+     "pose",
+     "choc",
+     "air",
+     "fond",
+     "portail",
+     "temps",
+     "autre"
+    ],
+    "dt_med": null,
+    "dt_p90": null,
+    "ds_med": null,
+    "ds_p90": null,
+    "dlat_med": null,
+    "dlat_p90": null,
+    "dimpact_med": null,
+    "poses": 0,
+    "notes": 0,
+    "notesOk": 0,
+    "causes": 0,
+    "causesOk": 0,
+    "chocs": 0,
+    "chocsNonPrevus": [],
+    "chocsHorsHorizon": 0
+   },
+   "parFacon": {
+    "rien": {
+     "n": 0,
+     "justes": 0,
+     "table": {},
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": null,
+     "dt_p90": null,
+     "ds_med": null,
+     "ds_p90": null,
+     "dlat_med": null,
+     "dlat_p90": null,
+     "dimpact_med": null,
+     "poses": 0,
+     "notes": 0,
+     "notesOk": 0,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    },
+    "plane": {
+     "n": 0,
+     "justes": 0,
+     "table": {},
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": null,
+     "dt_p90": null,
+     "ds_med": null,
+     "ds_p90": null,
+     "dlat_med": null,
+     "dlat_p90": null,
+     "dimpact_med": null,
+     "poses": 0,
+     "notes": 0,
+     "notesOk": 0,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    },
+    "versRoute": {
+     "n": 0,
+     "justes": 0,
+     "table": {},
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": null,
+     "dt_p90": null,
+     "ds_med": null,
+     "ds_p90": null,
+     "dlat_med": null,
+     "dlat_p90": null,
+     "dimpact_med": null,
+     "poses": 0,
+     "notes": 0,
+     "notesOk": 0,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    }
+   }
+  },
+  "saut": {
+   "n": 0,
+   "prevues": 0,
+   "refusees": 0,
+   "dt_med": null,
+   "dt_p90": null,
+   "dt_max": null,
+   "rayons": {
+    "n": 0,
+    "justes": 0,
+    "table": {},
+    "lignes": [
+     "pose",
+     "levre",
+     "choc",
+     "air",
+     "fond",
+     "portail",
+     "libre",
+     "coupe"
+    ],
+    "colonnes": [
+     "pose",
+     "choc",
+     "air",
+     "fond",
+     "portail",
+     "temps",
+     "autre"
+    ],
+    "dt_med": null,
+    "dt_p90": null,
+    "ds_med": null,
+    "ds_p90": null,
+    "dlat_med": null,
+    "dlat_p90": null,
+    "dimpact_med": null,
+    "poses": 0,
+    "notes": 0,
+    "notesOk": 0,
+    "causes": 0,
+    "causesOk": 0,
+    "chocs": 0,
+    "chocsNonPrevus": [],
+    "chocsHorsHorizon": 0
+   },
+   "connu": {
+    "n": 0,
+    "justes": 0,
+    "table": {},
+    "lignes": [
+     "pose",
+     "levre",
+     "choc",
+     "air",
+     "fond",
+     "portail",
+     "libre",
+     "coupe"
+    ],
+    "colonnes": [
+     "pose",
+     "choc",
+     "air",
+     "fond",
+     "portail",
+     "temps",
+     "autre"
+    ],
+    "dt_med": null,
+    "dt_p90": null,
+    "ds_med": null,
+    "ds_p90": null,
+    "dlat_med": null,
+    "dlat_p90": null,
+    "dimpact_med": null,
+    "poses": 0,
+    "notes": 0,
+    "notesOk": 0,
+    "causes": 0,
+    "causesOk": 0,
+    "chocs": 0,
+    "chocsNonPrevus": [],
+    "chocsHorsHorizon": 0
+   },
+   "premier": {
     "n": 0,
     "justes": 0,
     "table": {},
@@ -967,12 +1217,10 @@
     "chocsHorsHorizon": 0
    }
   },
-  "saut": {
-   "n": 0,
-   "prevues": 0,
-   "refusees": 0,
-   "dt_med": null,
-   "dt_p90": null,
+  "bord": {
+   "n": 12,
+   "dt_med": 0.03,
+   "dt_p90": 0.07,
    "rayons": {
     "n": 0,
     "justes": 0,
@@ -1011,7 +1259,146 @@
     "chocs": 0,
     "chocsNonPrevus": [],
     "chocsHorsHorizon": 0
+   },
+   "parFacon": {
+    "rien": {
+     "n": 0,
+     "justes": 0,
+     "table": {},
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": null,
+     "dt_p90": null,
+     "ds_med": null,
+     "ds_p90": null,
+     "dlat_med": null,
+     "dlat_p90": null,
+     "dimpact_med": null,
+     "poses": 0,
+     "notes": 0,
+     "notesOk": 0,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    },
+    "plane": {
+     "n": 0,
+     "justes": 0,
+     "table": {},
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": null,
+     "dt_p90": null,
+     "ds_med": null,
+     "ds_p90": null,
+     "dlat_med": null,
+     "dlat_p90": null,
+     "dimpact_med": null,
+     "poses": 0,
+     "notes": 0,
+     "notesOk": 0,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    },
+    "versRoute": {
+     "n": 0,
+     "justes": 0,
+     "table": {},
+     "lignes": [
+      "pose",
+      "levre",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "libre",
+      "coupe"
+     ],
+     "colonnes": [
+      "pose",
+      "choc",
+      "air",
+      "fond",
+      "portail",
+      "temps",
+      "autre"
+     ],
+     "dt_med": null,
+     "dt_p90": null,
+     "ds_med": null,
+     "ds_p90": null,
+     "dlat_med": null,
+     "dlat_p90": null,
+     "dimpact_med": null,
+     "poses": 0,
+     "notes": 0,
+     "notesOk": 0,
+     "causes": 0,
+     "causesOk": 0,
+     "chocs": 0,
+     "chocsNonPrevus": [],
+     "chocsHorsHorizon": 0
+    }
    }
+  }
+ },
+ "controles": {
+  "sauts": {
+   "ordres": 0,
+   "prevus": 0,
+   "refuses": 0,
+   "figure": 0,
+   "decolles": 0,
+   "prevusSansDecol": 0,
+   "refusesMaisDecol": 0
+  },
+  "cadence": {
+   "vues": 156,
+   "max": 1.02
+  },
+  "latC": {
+   "objets": 27169,
+   "dessous": 3325,
+   "faux": 0
   }
  },
  "vols": [
@@ -1052,7 +1439,14 @@
    },
    "b": null,
    "s": null,
-   "sol": null
+   "sol": null,
+   "bord": {
+    "image": 1860,
+    "reel": 0.38,
+    "t": 0.37,
+    "dt": -0.01
+   },
+   "sb": null
   },
   {
    "i0": 3585,
@@ -1113,7 +1507,14 @@
     "dimpact": 28.71
    },
    "s": null,
-   "sol": null
+   "sol": null,
+   "bord": {
+    "image": 3570,
+    "reel": 0.27,
+    "t": 0.25,
+    "dt": -0.02
+   },
+   "sb": null
   },
   {
    "i0": 3845,
@@ -1160,7 +1561,14 @@
    },
    "b": null,
    "s": null,
-   "sol": null
+   "sol": null,
+   "bord": {
+    "image": 3828,
+    "reel": 0.3,
+    "t": 0.37,
+    "dt": 0.07
+   },
+   "sb": null
   },
   {
    "i0": 5512,
@@ -1216,7 +1624,14 @@
     "dt": 3.16
    },
    "s": null,
-   "sol": null
+   "sol": null,
+   "bord": {
+    "image": 5502,
+    "reel": 0.18,
+    "t": 0.3,
+    "dt": 0.12
+   },
+   "sb": null
   },
   {
    "i0": 7874,
@@ -1255,7 +1670,14 @@
    },
    "b": null,
    "s": null,
-   "sol": null
+   "sol": null,
+   "bord": {
+    "image": 7854,
+    "reel": 0.35,
+    "t": 0.4,
+    "dt": 0.05
+   },
+   "sb": null
   },
   {
    "i0": 6778,
@@ -1301,7 +1723,14 @@
     "dt": 0
    },
    "s": null,
-   "sol": null
+   "sol": null,
+   "bord": {
+    "image": 6762,
+    "reel": 0.28,
+    "t": 0.32,
+    "dt": 0.04
+   },
+   "sb": null
   },
   {
    "i0": 2662,
@@ -1348,7 +1777,14 @@
    },
    "b": null,
    "s": null,
-   "sol": null
+   "sol": null,
+   "bord": {
+    "image": 2646,
+    "reel": 0.28,
+    "t": 0.33,
+    "dt": 0.05
+   },
+   "sb": null
   },
   {
    "i0": 3438,
@@ -1387,7 +1823,14 @@
    },
    "b": null,
    "s": null,
-   "sol": null
+   "sol": null,
+   "bord": {
+    "image": 3420,
+    "reel": 0.32,
+    "t": 0.3,
+    "dt": -0.02
+   },
+   "sb": null
   },
   {
    "i0": 4700,
@@ -1448,7 +1891,14 @@
     "dimpact": 93.49
    },
    "s": null,
-   "sol": null
+   "sol": null,
+   "bord": {
+    "image": 4686,
+    "reel": 0.25,
+    "t": 0.27,
+    "dt": 0.02
+   },
+   "sb": null
   },
   {
    "i0": 4904,
@@ -1494,7 +1944,14 @@
     "dt": 0
    },
    "s": null,
-   "sol": null
+   "sol": null,
+   "bord": {
+    "image": 4890,
+    "reel": 0.25,
+    "t": 0.28,
+    "dt": 0.03
+   },
+   "sb": null
   },
   {
    "i0": 1948,
@@ -1533,7 +1990,14 @@
    },
    "b": null,
    "s": null,
-   "sol": null
+   "sol": null,
+   "bord": {
+    "image": 1926,
+    "reel": 0.38,
+    "t": 0.35,
+    "dt": -0.03
+   },
+   "sb": null
   },
   {
    "i0": 3005,
@@ -1577,22 +2041,29 @@
     "dt": 0
    },
    "s": null,
-   "sol": null
+   "sol": null,
+   "bord": {
+    "image": 2988,
+    "reel": 0.3,
+    "t": 0.32,
+    "dt": 0.02
+   },
+   "sb": null
   }
  ],
  "cout": {
   "libre": {
-   "ms_moy": 0.949,
-   "ms_sol_moy": 0.701,
-   "ms_vol_moy": 4.113,
-   "ms_max": 28.804,
+   "ms_moy": 0.739,
+   "ms_sol_moy": 0.507,
+   "ms_vol_moy": 3.71,
+   "ms_max": 22.683,
    "part_vol": 0.072,
    "pas_max": 2198,
-   "sondes_max": 1099,
-   "octets_moy": 2311,
+   "sondes_max": 2198,
+   "octets_moy": 2386,
    "erreurs": 0,
    "tirages": 0,
-   "x_reel": 3.4
+   "x_reel": 4.82
   }
  }
 }
