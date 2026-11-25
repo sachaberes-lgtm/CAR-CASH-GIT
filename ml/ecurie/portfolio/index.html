@@ -61,6 +61,10 @@ blockquote{margin:0;padding:10px 14px;border-left:3px solid var(--accent);backgr
 ul{padding-left:1.2em}
 li{margin:.3em 0}
 video{width:100%;height:auto;border-radius:10px;background:#000;display:block}
+.tech{margin:20px 0 30px}
+.tech .defile{overflow-x:auto}
+.tech img{display:block;width:100%;height:auto;border:1px solid var(--trait);border-radius:10px}
+.tech figcaption{margin-top:8px;max-width:58em}
 .frise{list-style:none;padding:0;margin:8px 0;border-left:2px solid var(--trait)}
 .frise li{padding:0 0 8px 14px;position:relative}
 .frise li::before{content:"";position:absolute;left:-6px;top:.55em;width:10px;height:10px;border-radius:50%;background:var(--accent)}
@@ -95,6 +99,7 @@ footer.pied{margin-top:3em;padding-top:1em;border-top:1px solid var(--trait);fon
   th,td{padding:5px 7px}
   table{font-size:.84rem}
   .chiffre b{font-size:1.4rem}
+  .tech img{min-width:720px}
 }
 </style>
 </head>
@@ -434,6 +439,82 @@ sans écran. 1280 × 720, 60 images par seconde exactes, sans le HUD.</figcaptio
 </section>
 
 <section>
+<h2>Dans la simulation</h2>
+<p>Cinq figures tracées à partir des fichiers que le jeu sans écran et les outils de mesure ont écrits&nbsp;: aucune valeur n'est recopiée à la main.
+Une commande les refait toutes, en version claire et sombre&nbsp;: <code class="nw">node ml/ecurie/portfolio/figures.js</code>. La source de chaque figure est
+écrite sous elle (fichier, graine, version du jeu, date).</p>
+
+<figure class="tech">
+<div class="defile"><picture>
+<source srcset="images/course-dessus-sombre.svg" media="(prefers-color-scheme: dark)">
+<img src="images/course-dessus-clair.svg" width="960" height="662" loading="lazy" alt="La course c0003-g910629 vue de dessus en trois panneaux (espace, nuages, ville), la trace colorée par la vitesse, les vols en pointillés, la mort en vol au-dessus de la ville à 159,6 s ; en dessous, la vitesse en fonction du temps.">
+</picture></div>
+<figcaption><b>Figure 1.</b> Le pilote (<code>c0003</code>), graine 910629&nbsp;: la course filmée plus haut, lue dans l'enregistreur du jeu (position 10 fois par seconde).
+Un panneau par map, dans le repère de sa route&nbsp;: le jeu repart de l'origine à chaque portail, et les trois panneaux sont à la même échelle.
+La route est dessinée à sa vraie largeur (56&nbsp;m), la trace est colorée par la vitesse, les 8 vols sont en pointillés. Au-dessus des nuages, le plus long
+vol posé&nbsp;: 9,68&nbsp;s, 94&nbsp;m au plus haut, deux rebonds sur la tranche de la route. La fin&nbsp;: un dernier vol de 6,0&nbsp;s parti du bord, en ville,
+qui s'écarte jusqu'à 1,3&nbsp;km de la route&nbsp;; la jauge d'air se vide à 159,6&nbsp;s (cause «&nbsp;air&nbsp;»). En bas, la même course dans le temps&nbsp;:
+les bandes sont les vols, les traits pointillés les portails.</figcaption>
+</figure>
+
+<figure class="tech">
+<div class="defile"><picture>
+<source srcset="images/radar-sombre.svg" media="(prefers-color-scheme: dark)">
+<img src="images/radar-clair.svg" width="960" height="640" loading="lazy" alt="Les dix rayons du radar à la première image d'un vol en ville, vus de côté et de dessus : huit finissent contre une tour, les deux rayons vers la route se posent ; le vol réellement joué se pose après deux rebonds.">
+</picture></div>
+<figcaption><b>Figure 2.</b> Même course, le vol qui décolle par le bord à 150,97&nbsp;s en ville, à 1&#8239;018&nbsp;km/h. À la première vue de ce vol (151,00&nbsp;s, deux
+images plus tard), les yeux v2 rejouent dix façons de piloter, image par image, avec les lois du jeu&nbsp;: 6&nbsp;s au plus pour les rayons longs, 2&nbsp;s pour
+les courts. Huit finissent contre une tour entre 0,53 et 1,57&nbsp;s&nbsp;; «&nbsp;vers la route&nbsp;» se pose à 1,78&nbsp;s, «&nbsp;vers la route + nitro&nbsp;» à 1,40&nbsp;s.
+Le pilote prend cette loi au décollage et la garde tant que le radar annonce une pose. Le vol réel (trait épais) se pose après 2,32&nbsp;s et deux rebonds sur
+la tranche, 0,51&nbsp;s plus tard et 67&nbsp;m plus loin que le rayon «&nbsp;vers la route&nbsp;». Le vol réel n'est pas exactement ce rayon&nbsp;: la main au
+clavier ajoute des coups de volant tirés au hasard, que les yeux ne lisent pas (d'où la marque «&nbsp;approx&nbsp;» sur chaque rayon), et le radar est refait à
+chaque vue suivante. Vue de côté&nbsp;: <i>s</i> est la projection sur le
+milieu de la route, la hauteur est comptée depuis le point de départ, l'échelle verticale est dilatée. Les chemins des rayons sont ceux que les yeux
+calculent déjà pour le banc «&nbsp;pas à pas&nbsp;». <code>radar-course.js</code> les recueille en rechargeant une copie du code des yeux, sans toucher à
+<code>ml/bot</code>. La course rejouée ainsi a la même empreinte que le rejeu du labo (<code>5aad3e682905</code>).</figcaption>
+</figure>
+
+<figure class="tech">
+<div class="defile"><picture>
+<source srcset="images/main-sombre.svg" media="(prefers-color-scheme: dark)">
+<img src="images/main-clair.svg" width="960" height="600" loading="lazy" alt="Frise de 20 secondes des touches gauche, droite et nitro du pilote, au-dessus de celle de Sacha au clavier ; à droite, les histogrammes superposés des durées de coups de volant et de tenues de nitro.">
+</picture></div>
+<figcaption><b>Figure 3.</b> À gauche, de 20 à 40&nbsp;s de course. En haut, le pilote&nbsp;: les touches de son rejeu, à l'image près (1/60&nbsp;s). En bas, une partie de Sacha
+au clavier (23/11, palier 14). Le jeu n'enregistre pas les touches d'un joueur&nbsp;: on y lit le volant lissé au-delà de ±0,3 et la flamme de nitro,
+10 fois par seconde. La courbe «&nbsp;volant&nbsp;», la même grandeur des deux côtés, se compare directement. À droite, chaque coup de volant et chaque tenue
+de nitro au sol, comptés par la même fonction (<code>mainDe</code>, <code>ml/bot/mesures.js</code>) sur les 4 courses gardées du pilote (13,2&nbsp;min) et
+les 10 parties de Sacha au clavier (30,1&nbsp;min). Les coups de volant ont la même forme (médiane 0,23&nbsp;s contre 0,22&nbsp;s)&nbsp;: la main a été réglée
+sur eux. La nitro n'a pas la même forme&nbsp;: au sol, le pilote la tient 0,47&nbsp;s (médiane d'une tenue), Sacha 1,17&nbsp;s, et la nitro est allumée 25&nbsp;% du temps
+contre 60&nbsp;% sur ces parties.</figcaption>
+</figure>
+
+<figure class="tech">
+<div class="defile"><picture>
+<source srcset="images/paliers-sombre.svg" media="(prefers-color-scheme: dark)">
+<img src="images/paliers-clair.svg" width="960" height="402" loading="lazy" alt="Un point par course pour les joueurs (médiane 11,5), le pilote (médiane 11) et le bot de référence (médiane 8,5), sur l'échelle des paliers de 1 à 30.">
+</picture></div>
+<figcaption><b>Figure 4.</b> Le palier d'une course est le meilleur moteur gagné en ramassant des pièces (1 = MOTEUR ROUILLÉ, 30 = TROU NOIR). Le pilote et la référence
+roulent sur les 20 mêmes graines (910000 + 37 × <i>i</i>), version allégée, 900&nbsp;s au plus. Joueurs&nbsp;: les 14 parties de l'étalon, points pleins au clavier
+(Sacha, 10), creux au doigt (Léo, 4). Médianes&nbsp;: 11,5, 11 et 8,5. Le pilote est plus régulier que les joueurs (de 4 à 20 contre de 1 à 28)&nbsp;:
+il n'a pas encore les très bonnes parties, ni les départs ratés.</figcaption>
+</figure>
+
+<figure class="tech">
+<div class="defile"><picture>
+<source srcset="images/justesse-sombre.svg" media="(prefers-color-scheme: dark)">
+<img src="images/justesse-clair.svg" width="960" height="440" loading="lazy" alt="Nuage de points de l'écart entre la pose prévue et la pose réelle, en mètres sur une échelle logarithmique, en fonction du temps restant avant la pose, pour une main de machine et une main au clavier.">
+</picture></div>
+<figcaption><b>Figure 5.</b> Chaque point est une prévision du radar qui annonçait une pose, mesurée contre la pose du vrai jeu par <code>justesse.js</code> (le voltigeur,
+6 maps, 5 graines par map). Δ<i>s</i> = <i>s</i> prévu − <i>s</i> réel, le long de la piste. Pour une main de machine, qui tient ses touches,
+le radar rejoue le vol au décimètre&nbsp;: médiane 0,2&nbsp;m, 90<sup>e</sup> centile 0,5&nbsp;m sur 57 prévisions en vol. La main au clavier donne des coups de
+volant tirés au hasard&nbsp;: la médiane reste à 0,4&nbsp;m, mais le 90<sup>e</sup> centile monte à 44,8&nbsp;m, et l'écart grandit avec le temps qui reste.
+Les triangles sont les sorties prévues depuis le sol, avant le décollage&nbsp;: la pose arrive toujours plus loin que prévu, de 15 à 89&nbsp;m (médiane
+27&nbsp;m). Avant le bord, la conduite est une approximation (<code>yeux.js</code>&nbsp;: «&nbsp;la vitesse tenue, ni drift, ni flaque&nbsp;»)&nbsp;; le vol, lui, est
+rejoué avec les lois du jeu.</figcaption>
+</figure>
+</section>
+
+<section>
 <h2>L'histoire, en cinq dates</h2>
 <ol class="frise">
 <li><b>07/09/2026</b> — premier module ML&nbsp;: un simulateur de circuits et de la neuroévolution (des réseaux de neurones, pas du code lisible). Le 20/10, sur les figures&nbsp;: «&nbsp;la récompense des figures était du bruit&nbsp;», puis un mode d'entraînement à part où 23 bots sur 24 en font.</li>
@@ -450,7 +531,8 @@ sans écran. 1280 × 720, 60 images par seconde exactes, sans le HUD.</figcaptio
 <footer class="pied">
 <p><b>La pile.</b> Node.js (le jeu sans écran, la boucle, le labo) · three.js (le jeu, rendu WebGL dans la salle de projection) ·
 l'API Anthropic (les variantes&nbsp;: Haiku 5.5, Sonnet 5.5, Opus 5.5, Fable 5.2) · Claude Code (les sessions qui ont écrit les outils, le premier pilote
-et cette page). HTML, CSS et SVG écrits à la main, sans script.</p>
+et cette page). HTML, CSS et SVG écrits à la main, sans script&nbsp;; les figures de «&nbsp;Dans la simulation&nbsp;» sont tracées en SVG par
+<code>ml/ecurie/portfolio/figures.js</code> (Node, sans dépendance) à partir des fichiers du dépôt.</p>
 <p>Page écrite le 25/11/2026. CASH CAR est un jeu de Sacha. Le jeu n'a pas changé pendant ce chantier.</p>
 </footer>
 

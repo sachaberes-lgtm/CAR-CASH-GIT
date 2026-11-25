@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 402" width="960" height="402" role="img" aria-label="Les paliers atteints, course par course : les joueurs, le pilote et le bot de référence">
+<style>
+text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-variant-numeric:tabular-nums}
+.ti{font-size:15px;font-weight:650;fill:#1c1c21}
+.t{font-size:12px;fill:#1c1c21}
+.tb{font-size:12px;font-weight:650;fill:#1c1c21}
+.t2{font-size:11.5px;fill:#5b5b66}
+.p{font-size:10.5px;fill:#5b5b66}
+.pt{font-size:10.5px;fill:#1c1c21}
+.src{font-size:10px;font-style:italic;fill:#5b5b66}
+.m{text-anchor:middle}.e{text-anchor:end}
+.h{paint-order:stroke;stroke:#f6f5f1;stroke-width:3.5px;stroke-linejoin:round}
+.hf{paint-order:stroke;stroke:#ffffff;stroke-width:3.5px;stroke-linejoin:round}
+</style>
+<rect width="960" height="402" fill="#ffffff"/>
+<text x="16" y="24" class="ti">Les paliers atteints, un point par course</text>
+<text x="16" y="42" class="t2">Le palier = le meilleur moteur gagné pendant la course (les pièces ramassées : 1 = MOTEUR ROUILLÉ, 30 = TROU NOIR), l’échelle du niveau de l’écurie</text>
+<line x1="241.8" y1="78" x2="241.8" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="265.3" y1="78" x2="265.3" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="288.8" y1="78" x2="288.8" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="312.4" y1="78" x2="312.4" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="335.9" y1="78" x2="335.9" y2="318" stroke="#e9e6df" stroke-width="1"/>
+<line x1="359.4" y1="78" x2="359.4" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="383" y1="78" x2="383" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="406.5" y1="78" x2="406.5" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="430" y1="78" x2="430" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="453.6" y1="78" x2="453.6" y2="318" stroke="#e9e6df" stroke-width="1"/>
+<line x1="477.1" y1="78" x2="477.1" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="500.6" y1="78" x2="500.6" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="524.2" y1="78" x2="524.2" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="547.7" y1="78" x2="547.7" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="571.2" y1="78" x2="571.2" y2="318" stroke="#e9e6df" stroke-width="1"/>
+<line x1="594.8" y1="78" x2="594.8" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="618.3" y1="78" x2="618.3" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="641.8" y1="78" x2="641.8" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="665.4" y1="78" x2="665.4" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="688.9" y1="78" x2="688.9" y2="318" stroke="#e9e6df" stroke-width="1"/>
+<line x1="712.4" y1="78" x2="712.4" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="736" y1="78" x2="736" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="759.5" y1="78" x2="759.5" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="783" y1="78" x2="783" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="806.6" y1="78" x2="806.6" y2="318" stroke="#e9e6df" stroke-width="1"/>
+<line x1="830.1" y1="78" x2="830.1" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="853.6" y1="78" x2="853.6" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="877.2" y1="78" x2="877.2" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="900.7" y1="78" x2="900.7" y2="318" stroke="#f6f5f1" stroke-width="1"/>
+<line x1="924.2" y1="78" x2="924.2" y2="318" stroke="#e9e6df" stroke-width="1"/>
+<text x="16" y="110" class="tb" style="fill:#1f7a4d">les joueurs</text>
+<text x="16" y="125" class="p">14 parties de l’étalon :</text>
+<text x="16" y="138" class="p">Sacha au clavier, Léo au doigt</text>
+<line x1="241.8" y1="118" x2="877.2" y2="118" stroke="#1f7a4d" stroke-width="1" opacity="0.5"/>
+<circle cx="241.8" cy="112.5" r="4.6" fill="#1f7a4d" stroke="#1f7a4d" stroke-width="1.6"/>
+<circle cx="241.8" cy="123.5" r="4.6" fill="#ffffff" stroke="#1f7a4d" stroke-width="1.6"/>
+<circle cx="312.4" cy="118" r="4.6" fill="#1f7a4d" stroke="#1f7a4d" stroke-width="1.6"/>
+<circle cx="335.9" cy="112.5" r="4.6" fill="#1f7a4d" stroke="#1f7a4d" stroke-width="1.6"/>
+<circle cx="335.9" cy="123.5" r="4.6" fill="#1f7a4d" stroke="#1f7a4d" stroke-width="1.6"/>
+<circle cx="406.5" cy="118" r="4.6" fill="#1f7a4d" stroke="#1f7a4d" stroke-width="1.6"/>
+<circle cx="477.1" cy="118" r="4.6" fill="#ffffff" stroke="#1f7a4d" stroke-width="1.6"/>
+<circle cx="500.6" cy="118" r="4.6" fill="#1f7a4d" stroke="#1f7a4d" stroke-width="1.6"/>
+<circle cx="547.7" cy="118" r="4.6" fill="#1f7a4d" stroke="#1f7a4d" stroke-width="1.6"/>
+<circle cx="571.2" cy="118" r="4.6" fill="#1f7a4d" stroke="#1f7a4d" stroke-width="1.6"/>
+<circle cx="594.8" cy="118" r="4.6" fill="#ffffff" stroke="#1f7a4d" stroke-width="1.6"/>
+<circle cx="712.4" cy="118" r="4.6" fill="#ffffff" stroke="#1f7a4d" stroke-width="1.6"/>
+<circle cx="736" cy="118" r="4.6" fill="#1f7a4d" stroke="#1f7a4d" stroke-width="1.6"/>
+<circle cx="877.2" cy="118" r="4.6" fill="#1f7a4d" stroke="#1f7a4d" stroke-width="1.6"/>
+<line x1="488.9" y1="86" x2="488.9" y2="150" stroke="#1f7a4d" stroke-width="2"/>
+<text x="493.9" y="94" class="tb" style="fill:#1f7a4d">médiane 11,5</text>
+<text x="886.2" y="122" class="p">1 à 28</text>
+<text x="16" y="190" class="tb" style="fill:#9a6a00">le pilote</text>
+<text x="16" y="205" class="p">c0003 · 20 courses,</text>
+<text x="16" y="218" class="p">900 s au plus chacune</text>
+<line x1="312.4" y1="198" x2="688.9" y2="198" stroke="#9a6a00" stroke-width="1" opacity="0.5"/>
+<circle cx="312.4" cy="198" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<circle cx="335.9" cy="198" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<circle cx="383" cy="192.5" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<circle cx="383" cy="203.5" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<circle cx="406.5" cy="198" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<circle cx="430" cy="198" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<circle cx="453.6" cy="192.5" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<circle cx="453.6" cy="203.5" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<circle cx="477.1" cy="187" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<circle cx="477.1" cy="198" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<circle cx="477.1" cy="209" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<circle cx="500.6" cy="198" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<circle cx="524.2" cy="187" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<circle cx="524.2" cy="198" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<circle cx="524.2" cy="209" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<circle cx="547.7" cy="198" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<circle cx="571.2" cy="198" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<circle cx="594.8" cy="198" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<circle cx="641.8" cy="198" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<circle cx="688.9" cy="198" r="4.6" fill="#9a6a00" stroke="#9a6a00" stroke-width="1.6"/>
+<line x1="477.1" y1="166" x2="477.1" y2="230" stroke="#9a6a00" stroke-width="2"/>
+<text x="482.1" y="174" class="tb" style="fill:#9a6a00">médiane 11</text>
+<text x="697.9" y="202" class="p">4 à 20</text>
+<text x="16" y="270" class="tb" style="fill:#3d5a8a">la référence</text>
+<text x="16" y="285" class="p">le bot écrit à la main ·</text>
+<text x="16" y="298" class="p">20 courses, mêmes graines</text>
+<line x1="312.4" y1="278" x2="641.8" y2="278" stroke="#3d5a8a" stroke-width="1" opacity="0.5"/>
+<circle cx="312.4" cy="261.5" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<circle cx="312.4" cy="272.5" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<circle cx="312.4" cy="283.5" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<circle cx="312.4" cy="294.5" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<circle cx="335.9" cy="278" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<circle cx="359.4" cy="267" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<circle cx="359.4" cy="278" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<circle cx="359.4" cy="289" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<circle cx="406.5" cy="272.5" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<circle cx="406.5" cy="283.5" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<circle cx="430" cy="272.5" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<circle cx="430" cy="283.5" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<circle cx="477.1" cy="272.5" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<circle cx="477.1" cy="283.5" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<circle cx="500.6" cy="272.5" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<circle cx="500.6" cy="283.5" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<circle cx="524.2" cy="278" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<circle cx="594.8" cy="278" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<circle cx="618.3" cy="278" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<circle cx="641.8" cy="278" r="4.6" fill="#3d5a8a" stroke="#3d5a8a" stroke-width="1.6"/>
+<line x1="418.3" y1="246" x2="418.3" y2="310" stroke="#3d5a8a" stroke-width="2"/>
+<text x="423.3" y="254" class="tb" style="fill:#3d5a8a">médiane 8,5</text>
+<text x="650.8" y="282" class="p">4 à 18</text>
+<line x1="241.8" y1="318" x2="241.8" y2="322" stroke="#8d8a83" stroke-width="1"/>
+<text x="241.8" y="334" class="p m">1</text>
+<line x1="335.9" y1="318" x2="335.9" y2="322" stroke="#8d8a83" stroke-width="1"/>
+<text x="335.9" y="334" class="p m">5</text>
+<line x1="453.6" y1="318" x2="453.6" y2="322" stroke="#8d8a83" stroke-width="1"/>
+<text x="453.6" y="334" class="p m">10</text>
+<line x1="571.2" y1="318" x2="571.2" y2="322" stroke="#8d8a83" stroke-width="1"/>
+<text x="571.2" y="334" class="p m">15</text>
+<line x1="688.9" y1="318" x2="688.9" y2="322" stroke="#8d8a83" stroke-width="1"/>
+<text x="688.9" y="334" class="p m">20</text>
+<line x1="806.6" y1="318" x2="806.6" y2="322" stroke="#8d8a83" stroke-width="1"/>
+<text x="806.6" y="334" class="p m">25</text>
+<line x1="924.2" y1="318" x2="924.2" y2="322" stroke="#8d8a83" stroke-width="1"/>
+<text x="924.2" y="334" class="p m">30</text>
+<line x1="230" y1="318" x2="936" y2="318" stroke="#8d8a83" stroke-width="1"/>
+<text x="583" y="349" class="t2 m">palier atteint</text>
+<circle cx="746" cy="66" r="4.6" fill="#1f7a4d" stroke="#1f7a4d" stroke-width="1.6"/>
+<text x="756" y="69.5" class="p">au clavier</text>
+<circle cx="820" cy="66" r="4.6" fill="#ffffff" stroke="#1f7a4d" stroke-width="1.6"/>
+<text x="830" y="69.5" class="p">au doigt (téléphone)</text>
+<text x="16" y="379" class="src">source : ml/bot/results/etalon.json (24/11/2026) · ml/labo/journal/cerveaux.jsonl, c0003 (25/11/2026, graines 910000 à 910703) · ml/bot/results/note-reference-allege.json</text>
+<text x="16" y="392" class="src">(25/11/2026) · les bots : régime allégé, 900 s au plus</text>
+</svg>
