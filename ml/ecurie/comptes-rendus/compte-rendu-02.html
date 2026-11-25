@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L'écurie · compte rendu n° 2</title>
+<style>
+  :root{
+    --fond:#f6f4ef; --carte:#ffffff; --encre:#1c1b19; --doux:#6b675f; --trait:#e4dfd4;
+    --or:#b8860b; --or-fond:#fbf3dc; --vert:#1f7a4d; --vert-fond:#e3f3ea; --rouge:#b3402e; --rouge-fond:#fbe9e5;
+    --bleu:#2c5f9e; --bleu-fond:#e6eef8; --code:#f1ede4;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --fond:#141311; --carte:#1d1c19; --encre:#f0ece3; --doux:#a39e92; --trait:#32302b;
+      --or:#e3b341; --or-fond:#2b2412; --vert:#5fc48f; --vert-fond:#14271d; --rouge:#ee8a78; --rouge-fond:#2e1814;
+      --bleu:#86b3ec; --bleu-fond:#152234; --code:#26241f;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fond);color:var(--encre);font:16px/1.55 "Segoe UI",system-ui,-apple-system,sans-serif}
+  .page{max-width:920px;margin:0 auto;padding:40px 16px 80px}
+  header .sur{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--or);font-weight:600}
+  h1{font-size:clamp(30px,6vw,46px);line-height:1.08;margin:8px 0 10px;letter-spacing:-.02em;text-wrap:balance}
+  .chapo{font-size:18px;color:var(--doux);max-width:62ch;margin:0}
+  h2{font-size:22px;margin:52px 0 6px;letter-spacing:-.01em}
+  h2+p.sous{margin:0 0 18px;color:var(--doux)}
+  .tuiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:30px}
+  .tuile{background:var(--carte);border:1px solid var(--trait);border-radius:14px;padding:16px 18px}
+  .tuile .lab{font-size:12.5px;color:var(--doux);text-transform:uppercase;letter-spacing:.08em}
+  .tuile .val{font-size:30px;font-weight:650;letter-spacing:-.02em;margin:4px 0 2px;font-variant-numeric:tabular-nums}
+  .tuile .val small{font-size:15px;font-weight:500;color:var(--doux)}
+  .tuile .note{font-size:13.5px;color:var(--doux)}
+  .jauge{height:8px;border-radius:99px;background:var(--trait);margin:10px 0 6px;overflow:hidden}
+  .jauge i{display:block;height:100%;min-width:3px;background:var(--or);border-radius:99px}
+  .frise{display:grid;gap:8px;margin-top:8px}
+  .pas{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;background:var(--carte);border:1px solid var(--trait);border-radius:12px;padding:12px 16px}
+  .pas .l{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;background:var(--trait);color:var(--doux)}
+  .pas.fait .l{background:var(--vert-fond);color:var(--vert)}
+  .pas.cours .l{background:var(--or-fond);color:var(--or)}
+  .pas b{display:block}
+  .pas span.d{font-size:14px;color:var(--doux)}
+  .etat{font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:99px;white-space:nowrap;background:var(--trait);color:var(--doux)}
+  .fait .etat{background:var(--vert-fond);color:var(--vert)}
+  .cours .etat{background:var(--or-fond);color:var(--or)}
+  .cartes{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:12px}
+  .carte{background:var(--carte);border:1px solid var(--trait);border-radius:14px;padding:18px 20px}
+  .carte h3{margin:0 0 6px;font-size:17px}
+  .carte p{margin:0 0 8px;font-size:15px}
+  .carte p:last-child{margin-bottom:0}
+  .carte .f{font-size:13px;color:var(--doux)}
+  code,pre{font-family:"Cascadia Mono",Consolas,ui-monospace,monospace;font-size:13.5px}
+  code{background:var(--code);padding:1px 6px;border-radius:6px}
+  .alerte{border-left:4px solid var(--rouge);background:var(--rouge-fond);border-radius:0 12px 12px 0;padding:14px 18px;margin:12px 0}
+  .alerte b{color:var(--rouge)}
+  .info{border-left:4px solid var(--bleu);background:var(--bleu-fond);border-radius:0 12px 12px 0;padding:14px 18px;margin:12px 0}
+  .info b{color:var(--bleu)}
+  .tab{overflow-x:auto;background:var(--carte);border:1px solid var(--trait);border-radius:14px}
+  table{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums}
+  th,td{padding:10px 16px;text-align:left;border-bottom:1px solid var(--trait)}
+  th{font-size:12.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--doux);font-weight:600}
+  tr:last-child td{border-bottom:0}
+  td.n,th.n{text-align:right}
+  .essai{background:var(--carte);border:1px solid var(--trait);border-radius:14px;padding:16px 18px;margin-bottom:10px}
+  .essai label{display:flex;gap:12px;align-items:flex-start;cursor:pointer;font-weight:600}
+  .essai input{width:20px;height:20px;margin-top:2px;accent-color:var(--vert);flex:none}
+  .essai .duree{font-weight:500;color:var(--doux);font-size:13.5px;margin-left:6px}
+  .cmd{position:relative;margin:10px 0 8px}
+  pre{margin:0;background:var(--code);border-radius:10px;padding:12px 84px 12px 14px;overflow-x:auto;white-space:pre}
+  .cmd button{position:absolute;top:7px;right:7px;border:1px solid var(--trait);background:var(--carte);color:var(--encre);border-radius:8px;padding:5px 10px;font:inherit;font-size:13px;cursor:pointer}
+  .cmd button:hover{border-color:var(--or)}
+  .attendu{font-size:14.5px;color:var(--doux);margin:0}
+  .attendu b{color:var(--vert)}
+  ul.net{margin:8px 0 0;padding-left:20px}
+  ul.net li{margin:6px 0}
+  .cal{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+  .cal div{background:var(--carte);border:1px solid var(--trait);border-radius:12px;padding:14px 16px}
+  .cal .q{font-size:12.5px;color:var(--or);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+  .cal .e{font-size:22px;font-weight:650;margin:2px 0}
+  .cal p{margin:0;font-size:14px;color:var(--doux)}
+  footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--trait);font-size:13.5px;color:var(--doux)}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="sur">CASH CAR · l'écurie des bots · compte rendu n° 2</div>
+  <h1>Le premier pilote existe, la boucle payante a tourné : 24,97 € dépensés, aucun progrès net.</h1>
+  <p class="chapo">Le 25 novembre 2026. Depuis le compte rendu n° 1 : 15 commits sur la branche <code>bots-ecurie</code>, rien de poussé, le jeu n'est pas touché. Ce qui est produit, ce que les mesures disent, et les commandes pour le vérifier toi-même.</p>
+</header>
+
+<div class="tuiles">
+  <div class="tuile">
+    <div class="lab">Crédit API dépensé</div>
+    <div class="val">24,97 € <small>/ 200 €</small></div>
+    <div class="jauge"><i style="width:12.5%"></i></div>
+    <div class="note">12,5 %. Reste 175,03 € : 13,5 € par jour jusqu'au 8 déc.</div>
+  </div>
+  <div class="tuile">
+    <div class="lab">Échéance des 200 €</div>
+    <div class="val">8 déc. <small>13 jours</small></div>
+    <div class="note">Aujourd'hui 25 nov. Le PC, pas l'argent, limitera : un lancement dure de 24 à 74 min.</div>
+  </div>
+  <div class="tuile">
+    <div class="lab">Candidats au labo</div>
+    <div class="val">24 <small>· 8 générations closes</small></div>
+    <div class="note">34 rejeux gardés, 2 validations.</div>
+  </div>
+  <div class="tuile">
+    <div class="lab">Pilote contre référence</div>
+    <div class="val">11 <small>contre 8,5</small></div>
+    <div class="note">Palier médian, 20 graines de 900 s. Record 20 contre 18.</div>
+  </div>
+</div>
+
+<h2>Où en est le plan</h2>
+<p class="sous">Les étapes d'<code>ml/ecurie/ETAPES.md</code>.</p>
+<div class="frise">
+  <div class="pas fait"><div class="l">A</div><div><b>L'étude</b><span class="d">Ce qui donne des pièces, ce qui tue, les vrais joueurs mesurés.</span></div><span class="etat">faite</span></div>
+  <div class="pas fait"><div class="l">B</div><div><b>Les fondations</b><span class="d">Relecture faite, canyon avec ses parois, finitions du radar. <code>verifier.js</code> : TOUT PASSE en régime max (609 s) et en régime allégé, d'après ETAPES.md.</span></div><span class="etat">faite</span></div>
+  <div class="pas cours"><div class="l">C</div><div><b>Le pilote d'élite</b><span class="d">Premier pilote écrit (<code>pilote.js</code>). Calibrage des quatre modèles lancé. Aucun pilote meilleur que le premier pour l'instant.</span></div><span class="etat">en cours</span></div>
+  <div class="pas cours"><div class="l">C+</div><div><b>La boucle sur le crédit API</b><span class="d">La chaîne a tourné : un agent pilote, les finitions de B, puis quatre calibrages. Aucun tour « long » n'est lancé.</span></div><span class="etat">commencée</span></div>
+  <div class="pas"><div class="l">D</div><div><b>Les 30 niveaux</b><span class="d">Un profil par palier, réglé par la mesure.</span></div><span class="etat">à faire</span></div>
+  <div class="pas"><div class="l">E</div><div><b>Le juge</b><span class="d">Chaque niveau comparé aux parties des joueurs.</span></div><span class="etat">à faire</span></div>
+  <div class="pas"><div class="l">F</div><div><b>Le paquet et le portfolio</b><span class="d">Fantômes, arbre, films.</span></div><span class="etat">à faire</span></div>
+</div>
+
+<h2>Ce qui a été produit</h2>
+<p class="sous">15 commits depuis le n° 1 (<code>git log a35ece70f..HEAD</code>). Le jeu n'est pas touché.</p>
+<div class="cartes">
+  <div class="carte">
+    <h3>1 · L'étape B est finie</h3>
+    <p>Yeux et doigts corrigés après relecture, main réglée sur les joueurs. <b>Le canyon du simulateur a enfin ses parois</b> (l'alerte du n° 1) : les notes d'avant ne se comparent plus, le labo le signale pour c0001.</p>
+    <p>Finitions : le radar sonde le canyon à chaque image, comme le jeu juge le choc.</p>
+    <p class="f">commits <code>fffa5f5c3</code> · <code>ef1a73c78</code> · <code>b57b79197</code> · <code>9b1b9a0b4</code> · <code>a732824c7</code> · <code>59cdc22d2</code></p>
+  </div>
+  <div class="carte">
+    <h3>2 · Le premier pilote</h3>
+    <p><code>ml/ecurie/pilote.js</code> : il vise de loin ce qui se ramasse, lit la route devant, demande la nitro là où la route se tient, et choisit en vol la façon de piloter par le radar. Seconde chance prise à partir du palier 12. Écrit par l'agent Fable : 11,63 €.</p>
+    <p class="f">commit <code>09ed02872</code> · profil <code>bb745b50cdb1</code></p>
+  </div>
+  <div class="carte">
+    <h3>3 · La chaîne et le relais</h3>
+    <p><code>agent-api.js</code> lance une session Claude Code sans écran, payée par la clé d'API seule. <code>chaine.js</code> enchaîne les pas ; le relais glisse un agent entre deux pas (les finitions de B : 8,71 €).</p>
+    <p class="f">commits <code>29c4e8c8c</code> · <code>09e45dddd</code> · <code>1cb305b3d</code></p>
+  </div>
+  <div class="carte">
+    <h3>4 · Le calibrage des quatre modèles</h3>
+    <p>Même parent (le premier pilote), un tour, jusqu'à 6 variantes chacun. Un commit par modèle ; les chiffres sont au tableau plus bas.</p>
+    <p class="f">commits <code>e4942eb0a</code> · <code>45854790d</code> · <code>f90869c09</code> · <code>9cdf14131</code></p>
+  </div>
+  <div class="carte">
+    <h3>5 · La salle de projection répare</h3>
+    <p>Elle s'arrêtait sur « __dirname is not defined ». La page donne à chaque module son dossier. Essayée dans le navigateur d'après le commit : une course du pilote rejouée à 60 images/s.</p>
+    <p class="f">commit <code>4729c99ae</code> · <code>node ml/labo/projection.js</code> puis http://localhost:3161/</p>
+  </div>
+</div>
+
+<h2>Ce que les mesures disent</h2>
+<p class="sous">Sorties de <code>node ml/labo/labo.js</code> et de <code>agents/chaine.log</code>.</p>
+
+<div class="info">
+  <b>Le pilote bat la référence, mais aucun des quatre modèles ne l'a encore amélioré.</b> Chaque lancement part du même pilote, noté en grand : palier médian 11, record 20, contre 8,5 et 18 pour la référence avec relief (ETAPES.md). La boucle ne garde un nouveau champion qu'après une validation sur 20 graines neuves.
+</div>
+
+<div class="tab">
+<table>
+  <thead><tr><th>Modèle (étape)</th><th class="n">Euros</th><th class="n">Variantes au tri</th><th class="n">Meilleur tri</th><th class="n">Durée</th><th>Issue</th></tr></thead>
+  <tbody>
+    <tr><td>Haiku 5.5 (K-haiku)</td><td class="n">0,06</td><td class="n">6</td><td class="n">12 (c0004 en grand : 11,5)</td><td class="n">56 min</td><td>« pas de progrès ce tour », champion c0003</td></tr>
+    <tr><td>Sonnet 5.5 (K-sonnet)</td><td class="n">0,77</td><td class="n">6</td><td class="n">13,5 (c0011 en grand : 13)</td><td class="n">74 min</td><td>validation sur graines neuves : 10,5 contre 11 → ne tient pas</td></tr>
+    <tr><td>Opus 5.5 (K-opus)</td><td class="n">1,89</td><td class="n">6</td><td class="n">11</td><td class="n">41 min</td><td>« pas de progrès ce tour », champion c0017</td></tr>
+    <tr><td>Fable 5.2 (K-fable)</td><td class="n">1,91</td><td class="n">0</td><td class="n">—</td><td class="n">24 min</td><td>réponse coupée (trop longue) : variante perdue, 1,91 € pour rien</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="tab" style="margin-top:12px">
+<table>
+  <thead><tr><th>Dépenses par étape (labo)</th><th class="n">Euros</th><th class="n">Appels</th></tr></thead>
+  <tbody>
+    <tr><td>C — le premier pilote (Fable)</td><td class="n">11,63</td><td class="n">1</td></tr>
+    <tr><td>B — les finitions (agent)</td><td class="n">8,71</td><td class="n">1</td></tr>
+    <tr><td>K-fable</td><td class="n">1,91</td><td class="n">1</td></tr>
+    <tr><td>K-opus</td><td class="n">1,89</td><td class="n">6</td></tr>
+    <tr><td>K-sonnet</td><td class="n">0,77</td><td class="n">6</td></tr>
+    <tr><td>K-haiku</td><td class="n">0,06</td><td class="n">6</td></tr>
+    <tr><td>outil (essai de la clé)</td><td class="n">0</td><td class="n">1</td></tr>
+    <tr><th>Total</th><th class="n">24,97 sur 200</th><th class="n"></th></tr>
+  </tbody>
+</table>
+</div>
+
+<ul class="net">
+  <li><b>Le tri sur 6 graines est très bruité</b> : chez Sonnet, un 13,5 au tri devient 13 en grand puis 10,5 sur des graines neuves.</li>
+  <li><b>Les variantes qui touchent à la cible au sol ou à la façon de voler perdent souvent</b> (tri de 7,5 à 9,5 chez Sonnet et Opus). Le canyon, la map qui tue le plus (5 courses sur 5 y meurent), a été attaqué par chaque modèle sans gain net.</li>
+  <li><b>L'euro n'est pas le goulot</b> : de 0,01 à 0,31 € par variante, mais 24 à 74 minutes de PC par lancement.</li>
+  <li><b>Un rate</b> : la réponse de Fable a été coupée « trop longue ». Rien n'est encore corrigé.</li>
+</ul>
+
+<h2>À tester toi-même</h2>
+<p class="sous">Dans PowerShell. Coche au fur et à mesure : les cases sont gardées sur cet ordinateur. Aucune de ces commandes ne dépense d'argent.</p>
+
+<div class="essai">
+  <label><input type="checkbox" data-k="t1"><span>Les euros dépensés et les générations <span class="duree">1 seconde</span></span></label>
+  <div class="cmd"><pre>cd C:\Users\sacha\code\CASH-CAR-bots-ecurie; node ml\labo\labo.js</pre><button>Copier</button></div>
+  <p class="attendu">Attendu : <b>total : 24.97 €</b> (davantage si la chaîne a continué depuis), 8 générations closes, les lignes « etape K-haiku … K-fable ».</p>
+</div>
+
+<div class="essai">
+  <label><input type="checkbox" data-k="t2"><span>Refaire l'arbre des candidats <span class="duree">quelques secondes</span></span></label>
+  <div class="cmd"><pre>cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\labo; node arbre.js; start arbre.html</pre><button>Copier</button></div>
+  <p class="attendu">Attendu : <b>arbre.html</b> s'ouvre dans le navigateur avec les 24 candidats, leurs parents et leurs notes. Si <code>start</code> ne marche pas, ouvre le fichier à la main.</p>
+</div>
+
+<div class="essai">
+  <label><input type="checkbox" data-k="t3"><span>Les courses gardées se rejouent à l'image près <span class="duree">plusieurs minutes (34 rejeux ; 4 rejeux = 3 min au n° 1)</span></span></label>
+  <div class="cmd"><pre>cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\labo; node rejouer.js --tout --coeurs 2</pre><button>Copier</button></div>
+  <p class="attendu">Attendu : <b>N rejeu(x) exact(s) sur N</b>. Si le canyon à parois a changé une course d'avant (c0001), elle peut ne plus se rejouer : c'est dit à l'écran.</p>
+</div>
+
+<div class="essai">
+  <label><input type="checkbox" data-k="t4"><span>Noter le champion sur quelques graines <span class="duree">quelques minutes · 0 €</span></span></label>
+  <div class="cmd"><pre>cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\bot; node noter.js ..\labo\cerveaux\c0024-pilote.js --regime allege --coeurs 2 --tmax 600 --graines 4</pre><button>Copier</button></div>
+  <p class="attendu">Attendu : un tableau avec un palier médian de l'ordre de 11 (note en grand du pilote : 11, record 20 ; sur 4 graines l'écart est grand). La note s'écrit dans <code>ml\bot\results</code>, pas dans le labo.</p>
+</div>
+
+<div class="essai">
+  <label><input type="checkbox" data-k="t5"><span>Le contrat tient toujours <span class="duree">10 minutes environ (609 s au dernier contrôle)</span></span></label>
+  <div class="cmd"><pre>cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\bot; node verifier.js</pre><button>Copier</button></div>
+  <p class="attendu">Attendu : <b>TOUT PASSE</b>, avec une empreinte de course égale à celle du témoin.</p>
+</div>
+
+<div class="essai">
+  <label><input type="checkbox" data-k="t6"><span>La salle de projection <span class="duree">1 minute</span></span></label>
+  <div class="cmd"><pre>cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\labo; node projection.js</pre><button>Copier</button></div>
+  <p class="attendu">Attendu : le serveur écoute, puis http://localhost:3161/ montre une course du pilote à 60 images/s, sans l'erreur « __dirname ».</p>
+</div>
+
+<h2>La suite</h2>
+<p class="sous">Elle s'enchaîne sans toi. Jamais plus de 4 courses à la fois sur le PC.</p>
+<div class="cal">
+  <div><div class="q">D'abord</div><div class="e">Réparer le tri</div><p>Le tri sur 6 graines est bruité ; la réponse coupée de Fable est à traiter.</p></div>
+  <div><div class="q">Puis</div><div class="e">Choisir le modèle</div><p>D'après les paliers gagnés par euro et par heure de PC. Rien n'est encore gagné.</p></div>
+  <div><div class="q">Jusqu'au 8 déc.</div><div class="e">La boucle</div><p>175,03 € à dépenser, plafond général à 200 €. Un compte rendu à chaque fin de contexte.</p></div>
+</div>
+
+<h2>Pas fait, pas vérifié</h2>
+<ul class="net">
+  <li>Aucun pilote meilleur que le premier n'existe : le calibrage n'a désigné aucun modèle vainqueur.</li>
+  <li>Le choix du meilleur modèle n'est pas fait : un seul tour par modèle, un seul parent, et Fable sans aucune variante notée.</li>
+  <li>Les notes sont en régime allégé et le tri vient de 6 graines : peu fiable.</li>
+  <li>Le juge « humain ou bot » n'a pas été passé sur la nouvelle main.</li>
+  <li>Je n'ai relancé ni <code>verifier.js</code>, ni les rejeux, ni la salle de projection pour écrire cette page : les attendus viennent de <code>labo.js</code>, du journal de la chaîne et de <code>ETAPES.md</code>, pas d'une mesure faite en écrivant.</li>
+  <li>Les euros sont l'estimation de la boucle : « la facture fait foi ».</li>
+</ul>
+
+<footer>
+  Compte rendu n° 2 · écrit le 25 novembre 2026 · branche <code>bots-ecurie</code> · sources : <code>ml/labo/labo.js</code>, <code>ml/ecurie/agents/chaine.log</code>, <code>ml/ecurie/ETAPES.md</code>.
+</footer>
+
+</div>
+<script>
+(function(){
+  var cle='ecurie-compte-rendu-02';
+  var etat={};
+  try{etat=JSON.parse(localStorage.getItem(cle)||'{}')||{};}catch(e){etat={};}
+  document.querySelectorAll('input[data-k]').forEach(function(c){
+    c.checked=!!etat[c.dataset.k];
+    c.addEventListener('change',function(){etat[c.dataset.k]=c.checked;try{localStorage.setItem(cle,JSON.stringify(etat));}catch(e){}});
+  });
+  document.querySelectorAll('.cmd button').forEach(function(b){
+    b.addEventListener('click',function(){
+      var t=b.parentNode.querySelector('pre').textContent;
+      function ok(){b.textContent='Copié';setTimeout(function(){b.textContent='Copier';},1400);}
+      function secours(){var r=document.createRange();r.selectNodeContents(b.parentNode.querySelector('pre'));var s=getSelection();s.removeAllRanges();s.addRange(r);try{document.execCommand('copy');ok();}catch(e){}}
+      try{navigator.clipboard.writeText(t).then(ok,secours);}catch(e){secours();}
+    });
+  });
+})();
+</script>
+</body>
+</html>
