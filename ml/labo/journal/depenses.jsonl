@@ -1,3 +1,9 @@
 {"date":"2026-11-25T12:29:17.861Z","etape":"outil","generation":null,"cerveau":null,"modele":"claude-haiku-5-5","entree":5676,"sortie":5,"euros":0,"pour":"agent sans ecran : essai"}
 {"date":"2026-11-25T13:39:03.488Z","etape":"C","generation":null,"cerveau":null,"modele":"claude-fable-5-2","entree":10301260,"sortie":104013,"euros":11.63,"pour":"agent sans ecran : pilote"}
 {"date":"2026-11-25T14:30:03.169Z","etape":"B","generation":null,"cerveau":null,"modele":"claude-opus-5-5","entree":22245810,"sortie":96622,"euros":8.71,"pour":"agent sans ecran : finitions-b"}
+{"date":"2026-11-25T15:07:33.439Z","etape":"K-haiku","generation":1,"cerveau":"c0004","modele":"claude-haiku-5-5","entree":62989,"sortie":15456,"euros":0.02,"pour":"candidat"}
+{"date":"2026-11-25T15:17:02.561Z","etape":"K-haiku","generation":1,"cerveau":"c0005","modele":"claude-haiku-5-5","entree":62985,"sortie":13182,"euros":0.01,"pour":"candidat"}
+{"date":"2026-11-25T15:17:02.966Z","etape":"K-haiku","generation":1,"cerveau":"c0006","modele":"claude-haiku-5-5","entree":62977,"sortie":8092,"euros":0,"pour":"candidat"}
+{"date":"2026-11-25T15:17:03.331Z","etape":"K-haiku","generation":1,"cerveau":"c0007","modele":"claude-haiku-5-5","entree":62976,"sortie":9816,"euros":0.01,"pour":"candidat"}
+{"date":"2026-11-25T15:17:03.733Z","etape":"K-haiku","generation":1,"cerveau":"c0008","modele":"claude-haiku-5-5","entree":62954,"sortie":10282,"euros":0.01,"pour":"candidat"}
+{"date":"2026-11-25T15:26:28.778Z","etape":"K-haiku","generation":1,"cerveau":"c0009","modele":"claude-haiku-5-5","entree":62968,"sortie":15904,"euros":0.01,"pour":"candidat"}

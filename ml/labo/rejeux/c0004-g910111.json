@@ -1,0 +1,44 @@
+{
+ "format": "cashcar-rejeu-1",
+ "cerveau": {
+  "id": "c0004",
+  "nom": "pilote",
+  "sha": "bd592b7d587f1c56558571c00dc7c981b345e47b",
+  "code": "cerveaux/c0004-pilote.js"
+ },
+ "etape": "K-haiku",
+ "generation": 1,
+ "jeu": {
+  "version": "cashcar-v1627",
+  "sha": "e7e1eed4718f",
+  "commit": "1cb305b3d",
+  "propre": true,
+  "simulateur": "relief-canyon",
+  "regime": "allege"
+ },
+ "graine": 910111,
+ "carte": null,
+ "meteo": null,
+ "tmax": 600,
+ "images": 2640,
+ "empreinte": "e440ae7a2396",
+ "fin": {
+  "t": 44,
+  "cause": "paroi",
+  "argent": 2920.01,
+  "pieces": 237,
+  "figures": 1,
+  "bumps": 0,
+  "zones": 0,
+  "vmax": 541
+ },
+ "cartes": [
+  "canyon"
+ ],
+ "pourquoi": [
+  "champion : sa course la plus courte"
+ ],
+ "trajectoire": "trajectoires/c0004-g910111.json.gz",
+ "aide": "touches : le nombre d'images (1/60 s) depuis le changement d'avant, puis la touche — MAJUSCULE enfoncee, minuscule relachee ; G D H B N = gauche droite haut bas ESPACE ; C = la plaque CONTINUER de la seconde chance touchee (c : attente abandonnee)",
+ "touches": "16N106n10N37n9N157G6g117G18n3g5D8d5D14d9D5d18D13d8D12d11G7g21G9g26D6d21D23d11D3N14d4n8G37g13G7g5G5g100G26g4G13g12D22d10D17d3G4g5G23g11G7g11D39d19D8d11D5d43G7g8G6g8G16g10G13g61G4g10N4G5g20n16N22D6d11n40D7d14D13d7D24d27D20d43D15d14D4d10D4d4D19d11N2D5d2n13D5d20G6g27D11d6D42d6D8d7D5d13D4d4D37d7D3N7d7G3n4g6G4g5G4g9N5G25g8n7D26d23G7g4G21g8G0N5g9G6g19n4D5d13N4n3D10d104D25d12D6d22G50g22G23g5D32d11D33d7D6d31G4H13g2h7D18d"
+}
