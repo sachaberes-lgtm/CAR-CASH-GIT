@@ -1,0 +1,3 @@
+{"date":"2026-11-25T12:29:17.861Z","etape":"outil","generation":null,"cerveau":null,"modele":"claude-haiku-5-5","entree":5676,"sortie":5,"euros":0,"pour":"agent sans ecran : essai"}
+{"date":"2026-11-25T13:39:03.488Z","etape":"C","generation":null,"cerveau":null,"modele":"claude-fable-5-2","entree":10301260,"sortie":104013,"euros":11.63,"pour":"agent sans ecran : pilote"}
+{"date":"2026-11-25T14:30:03.169Z","etape":"B","generation":null,"cerveau":null,"modele":"claude-opus-5-5","entree":22245810,"sortie":96622,"euros":8.71,"pour":"agent sans ecran : finitions-b"}

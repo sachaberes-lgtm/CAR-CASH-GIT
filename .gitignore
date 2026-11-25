@@ -80,3 +80,5 @@ ml/ecurie/agents/*.jsonl
 ml/ecurie/agents/*.log
 ml/ecurie/agents/chaine-etat.json
 ml/ecurie/agents/STOP
+ml/ecurie/agents/tmp-*/
+ml/ecurie/agents/*.txt
