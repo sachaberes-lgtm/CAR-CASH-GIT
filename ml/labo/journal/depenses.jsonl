@@ -13,3 +13,9 @@
 {"date":"2026-11-25T16:14:50.445Z","etape":"K-sonnet","generation":1,"cerveau":"c0014","modele":"claude-sonnet-5-5","entree":62977,"sortie":9719,"euros":0.1,"pour":"candidat"}
 {"date":"2026-11-25T16:23:52.674Z","etape":"K-sonnet","generation":1,"cerveau":"c0015","modele":"claude-sonnet-5-5","entree":62955,"sortie":9782,"euros":0.1,"pour":"candidat"}
 {"date":"2026-11-25T16:23:53.030Z","etape":"K-sonnet","generation":1,"cerveau":"c0016","modele":"claude-sonnet-5-5","entree":62969,"sortie":8198,"euros":0.09,"pour":"candidat"}
+{"date":"2026-11-25T17:20:51.035Z","etape":"K-opus","generation":1,"cerveau":"c0018","modele":"claude-opus-5-5","entree":62988,"sortie":19255,"euros":0.7,"pour":"candidat"}
+{"date":"2026-11-25T17:20:51.437Z","etape":"K-opus","generation":1,"cerveau":"c0019","modele":"claude-opus-5-5","entree":62984,"sortie":10476,"euros":0.22,"pour":"candidat"}
+{"date":"2026-11-25T17:20:51.816Z","etape":"K-opus","generation":1,"cerveau":"c0020","modele":"claude-opus-5-5","entree":62976,"sortie":9585,"euros":0.21,"pour":"candidat"}
+{"date":"2026-11-25T17:20:52.194Z","etape":"K-opus","generation":1,"cerveau":"c0021","modele":"claude-opus-5-5","entree":62975,"sortie":10582,"euros":0.23,"pour":"candidat"}
+{"date":"2026-11-25T17:20:52.652Z","etape":"K-opus","generation":1,"cerveau":"c0022","modele":"claude-opus-5-5","entree":62953,"sortie":10377,"euros":0.22,"pour":"candidat"}
+{"date":"2026-11-25T17:20:53.048Z","etape":"K-opus","generation":1,"cerveau":"c0023","modele":"claude-opus-5-5","entree":62967,"sortie":14636,"euros":0.31,"pour":"candidat"}

@@ -1,0 +1,44 @@
+{
+ "format": "cashcar-rejeu-1",
+ "cerveau": {
+  "id": "c0022",
+  "nom": "pilote",
+  "sha": "4974329d2946275e88aa517848e5f87782e8d049",
+  "code": "cerveaux/c0022-pilote.js"
+ },
+ "etape": "K-opus",
+ "generation": 1,
+ "jeu": {
+  "version": "cashcar-v1627",
+  "sha": "e7e1eed4718f",
+  "commit": "45854790d",
+  "propre": true,
+  "simulateur": "relief-canyon",
+  "regime": "allege"
+ },
+ "graine": 910111,
+ "carte": null,
+ "meteo": null,
+ "tmax": 600,
+ "images": 7596,
+ "empreinte": "96e9dc39f55e",
+ "fin": {
+  "t": 126.6,
+  "cause": "paroi",
+  "argent": 6899.31,
+  "pieces": 526,
+  "figures": 0,
+  "bumps": 0,
+  "zones": 0,
+  "vmax": 552
+ },
+ "cartes": [
+  "canyon"
+ ],
+ "pourquoi": [
+  "champion : sa course la plus courte"
+ ],
+ "trajectoire": "trajectoires/c0022-g910111.json.gz",
+ "aide": "touches : le nombre d'images (1/60 s) depuis le changement d'avant, puis la touche — MAJUSCULE enfoncee, minuscule relachee ; G D H B N = gauche droite haut bas ESPACE ; C = la plaque CONTINUER de la seconde chance touchee (c : attente abandonnee)",
+ "touches": "355G6g128G21g9D8d12D14d40G13g6D8d8D9d12D27d12G14g63D27d8D12d12G29g15G15g4D4d20D15d6D4d23G22g15G4g12G4g6G7g6G13g15D8d115G19g8D49d4D5d4D4d11D16d5G62g14G13g36D5d41G8g18D5d20D4d65D12d12D4d9D26d6D5d9D17d48D11d5D4d9D18d5D8d6D5d7D6d22G10g42D14d18D13d6D12d4D4d6D10d14D7d6D4d5D33d13D25d10D26d8G24g17G8g39D10d7D7d18G7g9G8g14G13g22D14d30G10g12G15g13D6d24D18d12G5g55D8d6D4d14D9d60G15g4G4g16G4g5G12g15G7g16D48d11D21d43D4d26G8g14G10g41G8g17G17g9G4g13G8g29D19d11D11d20G20g8D6d7D27d14D7d23G4g4G30g7G15g34D6d145D15d11D5d22G13g6G4g46G12g11G12g51G13g14G10g16D8d4D5d5D4d7D15d7D9d14D16d7G4g13G7g6G4g20G17g12G14g8D24d6D11d11G6g14G18g18D5d18D13d11G5g8G4g9G16g8G5g38D30d14D17d33G6g74D9d35G19g110D25d10D10d7G7g20G9g18D11d4D4d6D5d7D19d8G36g28G22g36D12d6D6d13D17d7D15d28G4g24G6g14G14g10G15g14G10g18D9d4D4d4D6d10D8d8D6d7D7d12D5d5D8d9D4d12G53g7G5g12G4g6G6g9D56d8D6d8D10d23G47g7G12g22G7g8G4g23D17d31G11g117D21d10G21g9G18g5D9d6D6d7D13d47G5g22D4d8D8d7D6d7D4d6D8d17G5g25D4d16D9d8D13d9D16d12G45g11G11g5G6g21D11d19G9g40D20d81G5g18D6d10D38d11D5d6D10d13D7d24G4g7G7g13G7g7D4d13D10d6D5d5D4d12D14d13D13d31D30d41D16d14G19g13G15g10D5d15D7d6D8d12D9d69D7d7D4d9D7d6D5d19G9g8G4g11G9g10G4g10G16g7D4d5D7d7D6d15D4d23G4g14G15g32D5d16D6d46G28g12D24d9D14d12G6g11G6g7G15g10G20g7D10d"
+}
