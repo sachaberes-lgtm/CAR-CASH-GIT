@@ -67,8 +67,14 @@ async function compteRendu(quoi){if(arret()&&L.depenses().total>=PLAFOND-.25)ret
 
   /* 4. la boucle de l'etape C, par tranches, la depense etalee */
   while(!arret()){
-    const permis=Math.min(PLAFOND,PAR_JOUR*(Math.floor((Date.now()-DEBUT)/864e5)+1)),deja=L.depenses().total,libre=Math.round((permis-deja)*100)/100;
-    if(libre<5){dire(`rythme : ${deja} € depenses, ${permis} € permis a ce jour : attente d'une heure`);await dort(36e5);continue;}
+    /* LE RYTHME (2026-11-26, corrige) : chaque jour, ce qui reste des 200 € est partage entre les jours qui restent jusqu'au 08/12.
+       (Avant : 14 € par jour cumules depuis le 25/11 ; les agents du pilote, des finitions et du portfolio avaient mange l'avance,
+       et la boucle a attendu un jour entier, le PC a l'arret.) */
+    const jour=new Date().toLocaleDateString('fr-FR'),deja=L.depenses().total;
+    if(etat.jour!==jour){const restent=Math.max(1,Math.ceil((FIN-Date.now())/864e5));etat.jour=jour;etat.debutJour=deja;etat.budgetJour=Math.round((PLAFOND-deja)/restent*100)/100;noter();
+      dire(`nouveau jour : ${etat.budgetJour} € pour aujourd'hui (${Math.round((PLAFOND-deja)*100)/100} € restent, ${restent} jour(s))`);}
+    const libre=Math.round((etat.budgetJour-(deja-etat.debutJour))*100)/100;
+    if(libre<2){dire(`rythme : ${Math.round((deja-etat.debutJour)*100)/100} € depenses aujourd'hui sur ${etat.budgetJour} € : attente d'une heure`);await dort(36e5);continue;}
     const ch=etat.fait.choix||{modele:'claude-opus-5-5',depuis:etat.fait.pilote},b=Math.min(TRANCHE,libre);
     const args=['boucle.js','--budget',String(b),'--tours','20','--modele',ch.modele,'--etape','C'];
     if(!etat.depuisDonne){args.push('--depuis',path.join(ICI,'..','..',ch.depuis||etat.fait.pilote));}
