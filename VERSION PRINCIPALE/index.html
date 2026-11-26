@@ -40018,8 +40018,13 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {retire:1,name:'NOUVELLE 90',shape:'epave',rar:'epique', // 90 — RÉSERVÉE, LIBRE (22/10 : LE LOUP a pris la 89) — la prochaine caisse la prend
-  desc:'(place réservée)'},
+ {name:'LE TORO NOIR',shape:'aventador',color:0x1b1d22,accent:0x0d0e10,maxKmh:510,accel:60,turn:2.95,h:1.14,w:2.03,l:4.78,spoiler:0,rar:'legendaire', // 90 — (2026-11-26, Sacha : « la Lamborghini Aventador classique, en noir […] même style poli que la Léonie et que la Honte ») l'Aventador LP 700-4 noire, sur ses cotes réelles : le coin d'un seul trait, la prise d'air creusée dans le flanc, les feux en Y, la sortie hexagonale (SHAPES.aventador, aventador.js) — elle prend la place RÉSERVÉE 90 (une retirée sans propriétaire : personne ne l'avait)
+  desc:'Noire, plate, taillée comme une lame. Le V12 respire par les flancs, et la ville se tait quand elle passe.'},
+ /* · */
+ /* · */
+ /* · */
+ {name:'LA PISTARDE',shape:'gt3rs',color:0xe9ebee,accent:0xff6a14,maxKmh:450,accel:54,turn:3.35,h:1.32,w:1.90,l:4.57,spoiler:0,rar:'epique', // 91 — (2026-11-26, Sacha : « une Porsche GT3 RS en la blanche avec des lettres en orange ») la 911 GT3 RS blanche, « GT3 RS » en lettres de pixels orange sur les portières, le grand aileron sur ses cols de cygne (SHAPES.gt3rs, gt3rs.js)
+  desc:'Blanche, ses lettres en feu et un aileron plus haut que le toit. Elle ne connaît que deux vitesses : vite, et le record.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
@@ -59169,6 +59174,199 @@ SHAPES.a_taxi=function(K){
           lpw:{R:R,w:.24,style:'enjoliveur',jante:0xd6dade}};
 };
 Object.assign(I18N,{"Le compteur tourne en millions. Tu montes, tu t'accroches, tu ne négocies pas le prix.":"The meter runs in millions. Get in, hold on, don't haggle over the fare."}); /* (2026-11-21, qa/coherence) la phrase du TAXI JAUNE restait en français en anglais (garage, fenêtre d'achat) */
+// <<< SHAPES.aventador (LE TORO NOIR) — début >>>
+/* ===== LE TORO NOIR, L'AVENTADOR NOIRE (2026-11-26, Sacha : « la Lamborghini Aventador classique, en noir, tu la modélises dans le jeu […] dans le même style
+   poli que la Léonie et que la Honte, donc avec peu de facettes et dans la même charte graphique que le reste du jeu ; sans bug, et tu adaptes tous les feux et les
+   échappements et les traînées de lumière ») =====
+   L'Aventador LP 700-4 de 2011, sur ses cotes réelles (4,78 × 2,03 × 1,14 m, empattement 2,70 m, roues de 19 pouces devant, 20 derrière). Le même atelier que LÉONIE :
+   UNE coque en loft à facettes (8 points par section), puis les pièces posées. Ce qui la fait reconnaître à 200 m : le coin d'un seul trait du nez au toit, les
+   passages de roue en trapèze, la grande prise d'air creusée dans le flanc derrière la portière, les ouïes sur les épaules, le capot moteur vitré à persiennes, les
+   phares fins en Y, les feux arrière en Y, la grille noire de la poupe et LA sortie hexagonale au milieu. Repère : nez en +Z, conducteur à GAUCHE (+X), y = 0 au sol.
+   ⚠ la laque est la clé 'p' (la peinture de la boutique la remplace) ; feux rouges 'L' en BOÎTES à la poupe : buildCar y fait naître les traînées de lumière (CAR_FEUX) ;
+   le pot est déclaré dans ECH_POTS.aventador (la flamme de la nitro naît dans sa bouche). */
+SHAPES.aventador=function(K){
+  const U=LPU,L=(t,z)=>U.lin(t,z),RR=.355,RF=.33,ZF=1.35,ZR=-1.35,ZN=2.40,ZT=-2.36;
+  const P=K.kit({p:{g:'p',c:0x16171b},r:{g:'p',c:0x121317},k:{g:'m',c:0x0d0e10},K:{g:'g',c:0x08090b},c:{g:'c',c:0xe9ecf0},C:{g:'k',c:0x9aa0a8},
+    g:{g:'g',c:0x1c2733},W:{g:'l',c:0xf4f8ff},L:{g:'l',c:0xff1f2e},Q:{g:'l',c:0x8a0c18},w:{g:'l',c:0xd9dce0},O:{g:'l',c:0xffa21a}});
+  // LES PASSAGES DE ROUE EN TRAPÈZE, un par essieu (la roue avant est plus petite : son arche aussi)
+  const arF=[[0,2*RF+.035],[RF*.62,2*RF+.025],[RF+.15,.20]],arR=[[0,2*RR+.025],[RR*.62,2*RR+.015],[RR+.15,.20]];
+  const zs=[ZT,-2.30,-2.12,-1.95,-1.05,-.92,-.62,-.45,-.30,-.05,.30,.62,.90,1.95,2.12,2.28,ZN];
+  for(const [w,r] of [[ZF,RF],[ZR,RR]])for(const d of [r*.62,r+.15])zs.push(+(w-d).toFixed(3),+(w+d).toFixed(3));
+  zs.sort((a,b)=>a-b);
+  // le dessus, d'un seul trait du nez au toit, puis le capot moteur qui descend doucement vers la poupe
+  const yC=z=>L([[ZT,.86],[-2.30,.90],[-2.12,.92],[-1.95,.94],[-1.05,1.02],[-.62,1.08],[-.30,1.125],[-.05,1.14],[.30,1.07],[.62,.95],[.90,.84],[1.35,.76],[1.95,.62],[2.12,.56],[2.28,.49],[ZN,.42]],z),
+        xW=z=>L([[ZT,.91],[-2.12,.98],[ZR,1.015],[-.92,.99],[-.45,.95],[.30,.94],[.90,.96],[ZF,1.0],[1.95,.97],[2.12,.93],[2.28,.86],[ZN,.78]],z),
+        yB=z=>L([[ZT,.82],[-2.12,.88],[ZR,.93],[-.92,.95],[-.62,.92],[-.30,.90],[.30,.88],[.90,.84],[ZF,.76],[1.95,.63],[2.12,.57],[2.28,.50],[ZN,.43]],z), // l'épaule (la ceinture dans l'habitacle)
+        yBas=z=>Math.max(U.arch(z,[ZF],arF,0),U.arch(z,[ZR],arR,0),L([[ZT,.30],[-2.18,.15],[2.18,.13],[ZN,.18]],z)),
+        cab=z=>z>-.63&&z<.91,
+        prise=z=>U.cl(Math.min((z+1.04)/.14,(-.31-z)/.14),0,1); // LA PRISE D'AIR DE FLANC : 1 entre la portière et l'arche arrière
+  P.loft(zs,z=>{
+    const yb=yBas(z),xw=xW(z),c=yC(z),k=prise(z),
+          ym=Math.min(Math.max(L([[ZT,.50],[ZR,.56],[-.62,.58],[.30,.54],[ZF,.56],[ZN,.30]],z),yb+.07),c-.08),
+          y2=Math.min(Math.max(.28,yb+.04),ym-.03),ysh=Math.min(Math.max(yB(z),ym+.05),c-.005);
+    const p4=cab(z)?[xw-.20,ysh+.03]:[xw-.12,ysh+.01],
+          p5=cab(z)?[L([[-.63,.50],[-.30,.54],[.30,.58],[.62,.66],[.91,.74]],z),c-.025]:[L([[ZT,.62],[-1.05,.60],[-.63,.52],[.91,.58],[ZN,.50]],z),c-.004];
+    if(p4[1]>p5[1])p4[1]=p5[1]-.002;
+    return [[0,yb],[xw-.06,yb],[xw-.025-.05*k,y2],[xw-.16*k,ym],[xw-.03-.10*k,ysh],p4,p5,[0,c]];  // le flanc se creuse dans la prise d'air
+  },(j,z)=>{
+    if(j===0)return 'k';
+    if(j===1&&z>ZR+RR+.15&&z<ZF-RF-.15)return 'k';                         // le bas de caisse en carbone
+    if((j===2||j===3)&&prise(z)>.35)return 'k';                              // la prise d'air, noire
+    if(j===5&&cab(z))return (z>-.46&&z<.80)?'g':'p';                        // la vitre latérale
+    if(j===6&&z>-.06&&z<.90)return 'g';                                      // le pare-brise
+    if(j===6&&z>-1.96&&z<-.62)return 'g';                                    // le capot moteur vitré
+    return 'p';});
+  // LES PERSIENNES du capot moteur (la vitre en trois pans hexagonaux, ses lames noires)
+  for(let i=0;i<7;i++){const z=-.74-i*.17;P.box('K',.74,.016,.05,0,yC(z)+.012,z,-.07);}
+  P.box('r',.05,.03,1.30,0,yC(-1.30)+.018,-1.30,-.075);                    // l'arête du milieu
+  P.sym(sd=>{
+    // LES OUÏES D'ÉPAULE derrière les vitres (elles nourrissent le V12)
+    P.box('k',.20,.05,.44,sd*.80,yB(-1.0)+.02,-1.0,-.06);P.box('K',.16,.012,.40,sd*.80,yB(-1.0)+.048,-1.0,-.06);
+    // LA PRISE D'AIR DE FLANC : ses lames
+    for(const z of [-.55,-.75])P.box('K',.03,.18,.012,sd*(xW(z)-.10),.50,z);
+    // LES PHARES EN Y : le boîtier noir posé sur l'aile qui plonge, la lampe, et la LED en Y qui le traverse
+    P.box('K',.40,.05,.24,sd*.64,yB(2.16)+.012,2.16,.40,sd*.18,0);
+    P.box('W',.20,.02,.08,sd*.70,yB(2.20)+.035,2.20,.40,sd*.18,0);
+    P.box('W',.30,.012,.025,sd*.60,yB(2.08)+.04,2.08,.40,sd*.30,sd*.06);
+    P.box('W',.14,.012,.025,sd*.46,yB(2.16)+.03,2.15,.40,-sd*.55,0);
+    P.box('O',.05,.03,.08,sd*(xW(2.12)-.02),.52,2.12);                       // le feu de gabarit, au coin
+    // LES PRISES D'AIR AVANT : deux grands triangles noirs aux coins du bouclier, leurs lames
+    P.box('k',.36,.17,.02,sd*.55,.27,ZN+.004);
+    for(const x of [.45,.55,.65])P.box('K',.012,.15,.03,sd*x,.27,ZN+.01);
+    // LES FEUX ARRIÈRE EN Y : le boîtier noir, la barre du haut et la branche qui plonge vers le milieu
+    P.box('K',.56,.12,.04,sd*.62,.78,-2.355);
+    P.box('L',.50,.035,.03,sd*.64,.81,-2.37);
+    P.box('L',.20,.03,.03,sd*.44,.76,-2.37,0,0,sd*.62);
+    P.box('Q',.40,.05,.012,sd*.66,.755,-2.378);
+    // LE RÉTRO sur son bras (planté dans l'épaule de la portière)
+    P.box('p',.10,.08,.17,sd*1.01,.93,.66);P.box('k',.22,.04,.04,sd*.88,.89,.66);
+    // la ligne de la portière, au ciseau
+    P.box('k',.012,.006,1.00,sd*(xW(.30)+.003),.66,.28,.13,0,0);   // elle remonte vers la prise d'air, comme le pli de la vraie
+  });
+  // LE BOUCLIER AVANT : la bouche du milieu, la lame au ras du sol
+  P.box('k',.52,.10,.03,0,.25,2.405);P.box('k',1.74,.03,.22,0,.12,2.30);
+  // LA POUPE : la grille noire, le diffuseur et ses ailettes, l'aileron replié sur la malle, la plaque éclairée
+  P.box('K',1.20,.30,.02,0,.56,-2.37);
+  {const X=.58,Y0=.43,Y1=.69,T=.12;   // la grille en mailles, ouverte au milieu pour la sortie
+   for(let y=Y0;y<=Y1+.001;y+=.065){if(Math.abs(y-.56)<.10){for(const sd of [-1,1])P.box('k',X-T,.012,.012,sd*(T+X)/2,y,-2.382);}else P.box('k',2*X,.012,.012,0,y,-2.382);}
+   for(let x=-X;x<=X+.001;x+=.145)if(Math.abs(x)>T)P.box('k',.012,Y1-Y0,.012,x,(Y0+Y1)/2,-2.384);}
+  P.box('k',1.70,.15,.26,0,.235,-2.22);for(const x of [-.60,-.36,.36,.60])P.box('K',.016,.13,.24,x,.235,-2.23);
+  P.box('k',1.42,.03,.24,0,yC(-2.20)+.03,-2.20,.06);
+  P.box('K',.42,.12,.012,0,.36,-2.385);P.box('w',.38,.09,.012,0,.36,-2.392);
+  K.commit(P);
+  {const mP=K.mats&&K.mats.p;if(mP){mP.reflectivity=.33;mP.shininess=90;}}   /* le noir verni : c'est le reflet qui dessine la caisse (une laque noire mate disparaît la nuit) */
+  return {hl:[.66,.56,2.30],tl:[.62,.80,-2.38],wx:.87,wzF:ZF,wzR:-ZR,wRF:RF/RR,
+          lpw:{R:RR,w:.32,style:'rayons',n:5,jante:0x8d939b,accent:0x8d939b,branches:1}};
+};
+// LA SORTIE HEXAGONALE au milieu de la grille (l'Aventador LP 700-4 n'en a qu'une)
+ECH_POTS.aventador={p:[{t:'rond',r:.085,n:6,rz:Math.PI/6,k:'C',dbl:1,k2:'c',len:.30,pts:[[0,.56,-2.40]]}]};
+Object.assign(I18N,{'LE TORO NOIR':'THE BLACK BULL','Noire, plate, taillée comme une lame. Le V12 respire par les flancs, et la ville se tait quand elle passe.':'Black, flat, cut like a blade. The V12 breathes through its flanks, and the city goes quiet when it passes.'});
+// >>> fin SHAPES.aventador (LE TORO NOIR)
+// <<< SHAPES.gt3rs (LA PISTARDE) — début >>>
+/* ===== LA PISTARDE, LA GT3 RS BLANCHE AUX LETTRES ORANGE (2026-11-26, Sacha : « tu mets une Porsche GT3 RS en la blanche avec des lettres en orange […] dans le
+   même style poli que la Léonie et que la Honte, donc avec peu de facettes et dans la même charte graphique que le reste du jeu ; sans bug, et tu adaptes tous les
+   feux et les échappements et les traînées de lumière ») =====
+   La 911 GT3 RS de 2023 sur ses cotes réelles (4,57 × 1,90 × 1,32 m, empattement 2,46 m, roues de 20 pouces devant, 21 derrière). Même atelier que LÉONIE : UNE coque
+   en loft à facettes (8 points par section), puis les pièces posées. Ce qui la fait reconnaître : les phares ronds au sommet des ailes, le capot plus bas qu'elles et ses
+   deux naseaux, les ouïes sur les ailes avant, le pavillon qui coule jusqu'à la poupe, les hanches larges, LE GRAND AILERON sur ses cols de cygne (plus haut que le
+   toit), la barre de feux d'un bout à l'autre, les deux sorties au milieu — et les LETTRES ORANGE « GT3 RS » en bas des portières, en blocs de pixels (la police du jeu).
+   Repère : nez en +Z, conducteur à GAUCHE (+X), y = 0 au sol. ⚠ la laque est 'p' (la boutique la repeint) ; les lettres sont une autre clé ('Y') : elles restent orange
+   sous toutes les peintures ; les feux rouges 'L' sont des BOÎTES à la poupe (les traînées de lumière y naissent, voir CAR_FEUX) ; le pot est ECH_POTS.gt3rs. */
+SHAPES.gt3rs=function(K){
+  const U=LPU,L=(t,z)=>U.lin(t,z),mix=(a,b,t)=>a+(b-a)*t,RR=.37,RF=.35,ZF=1.23,ZR=-1.23,ZN=2.20,ZT=-2.34;
+  const P=K.kit({p:{g:'p',c:0xe9ebee},r:{g:'p',c:0xd3d6db},k:{g:'m',c:0x141518},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},C:{g:'k',c:0x9aa0a8},
+    g:{g:'g',c:0x1c2733},W:{g:'l',c:0xf4f8ff},L:{g:'l',c:0xff1f2e},Q:{g:'l',c:0x8a0c18},w:{g:'l',c:0xd9dce0},Y:{g:'s',c:0xff5a0a}});
+  // LES PASSAGES DE ROUE RONDS, un par essieu
+  const ar=r=>[[0,2*r+.03],[r*.60,2*r-.01],[r*.92,r*1.15],[r+.10,.22]],arF=ar(RF),arR=ar(RR);
+  const zs=[ZT,-2.25,-1.95,-1.50,-1.0,-.62,-.25,.05,.40,.72,.80,1.60,1.95,2.08,ZN];
+  for(const [w,r] of [[ZF,RF],[ZR,RR]])for(const d of [r*.60,r*.92,r+.10])zs.push(+(w-d).toFixed(3),+(w+d).toFixed(3));
+  zs.sort((a,b)=>a-b);
+  // le dessus : le capot bas entre les ailes, le pare-brise, le pavillon qui coule jusqu'à la malle
+  const yC=z=>L([[ZT,.88],[-2.25,.94],[-1.95,.99],[-1.50,1.07],[-1.0,1.17],[-.62,1.25],[-.25,1.31],[.05,1.29],[.40,1.09],[.72,.85],[.80,.80],[ZF,.745],[1.60,.715],[1.95,.665],[2.08,.60],[ZN,.48]],z),
+        xW=z=>L([[ZT,.80],[-2.25,.88],[-1.95,.94],[ZR,.97],[-.80,.94],[-.55,.89],[.65,.89],[.80,.90],[ZF,.93],[1.60,.92],[1.95,.88],[2.08,.82],[ZN,.70]],z),
+        yF=z=>L([[.80,.90],[ZF,.82],[1.60,.785],[1.95,.735],[2.08,.66],[ZN,.52]],z),  // la crête des ailes avant (le phare au bout)
+        yB=z=>L([[ZT,.80],[-2.25,.84],[-1.95,.87],[ZR,.89],[-.62,.89],[.05,.88],[.80,.88]],z), // l'épaule des hanches, la ceinture
+        yBas=z=>Math.max(U.arch(z,[ZF],arF,0),U.arch(z,[ZR],arR,0),L([[ZT,.30],[-2.20,.16],[2.08,.15],[ZN,.20]],z)),
+        cab=z=>z>-.63&&z<.81,av=z=>z>=.81;
+  /* 9 points par section : le flanc ROULE en deux pans vers l'épaule (une 911 n'a pas de mur droit, ses hanches sont des galets) */
+  P.loft(zs,z=>{
+    const yb=yBas(z),xw=xW(z),c=yC(z),
+          y2=Math.max(.30,yb+.04),y3=Math.max(.56,yb+.08),
+          ys=av(z)?Math.max(yF(z)-.09,y3+.05):Math.min(Math.max(yB(z),y3+.06),c-.04),
+          yr=Math.min(mix(y3,ys,.55)+.02,ys-.01);
+    let p4,p5;
+    if(av(z)){p4=[xw-.17,Math.max(yF(z),ys+.01)];p5=[L([[.80,.70],[1.10,.50],[1.60,.46],[ZN,.40]],z),c+.008];}   // la crête de l'aile, puis le capot plus bas
+    else if(cab(z)){p4=[xw-.15,ys+.04];p5=[L([[-.63,.48],[-.25,.50],[.05,.53],[.40,.59],[.72,.68],[.81,.70]],z),c-.03];} // la ceinture, le bord du pavillon
+    else{p4=[xw-.17,ys+.035];p5=[L([[ZT,.50],[-1.95,.54],[-1.0,.52],[-.63,.48]],z),c-.02];}                    // les hanches qui roulent, la malle
+    if(!av(z)&&p4[1]>p5[1])p4[1]=p5[1]-.002;
+    return [[0,yb],[xw-.06,yb],[xw-.008,y2],[xw,y3],[xw-.025,yr],[xw-.075,ys],p4,p5,[0,c]];
+  },(j,z)=>{
+    if(j===0)return 'k';
+    if(j===1&&z>ZR+RR+.10&&z<ZF-RF-.10)return 'k';                         // le bas de caisse noir
+    if(j===6&&cab(z))return (z>-.58&&z<.70)?'g':'p';                        // la vitre latérale
+    if(j===7&&z>.06&&z<.78)return 'g';                                       // le pare-brise
+    if(j===7&&z>-1.30&&z<-.60)return 'g';                                    // la lunette arrière
+    return 'p';});
+  // LA MALLE MOTEUR : ses lames noires, et l'arête qui court du pavillon à l'aileron
+  for(let i=0;i<6;i++){const z=-1.45-i*.13;P.box('K',.72,.014,.05,0,yC(z)+.01,z,-.17);}
+  P.box('p',.035,.06,.95,0,yC(-.95)+.02,-.95,-.21);
+  P.sym(sd=>{
+    // LES PHARES RONDS au bout des ailes : la cuvette noire, le verre bombé, les quatre points LED
+    {const a=.85,ny=Math.cos(a),nz=Math.sin(a),x=sd*.645,y=.625,z=2.10,N=d=>[x,y+ny*d,z+nz*d];   // l'axe du phare : vers l'avant et un peu le ciel (la pente du bout de l'aile)
+     P.put('p',new THREE.CylinderGeometry(.128,.15,.12,14),...N(0),a,0,0);                 // le godet de l'aile, couleur caisse (le phare sort d'une bosse, comme sur une vraie 911)
+     P.put('K',new THREE.CylinderGeometry(.118,.118,.02,14),...N(.065),a,0,0);             // la cuvette noire
+     P.put('W',new THREE.LatheGeometry([[.10,0],[.08,.02],[0,.028]].map(q=>new THREE.Vector2(q[0],q[1])),14),...N(.074),a,0,0); // le verre bombé
+     for(const [dx,dv] of [[-.045,.04],[.045,.04],[-.045,-.04],[.045,-.04]]){const q=N(.104);P.put('K',new THREE.BoxGeometry(.034,.006,.034),q[0]+dx,q[1]-nz*dv,q[2]+ny*dv,a,0,0);}} // les quatre points LED, dessinés en noir sur le verre
+    // LES OUÏES sur le dessus des ailes avant
+    for(let i=0;i<5;i++){const z=1.34+i*.07;P.box('K',.24,.012,.035,sd*.72,yF(z)+.006,z,.10,0,-sd*.10);}
+    // LES NASEAUX du capot
+    P.box('K',.20,.012,.24,sd*.20,yC(1.55)+.006,1.55,.08);
+    // LES PRISES D'AIR AVANT : les deux côtés du bouclier, et leurs lames
+    P.box('k',.36,.14,.03,sd*.52,.29,ZN-.02);for(const x of [.42,.52,.62])P.box('K',.012,.12,.06,sd*x,.29,ZN-.01);
+    // LES CLIGNOTANTS LED sous les phares
+    P.box('W',.20,.018,.02,sd*.60,.42,ZN-.03);
+    // LES FEUX ARRIÈRE : le coin de la barre, plus épais
+    P.box('K',.34,.09,.03,sd*.64,.86,ZT-.005);P.box('L',.30,.05,.03,sd*.64,.86,ZT-.012);P.box('Q',.26,.02,.012,sd*.64,.83,ZT-.02);
+    // LE RÉTRO sur son pied (planté dans la portière)
+    P.box('p',.13,.08,.17,sd*.99,1.00,.56);P.box('k',.03,.09,.04,sd*.835,.95,.56);P.box('k',.15,.025,.04,sd*.90,.99,.56);
+    // LES CHEMINÉES des arches avant (les ouïes derrière la roue)
+    for(let i=0;i<3;i++)P.box('K',.012,.13,.025,sd*(xW(.82)+.003),.52,.84-i*.06);
+    // la ligne de la portière
+    P.box('k',.008,.36,.008,sd*(xW(.70)+.002),.58,.70);
+    // LES LETTRES ORANGE « GT3 RS » en bas de la portière : des blocs de pixels (la police du jeu), lus de gauche à droite des deux côtés
+    {const G={G:['###','#..','#.#','#.#','###'],T:['###','.#.','.#.','.#.','.#.'],'3':['###','..#','.##','..#','###'],R:['##.','#.#','##.','#.#','#.#'],S:['###','#..','###','..#','###']};
+     const MOT='GT3 RS',cs=.036,esp=.03,blanc=.07,y0=.335,xf=y=>xW(0)-.008+.008*(y-.30)/.26+.004;
+     let lg=0;for(const ch of MOT)lg+=ch===' '?blanc:3*cs+esp;lg-=esp;
+     const zA=.12+lg/2,zB=zA-lg;let u=0;
+     for(const ch of MOT){if(ch===' '){u+=blanc;continue;}const g=G[ch];
+       for(let r=0;r<5;r++){const row=g[r],y=y0+(4-r)*cs+cs/2;let c0=-1;
+         for(let c=0;c<=3;c++){if(c<3&&row[c]==='#'){if(c0<0)c0=c;continue;}
+           if(c0>=0){const a=u+c0*cs,b=u+c*cs,zm=sd>0?zA-(a+b)/2:zB+(a+b)/2;P.box('Y',.008,cs,b-a,sd*xf(y),y,zm);c0=-1;}}}
+       u+=3*cs+esp;}}
+  });
+  // LE BOUCLIER AVANT : la grande bouche du milieu, la lame
+  P.box('k',.50,.12,.03,0,.27,ZN-.01);P.box('k',1.50,.03,.20,0,.13,ZN-.10);
+  // LA POUPE : la barre de feux d'un bout à l'autre, la grille, le diffuseur, la plaque éclairée
+  P.box('L',1.0,.022,.02,0,.865,ZT-.01);
+  P.box('K',1.10,.14,.02,0,.70,ZT-.005);for(let i=0;i<4;i++)P.box('k',1.06,.01,.01,0,.645+i*.035,ZT-.018);
+  P.box('k',1.46,.15,.24,0,.235,ZT+.11);for(const x of [-.50,-.28,.28,.50])P.box('K',.016,.13,.22,x,.235,ZT+.10);
+  P.box('K',.42,.12,.012,0,.50,ZT-.01);P.box('w',.38,.09,.012,0,.50,ZT-.018);
+  // LE GRAND AILERON : le plan, le volet, les dérives, les deux cols de cygne qui le tiennent PAR-DESSUS
+  P.box('k',1.72,.035,.36,0,1.31,-2.00,-.10);
+  P.box('k',1.66,.025,.16,0,1.37,-2.17,-.38);
+  P.sym(sd=>{
+    P.prism('k',[[-1.80,1.24],[-2.30,1.24],[-2.32,1.44],[-1.86,1.36]],.025,sd*.87);
+    P.prism('k',[[-1.78,1.07],[-1.92,1.04],[-2.02,1.30],[-1.96,1.345],[-1.88,1.33]],.035,sd*.36);
+  });
+  K.commit(P);
+  {const mP=K.mats&&K.mats.p;if(mP){mP.reflectivity=.27;mP.shininess=70;}}   /* le blanc verni : un reflet franc, comme LE LOUP (une laque blanche mate se lit plâtre) */
+  return {hl:[.66,.62,2.10],tl:[.64,.86,-2.36],wx:.80,wzF:ZF,wzR:-ZR,wRF:RF/RR,
+          lpw:{R:RR,w:.33,style:'multi',n:10,jante:0x2b2e33}};
+};
+// LES DEUX SORTIES au milieu du diffuseur, en titane
+ECH_POTS.gt3rs={p:[{t:'rond',r:.062,n:14,k:'C',dbl:1,k2:'c',pts:[[.11,.34,-2.37],[-.11,.34,-2.37]]}]};
+Object.assign(I18N,{'LA PISTARDE':'THE TRACK QUEEN','Blanche, ses lettres en feu et un aileron plus haut que le toit. Elle ne connaît que deux vitesses : vite, et le record.':'White, letters on fire, and a wing taller than the roof. She knows two speeds: fast, and the record.'});
+// >>> fin SHAPES.gt3rs (LA PISTARDE)
 // (2026-10-20) UNE FICHE SANS COTES NE SE CONSTRUIT PAS. Les caisses retirées sont réduites à `{retire:1,name}` (voir cars.js) : montées
 // quand même (dbgEquipe des bancs), le repli `gt` recevait une largeur `undefined` — coque, ancrages et gabarit en NaN, le cadrage du
 // garage (GAR.vD, cdx…) passait en NaN et toute l'image 3D sortait NOIRE. Le joueur n'y arrive pas (equippedCar, garageListe et
@@ -62184,7 +62382,11 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:1500000}, // 90 — RÉSERVÉE, LIBRE (prix provisoire)
+  {p:25000000}, // 90 — LÉGENDAIRE : LE TORO NOIR, l'Aventador noire (2026-11-26, Sacha) — entre POSTER 84 (13,2 M$) et LE LOUP (50 M$) ; prix provisoire, à régler
+  /* · */
+  /* · */
+  /* · */
+  {p:3500000}, // 91 — ÉPIQUE : LA PISTARDE, la GT3 RS blanche aux lettres orange (2026-11-26, Sacha) — au prix de l'épique la plus chère (l'ancienne place de LA ZAGAIE) ; prix provisoire, à régler
 ]
 /* ===== LES MISSIONS v2 — LA TABLE (2026-10-16, Sacha : « on remplace tout le système actuel de défis en carnets / groupes de 3 par des
    MISSIONS libres ; toutes les missions sont ouvertes en même temps, sans ordre imposé ») =====

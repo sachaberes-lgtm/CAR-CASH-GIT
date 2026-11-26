@@ -166,5 +166,9 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:1500000}, // 90 — RÉSERVÉE, LIBRE (prix provisoire)
+  {p:25000000}, // 90 — LÉGENDAIRE : LE TORO NOIR, l'Aventador noire (2026-11-26, Sacha) — entre POSTER 84 (13,2 M$) et LE LOUP (50 M$) ; prix provisoire, à régler
+  /* · */
+  /* · */
+  /* · */
+  {p:3500000}, // 91 — ÉPIQUE : LA PISTARDE, la GT3 RS blanche aux lettres orange (2026-11-26, Sacha) — au prix de l'épique la plus chère (l'ancienne place de LA ZAGAIE) ; prix provisoire, à régler
 ]

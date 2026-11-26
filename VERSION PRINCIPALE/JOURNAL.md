@@ -5,6 +5,21 @@
 
 
 
+## DEUX VOITURES AU KIT POLI : LE TORO NOIR ET LA PISTARDE (2026-11-26, v1631 — Sacha : « la Lamborghini Aventador classique, en noir », « une Porsche GT3 RS en la blanche avec des lettres en orange », « même style poli que la Léonie et que la Honte, peu de facettes, sans bug, et tu adaptes tous les feux et les échappements et les traînées de lumière »)
+- 90 LE TORO NOIR (`code/voitures/aventador.js`, `SHAPES.aventador`) : l'Aventador LP 700-4 noire, LÉGENDAIRE, 25 000 000 $ (prix provisoire). Elle prend la place
+  RÉSERVÉE 90 (« NOUVELLE 90 », une retirée que personne n'avait). Coin d'un seul trait, passages de roue en trapèze, prise d'air creusée dans le flanc, ouïes d'épaule,
+  capot moteur vitré à persiennes, phares fins et feux arrière en Y, grille noire, LA sortie hexagonale au milieu. Roues 19/20 pouces (`wRF`). 3 112 facettes.
+- 91 LA PISTARDE (`code/voitures/gt3rs.js`, `SHAPES.gt3rs`) : la 911 GT3 RS (992) blanche, ÉPIQUE, 3 500 000 $ (prix provisoire). Phares ronds à quatre points
+  LED dans leur godet, capot plus bas que les ailes et ses naseaux, ouïes d'ailes, hanches qui roulent (9 points par section), grand aileron sur cols de cygne,
+  barre de feux d'un bout à l'autre, deux sorties au milieu, et « GT3 RS » en LETTRES DE PIXELS ORANGE sur les portières (clé `Y` : la peinture de la boutique ne
+  les touche pas ; lues de gauche à droite des deux côtés). Roues 20/21 pouces. 4 968 facettes.
+- Même atelier que LÉONIE (`lpKit`, un loft + des pièces), toutes deux sous 12 000 triangles (pas de regroupement par `traduisLangage`). Feux arrière = des BOÎTES
+  rouges `L` à la poupe : les traînées de lumière naissent dessus (`dbgFeux()` → `src:'releve'`, en garage ET en course) ; pots déclarés dans `ECH_POTS.aventador` /
+  `ECH_POTS.gt3rs` (la flamme de la nitro naît dans leur bouche) ; plaque posée sur leur liseré blanc ; phares relus par `feuxLed`.
+- Vérifié (Chrome sans fenêtre, sans son) : studio (6 vues chacune), course nitro tenue pour chacune (flamme au bon pot, deux traînées sur les feux, 0 erreur),
+  `verif.mjs` couché / debout / ordi (0 erreur), les trois gardes, l'assembleur. `outils/banc-voitures-tri` : 287/292, les 5 KO sont la table figée à 91 lignes et
+  la place 90 « réservée » (attendu : on ajoute deux voitures). ⚠ Pas vu sur un vrai iPhone.
+
 ## LA FINITION DES MAPS (2026-11-21, v1626 — Sacha : « le plus jolies possible tout en restant aussi optimisées qu'elles le sont », « ternes la nuit ou quand il pleut », « des fois c'est trop rouge »)
 - Cinq lots, chacun avec son interrupteur qui rend l'image d'avant ; tout couper : `?sans=nappes,couleursfinies,espacefini,jadefini,canyonfini`.
   - GROTTE (`?sans=nappes`, `code/maps/grottes-1.js`, `grottes-2.js`, `grotte-travailleur.js`) : la génération des NAPPES de lave et d'eau (pas la route). Poches d'air

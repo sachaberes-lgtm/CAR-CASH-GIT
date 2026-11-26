@@ -209,6 +209,8 @@ voitures/countach.js                 # le Loup : la Countach blanche du film (co
 voitures/stratos-meteo.js            # LA STRATOS, station météo : anémomètre, manche à air, radars Doppler, gyroscope, barre de prévision (?stratos=ancien)
 voitures/corbillard-mort.js          # LE CORBILLARD de la mort : cercueil, crâne, squelette (?corbillard=ancien)
 voitures/retour-deuche-taxi.js         # le Taxi jaune revient (dessin d'avant le 07/10) ; la Deuche est retirée de nouveau
+voitures/aventador.js                # LE TORO NOIR : l'Aventador noire (coin d'un seul trait, prise d'air de flanc, feux en Y, sortie hexagonale)
+voitures/gt3rs.js                    # LA PISTARDE : la GT3 RS blanche aux lettres orange (phares ronds, grand aileron, barre de feux)
 voitures/buildcar.js                 # buildCar : construire une voiture
 voitures/plaque.js                   # la plaque d'immatriculation, le profil
 interface/vignette-moteur.js         # vignette moteur, étapes de chauffe

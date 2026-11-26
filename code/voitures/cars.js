@@ -253,8 +253,13 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {retire:1,name:'NOUVELLE 90',shape:'epave',rar:'epique', // 90 — RÉSERVÉE, LIBRE (22/10 : LE LOUP a pris la 89) — la prochaine caisse la prend
-  desc:'(place réservée)'},
+ {name:'LE TORO NOIR',shape:'aventador',color:0x1b1d22,accent:0x0d0e10,maxKmh:510,accel:60,turn:2.95,h:1.14,w:2.03,l:4.78,spoiler:0,rar:'legendaire', // 90 — (2026-11-26, Sacha : « la Lamborghini Aventador classique, en noir […] même style poli que la Léonie et que la Honte ») l'Aventador LP 700-4 noire, sur ses cotes réelles : le coin d'un seul trait, la prise d'air creusée dans le flanc, les feux en Y, la sortie hexagonale (SHAPES.aventador, aventador.js) — elle prend la place RÉSERVÉE 90 (une retirée sans propriétaire : personne ne l'avait)
+  desc:'Noire, plate, taillée comme une lame. Le V12 respire par les flancs, et la ville se tait quand elle passe.'},
+ /* · */
+ /* · */
+ /* · */
+ {name:'LA PISTARDE',shape:'gt3rs',color:0xe9ebee,accent:0xff6a14,maxKmh:450,accel:54,turn:3.35,h:1.32,w:1.90,l:4.57,spoiler:0,rar:'epique', // 91 — (2026-11-26, Sacha : « une Porsche GT3 RS en la blanche avec des lettres en orange ») la 911 GT3 RS blanche, « GT3 RS » en lettres de pixels orange sur les portières, le grand aileron sur ses cols de cygne (SHAPES.gt3rs, gt3rs.js)
+  desc:'Blanche, ses lettres en feu et un aileron plus haut que le toit. Elle ne connaît que deux vitesses : vite, et le record.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
