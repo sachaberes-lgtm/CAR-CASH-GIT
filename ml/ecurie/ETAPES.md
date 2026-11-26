@@ -76,6 +76,10 @@ Les plongeons voulus, comptés à part sur 4 lots de 12 courses de 300 s (`agent
 - **Le départ et les portails** (gardés, `mes-pD-930000.json`, `mes-pP.json`) : le pilote file droit 1,5 à 5,5 s au départ (un temps tiré de la piste ;
   les joueurs donnent leur premier coup de volant à 3,8 s, le pilote le donnait à 0,5 s) et sort par le bord pour passer le portail en vol quand un rayon
   du sol l'annonce : **13 portails sur 23 en vol** (les joueurs 56 %), contre 10 sur 23, sans perte de palier (médian 9 des deux côtés sur 12 courses).
+- **La grotte rouverte, pour voir** (`lot-pGr.txt`, `lot-pGr-neuves.txt`, 24 courses) : avec les règles d'aujourd'hui (promesse tenue deux vues, 120 m
+  de chute au plus), 24 plongeons voulus à la grotte, 2 morts (8 %) — ce n'est plus « 4 sur 4 » ; les sorties voulues doublent (1,1 à 1,3 par minute,
+  0,83 à 0,90 raccourci par minute) mais le palier médian baisse d'un palier à un palier et demi (8 et 5, contre 9 et 6,5). **Laissée fermée** dans le
+  pilote validé : c'est un arbitrage palier contre ressemblance, donc l'affaire de la boucle (`raccCartes`, une ligne à changer).
 - **`ml/bot/ressemblance.js` : l'écart aux joueurs.** L'AUC du juge reste à 0,97 quoi qu'on corrige ; il fallait un nombre qui bouge à chaque pas. L'écart
   est la distance moyenne aux joueurs au clavier sur quinze mesures (nitro, vols, raccourcis, figures, poses, dessous, slalom, vitesse), en écarts-types
   d'une partie à l'autre. `pilote.js` : **2,67** ; `pilote-voltige.js` : **2,33** ; une partie de joueur contre les autres : 0,9.

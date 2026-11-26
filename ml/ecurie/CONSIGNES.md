@@ -92,6 +92,8 @@ vols de 2,8 s. 4 % de leurs vols finissent par une mort — ils meurent aussi.
 - un plongeon de plus de 120 m de chute porte la caisse à 300 m/s : elle ne s'aligne plus sur le morceau visé (mort jauge vide) ;
 - une figure lancée à moins de 2,2 s de la pose annoncée dérègle le vol (le geste tient sa flèche 0,27 s et tape deux fois la NITRO) : 2 à 5 morts de plus sur 12 à 23 plongeons ;
 - à la grotte, au canyon et sur la jade, la pose qu'annonce un rayon `viser` **du sol** est fausse (4 sorties sur 4 contre la roche à la grotte, 3 sur 4 ratées sur la jade) : les sorties voulues y sont interdites en attendant une règle prudente ;
+- la grotte rouverte avec les règles du pilote d'aujourd'hui (promesse tenue deux vues de suite, 120 m de chute au plus) : 24 plongeons voulus, 2 morts,
+  deux fois plus de raccourcis, mais un palier à un palier et demi de moins — elle est restée fermée (`raccCartes`) : à rouvrir si la note mixte y gagne ;
 - en vol **subi** (une sortie non voulue), basculer vers un rayon `viser` tue ; un engagement abandonné à moins de 0,5 s du bord fait sortir en travers ;
 - demander la nitro partout au sol : 53 % du temps au lieu de 30 %, mais deux à trois paliers de moins ; la jauge, elle, n'est jamais vide — c'est le choix de l'endroit qui manque ;
 - partir « vers la route, réacteur allumé » à chaque vol subi : trois paliers de moins ;
