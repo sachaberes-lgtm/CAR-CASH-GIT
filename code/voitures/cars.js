@@ -258,8 +258,8 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LA PISTARDE',shape:'gt3rs',color:0xe9ebee,accent:0xff6a14,maxKmh:450,accel:54,turn:3.35,h:1.32,w:1.90,l:4.57,spoiler:0,rar:'epique', // 91 — (2026-11-26, Sacha : « une Porsche GT3 RS en la blanche avec des lettres en orange ») la 911 GT3 RS blanche, « GT3 RS » en lettres de pixels orange sur les portières, le grand aileron sur ses cols de cygne (SHAPES.gt3rs, gt3rs.js)
-  desc:'Blanche, ses lettres en feu et un aileron plus haut que le toit. Elle ne connaît que deux vitesses : vite, et le record.'},
+ {name:'LA PISTARDE',shape:'gt3rs',color:0xe9ebee,accent:0xff6a14,maxKmh:450,accel:54,turn:3.35,h:1.32,w:1.90,l:4.57,spoiler:0,rar:'epique', // 91 — (2026-11-26, Sacha : « une Porsche GT3 RS en la blanche avec des lettres en orange ») la 911 GT3 RS blanche, sans stickers de la marque (26/11, Sacha : « mets pas les vrais stickers Porsche »), le grand aileron sur ses cols de cygne (SHAPES.gt3rs, gt3rs.js)
+  desc:'Blanche comme une piste neuve, et un aileron plus haut que le toit. Elle ne connaît que deux vitesses : vite, et le record.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle

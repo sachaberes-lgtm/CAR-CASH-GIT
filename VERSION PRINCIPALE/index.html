@@ -40023,8 +40023,8 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LA PISTARDE',shape:'gt3rs',color:0xe9ebee,accent:0xff6a14,maxKmh:450,accel:54,turn:3.35,h:1.32,w:1.90,l:4.57,spoiler:0,rar:'epique', // 91 — (2026-11-26, Sacha : « une Porsche GT3 RS en la blanche avec des lettres en orange ») la 911 GT3 RS blanche, « GT3 RS » en lettres de pixels orange sur les portières, le grand aileron sur ses cols de cygne (SHAPES.gt3rs, gt3rs.js)
-  desc:'Blanche, ses lettres en feu et un aileron plus haut que le toit. Elle ne connaît que deux vitesses : vite, et le record.'},
+ {name:'LA PISTARDE',shape:'gt3rs',color:0xe9ebee,accent:0xff6a14,maxKmh:450,accel:54,turn:3.35,h:1.32,w:1.90,l:4.57,spoiler:0,rar:'epique', // 91 — (2026-11-26, Sacha : « une Porsche GT3 RS en la blanche avec des lettres en orange ») la 911 GT3 RS blanche, sans stickers de la marque (26/11, Sacha : « mets pas les vrais stickers Porsche »), le grand aileron sur ses cols de cygne (SHAPES.gt3rs, gt3rs.js)
+  desc:'Blanche comme une piste neuve, et un aileron plus haut que le toit. Elle ne connaît que deux vitesses : vite, et le record.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
@@ -59263,19 +59263,18 @@ ECH_POTS.aventador={p:[{t:'rond',r:.085,n:6,rz:Math.PI/6,k:'C',dbl:1,k2:'c',len:
 Object.assign(I18N,{'LE TORO NOIR':'THE BLACK BULL','Noire, plate, taillée comme une lame. Le V12 respire par les flancs, et la ville se tait quand elle passe.':'Black, flat, cut like a blade. The V12 breathes through its flanks, and the city goes quiet when it passes.'});
 // >>> fin SHAPES.aventador (LE TORO NOIR)
 // <<< SHAPES.gt3rs (LA PISTARDE) — début >>>
-/* ===== LA PISTARDE, LA GT3 RS BLANCHE AUX LETTRES ORANGE (2026-11-26, Sacha : « tu mets une Porsche GT3 RS en la blanche avec des lettres en orange […] dans le
+/* ===== LA PISTARDE, LA GT3 RS BLANCHE (2026-11-26, Sacha : « tu mets une Porsche GT3 RS en la blanche avec des lettres en orange […] dans le
    même style poli que la Léonie et que la Honte, donc avec peu de facettes et dans la même charte graphique que le reste du jeu ; sans bug, et tu adaptes tous les
    feux et les échappements et les traînées de lumière ») =====
    La 911 GT3 RS de 2023 sur ses cotes réelles (4,57 × 1,90 × 1,32 m, empattement 2,46 m, roues de 20 pouces devant, 21 derrière). Même atelier que LÉONIE : UNE coque
    en loft à facettes (8 points par section), puis les pièces posées. Ce qui la fait reconnaître : les phares ronds au sommet des ailes, le capot plus bas qu'elles et ses
    deux naseaux, les ouïes sur les ailes avant, le pavillon qui coule jusqu'à la poupe, les hanches larges, LE GRAND AILERON sur ses cols de cygne (plus haut que le
-   toit), la barre de feux d'un bout à l'autre, les deux sorties au milieu — et les LETTRES ORANGE « GT3 RS » en bas des portières, en blocs de pixels (la police du jeu).
-   Repère : nez en +Z, conducteur à GAUCHE (+X), y = 0 au sol. ⚠ la laque est 'p' (la boutique la repeint) ; les lettres sont une autre clé ('Y') : elles restent orange
-   sous toutes les peintures ; les feux rouges 'L' sont des BOÎTES à la poupe (les traînées de lumière y naissent, voir CAR_FEUX) ; le pot est ECH_POTS.gt3rs. */
+   toit), la barre de feux d'un bout à l'autre, les deux sorties au milieu. (26/11, Sacha) Ni stickers de la marque ni dessins sur les phares.
+   Repère : nez en +Z, conducteur à GAUCHE (+X), y = 0 au sol. ⚠ la laque est 'p' (la boutique la repeint) ; les feux rouges 'L' sont des BOÎTES à la poupe (les traînées de lumière y naissent, voir CAR_FEUX) ; le pot est ECH_POTS.gt3rs. */
 SHAPES.gt3rs=function(K){
   const U=LPU,L=(t,z)=>U.lin(t,z),mix=(a,b,t)=>a+(b-a)*t,RR=.37,RF=.35,ZF=1.23,ZR=-1.23,ZN=2.20,ZT=-2.34;
   const P=K.kit({p:{g:'p',c:0xe9ebee},r:{g:'p',c:0xd3d6db},k:{g:'m',c:0x141518},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},C:{g:'k',c:0x9aa0a8},
-    g:{g:'g',c:0x1c2733},W:{g:'l',c:0xf4f8ff},L:{g:'l',c:0xff1f2e},Q:{g:'l',c:0x8a0c18},w:{g:'l',c:0xd9dce0},Y:{g:'s',c:0xff5a0a}});
+    g:{g:'g',c:0x1c2733},W:{g:'l',c:0xf4f8ff},L:{g:'l',c:0xff1f2e},Q:{g:'l',c:0x8a0c18},w:{g:'l',c:0xd9dce0}});
   // LES PASSAGES DE ROUE RONDS, un par essieu
   const ar=r=>[[0,2*r+.03],[r*.60,2*r-.01],[r*.92,r*1.15],[r+.10,.22]],arF=ar(RF),arR=ar(RR);
   const zs=[ZT,-2.25,-1.95,-1.50,-1.0,-.62,-.25,.05,.40,.72,.80,1.60,1.95,2.08,ZN];
@@ -59311,12 +59310,11 @@ SHAPES.gt3rs=function(K){
   for(let i=0;i<6;i++){const z=-1.45-i*.13;P.box('K',.72,.014,.05,0,yC(z)+.01,z,-.17);}
   P.box('p',.035,.06,.95,0,yC(-.95)+.02,-.95,-.21);
   P.sym(sd=>{
-    // LES PHARES RONDS au bout des ailes : la cuvette noire, le verre bombé, les quatre points LED
+    // LES PHARES RONDS au bout des ailes : la cuvette noire, le verre bombé
     {const a=.85,ny=Math.cos(a),nz=Math.sin(a),x=sd*.645,y=.625,z=2.10,N=d=>[x,y+ny*d,z+nz*d];   // l'axe du phare : vers l'avant et un peu le ciel (la pente du bout de l'aile)
      P.put('p',new THREE.CylinderGeometry(.128,.15,.12,14),...N(0),a,0,0);                 // le godet de l'aile, couleur caisse (le phare sort d'une bosse, comme sur une vraie 911)
      P.put('K',new THREE.CylinderGeometry(.118,.118,.02,14),...N(.065),a,0,0);             // la cuvette noire
-     P.put('W',new THREE.LatheGeometry([[.10,0],[.08,.02],[0,.028]].map(q=>new THREE.Vector2(q[0],q[1])),14),...N(.074),a,0,0); // le verre bombé
-     for(const [dx,dv] of [[-.045,.04],[.045,.04],[-.045,-.04],[.045,-.04]]){const q=N(.104);P.put('K',new THREE.BoxGeometry(.034,.006,.034),q[0]+dx,q[1]-nz*dv,q[2]+ny*dv,a,0,0);}} // les quatre points LED, dessinés en noir sur le verre
+     P.put('W',new THREE.LatheGeometry([[.10,0],[.08,.02],[0,.028]].map(q=>new THREE.Vector2(q[0],q[1])),14),...N(.074),a,0,0);}   /* le verre bombé, blanc et nu (2026-11-26, Sacha : « ni de dessins sur les phares ») */
     // LES OUÏES sur le dessus des ailes avant
     for(let i=0;i<5;i++){const z=1.34+i*.07;P.box('K',.24,.012,.035,sd*.72,yF(z)+.006,z,.10,0,-sd*.10);}
     // LES NASEAUX du capot
@@ -59333,16 +59331,7 @@ SHAPES.gt3rs=function(K){
     for(let i=0;i<3;i++)P.box('K',.012,.13,.025,sd*(xW(.82)+.003),.52,.84-i*.06);
     // la ligne de la portière
     P.box('k',.008,.36,.008,sd*(xW(.70)+.002),.58,.70);
-    // LES LETTRES ORANGE « GT3 RS » en bas de la portière : des blocs de pixels (la police du jeu), lus de gauche à droite des deux côtés
-    {const G={G:['###','#..','#.#','#.#','###'],T:['###','.#.','.#.','.#.','.#.'],'3':['###','..#','.##','..#','###'],R:['##.','#.#','##.','#.#','#.#'],S:['###','#..','###','..#','###']};
-     const MOT='GT3 RS',cs=.036,esp=.03,blanc=.07,y0=.335,xf=y=>xW(0)-.008+.008*(y-.30)/.26+.004;
-     let lg=0;for(const ch of MOT)lg+=ch===' '?blanc:3*cs+esp;lg-=esp;
-     const zA=.12+lg/2,zB=zA-lg;let u=0;
-     for(const ch of MOT){if(ch===' '){u+=blanc;continue;}const g=G[ch];
-       for(let r=0;r<5;r++){const row=g[r],y=y0+(4-r)*cs+cs/2;let c0=-1;
-         for(let c=0;c<=3;c++){if(c<3&&row[c]==='#'){if(c0<0)c0=c;continue;}
-           if(c0>=0){const a=u+c0*cs,b=u+c*cs,zm=sd>0?zA-(a+b)/2:zB+(a+b)/2;P.box('Y',.008,cs,b-a,sd*xf(y),y,zm);c0=-1;}}}
-       u+=3*cs+esp;}}
+    /* (2026-11-26, Sacha : « mets pas les vrais stickers Porsche ») plus de lettres « GT3 RS » sur les portières : la caisse reste nue, sans marque */
   });
   // LE BOUCLIER AVANT : la grande bouche du milieu, la lame
   P.box('k',.50,.12,.03,0,.27,ZN-.01);P.box('k',1.50,.03,.20,0,.13,ZN-.10);
@@ -59365,7 +59354,7 @@ SHAPES.gt3rs=function(K){
 };
 // LES DEUX SORTIES au milieu du diffuseur, en titane
 ECH_POTS.gt3rs={p:[{t:'rond',r:.062,n:14,k:'C',dbl:1,k2:'c',pts:[[.11,.34,-2.37],[-.11,.34,-2.37]]}]};
-Object.assign(I18N,{'LA PISTARDE':'THE TRACK QUEEN','Blanche, ses lettres en feu et un aileron plus haut que le toit. Elle ne connaît que deux vitesses : vite, et le record.':'White, letters on fire, and a wing taller than the roof. She knows two speeds: fast, and the record.'});
+Object.assign(I18N,{'LA PISTARDE':'THE TRACK QUEEN','Blanche comme une piste neuve, et un aileron plus haut que le toit. Elle ne connaît que deux vitesses : vite, et le record.':'White as a fresh track, and a wing taller than the roof. She knows two speeds: fast, and the record.'});
 // >>> fin SHAPES.gt3rs (LA PISTARDE)
 // (2026-10-20) UNE FICHE SANS COTES NE SE CONSTRUIT PAS. Les caisses retirées sont réduites à `{retire:1,name}` (voir cars.js) : montées
 // quand même (dbgEquipe des bancs), le repli `gt` recevait une largeur `undefined` — coque, ancrages et gabarit en NaN, le cadrage du

@@ -11,8 +11,8 @@
   capot moteur vitré à persiennes, phares fins et feux arrière en Y, grille noire, LA sortie hexagonale au milieu. Roues 19/20 pouces (`wRF`). 3 112 facettes.
 - 91 LA PISTARDE (`code/voitures/gt3rs.js`, `SHAPES.gt3rs`) : la 911 GT3 RS (992) blanche, ÉPIQUE, 3 500 000 $ (prix provisoire). Phares ronds à quatre points
   LED dans leur godet, capot plus bas que les ailes et ses naseaux, ouïes d'ailes, hanches qui roulent (9 points par section), grand aileron sur cols de cygne,
-  barre de feux d'un bout à l'autre, deux sorties au milieu, et « GT3 RS » en LETTRES DE PIXELS ORANGE sur les portières (clé `Y` : la peinture de la boutique ne
-  les touche pas ; lues de gauche à droite des deux côtés). Roues 20/21 pouces. 4 968 facettes.
+  barre de feux d'un bout à l'autre, deux sorties au milieu. (Même jour, Sacha : « mets pas les vrais stickers Porsche ni de dessins sur les phares ») : AUCUNE
+  lettre ni marque sur la caisse, les phares sont un verre blanc nu. Roues 20/21 pouces. 4 152 facettes.
 - Même atelier que LÉONIE (`lpKit`, un loft + des pièces), toutes deux sous 12 000 triangles (pas de regroupement par `traduisLangage`). Feux arrière = des BOÎTES
   rouges `L` à la poupe : les traînées de lumière naissent dessus (`dbgFeux()` → `src:'releve'`, en garage ET en course) ; pots déclarés dans `ECH_POTS.aventador` /
   `ECH_POTS.gt3rs` (la flamme de la nitro naît dans leur bouche) ; plaque posée sur leur liseré blanc ; phares relus par `feuxLed`.

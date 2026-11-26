@@ -50,7 +50,7 @@ Source vivante : https://claude.ai/artifact/8ARY7pWNmWxXP4rVvNSEkw · retirées 
 | 5 | POSTER 84 | légendaire | Prix | 13 200 000 $ |  |
 | 57 | LE TRÔNE CENTRAL | légendaire | Défi officiel |  | COLLECTE TOUTES LES VOITURES |
 | 90 | LE TORO NOIR | légendaire | Prix | 25 000 000 $ | (26/11) l'Aventador noire — prix provisoire |
-| 91 | LA PISTARDE | épique | Prix | 3 500 000 $ | (26/11) la GT3 RS blanche aux lettres orange — prix provisoire |
+| 91 | LA PISTARDE | épique | Prix | 3 500 000 $ | (26/11) la GT3 RS blanche (sans stickers de la marque) — prix provisoire |
 
 ## (2026-11-21) Ce qui ne se gagnait plus — lot `qa/defispossibles`
 
