@@ -73,6 +73,9 @@ Les plongeons voulus, comptés à part sur 4 lots de 12 courses de 300 s (`agent
   allumé » à chaque vol subi : 7 aussi. Rien de gardé : c'est le choix de l'endroit qui manque, pas l'envie.
 - **Le slalom** (`pS.js`) : faire osciller la ligne visée de ± 4,5 m ne change pas le rythme (un aller reste à 0,99 s contre 0,58 s chez les joueurs :
   c'est la main qui le fixe) et coûte un palier et demi. Abandonné ; c'est un réglage de la main (étape D, `--main-libre`).
+- **Le départ et les portails** (gardés, `mes-pD-930000.json`, `mes-pP.json`) : le pilote file droit 1,5 à 5,5 s au départ (un temps tiré de la piste ;
+  les joueurs donnent leur premier coup de volant à 3,8 s, le pilote le donnait à 0,5 s) et sort par le bord pour passer le portail en vol quand un rayon
+  du sol l'annonce : **13 portails sur 23 en vol** (les joueurs 56 %), contre 10 sur 23, sans perte de palier (médian 9 des deux côtés sur 12 courses).
 - **`ml/bot/ressemblance.js` : l'écart aux joueurs.** L'AUC du juge reste à 0,97 quoi qu'on corrige ; il fallait un nombre qui bouge à chaque pas. L'écart
   est la distance moyenne aux joueurs au clavier sur quinze mesures (nitro, vols, raccourcis, figures, poses, dessous, slalom, vitesse), en écarts-types
   d'une partie à l'autre. `pilote.js` : **2,67** ; `pilote-voltige.js` : **2,33** ; une partie de joueur contre les autres : 0,9.

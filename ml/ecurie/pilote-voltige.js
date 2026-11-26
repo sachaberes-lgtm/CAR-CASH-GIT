@@ -77,6 +77,11 @@ const REGLAGES={
   dessousMax:.8,     /* s sous la dalle avant de chercher a en sortir par le bord (MESURE, ml/ecurie/etude/realisme.md : les joueurs y roulent 3 % du sol,
                         par passages de 1,2 s ; le pilote d'avant 29 %, par passages de 4 a 60 s — c'est ce qui saute le plus aux yeux d'un spectateur) */
   dessousPose:10,    /* points que perd une pose annoncee SOUS la dalle */
+  departMin:1.5,     /* s : au depart, le pilote file droit au moins ce temps-la… */
+  departMax:5.5,     /* …et au plus celui-la (tire de la piste, pas du hasard). MESURE (ml/ecurie/etude/realisme.md § 1.8) : le premier coup de volant
+                        d'un joueur tombe a 3,8 s (il va tout droit jusqu'a la premiere piece, a 4,1 s) ; celui du pilote d'avant a 0,5 s, a chaque course */
+  portailVol:1,      /* 1 = sortir par le bord pour passer le portail EN VOL quand un rayon du sol l'annonce (0 = jamais). MESURE (ml/ecurie/etude/realisme.md
+                        § 1.8) : les joueurs passent 56 % des portails en vol, le pilote d'avant 16 % */
   figMax:2,          /* figures par vol au plus (le jeu : 3 a la fois) */
   figDepuis:.4,      /* s de vol avant la premiere figure (les joueurs : 0,56 s en mediane) */
   figHaut:15         /* m au-dessus de la route la plus proche pour une figure dans un vol subi (MESURE, grotte 910185 : une figure lancee a la 1re
@@ -127,6 +132,9 @@ function raccourci(v,sortir){
   for(const nom of ['gauche','droite']){
     const X=S[nom];if(!X||!Array.isArray(X.rayons)||!(X.t<=R.raccAttente))continue;
     for(const r of X.rayons){
+      /* LE PORTAIL EN VOL : un rayon de cette sortie le traverse en moins de raccTmax secondes — c'est la plus belle fin de piste */
+      if(r&&r.issue==='portail'&&R.portailVol>0&&!sortir&&(+r.t||0)<=R.raccTmax){const s8=400-25*(+r.t||0)-(/plane/i.test(r.m)?20:0);
+        if(!mieux||s8>mieux.s)mieux={s:s8,cote:nom==='gauche'?1:-1,facon:r.m,cible:typeof r.cible==='number'?r.cible:null,gain:0,vol:+r.t||0,attente:+X.t||0};continue;}
       if(!r||r.issue!=='pose'||r.propre===false||r.dessous)continue;
       /* SORTIR DU DESSOUS : n'importe quelle pose propre SUR la dalle fait l'affaire, la plus courte et la plus droite d'abord (aucun gain exige) */
       if(sortir){const t9=+r.t||0,a9=Math.abs(+r.axe||0);if(t9>3.5||a9>R.raccAxe||(r.air!=null&&r.air<R.raccAir))continue;const s9=100-25*t9-100*a9;
@@ -150,6 +158,10 @@ function tientEncore(v,cote){
   return X.rayons.some(r=>r&&(r.issue==='pose'||r.issue==='levre'||r.issue==='portail'));
 }
 function auSol(v,m){
+  /* LE DEPART : tout droit sur sa ligne, nitro tenue, le temps tire pour cette piste — sauf si la route lache avant */
+  if(m.tDepart==null){const g=Math.round(+v.L||0)*7+Math.round((Array.isArray(v.piecesDevant)&&v.piecesDevant[0]?+v.piecesDevant[0].d:0)||0)*13;
+    m.tDepart=REGLAGES.departMin+(REGLAGES.departMax-REGLAGES.departMin)*((g%41)/40);m.latDepart=v.lat;}
+  if(v.t<m.tDepart&&!(v.tenue&&v.tenue.tient===false)){m.tSol=v.t;m.ligne=v.lat;m.facon=null;return {ligne:m.latDepart,nitro:true};}
   const R=REGLAGES,vg=v.virage,tn=v.tenue,vit=Math.max(6,v.vitesse),lmax=Math.max(.05,v.lacetMax||1);
   const couloir=(v.mur&&v.mur.ici)||(Array.isArray(v.couloirs)&&v.couloirs.some(c=>c.d0<vit*2&&c.d1>0));
   const decor=!!DECOR[v.carte],max=Math.min(decor?R.bandeDecor:99,v.demi-(couloir?R.margeCouloir:R.marge));
