@@ -192,6 +192,10 @@ function creer(opts){
     g.clk.t=T0;
     J.propreRemis=ev('__propre.remet()');
     ev('(function(d){for(const k of Object.keys(SAVE.d))delete SAVE.d[k];Object.assign(SAVE.d,d);})('+SAVE0+')');
+    /* (2026-11-26, LE GARAGE — Sacha : « pour plus de realisme il faut qu'ils puissent utiliser toutes les figures du jeu ») o.sauvegarde : des champs
+       poses PAR-DESSUS la sauvegarde du debutant, avant le depart (piloter.js y met les figures possedees et equipees d'un pilote). Sans lui : rien ne
+       change, la course est celle d'avant au bit pres. Le jeu n'est pas modifie : c'est SA sauvegarde, celle qu'un joueur a apres ses achats. */
+    if(o.sauvegarde&&typeof o.sauvegarde==='object')ev('(Object.assign(SAVE.d,'+JSON.stringify(o.sauvegarde)+'),1)');
     /* les memoires de session du jeu : SF_HIST (les dernieres maps, ecartees du tirage), GRT_VUS (les modules des grottes recentes, leur poids au tirage) */
     ev('SF_HIST.length=0;GRT_VUS.length=0');
     ev('SF.prochain=null;SF.prochainDer=null;SF.tirage=[];SF.der=null;SF.neuf=false;SF.force='+(o.carte?JSON.stringify({carte:o.carte,meteo:o.meteo||null,teinte:o.teinte||null}):'null'));

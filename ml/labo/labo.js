@@ -181,7 +181,7 @@ function garder(ligne,x,pourquoi){
   const b=x.bilan,bot=x.partie.bot||{};
   const rejeu={format:'cashcar-rejeu-1',cerveau:{id:ligne.id,nom:ligne.nom,sha:ligne.sha,code:ligne.code},etape:ligne.etape,generation:ligne.generation,
     jeu:ligne.jeu,graine:x.graine,carte:bot.carte||null,meteo:bot.meteo||null,tmax:bot.tmax||ligne.tmax,images:b.images,empreinte:b.empreinte,
-    fin:Object.assign({},x.partie.fin),cartes:b.cartes,pourquoi:pq,trajectoire:'trajectoires/'+base+'.json.gz',
+    fin:Object.assign({},x.partie.fin),cartes:b.cartes,pourquoi:pq,trajectoire:'trajectoires/'+base+'.json.gz',garage:bot.garage||undefined,   /* (2026-11-26) les figures equipees : sans elles le rejeu tourne d'autres figures */
     aide:'touches : le nombre d\'images (1/60 s) depuis le changement d\'avant, puis la touche — MAJUSCULE enfoncee, minuscule relachee ; G D H B N = gauche droite haut bas ESPACE ; C = la plaque CONTINUER de la seconde chance touchee (c : attente abandonnee)',
     touches:touches};
   ecrireAtomique(fr,JSON.stringify(rejeu,null,1));

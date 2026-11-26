@@ -86,6 +86,7 @@ const __bac=(function(){'use strict';
     pose:function(){const x=module.exports;if(!x||typeof x.decide!=='function')return 'E';c=x;return 'O'+(typeof x.nom==='string'?x.nom:'');},
     neuve:function(){m={};},
     profil:function(){try{const p=c&&c.profil;return p==null?'O':typeof p==='object'?'O'+JS(p,enc):'E';}catch(e){return 'E';}},
+    garage:function(){try{const p=c&&c.garage;return p==null?'O':typeof p==='object'?'O'+JS(p,enc):'E';}catch(e){return 'E';}},
     appel:function(vj){try{const r=c.decide(JP(vj,dec),m);return 'O'+JS(r,enc);}catch(e){let s='?';try{s=S(e&&e.message||e);}catch(x){}return 'E'+s;}}});
 })();`;
 /* la vue → texte, chez l'hote (les memes reperes que `enc` du bac) */
@@ -94,6 +95,32 @@ const decHote=(k,v)=>{if(typeof v==='string'&&v.length===2&&v.charCodeAt(0)===0)
 /* l'empreinte d'un profil normalise : sha1 de son JSON aux cles triees */
 function shaProfil(P){const tri=x=>Array.isArray(x)?x.map(tri):(x&&typeof x==='object')?Object.keys(x).sort().reduce((o,k)=>{o[k]=tri(x[k]);return o;},{}):x;
   return crypto.createHash('sha1').update(JSON.stringify(tri(P))).digest('hex').slice(0,12);}
+/* LE CATALOGUE DES FIGURES, lu dans le jeu (VERSION PRINCIPALE/figures.js : id, prix, duree D, aura, emplacements permis) — sans l'executer */
+let CATALOGUE=null;
+function catalogue(){
+  if(CATALOGUE)return CATALOGUE;
+  const src=fs.readFileSync(path.join(JEU_DIR,'figures.js'),'utf8'),C={};
+  for(const m of src.matchAll(/\{id:'([a-z0-9_]+)',[^\n]*?\bp:(\d+),\s*D:([\d.]+),\s*aura:(\d+),\s*dir:\[([^\]]*)\]/g))
+    C[m[1]]={id:m[1],prix:+m[2],D:+m[3],aura:+m[4],dir:m[5].split(',').map(x=>x.replace(/['\s]/g,'')).filter(Boolean)};
+  return (CATALOGUE=C);}
+const EMPLACEMENTS=['avant','arriere','cote'];
+/* { figures:[avant, arriere, cote] } → la meme chose, verifiee ; null si rien n'est equipe (le garage du debutant) */
+function normaliserGarage(g){
+  if(g==null)return null;
+  if(typeof g!=='object'||Array.isArray(g))throw new Error('garage : un objet { figures: [avant, arriere, cote] }');
+  for(const k of Object.keys(g))if(k!=='figures')throw new Error('garage : champ inconnu « '+k+' » (seul « figures » existe)');
+  const F=g.figures;if(F==null)return null;
+  if(!Array.isArray(F)||F.length!==3)throw new Error("garage.figures : trois ids, dans l'ordre avant, arriere, cote ('' = rien)");
+  const C=catalogue(),S=F.map((id,k)=>{
+    if(id==null||id==='')return '';
+    if(typeof id!=='string'||!C[id])throw new Error("garage.figures : « "+String(id).slice(0,24)+" » n'est pas une figure du jeu ("+Object.keys(C).join(', ')+')');
+    if(C[id].dir.indexOf(EMPLACEMENTS[k])<0)throw new Error("garage.figures : « "+id+" » ne se place pas a l'emplacement "+EMPLACEMENTS[k]+' (elle va : '+C[id].dir.join(', ')+')');
+    return id;});
+  return S.some(Boolean)?{figures:S}:null;}
+/* le garage → les champs de la sauvegarde du jeu : les figures possedees (celles du debutant, plus les equipees) et les trois emplacements */
+function sauvegardeDe(garage){
+  if(!garage)return null;
+  return {figs:[...new Set(['tailwhip','salto'].concat(garage.figures.filter(Boolean)))],figEq3:garage.figures.slice()};}
 function charger(fichier,o){
   o=o||{};
   const src=o.source!=null?String(o.source):fs.readFileSync(fichier,'utf8');
@@ -112,6 +139,18 @@ function charger(fichier,o){
     let brut=null;if(tp.length>1){try{brut=JSON.parse(tp.slice(1),decHote);}catch(e){throw new Error(fichier+' : profil illisible');}}
     try{profil=normaliserProfil(brut);}catch(e){throw new Error(fichier+' : '+String(e&&e.message||e));}
     if(profil)profilSha=shaProfil(profil);}
+  /* ===== LE GARAGE (2026-11-26, Sacha : « il faut qu'ils puissent utiliser toutes les figures du jeu ») =====
+     `module.exports.garage = { figures: [avant, arriere, cote] }` : les trois figures EQUIPEES du pilote, une par geste (l'id du catalogue de
+     VERSION PRINCIPALE/figures.js : tailwhip, tonneau, toupie, shimmy, chandelle, salto, double, tirebouchon, helico, penche, rodeo, cosmique ;
+     '' = rien de plus que la sauvegarde du debutant a cet endroit). Lu UNE fois, comme le profil ; un id inconnu ou une figure qui ne va pas a cet
+     emplacement REFUSE le pilote. Sans garage : la sauvegarde du debutant (salto devant et derriere, tail whip de cote), la course d'avant au bit pres.
+     Le garage n'est pas la main : il dit ce que le joueur POSSEDE (un joueur du palier 25 n'a pas les figures d'un debutant). Empreinte : garageSha. */
+  let garage=null,garageSha=null;
+  {const tg=vm.runInContext('__bac.garage()',ctx,{timeout:1000});
+    if(typeof tg!=='string'||tg[0]!=='O')throw new Error(fichier+' : garage illisible (un objet { figures: [avant, arriere, cote] })');
+    if(tg.length>1){let brut;try{brut=JSON.parse(tg.slice(1),decHote);}catch(e){throw new Error(fichier+' : garage illisible');}
+      try{garage=normaliserGarage(brut);}catch(e){throw new Error(fichier+' : '+String(e&&e.message||e));}
+      if(garage)garageSha=shaProfil(garage);}}
   /* 5 s : TRES large, expres. La limite ne sert qu'a arreter une boucle sans fin ; elle compte en vraie montre, donc un ordinateur charge peut
      la franchir sans que le cerveau y soit pour rien — et la course n'est plus repetable. MESURES : a 25 ms, 1 decision sur ~2 000 coupee ;
      a 500 ms, le 24/11, PC charge par ailleurs (jeu sans ecran a 0,68 x le temps reel) : 3 et 10 decisions coupees sur la meme graine, deux
@@ -123,7 +162,7 @@ function charger(fichier,o){
          reste repetable, l'ordre de cette decision est vide, on continue et on le dit dans le bilan. */
   /* une decision = un petit script : la vue y entre comme un texte litteral (rien a poser sur le contexte, ou un cerveau aurait pu guetter) */
   const ms=o.ms||60000;
-  return {nom:pose.slice(1)||path.basename(fichier,'.js'),fichier:fichier,source:src,pannes:0,erreurs:0,profil:profil,profilSha:profilSha,
+  return {nom:pose.slice(1)||path.basename(fichier,'.js'),fichier:fichier,source:src,pannes:0,erreurs:0,profil:profil,profilSha:profilSha,garage:garage,garageSha:garageSha,
     neuve(){vm.runInContext('__bac.neuve()',ctx,{timeout:1000});},
     decide(vue){let r;
       const txt=JSON.stringify(vue,encHote);this.texte=txt; /* (2026-11-24, yeux v2) le texte de la vue, tel qu'il entre dans le bac : course() en tire l'empreinte des vues et leur poids */
@@ -170,7 +209,10 @@ function recolle(morceaux,dernier){const A=morceaux[0]||null;return {partie:A&&d
 function course(J,cerveau,graine,o){
   o=o||{};
   const tmax=o.tmax||TMAX_DEFAUT,N=Math.round(tmax*60);
-  J.lancer(graine,o.carte?{carte:o.carte,meteo:o.meteo}:{});
+  /* (2026-11-26, LE GARAGE) les figures du pilote entrent dans la sauvegarde avant le depart ; ce que le jeu en a fait (figSlots) est dit au bilan */
+  const SAUV=sauvegardeDe(cerveau.garage||null);
+  J.lancer(graine,Object.assign(o.carte?{carte:o.carte,meteo:o.meteo}:{},SAUV?{sauvegarde:SAUV}:{}));
+  let equipees=null;if(SAUV){try{equipees=JSON.parse(J.ev('JSON.stringify(figSlots())'));}catch(e){equipees=null;}}
   J.ev('__JR.debut()');
   const PROFIL=cerveau.profil||null;
   if(PROFIL&&!J.main){J.ev(MAIN_CODE);J.main=J.g.sandbox.__MAIN;}
@@ -222,6 +264,9 @@ function course(J,cerveau,graine,o){
       if((cerveau.pannes|0)-pannes0>=PANNES_MAX){abandon=true;break;}   /* le cerveau boucle (ou l'ordinateur est a genoux) : cette course ne vaut rien */
       if(!ordre||typeof ordre!=='object'){ordre={};vide++;}
       dem=ordre.regarder==='sorties'?{sorties:true}:undefined;   /* (yeux v2) la demande vaut pour la vue suivante */
+      /* (2026-11-26, le rayon « viser ») `cible` : l'abscisse (m le long de la piste) que le pilote vise en vol — a la vue suivante, les rayons « viser »
+         et vue.vol.cible (le volant et le manche de la loi) portent sur ELLE, pas sur le troncon que les yeux auraient choisi */
+      if(typeof ordre.cible==='number'&&ordre.cible-ordre.cible===0)dem=Object.assign(dem||{},{cible:ordre.cible});
       if(ordre.drift&&!D.P)driftPerdus++;   /* (doigts v2) l'ordre « drift » n'est lu que par une main a profil : compte, pour le dire au bilan */
       if(ordre.ensuite&&!D.P)ensuitePerdus++;   /* (relecture) « ensuite » non plus */
       D.ordre(ordre,vue,etatMain);decisions++;
@@ -247,10 +292,11 @@ function course(J,cerveau,graine,o){
   const morte=!!(RC.fin&&(RC.fin.ev||[]).some(e=>e[1]==='mort'));
   if(partie.fin&&(abandon||!morte))partie.fin.cause=abandon?'panne':'temps'; /* arretee par la limite de temps (ou abandonnee : le cerveau en panne), pas par une mort */
   partie.bot={nom:cerveau.nom,graine:graine,carte:o.carte||null,meteo:o.meteo||null,jeu:J.version,jeu_sha:J.sha||null,regime:J.regime||'max',tmax:tmax,main:cerveau.profilSha||null,simulateur:J.simulateur||null};
+  if(SAUV){partie.bot.garage=cerveau.garage.figures.slice();partie.bot.garageSha=cerveau.garageSha;}   /* (LE GARAGE) le rejeu en a besoin : sans lui, d'autres figures tournent */
   delete partie.ecran;
   const bilan=Object.assign({graine:graine,images:fr,ms:ms,foisTempsReel:+(fr/60/Math.max(.001,ms/1000)).toFixed(2),
     decisions:decisions,ordresVides:vide,pannes:(cerveau.pannes|0)-pannes0,erreurs:(cerveau.erreurs|0)-erreurs0,derniereErreur:((cerveau.erreurs|0)-erreurs0||(cerveau.pannes|0)-pannes0)?(cerveau.derniere||null):null,gestesRefuses:D.refus,appuis:D.touches.filter(x=>x[2]&&x[1]!=='C').length,
-    main:PROFIL?{sha:cerveau.profilSha,graine:PROFIL.graine,modele:PROFIL.modele}:null,driftSansProfil:driftPerdus||undefined,ensuiteSansProfil:ensuitePerdus||undefined,
+    main:PROFIL?{sha:cerveau.profilSha,graine:PROFIL.graine,modele:PROFIL.modele}:null,garage:SAUV?{sha:cerveau.garageSha,figures:cerveau.garage.figures.slice(),equipees:equipees}:undefined,driftSansProfil:driftPerdus||undefined,ensuiteSansProfil:ensuitePerdus||undefined,
     empreinte:h.digest('hex').slice(0,12),empreinteVues:hv.digest('hex').slice(0,12),yeux:yeux,yeuxTirages:etat?MY.tirages:null,cerveau_ms_moy:a3(MY.msCerveau/Math.max(1,MY.textes))},D.resume()||{},mesures(partie));
   return {partie:partie,touches:D.touches,bilan:bilan,vues:o.trace?vues:undefined};
 }
@@ -298,7 +344,9 @@ const HASARD_CODE=`window.__HAS={mode:null,cur:null,pos:null,prof:0,noms:[]};
 function rejouer(J,graine,touches,o){
   o=o||{};
   const N=Math.round((o.tmax||TMAX_DEFAUT)*60),JR=J.g.sandbox.__JR,h=crypto.createHash('sha1'),serie=[];
-  J.lancer(graine,o.carte?{carte:o.carte,meteo:o.meteo}:{});
+  /* (2026-11-26, LE GARAGE) o.garage : les trois figures equipees de la course d'origine (le rejeu les garde) */
+  const SAUV=sauvegardeDe(o.garage?normaliserGarage({figures:o.garage}):null);
+  J.lancer(graine,Object.assign(o.carte?{carte:o.carte,meteo:o.meteo}:{},SAUV?{sauvegarde:SAUV}:{}));
   J.ev('__JR.debut()');
   let fr=0,k=0,vue=null,HAS=null,R=null;const hasard=[],appels=[],morceaux=[],etat=o.hasard?J.ev('Math.random.__etat'):null;
   if(o.hasard){J.ev(HASARD_CODE);HAS=J.g.sandbox.__HAS;HAS.mode='note';}
@@ -331,4 +379,4 @@ function rejouer(J,graine,touches,o){
   /* hasard : images[i] = l'etat au debut de l'image i · appels[i] = [fonction, etat, fonction, etat…] dans l'ordre des appels de l'image i · noms = les fonctions */
   return {partie:partie,images:fr,empreinte:h.digest('hex').slice(0,12),serie:o.serie?serie:undefined,hasard:o.hasard?{images:hasard,noms:HAS.noms,appels:appels}:undefined,bilan:mesures(partie)};
 }
-module.exports={ouvrir,charger,course,rejouer,shaJeu,shaProfil,TMAX_DEFAUT,JR_CODE,HASARD_CODE,BAC_CODE,MAIN_CODE};
+module.exports={ouvrir,charger,course,rejouer,shaJeu,shaProfil,TMAX_DEFAUT,JR_CODE,HASARD_CODE,BAC_CODE,MAIN_CODE,catalogue,normaliserGarage,sauvegardeDe};

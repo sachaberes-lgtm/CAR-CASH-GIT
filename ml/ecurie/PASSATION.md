@@ -1,64 +1,84 @@
-# Passation — l'écurie, le 26/11/2026 à 13 h
+# Passation — l'écurie, le 26/11/2026 à 14 h 30
 
 À lire en premier par la session qui reprend. Le détail de chaque étape est dans `ETAPES.md` ; ici, l'état exact, ce qui tourne, et quoi faire.
 
-## Où on en est
+## Ce qui a changé le 26/11 (la demande de Sacha)
+
+Sacha a regardé les bots : « ils conduisent bien mais ils sont encore trop frileux de s'envoler et de faire des figures dans les airs ; pour plus de
+réalisme il faut qu'ils puissent utiliser toutes les figures du jeu ; parfois ils n'osent pas prendre des raccourcis évidents ». Puis : « lance une
+enquête : tous les éléments à ajouter aux bots pour simuler de vrais joueurs ; objectif : on ne peut pas du tout faire la différence ».
+
+**La boucle par tranches n'a donc PAS été relancée** : elle ne note que le palier médian, et partait d'un pilote qui ne vole pas exprès. La relancer
+telle quelle dépenserait 12 € par jour à polir ce que Sacha vient de refuser. Elle repartira du pilote qui vole, avec une note « palier et ressemblance ».
 
 | | État |
 |---|---|
-| A — l'étude | faite |
-| B — fondations (yeux v2, doigts v2, relecture de 58 trouvailles, simulateur fidèle avec le relief du canyon, finitions) | **faite** — `verifier.js` passe (empreinte `a7b3171768ca`), 5 rejeux exacts sur 5 |
-| C — le pilote d'élite | **le premier pilote existe** : `ml/ecurie/pilote.js` (écrit par Fable 5.2 via l'API, contrôlé par Opus) — palier médian **11**, record **20** sur 20 courses de 900 s (référence 8,5 / 18 ; joueurs 11,5 / 28) |
-| C bis — calibrage (4 modèles × 6 variantes) | **fait** : aucune variante ne tient sur 20 graines neuves ; modèle retenu **Sonnet 5.5** (0,13 € la variante), départ `pilote.js` (`ml/ecurie/agents/choix.json`) |
-| C bis — la boucle par tranches | **pas commencée** : la tranche 1 a démarré le 26/11 à 12 h 55 puis a été tuée par une interruption (0 € dépensé dans cette tranche) |
-| Portfolio | **fait** : `ml/ecurie/portfolio/index.html` + 5 figures SVG (`images/`, refaites par `node ml/ecurie/portfolio/figures.js`) |
-| D, E, F | à faire |
+| **L'enquête** (`etude/realisme.md`, une session à part, 0 €) | **faite** : 26 écarts mesurés entre le pilote et les joueurs, classés ; le juge mis à l'épreuve (0,974 ; il resterait 0,965 même en corrigeant nitro, vols et figures) ; 28 parties à enregistrer par Sacha et 8 lignes à ajouter à l'enregistreur du jeu (sa décision) |
+| **La voltige mesurée** (`ml/bot/voltige.js`) | **fait** : les vols un par un, joueurs et bots comptés pareil (`node voltige.js` : les joueurs ; `node voltige.js <note --parties>` : un bot) |
+| **Le rayon « viser »** (`ml/bot/yeux.js`, README § 2 bis) | **fait** : le radar dit enfin si un raccourci se pose (en vol et depuis le bord), avec la loi à suivre (`vue.vol.cible`) et l'ordre `cible` |
+| **Le garage** (`module.exports.garage`, README § 1) | **fait et essayé** : un pilote s'équipe de n'importe laquelle des 12 figures du jeu (une course : rodéo, chandelle et hélico lancés ; rejeu exact) ; la boucle fixe le garage comme la main |
+| **Le pilote qui vole** (`ml/ecurie/pilote-voltige.js`) | **commencé, pas au niveau** : il sort exprès, plonge, se pose (12 raccourcis de 326 m en médiane sur 12 courses ; les joueurs 413 m) et lance des figures, mais 0,5 sortie voulue par minute (joueurs : 3,5 raccourcis) et **palier médian 8,5 contre 12,5** pour `pilote.js` sur les mêmes 12 courses de 300 s. `pilote.js` n'est pas remplacé |
+| Contrôles | `node ml/bot/verifier.js` **TOUT PASSE** (534 s, empreinte `a7b3171768ca`) ; `node ml/labo/rejouer.js --tout` : **34 rejeux exacts sur 34** |
 
-**Dépensé : 36,92 € sur 200** (journal `ml/labo/journal/depenses.jsonl`, `node ml/labo/labo.js`). Pilote 11,63 · finitions 8,71 · calibrage 4,63 + choix 0,71 · portfolio 3,83 · images 7,07 · comptes rendus ≈ 0,3.
+**Dépensé : 36,92 € sur 200** au 26/11 à 14 h (rien de plus aujourd'hui avant l'agent ci-dessous). L'abonnement : 3 à 4 % de la semaine après cette session.
 
-**Rien ne tourne en ce moment**, sauf le serveur de la salle de projection (`node projection.js`, port 3161), sans importance.
+## Ce qui tourne
 
-## Pour relancer (c'est la première chose à faire)
-
-Depuis un **terminal ordinaire** (pas depuis un outil d'une session Claude : une interruption de la session tue les processus qu'elle a lancés — c'est ce qui vient d'arriver) :
+**L'agent « voltige »**, payé par la clé d'API, lancé le 26/11 vers 14 h 30 dans un onglet du terminal de l'app (il survit à la fin de la session) :
 
 ```powershell
-cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\ecurie; node chaine.js
+cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\ecurie; node agent-api.js --consigne consignes-agents/voltige.md --nom voltige --modele claude-fable-5-2 --budget 12 --etape C
 ```
 
-La chaîne reprend où elle en était (`agents/chaine-etat.json` : pilote, calibrage, choix faits ; `tranches: 0`) et lance la boucle de l'étape C avec Sonnet 5.5, par tranches, au **rythme corrigé** : chaque jour, ce qui reste des 200 € est partagé entre les jours qui restent jusqu'au 08/12 (≈ 12,5 € par jour). Journal : `agents/chaine.log`. Arrêt : créer le fichier `agents/STOP`. Un compte rendu (`comptes-rendus/compte-rendu-NN.html`) est écrit après chaque tranche.
+Sa tâche (`consignes-agents/voltige.md`) : amener `pilote-voltige.js` au niveau — survivre comme `pilote.js`, voler, couper et faire des figures comme un
+joueur —, en s'appuyant sur l'enquête. Son rapport : `agents/<date>-voltige.md` ; il met `ETAPES.md` à jour et valide dans git (jamais de push).
+S'il n'a pas tourné (onglet fermé, clé absente) : relancer la commande ci-dessus depuis un terminal ordinaire.
+
+## À faire ensuite, dans l'ordre
+
+1. **Lire le rapport de l'agent voltige** et refaire ses chiffres : `cd ml/ecurie/agents/tmp-voltige; node lot.js ../../pilote-voltige.js --graines 12 --tmax 300 --coeurs 6 --nom controle`
+   (les mêmes 12 courses pour `pilote.js` : `lot-v1.txt`, médian 12,5). S'il tient ses buts (consigne, « TON BUT, CHIFFRÉ »), `pilote-voltige.js` devient `pilote.js`.
+2. **Le juge** (`ml/bot/discerner.js`) : lui ajouter les mesures de l'enquête (§ 3 de `realisme.md` : le dessous de la dalle, la durée d'un aller du slalom,
+   le volant en vol, les allumages de nitro en vol, la pose…), un juge « à l'instant » et un juge « du compte ». Sans lui la boucle ne voit aucun progrès de ressemblance.
+3. **La boucle** : une note « palier **et** ressemblance » (aujourd'hui `--critere palier_median`) — par exemple refuser une variante dont les vols, les
+   raccourcis ou les figures par minute sortent des plages des joueurs (`voltige.resume`), puis départager au palier. Mettre `CONSIGNES.md` à jour (il dit
+   encore « figures rares », et rien du rayon viser ni du garage). Puis relancer la chaîne (`node chaine.js` depuis un terminal ordinaire).
+4. **Le plan d'action de l'enquête** (§ 4 de `realisme.md`), dans son ordre : sortir du dessous de la dalle (29 % du sol contre 3 %), s'envoler nitro
+   allumée, tapoter la nitro en vol, viser le portail en vol, le départ, la seconde chance (`chance.prend` de 1 à 0,3 : c'est la main, donc l'étape D),
+   la nitro au sol, le rythme du slalom.
+5. **Les garages par niveau** (étape D) : un bot du palier 5 a les figures du débutant, un bot du palier 25 des figures chères ; à tirer par bot.
+6. Étapes D, E, F (`ETAPES.md`).
+
+## Ce que Sacha peut faire
+
+- **Enregistrer des parties** : la liste est dans `etude/realisme.md` § 5 (28 parties : 6 normales, 4 « voltige », 4 « prudent », 4 avec d'autres figures
+  équipées, 6 de Léo au doigt, 4 d'un vrai débutant). ⚠ L'enquête recommande d'ajouter **d'abord** 8 lignes à l'enregistreur du jeu (les touches ↑ ↓,
+  la jauge de nitro, le verdict des poses, la frénésie, la graine de la piste…) : sans elles, les nouvelles parties auront les mêmes trous. C'est une
+  modification du jeu : **à décider par Sacha**. Exporter toutes les 4 ou 5 parties (l'enregistreur n'en garde que 8).
+- **Un deuxième PC** : les simulations tournent sur le processeur de ce PC (8 cœurs), pas chez Claude, et une carte graphique n'y change rien. Un autre
+  PC avec beaucoup de cœurs, Node.js et une copie du dépôt doublerait la cadence ; rien n'est encore écrit pour répartir les courses.
 
 ## Comment le travail se paie — la règle de Sacha
 
-**Le travail lourd se paie sur la clé d'API, jamais sur l'abonnement.** Le 25/11, un workflow de 152 agents a vidé l'abonnement Fable sans toucher aux crédits : Sacha a été très clair, c'est à ne pas refaire. Les outils :
+**Le travail lourd se paie sur la clé d'API, jamais sur l'abonnement** (le 25/11 un workflow de 152 agents a vidé l'abonnement : à ne pas refaire).
+`agent-api.js` (une session sans écran, la clé seulement, coût au journal, plafond de 200 €), `chaine.js`, `relais.js`, `apres.js`,
+`consignes-agents/`. La clé : `setx` par Sacha ; ne jamais l'afficher. Le 26/11 Sacha a ajouté : « gère bien ta consommation de l'abonnement et des
+crédits API pour que ça dure toute la semaine ». Le rythme : ce qui reste des 200 € partagé entre les jours jusqu'au 08/12 (≈ 12,5 € par jour).
 
-- `ml/ecurie/agent-api.js` — une session Claude Code sans écran (`claude -p --bare`), qui ne lit que `ANTHROPIC_API_KEY` ; la source de facturation est vérifiée au premier message (coupée sinon), le coût inscrit au journal des dépenses, le plafond de 200 € respecté. `node agent-api.js --consigne consignes-agents/X.md --nom X --modele claude-opus-5-5 --budget 10 --etape C`. Rapport : `agents/<date>-X.md`.
-- `ml/ecurie/chaine.js` — la chaîne des deux semaines (ci-dessus).
-- `ml/ecurie/relais.js` — glisser un agent entre deux pas de la chaîne (pose `STOP`, attend, lance l'agent, relance la chaîne).
-- `ml/ecurie/apres.js` — lancer un agent quand un autre a fini (deux agents n'écrivent jamais dans les mêmes fichiers en même temps).
-- `ml/ecurie/consignes-agents/` — les consignes déjà écrites (pilote, choix-modele, compte-rendu, finitions-b, portfolio, images).
-- La clé : `setx` par Sacha ; si l'environnement ne l'a pas, `agent-api.js` et `chaine.js` la lisent dans la portée Utilisateur (registre). Ne jamais l'afficher.
+## Défauts connus
 
-La session principale ne fait qu'amorcer, vérifier et raconter.
-
-## Ce qui reste à faire, dans l'ordre
-
-1. **Relancer la chaîne** (ci-dessus) et vérifier dans `chaine.log` que la tranche 1 démarre et dépense (une tranche de Sonnet ≈ 0,8 € par tour de 6 variantes ; un tour prend 30 à 100 min de PC).
-2. **Surveiller la première tranche** : une variante sacrée (validée sur 20 graines neuves) ? Le compte rendu n° 3 est-il écrit ? Si deux tranches de suite ne dépensent rien, la chaîne s'arrête d'elle-même (« deux tranches de suite sans dépense ») : lire `agents/sortie-tranche-N.log`.
-3. **À surveiller / défauts connus** :
-   - Fable 5.2 a perdu sa seule réponse du calibrage, coupée à 32 000 jetons de sortie (`boucle.js`, `max_tokens`) : si on réutilise Fable dans la boucle, monter ce plafond.
-   - Avec la seconde chance prise dès le palier 12, le record du pilote n'est pas comparable à celui de la référence (qui ne la prend jamais) ; dans la boucle, la comparaison reste juste (la main est fixée).
-   - Ce qui tue encore le pilote : le canyon (parois), les S serrés, les vols trop longs (jauge d'air) ; la nitro reste à 28 % du temps contre 61 % chez les joueurs.
-   - Une vidéo de la salle de projection dépasse 30 Mo pour 4 min et plus (film toujours en 1280 × 720, le débit bas est ignoré par le navigateur) : on ne peut l'envoyer au téléphone que pour une course de moins de 3 min environ.
-4. **Étapes D, E, F** (`ETAPES.md`) quand la boucle a fait monter le plafond : les 30 niveaux, le juge, le paquet et le dossier du portfolio. Budget prévu : D+E 60 €, récit 15 € (déjà 11 € du portfolio), réserve 25 €.
+- `pilote-voltige.js` : la grotte et le canyon sont interdits aux sorties voulues (4 sur 4 finissaient contre la roche : l'annonce du rayon du sol y est
+  fausse) alors que les joueurs y coupent 5 fois par minute ; vols voulus trop longs (4,6 s en médiane) ; survie en baisse sur les vols subis, cause non trouvée.
+- La justesse des rayons « viser » n'est pas mesurée par `justesse.js` ; la salle de projection ne remet pas encore le garage d'un rejeu (`page.html`).
+- Fable 5.2 coupé à 32 000 jetons dans `boucle.js` (`max_tokens`) ; la seconde chance prise 7 fois sur 12 (joueurs 2 sur 14) ; le canyon tue toujours.
 
 ## Pour voir et tester
 
-- **Les bots jouer, avec l'image** : `cd ml\labo; node projection.js`, puis http://localhost:3161/ → « voir » (l'écran reste noir 1 à 5 min au début : la course est d'abord rejouée sans image). La meilleure course du pilote : `c0003-g910407` (5 min 50, 237 000 €), filmée dans `ml/labo/videos/`.
-- **L'arbre des cerveaux** : http://localhost:3161/labo/arbre.html (refait par `node ml/labo/arbre.js`).
-- **Les comptes rendus** : `ml/ecurie/comptes-rendus/` (n° 1 et 2).
-- **Le portfolio** : `ml/ecurie/portfolio/index.html`.
+- **Les vols des joueurs et d'un bot** : `cd ml\bot; node voltige.js --vols` ; `node voltige.js <note faite avec --parties> --nom x`.
+- **Une course racontée vol par vol** : `cd ml\ecurie\agents\tmp-voltige; node essai.js ..\..\pilote-voltige.js --graine 910074 --tmax 150 --detail`.
+- **Les bots jouer, avec l'image** : `cd ml\labo; node projection.js`, puis http://localhost:3161/ . L'arbre : http://localhost:3161/labo/arbre.html .
+- **L'enquête** : `ml/ecurie/etude/realisme.md`. Les comptes rendus : `ml/ecurie/comptes-rendus/`. Le portfolio : `ml/ecurie/portfolio/index.html`.
 
 ## Le texte à coller dans la session qui reprend
 
-> Dans `C:\Users\sacha\code\CASH-CAR-bots-ecurie` (branche `bots-ecurie`), lis `ml/ecurie/PASSATION.md` puis `ml/ecurie/ETAPES.md`. Vérifie que la chaîne tourne (`ml/ecurie/agents/chaine.log`) ; sinon dis-moi de la relancer depuis un terminal. Suis la boucle de l'étape C jusqu'au 08/12 sans dépasser 200 € au total, fais payer tout travail lourd par la clé d'API (`agent-api.js`), jamais par mon abonnement, et à chaque fin de contexte prépare un compte rendu esthétique et testable. Ne me pose pas de question.
+> Dans `C:\Users\sacha\code\CASH-CAR-bots-ecurie` (branche `bots-ecurie`), lis `ml/ecurie/PASSATION.md`, `ml/ecurie/etude/realisme.md` puis `ml/ecurie/ETAPES.md`. Lis le rapport de l'agent voltige (`ml/ecurie/agents/*-voltige.md`), contrôle ses chiffres, puis suis « À faire ensuite » de la passation. Fais payer tout travail lourd par la clé d'API (`agent-api.js`), jamais par mon abonnement, sans dépasser 200 € au total d'ici le 08/12, et à chaque fin de contexte prépare un compte rendu esthétique et testable. Ne me pose pas de question.

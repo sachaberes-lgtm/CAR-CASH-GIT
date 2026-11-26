@@ -50,6 +50,14 @@ module.exports = { nom: 'mon-cerveau', decide: function (vue, memoire) { return 
   borné : une valeur hors bornes y est ramenée, **un champ inconnu ou d'un mauvais type refuse le cerveau** (`charger` lève une erreur).
   Sans profil, ou avec un profil vide : exactement la main d'avant. `profil` ne règle **que la main** : les réglages de la conduite restent des
   constantes du fichier.
+- **Le cerveau peut dire ses figures** (26/11) : `module.exports = { nom, garage: { figures: ['rodeo', 'chandelle', 'helico'] }, decide }` — les trois figures
+  **équipées**, dans l'ordre avant, arrière, côté (le geste `figure` + `direction` joue celle de sa direction ; `gauche` et `droite` jouent celle du côté). Les
+  douze du catalogue (`VERSION PRINCIPALE/figures.js`) : de côté `tailwhip`, `tonneau`, `toupie`, `shimmy`, `double`, `helico`, `penche` ; à l'arrière seulement
+  `chandelle` ; devant ou derrière `salto`, `tirebouchon`, `rodeo`, `cosmique`. `''` = ce que la sauvegarde du débutant met là. Un id inconnu, ou une figure qui
+  ne va pas à cet emplacement, **refuse le cerveau**. Sans `garage` : la sauvegarde du débutant (salto devant et derrière, tail whip de côté), la course d'avant
+  au bit près. Le garage entre dans la sauvegarde du jeu avant le départ (`ml/reel/jeu-reel.js`, `o.sauvegarde` — le jeu n'est pas modifié), il est écrit dans
+  la partie (`partie.bot.garage`), le bilan (`garage` : ce que le jeu a vraiment équipé) et le rejeu du labo, qui le remet. Ce n'est pas la main : il dit ce que
+  le joueur **possède** (les figures chères rapportent plus d'aura, donc plus de pièces par pose : c'est un levier de niveau, comme la main).
 - `memoire` est un objet à lui, vide au départ de chaque course. `vue` est une **copie** (les mêmes nombres, NaN et Infinity compris) : la modifier ne change rien au jeu.
 - Il tourne dans un **bac fermé** (`charger`, dans `piloter.js`) : pas de `require`, pas de `process`, pas de fichiers, pas de réseau, pas d'horloge
   (`Date` refuse, `Intl` est retiré), pas de `Math.random`, pas de `WeakRef`. Rien de l'hôte ni du jeu n'y entre : la vue arrive en texte, l'ordre
@@ -134,6 +142,7 @@ Les rayons :
 | `plane` | `{nitro:true}` (un coup de réacteur à l'allumage, puis le plané) | long |
 | `planeCabre` | `{nitro:true, manche:1}` | court |
 | `versRoute`, `versRoutePlane` | la loi ci-dessous, redécidée toutes les 6 images comme un cerveau — mais toutes les 30 images (deux fois par seconde) tant que la route la plus proche est à plus de 60 m (sans, puis avec la nitro) | long |
+| `viser`, `viserPlane` (26/11) | **le raccourci** : rejoindre un morceau de piste plus loin et plus bas (`cible` : son abscisse), sans puis avec la nitro. La loi est donnée toute faite dans `vue.vol.cible` (`volant`, `manche`) : la recopier dans l'ordre à chaque décision, avec `cible: <abscisse>` pour que la vue suivante porte sur la même cible. Voir « Le rayon viser » plus bas | long |
 
 Chaque rayon : `issue`, `t` (**secondes de jeu** avant elle), `d` (m volés), `bumps` (s'il rebondit sur la tranche en route), `nitro` (part de jauge à l'issue, rayons à nitro), puis selon l'issue :
 
@@ -152,6 +161,27 @@ sans cela la caisse s'éloigne de l'axe — corrigé le 25/11) ; `manche = p.env
 la vraie marge (raisin compris), pas `vol.reste`, qui ment sous le raisin. Sinon `manche = 0`. Le radar la recalcule toutes les 6 images, et deux fois par seconde
 seulement loin de la route (à plus de 60 m de la dalle la plus proche).
 Le bot de référence (`reference.js`) suit encore la loi d'avant, sans `envers` : il n'a pas été touché (sa course changerait dans ce cas-là).
+
+**Le rayon `viser` (26/11/2026 — « ils n'osent pas prendre des raccourcis évidents »).** Mesuré sur les 10 parties au clavier (`node voltige.js`) : 43 % des
+poses des joueurs sont des raccourcis (3,5 par minute), 413 m de piste gagnés en médiane, sur toutes les cartes (grotte 5 par minute, nuages 4,2, jade 4,4,
+ville 4,3, espace 1,9, canyon 1,2), en 2,7 à 3,3 s de vol, à 47–130 m de haut. Ce ne sont pas des virages coupés à plat (une corde gagne une dizaine de mètres)
+mais des **plongeons vers un morceau de route en contrebas**. Avant le 26/11 aucun rayon ne disait si un tel plongeon se pose : `rien` et `plane` filent droit,
+`versRoute` revient à la dalle la plus proche, celle qu'on vient de quitter.
+- **Les cibles** (`ciblesDe`, `yeux.js`) : les morceaux de piste qu'un vol peut atteindre depuis son état — au moins 100 m de piste gagnés (comme le jeu compte),
+  4 m plus bas au moins, à 3,6 s de trajet au plus, ni trop haut ni trop bas pour ce temps, pas derrière. Les deux meilleurs (le gain, moins 70 m par seconde de
+  trajet), écartés de 150 m. Ce n'est qu'une **proposition** : c'est le rayon, joué image par image avec les lois du jeu, qui dit si ça se pose. (`vue.troncons`,
+  l'ancien calcul — une chute libre en ligne droite —, reste dans la vue mais ne sert plus aux rayons : il n'offrait que 4 occasions en 300 s de course.)
+- **La loi** : celle de `versRoute`, mais vers **le morceau visé** (le point d'axe le plus proche dans une fenêtre de 250 m avant à 700 m après la cible) : un cap
+  vers son axe (jusqu'à 0,9 rad tant qu'on en est à plus de 1,5 largeur, 0,6 au-dessus), puis le long de lui ; le manche pique si la descente tarde, cabre si l'on
+  arrive trop bas avant d'être au-dessus. Redécidée toutes les 6 images. Fenêtre dépassée : `versRoute`.
+- **En vol** : `vue.vol.radar.rayons` porte en plus `viser` et `viserPlane` (chacun avec `cible`, l'abscisse visée), vers la cible que l'ordre d'avant a
+  demandée (`cible: <abscisse>` dans l'ordre), sinon vers la meilleure cible du moment ; et `vue.vol.cible` = `{ s, volant, manche, pres, dist, chute, lat, haut,
+  axe, demandee }` : **le volant et le manche que la loi donne à cet instant** — le pilote les recopie. Ils viennent APRÈS les dix autres rayons, avec leur propre
+  budget (`BUDGET.viser`, 740 images par cible) : les dix premiers ne changent pas d'une image.
+- **Au sol** : chaque sortie `gauche` / `droite` de `vue.sorties` porte en plus `viser` et `viserPlane` vers une ou deux cibles vues depuis son décollage.
+- **Ce que ça vaut, mesuré le 26/11** (12 courses de 300 s, la main `clavier`, `ml/ecurie/pilote-voltige.js` sans figures) : 30 plongeons engagés sur l'annonce
+  d'un rayon du sol, 28 posés, 19 raccourcis de 396 m en médiane (les joueurs : 413 m) ; **à la grotte et au canyon l'annonce du sol est fausse** (4 sorties
+  sur 4 finissent contre la roche en moins de 1,5 s) : pas de mesure de justesse dédiée (`justesse.js` ne tire pas encore ces rayons). Estimation (`approx`), toujours.
 
 **Au sol, `vue.sorties`** : le même radar lancé depuis la sortie de route. `null`, ou `{pourquoi, bord, gauche, droite, saut}`, chaque sortie
 `{t (s avant de décoller), s, cote, approx, rayons}` (ou `{issue}` si elle n'a pas lieu : la route tient, un mur, le portail) :
@@ -303,6 +333,7 @@ L'ordre rendu par `decide` :
 | `geste:'redresser'` | un appui bref, seul, en vol : la figure en cours s'arrête, la caisse se remet droite | ESPACE |
 | `ensuite` `{ ligne }` ou `{ volant }` | *main à profil seulement* (relecture du 25/11) : l'ordre du volant pour le mode **d'après** — donné en vol, celui de la pose ; donné au sol, celui du décollage. La main l'applique dès qu'elle voit le mode changer (6 images après), sans attendre la décision suivante. `ligne` n'y vaut qu'avec le suivi (sans lui : volant à zéro) | ← → |
 | `regarder:'sorties'` | *pas un geste* : demande aux yeux, pour la vue **suivante**, les sorties à gauche, à droite et par un saut (`vue.sorties`, § 2 bis) | aucune |
+| `cible: <abscisse>` (26/11) | *pas un geste* : en vol, l'abscisse (m le long de la piste) que le pilote vise — à la vue **suivante**, les rayons `viser` et `vue.vol.cible` portent sur elle (§ 2 bis, « Le rayon viser ») | aucune |
 
 Ce que ces gestes font dans le jeu (vérifié par `verifier.js`, sauvegarde neuve) :
 

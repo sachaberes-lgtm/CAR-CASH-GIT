@@ -26,10 +26,10 @@ function lit(texte){
 const CHARGE_CODE=f=>'let C;try{C=require('+JSON.stringify(path.join(BOT,'piloter.js'))+').charger('+JSON.stringify(f)+');}'
   +'catch(e){let m="erreur illisible";try{m=String((e&&e.name?e.name+" : ":"")+(e&&e.message!=null?e.message:e));}catch(x){}'
   +'process.stderr.write("\\nRAISON="+m.replace(/\\s+/g," ")+"\\n");process.exit(1);}'
-  +'process.stdout.write("\\nMAIN="+JSON.stringify(C.profilSha||null)+"\\n");';
+  +'process.stdout.write("\\nMAIN="+JSON.stringify(C.profilSha||null)+"\\nGARAGE="+JSON.stringify(C.garageSha||null)+"\\n");';
 function chargeable(f){
   const r=spawnSync(process.execPath,['-e',CHARGE_CODE(f)],{encoding:'utf8'}),ligne=(t,k)=>String(t||'').split(/\r?\n/).filter(l=>l.startsWith(k)).pop();
-  if(r.status===0){const m=ligne(r.stdout,'MAIN=');let p;try{p=JSON.parse(m.slice(5));}catch(e){return {erreur:'ne dit pas sa main',main:null};}return {erreur:null,main:p};}
+  if(r.status===0){const m=ligne(r.stdout,'MAIN=');let p;try{p=JSON.parse(m.slice(5));}catch(e){return {erreur:'ne dit pas sa main',main:null};}let g=null;try{g=JSON.parse((ligne(r.stdout,'GARAGE=')||'GARAGE=null').slice(7));}catch(e){}return {erreur:null,main:p,garage:g};} /* (2026-11-26) garage : l'empreinte des figures equipees */
   const e=ligne(r.stderr,'RAISON=')||String(r.stderr||'').split(/\r?\n/).filter(l=>l.trim()).pop()||'';
   return {erreur:e.replace(/^RAISON=/,'').split(f).join(path.basename(f)).trim().slice(0,200)||'ne se charge pas',main:null};} /* le chemin complet du fichier : son nom seul */
 

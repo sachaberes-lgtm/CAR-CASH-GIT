@@ -21,7 +21,7 @@ function un(fichier,serie){
   /* (2026-11-25, simulateur fidele) dans LE SIMULATEUR DE SON ENREGISTREMENT (un rejeu sans le champ est d'avant le relief du canyon) : comme la version
      du jeu, la version du simulateur fait la course ; elle est dite a cote du verdict. */
   const sim=L.simulateurDe(R.jeu);
-  const r=L.ensilence(()=>rejouer(ouvrir({regime:R.jeu&&R.jeu.regime,simulateur:sim}),R.graine,L.decoderTouches(R.touches),{carte:R.carte,meteo:R.meteo,tmax:R.tmax,serie:!!serie,hasard:!!serie}));
+  const r=L.ensilence(()=>rejouer(ouvrir({regime:R.jeu&&R.jeu.regime,simulateur:sim}),R.graine,L.decoderTouches(R.touches),{carte:R.carte,meteo:R.meteo,tmax:R.tmax,garage:R.garage||null,serie:!!serie,hasard:!!serie}));
   if(serie)L.ecrireAtomique(serie,JSON.stringify({rejeu:path.basename(fichier),jeu:jeu,regime:(R.jeu&&R.jeu.regime)||'max',simulateur:sim,serie:r.serie,hasard:r.hasard})); /* d'un coup : la salle de projection peut le lire pendant ce temps */
   const f=r.partie.fin||{},meme=r.empreinte===R.empreinte&&r.images===R.images&&f.argent===R.fin.argent&&f.cause===R.fin.cause;
   return {fichier:path.basename(fichier),exact:meme,memeJeu:jeu.sha===R.jeu.sha,simulateur:sim,cartes:R.cartes||[],jeu:jeu,origine:R.jeu,empreinte:[R.empreinte,r.empreinte],images:[R.images,r.images],

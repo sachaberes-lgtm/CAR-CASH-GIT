@@ -125,7 +125,9 @@ const YEUX_CODE=`window.__YEUX=(function(){
      sondes : les appels au decor par vue (a chaque image au plus, et a l'image de chaque issue). A bout de budget, les derniers rayons rendent « coupe ». */
   /* (2026-11-25, relecture) demande : 2 200 → 2 900 — les sorties a gauche et a droite portent un rayon « versRoute » de 6 s de plus chacune (au pire :
      bord 1 080 + gauche 720 + droite 720 + saut 360 = 2 880) ; sondes : 2 420 → 2 920 — le decor est sonde a CHAQUE image (une sonde par image au plus). */
-  const BUDGET={vol:2400,sol:1100,demande:2900,route:900,sondes:2920};
+  /* (2026-11-26, le rayon « viser ») viser : les images de vol que les rayons « viser » peuvent ajouter par eventail (en vol : 2 rayons longs ; au sol :
+     2 par cote) — comptees A PART, apres les autres rayons : ceux d'avant ne changent pas d'une image. sondes : + ces images-la. */
+  const BUDGET={vol:2400,sol:1100,demande:2900,route:900,sondes:4400,viser:740};
   const H60=1/60,PAS_MS=1000/60,COURT=2,LONG=6,TENUE=3,MOYEN=3;
   const COUT={pas:0,route:0,dalles:0,sondes:0,erreurs:0,cyb:0};
   const MANQUE=[];
@@ -544,6 +546,71 @@ const YEUX_CODE=`window.__YEUX=(function(){
     if(M.abs(axe)<1.6)PIL.cv=cl((cl(-lt/40,-.6,.6)-axe)*1.6,-1,1)*sg9;
     if(ht>10&&M.abs(lt)<K.RH*2){const delai=ht/M.max(1,vR);if(delai>2||delai>resteAir(e.fTR,e.pwrA,e.stage)-1)PIL.cm=-sg9;}};
 
+  /* ===== LE RAYON « VISER » (2026-11-26, Sacha : « parfois ils n'osent pas prendre des raccourcis evidents ») =====
+     MESURE (ml/bot/voltige.js, les 10 parties au clavier) : 43 % des poses des joueurs sont des raccourcis, 413 m de piste gagnes en mediane, des vols de
+     2,3 s partis du bord a 38 m de haut — ce ne sont pas des virages coupes a plat (un arc coupe par sa corde gagne une dizaine de metres) mais des
+     PLONGEONS vers un morceau de route en contrebas. Le radar n'avait aucun rayon pour ca (refuse le 25/11 faute de budget de calcul) : « rien » et
+     « plane » filent tout droit, « versRoute » revient a la dalle la plus proche, celle qu'on vient de quitter. Un pilote ne pouvait donc pas savoir si
+     un raccourci se pose, et ne le tentait pas.
+     LA LOI (recalculee toutes les 6 images, comme un cerveau) : tant que la cible est loin, le volant tourne le vol vers elle (la loi de l'aide « viser »
+     des doigts : 2,2 × le gisement) et le manche regle la portee (cabrer si le trajet est plus long que la chute, piquer s'il est plus court) ; a moins
+     d'une demi-seconde de trajet (45 m au moins), ou la cible depassee, c'est la loi « vers la route » qui pose la caisse dans l'axe du troncon.
+     CIB : la cible du rayon en cours (un point de l'axe de la piste) ; pres : la loi a bascule sur « vers la route » (elle n'en revient pas). */
+  const CIB={x:0,y:0,z:0,s:0,pres:false,lt:0,ht:0,axe:0};
+  const viser=function(e,plane){
+    /* (refait le 26/11 au soir : viser un POINT faisait arriver la caisse en travers du troncon — MESURE, nuages 910074 : un plongeon de 300 m annonce
+       pose pendant 1,8 s, puis la caisse coupe l'axe a 1,2 rad et meurt jauge vide.) C'est la loi « vers la route », mais vers LE MORCEAU VISE : le
+       point d'axe le plus proche dans la fenetre de la cible (250 m avant, 700 m apres), jamais la dalle qu'on vient de quitter. */
+    const seg=gL/M.max(1,gNP-1),i0=M.max(0,M.round((CIB.s-250)/seg)),i1=M.min(gNP-1,M.round((CIB.s+700)/seg)),TR=gTR,pas=M.max(1,M.round(4/seg));
+    let bi=-1,bd=1e18;
+    for(let i=i0;i<=i1;i+=pas){if(TR&&TR[i])continue;const q=gP[i],dx=e.px-q.x,dy=e.py-q.y,dz=e.pz-q.z,d=dx*dx+dy*dy+dz*dz;if(d<bd){bd=d;bi=i;}}
+    if(bi<0||bi+pas>i1){CIB.pres=true;versRoute(e);return;}          /* la fenetre est depassee (ou n'est que trous) : la loi « vers la route » */
+    PIL.cv=0;PIL.cm=0;
+    const q=gP[bi],n=gN[bi],b=gB[bi],t=gT[bi],dx=e.px-q.x,dy=e.py-q.y,dz=e.pz-q.z,SP=K.SPD;
+    const lt=dx*b.x+dy*b.y+dz*b.z,ht=dx*n.x+dy*n.y+dz*n.z;
+    const vT=(e.vx*t.x+e.vy*t.y+e.vz*t.z)*SP,vB=(e.vx*b.x+e.vy*b.y+e.vz*b.z)*SP,vR=-(e.vx*n.x+e.vy*n.y+e.vz*n.z)*SP,axe=M.atan2(vB,vT);
+    const sg9=(e.ux*n.x+e.uy*n.y+e.uz*n.z)>=0?1:-1,loin=M.abs(lt)>K.RH*1.5;
+    CIB.lt=lt;CIB.ht=ht;CIB.axe=axe;
+    /* le cap : vers l'axe du troncon (jusqu'a 0,9 rad tant qu'on en est loin, 0,6 au-dessus de lui), puis le long de lui */
+    PIL.cv=cl((cl(-lt/40,loin?-.9:-.6,loin?.9:.6)-axe)*1.6,-1,1)*sg9;
+    if(ht>10){
+      const air=resteAir(e.fTR,e.pwrA,e.stage),g=K.g*SP*(plane?.4:1),tC=(-vR+M.sqrt(M.max(0,vR*vR+2*g*ht)))/g;   /* le temps de tomber jusqu'a son plan */
+      if(M.abs(lt)<K.RH*2){const delai=ht/M.max(1,vR);if(delai>2||delai>air-1)PIL.cm=-sg9;}                      /* au-dessus : piquer si la descente tarde */
+      else{const tL=(M.abs(lt)-K.RH)/M.max(8,lt>0?-vB:vB);                                                       /* a cote : le temps d'arriver au-dessus */
+        if(tL>tC*1.1)PIL.cm=sg9;else if(tC>air-1||tL<tC*.6)PIL.cm=-sg9;}}};
+  /* la cible posee sur l'axe de la piste, a l'abscisse sv */
+  const CAV={px:0,py:0,pz:0,tx:0,ty:0,tz:1,nx:0,ny:1,nz:0,bx:1,by:0,bz:0};
+  const poseCible=function(sv){cadre(sv,CAV,1);CIB.x=CAV.px;CIB.y=CAV.py;CIB.z=CAV.pz;CIB.s=sv;CIB.pres=false;};
+  /* les rayons « viser » et « viserPlane » vers l'abscisse sv, depuis l'etat e0, ajoutes a out ; chacun porte « cible » (l'abscisse visee) */
+  const rayonsViser=function(e0,sv,horizon,tFig,out){
+    const plaf=COUT.pas+BUDGET.viser,N=M.max(1,M.round(horizon*60));
+    for(let loi=3;loi<=4;loi++){
+      poseCible(sv);copie(E,e0);rayon(E,loi,0,0,loi===4,N,plaf,false);
+      const o=rendre(loi===3?'viser':'viserPlane',loi===4,true,tFig);o.cible=n0(sv);out.push(o);}};
+  /* ===== LES CIBLES (26/11 au soir) : les morceaux de piste, plus loin, qu'un vol parti de l'etat e peut ATTEINDRE =====
+     vue.troncons ne garde que ce qu'atteint une chute libre en ligne droite (son filtre : le temps de trajet entre 0,55 et 1,6 fois le temps de
+     chute, moins de 0,9 rad de cote). MESURE (10 parties au clavier, par carte) : les joueurs prennent 4 a 5 raccourcis par minute sur la grotte,
+     les nuages, la jade et la ville, de 150 a 1 260 m en mediane, en 2,7 a 3,3 s de vol, 47 a 130 m de haut ; avec ce filtre, une course de 300 s
+     n'offrait que 4 occasions (910037). En vol, le volant tourne la trajectoire de 3 rad/s, le reacteur retire 60 % de la gravite et le manche
+     pique : le domaine atteignable est bien plus large. Ici on ne fait que PROPOSER ; c'est le rayon, joue avec les lois du jeu, qui dit si ca se pose.
+     Un point de l'axe est retenu si : il gagne au moins 100 m de piste (comme le jeu compte : la piste sautee moins la distance au decollage), il est
+     plus bas d'au moins 4 m, on y est en 3,6 s au plus a la vitesse a plat du moment, il n'est ni trop haut pour ce temps-la (un plane ne tient
+     pas mieux que 0,1 g t²) ni trop bas (la chute libre, plus ce que le pique ajoute), et il n'est pas derriere. Les points qui se suivent forment un
+     morceau ; on rend l'abscisse du meilleur point (le gain, moins 70 m par seconde de trajet) des deux meilleurs morceaux, ecartes de 150 m au moins. */
+  const ciblesDe=function(e){
+    const SP=K.SPD,seg=gL/M.max(1,gNP-1),pas=M.max(1,M.round(25/seg)),i0=M.min(gNP-1,M.round((e.s0+100)/seg)),i1=M.min(gNP-1,M.round((e.s0+3200)/seg)),TR=gTR;
+    const vg=M.sqrt(e.vx*e.vx+e.vz*e.vz),vh=M.max(30,vg*SP),g=K.g*SP,runs=[];let cur=null;
+    for(let j=i0;j<=i1;j+=pas){
+      let ok=false,v=0;
+      if(!(TR&&TR[j])&&gN[j].y>.35){
+        const q=gP[j],hx=q.x-e.px,hz=q.z-e.pz,dy=e.py-q.y,dh=M.sqrt(hx*hx+hz*hz),T=dh/vh;
+        if(dh>25&&T<=3.6&&dy>=M.max(4,.1*g*T*T)&&dy<=.5*g*T*T+.5*vh*T+10&&hx*e.vx+hz*e.vz>-.15*dh*M.max(1,vg)){
+          const ax=q.x-e.p0x,ay=q.y-e.p0y,az=q.z-e.p0z,gain=(j*seg-e.s0)-M.sqrt(ax*ax+ay*ay+az*az);
+          if(gain>=100){ok=true;v=M.min(gain,600)-70*T;}}}
+      if(ok){if(!cur){cur={s:j*seg,v:v};runs.push(cur);}else if(v>cur.v){cur.v=v;cur.s=j*seg;}}else cur=null;}
+    runs.sort(function(a,b){return b.v-a.v;});
+    const out=[];for(let i=0;i<runs.length&&out.length<2;i++){if(!out.length||M.abs(runs[i].s-out[0])>150)out.push(runs[i].s);}
+    return out;};
   /* ---- UN RAYON : le vol rejoue image par image jusqu'a sa premiere issue, a l'horizon (« libre ») ou au budget (« coupe »). A chaque image, l'ordre du
      jeu : l'avance, le portail, le decor, la pose, la jauge. Le decor est sonde une image sur K.cad, a la derniere, et a l'image d'une autre issue
      (le jeu le juge avant la pose). loi : 0 = les commandes tenues (cv, cm, cn) ; 1 = vers la route ; 2 = vers la route, nitro tenue. ---- */
@@ -580,7 +647,8 @@ const YEUX_CODE=`window.__YEUX=(function(){
     while(k<N){
       if(COUT.pas>=plafond){R.issue='coupe';break;}
       k++;COUT.pas++;
-      if(loi&&(k-1)%6===0&&(e.dLow<=60||(k-1)%30===0)){versRoute(e);cv=PIL.cv;cm=PIL.cm;cn=loi===2;} /* loin de la route (60 m) : la dalle n'est cherchee que deux fois par seconde */
+      if(loi>=3){if((k-1)%6===0){viser(e,loi===4);cv=PIL.cv;cm=PIL.cm;cn=loi===4;}}   /* (2026-11-26) lois 3 et 4 : viser la cible CIB, sans et avec la NITRO */
+      else if(loi&&(k-1)%6===0&&(e.dLow<=60||(k-1)%30===0)){versRoute(e);cv=PIL.cv;cm=PIL.cm;cn=loi===2;} /* loin de la route (60 m) : la dalle n'est cherchee que deux fois par seconde */
       if(k<=PRE.n||tenu){ /* la main n'a pas fini de changer de touches (tenu : une main a coups, dont « tenu » est l'ordre en vigueur) */
         const g=k<=PRE.dG?PRE.G:(cv>0?1:0),d=k<=PRE.dD?PRE.D:(cv<0?1:0),hh=k<=PRE.dH?PRE.H:(cm<0?1:0),b=k<=PRE.dB?PRE.B:(cm>0?1:0);
         let vol=loi&&k>PRE.dG&&k>PRE.dD?cv:g-d;
@@ -640,7 +708,19 @@ const YEUX_CODE=`window.__YEUX=(function(){
     const sp=M.sqrt(E0.vx*E0.vx+E0.vy*E0.vy+E0.vz*E0.vz);
     const o={pas:n3(H60),court:n2(court),long:n2(long),maille:K.decor?n1(sp*K.SPD*H60*K.cad):null,decor:decorNom(),aveugle:aveugleNom(),approx:!!K.approx,rayons:null};
     if(dem&&dem.doigts)prelude(dem.doigts);
-    try{o.rayons=eventail(E0,liste,BUDGET.vol,K.approx,tFig);}finally{sansPrelude();}
+    try{o.rayons=eventail(E0,liste,BUDGET.vol,K.approx,tFig);
+      /* (2026-11-26) LES RAYONS « VISER », apres les autres (ils ne changent rien aux dix premiers) : vers l'abscisse que l'ordre d'avant a demandee
+         (« cible »), sinon vers le troncon en contrebas qui gagne le plus de piste. Tete en bas (une sortie depuis le dessous), pas de rayon. */
+      let sv=null;
+      if(dem&&typeof dem.cible==='number'&&dem.cible-dem.cible===0&&dem.cible>=0&&dem.cible<gL)sv=dem.cible;
+      else{const c9=ciblesDe(E0);if(c9.length)sv=c9[0];}
+      if(sv!=null&&E0.uy>0){
+        rayonsViser(E0,sv,long,tFig,o.rayons);
+        /* la loi, pour que le pilote la suive : le volant et le manche qu'elle donne A CET INSTANT (pres : elle a bascule sur « vers la route ») */
+        poseCible(sv);viser(E0,false);
+        const hx=CIB.x-E0.px,hz=CIB.z-E0.pz;
+        f.cible={s:n0(sv),volant:n2(PIL.cv),manche:PIL.cm,pres:CIB.pres,dist:n0(M.sqrt(hx*hx+hz*hz)),chute:n0(E0.py-CIB.y),lat:CIB.pres?null:n1(CIB.lt),haut:CIB.pres?null:n1(CIB.ht),axe:CIB.pres?null:n2(CIB.axe),demandee:!!(dem&&typeof dem.cible==='number')};}
+    }finally{sansPrelude();}
     return o;};
 
   /* ---- AU SOL : LA CINEMATIQUE DE LA ROUTE, APPROCHEE (la vitesse tenue, ni drift, ni flaque, ni verglas). Le volant lisse (boucle-1.js), le lacet
@@ -731,7 +811,11 @@ const YEUX_CODE=`window.__YEUX=(function(){
     else if(rv||rm||rn){PRE.G=loi===1?1:0;PRE.D=loi===2?1:0;PRE.H=0;PRE.B=0;PRE.N=nit?1:0;PRE.dG=rv;PRE.dD=rv;PRE.dH=rm;PRE.dB=rm;PRE.dN=rn;PRE.n=M.max(rv,rm,rn);}
     /* (2026-11-25, relecture) l'horizon long d'une sortie : la jauge d'air ENTIERE et 3 images (6,05 s ; 5,05 dans l'espace), pas 6 s rondes — a 6 s pile
        un vol qui meurt jauge vide a l'image suivante sortait « libre » (MESURE : 6 sorties franches sur 13 suivies de « versRoute ») ; il sort « air ». */
-    try{o.rayons=eventail(ES,liste,plafond,true,0,M.min(LONG,M.max(0,resteAir(0,pwrAirT,0)))+.05);}finally{sansPrelude();}
+    try{const long9=M.min(LONG,M.max(0,resteAir(0,pwrAirT,0)))+.05;
+      o.rayons=eventail(ES,liste,plafond,true,0,long9);
+      /* (2026-11-26) une sortie par le bord, a gauche ou a droite : les rayons « viser » vers le troncon en contrebas qui gagne le plus, vu du decollage */
+      if(bord&&(loi===1||loi===2)&&GS.sd>0){const c9=ciblesDe(ES);for(let i=0;i<c9.length;i++)rayonsViser(ES,c9[i],long9,0,o.rayons);}
+    }finally{sansPrelude();}
     return o;};
   const G0=Object.assign({},G),GC=Object.keys(G);
   const copieG=function(a,b){for(let i=0;i<GC.length;i++){const k=GC[i];a[k]=b[k];}return a;};
@@ -825,6 +909,7 @@ const YEUX_CODE=`window.__YEUX=(function(){
       try{lireJeu();}catch(e){f.radar=dit(e);return v;}
       try{f.air={reste:n2(M.max(0,resteAir(fallTR,pwrAirT,RAI.stage|0))),jauges:pwrAirT>0&&!TUTO.pa&&RAI.stage===0?2:1};}catch(e){f.air=dit(e);}
       f.perdu=n2(MIR.t);f.hautRoute=!!VOLR.on;f.bascule=bascOn?n2(bascT):null;f.bumps=bounceN|0;
+      f.cible=null;
       try{f.radar=f.air&&f.air.reste!=null?radarVol(f,dem):null;}catch(e){f.radar=dit(e);}
       return v;}
     /* au sol */

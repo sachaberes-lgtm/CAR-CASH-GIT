@@ -189,7 +189,7 @@ async function demande(parent,k){
       raison:'Le pilote de depart de l\'etape '+ETAPE+', tel qu\'il a ete donne a la boucle (--depuis).',jeu:jeuDe(N),graines:N.graines,tmax:N.tmax,note:N.note,courses:coursesDe(N),echecs:N.echecs});
     try{L.clore(ETAPE,0,{critere:CRITERE});}catch(e){}
     dire('depart inscrit : '+P.id+' · '+CRITERE+' '+P.note[CRITERE]+' · record '+P.note.palier_record+' · '+mainTxt(ch.main));}
-  let depense=0,appels=0,sansProgres=0;const tri={},barreVal={},mainDe={};
+  let depense=0,appels=0,sansProgres=0;const tri={},barreVal={},mainDe={},garageDe={};
   /* LA BARRE DU PARENT SUR LES GRAINES NEUVES : notee une fois par parent (et gardee au journal des validations, role « barre ») */
   function barreDe(Q,fQ){
     if(barreVal[Q.id])return barreVal[Q.id];
@@ -201,7 +201,7 @@ async function demande(parent,k){
     return (barreVal[Q.id]=valeur(N.note));}
   for(let tour=1;tour<=TOURS;tour++){
     const gen=Math.max(0,...deLEtape().map(l=>l.generation))+1,srcP=fs.readFileSync(path.join(L.RACINE,P.code),'utf8'),fP=path.join(L.RACINE,P.code);
-    if(!(P.id in mainDe)){const ch=chargeable(fP);if(ch.erreur){dire('le parent ne se charge plus ('+ch.erreur+') : arret');break;}mainDe[P.id]=ch.main;}
+    if(!(P.id in mainDe)){const ch=chargeable(fP);if(ch.erreur){dire('le parent ne se charge plus ('+ch.erreur+') : arret');break;}mainDe[P.id]=ch.main;garageDe[P.id]=ch.garage||null;}
     const mainP=mainDe[P.id];
     dire(`──── tour ${tour} · generation ${gen} · parent ${P.id} (${CRITERE} ${P.note[CRITERE]}, record ${P.note.palier_record}) · ${mainTxt(mainP)}${MAIN_LIBRE?' (main libre)':''}${BLANC?'':' · depense '+r2(depense)+' € sur '+BUDGET}`);
     /* le parent au tri (une fois par parent) : la barre que les variantes doivent tenir sur les memes graines */
@@ -230,7 +230,10 @@ async function demande(parent,k){
       const v=r.erreur?null:lit(r.texte);
       let rate=r.erreur||(!v?'reponse sans RAISON ou sans bloc de code':null),f=null,mainV=null;
       if(!rate){f=path.join(TRAVAIL,`${ETAPE}-g${gen}-k${r.k}.js`);fs.writeFileSync(f,v.code);const ch=chargeable(f);rate=ch.erreur;mainV=ch.main;
-        if(!rate&&!MAIN_LIBRE&&mainV!==mainP)rate=`main changee : ${mainTxt(mainV)} au lieu de ${mainTxt(mainP)} (la main est fixee a cette etape)`;}
+        if(!rate&&!MAIN_LIBRE&&mainV!==mainP)rate=`main changee : ${mainTxt(mainV)} au lieu de ${mainTxt(mainP)} (la main est fixee a cette etape)`;
+        /* (2026-11-26, LE GARAGE) les figures equipees sont fixees comme la main : une figure plus chere rapporte plus d'aura, donc plus de pieces par
+           pose — changer de garage monterait le palier sans mieux conduire */
+        if(!rate&&!MAIN_LIBRE&&(ch.garage||null)!==(garageDe[P.id]||null))rate=`garage change : ${ch.garage||'celui du debutant'} au lieu de ${garageDe[P.id]||'celui du debutant'} (les figures equipees sont fixees a cette etape)`;}
       if(rate){dire(`  variante ${r.k} : PERDUE (${rate}) · ${jetons.euros} €`);
         if(!BLANC)L.depense({etape:ETAPE,generation:gen,modele:MODELE,entree:jetons.entree,sortie:jetons.sortie,euros:jetons.euros,pour:'variante perdue : '+rate});
         if(r.texte)fs.writeFileSync(path.join(TRAVAIL,`${ETAPE}-g${gen}-k${r.k}-perdue.txt`),r.texte);continue;}
