@@ -97,7 +97,16 @@ vols de 2,8 s. 4 % de leurs vols finissent par une mort — ils meurent aussi.
 - en vol **subi** (une sortie non voulue), basculer vers un rayon `viser` tue ; un engagement abandonné à moins de 0,5 s du bord fait sortir en travers ;
 - demander la nitro partout au sol : 53 % du temps au lieu de 30 %, mais deux à trois paliers de moins ; la jauge, elle, n'est jamais vide — c'est le choix de l'endroit qui manque ;
 - partir « vers la route, réacteur allumé » à chaque vol subi : trois paliers de moins ;
-- pénaliser fortement une pose sous la dalle : 12 % du sol dessous au lieu de 25, mais deux paliers de moins (le réglage gardé : 10 points, 14 %) ;
+- **le dessous de la dalle (soir du 26/11) : le pilote n'y reste plus, ne l'y remets pas.** Un joueur posé dessous file au bord dans la seconde
+  (3 % du sol, passages de 1,1 s) ; le pilote d'avant s'y cachait 14 à 19 % du temps (jusqu'à 66 s de suite). Réglages gardés : `dessousAveugle`,
+  `dessousDecor:1`, `dessousFuir`, `dessousPose:25` → 2,3 % du sol, passages de 1,5 s. Ça a coûté 2,5 paliers (le dessous était un abri) : ils sont
+  à regagner **en se posant mieux**, pas en retournant dessous — l'écart borne maintenant chaque mesure à 8 écarts-types (4 avant), exprès ;
+- tenir la nitro pendant la sortie du dessous : plus de retours dessous et de morts ; sortir du dessous en biais doux (cap 0,2 à 0,45 rad) : une sortie
+  sur deux retombe dessous ;
+- des coups de nitro en vol donnés « à l'aveugle » (une ou deux vues de réacteur quand la façon tenue et sa jumelle au réacteur se posent toutes deux) :
+  3 paliers de moins, les morts jauge vide doublent. Les joueurs en donnent pourtant 2,6 par vol (et décollent nitro allumée 2 fois sur 3) : il y faut
+  un rayon qui dise où mène un coup, les yeux n'en ont pas encore ;
+- quitter une façon dont la pose est promise dans plus de 3 s pour un rayon qui se pose plus tôt : rien de net ;
 - faire osciller la ligne visée de ± 4,5 m pour imiter le slalom : le rythme ne change pas (c'est la main qui le fixe), la survie baisse.
 
 ## Ce qu'un vrai joueur fait, et qu'un pilote doit faire pour lui ressembler

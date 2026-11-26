@@ -44,6 +44,7 @@ const G0=910000,GV=+opt('depart-validation',950000);
    L'enquete (ml/ecurie/etude/realisme.md) : « la boucle note sur le palier median ; presque toutes les corrections vers un vrai joueur coutent du
    palier au debut (voler tue, la nitro fait sortir) : il faut noter palier ET ressemblance, sinon elle refusera chaque pas ». MESURE (26/11) : le
    pilote qui vole est a 2,33 des joueurs et au palier 9,5 ; celui d'avant a 2,67 et au palier 11 — au seul palier, la boucle garderait l'ancien.
+   (Le soir du 26/11, chaque mesure bornee a 8 ecarts-types au lieu de 4 : 3,05 pour pilote.js, 2,02 et palier 7 pour le pilote qui ne se cache plus sous la dalle.)
    Chaque note recoit donc : ecart_joueurs (la distance moyenne aux joueurs sur quinze mesures de ce qui se voit d'une partie, 0 = au milieu d'eux),
    ecart_detail (mesure par mesure, pour le dire a Claude) et mixte = palier_median − POIDS × ecart_joueurs. Avec POIDS = 6, un tiers d'ecart-type
    gagne sur les quinze mesures vaut deux paliers : la ressemblance pese, le palier departage. Les deux chiffres restent lisibles a part. */

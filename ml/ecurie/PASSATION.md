@@ -18,6 +18,7 @@ telle quelle dépenserait 12 € par jour à polir ce que Sacha vient de refuser
 | **Le rayon « viser »** (`ml/bot/yeux.js`, README § 2 bis) | **fait** : le radar dit enfin si un raccourci se pose (en vol et depuis le bord), avec la loi à suivre (`vue.vol.cible`) et l'ordre `cible` |
 | **Le garage** (`module.exports.garage`, README § 1) | **fait et essayé** : un pilote s'équipe de n'importe laquelle des 12 figures du jeu (une course : rodéo, chandelle et hélico lancés ; rejeu exact) ; la boucle fixe le garage comme la main |
 | **Le pilote qui vole** (`ml/ecurie/pilote-voltige.js`) | **un premier palier, réglé le 26/11 après-midi** (détail et tableau : `ETAPES.md`, « L'étape C, deuxième temps ») — sur 20 courses de 900 s : palier médian **9,5**, record **21** (`pilote.js` : 11 et 20) ; **0,71 raccourci par minute** de 749 m (avant 0,24 ; les joueurs 3,49) ; **0,59 figure lancée par minute** (avant 0 ; joueurs 2,79) ; sous la dalle **14 %** du sol (avant 29 % ; joueurs 3 %) ; les plongeons voulus tuent 6 fois sur 100. **Le juge ne bouge pas : 0,97** (avant 0,974). `pilote.js` n'est pas remplacé |
+| **Le dessous de la dalle** (soir du 26/11 ; `ETAPES.md`, « Le soir du 26/11 ») | **fait** : le pilote ne se cache plus sous la route — **2,3 %** du sol (avant 14 % ; joueurs 3 %), passages de 1,5 s (avant jusqu'à 66 s). Écart aux joueurs **2,02** (avant 2,54, borne passée de 4 à 8 : `pilote.js` 3,05). **Coût : palier médian 7** (avant 9,5), record 14, survie 125 s — le dessous était un abri. Essayés et écartés le même soir : coups de nitro en vol à l'aveugle (−3 paliers), nitro à la sortie, biais doux, pose plus tôt |
 | Contrôles | `node ml/bot/verifier.js` **TOUT PASSE** (604 s, empreinte `a7b3171768ca`, après le dernier changement des yeux) ; `node ml/labo/rejouer.js --tout` : **34 rejeux exacts sur 34** (refaits le 26/11 à 17 h) |
 | GitHub | la branche `bots-ecurie` est poussée (`origin/bots-ecurie`), pour le second PC de Sacha (Ryzen 5 3600, 12 fils : à installer, voir plus bas) |
 
@@ -87,7 +88,9 @@ crédits API pour que ça dure toute la semaine ». Le rythme : ce qui reste des
 
 - `pilote-voltige.js` : la grotte, le canyon et la jade sont interdits aux sorties voulues (l'annonce du rayon du sol y est fausse : 4 sorties sur 4
   contre la roche à la grotte, 3 sur 4 ratées sur la jade) alors que les joueurs y coupent 4 à 5 fois par minute ; les figures restent rares parce
-  qu'une figure lancée à moins de 2,2 s de la pose dérègle le plongeon ; il passe encore 14 % du sol sous la dalle.
+  qu'une figure lancée à moins de 2,2 s de la pose dérègle le plongeon. Depuis le soir du 26/11 il ne se cache plus sous la dalle (2,3 % du sol) mais
+  y a perdu 2,5 paliers : **12 de ses 20 morts sont des vols de 5 à 6 s qui ne se posent jamais** (la loi « vers la route » tourne autour de la dalle) —
+  le prochain chantier ; ensuite la nitro en vol comme les joueurs (2,6 allumages par vol), qui demande un rayon « coup » dans les yeux.
 - La justesse des rayons « viser » n'est pas mesurée par `justesse.js` ; la salle de projection ne remet pas encore le garage d'un rejeu (`page.html`).
 - Fable 5.2 coupé à 32 000 jetons dans `boucle.js` (`max_tokens`) ; la seconde chance prise 7 fois sur 12 (joueurs 2 sur 14) ; le canyon tue toujours.
 

@@ -76,7 +76,11 @@ const REGLAGES={
   figEcart:.55,      /* s entre deux gestes (la main : 2 par seconde au plus) */
   dessousMax:.8,     /* s sous la dalle avant de chercher a en sortir par le bord (MESURE, ml/ecurie/etude/realisme.md : les joueurs y roulent 3 % du sol,
                         par passages de 1,2 s ; le pilote d'avant 29 %, par passages de 4 a 60 s — c'est ce qui saute le plus aux yeux d'un spectateur) */
-  dessousPose:10,    /* points que perd une pose annoncee SOUS la dalle */
+  dessousAveugle:1,  /* 1 = sous la dalle, on file au bord SANS attendre qu'un rayon promette une pose (les joueurs : 1,1 s dessous) ; 0 = on attend la promesse */
+  dessousDecor:1,    /* sur les maps a decor (canyon, grotte, jade, ville) : 0 = on reste dessous · 1 = on sort si un rayon de ce cote sauve · 2 = on sort comme ailleurs */
+  dessousNitro:0,    /* 1 = nitro tenue pendant la sortie du dessous (les joueurs decollent nitro allumee) */
+  dessousFuir:1,     /* 1 = en vol, quitter une facon qui mene SOUS la dalle des qu'un autre rayon promet une pose propre dessus */
+  dessousPose:25,    /* points que perd une pose annoncee SOUS la dalle */
   departMin:1.5,     /* s : au depart, le pilote file droit au moins ce temps-la… */
   departMax:5.5,     /* …et au plus celui-la (tire de la piste, pas du hasard). MESURE (ml/ecurie/etude/realisme.md § 1.8) : le premier coup de volant
                         d'un joueur tombe a 3,8 s (il va tout droit jusqu'a la premiere piece, a 4,1 s) ; celui du pilote d'avant a 0,5 s, a chaque course */
@@ -207,7 +211,7 @@ function auSol(v,m){
   /* LE RACCOURCI : on regarde les sorties la ou la route tourne (ou quand un troncon s'offre en contrebas), hors des couloirs et du dessous */
   /* SOUS LA DALLE : on n'y reste pas. Apres dessousMax secondes, on regarde les sorties et l'on prend celle qui se pose DESSUS (hors des maps a decor). */
   if(v.dessous){if(m.tDessous==null)m.tDessous=v.t;}else m.tDessous=null;
-  const sortir=!!v.dessous&&v.t-m.tDessous>R.dessousMax&&!DECOR[v.carte];
+  const sortir=!!v.dessous&&v.t-m.tDessous>R.dessousMax&&(!DECOR[v.carte]||R.dessousDecor>0);
   const permis=(sortir||(R.raccCartes[v.carte]!==0&&!v.dessous))&&!couloir&&!v.rebond&&!v.glisse&&!(v.invulnerable>0);
   const tourneLoin=Math.abs(tourne(v,400)),offre=Array.isArray(v.troncons)&&v.troncons.length>0;
   const regarde=permis&&(sortir||tourneLoin>R.raccVirage||offre||!!m.sortie);
@@ -217,8 +221,21 @@ function auSol(v,m){
     /* on ne renonce que si le bord est encore a plus d'une demi-seconde : plus pres, la caisse sort de toute facon, en travers et sans cible
        (MESURE, ville 910370 : un engagement abandonne a 18 s, puis un vol subi de 10 s, mort jauge vide ; sans raccourci la meme course dure 236 s) */
     const X9=v.sorties&&v.sorties[m.sortie.cote>0?'gauche':'droite'],recuperable=!X9||!(X9.t<=.5);
-    if(!permis||(tient===false&&recuperable)||v.t-m.sortie.t0>m.sortie.attente+.9){m.sortie=null;m.tAbandon=v.t;}
-    else return {volant:m.sortie.cote,nitro:m.sortie.facon==='plane'||m.nitro,ensuite:{volant:0},regarder:'sorties'};}
+    /* UNE SORTIE DU DESSOUS NE SE DISCUTE PAS : le rayon du sol y dit « air » une vue sur deux, et la caisse fait le tour de la dalle quand meme */
+    const tetu=!!m.sortie.dessous&&!!v.dessous;
+    if(!permis||(!tetu&&tient===false&&recuperable)||v.t-m.sortie.t0>m.sortie.attente+(tetu?2.5:.9)){m.sortie=null;m.tAbandon=v.t;}
+    else return {volant:m.sortie.cote,nitro:m.sortie.facon==='plane'||m.nitro||(tetu&&R.dessousNitro>0),ensuite:{volant:0},regarder:'sorties'};}
+  /* SOUS LA DALLE, AU BORD TOUT DE SUITE : le cote dont un rayon promet une pose DESSUS, sinon le bord le plus proche */
+  if(sortir&&R.dessousAveugle>0&&permis&&!lache){
+    const S=v.sorties||{},dec=!!DECOR[v.carte]&&R.dessousDecor<2;
+    const cote9=k=>{const X=S[k],Y=X&&Array.isArray(X.rayons)?X.rayons:[];
+      const dessus=Y.some(r=>r&&r.issue==='pose'&&!r.dessous),sauf=Y.some(r=>r&&(r.issue==='pose'||r.issue==='levre'||r.issue==='portail'));
+      if(dec&&!sauf)return null;
+      const att=X&&X.t!=null?+X.t:(v.demi-(k==='gauche'?1:-1)*v.lat)/Math.max(8,.25*vit);
+      return {s:(dessus?10:sauf?4:0)-att,att:att};};
+    const g9=cote9('gauche'),d9=cote9('droite'),c9=g9&&(!d9||g9.s>=d9.s)?1:d9?-1:0,q9=c9>0?g9:d9;
+    if(c9&&q9.att<=4){m.vu=null;m.sortie={cote:c9,facon:'versRoute',cible:null,gain:0,attente:q9.att,t0:v.t,dessous:true};
+      return {volant:c9,nitro:m.nitro||R.dessousNitro>0,ensuite:{volant:0},regarder:'sorties'};}}
   if(regarde&&!lache&&!(m.tAbandon!=null&&v.t-m.tAbandon<R.raccRepos)){
     const rc=raccourci(v,sortir);
     /* LA PROMESSE DOIT TENIR DEUX VUES DE SUITE (0,1 s) du meme cote avant qu'on s'engage : un rayon du sol qui dit « pose » une vue sur deux
@@ -303,7 +320,9 @@ function enVol(v,m){
       if(sauve(ra)){m.facon=autre;m.tFacon=v.t;m.mal=0;mien=ra;}}
     const patience=m.facon.indexOf('viser')===0&&m.mal<3&&!(mien&&mien.issue==='choc'&&(+mien.t||0)<1.2),sMien=vaut(mien,true,v);
     if(mien&&mien.issue==='pose'&&mien.propre!==false)tenuPose=mien;
-    if(!sauve(mien)&&!patience&&(depuis>R.tenirFacon||(mien&&(+mien.t||0)<1))){
+    /* FUIR LE DESSOUS : la facon tenue se pose, mais sous la dalle — on cherche un rayon qui se pose dessus */
+    const fuit=R.dessousFuir>0&&!!mien&&mien.issue==='pose'&&!!mien.dessous;
+    if((!sauve(mien)||fuit)&&!patience&&(depuis>R.tenirFacon||(mien&&(+mien.t||0)<1))){
       let mieux=null,sMieux=-9,cibleMieux=null;
       for(const nom in FACONS){
         if(nom===m.facon)continue;
@@ -311,9 +330,11 @@ function enVol(v,m){
            subis de 6 s finissaient jauge vide ou contre la roche (grotte 910148 : 106 s de course au lieu de 289) */
         if(!m.voulu&&nom.indexOf('viser')===0)continue;
         /* a issue egale : la loi vers la route d'abord, et sans nitro (un vol sans reacteur rend de la jauge) */
-        const ry=rayonDe(nom),s=vaut(ry,!!LONGS[nom],v)+(nom==='versRoute'?3:nom==='versRoutePlane'?2:nom==='rien'?1:0);
+        const ry=rayonDe(nom);
+        if(fuit&&!(ry&&ry.issue==='pose'&&ry.propre!==false&&!ry.dessous))continue;
+        const s=vaut(ry,!!LONGS[nom],v)+(nom==='versRoute'?3:nom==='versRoutePlane'?2:nom==='rien'?1:0);
         if(s>sMieux){sMieux=s;mieux=nom;cibleMieux=ry&&typeof ry.cible==='number'?ry.cible:null;}}
-      if(mieux&&sMieux>sMien+R.bascule){m.facon=mieux;m.tFacon=v.t;m.cible=mieux.indexOf('viser')===0?cibleMieux:null;}}
+      if(mieux&&sMieux>sMien+(fuit?4:R.bascule)){m.facon=mieux;m.tFacon=v.t;m.cible=mieux.indexOf('viser')===0?cibleMieux:null;}}
   }
   const o=FACONS[m.facon](v);
   /* LES FIGURES. MESURE (joueurs au clavier) : 2,8 figures lancees par minute, toutes en vol ; 18 % des vols en ont, 1,9 par vol a figure (5 au

@@ -82,7 +82,7 @@ Les plongeons voulus, comptés à part sur 4 lots de 12 courses de 300 s (`agent
   pilote validé : c'est un arbitrage palier contre ressemblance, donc l'affaire de la boucle (`raccCartes`, une ligne à changer).
 - **`ml/bot/ressemblance.js` : l'écart aux joueurs.** L'AUC du juge reste à 0,97 quoi qu'on corrige ; il fallait un nombre qui bouge à chaque pas. L'écart
   est la distance moyenne aux joueurs au clavier sur quinze mesures (nitro, vols, raccourcis, figures, poses, dessous, slalom, vitesse), en écarts-types
-  d'une partie à l'autre. `pilote.js` : **2,67** ; `pilote-voltige.js` : **2,33** ; une partie de joueur contre les autres : 0,9.
+  d'une partie à l'autre. `pilote.js` : **2,67** ; `pilote-voltige.js` : **2,33** ; une partie de joueur contre les autres : 0,9. (Chaque mesure était alors bornée à 4 écarts-types ; depuis le soir du 26/11 la borne est à 8 : 3,05 et 2,54 — voir « Le soir du 26/11 ».)
 - **La boucle note « palier ET ressemblance »** (`boucle.js --critere mixte` : mixte = palier médian − 6 × écart ; chaque note porte `ecart_joueurs` et
   `ecart_detail`, que Claude lit avec la note du parent ; huit angles neufs tirés du plan de l'enquête ; `CONSIGNES.md` dit le nouveau but, le tableau
   des joueurs et ce qui a déjà été essayé). Essayée à blanc le 26/11 (0 €) : elle va au bout. La chaîne relit `agents/choix.json` à chaque tranche :
@@ -93,6 +93,58 @@ trahit le plus reste l'ondulation du slalom (z +4), la nitro (30 % contre 63 %),
 raccourcis restent cinq fois trop rares (trois cartes sur six interdites), les figures cinq fois. `pilote.js` n'est pas remplacé : `pilote-voltige.js`
 est un palier et demi plus bas en médiane (dans le bruit de 20 courses, mais dans le même sens sur trois mesures).
 `verifier.js` TOUT PASSE (604 s, empreinte `a7b3171768ca`) après les changements des yeux ; 34 rejeux exacts sur 34 (refaits après le dernier réglage des cibles).
+
+### Le soir du 26/11 : le pilote ne se cache plus sous la dalle
+
+**Ce qui a été mesuré** (outils jetables `agents/tmp-voltige/` : `dessous.js`, `dessous-sortie.js`, `dessous-vues.js`, sur les parties des joueurs et sur des lots de 12 courses de 300 s) :
+
+| Sous la dalle | Joueurs au clavier | Pilote d'avant | Pilote du soir |
+|---|---|---|---|
+| part du sol | 3,2 % | 16,4 % (18,7 % sur graines neuves) | **2,3 %** |
+| passages par minute | 0,8 | 1,4 | 0,8 |
+| durée d'un passage : médiane · le plus long | 1,1 s · 4,4 s | 3,5 s · 66 s | **1,5 s · 4,4 s** |
+| comment on en sort | au bord tout de suite ; 15 retours dessus sur 19 | il part vers le bord, renonce, recommence | au bord tout de suite ; 21 retours dessus sur 35 |
+
+Un joueur posé sous la dalle file au bord dans la seconde : la caisse fait le tour de la dalle et retombe dessus, presque sans volant. Le pilote, lui,
+y restait : sur quatre maps (canyon, grotte, jade, ville) la sortie lui était interdite ; ailleurs il attendait qu'un rayon du sol promette une pose,
+or ce rayon dit « air » une vue sur deux (la loi « vers la route » jouée depuis le dessous annonce 5 à 6 s de vol, il en faut 2 à 4 en vrai) : il
+s'engageait, renonçait, recommençait — 90 % de son temps dessous venait de passages de plus de 5 s.
+
+**Ce qui est adopté dans `pilote-voltige.js`** : `dessousAveugle` (après 0,8 s dessous, au bord sans attendre de promesse, et sans y renoncer),
+`dessousDecor:1` (sur les maps à décor : seulement si un rayon de ce côté sauve), `dessousFuir` (en vol, une façon tenue qui mène SOUS la dalle se
+quitte dès qu'un autre rayon promet une pose propre dessus) et `dessousPose:25` (une pose dessous perd 25 points au lieu de 10).
+
+**Ce que ça donne, et ce que ça coûte** (`ml/bot/results/note-pilote-voltige-allege.json`, 20 courses de 900 s, mêmes graines que l'après-midi) :
+dessous 14,0 % → **2,3 %** ; écart aux joueurs 2,54 → **2,02** ; mais palier médian 9,5 → **7**, record 21 → 14, survie médiane 164 → 125 s. Sur deux
+lots de 12 courses de 300 s (graines 910000… et 930000…) : somme des paliers 208 → 163, dans les sept variantes essayées. **Le dessous était un abri** :
+le pilote y roulait un sixième du temps sans bord à tenir ; l'en sortir l'expose, et chaque sortie est un vol (5 morts sur 53 sorties sur les mêmes
+graines, 4 à 5 sur 25 sur les neuves ; les joueurs : 3 sur 22). Gardé quand même : une caisse à l'envers sous la route pendant une minute est ce qui
+trahit le plus un bot, et ce n'est pas un niveau de jeu.
+
+**La note de ressemblance corrigée** (`ml/bot/ressemblance.js`, `BORNE` 4 → 8). À 4, se cacher sous la dalle (z +7,7) ne coûtait pas plus qu'un écart
+de 4 : le critère mixte de la boucle préférait la cachette (3 paliers contre 0,25 d'écart) et l'aurait retrouvée. À 8 : `pilote.js` **3,05**,
+le pilote de l'après-midi **2,54**, celui du soir **2,02**, une partie de joueur contre les autres 0,91 (inchangé). Mixte : −5,7 l'après-midi, −5,1 le soir.
+
+**Essayé le même soir, pas gardé** (12 courses chacun, mêmes graines ; `faire-pU.js`, `faire-pT.js`, `faire-tard.js`, `faire-pW.js`) :
+- tenir la nitro pendant la sortie du dessous : plus de retours dessous (22 sur 55) et de morts (6) ;
+- **des coups de nitro en vol** (une ou deux vues de réacteur quand la façon tenue et sa jumelle « réacteur tenu » se posent toutes deux) : palier médian
+  5 au lieu de 8, survie 92 s au lieu de 145, les morts « jauge vide » doublent — le coup ajoute 100 à 250 km/h, la caisse dépasse la route ;
+- quitter une façon dont la pose est promise dans plus de 3 s (ou 2,2 s) pour un rayon qui se pose plus tôt : rien de net ;
+- sortir du dessous en biais doux (cap 0,18 à 0,45 rad au lieu du plein volant) : une sortie sur deux retombe dessous (13 sur 28, 20 sur 38).
+
+**Ce que les joueurs font en vol, mesuré ce soir et pas encore imité** (`vols-humains.js`, `par-carte.js`, `morts.js`, `vol-mort.js`) :
+- 183 vols de plus de 1,5 s : **2,63 allumages du réacteur par vol** (un vol sur 25 seulement sans nitro), nitro déjà allumée au décollage 67 fois sur
+  100, souvent rallumée dans la dernière demi-seconde avant la pose. Chaque allumage est un « coup » du jeu (46 × la poussée, un par allumage, 0,5 s au
+  moins entre deux). Le pilote : 0,86 allumage par vol, 47 % de vols sans nitro, 7 % au décollage. Pour l'imiter sans mourir il faut un rayon « coup »
+  dans les yeux (allumage bref, puis la loi sans nitro) : le rayon « réacteur tenu » ne dit pas où mène un coup ;
+- carte par carte, les joueurs roulent à **590 à 700 km/h** au sol, nitro tenue 72 à 78 % partout, 8 à 10 vols par minute (3 au canyon), 0 à 6 % de
+  morts par vol (20 % au canyon). Le pilote : 390 à 460 km/h, 2,7 à 8,5 vols par minute, 17 % de morts par vol à la ville, 13 % sur la jade, 57 % au
+  canyon. **Les joueurs ne tiennent pas mieux la route : ils en sortent deux fois plus et se reposent deux fois mieux** ;
+- **toutes** les morts du pilote arrivent en vol après une sortie par le bord ; dans la grande note du soir, 12 sur 20 sont des vols de 5 à 6 s qui ne
+  se posent jamais (« air » 8, « vide » 4) : la loi « vers la route » tourne autour de la dalle, 50 m au-dessus, d'un côté puis de l'autre, en
+  promettant à chaque vue une pose deux secondes plus tard (nuages 910185). C'est le prochain chantier, avant la nitro ;
+- canyon 910111 (la même mort dans toutes les variantes) : après 1,8 s de vol la caisse se pose à 53° de travers, retraverse la route en 0,3 s et
+  finit dans la paroi — une pose « propre » pour le jeu (il tolère 55°), que le sol ne peut pas rattraper.
 
 ### Les finitions de l'étape B et le contrôle du premier pilote (25/11/2026, soir)
 

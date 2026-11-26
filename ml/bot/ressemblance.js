@@ -11,14 +11,16 @@
      2. les parties des joueurs (ml/bot/etalon/, comptees par partiesJoueurs comme partout) donnent pour chaque mesure une moyenne et un ecart-type
         D'UNE PARTIE A L'AUTRE (jamais moins de 15 % de la moyenne : huit parties d'un seul joueur donnent des ecarts-types trop serres) ;
      3. le bot : la moyenne de ses parties, mesure par mesure, puis z = (bot − joueurs) / ecart-type ;
-     4. L'ECART = la moyenne des |z|, chacun borne a 4. 0 = au milieu des joueurs partout ; 1 = a un ecart-type en moyenne ; les joueurs entre eux
+     4. L'ECART = la moyenne des |z|, chacun borne a 8 (4 jusqu'au 26/11 au soir : voir BORNE). 0 = au milieu des joueurs partout ; 1 = a un ecart-type en moyenne ; les joueurs entre eux
         (une partie contre les autres) : voir « node ressemblance.js » tout court.
    CE QUE CA NE DIT PAS : dix parties de deux joueurs ; un ecart nul ne prouve pas « indiscernable » (le juge discerner.js et un vrai spectateur
    restent les juges), il dit seulement dans quel sens va un changement. Les mesures viennent de l'enquete (§ 3 : celles que le juge ne regardait pas).
    `ecart(parties, {humains})` et `mesuresPartie` sont exportes : la boucle (ml/ecurie/boucle.js, --critere mixte) note avec. */
 const fs=require('fs'),path=require('path');
 const {partiesJoueurs,partiesDe,finVraie}=require('./mesures'),{volsDe}=require('./voltige');
-const MIN_S=60,BORNE=4,PLANCHER=.15;
+/* (26/11 au soir) BORNE 4 -> 8 : a 4, un pilote cache 17 % du temps sous la dalle (z +7,7 : les joueurs 3 %) ne payait pas plus qu'a z +4, et le critere
+   mixte lui preferait cette cachette (3 paliers de survie contre 0,25 d'ecart). Un travers qui se voit a l'oeil nu doit couter plus qu'un petit. */
+const MIN_S=60,BORNE=8,PLANCHER=.15;
 const med=A=>{A=A.filter(x=>x!=null&&x===x).slice().sort((a,b)=>a-b);const n=A.length;return n?(n%2?A[(n-1)/2]:(A[n/2-1]+A[n/2])/2):null;};
 const moy=A=>A.length?A.reduce((a,b)=>a+b,0)/A.length:null;
 
