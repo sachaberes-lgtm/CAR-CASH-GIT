@@ -207,6 +207,34 @@ arrive, sans avoir eu le temps de se redresser. La loi corrigée a déjà ramen�
 **À retenir pour mesurer** : sur 12 courses de 300 s la somme des paliers bouge de ± 20 par la seule chance (une variante : 139 puis 84). Les mesures
 par vol (morts pour 100 vols, glisse après la pose, vols de plus de 5 s) tranchent avec deux lots ; le palier, non.
 
+### La nitro au sol, refaite après la loi de vol corrigée (nuit du 26 au 27/11) : 53 % du temps, un demi-palier
+
+L'après-midi, sur le pilote d'avant, demander plus de nitro coûtait 1 à 3 paliers (chaque sortie de route tuait 12 à 14 fois sur 100). Refait sur le
+pilote de la fin de soirée (8 morts pour 100 vols), réglages seuls (`faire-pN.js`, `faire-pN2.js` ; 24 courses de 300 s par variante) :
+
+| Variante | nitro (part du temps) | somme des paliers · médian des 24 | écart aux joueurs (deux lots) | mixte |
+|---|---|---|---|---|
+| le pilote de la fin de soirée | 31 % | 193 · 7 | 2,06 · 2,03 | −5,2 |
+| seuils de virage et marges (`braqueNitro:.7`, `margeAllumer:.05`, `margeTenir:0`) | 39 % | 204 · 8 | 2,10 · 1,95 | −4,2 |
+| **+ les maps à décor comme les autres et la caisse de travers (`nitroDecor:1`, `capMax:.35`) — gardé** | **53 %** | **181 · 7** | **1,66 · 1,71** | **−3,1** |
+| + la nitro gardée au bord et quand la route lâche (`nitroBord`) | 54 % | 161 · 7 | 1,62 · 1,80 | −3,3 |
+| nitro presque partout (`braqueNitro:1.3`, marges −1, `capMax:.6`) | 57 % | 143 · 5 | 1,65 · 1,60 | −4,7 |
+| nitro presque partout + gardée au bord | 57 % | 147 · 6 | **1,33 · 1,27** | **−1,8** |
+| seuils de jauge seuls (`jaugeAllume:.12`) | 32 % | 179 | 2,10 · 1,93 | — |
+
+- La jauge n'est toujours pas la limite (seuils de jauge seuls : 32 %). La vitesse au sol **ne monte pas** avec la nitro (396 à 463 km/h par carte,
+  comme avant) : à ces paliers c'est surtout une flamme — d'où son petit prix. Les 590 à 700 km/h des joueurs viennent de leurs paliers plus hauts.
+- **Le réglage le plus poussé est le plus ressemblant** (écart 1,3 : nitro 57 %, allumée au décollage une fois sur deux comme les joueurs) mais il
+  coûte 2 paliers **et les figures** (0,2 par minute au lieu de 0,7) : le jeu paie figures et nitro sur la même jauge (une figure coûte 0,35), et baisser
+  `figJauge` n'y change rien (`pN9`, `pN10` : 0,24 à 0,31 figure par minute, et 16 morts pour 100 vols). Les joueurs tiennent les deux parce qu'ils
+  ramassent 436 pièces par minute (le pilote 250). **Non gardé** : Sacha a demandé des figures ; l'arbitrage est noté ici pour la boucle.
+
+**La grande note du réglage gardé** (`ml/bot/results/note-pilote-voltige-allege.json`, 20 courses de 900 s) : nitro **52,6 %** du temps (62 % du sol ;
+joueurs 64 % et 78 %), écart aux joueurs **1,67** (2,00 en fin de soirée, 2,54 l'après-midi, 3,05 pour `pilote.js`), palier médian **7,5**, record 14
+(8,5 et 19 en fin de soirée), survie 137 s, 8,1 morts pour 100 vols, 5,7 vols par minute, 0,93 raccourci et 0,66 figure par minute, 22 % du temps en
+l'air, sous la dalle 3,6 % du sol. Mixte **−2,5** (−3,5 en fin de soirée, −5,7 l'après-midi). Restent, par taille : le rythme du slalom (la main,
+étape D), la nitro au décollage (14 % des vols, joueurs 62 %), les raccourcis, les vols par minute, leur hauteur.
+
 ### Les finitions de l'étape B et le contrôle du premier pilote (25/11/2026, soir)
 
 Fait par une session payée sur la clé d'API (le relais `relais.js`, agent « finitions-b », Opus 5.5), entre le premier pilote et le calibrage.

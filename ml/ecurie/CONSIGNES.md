@@ -95,7 +95,10 @@ vols de 2,8 s. 4 % de leurs vols finissent par une mort — ils meurent aussi.
 - la grotte rouverte avec les règles du pilote d'aujourd'hui (promesse tenue deux vues de suite, 120 m de chute au plus) : 24 plongeons voulus, 2 morts,
   deux fois plus de raccourcis, mais un palier à un palier et demi de moins — elle est restée fermée (`raccCartes`) : à rouvrir si la note mixte y gagne ;
 - en vol **subi** (une sortie non voulue), basculer vers un rayon `viser` tue ; un engagement abandonné à moins de 0,5 s du bord fait sortir en travers ;
-- demander la nitro partout au sol : 53 % du temps au lieu de 30 %, mais deux à trois paliers de moins ; la jauge, elle, n'est jamais vide — c'est le choix de l'endroit qui manque ;
+- demander la nitro partout au sol : 53 % du temps au lieu de 30 %, mais deux à trois paliers de moins ; la jauge, elle, n'est jamais vide — c'est le choix de l'endroit qui manque
+  (**refait la nuit du 26 au 27/11 après la loi de vol corrigée : 53 % ne coûte plus qu'un demi-palier, c'est le réglage du pilote** — `braqueNitro:.7`,
+  `margeAllumer:.05`, `margeTenir:0`, `nitroDecor:1`, `capMax:.35`. Aller à 57 % en la gardant jusqu'au bord donne l'écart le plus bas mesuré (1,3)
+  mais coûte 2 paliers et presque toutes les figures : figures et nitro se paient sur la même jauge) ;
 - partir « vers la route, réacteur allumé » à chaque vol subi : trois paliers de moins ;
 - **le dessous de la dalle (soir du 26/11) : le pilote n'y reste plus, ne l'y remets pas.** Un joueur posé dessous file au bord dans la seconde
   (3 % du sol, passages de 1,1 s) ; le pilote d'avant s'y cachait 14 à 19 % du temps (jusqu'à 66 s de suite). Réglages gardés : `dessousAveugle`,

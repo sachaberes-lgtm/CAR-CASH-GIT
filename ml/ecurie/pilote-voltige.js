@@ -30,7 +30,7 @@ const PROFIL={
 const REGLAGES={
   marge:10,          /* m gardes entre la ligne visee et le bord (la reference : 9, avec une main de machine) */
   bandeDecor:99,     /* m : sur une map a decor, la ligne visee ne s'ecarte pas plus de l'axe (99 = pas de limite) */
-  nitroDecor:.62,    /* sur une map a decor, les seuils de virage de la nitro sont multiplies par ca (0 = jamais de nitro) */
+  nitroDecor:1,    /* sur une map a decor, les seuils de virage de la nitro sont multiplies par ca (0 = jamais de nitro) */
   margeCouloir:15,   /* m gardes dans un couloir : le bord y est un mur */
   avance:.3,         /* s : on ne vise rien de plus proche (la reaction du volant : 0,2 s) */
   glisse:.12,        /* rad : la ligne visee ne se deplace pas plus vite que ce cap-la (a 115 m/s : 14 m de cote par seconde) */
@@ -42,12 +42,12 @@ const REGLAGES={
   capAvance:.25,     /* rad : l'avance ne depasse pas ca */
   braqueDoux:.15,    /* part de volant que demande un virage : en dessous, toute la largeur est permise */
   braqueFort:.5,     /* au-dessus, on se tient au moins a mi-largeur du cote INTERIEUR */
-  braqueNitro:.4,    /* au-dessus, pas de nitro (.3 pour l'allumer) ; sur les maps a decor (une sortie y tue) : .25 et .18 */
-  margeAllumer:.3,   /* part de ma vitesse : vSure doit la depasser d'autant pour ALLUMER la nitro… */
-  margeTenir:.1,     /* …et d'autant pour la GARDER */
+  braqueNitro:.7,    /* au-dessus, pas de nitro (.3 pour l'allumer) ; sur les maps a decor (une sortie y tue) : .25 et .18 */
+  margeAllumer:.05,   /* part de ma vitesse : vSure doit la depasser d'autant pour ALLUMER la nitro… */
+  margeTenir:0,     /* …et d'autant pour la GARDER */
   jaugeAllume:.45,   /* jauge + reserve au-dessus de laquelle la nitro s'allume… */
   jaugeCoupe:.25,    /* …et en dessous de laquelle elle se coupe (le fond garde pour planer en vol) */
-  capMax:.22,        /* rad : au-dela, la caisse est de travers, pas de nitro */
+  capMax:.35,        /* rad : au-dela, la caisse est de travers, pas de nitro */
   bascule:10,        /* points qu'un rayon doit avoir de plus que la facon tenue pour qu'on en change */
   tenirFacon:.35,    /* s au moins sur une facon avant d'en changer (sauf si elle mene a la mort) */
   derive:.3,         /* s : apres la pose, la caisse glisse dans son axe ce temps-la avant que le volant morde */
