@@ -90,8 +90,11 @@ crédits API pour que ça dure toute la semaine ». Le rythme : ce qui reste des
   contre la roche à la grotte, 3 sur 4 ratées sur la jade) alors que les joueurs y coupent 4 à 5 fois par minute ; les figures restent rares parce
   qu'une figure lancée à moins de 2,2 s de la pose dérègle le plongeon. Depuis le soir du 26/11 il ne se cache plus sous la dalle (2,3 % du sol) mais
   a regagné les paliers perdus en volant mieux (palier médian 8,5). **10 de ses 20 morts arrivent dans la seconde qui suit une sortie de route, contre
-  le décor** (la grotte : 20 % des vols) : pose trop en travers, ou zigzag au sol qui s'amplifie vers 550 km/h — le prochain chantier ; ensuite la nitro
-  en vol comme les joueurs (2,6 allumages par vol), qui demande un rayon « coup » dans les yeux.
+  le décor** (la grotte : 20 % des vols) : pose trop en travers, ou zigzag au sol qui s'amplifie vers 550 km/h — le prochain chantier. Mesuré la nuit du 26 au 27/11 :
+  la pose du pilote glisse à 0,33 rad de l'axe (les joueurs 0,13), 36 % de ses poses ressortent dans les 0,8 s ; trois remèdes « de pilote » essayés
+  et écartés (avance au sol, redressement au-dessus de la dalle, plané réacteur tenu). **La suite passe par les yeux** : des rayons qui jouent la loi
+  corrigée du pilote et un allumage bref de la nitro (`yeux.js`, puis `verifier.js` et `justesse.js`) — alors seulement la nitro en vol des joueurs
+  (2,6 allumages par vol) et des poses droites.
 - La justesse des rayons « viser » n'est pas mesurée par `justesse.js` ; la salle de projection ne remet pas encore le garage d'un rejeu (`page.html`).
 - Fable 5.2 coupé à 32 000 jetons dans `boucle.js` (`max_tokens`) ; la seconde chance prise 7 fois sur 12 (joueurs 2 sur 14) ; le canyon tue toujours.
 

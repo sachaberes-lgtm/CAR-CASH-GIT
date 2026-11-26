@@ -111,6 +111,10 @@ vols de 2,8 s. 4 % de leurs vols finissent par une mort — ils meurent aussi.
   au-delà de 1,6 rad de l'axe de la route (6 s tout droit jusqu'à la jauge vide) et braquait sur l'écart du moment alors que la main obéit 0,25 s plus
   tard (la caisse oscillait de part et d'autre de la dalle). Corrigée : 8 morts pour 100 vols au lieu de 14, un palier et demi de plus. Les rayons, eux,
   jouent toujours l'ancienne loi : un rayon `versRoute` qui dit « air » n'est plus une condamnation ;
+- (nuit du 26 au 27/11) viser au sol depuis l'écart qu'on aura dans 0,15 à 0,4 s : rien ; borner le cap de la loi « vers la route » dès qu'on est
+  au-dessus de la dalle : rien (la caisse touche le bord avant) ; tenir le réacteur tant que la caisse est hors de la dalle : la nitro en vol d'un
+  joueur, mais 12 à 19 morts pour 100 vols. **La pose du pilote glisse à 0,33 rad de l'axe (les joueurs 0,13)** : c'est elle qu'il faut réduire, et la
+  mesure `glisse après la pose` (agents/tmp-voltige/chaines.js) le dit en un lot là où le palier en demande quatre ;
 - ce qui tue maintenant : la seconde qui suit une sortie de route sur les maps à décor (la grotte : 20 % des vols) — une pose à plus de 0,5 rad de
   l'axe retraverse la route et ressort en face ; au sol, vers 550 km/h, la ligne zigzague de plus en plus large jusqu'au bord ;
 - faire osciller la ligne visée de ± 4,5 m pour imiter le slalom : le rythme ne change pas (c'est la main qui le fixe), la survie baisse.

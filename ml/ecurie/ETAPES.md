@@ -178,6 +178,35 @@ par minute (0,71) ; sous la dalle 3,5 % du sol ; écart aux joueurs **2,00** ; m
 grotte : 12 morts sur 61 vols). Deux formes (`morts-courtes.js`) : la pose trop en travers (0,5 à 1 rad : la caisse retraverse la route en une
 demi-seconde et ressort de l'autre côté), et un zigzag au sol qui s'amplifie vers 550 km/h (± 20 m, volant à fond) jusqu'au bord. C'est le chantier suivant.
 
+### La nuit du 26 au 27/11 : la pose en travers, mesurée — trois remèdes essayés, aucun gardé
+
+**La mesure** (`chaines.js` : la glisse juste après la pose = vitesse latérale / vitesse, sur 230 à 270 poses ; elle bouge peu d'un lot à l'autre, au
+contraire du palier) :
+
+| | Joueurs au clavier | Pilote (grande note) |
+|---|---|---|
+| glisse après la pose : médiane · 9 poses sur 10 en dessous de | **0,13 rad** · 0,41 | **0,33 rad** · 0,69 |
+| poses à plus de 0,35 rad de l'axe | 15 % | 47 % |
+| poses suivies d'une nouvelle sortie de route en moins de 0,8 s | 29 % (1 mortelle) | 36 % (6 mortelles, 5 à la grotte) |
+| vols de plus de 5 s partis du dessus : morts | 1 sur 11 | 3 sur 14 (9 sur 21 avant la loi corrigée) |
+
+Le pilote revient vers la route au ras de la dalle (ses vols montent de 4 à 10 m, ceux des joueurs de 40 m) : il touche le bord dans l'angle où il
+arrive, sans avoir eu le temps de se redresser. La loi corrigée a déjà ramené la glisse de 0,41 à 0,31 rad (`volAvance`).
+
+**Essayé, pas gardé** (24 courses de 300 s par variante, deux lots ; le pilote gardé y fait 193 paliers) :
+- **au sol, viser depuis l'écart qu'on aura dans 0,15 à 0,4 s** (`faire-pY.js`, contre le zigzag qui s'amplifie) : 180, 192, 177 paliers — rien ; le
+  zigzag a une autre cause que le retard de la main (à chercher dans les coups de volant de la main et la ligne qui glisse) ;
+- **se redresser dès qu'on est au-dessus de la dalle** (`faire-pZ.js` : le cap visé borné à 0,04 ou 0,12 rad) : 193, 186, 223 (139 sur un lot, 84 sur
+  l'autre), 163 ; la glisse après la pose ne bouge pas (0,34 à 0,37) : la caisse touche le bord avant d'avoir eu une seule vue « au-dessus » ;
+- **planer jusqu'à la route** (`faire-pQ.js` : réacteur tenu tant que la caisse est hors de la dalle) : la nitro en vol devient celle d'un joueur
+  (aucun vol sans nitro, tenue 41 à 46 % du vol, 1,5 allumage par vol) mais 12 à 19 morts pour 100 vols et 61 à 80 paliers sur le premier lot (99 pour
+  le pilote gardé), la glisse inchangée. C'est la troisième fois que la nitro en vol tue (les coups « à l'aveugle », la sortie du dessous, le plané) :
+  **elle ajoute 100 à 250 km/h que rien ne prévoit**. Avant d'y revenir, les yeux doivent jouer des rayons avec la loi corrigée du pilote (l'avance,
+  le demi-tour) et un allumage bref : c'est un changement de `yeux.js` (donc `verifier.js`, `justesse.js`), pas un réglage.
+
+**À retenir pour mesurer** : sur 12 courses de 300 s la somme des paliers bouge de ± 20 par la seule chance (une variante : 139 puis 84). Les mesures
+par vol (morts pour 100 vols, glisse après la pose, vols de plus de 5 s) tranchent avec deux lots ; le palier, non.
+
 ### Les finitions de l'étape B et le contrôle du premier pilote (25/11/2026, soir)
 
 Fait par une session payée sur la clé d'API (le relais `relais.js`, agent « finitions-b », Opus 5.5), entre le premier pilote et le calibrage.
