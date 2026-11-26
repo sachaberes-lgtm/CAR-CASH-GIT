@@ -54,8 +54,49 @@ ne passe plus au palier 20 sans anticiper.
 - **La ligne parfaite** : le jeu pose devant la caisse un fruit puis une plaque en alternance. Chacun rend de la nitro ; les prendre tous
   permet de tenir la nitro presque sans arrêt. Sans elle, la nitro ne se tient que 20 % du temps.
 - **L'aimant** (pomme dorée, puis moteur à partir du palier 16) : il élargit ce qu'on ramasse.
-- **Les figures** : rares chez les joueurs (85 % des vols n'en ont pas), mais une figure posée au centre, proprement, vaut des pièces.
-- **Un raccourci** ne donne ni pièce ni argent : du flow, un peu de nitro, et du temps gagné vers le portail.
+- **Les figures** : toutes en vol, dans les vols longs (un vol sur six en porte, souvent deux ou trois) ; une figure posée au centre, proprement, vaut
+  des pièces, et c'est elle qui déclenche la frénésie quand le flow est plein.
+- **Un raccourci** ne donne ni pièce ni argent : du flow, un peu de nitro, et du temps gagné vers le portail (la densité des pièces monte à chaque
+  portail franchi). Les joueurs en prennent trois par minute : un pilote qui n'en prend pas se reconnaît tout de suite.
+
+## Le but a deux moitiés depuis le 26/11 : le palier ET la ressemblance
+
+Ces pilotes serviront d'adversaires dans un matchmaking : **on ne doit pas pouvoir les distinguer de vrais joueurs**. La boucle note donc
+« mixte » = le palier médian **moins six fois l'écart aux joueurs** (`ml/bot/ressemblance.js` : la distance moyenne aux joueurs au clavier sur quinze
+mesures de ce qui se voit d'une partie ; 0 = au milieu d'eux). Un pilote prudent qui survit longtemps sans voler est un **mauvais** pilote ici.
+Les quinze mesures, et ce que valent les joueurs (moyenne ± écart d'une partie à l'autre) :
+
+| Mesure | Les joueurs | Le pilote du 26/11 |
+|---|---|---|
+| nitro allumée, part du temps · part du sol · au décollage | 0,64 ± 0,10 · 0,78 ± 0,12 · 0,63 ± 0,11 | 0,29 · 0,31 · 0,11 |
+| en l'air, part du temps · vols par minute | 0,31 ± 0,06 · 7,9 ± 1,4 | 0,19 · 4,6 |
+| durée médiane d'un vol · hauteur médiane · vols de moins de 0,7 s | 2,2 s ± 0,35 · 40 m ± 17 · 0,14 ± 0,07 | 2,0 s · 10 m · 0,17 |
+| raccourcis par minute (une pose 60 m plus loin que la distance volée) | 3,2 ± 1,1 | 0,65 |
+| figures lancées par minute (toutes en vol) | 3,3 ± 2,4 | 0,5 |
+| poses près de l'axe (moins de 0,3 demi-largeur) | 0,41 ± 0,12 | 0,18 |
+| sous la dalle, part du sol | 0,02 ± 0,02 | 0,14 |
+| un aller du slalom (entre deux changements de sens) | 0,58 s ± 0,09 | 0,99 s |
+| ondulation (vitesse latérale ÷ vitesse) · vitesse des deux premières minutes | 0,18 ± 0,03 · 450 km/h ± 67 | 0,23 · 383 |
+
+**Comment les joueurs volent** (mesuré vol par vol, `ml/bot/voltige.js`) : 94 % de leurs vols partent du bord, la moitié du côté intérieur d'un virage ;
+43 % de leurs poses sont des **raccourcis**, 413 m de piste gagnés en médiane, sur toutes les cartes (grotte 5 par minute, nuages 4,2, jade 4,4,
+ville 4,3, espace 1,9, canyon 1,2). Ce ne sont pas des virages coupés à plat : ce sont des sorties nitro allumée qui montent, puis des plongeons vers
+un morceau de route plus loin. Les figures : 18 % des vols en ont, 1,9 par vol à figure (jusqu'à 5), la première 0,56 s après le décollage, dans des
+vols de 2,8 s. 4 % de leurs vols finissent par une mort — ils meurent aussi.
+
+**Les instruments pour ça** (détail dans le mode d'emploi plus bas) : les rayons `viser` / `viserPlane` du radar (en vol, et dans `vue.sorties.gauche` /
+`.droite` au sol, chacun avec `cible` et `chute`), `vue.vol.cible` (le volant et le manche de la loi, à recopier), l'ordre `cible`, le geste
+`figure` + `direction`, et `garage` (les figures équipées : **fixé comme la main**, ne le change pas).
+
+**Ce qui a déjà été mesuré le 26/11 — ne le refais pas tel quel** (chaque ligne : 12 courses, mêmes graines) :
+- un plongeon de plus de 120 m de chute porte la caisse à 300 m/s : elle ne s'aligne plus sur le morceau visé (mort jauge vide) ;
+- une figure lancée à moins de 2,2 s de la pose annoncée dérègle le vol (le geste tient sa flèche 0,27 s et tape deux fois la NITRO) : 2 à 5 morts de plus sur 12 à 23 plongeons ;
+- à la grotte, au canyon et sur la jade, la pose qu'annonce un rayon `viser` **du sol** est fausse (4 sorties sur 4 contre la roche à la grotte, 3 sur 4 ratées sur la jade) : les sorties voulues y sont interdites en attendant une règle prudente ;
+- en vol **subi** (une sortie non voulue), basculer vers un rayon `viser` tue ; un engagement abandonné à moins de 0,5 s du bord fait sortir en travers ;
+- demander la nitro partout au sol : 53 % du temps au lieu de 30 %, mais deux à trois paliers de moins ; la jauge, elle, n'est jamais vide — c'est le choix de l'endroit qui manque ;
+- partir « vers la route, réacteur allumé » à chaque vol subi : trois paliers de moins ;
+- pénaliser fortement une pose sous la dalle : 12 % du sol dessous au lieu de 25, mais deux paliers de moins (le réglage gardé : 10 points, 14 %) ;
+- faire osciller la ligne visée de ± 4,5 m pour imiter le slalom : le rythme ne change pas (c'est la main qui le fixe), la survie baisse.
 
 ## Ce qu'un vrai joueur fait, et qu'un pilote doit faire pour lui ressembler
 

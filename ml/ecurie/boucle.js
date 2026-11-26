@@ -16,6 +16,8 @@
      --main-libre  (2026-11-25) une variante peut changer le `profil` de sa main. Sans elle, une variante dont la main n'est pas celle du parent
                    est PERDUE avant d'etre notee (voir LA MAIN EST FIXEE, plus bas). A reserver aux etapes ou l'on regle la main (D, E).
      --depart-validation  la premiere des graines NEUVES de la validation (950000 par defaut ; l'entrainement et le tri partent de 910000)
+     --critere mixte      (2026-11-26) noter « palier ET ressemblance » : mixte = palier_median − POIDS × ecart aux joueurs (ml/bot/ressemblance.js).
+                          --poids-ressemblance (6 par defaut : 1 palier vaut 0,17 d'ecart). Voir LA NOTE MIXTE plus bas.
    UN TOUR : (1) le parent = le champion de l'etape ; (2) ses pires courses sont autopsiees (chaque mort, pas seulement la fin) ; (3) N variantes
    sont demandees a Claude, chacune sous un angle different ; (4) TRI : chaque variante sur peu de graines ; (5) celles qui font au moins aussi bien
    que le parent au tri, un tiers des variantes au plus, sont notees EN GRAND (20 graines) ; (6) toutes sont inscrites (les eliminees avec leur
@@ -38,6 +40,23 @@ const ETAPE=String(opt('etape','C')),TOURS=+opt('tours',20),NC=+opt('candidats',
 const GT=+opt('graines-tri',BLANC?2:6),TT=+opt('tmax-tri',BLANC?40:600),NG=+opt('graines',BLANC?2:20),TMAX=+opt('tmax',BLANC?40:900);
 const REGIME=opt('regime','allege'),COEURS=+opt('coeurs',4),CRITERE=opt('critere','palier_median'),PATIENCE=+opt('patience',4),PLAFOND=+opt('plafond',200);let BUDGET=+opt('budget',0);
 const G0=910000,GV=+opt('depart-validation',950000);
+/* ===== LA NOTE MIXTE (2026-11-26, Sacha : « objectif : on ne peut pas du tout faire la difference entre un bot et un vrai joueur ») =====
+   L'enquete (ml/ecurie/etude/realisme.md) : « la boucle note sur le palier median ; presque toutes les corrections vers un vrai joueur coutent du
+   palier au debut (voler tue, la nitro fait sortir) : il faut noter palier ET ressemblance, sinon elle refusera chaque pas ». MESURE (26/11) : le
+   pilote qui vole est a 2,33 des joueurs et au palier 9,5 ; celui d'avant a 2,67 et au palier 11 — au seul palier, la boucle garderait l'ancien.
+   Chaque note recoit donc : ecart_joueurs (la distance moyenne aux joueurs sur quinze mesures de ce qui se voit d'une partie, 0 = au milieu d'eux),
+   ecart_detail (mesure par mesure, pour le dire a Claude) et mixte = palier_median − POIDS × ecart_joueurs. Avec POIDS = 6, un tiers d'ecart-type
+   gagne sur les quinze mesures vaut deux paliers : la ressemblance pese, le palier departage. Les deux chiffres restent lisibles a part. */
+const POIDS=+opt('poids-ressemblance',6);
+let RESS=null;
+function ressemblance(N){
+  if(!N||!N.note||!Array.isArray(N.parties))return N;
+  try{RESS=RESS||require('../bot/ressemblance');const E=RESS.ecart(N.parties.map(p=>p.partie));
+    if(E){N.note.ecart_joueurs=E.ecart;N.note.ecart_detail=E.mesures.map(x=>({cle:x.cle,nom:x.nom,z:x.z,bot:x.bot,joueurs:x.joueurs}));
+      N.note.mixte=Math.round((N.note.palier_median-POIDS*E.ecart)*100)/100;}
+    else{N.note.ecart_joueurs=4;N.note.ecart_detail=[];N.note.mixte=Math.round((N.note.palier_median-POIDS*4)*100)/100;}   /* aucune partie de plus de 60 s : le pire */
+  }catch(e){dire('la ressemblance n\'a pas pu etre calculee : '+String(e&&e.message||e));}
+  return N;}
 
 /* LES TARIFS, en dollars par million de jetons : [lus, ecrits, lus depuis le cache]. Source : la table des modeles de la documentation
    d'Anthropic, relevee le 2026-11-03 (a reverifier si un modele change : platform.claude.com/docs). Ecrire au cache coute 1,25 x « lus ».
@@ -55,7 +74,7 @@ function noter(fichier,graines,tmax,nom,depart){
   const r=spawnSync(process.execPath,[path.join(BOT,'noter.js'),fichier,'--graines',String(graines),'--depart',String(depart==null?G0:depart),'--tmax',String(tmax),'--regime',REGIME,
     '--coeurs',String(COEURS),'--sortie',sortie,'--parties'],{stdio:['ignore','pipe','pipe'],encoding:'utf8'});
   if(r.status!==0||!fs.existsSync(sortie)){dire('la note de '+nom+' n\'a pas abouti : '+String(r.stdout||'').split('\n').slice(-3).join(' | '));return null;}
-  return JSON.parse(fs.readFileSync(sortie,'utf8'));}
+  return ressemblance(JSON.parse(fs.readFileSync(sortie,'utf8')));}
 /* (2026-11-25, relecture : « quand la main prend la seconde chance, la mort qui a coute un palier disparait de ce que la boucle montre »)
    autopsie.js raconte les secondes d'avant CHAQUE mort (un bloc « #### » par mort, puis la fin) ; chaque bloc est borne A PART, en gardant SA FIN :
    les dernieres decisions avant la mort, celles qui comptent. Avant : 7000 caracteres pour tout le texte, coupes a la fin — la mort partait. */
@@ -109,6 +128,16 @@ function dejaTente(){return deLEtape().slice(-15).map(l=>{const p=l.parents[0]&&
 
 /* ----- la demande a Claude ----- */
 const SYSTEME=fs.readFileSync(path.join(__dirname,'CONSIGNES.md'),'utf8')+'\n\n# LE MODE D\'EMPLOI DU BOT (ml/bot/README.md) — la vue, les gestes, le profil\n\n'+fs.readFileSync(path.join(BOT,'README.md'),'utf8');
+/* (2026-11-26) LES ANGLES DE LA RESSEMBLANCE, pour --critere mixte : le plan d'action de l'enquete (ml/ecurie/etude/realisme.md § 4), un par variante */
+const ANGLES_MIXTE=[
+  'LE DESSOUS DE LA DALLE : les joueurs y roulent 2 % du temps au sol, par passages d\'une seconde ; le parent bien plus. En vol, preferer une pose DESSUS (le rayon dit `dessous`) sans y perdre la vie ; une fois dessous, en ressortir vite par le bord.',
+  'LA NITRO AU SOL : les joueurs l\'ont allumee 78 % du sol, le parent trois fois moins — et sa jauge n\'est JAMAIS vide (mesure) : c\'est lui qui ne la demande pas. La tenir par defaut et la lacher AVANT le virage qui ne passe pas, au lieu de ne l\'allumer que dans les droites. Attention : demandee partout, elle coute deux a trois paliers (mesure le 26/11) — il faut mieux choisir OU la couper.',
+  'S\'ENVOLER AU LIEU DE TOMBER : chez les joueurs la nitro est allumee au decollage 63 fois sur 100, leurs vols montent de 40 m et durent 2,2 s ; le parent tombe du bord nitro eteinte. Sortir nitro tenue, cabrer au depart, tapoter la nitro en vol (51 allumages par minute de vol chez les joueurs).',
+  'LES RACCOURCIS : les joueurs en prennent 3,2 par minute, sur toutes les cartes. Le parent s\'engage quand un rayon `viser` du sol promet une pose ; trouve pourquoi il s\'engage si rarement la ou c\'est permis (les filtres de `raccourci`), ou rends une carte interdite praticable avec une regle prudente.',
+  'LES FIGURES : 3,3 lancees par minute chez les joueurs, toutes en vol, dans les vols de plus de 2,5 s, souvent deux ou trois d\'affilee. Une figure lancee trop pres de la pose deregle le vol (mesure) : trouve les vols ou la marge est large (haut, loin de tout decor, les deux rayons se posent) et lances-y plus de figures.',
+  'LA POSE : les joueurs se posent pres de l\'axe 41 fois sur 100, le parent deux fois moins (il se pose au ras du bord). Viser l\'axe de la route en fin de vol, lacher le volant une fois le cap pris.',
+  'LA SURVIE EN VOL : le parent meurt dans 8 vols sur 100 (les joueurs 4). Lis ses morts : la map qui tue le plus, le decor annonce par le radar, les vols de 6 s jauge vide — une regle qui en sauve sans rendre le pilote plus frileux.',
+  'LIBRE : la mesure de l\'ecart aux joueurs ou le parent est le plus loin (lis son tableau), par l\'idee que tu crois la plus sure.'];
 const ANGLES=[
   'LA SURVIE EN VOL : sers-toi du radar de la vue pour choisir, a chaque decision en vol, la facon de piloter qui finit par une pose ; et pour ne pas decoller quand aucune issue n\'est bonne.',
   'LA VITESSE AVANT LES VIRAGES : anticipe (vitesse sure, rayon a venir), lache la nitro ou drifte AVANT le virage, pour ne plus sortir de la route sans le vouloir.',
@@ -129,13 +158,15 @@ function resumeMorts(P){
     +(reprises?`\npremieres morts : ${C.filter(c=>(c.morts||[]).length).map(c=>'graine '+c.graine+' '+enMots(c.morts[0])).join(' ; ')}`:'');}
 function blocParent(P,src,autop){
   return `# LE PILOTE PARENT : ${P.id} « ${P.nom} »\n\n## Sa note (${P.note.parties} courses, ${P.tmax} s au plus, regime ${(P.jeu&&P.jeu.regime)||'?'})\n${lignes(P.note).join('\n')}\n${resumeMorts(P)}\n\n`
+    +(Array.isArray(P.note.ecart_detail)&&P.note.ecart_detail.length?`## Son ecart aux joueurs : ${P.note.ecart_joueurs} (z = a combien d'ecarts-types des joueurs au clavier, le plus loin d'abord ; + = plus qu'eux)\n${P.note.ecart_detail.map(x=>`z ${x.z>=0?'+':''}${x.z} · ${x.nom} : le pilote ${x.bot}, les joueurs ${x.joueurs}`).join('\n')}\n\n`:'')
     +`## Ses courses\n${P.courses.map(c=>`graine ${c.graine} · ${(c.cartes||[]).join('>')} · ${c.duree_s} s · fin ${c.cause} · ${c.pieces} pieces`+mortsDe(c)+(c.fin?` · finit sur ${c.fin.carte}${c.fin.enVol?' en vol':' au sol'}`:'')).join('\n')}\n\n`
     +`## Les dernieres secondes de ses pires courses (ce qu'il voyait, ce qu'il a ordonne)\n${autop.join('\n\n---\n\n')}\n\n`
     +`## Ce qui a deja ete tente a cette etape (ne refais pas ce qui a echoue)\n${dejaTente()||'(rien encore)'}\n\n`
     +`## Son code\n\`\`\`js\n${src}\n\`\`\`\n`;}
 function consigneDe(k){
   return `# TA TACHE\n\nEcris UNE variante de ce pilote qui fait monter « ${CRITERE} » (le palier d'une partie ordinaire) sans faire baisser son record.\n`
-    +`L'angle de cette variante : ${ANGLES[k%ANGLES.length]}\n`+(opt('consigne',null)?`Precision pour ce lancement : ${opt('consigne')}\n`:'')
+    +`L'angle de cette variante : ${(CRITERE==='mixte'?ANGLES_MIXTE:ANGLES)[k%(CRITERE==='mixte'?ANGLES_MIXTE:ANGLES).length]}\n`+(opt('consigne',null)?`Precision pour ce lancement : ${opt('consigne')}\n`:'')
+    +(CRITERE==='mixte'?`\n« mixte » = le palier median MOINS ${POIDS} fois l'ecart aux joueurs (le tableau « Son ecart aux joueurs » ci-dessus : 0 = au milieu des joueurs sur les quinze mesures). Rapprocher le pilote des joueurs compte donc autant que le faire survivre : une variante qui vole, coupe et tient la nitro comme eux en perdant un palier est MEILLEURE ; une variante qui gagne un palier en devenant plus frileuse est MOINS BONNE.\n`:'')
     +`\nUne seule idee, expliquee. Le fichier doit etre complet et se suffire (il remplace celui du parent).\n`
     +(MAIN_LIBRE?'':`Garde le \`profil\` du parent inchange (ou son absence) : la main est fixee a cette etape, une variante dont la main change est refusee sans etre notee.\n`)
     +`Reponds EXACTEMENT sous cette forme, sans rien d'autre avant ni apres :\n\nRAISON: <une ou deux phrases : ce que tu changes et pourquoi, pour quelqu'un qui n'a pas lu le code>\n\`\`\`js\n<le fichier complet du pilote>\n\`\`\`\n`;}
@@ -248,7 +279,7 @@ async function demande(parent,k){
       if(grand){dire(`  variante ${c.k} : notee en grand…`);const G=noter(c.f,NG,TMAX,`note-${ETAPE}-g${gen}-k${c.k}`);if(G){N=G;lot='entrainement';}}
       try{const l=L.inscrire({nom:L.nettoyerNom(((c.v.code.match(/nom\s*:\s*['"]([^'"]+)['"]/)||[])[1])||'pilote')||'pilote',source:c.v.code,etape:ETAPE,generation:gen,parents:[P.id],
           modele:BLANC?'a-blanc':MODELE,main:c.main,raison:c.v.raison,lot:lot,jeu:jeuDe(N),graines:N.graines,tmax:N.tmax,note:N.note,courses:coursesDe(N),echecs:N.echecs,cout:c.jetons,
-          echange:{modele:MODELE,effort:EFFORT,angle:ANGLES[c.k%ANGLES.length],parent:P.id,reponse:c.texte}});
+          echange:{modele:MODELE,effort:EFFORT,angle:(CRITERE==='mixte'?ANGLES_MIXTE:ANGLES)[c.k%(CRITERE==='mixte'?ANGLES_MIXTE:ANGLES).length],parent:P.id,reponse:c.texte}});
         dire(`  inscrit ${l.id} (${lot}) : ${CRITERE} ${N.note[CRITERE]} · record ${N.note.palier_record} · survie ${N.note.survie_mediane_s} s`);}
       catch(e){dire('  inscription refusee : '+String(e.message||e));
         if(!BLANC)try{L.depense({etape:ETAPE,generation:gen,modele:MODELE,entree:c.jetons.entree,sortie:c.jetons.sortie,euros:c.jetons.euros,pour:'variante payee, inscription refusee'});}catch(e2){}}}

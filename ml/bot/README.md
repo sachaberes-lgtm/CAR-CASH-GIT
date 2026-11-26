@@ -22,6 +22,8 @@ rend un *ordre*, dix fois par seconde. Il ne touche jamais le jeu : ses yeux lis
 | `voltigeur.js` | le cerveau de mesure : il sort de la route exprès et tient une façon de piloter par vol (pour `justesse.js` et `verifier.js`) |
 | `voltigeur-route.js` | le second cerveau de mesure (25/11) : après un saut il tient `rien` ou `plane`, après une sortie par le bord la loi `versRoute` — ce qu'un pilote fera (`justesse.js --cerveau voltigeur-route.js`, avec ou sans `--profil clavier`) |
 | `discerner.js` | le juge « humain ou bot » : un bot se distingue-t-il d'un vrai joueur, sur ce qui se voit d'une course ? (§ 4 bis) |
+| `voltige.js` | (26/11) les vols un par un, joueurs et bots comptés pareil : d'où ils partent, de quel côté du virage, la piste gagnée (raccourcis), la durée, la hauteur, les figures. `node voltige.js` : les joueurs ; `node voltige.js <note --parties>` : un bot ; `--vols` : la liste |
+| `ressemblance.js` | (26/11) **l'écart aux joueurs** : la distance moyenne d'un lot de parties aux joueurs au clavier sur quinze mesures de ce qui se voit (nitro, vols, raccourcis, figures, poses, dessous de la dalle, slalom, vitesse), en écarts-types d'une partie à l'autre, chacun borné à 4. 0 = au milieu des joueurs ; le pilote d'avant 2,67, le pilote qui vole 2,33 ; une partie de joueur contre les autres 0,9. Un nombre qui bouge à chaque pas, là où l'AUC du juge reste à 0,97 : c'est lui que la boucle note (`--critere mixte` = palier médian − 6 × écart). `node ressemblance.js <note --parties>` ; sans argument : les joueurs entre eux et la référence |
 
 ```bash
 cd ml/bot

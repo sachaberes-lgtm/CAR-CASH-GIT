@@ -23,18 +23,30 @@ telle quelle dépenserait 12 € par jour à polir ce que Sacha vient de refuser
 
 **Dépensé : 36,92 € sur 200** au 26/11 à 14 h 30 (0 € aujourd'hui). L'abonnement : 3 à 4 % de la semaine après cette session.
 
-## Ce qui tourne : rien. À lancer par Sacha
+## Ce qui tourne : rien. Deux commandes prêtes, à lancer par Sacha
 
-**L'agent « voltige »**, payé par la clé d'API (12 $ au plus), est **prêt mais pas lancé** : le 26/11 à 14 h 30 l'app a refusé que la session le lance
-elle-même (une dépense : c'est à Sacha de la déclencher). Depuis un terminal ordinaire :
+Une session Claude ne peut pas lancer elle-même ce qui dépense les crédits (l'app l'a refusé le 26/11 : c'est à Sacha de le déclencher), et un
+programme lancé par un outil de session meurt avec elle. Depuis un **terminal ordinaire** :
+
+**1. La boucle** (la chaîne des deux semaines, ≈ 12,5 € par jour, s'arrête seule au plafond de 200 € ou le 08/12) :
+
+```powershell
+cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\ecurie; node chaine.js
+```
+
+Elle relit `agents/choix.json` à chaque tranche : Sonnet 5.5 écrit six variantes de `pilote-voltige.js` par tour, le vrai jeu les note, et la note est
+maintenant **« mixte » = palier médian − 6 × écart aux joueurs** (`ml/bot/ressemblance.js`) ; étape du labo **C2**. Essayée à blanc le 26/11 (0 €).
+Journal : `agents/chaine.log` ; arrêt : créer `agents/STOP`. Un tour prend 30 à 100 minutes de PC (6 variantes triées, les promues notées sur 20 graines).
+Sur le second PC (Ryzen, 12 fils), ajouter `--coeurs 10` à la ligne de `boucle.js` dans `chaine.js` ou lancer `boucle.js` à la main.
+
+**2. L'agent « voltige »** (facultatif, 12 $ au plus, une à trois heures ; pas en même temps que la boucle : ils se disputeraient le PC) :
 
 ```powershell
 cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\ecurie; node agent-api.js --consigne consignes-agents/voltige.md --nom voltige --modele claude-fable-5-2 --budget 12 --etape C
 ```
 
-Sa tâche (`consignes-agents/voltige.md`) : amener `pilote-voltige.js` au niveau — survivre comme `pilote.js`, voler, couper et faire des figures comme un
-joueur —, en s'appuyant sur l'enquête. Son rapport : `agents/<date>-voltige.md` ; il met `ETAPES.md` à jour et valide dans git (jamais de push).
-Il dure une à trois heures et occupe 6 des 8 cœurs du PC. Sans lui, la session qui reprend fait ce réglage elle-même (étape 1 ci-dessous).
+Sa tâche (`consignes-agents/voltige.md`) : ce que le réglage à la main n'a pas su faire — la nitro au bon endroit, la justesse des rayons `viser` du sol
+à la grotte, au canyon et sur la jade, des vols plus hauts. Son rapport : `agents/<date>-voltige.md`.
 
 ## À faire ensuite, dans l'ordre
 
@@ -46,9 +58,9 @@ Il dure une à trois heures et occupe 6 des 8 cœurs du PC. Sans lui, la session
    repères sur ces 12 graines : `pilote.js` médian 12,5, la version du 26/11 9,5 à 10,5 ; sur 12 graines neuves `--depart 930000` : 7 et 6,5 à 7,5).
 2. **Le juge** (`ml/bot/discerner.js`) : lui ajouter les mesures de l'enquête (§ 3 de `realisme.md` : le dessous de la dalle, la durée d'un aller du slalom,
    le volant en vol, les allumages de nitro en vol, la pose…), un juge « à l'instant » et un juge « du compte ». Sans lui la boucle ne voit aucun progrès de ressemblance.
-3. **La boucle** : une note « palier **et** ressemblance » (aujourd'hui `--critere palier_median`) — par exemple refuser une variante dont les vols, les
-   raccourcis ou les figures par minute sortent des plages des joueurs (`voltige.resume`), puis départager au palier. Mettre `CONSIGNES.md` à jour (il dit
-   encore « figures rares », et rien du rayon viser ni du garage). Puis relancer la chaîne (`node chaine.js` depuis un terminal ordinaire).
+3. **La boucle** : sa note « palier et ressemblance » est faite (`--critere mixte`), `CONSIGNES.md` aussi. Quand elle a tourné : lire `agents/chaine.log`,
+   `node ml/labo/labo.js` (étape C2), l'arbre ; un champion sacré se mesure par `node ml/bot/ressemblance.js` et `voltige.js` sur une note `--parties`.
+   Si le poids 6 fait trop baisser le palier (ou pas assez monter la ressemblance), le changer dans `agents/choix.json` (`poids`).
 4. **Le plan d'action de l'enquête** (§ 4 de `realisme.md`), dans son ordre : sortir du dessous de la dalle (29 % du sol contre 3 %), s'envoler nitro
    allumée, tapoter la nitro en vol, viser le portail en vol, le départ, la seconde chance (`chance.prend` de 1 à 0,3 : c'est la main, donc l'étape D),
    la nitro au sol, le rythme du slalom.

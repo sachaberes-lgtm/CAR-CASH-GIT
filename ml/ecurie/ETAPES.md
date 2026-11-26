@@ -67,6 +67,20 @@ Les plongeons voulus, comptés à part sur 4 lots de 12 courses de 300 s (`agent
 - ouvrir les cibles à hauteur égale ou plus hautes (les vols des joueurs **montent** de 38 m) avec nitro à l'engagement : 3 morts sur 10, retiré
   (`agents/tmp-voltige/yeux-haut.js` garde l'essai).
 
+**La suite du 26/11 au soir : la nitro, le slalom, et la boucle qui note la ressemblance.**
+- **La nitro** (`agents/tmp-voltige/bilan-N*.txt`, `bilan-F*.txt`) : la jauge du pilote n'est **jamais vide** — c'est lui qui ne demande la nitro que 30 %
+  du sol. La demander plus coûte de la survie : 38 % du temps → palier médian 8 à 8,5 (au lieu de 9,5) ; 53 % → 7. Partir « vers la route, réacteur
+  allumé » à chaque vol subi : 7 aussi. Rien de gardé : c'est le choix de l'endroit qui manque, pas l'envie.
+- **Le slalom** (`pS.js`) : faire osciller la ligne visée de ± 4,5 m ne change pas le rythme (un aller reste à 0,99 s contre 0,58 s chez les joueurs :
+  c'est la main qui le fixe) et coûte un palier et demi. Abandonné ; c'est un réglage de la main (étape D, `--main-libre`).
+- **`ml/bot/ressemblance.js` : l'écart aux joueurs.** L'AUC du juge reste à 0,97 quoi qu'on corrige ; il fallait un nombre qui bouge à chaque pas. L'écart
+  est la distance moyenne aux joueurs au clavier sur quinze mesures (nitro, vols, raccourcis, figures, poses, dessous, slalom, vitesse), en écarts-types
+  d'une partie à l'autre. `pilote.js` : **2,67** ; `pilote-voltige.js` : **2,33** ; une partie de joueur contre les autres : 0,9.
+- **La boucle note « palier ET ressemblance »** (`boucle.js --critere mixte` : mixte = palier médian − 6 × écart ; chaque note porte `ecart_joueurs` et
+  `ecart_detail`, que Claude lit avec la note du parent ; huit angles neufs tirés du plan de l'enquête ; `CONSIGNES.md` dit le nouveau but, le tableau
+  des joueurs et ce qui a déjà été essayé). Essayée à blanc le 26/11 (0 €) : elle va au bout. La chaîne relit `agents/choix.json` à chaque tranche :
+  Sonnet 5.5, départ `pilote-voltige.js`, étape du labo **C2**, critère mixte. **Elle n'est pas lancée** (une dépense : à déclencher par Sacha).
+
 **Ce qui n'est pas fait, et ce que ça dit.** Le juge ne bouge pas (0,97) : comme l'enquête l'annonçait, les vols et les figures ne suffisent pas. Ce qui
 trahit le plus reste l'ondulation du slalom (z +4), la nitro (30 % contre 63 %), la part du temps en l'air (17 % contre 28 %), la hauteur des vols. Les
 raccourcis restent cinq fois trop rares (trois cartes sur six interdites), les figures cinq fois. `pilote.js` n'est pas remplacé : `pilote-voltige.js`

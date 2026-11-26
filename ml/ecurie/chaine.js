@@ -75,9 +75,14 @@ async function compteRendu(quoi){if(arret()&&L.depenses().total>=PLAFOND-.25)ret
       dire(`nouveau jour : ${etat.budgetJour} € pour aujourd'hui (${Math.round((PLAFOND-deja)*100)/100} € restent, ${restent} jour(s))`);}
     const libre=Math.round((etat.budgetJour-(deja-etat.debutJour))*100)/100;
     if(libre<2){dire(`rythme : ${Math.round((deja-etat.debutJour)*100)/100} € depenses aujourd'hui sur ${etat.budgetJour} € : attente d'une heure`);await dort(36e5);continue;}
-    const ch=etat.fait.choix||{modele:'claude-opus-5-5',depuis:etat.fait.pilote},b=Math.min(TRANCHE,libre);
-    const args=['boucle.js','--budget',String(b),'--tours','20','--modele',ch.modele,'--etape','C'];
-    if(!etat.depuisDonne){args.push('--depuis',path.join(ICI,'..','..',ch.depuis||etat.fait.pilote));}
+    /* (2026-11-26) le choix est RELU a chaque tranche dans agents/choix.json (on peut le changer sans toucher a l'etat de la chaine) ; il peut porter
+       l'etape du labo (`etape`, « C » par defaut), le critere de la boucle (`critere` : « mixte » = palier et ressemblance) et son poids (`poids`) */
+    let ch=etat.fait.choix||{modele:'claude-opus-5-5',depuis:etat.fait.pilote};
+    try{const c9=JSON.parse(fs.readFileSync(path.join(AG,'choix.json'),'utf8'));if(c9&&c9.modele)ch=c9;}catch(e){}
+    const b=Math.min(TRANCHE,libre);
+    const args=['boucle.js','--budget',String(b),'--tours','20','--modele',ch.modele,'--etape',String(ch.etape||'C'),'--depuis',path.join(ICI,'..','..',ch.depuis||etat.fait.pilote)];
+    if(ch.critere)args.push('--critere',String(ch.critere));
+    if(ch.poids!=null)args.push('--poids-ressemblance',String(ch.poids));
     const avant=L.depenses().total,c=await lance('tranche-'+(etat.tranches+1),args);etat.depuisDonne=1;etat.tranches++;noter();
     /* une tranche qui ne depense presque rien (boucle a l'arret, erreur au depart) : deux de suite, et la chaine s'arrete au lieu de tourner a vide */
     if(L.depenses().total-avant<.5){etat.vides=(etat.vides|0)+1;noter();if(etat.vides>=2){dire('deux tranches de suite sans depense : arret, a regarder');break;}await dort(18e5);continue;}
