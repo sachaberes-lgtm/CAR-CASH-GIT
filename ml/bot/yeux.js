@@ -586,7 +586,7 @@ const YEUX_CODE=`window.__YEUX=(function(){
     const plaf=COUT.pas+BUDGET.viser,N=M.max(1,M.round(horizon*60));
     for(let loi=3;loi<=4;loi++){
       poseCible(sv);copie(E,e0);rayon(E,loi,0,0,loi===4,N,plaf,false);
-      const o=rendre(loi===3?'viser':'viserPlane',loi===4,true,tFig);o.cible=n0(sv);out.push(o);}};
+      const o=rendre(loi===3?'viser':'viserPlane',loi===4,true,tFig);o.cible=n0(sv);o.chute=n0(e0.py-CIB.y);out.push(o);}};   /* chute : de combien la cible est plus basse que le depart du rayon (m) */
   /* ===== LES CIBLES (26/11 au soir) : les morceaux de piste, plus loin, qu'un vol parti de l'etat e peut ATTEINDRE =====
      vue.troncons ne garde que ce qu'atteint une chute libre en ligne droite (son filtre : le temps de trajet entre 0,55 et 1,6 fois le temps de
      chute, moins de 0,9 rad de cote). MESURE (10 parties au clavier, par carte) : les joueurs prennent 4 a 5 raccourcis par minute sur la grotte,
@@ -606,7 +606,7 @@ const YEUX_CODE=`window.__YEUX=(function(){
         const q=gP[j],hx=q.x-e.px,hz=q.z-e.pz,dy=e.py-q.y,dh=M.sqrt(hx*hx+hz*hz),T=dh/vh;
         if(dh>25&&T<=3.6&&dy>=M.max(4,.1*g*T*T)&&dy<=.5*g*T*T+.5*vh*T+10&&hx*e.vx+hz*e.vz>-.15*dh*M.max(1,vg)){
           const ax=q.x-e.p0x,ay=q.y-e.p0y,az=q.z-e.p0z,gain=(j*seg-e.s0)-M.sqrt(ax*ax+ay*ay+az*az);
-          if(gain>=100){ok=true;v=M.min(gain,600)-70*T;}}}
+          if(gain>=100){ok=true;v=M.min(gain,600)-70*T-.8*dy;}}}   /* (26/11, 15 h) et moins 0,8 m par metre de chute : MESURE, jade 910333 — un plongeon de 350 m porte la caisse a 300 m/s, elle traverse l'axe du troncon quatre fois sans pouvoir s'y aligner et meurt jauge vide ; les joueurs : 38 m de haut en mediane */
       if(ok){if(!cur){cur={s:j*seg,v:v};runs.push(cur);}else if(v>cur.v){cur.v=v;cur.s=j*seg;}}else cur=null;}
     runs.sort(function(a,b){return b.v-a.v;});
     const out=[];for(let i=0;i<runs.length&&out.length<2;i++){if(!out.length||M.abs(runs[i].s-out[0])>150)out.push(runs[i].s);}

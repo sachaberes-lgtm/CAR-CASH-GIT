@@ -1,5 +1,5 @@
 {
- "date": "2026-11-26T12:48:58.561Z",
+ "date": "2026-11-26T15:22:33.729Z",
  "graine": 910000,
  "tmax": 150,
  "regime": "max",
@@ -178,8 +178,8 @@
   "ok": true
  },
  "vues": {
-  "a": "139ea1b6308a",
-  "b": "139ea1b6308a",
+  "a": "9239712a28bf",
+  "b": "9239712a28bf",
   "ok": true
  },
  "sansEnregistreur": {
@@ -323,7 +323,7 @@
   "etat": {
    "ok": true,
    "photos": 92,
-   "ms_par_controle": 1248,
+   "ms_par_controle": 1466,
    "changes": {},
    "brouillons": {
     "V9J": 1
@@ -406,14 +406,14 @@
    "viser": 740
   },
   "a": {
-   "ms_moy": 0.544,
-   "ms_max": 10.872,
-   "ms_sol_moy": 0.481,
-   "ms_vol_moy": 2.077,
+   "ms_moy": 0.608,
+   "ms_max": 12.611,
+   "ms_sol_moy": 0.539,
+   "ms_vol_moy": 2.253,
    "vues_sol": 1440,
    "vues_vol": 60,
-   "pas_vol_moy": 964,
-   "dalles_vol_moy": 768,
+   "pas_vol_moy": 966,
+   "dalles_vol_moy": 770,
    "pas_max": 1649,
    "sondes_max": 1074,
    "route_max": 180,
@@ -422,14 +422,14 @@
    "manque": []
   },
   "b": {
-   "ms_moy": 0.533,
-   "ms_max": 9.727,
-   "ms_sol_moy": 0.476,
-   "ms_vol_moy": 1.909,
+   "ms_moy": 0.598,
+   "ms_max": 12.721,
+   "ms_sol_moy": 0.531,
+   "ms_vol_moy": 2.201,
    "vues_sol": 1440,
    "vues_vol": 60,
-   "pas_vol_moy": 964,
-   "dalles_vol_moy": 768,
+   "pas_vol_moy": 966,
+   "dalles_vol_moy": 770,
    "pas_max": 1649,
    "sondes_max": 1074,
    "route_max": 180,
@@ -440,10 +440,10 @@
   "ok": true,
   "cartes": {
    "nuages": {
-    "ms_moy": 0.76,
-    "ms_max": 2.853,
-    "ms_sol_moy": 0.603,
-    "ms_vol_moy": 0.975,
+    "ms_moy": 0.925,
+    "ms_max": 3.333,
+    "ms_sol_moy": 0.731,
+    "ms_vol_moy": 1.189,
     "vues_sol": 98,
     "vues_vol": 72,
     "pas_vol_moy": 1079,
@@ -451,15 +451,15 @@
     "pas_max": 2356,
     "sondes_max": 0,
     "route_max": 335,
-    "octets_moy": 2249,
+    "octets_moy": 2251,
     "erreurs": 0,
     "manque": []
    },
    "espace": {
-    "ms_moy": 0.747,
-    "ms_max": 2.767,
-    "ms_sol_moy": 0.54,
-    "ms_vol_moy": 0.93,
+    "ms_moy": 0.86,
+    "ms_max": 5.406,
+    "ms_sol_moy": 0.668,
+    "ms_vol_moy": 1.029,
     "vues_sol": 76,
     "vues_vol": 86,
     "pas_vol_moy": 1088,
@@ -467,15 +467,15 @@
     "pas_max": 1727,
     "sondes_max": 0,
     "route_max": 331,
-    "octets_moy": 2165,
+    "octets_moy": 2166,
     "erreurs": 0,
     "manque": []
    },
    "grotte": {
-    "ms_moy": 2.07,
-    "ms_max": 9.307,
-    "ms_sol_moy": 0.83,
-    "ms_vol_moy": 3.775,
+    "ms_moy": 2.491,
+    "ms_max": 10.09,
+    "ms_sol_moy": 1.073,
+    "ms_vol_moy": 4.442,
     "vues_sol": 99,
     "vues_vol": 72,
     "pas_vol_moy": 1142,
@@ -483,15 +483,15 @@
     "pas_max": 2222,
     "sondes_max": 2222,
     "route_max": 348,
-    "octets_moy": 2381,
+    "octets_moy": 2390,
     "erreurs": 0,
     "manque": []
    },
    "ville": {
-    "ms_moy": 1.052,
-    "ms_max": 2.856,
-    "ms_sol_moy": 0.613,
-    "ms_vol_moy": 1.751,
+    "ms_moy": 1.241,
+    "ms_max": 5.933,
+    "ms_sol_moy": 0.64,
+    "ms_vol_moy": 2.198,
     "vues_sol": 59,
     "vues_vol": 37,
     "pas_vol_moy": 720,
@@ -504,10 +504,10 @@
     "manque": []
    },
    "jade": {
-    "ms_moy": 3.31,
-    "ms_max": 10.465,
-    "ms_sol_moy": 1.306,
-    "ms_vol_moy": 5.588,
+    "ms_moy": 3.967,
+    "ms_max": 14.92,
+    "ms_sol_moy": 1.579,
+    "ms_vol_moy": 6.684,
     "vues_sol": 91,
     "vues_vol": 80,
     "pas_vol_moy": 984,
@@ -520,10 +520,10 @@
     "manque": []
    },
    "canyon": {
-    "ms_moy": 3.603,
-    "ms_max": 38.103,
-    "ms_sol_moy": 2.148,
-    "ms_vol_moy": 12.424,
+    "ms_moy": 4.449,
+    "ms_max": 43.895,
+    "ms_sol_moy": 2.637,
+    "ms_vol_moy": 15.436,
     "vues_sol": 97,
     "vues_vol": 16,
     "pas_vol_moy": 617,
@@ -1346,7 +1346,7 @@
     "empreinte": "a7b3171768ca",
     "touches": "6195695442b6",
     "images": 9000,
-    "vues": "139ea1b6308a",
+    "vues": "9239712a28bf",
     "cause": "temps"
    }
   },

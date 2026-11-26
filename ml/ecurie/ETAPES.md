@@ -21,6 +21,58 @@ Le plan d'ensemble est dans `PLAN.md`, l'étude dans `etude/`.
 
 ## OÙ ON EN EST — à lire en premier (25/11/2026 : l'étape B est finie, le premier pilote est contrôlé, la chaîne tourne)
 
+### L'étape C, deuxième temps : le pilote qui vole (26/11/2026)
+
+**La demande de Sacha (26/11)** : « ils conduisent bien mais ils sont encore trop frileux de s'envoler et de faire des figures dans les airs ; pour plus de
+réalisme il faut qu'ils puissent utiliser toutes les figures du jeu ; parfois ils n'osent pas prendre des raccourcis évidents », puis « lance une
+enquête : tous les éléments à ajouter aux bots pour simuler de vrais joueurs ». La boucle par tranches n'a pas été relancée : elle ne note que le palier.
+
+**Ce qui existe maintenant.**
+- `ml/bot/voltige.js` : les vols un par un, joueurs et bots comptés pareil. Les joueurs au clavier : 8,5 vols par minute, 94 % par le bord, 43 % des
+  poses sont des raccourcis (3,5 par minute, 413 m en médiane, sur toutes les cartes), 2,8 figures lancées par minute, toutes en vol, 4,3 % de morts par vol.
+- **Le rayon `viser`** (`ml/bot/yeux.js`, README § 2 bis) : un raccourci de joueur est un plongeon vers un morceau de piste plus loin et plus bas ; le
+  radar ne savait pas dire s'il se pose. Il propose maintenant des cibles (`ciblesDe`), joue le vol vers elles avec les lois du jeu (`viser`,
+  `viserPlane`, en vol et depuis le bord), et donne la loi à suivre (`vue.vol.cible`, l'ordre `cible`).
+- **Le garage** (`module.exports.garage`, README § 1) : un pilote s'équipe de n'importe laquelle des 12 figures du jeu (essayé : rodéo, chandelle,
+  hélico lancés dans une course, rejeu exact) ; la boucle le fixe comme la main.
+- **L'enquête** `etude/realisme.md` (une session à part) : 26 écarts mesurés, le juge mis à l'épreuve, 28 parties à enregistrer.
+- **`ml/ecurie/pilote-voltige.js`** : `pilote.js` (même main) plus — au sol, s'engager volant à fond vers le bord quand un rayon du sol promet deux vues de
+  suite une pose propre plus loin sur la piste (120 m de chute au plus, 3,6 s de vol au plus) ; en vol, tenir sa cible avec patience ; une figure quand
+  la pose est à plus de 2,2 s (la direction du geste est celle que le vol tient déjà) ; sortir du dessous de la dalle après 0,8 s.
+
+**Ses chiffres** (20 graines × 900 s, allégé, `ml/bot/results/note-pilote-voltige-allege.json` ; `pilote.js` : sa note du labo c0003 et
+`agents/tmp-voltige/note-pilote-v1.json`, 12 × 600 s ; les joueurs : `node voltige.js`) :
+
+| | `pilote.js` | `pilote-voltige.js` | les joueurs au clavier |
+|---|---|---|---|
+| palier médian · record | 11 · 20 | **9,5 · 21** | 10 · 28 |
+| raccourcis par minute (gain médian) | 0,24 (228 m) | **0,71 (749 m)** | 3,49 (413 m) |
+| figures lancées par minute · vols à figure | 0 · 0 % | **0,59 · 8,7 %** | 2,79 · 17,6 % |
+| vols par minute · durée médiane · hauteur médiane | 5,2 · 1,28 s · 0 m | 5,3 · **1,82 s · 4 m** | 8,5 · 2,27 s · 38 m |
+| sous la dalle (part du sol) | 29 % | **14 %** | 3 % |
+| morts par vol | 8,1 % | 8,1 % | 4,3 % |
+| pièces par minute · nitro tenue | 327 · 29 % | 286 · 30 % | 436 · 61 % |
+| le juge (`discerner.js`, AUC) | 0,974 | **0,97** | — |
+
+Les plongeons voulus, comptés à part sur 4 lots de 12 courses de 300 s (`agents/tmp-voltige/lot-pH3*.txt`, `lot-p2f*.txt`) : 67 engagés, 4 morts (6 %).
+
+**Ce que les essais ont appris** (chacun mesuré sur les mêmes 12 graines, `agents/tmp-voltige/lot-*.txt`) :
+- un plongeon de 300 à 350 m porte la caisse à 300 m/s : elle traverse l'axe visé sans pouvoir s'y aligner (d'où `raccChute` 120 m) ;
+- une figure lancée pendant un plongeon le dérègle (le geste tient sa flèche 0,27 s et tape deux fois la NITRO) : 5 morts sur 23 avec une direction
+  en alternance, 2 sur 12 avec une figure dès 1,7 s de marge, 0 sur 12 à 2,2 s ;
+- à la **grotte** (4 sorties sur 4 contre la roche), au **canyon** et sur la **jade** (3 sur 4), l'annonce du rayon du sol est fausse : sorties voulues
+  interdites là (`raccCartes`), alors que les joueurs y coupent 4 à 5 fois par minute ;
+- en vol **subi**, basculer vers un rayon `viser` tue (interdit) ; un engagement abandonné à moins de 0,5 s du bord fait sortir en travers (on ne renonce plus) ;
+- éviter de se poser **sous** la dalle coûte de la survie : 25 points de pénalité → 12 % du sol dessous mais 2 paliers de moins ; 10 points → 10 à 15 %, 1 palier ;
+- ouvrir les cibles à hauteur égale ou plus hautes (les vols des joueurs **montent** de 38 m) avec nitro à l'engagement : 3 morts sur 10, retiré
+  (`agents/tmp-voltige/yeux-haut.js` garde l'essai).
+
+**Ce qui n'est pas fait, et ce que ça dit.** Le juge ne bouge pas (0,97) : comme l'enquête l'annonçait, les vols et les figures ne suffisent pas. Ce qui
+trahit le plus reste l'ondulation du slalom (z +4), la nitro (30 % contre 63 %), la part du temps en l'air (17 % contre 28 %), la hauteur des vols. Les
+raccourcis restent cinq fois trop rares (trois cartes sur six interdites), les figures cinq fois. `pilote.js` n'est pas remplacé : `pilote-voltige.js`
+est un palier et demi plus bas en médiane (dans le bruit de 20 courses, mais dans le même sens sur trois mesures).
+`verifier.js` TOUT PASSE (604 s, empreinte `a7b3171768ca`) après les changements des yeux ; 34 rejeux exacts sur 34 (refaits après le dernier réglage des cibles).
+
 ### Les finitions de l'étape B et le contrôle du premier pilote (25/11/2026, soir)
 
 Fait par une session payée sur la clé d'API (le relais `relais.js`, agent « finitions-b », Opus 5.5), entre le premier pilote et le calibrage.

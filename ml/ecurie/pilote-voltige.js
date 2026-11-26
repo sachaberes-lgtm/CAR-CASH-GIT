@@ -56,21 +56,28 @@ const REGLAGES={
   raccGain:80,       /* m de piste gagnes au moins (le jeu crie RACCOURCI a 60) */
   raccAxe:.75,       /* rad : l'angle d'arrivee le plus fort accepte (la pose est ratee a 0,96) */
   raccTmin:.7,       /* s de vol au moins… */
-  raccTmax:4.2,      /* …et au plus (la jauge d'air : 6 s ; les joueurs : 2,3 s en mediane, 4 s pour un vol sur dix) */
+  raccChute:120,     /* m : on ne plonge pas vers une cible plus basse que ca (MESURE, jade 910333 : a 350 m de chute la caisse atteint 300 m/s et ne s'aligne plus ;
+                        les joueurs : 38 m en mediane, 147 m pour un vol sur dix) */
+  raccTmax:3.6,      /* …et au plus (la jauge d'air : 6 s ; les joueurs : 2,3 s en mediane, 4 s pour un vol sur dix) */
   raccAir:1.2,       /* s de jauge d'air qui doivent rester a la pose annoncee */
   raccBord:5,        /* m : la pose annoncee doit tomber a plus de ca du bord */
   raccAttente:1.6,   /* s : on ne s'engage que si le bord est a moins de ca, volant a fond */
-  raccCartes:{grotte:0,canyon:0},   /* les maps ou l'on ne sort JAMAIS expres (0) ; absente = permis. MESURE (26/11, 12 courses) : a la grotte, 4 sorties
+  raccCartes:{grotte:0,canyon:0,jade:0},   /* les maps ou l'on ne sort JAMAIS expres (0) ; absente = permis. MESURE (26/11, 12 courses) : a la grotte, 4 sorties
                         engagees sur 4 finissent contre la roche en 0,2 a 1,5 s (le rayon du sol annoncait une pose) ; au canyon la paroi est a 10 m du bord.
-                        Les joueurs, eux, y coupent (grotte : 5 raccourcis par minute) : a rouvrir quand le rayon du sol y sera juste */
+                        Les joueurs, eux, y coupent (grotte : 5 raccourcis par minute) : a rouvrir quand le rayon du sol y sera juste.
+                        La JADE (26/11, 15 h) : sur 12 courses, 3 plongeons voulus sur 4 y finissent mal (2 jauge vide, 1 pic), contre 0 sur 13 aux nuages,
+                        en ville et dans l'espace */
   raccJumeau:{jade:1,ville:1},      /* les maps a decor ou l'on exige que les DEUX rayons vers la cible (avec et sans reacteur) se posent */
   raccRepos:1.5,     /* s sans nouvelle sortie apres un engagement abandonne */
-  figPlongeon:2,     /* s avant la pose annoncee pour une figure en plongeon (au lieu de figTemps) */
+  figPlongeon:2.2,     /* s avant la pose annoncee pour une figure en plongeon (au lieu de figTemps) */
   /* --- LES FIGURES EN VOL --- */
   figTemps:1.5,      /* s avant la pose annoncee pour lancer une figure (reaction du geste 0,26 + double appui 0,27 + 0,84 que le jeu exige) */
   figJauge:.4,       /* jauge + reserve au moins (une figure coute 0,35 ; une pose propre en rend 0,40) */
   figEcart:.55,      /* s entre deux gestes (la main : 2 par seconde au plus) */
-  figMax:3,          /* figures par vol au plus (le jeu : 3 a la fois) */
+  dessousMax:.8,     /* s sous la dalle avant de chercher a en sortir par le bord (MESURE, ml/ecurie/etude/realisme.md : les joueurs y roulent 3 % du sol,
+                        par passages de 1,2 s ; le pilote d'avant 29 %, par passages de 4 a 60 s — c'est ce qui saute le plus aux yeux d'un spectateur) */
+  dessousPose:10,    /* points que perd une pose annoncee SOUS la dalle */
+  figMax:2,          /* figures par vol au plus (le jeu : 3 a la fois) */
   figDepuis:.4,      /* s de vol avant la premiere figure (les joueurs : 0,56 s en mediane) */
   figHaut:15         /* m au-dessus de la route la plus proche pour une figure dans un vol subi (MESURE, grotte 910185 : une figure lancee a la 1re
                         vue d'une sortie au ras du bord — ↑ puis deux appuis NITRO — a envoye la caisse a 88 m au-dessus de la dalle, morte jauge vide) */
@@ -113,7 +120,7 @@ const DECOR={canyon:1,grotte:1,jade:1,ville:1};   /* les maps ou une sortie par 
    sont des raccourcis (3,5 par minute), 413 m gagnes en mediane. Les joueurs ne « tombent » pas de la route : ils la coupent.
    vue.sorties (demande a la vue d'avant par regarder:'sorties') dit, pour une sortie a gauche et a droite volant a fond des maintenant, ou mene le vol
    pour trois facons de le piloter (rien, plane, versRoute). On s'engage quand l'une promet une pose propre, plus loin sur la piste. */
-function raccourci(v){
+function raccourci(v,sortir){
   const R=REGLAGES,S=v.sorties;
   if(!S)return null;
   let mieux=null;
@@ -121,8 +128,11 @@ function raccourci(v){
     const X=S[nom];if(!X||!Array.isArray(X.rayons)||!(X.t<=R.raccAttente))continue;
     for(const r of X.rayons){
       if(!r||r.issue!=='pose'||r.propre===false||r.dessous)continue;
+      /* SORTIR DU DESSOUS : n'importe quelle pose propre SUR la dalle fait l'affaire, la plus courte et la plus droite d'abord (aucun gain exige) */
+      if(sortir){const t9=+r.t||0,a9=Math.abs(+r.axe||0);if(t9>3.5||a9>R.raccAxe||(r.air!=null&&r.air<R.raccAir))continue;const s9=100-25*t9-100*a9;
+        if(!mieux||s9>mieux.s)mieux={s:s9,cote:nom==='gauche'?1:-1,facon:r.m,cible:typeof r.cible==='number'?r.cible:null,gain:+r.gain||0,vol:t9,attente:+X.t||0};continue;}
       const gain=+r.gain||0,axe=Math.abs(+r.axe||0),t=+r.t||0;
-      if(gain<R.raccGain||axe>R.raccAxe||t<R.raccTmin||t>R.raccTmax||Math.abs(+r.lat||0)>v.demi-R.raccBord||(r.air!=null&&r.air<R.raccAir))continue;
+      if((r.chute!=null&&r.chute>R.raccChute)||gain<R.raccGain||axe>R.raccAxe||t<R.raccTmin||t>R.raccTmax||Math.abs(+r.lat||0)>v.demi-R.raccBord||(r.air!=null&&r.air<R.raccAir))continue;
       /* sur une map a decor : l'autre rayon vers la meme cible (avec ou sans reacteur) doit se poser lui aussi — une pose qui ne tient qu'a une
          facon de piloter ne tient pas a la main d'un clavier */
       if(R.raccJumeau[v.carte]&&typeof r.cible==='number'){
@@ -183,17 +193,26 @@ function auSol(v,m){
   m.nitro=!lache&&pose&&sur&&(v.nitroLibre||!!m.plein);
   m.facon=null;m.nFigVol=0;
   /* LE RACCOURCI : on regarde les sorties la ou la route tourne (ou quand un troncon s'offre en contrebas), hors des couloirs et du dessous */
-  const permis=R.raccCartes[v.carte]!==0&&!couloir&&!v.dessous&&!v.rebond&&!v.glisse&&!(v.invulnerable>0);
+  /* SOUS LA DALLE : on n'y reste pas. Apres dessousMax secondes, on regarde les sorties et l'on prend celle qui se pose DESSUS (hors des maps a decor). */
+  if(v.dessous){if(m.tDessous==null)m.tDessous=v.t;}else m.tDessous=null;
+  const sortir=!!v.dessous&&v.t-m.tDessous>R.dessousMax&&!DECOR[v.carte];
+  const permis=(sortir||(R.raccCartes[v.carte]!==0&&!v.dessous))&&!couloir&&!v.rebond&&!v.glisse&&!(v.invulnerable>0);
   const tourneLoin=Math.abs(tourne(v,400)),offre=Array.isArray(v.troncons)&&v.troncons.length>0;
-  const regarde=permis&&(tourneLoin>R.raccVirage||offre||!!m.sortie);
+  const regarde=permis&&(sortir||tourneLoin>R.raccVirage||offre||!!m.sortie);
   if(m.sortie){
     /* engage : volant a fond vers le bord choisi, jusqu'au decollage ; on renonce si plus aucun rayon de ce cote ne sauve, ou si le bord tarde */
     const tient=tientEncore(v,m.sortie.cote);
-    if(!permis||tient===false||v.t-m.sortie.t0>m.sortie.attente+.9){m.sortie=null;m.tAbandon=v.t;}
+    /* on ne renonce que si le bord est encore a plus d'une demi-seconde : plus pres, la caisse sort de toute facon, en travers et sans cible
+       (MESURE, ville 910370 : un engagement abandonne a 18 s, puis un vol subi de 10 s, mort jauge vide ; sans raccourci la meme course dure 236 s) */
+    const X9=v.sorties&&v.sorties[m.sortie.cote>0?'gauche':'droite'],recuperable=!X9||!(X9.t<=.5);
+    if(!permis||(tient===false&&recuperable)||v.t-m.sortie.t0>m.sortie.attente+.9){m.sortie=null;m.tAbandon=v.t;}
     else return {volant:m.sortie.cote,nitro:m.sortie.facon==='plane'||m.nitro,ensuite:{volant:0},regarder:'sorties'};}
   if(regarde&&!lache&&!(m.tAbandon!=null&&v.t-m.tAbandon<R.raccRepos)){
-    const rc=raccourci(v);
-    if(rc){m.sortie={cote:rc.cote,facon:rc.facon,cible:rc.cible,gain:rc.gain,attente:rc.attente,t0:v.t};m.nRacc=(m.nRacc|0)+1;
+    const rc=raccourci(v,sortir);
+    /* LA PROMESSE DOIT TENIR DEUX VUES DE SUITE (0,1 s) du meme cote avant qu'on s'engage : un rayon du sol qui dit « pose » une vue sur deux
+       est une pose qui ne tient a rien */
+    if(rc&&!(m.vu&&m.vu.cote===rc.cote&&v.t-m.vu.t<=.25))m.vu={cote:rc.cote,t:v.t};
+    else if(rc){m.vu=null;m.sortie={cote:rc.cote,facon:rc.facon,cible:rc.cible,gain:rc.gain,attente:rc.attente,t0:v.t};m.nRacc=(m.nRacc|0)+1;
       return {volant:rc.cote,nitro:rc.facon==='plane'||m.nitro,ensuite:{volant:0},regarder:'sorties'};}}
   return regarde?{ligne:ligne,nitro:m.nitro,regarder:'sorties'}:{ligne:ligne,nitro:m.nitro};
 }
@@ -235,7 +254,7 @@ function vaut(r,long,v){
   if(r.issue==='pose'){
     const axe=+r.axe||0,glisse=(+r.lat||0)+v.vitesse*Math.sin(cl(axe,-1.5,1.5))*REGLAGES.derive;
     /* un raccourci vaut un peu plus qu'un simple retour (au plus 12 points : jamais assez pour preferer une pose de travers) */
-    return 100-20*Math.abs(axe)-3*t-Math.min(20,Math.max(0,Math.abs(glisse)-(v.demi-4)))-(r.propre===false?20:0)+Math.min(12,Math.max(0,+r.gain||0)/40);}
+    return 100-20*Math.abs(axe)-3*t-Math.min(20,Math.max(0,Math.abs(glisse)-(v.demi-4)))-(r.propre===false?20:0)-(r.dessous?REGLAGES.dessousPose:0)+Math.min(12,Math.max(0,+r.gain||0)/40);}
   if(r.issue==='portail')return 94;
   if(r.issue==='levre')return 80-3*t;
   if(r.issue==='libre'||r.issue==='coupe'){
@@ -276,6 +295,9 @@ function enVol(v,m){
       let mieux=null,sMieux=-9,cibleMieux=null;
       for(const nom in FACONS){
         if(nom===m.facon)continue;
+        /* en vol SUBI on ne se met pas a viser un morceau lointain : on revient. MESURE (26/11, 12 courses, memes graines) : avec cette bascule, des vols
+           subis de 6 s finissaient jauge vide ou contre la roche (grotte 910148 : 106 s de course au lieu de 289) */
+        if(!m.voulu&&nom.indexOf('viser')===0)continue;
         /* a issue egale : la loi vers la route d'abord, et sans nitro (un vol sans reacteur rend de la jauge) */
         const ry=rayonDe(nom),s=vaut(ry,!!LONGS[nom],v)+(nom==='versRoute'?3:nom==='versRoutePlane'?2:nom==='rien'?1:0);
         if(s>sMieux){sMieux=s;mieux=nom;cibleMieux=ry&&typeof ry.cible==='number'?ry.cible:null;}}
