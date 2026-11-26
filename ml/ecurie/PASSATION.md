@@ -20,11 +20,12 @@ telle quelle dépenserait 12 € par jour à polir ce que Sacha vient de refuser
 | **Le pilote qui vole** (`ml/ecurie/pilote-voltige.js`) | **commencé, pas au niveau** : il sort exprès, plonge, se pose (12 raccourcis de 326 m en médiane sur 12 courses ; les joueurs 413 m) et lance des figures, mais 0,5 sortie voulue par minute (joueurs : 3,5 raccourcis) et **palier médian 8,5 contre 12,5** pour `pilote.js` sur les mêmes 12 courses de 300 s. `pilote.js` n'est pas remplacé |
 | Contrôles | `node ml/bot/verifier.js` **TOUT PASSE** (534 s, empreinte `a7b3171768ca`) ; `node ml/labo/rejouer.js --tout` : **34 rejeux exacts sur 34** |
 
-**Dépensé : 36,92 € sur 200** au 26/11 à 14 h (rien de plus aujourd'hui avant l'agent ci-dessous). L'abonnement : 3 à 4 % de la semaine après cette session.
+**Dépensé : 36,92 € sur 200** au 26/11 à 14 h 30 (0 € aujourd'hui). L'abonnement : 3 à 4 % de la semaine après cette session.
 
-## Ce qui tourne
+## Ce qui tourne : rien. À lancer par Sacha
 
-**L'agent « voltige »**, payé par la clé d'API, lancé le 26/11 vers 14 h 30 dans un onglet du terminal de l'app (il survit à la fin de la session) :
+**L'agent « voltige »**, payé par la clé d'API (12 $ au plus), est **prêt mais pas lancé** : le 26/11 à 14 h 30 l'app a refusé que la session le lance
+elle-même (une dépense : c'est à Sacha de la déclencher). Depuis un terminal ordinaire :
 
 ```powershell
 cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\ecurie; node agent-api.js --consigne consignes-agents/voltige.md --nom voltige --modele claude-fable-5-2 --budget 12 --etape C
@@ -32,7 +33,7 @@ cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\ecurie; node agent-api.js --consi
 
 Sa tâche (`consignes-agents/voltige.md`) : amener `pilote-voltige.js` au niveau — survivre comme `pilote.js`, voler, couper et faire des figures comme un
 joueur —, en s'appuyant sur l'enquête. Son rapport : `agents/<date>-voltige.md` ; il met `ETAPES.md` à jour et valide dans git (jamais de push).
-S'il n'a pas tourné (onglet fermé, clé absente) : relancer la commande ci-dessus depuis un terminal ordinaire.
+Il dure une à trois heures et occupe 6 des 8 cœurs du PC. Sans lui, la session qui reprend fait ce réglage elle-même (étape 1 ci-dessous).
 
 ## À faire ensuite, dans l'ordre
 
