@@ -146,6 +146,38 @@ le pilote de l'après-midi **2,54**, celui du soir **2,02**, une partie de joueu
 - canyon 910111 (la même mort dans toutes les variantes) : après 1,8 s de vol la caisse se pose à 53° de travers, retraverse la route en 0,3 s et
   finit dans la paroi — une pose « propre » pour le jeu (il tolère 55°), que le sol ne peut pas rattraper.
 
+### La fin de soirée du 26/11 : la loi « vers la route » du pilote, corrigée — les paliers perdus sont regagnés
+
+**Le compte des vols par durée** (`vols-longs.js`, grande note du soir) : un vol de plus de 5 s parti du dessus tuait le pilote **9 fois sur 21** ; les
+joueurs, 1 fois sur 11 (et ils en ont trois fois moins). Deux défauts, lus vue par vue (`vol-mort.js`) :
+- **nuages 910074** : la caisse passe sous le niveau de la dalle, se retrouve à 1,63 rad de l'axe de la route — et la loi ne braque plus (elle ne braque
+  que sous 1,6 rad) : 6 s tout droit, perpendiculaire à la route, réacteur allumé, jusqu'à la jauge vide. Tous les rayons disent « air » : rien ne la réveille ;
+- **nuages 910185, jade, ville** : la loi braque sur l'écart et l'axe du MOMENT, la main obéit 0,2 à 0,35 s plus tard ; à 600 km/h la caisse a déjà
+  retraversé la route : elle oscille à ± 100 m de part et d'autre de la dalle, volant à fond d'un côté puis de l'autre, jusqu'à la fin de l'air (les
+  joueurs, dans leurs vols longs, ne touchent presque pas au volant).
+
+**Adopté** (`pilote-voltige.js`, la loi du PILOTE seulement ; celle des rayons, dans les yeux, n'a pas changé) : `volDemiTour` (la loi braque aussi
+au-delà de 1,6 rad) et `volAvance:.25` (la loi est appliquée à l'écart et à l'axe qu'on aura dans 0,25 s, mesurés d'une vue à l'autre).
+
+| 24 courses de 300 s (graines 910000… et 930000…) | somme des paliers | morts pour 100 vols |
+|---|---|---|
+| le pilote du soir (sorti du dessous) | 163 | 13,9 · 15,3 |
+| + la loi braque au-delà de 1,6 rad | 167 | 8,5 · 15,3 |
+| + le cap visé selon la vitesse (`volRetour:.8`) | 186 | 8,5 · 9,7 |
+| + `volRetour:.8` et avance 0,2 s | 192 | 11,4 · 8,2 |
+| **+ avance 0,25 s (gardé)** | **193** | **8,7 · 8,1** |
+| + avance 0,15 s · avance 0,35 s | 180 · 185 | 11,5 · 9,2 — 9,6 · 10,6 |
+| (le pilote de l'après-midi, caché sous la dalle) | 208 | 7,5 · 9,0 |
+
+**La grande note** (`ml/bot/results/note-pilote-voltige-allege.json`, 20 courses de 900 s) : palier médian **8,5**, record **19** (le soir 7 et 14 ;
+l'après-midi, caché sous la dalle, 9,5 et 21 ; les joueurs 10 et 28) ; survie médiane 153 s (125) ; **8,3 morts pour 100 vols** (12) ; 5,2 vols par minute
+(4,1 ; joueurs 7,9) ; 21 % du temps en l'air (17,6 ; joueurs 31) ; **24 portails sur 36 passés en vol** (11 sur 26 ; joueurs 56 %) ; 0,97 figure lancée
+par minute (0,71) ; sous la dalle 3,5 % du sol ; écart aux joueurs **2,00** ; mixte **−3,5** (−5,1 le soir, −5,7 l'après-midi).
+
+**Ce qui tue maintenant** : 10 des 20 morts arrivent **dans la seconde qui suit une sortie de route**, contre le décor (roche 9, pic 3, eau 2 ; la
+grotte : 12 morts sur 61 vols). Deux formes (`morts-courtes.js`) : la pose trop en travers (0,5 à 1 rad : la caisse retraverse la route en une
+demi-seconde et ressort de l'autre côté), et un zigzag au sol qui s'amplifie vers 550 km/h (± 20 m, volant à fond) jusqu'au bord. C'est le chantier suivant.
+
 ### Les finitions de l'étape B et le contrôle du premier pilote (25/11/2026, soir)
 
 Fait par une session payée sur la clé d'API (le relais `relais.js`, agent « finitions-b », Opus 5.5), entre le premier pilote et le calibrage.

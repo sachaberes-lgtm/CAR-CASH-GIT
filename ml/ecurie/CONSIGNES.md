@@ -107,6 +107,12 @@ vols de 2,8 s. 4 % de leurs vols finissent par une mort — ils meurent aussi.
   3 paliers de moins, les morts jauge vide doublent. Les joueurs en donnent pourtant 2,6 par vol (et décollent nitro allumée 2 fois sur 3) : il y faut
   un rayon qui dise où mène un coup, les yeux n'en ont pas encore ;
 - quitter une façon dont la pose est promise dans plus de 3 s pour un rayon qui se pose plus tôt : rien de net ;
+- **la loi « vers la route » du pilote (fin de soirée du 26/11) : garde `volDemiTour` et `volAvance`.** La loi recopiée des rayons ne braquait plus
+  au-delà de 1,6 rad de l'axe de la route (6 s tout droit jusqu'à la jauge vide) et braquait sur l'écart du moment alors que la main obéit 0,25 s plus
+  tard (la caisse oscillait de part et d'autre de la dalle). Corrigée : 8 morts pour 100 vols au lieu de 14, un palier et demi de plus. Les rayons, eux,
+  jouent toujours l'ancienne loi : un rayon `versRoute` qui dit « air » n'est plus une condamnation ;
+- ce qui tue maintenant : la seconde qui suit une sortie de route sur les maps à décor (la grotte : 20 % des vols) — une pose à plus de 0,5 rad de
+  l'axe retraverse la route et ressort en face ; au sol, vers 550 km/h, la ligne zigzague de plus en plus large jusqu'au bord ;
 - faire osciller la ligne visée de ± 4,5 m pour imiter le slalom : le rythme ne change pas (c'est la main qui le fixe), la survie baisse.
 
 ## Ce qu'un vrai joueur fait, et qu'un pilote doit faire pour lui ressembler

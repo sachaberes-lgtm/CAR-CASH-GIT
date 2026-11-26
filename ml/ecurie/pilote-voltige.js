@@ -86,6 +86,9 @@ const REGLAGES={
                         d'un joueur tombe a 3,8 s (il va tout droit jusqu'a la premiere piece, a 4,1 s) ; celui du pilote d'avant a 0,5 s, a chaque course */
   portailVol:1,      /* 1 = sortir par le bord pour passer le portail EN VOL quand un rayon du sol l'annonce (0 = jamais). MESURE (ml/ecurie/etude/realisme.md
                         § 1.8) : les joueurs passent 56 % des portails en vol, le pilote d'avant 16 % */
+  volDemiTour:1,     /* 1 = la loi « vers la route » braque aussi quand la caisse est a plus de 1,6 rad de l'axe de la route (0 = elle lache le volant, comme les rayons) */
+  volRetour:0,       /* s : le cap vise vers la route est -lat / (volRetour x vitesse), au lieu de -lat / 40 m (0 = 40 m, comme les rayons) */
+  volAvance:.25,       /* s : la loi est appliquee a l'ecart et a l'axe qu'on aura dans ce temps-la (le retard de la main) ; 0 = a ceux du moment */
   figMax:2,          /* figures par vol au plus (le jeu : 3 a la fois) */
   figDepuis:.4,      /* s de vol avant la premiere figure (les joueurs : 0,56 s en mediane) */
   figHaut:15         /* m au-dessus de la route la plus proche pour une figure dans un vol subi (MESURE, grotte 910185 : une figure lancee a la 1re
@@ -248,10 +251,17 @@ function auSol(v,m){
 
 /* ---------- EN VOL ---------- */
 /* LA LOI « VERS LA ROUTE » (README § 2 bis), recopiee : c'est elle que jouent les rayons versRoute et versRoutePlane du radar */
-function versRoute(v,nitro){
-  const f=v.vol,p=f.proche,o={volant:0,manche:0,nitro:nitro};
+function versRoute(v,nitro,m){
+  const R=REGLAGES,f=v.vol,p=f.proche,o={volant:0,manche:0,nitro:nitro};
   if(!p)return o;
-  if(Math.abs(p.axe)<1.6)o.volant=cl((cl(-p.lat/40,-.6,.6)-p.axe)*1.6,-1,1)*(p.envers?-1:1);
+  let lat=p.lat,axe=p.axe;
+  if(m){const q=m.pv;
+    if(R.volAvance>0&&q&&v.t>q.t&&v.t-q.t<=.25){const dt=v.t-q.t,dl=(p.lat-q.lat)/dt,da=(p.axe-q.axe)/dt;
+      if(Math.abs(dl)<400&&Math.abs(da)<6){lat+=dl*R.volAvance;axe+=da*R.volAvance;}}
+    m.pv={t:v.t,lat:p.lat,axe:p.axe};}
+  if(Math.abs(p.axe)<1.6||R.volDemiTour>0){
+    const portee=R.volRetour>0?Math.max(40,R.volRetour*Math.max(1,+v.vitesse||0)):40;
+    o.volant=cl((cl(-lat/portee,-.6,.6)-axe)*1.6,-1,1)*(p.envers?-1:1);}
   if(p.haut>10&&Math.abs(p.lat)<v.demi*2){
     const air=f.air&&f.air.reste!=null?f.air.reste:f.reste,delai=p.haut/Math.max(1,p.versRoute);
     if(delai>2||delai>air-1)o.manche=p.envers?1:-1;}
@@ -265,12 +275,12 @@ const FACONS={
   pique:()=>({volant:0,manche:-1,nitro:false}),
   plane:()=>({volant:0,manche:0,nitro:true}),
   planeCabre:()=>({volant:0,manche:1,nitro:true}),
-  versRoute:v=>versRoute(v,false),
-  versRoutePlane:v=>versRoute(v,true),
+  versRoute:(v,m)=>versRoute(v,false,m),
+  versRoutePlane:(v,m)=>versRoute(v,true,m),
   /* VISER un troncon en contrebas (le raccourci) : la loi est celle des yeux (vue.vol.cible : son volant et son manche du moment) — tourner le vol
      vers la cible, regler la portee au manche, puis « vers la route » a l'approche. Sans cible en vue : vers la route. */
-  viser:v=>{const c=v.vol.cible;return c?{volant:c.volant,manche:c.manche,nitro:false}:versRoute(v,false);},
-  viserPlane:v=>{const c=v.vol.cible;return c?{volant:c.volant,manche:c.manche,nitro:true}:versRoute(v,true);}
+  viser:(v,m)=>{const c=v.vol.cible;return c?{volant:c.volant,manche:c.manche,nitro:false}:versRoute(v,false,m);},
+  viserPlane:(v,m)=>{const c=v.vol.cible;return c?{volant:c.volant,manche:c.manche,nitro:true}:versRoute(v,true,m);}
 };
 const LONGS={rien:1,plane:1,versRoute:1,versRoutePlane:1,viser:1,viserPlane:1};   /* les rayons joues jusqu'au bout de l'air : « libre » y veut dire jauge vide */
 /* ce que vaut l'issue d'un rayon : 100 = une pose droite tout de suite ; sous 35 = on y reste.
@@ -336,7 +346,7 @@ function enVol(v,m){
         if(s>sMieux){sMieux=s;mieux=nom;cibleMieux=ry&&typeof ry.cible==='number'?ry.cible:null;}}
       if(mieux&&sMieux>sMien+(fuit?4:R.bascule)){m.facon=mieux;m.tFacon=v.t;m.cible=mieux.indexOf('viser')===0?cibleMieux:null;}}
   }
-  const o=FACONS[m.facon](v);
+  const o=FACONS[m.facon](v,m);
   /* LES FIGURES. MESURE (joueurs au clavier) : 2,8 figures lancees par minute, toutes en vol ; 18 % des vols en ont, 1,9 par vol a figure (5 au
      plus), la premiere 0,56 s apres le decollage, dans des vols de 2,8 s. On en lance une quand la facon tenue mene a une pose propre dans plus de
      figTemps secondes, que la jauge la paie et que le reacteur ne sert pas (tenir la NITRO redresse la figure). La direction : avant, arriere en
