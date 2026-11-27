@@ -267,6 +267,9 @@ function course(J,cerveau,graine,o){
       /* (2026-11-26, le rayon « viser ») `cible` : l'abscisse (m le long de la piste) que le pilote vise en vol — a la vue suivante, les rayons « viser »
          et vue.vol.cible (le volant et le manche de la loi) portent sur ELLE, pas sur le troncon que les yeux auraient choisi */
       if(typeof ordre.cible==='number'&&ordre.cible-ordre.cible===0)dem=Object.assign(dem||{},{cible:ordre.cible});
+      /* (2026-11-27, la loi « retour ») `retours` : les lois de retour vers la route que le pilote veut voir jouees (4 au plus, des nombres : yeux.js) —
+         a la vue suivante, un rayon « retour<i> » par loi et vue.vol.retours[i] (le volant, le manche et la nitro de la loi a cet instant) */
+      if(Array.isArray(ordre.retours)&&ordre.retours.length)dem=Object.assign(dem||{},{retours:ordre.retours.slice(0,4)});
       if(ordre.drift&&!D.P)driftPerdus++;   /* (doigts v2) l'ordre « drift » n'est lu que par une main a profil : compte, pour le dire au bilan */
       if(ordre.ensuite&&!D.P)ensuitePerdus++;   /* (relecture) « ensuite » non plus */
       D.ordre(ordre,vue,etatMain);decisions++;
