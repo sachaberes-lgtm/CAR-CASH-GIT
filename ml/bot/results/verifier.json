@@ -1,5 +1,5 @@
 {
- "date": "2026-11-26T15:22:33.729Z",
+ "date": "2026-11-27T13:47:45.036Z",
  "graine": 910000,
  "tmax": 150,
  "regime": "max",
@@ -323,7 +323,7 @@
   "etat": {
    "ok": true,
    "photos": 92,
-   "ms_par_controle": 1466,
+   "ms_par_controle": 1011,
    "changes": {},
    "brouillons": {
     "V9J": 1
@@ -406,10 +406,10 @@
    "viser": 740
   },
   "a": {
-   "ms_moy": 0.608,
-   "ms_max": 12.611,
-   "ms_sol_moy": 0.539,
-   "ms_vol_moy": 2.253,
+   "ms_moy": 0.413,
+   "ms_max": 8.041,
+   "ms_sol_moy": 0.362,
+   "ms_vol_moy": 1.629,
    "vues_sol": 1440,
    "vues_vol": 60,
    "pas_vol_moy": 966,
@@ -422,10 +422,10 @@
    "manque": []
   },
   "b": {
-   "ms_moy": 0.598,
-   "ms_max": 12.721,
-   "ms_sol_moy": 0.531,
-   "ms_vol_moy": 2.201,
+   "ms_moy": 0.411,
+   "ms_max": 9.004,
+   "ms_sol_moy": 0.362,
+   "ms_vol_moy": 1.584,
    "vues_sol": 1440,
    "vues_vol": 60,
    "pas_vol_moy": 966,
@@ -440,10 +440,10 @@
   "ok": true,
   "cartes": {
    "nuages": {
-    "ms_moy": 0.925,
-    "ms_max": 3.333,
-    "ms_sol_moy": 0.731,
-    "ms_vol_moy": 1.189,
+    "ms_moy": 0.628,
+    "ms_max": 2.27,
+    "ms_sol_moy": 0.484,
+    "ms_vol_moy": 0.822,
     "vues_sol": 98,
     "vues_vol": 72,
     "pas_vol_moy": 1079,
@@ -456,10 +456,10 @@
     "manque": []
    },
    "espace": {
-    "ms_moy": 0.86,
-    "ms_max": 5.406,
-    "ms_sol_moy": 0.668,
-    "ms_vol_moy": 1.029,
+    "ms_moy": 0.596,
+    "ms_max": 2.215,
+    "ms_sol_moy": 0.416,
+    "ms_vol_moy": 0.754,
     "vues_sol": 76,
     "vues_vol": 86,
     "pas_vol_moy": 1088,
@@ -472,10 +472,10 @@
     "manque": []
    },
    "grotte": {
-    "ms_moy": 2.491,
-    "ms_max": 10.09,
-    "ms_sol_moy": 1.073,
-    "ms_vol_moy": 4.442,
+    "ms_moy": 1.646,
+    "ms_max": 5.805,
+    "ms_sol_moy": 0.659,
+    "ms_vol_moy": 3.003,
     "vues_sol": 99,
     "vues_vol": 72,
     "pas_vol_moy": 1142,
@@ -488,10 +488,10 @@
     "manque": []
    },
    "ville": {
-    "ms_moy": 1.241,
-    "ms_max": 5.933,
-    "ms_sol_moy": 0.64,
-    "ms_vol_moy": 2.198,
+    "ms_moy": 0.833,
+    "ms_max": 2.58,
+    "ms_sol_moy": 0.428,
+    "ms_vol_moy": 1.479,
     "vues_sol": 59,
     "vues_vol": 37,
     "pas_vol_moy": 720,
@@ -504,10 +504,10 @@
     "manque": []
    },
    "jade": {
-    "ms_moy": 3.967,
-    "ms_max": 14.92,
-    "ms_sol_moy": 1.579,
-    "ms_vol_moy": 6.684,
+    "ms_moy": 2.63,
+    "ms_max": 8.718,
+    "ms_sol_moy": 1.026,
+    "ms_vol_moy": 4.456,
     "vues_sol": 91,
     "vues_vol": 80,
     "pas_vol_moy": 984,
@@ -520,10 +520,10 @@
     "manque": []
    },
    "canyon": {
-    "ms_moy": 4.449,
-    "ms_max": 43.895,
-    "ms_sol_moy": 2.637,
-    "ms_vol_moy": 15.436,
+    "ms_moy": 3.012,
+    "ms_max": 32.383,
+    "ms_sol_moy": 1.78,
+    "ms_vol_moy": 10.478,
     "vues_sol": 97,
     "vues_vol": 16,
     "pas_vol_moy": 617,
