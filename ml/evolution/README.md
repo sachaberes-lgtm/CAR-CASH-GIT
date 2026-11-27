@@ -13,6 +13,9 @@ Tout se passe dans ce dossier, `ml/evolution/`. Le jeu n'est jamais modifié.
 
 La sélection tourne dans **un dossier à elle**, `CASH-CAR-evolution`, à côté du dépôt. Personne n'y travaille : rien ne la dérange.
 
+**Avant tout, si la boucle payante (`ml/ecurie/boucle.js`) tourne sur ce PC : arrête-la, et retire sa tâche planifiée** (celle qui la relance
+toute seule). Les deux ne peuvent pas se partager le processeur, et la sélection refuse de partir tant que `boucle.js` tourne.
+
 1. Ouvre le dossier du dépôt déjà cloné (celui qui contient `VERSION PRINCIPALE`). Clique dans la barre d'adresse de l'Explorateur, tape `cmd`, puis Entrée.
    Une fenêtre noire s'ouvre dans ce dossier.
    Tape `node --version` : il doit afficher `v24…` (sinon, installe Node 24 d'abord).

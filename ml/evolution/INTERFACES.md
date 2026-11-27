@@ -1002,7 +1002,7 @@ les commandes à taper sur le PC de nuit : `notes/LIVRAISON.md`.
   `--arret-apres` ou `--travailleurs` ; `--valider-maintenant` avec `--une-generation` ou `--arret-apres` ; `--une-generation` avec `--arret-apres`), `--config`
   introuvable → l'erreur et l'usage sur stderr, **code 2**. `--option=valeur` est accepté. `--travailleurs` de 1 à 256.
 - **D'où vient le nombre de courses à la fois**, dans l'ordre : (1) `--travailleurs N`, pour ce lancement, rien n'est écrit ; (2) un nombre écrit dans la config ;
-  (3) `<etat>/machine.json` s'il est de CE PC (même `os.hostname()`, même nombre de cœurs logiques L, format `evolution-machine-1`, nombre dans [1, L] — ou
+  (3) `<etat>/machine.json` s'il est de CE PC (même empreinte du nom du PC — `commun.empreintePc()`, `pc-` + 8 caractères : le nom lui-même n'est pas écrit, le fichier part sur un dépôt public —, même nombre de cœurs logiques L, format `evolution-machine-1`, nombre dans [1, L] — ou
   dans `banc.liste` si la liste a été écrite à la main) ; (4) le repli `max(1, L−2)`, borné par le plus grand nombre d'une liste `banc.travailleurs` écrite.
   `commun.lireConfig` résout `"auto"` : `cfg.travailleurs` est **toujours un entier** ; en plus `_travailleursConfig`, `_travailleursSource`
   (`'ligne de commande'|'config'|'banc'|'auto'`), `_bancAFaire`, `_machine`, `_machinePourquoi`.
@@ -1058,8 +1058,8 @@ les commandes à taper sur le PC de nuit : `notes/LIVRAISON.md`.
      nouveau commit ; jamais `--force`, jamais vers main. Un envoi raté n'est pas une erreur (code 0).
   En `auto` : rien à l'écran, aucune question (`GIT_TERMINAL_PROMPT=0`, `GCM_INTERACTIVE=never`, `GIT_SSH_COMMAND=ssh -o BatchMode=yes -o ConnectTimeout=30` s'il
   n'y en a pas déjà un). Le détail va dans `etat\traces.log` (mis de côté en `traces.log.ancien` au-delà de ~1 Mo) ; la ligne de bilan dans traces.log
-  (réessayée 5 fois : un enfant de git peut tenir le fichier un instant) et, si personne ne le tient, dans sortie.log. `<pc>` = `os.hostname()` en minuscules,
-  hors `[a-z0-9._-]` → `-` (ou `EVOLUTION_PC`). Vercel ne publie que `main` : une branche `evolution-…` ne déclenche rien.
+  (réessayée 5 fois : un enfant de git peut tenir le fichier un instant) et, si personne ne le tient, dans sortie.log. `<pc>` dans le message des commits = la fin du nom de la branche (`evolution-ryzen` → `ryzen` ; relecture de Fable, 27/11 : le nom Windows du PC ne part pas sur GitHub) ;
+  `histoire.js --pc` (le nom du PC en minuscules, ou `EVOLUTION_PC`) ne sert plus qu'à l'affichage local de l'installateur. Vercel ne publie que `main` : une branche `evolution-…` ne déclenche rien.
 - `installer-tache.cmd` pose la tâche horaire `CashCarEvolution-traces` (§ 2.9 bis).
 
 ### 9.3 Les gestes des joueurs (lot « gestes ») : 21 gènes, le génome v:2

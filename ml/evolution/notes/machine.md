@@ -41,7 +41,7 @@ Codes de sortie : 0 (arrêt propre ou aide), 1 (erreur fatale, ou `--banc` fini 
 
 1. `--travailleurs N` : pour ce lancement seulement, rien n'est écrit, pas de banc.
 2. Un nombre écrit dans la config (`config.json` ou la surcouche) : il l'emporte partout, pas de banc.
-3. `<etat>/machine.json`, s'il est de CE PC (même `os.hostname()`, même nombre de cœurs logiques), au format `evolution-machine-1`, avec un nombre entre 1 et 256. Sinon il est ignoré, et la raison est dite.
+3. `<etat>/machine.json`, s'il est de CE PC (même empreinte du nom du PC (`commun.empreintePc()`, depuis la relecture de Fable), même nombre de cœurs logiques), au format `evolution-machine-1`, avec un nombre entre 1 et 256. Sinon il est ignoré, et la raison est dite.
 4. Sinon, le repli : `max(1, L-2)` (L = cœurs logiques), borné par le plus grand nombre de `banc.travailleurs` quand c'est une liste écrite. Le banc est alors à faire.
 
 Le banc est refait au lancement suivant quand machine.json :

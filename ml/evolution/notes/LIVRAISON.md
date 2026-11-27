@@ -12,8 +12,8 @@ s'afficher.
 
 ## Ce qui n'est pas prêt (ou pas vérifié)
 
-- **Rien n'est commité ni poussé.** Tant que ce code n'est pas commité sur `bots-ecurie` **et poussé sur GitHub**, le Ryzen ne peut pas le recevoir
-  (`git fetch origin` ne verra que l'ancien). C'est l'étape 0 ci-dessous, à faire depuis le PC de développement.
+- **(mis à jour par Fable, 27/11 au soir) Le code est commité sur `bots-ecurie` (commit `7c5204afa` et suivants).** L'étape 0 ci-dessous est faite par la session principale ; le Ryzen ne reçoit le code qu'une fois `bots-ecurie` poussé sur GitHub.
+- **Avant d'installer sur le Ryzen : arrêter la boucle payante (`ml/ecurie/boucle.js`) et retirer sa tâche planifiée.** La sélection refuse de partir tant que `boucle.js` tourne.
 - **Le vrai banc sur le Ryzen n'a jamais tourné** : sa durée (10 min à 1 h) et le nombre qu'il choisira sont des estimations.
 - **Aucun envoi vers le vrai GitHub n'a été essayé** : seulement vers une origine locale, dans un dossier temporaire. Le premier envoi doit être fait d'un
   double-clic sur `sauver-traces.cmd` (connexion GitHub une fois) : la tâche de chaque heure ne pose jamais de question.

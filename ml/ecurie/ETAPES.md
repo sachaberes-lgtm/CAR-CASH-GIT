@@ -11,15 +11,52 @@ Le plan d'ensemble est dans `PLAN.md`, l'étude dans `etude/`.
 |---|---|---|
 | A | L'étude : ce qui donne des pièces, ce qui tue, les vrais joueurs mesurés | **faite** (commit `67ea1f009`) |
 | B | Les fondations : défauts corrigés, yeux v2, doigts v2 | **faite** (25/11/2026) : défauts corrigés, yeux v2 et doigts v2 écrits, relus par des agents, corrigés, puis contrôlés une dernière fois (`verifier.js` TOUT PASSE en régime max et en régime allégé, 5 rejeux exacts sur 5, la boucle à blanc va au bout avec un cerveau à profil) ; **finitions du 25/11 au soir** : le radar sonde le canyon à chaque image (exact, +0,2 % de coût), la justesse refaite avec la main réglée, les fins de ligne du labo. Ce qui reste faux ou non mesuré est écrit plus bas : ce sont des limites connues, pas des oublis |
-| C | Le pilote d'élite, amélioré par tours | **commencée (25/11/2026) : le premier pilote existe** (`ml/ecurie/pilote.js`, main `clavier`). Au tri (12 graines, 600 s, allégé) : **palier médian 12,5, meilleur 20**, contre 6 et 17 pour le bot de référence sur les mêmes graines. **Contrôlé le 25/11 au soir** (aucune erreur ; sur 8 graines de 600 s : médian 11,5 et meilleur 18, contre 7 et 16). **Pas encore fait** (le travail de la chaîne) : la note de 20 graines de 900 s, l'inscription au labo, les tours payés de la boucle |
-| C bis | La boucle automatique sur le crédit API (les 200 €), avec un plafond de dépense | **prête, essayée à blanc** : un tour complet le 24/11 puis de nouveau le 25/11 avec un cerveau à profil (0 €) ; la clé d'API est acceptée par les quatre modèles (`essai-api.js` du 24/11 : Opus 5.5, Sonnet 5.5 et Fable 5.2 avec repli, Haiku 5.5 sans) ; `boucle.js` a un plafond général de 200 € lu au journal des dépenses (`--plafond`, commit `71f3c7bea`). **Calibrée le 25/11** : un tour de 6 variantes par modèle sur le même pilote (4,63 €) ; aucun palier gagné validé, écart entre modèles dans le bruit ; **choix : Sonnet 5.5, départ `pilote.js`** (`agents/choix.json`, détails dans la partie C bis) |
+| C | Le pilote d'élite, amélioré par tours (le réglage à la main s'arrête le 27/11/2026 : le dernier pilote réglé, `pilote-voltige.js`, devient le témoin et le point de départ de la sélection) | **commencée (25/11/2026) : le premier pilote existe** (`ml/ecurie/pilote.js`, main `clavier`). Au tri (12 graines, 600 s, allégé) : **palier médian 12,5, meilleur 20**, contre 6 et 17 pour le bot de référence sur les mêmes graines. **Contrôlé le 25/11 au soir** (aucune erreur ; sur 8 graines de 600 s : médian 11,5 et meilleur 18, contre 7 et 16). **Pas encore fait** (le travail de la chaîne) : la note de 20 graines de 900 s, l'inscription au labo, les tours payés de la boucle |
+| C bis | La boucle automatique sur le crédit API (les 200 €), avec un plafond de dépense | **prête, essayée à blanc** : un tour complet le 24/11 puis de nouveau le 25/11 avec un cerveau à profil (0 €) ; la clé d'API est acceptée par les quatre modèles (`essai-api.js` du 24/11 : Opus 5.5, Sonnet 5.5 et Fable 5.2 avec repli, Haiku 5.5 sans) ; `boucle.js` a un plafond général de 200 € lu au journal des dépenses (`--plafond`, commit `71f3c7bea`). **Calibrée le 25/11** : un tour de 6 variantes par modèle sur le même pilote (4,63 €) ; aucun palier gagné validé, écart entre modèles dans le bruit ; **choix : Sonnet 5.5, départ `pilote.js`** (`agents/choix.json`, détails dans la partie C bis). **Abandonnée comme voie le 27/11/2026** (décision de Sacha : la sélection naturelle, étape S) ; lancée par Sacha sur le Ryzen le 27/11, elle doit y être arrêtée avant la sélection |
+| S | **La sélection naturelle** (`ml/evolution/`, décidée par Sacha le 27/11/2026) : remplace l'amélioration à la main et la boucle payante | **construite et commitée le 27/11/2026** (`e2ea8d2c9`, puis les finitions `7c5204afa`, pas encore poussées) ; une vraie évolution tourne sur le Xeon dans une copie à part du dépôt ; **jamais lancée sur le Ryzen** (voir « Le changement de cap du 27/11 », ci-dessous) |
 | D | Le facteur humain et les 30 niveaux | à faire |
 | E | Le juge, niveau par niveau | à faire |
 | F | Le paquet du matchmaking et le dossier du portfolio | à faire |
 
 ---
 
-## OÙ ON EN EST — à lire en premier (25/11/2026 : l'étape B est finie, le premier pilote est contrôlé, la chaîne tourne)
+## OÙ ON EN EST — à lire en premier (mis à jour le 27/11/2026 à 23 h 15 ; le titre d'origine, du 25/11, disait « la chaîne tourne » : périmé)
+
+### Le changement de cap du 27/11/2026 : la sélection naturelle (`ml/evolution/`)
+
+**La décision de Sacha (27/11, l'après-midi ; ses messages : `agents/tmp-voltige/paroles-sacha.md`).** Ne plus améliorer le pilote à la main ni par une
+boucle payante, mais **recycler** le travail fait pour construire un apprentissage par sélection naturelle — le moins bon bot est renvoyé — qui tourne
+seul sur son second PC, le Ryzen, **sans jetons ni abonnement**. Les étapes C (réglage à la main) et C bis (la boucle sur la clé d'API) s'arrêtent là ;
+leurs outils et leurs chiffres restent dans le dépôt, plus bas. Sacha a aussi demandé de remettre la méthode en question avant chaque étape, et de
+garder des traces de tout pour son portfolio (`portfolio/journal/2026-11-27.md`).
+
+**Ce qui en est sorti le 27/11.**
+- L'étude d'abord (commit `033bfebeb`) : la spécification (`etude/selection-naturelle/SPECIFICATION.md`), l'étude du bruit des notes, quatre enquêtes
+  sur les gestes des joueurs (`PROPOSITIONS.md`).
+- **La construction** (commit `e2ea8d2c9`, 19 h 32 ; 10 agents Opus d'après son message) : 20 pilotes, 6 naissances par génération (mutation ; croisement
+  3 fois sur 10), les moins bons renvoyés sur leur note cumulée, un témoin figé (`pilote-voltige.js`), un champion sacré sur 24 graines neuves, un coffre
+  de 40 graines qui ne servent jamais à l'entraînement. Le **génome** (la liste des réglages d'un pilote) part du pilote écrit à la main : 86 gènes et
+  deux petits réseaux de neurones muets à la naissance. **La note F** = palier − 4 × écart aux joueurs.
+- **Les finitions** (commit `7c5204afa`, 23 h 12 ; 7 agents Opus en trois lots, chacun relu, puis un intégrateur) : chaque PC mesure lui-même combien
+  de courses il tient à la fois (`etat/machine.json`) ; l'arbre généalogique (`arbre.js`), le récit (`histoire.js`) et la mise à l'abri horaire sur une
+  branche à part (`sauver-traces.cmd`) ; les cinq gestes des enquêtes en gènes **éteints à la naissance** (genome v:2, 107 gènes). Détail :
+  `ml/evolution/INTERFACES.md` § 9 et `ml/evolution/notes/`.
+- **La relecture de Fable** (même commit) : le nom Windows du PC ne part plus sur GitHub (le dépôt est public) ; l'alerte « population trop semblable »
+  ramenée à 0,012 (0,05 dans le code de 19 h 32, puis 0,04 chez l'intégrateur), sous la distance mesurée à la naissance d'une vraie population de 20 (0,028).
+
+**La première vraie évolution, sur le Xeon** (dans le worktree `C:\Users\sacha\code\CASH-CAR-evolution-essai` — une seconde copie de travail du dépôt,
+dans son dossier à elle —, code de `e2ea8d2c9`, 20 pilotes, 12 graines, 4 courses à la fois). Lancée par erreur à 19 h 33, une erreur de Claude : `evoluer.js --aide |
+head -30` a démarré la vraie évolution (l'option `--aide` n'existait pas et les options inconnues étaient ignorées), puis le programme est mort quand
+`head` a fermé sa sortie (erreur EPIPE). D'après Fable, le verrou a refusé un second lancement ; relancée à 19 h 43 pour deux générations, elle a repris les 22 courses
+déjà jouées dans le cache. Les deux défauts sont corrigés dans `7c5204afa`. Lu à 23 h 15 (`node ml/evolution/etat.js`, `etat/generations.jsonl`) :
+génération 0, 280 courses (258 jouées, 22 du cache) en 81 minutes, 191 courses à l'heure, aucune non mesurée ; le témoin : palier moyen 6,5,
+F 2,8 ± 0,9, E 0,90 sur 12 courses ; le coffre, 40 courses ; génération 1 : 6 naissances (1 immigré, 3 mutations, 2 croisements), 312 courses
+(26 pilotes × 12 graines), 282 faites à 23 h 15. Rien encore ne dit si la sélection apprend.
+
+**Ce qui n'est pas fait au soir du 27/11** : `7c5204afa` n'est pas poussé ; la sélection n'a jamais tourné sur le Ryzen (la boucle payante y tournait
+encore) ; aucun envoi vers le vrai GitHub par `sauver-traces.cmd` ; les tâches planifiées jamais posées (c'est à Sacha) ; on ne sait pas si un seul geste
+est bon. La suite, dans l'ordre, et les points ouverts (la validation du sacre, `sansCout()` du labo, le biais des rayons `versRoute`, l'archivage des
+courses, `morts.jsonl`) : **`PASSATION.md`, partie du 27/11**. Le mode d'emploi pour Sacha : `ml/evolution/README.md`.
 
 ### L'étape C, deuxième temps : le pilote qui vole (26/11/2026)
 
@@ -519,7 +556,7 @@ Les chiffres ci-dessous sont ceux des correcteurs ; je n'ai refait moi-même que
 **La clé d'API.** Sacha l'a posée (`setx ANTHROPIC_API_KEY`) ; `node essai-api.js` du 24/11 passe pour les quatre modèles. Une session ouverte
 avant le `setx` ne voit pas la clé : lancer depuis un terminal neuf.
 
-**Le texte à coller dans la prochaine session :**
+**Le texte à coller dans la prochaine session** (périmé depuis le 27/11/2026 : prendre celui de `PASSATION.md`, partie du 27/11) :
 > la chaîne tourne ; pour reprendre, lire `ml/ecurie/agents/chaine.log` et relancer `node chaine.js` (dans `ml/ecurie`).
 
 ---

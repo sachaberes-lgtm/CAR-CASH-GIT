@@ -2,7 +2,7 @@
 
 Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du chantier quand il aide. Les mots en *italique* ont leur propre entrée.
 
-*Vérifié le 27/11 contre `ml/bot/README.md`, `ml/labo/README.md`, `ml/ecurie/PLAN.md`, `ml/ecurie/etude/selection-naturelle/SPECIFICATION.md` et les chapitres du journal. Quand un mot a changé de sens en cours de route (« génération », « champion »…), les deux sens sont donnés.*
+*Vérifié le 27/11 contre `ml/bot/README.md`, `ml/labo/README.md`, `ml/ecurie/PLAN.md`, `ml/ecurie/etude/selection-naturelle/SPECIFICATION.md` et les chapitres du journal ; complété le 27/11 au soir d'après `ml/evolution/INTERFACES.md` § 9, `ml/evolution/notes/` et `ml/evolution/note.js`. Quand un mot a changé de sens en cours de route (« génération », « champion »…), les deux sens sont donnés.*
 
 ---
 
@@ -14,6 +14,8 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 
 **Algorithme génétique.** Une famille de méthodes qui imitent l'évolution : une population de solutions, les meilleures ont des enfants modifiés (*mutation*, *croisement*), les moins bonnes disparaissent. Le système du 27/11 en est un, « à état stationnaire » : la population n'est jamais remplacée d'un coup, seuls les moins bien notés partent à chaque *génération*.
 
+**Arbre généalogique.** La page que la *sélection naturelle* dessine d'elle-même à chaque *génération* (`ml/evolution/arbre.js`, depuis le 27/11 au soir) : chaque pilote est un point à sa naissance et un trait jusqu'à son renvoi, un fil le relie à son ou ses parents, et la lignée du *champion* est en vert. Un clic ouvre la fiche d'un pilote : de qui il est né, et ce qui a changé, *gène* par gène.
+
 **Assiette.** L'inclinaison avant-arrière de la voiture en vol : le nez qui monte ou qui descend.
 
 **Au bit près.** Identique jusqu'au moindre chiffre enregistré. Exemple : rejoué avec la même *graine*, le même jeu et le même *cerveau*, une course redonne la même course au bit près, dans un *processus neuf*.
@@ -22,6 +24,8 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 
 **Bac fermé.** L'espace clos où tourne le *cerveau* du bot : ni fichiers, ni réseau, ni horloge, ni hasard ; il reçoit la vue en texte et rend son ordre en texte. Le bac laissait passer l'horloge et le hasard jusqu'au 24/11, où il a été fermé.
 
+**Banc.** La mesure qu'une machine fait d'elle-même au premier lancement de la *sélection naturelle* : le *témoin* joue des courses avec plusieurs nombres de courses à la fois, choisis d'après le nombre de *cœurs* de la machine, et l'on garde le nombre qui joue le plus de courses à l'heure sans panne ; il est écrit dans `etat/machine.json`. Exemple : dans l'essai du 27/11 au soir, 103 courses à l'heure une par une, 172,4 à deux, deux retenues.
+
 **Boucle (payante).** Le cycle où Claude écrit des *variantes* du *pilote*, où le vrai jeu les note, et où l'on garde la meilleure avant de recommencer ; elle est payée sur le *crédit d'API*. Elle a tourné pour le *calibrage* du 25/11, puis Sacha l'a lancée sur son second PC le 27/11.
 
 **Bot.** Un programme qui joue à CASH CAR à la place d'un joueur : des *yeux*, un *cerveau* (ou *pilote*) et une *main*.
@@ -29,6 +33,8 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 **Bot de référence.** Le premier bot, écrit à la main sans apprentissage (`ml/bot/reference.js`) : le point de départ à battre. Le 25/11, le premier *pilote* atteint le *palier médian* 12,5 contre 6 pour lui.
 
 **Bruit.** Les écarts que le seul hasard des courses produit d'un essai à l'autre, et qui ne prouvent donc rien. Exemple : une même variante a fait 139 paliers sur 12 courses, puis 84 (26/11).
+
+**Cache (des courses).** La mémoire des courses déjà jouées : une course déjà jouée par le même pilote, sur la même *graine* et dans la même *époque*, est relue au lieu d'être rejouée. Le 27/11 au soir, après la mort du premier lancement, 22 courses ont été rendues par le cache.
 
 **Calibrage.** L'essai du 25/11 qui a mis quatre modèles de Claude à la même tâche (écrire des variantes du pilote) pour savoir lequel vaut son prix : 4,63 €, aucune variante gardée.
 
@@ -58,9 +64,13 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 
 **Écart aux joueurs.** La note de ressemblance inventée le 26/11 : la distance moyenne entre un lot de courses du bot et les parties des joueurs au clavier, sur quinze mesures (nitro, vols, raccourcis, figures, poses, slalom, vitesse…). 0 veut dire « au milieu des joueurs » ; une seule partie de joueur comparée aux autres est à 0,9 ; le pilote est passé de 3,05 (le premier pilote) à 1,67 (27/11).
 
+**Écart E (dans la foule).** La mesure de ressemblance de la *sélection naturelle* (`ml/evolution/note.js`) : comme l'*écart aux joueurs*, mais un écart n'y compte qu'au-delà de la dispersion des joueurs eux-mêmes. Elle ne se compare donc pas à l'écart aux joueurs des chapitres précédents (1,67 dans la nuit du 27/11, sur 20 courses de 900 s) : à la génération 0 de la première vraie sélection, le témoin vaut 0,90 en écart E, sur 12 autres courses.
+
 **Écart-type.** L'écart habituel autour de la moyenne. Exemple : d'une course à l'autre, le palier d'un même pilote s'écarte d'habitude de 3,2 de sa moyenne.
 
-**Empreinte.** Un court code calculé sur tout le déroulé d'une ou plusieurs courses : le moindre écart le change. Tant que l'empreinte du contrôle `verifier.js` reste `a7b3171768ca`, le jeu rejoue exactement pareil.
+**Empreinte.** Un court code calculé sur tout le déroulé d'une ou plusieurs courses : le moindre écart le change. Tant que l'empreinte du contrôle `verifier.js` reste `a7b3171768ca`, le jeu rejoue exactement pareil. Le 27/11 au soir, une empreinte du nom de l'ordinateur remplace ce nom dans ce qui part sur le dépôt public : elle le désigne sans permettre de le retrouver.
+
+**Époque.** Une période de la *sélection naturelle* pendant laquelle le jeu, les *yeux*, la *main*, l'*étalon* et le code qui fabrique les pilotes ne changent pas. Quand l'un d'eux change, une nouvelle époque commence : les notes repartent de zéro et les courses sont rejouées, mais les pilotes restent.
 
 **Entrée saturée ou morte.** Une information donnée à un *réseau de neurones* qui reste toujours au maximum (saturée) ou ne change jamais (morte), et ne lui apprend donc rien. Le 08/09, 8 entrées sur 15 l'étaient.
 
@@ -72,15 +82,21 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 
 **Fois le temps réel.** Combien de secondes de jeu l'ordinateur joue pendant une seconde d'horloge. Le 23/11, le vrai jeu sans écran tournait à 6,8 fois le temps réel en moyenne.
 
+**Gène, gène éteint.** Un gène est une des cases du *génome* : un réglage (une distance, une durée…) ou un interrupteur (allumé ou éteint). Un gène éteint à la naissance est un interrupteur à zéro : le geste qu'il commande ne s'exécute pas, et seule une *mutation* peut l'allumer. Le 27/11 au soir, cinq gestes de joueurs sont entrés dans le génome ainsi, éteints ; environ 3 enfants sur 100 allument un geste donné.
+
 **Génération.** Un tour de sélection. En septembre et octobre : une manche où toutes les voitures courent, après quoi la moitié la moins bonne est remplacée par des enfants. Dans la *sélection naturelle* du 27/11 : 6 enfants naissent, les 26 pilotes courent les mêmes 12 courses, puis les 6 moins bien notés sur toutes leurs courses sont renvoyés (les nouveau-nés, le *témoin* et le *champion* sont protégés).
 
-**Génome.** Ce qui se transmet d'un pilote à ses enfants et peut muter. Dans la sélection du 27/11 : environ 75 réglages du pilote écrit à la main et les 312 *poids* de deux petits *réseaux de neurones* ; les *yeux*, la *main* et la forme du code restent hors du génome, figés.
+**Génome.** Ce qui se transmet d'un pilote à ses enfants et peut muter. Dans la sélection du 27/11 : environ 75 réglages du pilote écrit à la main et les 312 *poids* de deux petits *réseaux de neurones* ; les *yeux*, la *main* et la forme du code restent hors du génome, figés. Construit, il compte 86 *gènes* (réglages et interrupteurs) ; les cinq gestes ajoutés le 27/11 au soir le portent à 107.
 
 **Graine.** Le nombre qui fixe le hasard d'une course : même graine, même piste, mêmes tirages. On peut ainsi faire courir plusieurs bots sur exactement les mêmes courses.
 
 **Graines neuves (validation sur).** Refaire courir une variante sur des courses qu'elle n'a jamais vues, pour vérifier que son gain n'était pas de la chance. Exemple : la meilleure variante du 25/11, 13 contre 11 en note en grand, tombe à 10,5 contre 11 sur 20 graines neuves.
 
 **Greffé, muet.** Un *réseau de neurones* ajouté à un *pilote* déjà écrit, réglé pour ne rien changer à la conduite à la naissance, puis libre d'évoluer. C'est la forme choisie le 27/11, parce qu'un réseau parti de zéro n'avait pas appris à voler.
+
+**Immigré.** Dans la *sélection naturelle*, un enfant qui n'est pas une petite *mutation* mais une copie très changée du *champion*, ajoutée de temps en temps pour garder de la variété dans la population. Le 27/11, la génération 1 de la première vraie sélection en compte un sur six naissances.
+
+**Intégrateur.** L'*agent* qui reçoit les morceaux écrits par les autres, les assemble et vérifie qu'ils marchent ensemble.
 
 **Jeton.** L'unité de texte, un morceau de mot, qui mesure la longueur d'une réponse d'un modèle de Claude et son prix. Le 25/11, la seule réponse de Fable a été coupée à 32 000 jetons.
 
@@ -108,7 +124,9 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 
 **Normalisation.** Remettre les informations données à un réseau de neurones à une échelle comparable. Essayée le 08/09 : moins bien (record médian de 4 995 à 3 244 m).
 
-**Note (fitness).** Le score qui sert à classer les bots. En septembre, surtout la distance parcourue ; dans la *boucle*, le palier, puis le critère « mixte » (palier et ressemblance) ; dans la sélection du 27/11, une note qui mêle palier et ressemblance, cumulée sur toutes les courses du pilote depuis sa naissance.
+**Note (fitness).** Le score qui sert à classer les bots. En septembre, surtout la distance parcourue ; dans la *boucle*, le palier, puis le critère « mixte » (palier et ressemblance) ; dans la sélection du 27/11, une note qui mêle palier et ressemblance, cumulée sur toutes les courses du pilote depuis sa naissance : la note F, le palier moins quatre fois l'*écart E*. Exemple : le témoin, à la génération 0, F 2,8 ± 0,9.
+
+**Récit (de la sélection).** Le texte que la *sélection naturelle* écrit d'elle-même à chaque *génération* (`ml/evolution/histoire.js`, `etat/histoire.md`) : dix lignes « Où on en est », puis une entrée par génération (naissances, renvois, meneur, *coffre*). Rien n'y est ajouté à la main.
 
 **Palier.** Le niveau atteint pendant une course : un moteur gagné en ramassant des pièces, de 1 à 30 ; chaque course repart du palier 1. Le but de Sacha : des bots à chaque palier, du 1 au 30.
 
@@ -134,15 +152,19 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 
 **Réseau de neurones, poids.** Un petit calcul qui transforme ce que la voiture « voit » en touches à presser ; ses nombreux réglages, les poids, s'ajustent par essais au lieu d'être écrits à la main.
 
+**Sacre, faux sacre.** Le sacre est le moment où un pilote devient *champion* dans la *sélection naturelle*, après avoir battu le champion en titre sur 24 *graines neuves*. Un faux sacre couronne un pilote qui n'est pas vraiment meilleur, par chance : la règle d'abord écrite en aurait fait 18,3 % ; corrigée avant le premier lancement, 3,7 % (commit `e2ea8d2c9`).
+
 **Salle de projection.** Une page qui rejoue les courses gardées des bots avec l'image du jeu, et sait les filmer (`node ml/labo/projection.js`).
 
 **Sans écran, simulateur.** Le vrai jeu exécuté par l'ordinateur sans rien afficher, en calcul seul, pour jouer des courses bien plus vite qu'un humain et noter les bots.
 
 **Seconde chance.** L'option du jeu qui permet de repartir après une mort : une par partie, après 20 s, au prix d'un palier.
 
-**Sélection naturelle.** Le mot de Sacha, le 27/11, pour un système « où le bot le moins bon est viré », qui tourne seul sur son PC sans rien payer. Techniquement, c'est un *algorithme génétique* de la famille de la *neuroévolution* (`ml/evolution/`, construit, pas encore lancé au 27/11).
+**Sélection naturelle.** Le mot de Sacha, le 27/11, pour un système « où le bot le moins bon est viré », qui tourne seul sur son PC sans rien payer. Techniquement, c'est un *algorithme génétique* de la famille de la *neuroévolution* (`ml/evolution/`). Construit le 27/11, lancé pour la première fois le soir même sur le Xeon ; pas encore lancé sur le Ryzen à la fin de cette journée.
 
 **SVG.** Un format d'image dessinée par le code, nette à n'importe quelle taille. Toutes les images du journal sont des SVG, en clair et en sombre.
+
+**Tableau de bord.** La page que la *sélection naturelle* refait à chaque *génération* (`etat/tableau.html`) : ses graphiques, le champion, le témoin, le *coffre*, les alertes. Elle s'ouvre sans Internet ; ses dix lignes essentielles se lisent aussi par `node ml/evolution/etat.js`.
 
 **Taux de pose.** La part des décollages qui finissent par un atterrissage réussi sur la route. Le 08/09 : 9 % (19 sur 217).
 
@@ -152,6 +174,10 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 
 **Tri, note en grand.** Les deux premiers filtres de la *boucle* : le tri fait courir chaque variante sur 6 graines de 10 minutes ; la meilleure passe ensuite la note en grand, sur 20 graines de 15 minutes, avant la validation sur *graines neuves*.
 
+**Verrou.** Le fichier qui dit qu'une *sélection naturelle* tourne déjà dans un dossier, avec un signe de vie régulier, pour qu'une seconde ne parte pas en même temps. Si le programme meurt, le verrou cesse de battre et la relance suivante le reprend (27/11 au soir).
+
 **Workflow.** Un lot d'*agents* lancés ensemble par un programme. Exemple : celui de 152 agents qui a vidé l'*abonnement* le 25/11.
+
+**Worktree.** Un second dossier de travail tiré du même historique git, sur sa propre branche : on peut y faire tourner la sélection sans la mêler au reste du chantier. La première vraie sélection a tourné dans l'un d'eux, le 27/11 au soir ; sur le Ryzen, elle doit tourner dans un autre, sur la branche `evolution-ryzen`.
 
 **Yeux.** Ce que le bot sait du jeu à chaque instant, sous forme de nombres et non d'images : la route devant, les pièces, les jauges, son vol, et le *radar*.

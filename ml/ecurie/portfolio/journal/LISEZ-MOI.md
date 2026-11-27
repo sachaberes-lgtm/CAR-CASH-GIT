@@ -22,7 +22,7 @@ Un mot vous arrête (palier, graine, génome, écart aux joueurs, témoin…) ? 
 6. Le 25/11, quatre modèles de Claude ont écrit des variantes d'un premier pilote. Aucune n'a tenu sur des courses neuves.
 7. Les 26 et 27/11, Claude a réglé un pilote à la main pour qu'il vole comme un joueur. Il ressemble davantage aux joueurs (écart aux joueurs 1,67, contre 3,05 pour le premier pilote), mais il atteint des paliers plus bas.
 8. Un juge automatique reconnaît toujours le bot (AUC 0,97, où 0,5 voudrait dire « pile ou face »).
-9. Le 27/11, Sacha a écarté le réglage à la main. Il a demandé une sélection naturelle qui tourne seule sur son PC. Le système est construit (`ml/evolution/`), mais il n'a pas encore tourné.
+9. Le 27/11, Sacha a écarté le réglage à la main. Il a demandé une sélection naturelle qui tourne seule sur son PC. Le système est construit (`ml/evolution/`). Le soir, il a tourné pour la première fois sur le Xeon, l'ordinateur de travail (20 pilotes, 191 courses à l'heure), après un départ par erreur qui a révélé deux défauts, corrigés le soir même. À 23 h 14, aucun pilote n'avait battu le pilote de départ, et rien n'avait encore tourné sur le Ryzen.
 10. Sur ce PC, 36,92 € de crédit d'API ont été dépensés sur 200 (montants estimés par les agents en dollars, 1 € compté pour 1 $). Une boucle lancée par Sacha sur son second PC, le Ryzen, n'est pas vérifiée ici.
 
 Sources : chapitres `2026-11-24.md`, `2026-11-25_suite.md`, `2026-11-26.md`, `2026-11-27.md`, `comment-on-a-travaille.md`.
@@ -43,7 +43,7 @@ La même histoire, date par date :
 - **24/11 : un nouveau but, pas encore une nouvelle méthode.** Sacha remplace « des bots qui jouent vraiment » par « des bots indiscernables, à chaque palier ». → `2026-11-24.md`
 - **25/11 : la boucle payante.** Des modèles de Claude, payés sur le crédit d'API, écrivent des variantes d'un premier pilote. *Résultat :* aucun gain qui tienne sur des courses neuves. → `2026-11-25.md`, `2026-11-25_suite.md`
 - **26/11 : un pilote réglé à la main, un défaut à la fois.** *Provoqué par* Sacha, qui trouve les bots « trop frileux de s'envoler » et demande à 12:11 UTC une enquête sur tout ce qui distingue encore un bot d'un joueur. Claude choisit de ne pas relancer la boucle payante : elle ne notait que le palier. Il écrit une mesure de ressemblance, « l'écart aux joueurs ». → `2026-11-26.md`
-- **27/11 : retour à la sélection naturelle, mais hybride et dans le vrai jeu.** *Décidé par* Sacha à 15:25 UTC : « le plan que tu as fait ne me correspond pas vraiment » ; la veille (26/11, 12:54 UTC), il demandait déjà pourquoi ne pas lancer « plein de simulations en local » sur un autre PC. *Forme choisie par* Claude : le génome part du pilote écrit à la main, avec deux petits réseaux « muets » à la naissance. Un bot est jugé sur toutes ses courses, pas sur une seule manche. → `2026-11-27.md`
+- **27/11 : retour à la sélection naturelle, mais hybride et dans le vrai jeu.** *Décidé par* Sacha à 15:25 UTC : « le plan que tu as fait ne me correspond pas vraiment » ; la veille (26/11, 12:54 UTC), il demandait déjà pourquoi ne pas lancer « plein de simulations en local » sur un autre PC. *Forme choisie par* Claude : le génome part du pilote écrit à la main, avec deux petits réseaux « muets » à la naissance. Un bot est jugé sur toutes ses courses, pas sur une seule manche. *Le soir même*, le système construit tourne pour la première fois sur le Xeon ; les cinq gestes de joueurs relevés par les enquêtes du jour ne sont plus réglés à la main, mais offerts à la sélection, éteints à la naissance. → `2026-11-27.md`
 
 ---
 
@@ -100,6 +100,7 @@ Tout ce qui a été essayé puis écarté ou remplacé, une ligne par essai. Le 
 | Régler le pilote à la main (la méthode) | 27/11 | réglages des 26 et 27/11 : écart aux joueurs 2,00 → 1,67, palier médian 8,5 → 7,5 | écarté par Sacha : « le plan que tu as fait ne me correspond pas vraiment » | 27 |
 | Renvoyer le dernier sur une seule manche de 12 courses | 27/11 | bruit du palier 3,21 par course contre 0,86 entre pilotes ; « tirer au sort à 60 % » | note cumulée sur toutes les courses | 27 |
 | Un réseau parti de zéro | 27/11 | l'essai d'octobre (selon la spécification, non revérifié) | réseaux « greffés » muets sur le pilote | 27 |
+| Un seuil d'alerte « population trop semblable » fixé avant toute vraie population | 27/11 | une vraie population de 20 vaut 0,028 à sa naissance, sous le seuil de 0,05 : l'alerte est levée dès la génération 0 | seuil ramené à 0,012, recalé sur la mesure | 27 |
 | Croire les enquêtes d'agents sur parole | 27/11 | slalom annoncé 0,70 s, rejoué 1,16 et 0,80 s ; « sans morts nettes » démenti (7 contre 5) | chaque enquête est relue par un vérificateur qui refait les mesures | 27 |
 | Un compte rendu à chaque fin de session | 24–25/11 | deux comptes rendus (25/11), aucun ensuite | laissé ; ce journal prend le relais | comment |
 | L'agent payant « voltige » | 26/11 | une session Claude ne peut pas lancer une dépense (« l'app l'a refusé ») | prêt, jamais lancé | 26, comment |
@@ -153,12 +154,14 @@ Les citations ont leur orthographe rectifiée, jamais leur sens. Les heures sont
 | Juge « humain ou bot » (AUC) | 0,97 : le bot est toujours reconnu | `63012939f`, `etude/realisme.md` | 26 |
 | Courses par pilote pour voir 1 palier moyen d'écart | environ 140 | `etude/selection-naturelle/bruit/resultats.txt` | 27 |
 | Crédit d'API dépensé sur ce PC | 36,92 € sur 200 (Ryzen non compté) | `ml/labo/journal/depenses.jsonl` | 25_suite, 27 |
+| Première vraie sélection, génération 0 sur le Xeon | 280 courses en 81 min, 191 jouées à l'heure ; le témoin au palier moyen 6,5 ; aucun pilote meilleur que lui à 23 h 14 | `etat/generations.jsonl`, `etat.js` (copie à part du dépôt) | 27 |
+| Faux sacres de champion, avant et après la correction | 18,3 % → 3,7 % | `e2ea8d2c9` | 27 |
 
 ---
 
 ## 6. Ce qu'on peut montrer
 
-Contrôlé le 27/11 avec `ls` et `git ls-files`.
+Contrôlé le 27/11 avec `ls` et `git ls-files` ; recontrôlé le 27/11 à 23 h 14, après les commits du soir.
 
 **Ce qui existe**
 
@@ -166,17 +169,17 @@ Contrôlé le 27/11 avec `ls` et `git ls-files`.
 |---|---|---|
 | `ml/ecurie/portfolio/index.html` | la page portfolio du 25/11 : schémas de l'architecture et de la boucle, arbre du calibrage, « Ce qui n'a pas marché » | oui |
 | `ml/ecurie/portfolio/images/*.svg` (sauf `journal-*`) | 5 figures de la page du 25/11 (`course-dessus`, `radar`, `main`, `paliers`, `justesse`), chacune en clair et en sombre ; refaites par `node ml/ecurie/portfolio/figures.js` à partir de `donnees/radar-c0003-g910629.json.gz` | oui |
-| `ml/ecurie/portfolio/images/journal-*-clair.svg` et `-sombre.svg` | les 5 images du journal, chacune en clair et en sombre (les chapitres montrent la version claire) : la **frise** des changements de méthode (§ 2 ci-dessus et `2026-11-27.md`), les **apprentissages de zéro** de septembre et octobre (`00_avant-le-22-novembre.md`), les **dépenses** du crédit d'API (`2026-11-25_suite.md`), **ressembler ou gagner**, le chemin du pilote du 25 au 27/11 (`2026-11-26.md`), et le **bruit des notes** (`2026-11-27.md`) | **non** (non suivies au 27/11) |
-| `ml/ecurie/portfolio/figures-journal/*.js` | les 5 scripts qui fabriquent ces images, un par image, chacun avec en tête la liste des fichiers qu'il lit ; ils ne jouent aucune course. Pour refaire une image, depuis la racine du dépôt : `node ml/ecurie/portfolio/figures-journal/<nom>.js` (`frise`, `apprentissages-de-zero`, `depenses`, `ressembler-ou-gagner`, `bruit-des-notes`). Limite : `ressembler-ou-gagner.js` lit aussi `ml/labo/tampon/boucle/val-c0010.json`, hors git, et s'arrête sans lui | **non** (non suivis au 27/11) |
+| `ml/ecurie/portfolio/images/journal-*-clair.svg` et `-sombre.svg` | les 5 images du journal, chacune en clair et en sombre (les chapitres montrent la version claire) : la **frise** des changements de méthode (§ 2 ci-dessus et `2026-11-27.md`), les **apprentissages de zéro** de septembre et octobre (`00_avant-le-22-novembre.md`), les **dépenses** du crédit d'API (`2026-11-25_suite.md`), **ressembler ou gagner**, le chemin du pilote du 25 au 27/11 (`2026-11-26.md`), et le **bruit des notes** (`2026-11-27.md`) | oui depuis `53703c501` (27/11, 19 h 18) |
+| `ml/ecurie/portfolio/figures-journal/*.js` | les 5 scripts qui fabriquent ces images, un par image, chacun avec en tête la liste des fichiers qu'il lit ; ils ne jouent aucune course. Pour refaire une image, depuis la racine du dépôt : `node ml/ecurie/portfolio/figures-journal/<nom>.js` (`frise`, `apprentissages-de-zero`, `depenses`, `ressembler-ou-gagner`, `bruit-des-notes`). Limite : `ressembler-ou-gagner.js` lit aussi `ml/labo/tampon/boucle/val-c0010.json`, hors git, et s'arrête sans lui | oui depuis `53703c501` |
 | `ml/labo/arbre.html` | l'arbre des cerveaux du labo (calibrage du 25/11) | oui |
 | `ml/labo/rejeux/*.json` | les touches image par image des courses gardées (cerveaux c0001 à c0004 et suivants) : de quoi refaire un film | oui |
 | `ml/labo/trajectoires/*.json.gz` | les mêmes courses vues de dessus | oui |
 | `ml/labo/videos/*.webm` | 4 films de courses (c0001-g910407, c0003-g910407, c0003-g910629, c0004-g910000), du 24 et 25/11 | **non** (dossier ignoré ; ils se refont à partir des rejeux) |
-| `ml/ecurie/portfolio/images/journal-le-jeu.jpg` | une image du jeu, la voiture en vol au-dessus de la route (premier pilote, 25/11), en tête de ce LISEZ-MOI | **non** (faite le 27/11, non suivie) |
-| `ml/ecurie/portfolio/images/journal-planche-reference.jpg` | la **planche** du bot de référence : neuf instants de sa course de 39,9 s, jusqu'à sa chute sur la roche (`2026-11-24.md`) | **non** (faite le 27/11, non suivie) |
-| `ml/ecurie/portfolio/images/journal-planche-pilote.jpg` | la **planche** du premier pilote : neuf instants de sa meilleure course (5 min 40 s, quatre maps, des vols de 5 s) (`2026-11-25_suite.md`) | **non** (faite le 27/11, non suivie) |
-| `ml/ecurie/portfolio/images/journal-duel-meme-piste.jpg` | le **duel** : la référence et le premier pilote sur la même piste, aux mêmes instants, côte à côte (`2026-11-25_suite.md`) | **non** (faite le 27/11, non suivie) |
-| `ml/ecurie/portfolio/figures-journal/planche.js` | le script de ces quatre images : il lit un film (Chrome sans écran et muet, sans ffmpeg) et compose la planche ; il ne joue aucune course. Les commandes exactes sont dans les chapitres où les images paraissent. Limite : il lit les films, qui sont hors git | **non** (fait le 27/11, non suivi) |
+| `ml/ecurie/portfolio/images/journal-le-jeu.jpg` | une image du jeu, la voiture en vol au-dessus de la route (premier pilote, 25/11), en tête de ce LISEZ-MOI | oui depuis `4c1fe5c3c` (27/11, 19 h 43) |
+| `ml/ecurie/portfolio/images/journal-planche-reference.jpg` | la **planche** du bot de référence : neuf instants de sa course de 39,9 s, jusqu'à sa chute sur la roche (`2026-11-24.md`) | oui depuis `4c1fe5c3c` |
+| `ml/ecurie/portfolio/images/journal-planche-pilote.jpg` | la **planche** du premier pilote : neuf instants de sa meilleure course (5 min 40 s, quatre maps, des vols de 5 s) (`2026-11-25_suite.md`) | oui depuis `4c1fe5c3c` |
+| `ml/ecurie/portfolio/images/journal-duel-meme-piste.jpg` | le **duel** : la référence et le premier pilote sur la même piste, aux mêmes instants, côte à côte (`2026-11-25_suite.md`) | oui depuis `4c1fe5c3c` |
+| `ml/ecurie/portfolio/figures-journal/planche.js` | le script de ces quatre images : il lit un film (Chrome sans écran et muet, sans ffmpeg) et compose la planche ; il ne joue aucune course. Les commandes exactes sont dans les chapitres où les images paraissent. Limite : il lit les films, qui sont hors git | oui depuis `4c1fe5c3c` |
 | `ml/labo/projection/page.html` | la salle de projection (`node ml/labo/projection.js`) | oui |
 | `ml/ecurie/comptes-rendus/compte-rendu-01.html`, `-02.html` | les deux comptes rendus pour Sacha, du 25/11 | oui |
 | `ml/ecurie/etude/*.md`, `etude/selection-naturelle/` | l'étude du 24/11 (neuf rapports, 28 défauts), l'enquête réalisme du 26/11, la spécification, l'étude du bruit et les quatre enquêtes du 27/11 | oui (la sélection naturelle depuis `033bfebeb`) |
@@ -186,9 +189,14 @@ Contrôlé le 27/11 avec `ls` et `git ls-files`.
 | `ml/sim/apercu-31415.png` | une image de septembre : la piste vue de dessus, 7 bots, « 0 pris » sur 5 981 raccourcis | oui |
 | `ml/train/results/runs/run-seed*.json`, `ml/reel/results/pop-reel-g1.json` | 21 courbes d'apprentissage de septembre et 57 valeurs d'octobre ; deux des 21 courbes (le run de 300 générations) et les 57 valeurs sont dessinées dans `journal-apprentissages-de-zero` | oui |
 | `ml/train/archive-2026-09-09/rapports/RAPPORT-SESSION-2026-09-08.md`, `ml/train/CRITIC-REPORT.md` | le rapport où Claude liste ses huit erreurs ; 83 verdicts d'un agent relecteur | oui |
-| `ml/evolution/` (README, tableaux d'essai `essais/test-tableau/complet/tableau.html` et `tests/relecture-robustesse/etat-journaux/tableau.html`) | le système de sélection naturelle et ses tableaux de bord, sur des données de test | **non** (dossier non suivi au 27/11) |
+| `ml/evolution/` (le code, `README.md`, `notes/LIVRAISON.md`, `tests/relecture-robustesse/etat-journaux/tableau.html`) | le système de sélection naturelle, son mode d'emploi pour Sacha, l'état de la livraison au Ryzen et un tableau de bord sur des données de test | oui depuis `e2ea8d2c9` (27/11, 19 h 32, envoyé sur GitHub) ; les finitions du soir dans `7c5204afa` (23 h 12), pas encore envoyé à 23 h 14 |
+| `ml/evolution/arbre.js` et `essais/integration/etat/arbre.html` | l'**arbre généalogique** des pilotes : un point à la naissance, un trait jusqu'au renvoi, un fil vers chaque parent, la lignée du champion en vert ; un clic ouvre la fiche d'un pilote, avec ce qui a changé gène par gène. La page ne demande pas Internet. Celle qui existe vient d'un essai (4 pilotes, 3 générations), pas d'une vraie sélection | le programme oui (`7c5204afa`) ; la page **non** (`essais/` est ignoré) |
+| `ml/evolution/histoire.js` et `essais/integration/etat/histoire.md` | le **récit** de la sélection, écrit par elle-même à chaque génération : « Où on en est » en dix lignes, puis une entrée par génération (naissances, renvois, meneur, coffre). Même essai | le programme oui (`7c5204afa`) ; le récit **non** (ignoré) |
+| `CASH-CAR-evolution-essai/ml/evolution/etat/tableau.html`, `resume.txt`, `sortie.log` | le **tableau de bord** et le journal de la première vraie sélection, sur le Xeon, refaits à chaque génération (code de 19 h 32 : ni arbre ni récit) | **non** (une copie à part du dépôt, sur aucune branche `evolution-…` ; `sortie.log` n'est jamais enregistré) |
+| `ml/evolution/sauver-traces.cmd` | la mise à l'abri : chaque heure, les journaux légers, l'arbre, le récit et le tableau partent sur une branche à part, `evolution-<pc>`, jamais sur celle du jeu ; c'est elle qui gardera la trace des générations du Ryzen | le programme oui (`7c5204afa`) ; jamais essayé vers le vrai GitHub au 27/11 |
 | `ml/ecurie/agents/tmp-voltige/` (dont `paroles-sacha.md`) | les messages datés de Sacha ; 525 fichiers d'outils et de sorties de lots au soir du 27/11 | **non** (dossier ignoré : fragile) |
-| ce journal | `ml/ecurie/portfolio/journal/` | oui depuis `29bce656d` (27/11, 18 h 49) ; la mise en page du soir (images, lexique) n'est pas encore enregistrée |
+| `ml/ecurie/portfolio/orchestration/` | les quatre travaux d'équipes d'agents du 27/11 (construction et finitions de `ml/evolution`, ce journal, ses images) : pour chacun le script qui a lancé l'équipe et le compte rendu de chaque agent, sortis par `outils/orchestration.js` ; un `LISEZ-MOI.md` dit qui écrit, qui relit, ce que les relecteurs ont trouvé, le coût en jetons et ce que la méthode ne garantit pas | **non** au soir du 27/11 (pas encore enregistré) |
+| ce journal | `ml/ecurie/portfolio/journal/` | oui depuis `29bce656d` (27/11, 18 h 49), avec ses images et son lexique depuis `53703c501` et `4c1fe5c3c` ; le récit du soir du 27/11 (cette mise à jour) n'est pas encore enregistré |
 
 **Ce que le plan prévoyait et qui n'existe pas encore** (`passation/BOTS-ML.md`, § 5.2 et 5.3)
 
@@ -196,7 +204,7 @@ Contrôlé le 27/11 avec `ls` et `git ls-files`.
 - Les **cartes** : toutes les trajectoires d'une génération superposées sur la route vue de dessus, les endroits où l'on meurt, les raccourcis découverts. Il existe une seule course vue de dessus (`course-dessus-*.svg`).
 - Les **planches** : deux existent depuis le 27/11 (la référence et le premier pilote, ci-dessus). Il n'en existe aucune du pilote actuel (celui réglé les 26 et 27/11), ni d'une partie de Sacha : aucun film d'eux n'a été tourné.
 - Les **duels côte à côte** : un duel bot contre bot existe (référence contre premier pilote, même graine). Le duel Sacha contre bot sur la même graine et le « même virage à travers les générations » n'existent pas.
-- Les **courbes** par génération (note, figures par minute, poses, euros). Seule la meilleure distance par génération de septembre et d'octobre est dessinée (`journal-apprentissages-de-zero`) ; les figures, les poses et les euros par génération ne le sont pas, et la sélection du 27/11 n'a pas encore de génération à tracer.
+- Les **courbes** par génération (note, figures par minute, poses, euros). Seule la meilleure distance par génération de septembre et d'octobre est dessinée (`journal-apprentissages-de-zero`) ; les figures, les poses et les euros par génération ne le sont pas, et la sélection du 27/11 n'a qu'une génération finie à 23 h 14 ; ses courbes seront celles de son tableau de bord, une fois qu'elle aura tourné sur le Ryzen.
 - Les **jalons** : un instantané figé par étape (`ml/labo/jalons/` n'existe pas).
 - Un film avec l'affichage du jeu (compteurs, argent) : les films actuels montrent l'image seule.
 
@@ -212,7 +220,7 @@ Contrôlé le 27/11 avec `ls` et `git ls-files`.
 | `2026-11-25.md` | 25/11, jusqu'à 15 h 30 | les yeux et la main relus, l'abonnement vidé par erreur, le premier pilote payé sur la clé d'API |
 | `2026-11-25_suite.md` | 25/11, soir | quatre modèles mis à l'épreuve, aucun ne fait mieux ; la page portfolio |
 | `2026-11-26.md` | 26/11 | apprendre au pilote à voler, un défaut à la fois ; l'écart aux joueurs |
-| `2026-11-27.md` | 27/11 | Sacha change de cap : du réglage à la main à la sélection naturelle |
+| `2026-11-27.md` | 27/11 | Sacha change de cap : du réglage à la main à la sélection naturelle ; le soir, la sélection tourne pour la première fois, sur le Xeon, et se prépare pour le Ryzen |
 | `comment-on-a-travaille.md` | 21–27/11 | qui fait quoi, les règles de travail et le raté d'où chacune vient |
 | `LEXIQUE.md` | — | les mots du chantier, par ordre alphabétique, en une ou deux phrases chacun |
 | `MODELE-D-ENTREE.md` | — | le gabarit des entrées à venir |

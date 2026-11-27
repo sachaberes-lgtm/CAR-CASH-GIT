@@ -95,7 +95,7 @@ Lancé d'un double-clic, ou par la tâche planifiée avec `auto` (rien à l'écr
 5. Sauf si `etat\PAS-D-ENVOI` existe : `git push origin HEAD:refs/heads/<la branche courante>` (une branche `evolution-…`, vérifiée au point 1 ; **changé
    à la relecture**, voir § 8), **même sans nouveau commit** (un envoi raté la veille part ainsi à la fois suivante). Jamais `--force`, jamais vers main.
    Un échec n'est pas une erreur (code 0).
-- `<pc>` = `os.hostname()` en minuscules, caractères hors `[a-z0-9._-]` remplacés par `-` (`node ml\evolution\histoire.js --pc` ; la variable
+- (Depuis la relecture de Fable, le `<pc>` des commits est la fin du nom de la branche, pas le nom Windows.) `<pc>` de `histoire.js --pc` = `os.hostname()` en minuscules, caractères hors `[a-z0-9._-]` remplacés par `-` (`node ml\evolution\histoire.js --pc` ; la variable
   d'environnement `EVOLUTION_PC` le remplace si besoin).
 - **Écart à la tâche : le journal.** La tâche voulait l'échec d'envoi dans `etat\sortie.log`. Mesuré : quand la sélection tourne, le `>>` de lancer.cmd tient
   sortie.log et Windows refuse un second écrivain (« Le processus ne peut pas accéder au fichier… »). Donc : le détail (sorties de git et de node) va dans

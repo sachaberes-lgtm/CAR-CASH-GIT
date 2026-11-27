@@ -1,6 +1,142 @@
-# Passation — l'écurie, le 26/11/2026 à 17 h
+# Passation — l'écurie, le 27/11/2026 à 23 h 15 (mise à jour ; l'état du 26/11 suit, en partie périmé)
 
 À lire en premier par la session qui reprend. Le détail de chaque étape est dans `ETAPES.md` ; ici, l'état exact, ce qui tourne, et quoi faire.
+
+## Le changement de cap du 27/11/2026 : la sélection naturelle
+
+**La décision de Sacha (27/11, l'après-midi).** Le plan d'avant ne lui correspondait pas. Il a demandé de « recycler » le travail déjà fait pour en
+tirer un système qui apprend seul, où le moins bon bot est renvoyé, et qui tourne en automatique sur son second PC, **sans jetons ni abonnement**,
+« juste par sélection naturelle » (ses messages datés : `agents/tmp-voltige/paroles-sacha.md` ; le récit de la journée :
+`portfolio/journal/2026-11-27.md`). Il a ajouté deux consignes de méthode : ne plus suivre un plan étape par étape sans se demander à chaque fois
+quelle est la meilleure méthode pour la suivante, et garder des traces de tout pour son portfolio.
+
+**Ce que ça arrête.** On n'améliore plus le pilote à la main (les réglages un par un des 26 et 27/11, plus bas), ni par la boucle payante
+(`boucle.js`, `chaine.js` : une IA payée sur la clé d'API écrit des variantes du pilote). Ces outils restent dans le dépôt, avec leur histoire ; ils
+ne sont plus la voie suivie. Ce qui remplace : **`ml/evolution/`**, un programme qui tourne sur le processeur du PC et ne paie rien.
+
+**Ce qu'est la sélection, en quelques phrases** (mode d'emploi : `ml/evolution/README.md` ; le détail technique : `ml/evolution/INTERFACES.md`).
+- Une **population de 20 pilotes**. Chaque pilote est décrit par un **génome** : la liste de ses réglages (les « gènes » : des seuils, des marges, des
+  interrupteurs) et deux petits réseaux de neurones muets à la naissance. Le pilote de départ est `pilote-voltige.js`, le pilote écrit à la main : le
+  génome le refabrique à l'identique.
+- À chaque **génération**, chaque pilote joue les mêmes **12 courses** (une course est tirée d'une « graine », un nombre qui fixe la piste et le hasard
+  du jeu). **6 pilotes naissent** : copies légèrement changées des meilleurs (mutation) ou mélanges de deux parents (croisement). Les moins bons, sur
+  leur note cumulée, sont renvoyés.
+- **La note F** = le palier atteint moins 4 fois **l'écart aux joueurs E** (la distance entre la conduite du bot et celle des vrais joueurs, mesurée
+  sur quinze mesures). Un bot qui monte haut en conduisant comme une machine n'est donc pas préféré.
+- **Le témoin** : `pilote-voltige.js` tel qu'il est, jamais modifié, rejoue chaque génération ; il sert d'étalon. **Le coffre** : 40 courses qui ne
+  servent jamais à l'entraînement ; le champion et le témoin y sont comparés : c'est le seul juge de « est-ce que ça apprend ».
+- **Le sacre** : un pilote ne devient champion qu'après avoir battu le champion en titre sur des courses neuves.
+- Le jeu n'est jamais modifié ; rien n'est écrit dans `code/` ni dans `VERSION PRINCIPALE/`.
+
+| | État au 27/11/2026 à 23 h 15 |
+|---|---|
+| **Le code de `ml/evolution/`** | **écrit et commité** : la construction (commit `e2ea8d2c9`, 19 h 32, 10 agents Opus d'après son message) puis les finitions (commit `7c5204afa`, 23 h 12, 7 agents Opus) : genome v:2 de 107 gènes |
+| **Envoyé sur GitHub** | **en partie** : `origin/bots-ecurie` est au commit `4c1fe5c3c` ; **les finitions (`7c5204afa`) ne sont pas poussées** (la branche locale a un commit d'avance) |
+| **Une vraie évolution sur le Xeon** | **en marche**, dans une copie à part du dépôt (voir plus bas) ; elle joue le code de `e2ea8d2c9`, sans les finitions |
+| **Sur le Ryzen** | **jamais lancée.** La boucle payante (`boucle.js`, plafonnée à 60 € sur ce PC) y tournait encore à la dernière nouvelle, relancée par une tâche planifiée de Windows (message de Sacha du 27/11, `agents/tmp-voltige/paroles-sacha.md`) |
+| **La mise à l'abri sur GitHub** (`sauver-traces.cmd`) | **jamais essayée vers le vrai GitHub** (seulement vers une copie locale, dans un dossier temporaire) |
+| **Les tâches planifiées de la sélection** (`installer-tache.cmd`) | **jamais posées** : c'est à Sacha |
+| **Les cinq gestes des joueurs** | **en gènes éteints à la naissance** ; on ne sait pas si un seul est bon : c'est la sélection qui le dira |
+
+### La première vraie évolution, sur le Xeon (le soir du 27/11)
+
+Le Xeon est le PC de développement. À 19 h 33 (l'heure écrite dans le verrou de ce premier lancement, `etat/verrou.json.mort-14580`), Fable (la session principale) a lancé `ml/evolution` pour la première fois avec la vraie
+configuration (20 pilotes, 12 graines par génération, 4 courses à la fois), dans un **« worktree »** à part : une seconde copie de travail du même
+dépôt, dans son propre dossier (`C:\Users\sacha\code\CASH-CAR-evolution-essai`), pour que rien de ce qui se fait ailleurs ne la dérange.
+
+**L'erreur de Fable, et ce qu'elle a montré.** Pour lire l'aide, Fable a tapé `node ml/evolution/evoluer.js --aide | head -30` (le `| head -30`
+envoie la sortie à un petit programme qui n'en garde que les 30 premières lignes). L'option `--aide` n'existait pas encore et les options inconnues
+étaient ignorées sans rien dire : **la vraie évolution a démarré**. Puis `head`, ses 30 lignes reçues, a fermé le tuyau ; le programme, qui n'avait plus
+où écrire, est mort (l'erreur « EPIPE », un tuyau cassé). Les garde-fous ont joué : d'après Fable, le **verrou** (un fichier qui dit « une sélection tourne ici ») a
+refusé un second lancement, et le résumé a affiché « ARRETE SANS PREVENIR ». Relancée pour deux générations (`--arret-apres 2`, ligne de commande lue
+sur le processus en marche) : le **cache** (la mémoire des courses déjà jouées) a rendu les 22 courses faites avant la mort, sans les rejouer
+(`etat/generations.jsonl` : 22 du cache, 258 jouées). Les deux défauts — une option inconnue ignorée, la mort quand la console se ferme — sont corrigés
+le soir même dans `7c5204afa` : une option mal écrite arrête tout avant la moindre course, et la console perdue, le journal continue dans `etat/sortie.log`.
+
+**Ce qu'elle a produit** (lu à 23 h 15 par `node ml/evolution/etat.js` et dans `etat/sortie.log` et `etat/generations.jsonl` de ce worktree) :
+- **Génération 0** : 280 courses (258 jouées, 22 rendues par le cache) en 4 874 s, soit 81 minutes, **191 courses à l'heure** ; aucune course non
+  mesurée, aucune panne. Le témoin : palier moyen 6,5 sur 12 courses, **note F 2,8 ± 0,9**, écart aux joueurs **E 0,90**. Le coffre : 40 courses
+  (le champion est encore le témoin : la différence vaut 0). Aucun meneur, aucun renvoi.
+- **Génération 1**, commencée à 21 h 04 : 6 naissances (1 immigré, c'est-à-dire une copie très changée du champion, ici encore le témoin ; 3 mutations ; 2 croisements), 312
+  courses (26 pilotes × 12 graines) ; **282 écrites au journal à 23 h 15**. Après elle, l'évolution s'arrêtera seule (`--arret-apres 2`).
+- L'alerte « population trop semblable (distance 0,028) » affichée par ce worktree vient de l'ancien seuil (0,05 dans le `config.json` de ce worktree, code de `e2ea8d2c9` ; l'intégrateur des finitions l'avait ensuite porté à 0,04) : la mesure de
+  cette vraie population est justement ce qui a fait baisser le seuil à 0,012 dans les finitions (`ml/evolution/config.json`, `_notes`).
+- Le contrôle d'identité à la naissance (le pilote fabriqué par le génome rejoue `pilote-voltige.js`, course pour course) : **IDENTIQUE sur 3 graines**,
+  d'après Fable ; la ligne n'est pas dans le `sortie.log` de ce worktree, qui commence à la relance de 19 h 43. Le même contrôle est écrit dans
+  `ml/evolution/notes/LIVRAISON.md` pour l'essai de l'intégrateur (graines 910000, 910037, 910074).
+
+### Les finitions du soir (commit `7c5204afa`)
+
+Un travail orchestré de 7 agents Opus : trois lots, chacun relu par un second agent, puis un intégrateur (notes : `ml/evolution/notes/machine.md`,
+`traces.md`, `gestes.md`, `integration.md`, `LIVRAISON.md` ; `INTERFACES.md` § 9).
+1. **Un réglage par PC** : chaque machine mesure seule, au premier lancement, combien de courses elle tient à la fois (« le banc », 10 minutes à une
+   heure, écrit dans `etat/machine.json`). Le même dépôt marche donc sur le Xeon et sur le Ryzen sans rien régler à la main.
+2. **Les traces pour le portfolio** : `arbre.js` (l'arbre généalogique des pilotes : qui naît de qui, quels gènes ont changé, qui est renvoyé, qui est
+   sacré), `histoire.js` (le récit, génération par génération), `sauver-traces.cmd` (chaque heure, un commit des journaux légers et un envoi sur une
+   branche à part `evolution-…`, jamais `main` ni `bots-ecurie` ; coupé par un fichier `etat\PAS-D-ENVOI`).
+3. **Les cinq gestes des enquêtes du 27/11** (lâcher le volant avant le contact, le slalom demandé par le pilote, le coup de nitro en vol, garder la
+   nitro un instant après le décollage, laisser la ligne suivre la glisse après la pose) : 21 gènes ajoutés, **éteints à la naissance** (genome v:2,
+   107 gènes au lieu de 86). Le pilote de départ conduit donc exactement comme avant ; chaque geste est allumé au hasard chez environ 3 enfants sur 100.
+
+**La relecture de Fable après les agents** (même commit) : le nom Windows du PC serait parti sur le dépôt GitHub, qui est **public** (dans
+`machine.json` et dans chaque message de commit de la mise à l'abri) — remplacé par une empreinte et par la fin du nom de la branche ; l'alerte
+« population trop semblable » était levée dès la génération 0 (une vraie population de 20 vaut 0,028 à la naissance) — seuil ramené à 0,012 ;
+l'installateur dit maintenant que ce qui part sur un dépôt public est lisible par tous.
+
+Dans l'essai de l'intégrateur (4 pilotes, 3 générations, `LIVRAISON.md`), un enfant a déjà allumé un geste (`relacheOn` : garder la nitro un instant
+après le décollage) et a joué ses courses sans erreur. **Cela ne dit rien de sa valeur.**
+
+**Le coût de la journée en jetons de sous-agents** (les bilans des quatre orchestrations, recopiés dans `portfolio/orchestration/LISEZ-MOI.md`) : le journal de bord
+(16 agents), 2,44 millions ; ses images (20 agents), 2,46 millions ; la construction de `ml/evolution` (10 agents), 2,40 millions ; les finitions (7 agents,
+3 h 18 de travail, 568 appels d'outils), 1,99 million.
+
+### À faire ensuite, dans l'ordre (27/11/2026)
+
+1. **Pousser `bots-ecurie`** (depuis le Xeon) : `git push origin bots-ecurie`. Sans cela, le Ryzen ne reçoit pas les finitions.
+2. **Sacha arrête la boucle payante du Ryzen** — `boucle.js` **et** la tâche planifiée qui la relance — **avant** de lancer la sélection : les deux
+   ne peuvent pas se partager les cœurs du processeur, et `evoluer.js` refuse de partir tant que `boucle.js` tourne (`evoluer.js`, « le refus de partir »).
+3. **Sacha installe sur le Ryzen** : `ml/evolution/README.md`, « INSTALLER SUR UN NOUVEAU PC », et `notes/LIVRAISON.md`, étape 1, avec ce qui doit
+   s'afficher à chaque commande. `installer-tache.cmd` et le premier `sauver-traces.cmd` se lancent par Sacha seulement.
+4. **Lire les premières générations** : `node ml\evolution\etat.js` (dix lignes), `etat/tableau.html`, `etat/histoire.md`, `etat/arbre.html` ; sur
+   GitHub, la branche `evolution-ryzen`. Les premiers jours, champion et témoin se confondent au coffre : c'est attendu.
+5. **Les points ouverts** :
+   - **Le sacre est prudent au point de rater des progrès.** Avec `seuilSacre` 2 (`INTERFACES.md` § 8), un meneur qui ne vaut pas mieux n'est sacré
+     à tort que 3,7 fois sur 100 (18,3 avec 1), mais un vrai gain d'un palier n'est sacré que 12 fois sur 100 (deux paliers : 34). L'idée à étudier :
+     une validation à deux étages (un premier tri sur peu de courses neuves, puis une confirmation sur davantage) ; rien n'est écrit.
+   - **Inscrire un champion au labo** : `inscrire-champion.js` exige d'abord une ligne dans `sansCout()` de `ml/labo/labo.js` (y ajouter `/^evolution/`,
+     la ligne exacte est dans `INTERFACES.md` § 2.11).
+   - **Le biais des rayons `versRoute`** : dans `ml/bot/yeux.js`, le radar joue la loi « vers la route » sans le retard de la main (la main obéit 0,2 à
+     0,35 s plus tard), alors que les lois « retour » l'ont depuis le 27/11. Le corriger change `yeux.js`, donc toutes les courses : **prévenir Sacha**,
+     il faudra re-noter (et la sélection changera d'époque, c'est-à-dire que ses notes repartiront de zéro).
+   - **Archiver les fichiers de courses des époques closes** (`etat/courses-*.jsonl`) : ils restent sur le disque et sont relus à chaque lancement
+     (`INTERFACES.md` § 8, « Non corrigé »).
+   - **`morts.jsonl` grossira** d'environ 1 Mo par jour : vers 100 Mo, la limite de GitHub, dans 2 à 3 mois ; il faudra le découper (`INTERFACES.md` § 9.5).
+   - Non relancés avec le code des finitions : `tests/evoluer.test.js` (étapes bd, c, f, g) et `tests/courses.test.js` (lents).
+6. L'évolution d'essai du Xeon (`CASH-CAR-evolution-essai`) s'arrête seule après la génération 1. Ses chiffres servent de premier repère ; elle ne
+   remplace pas celle du Ryzen.
+
+### Les règles qui tiennent toujours (27/11/2026)
+
+- **Ne jamais lancer `chaine.js` ni `boucle.js` sur le Xeon.**
+- **La clé d'API ne s'affiche ni ne s'écrit nulle part.**
+- **Un lancement payant se fait par Sacha**, jamais par une session Claude.
+- **`installer-tache.cmd` se lance par Sacha seulement** (il change des réglages de Windows).
+- **Rien dans `code/` ni dans `VERSION PRINCIPALE/`** : le jeu ne change pas.
+- Le dépôt GitHub est **public** : aucun nom de PC, aucune adresse, aucune clé dans ce qui part.
+
+### Le texte à coller dans la session qui reprend (27/11/2026)
+
+> Dans `C:\Users\sacha\code\CASH-CAR-bots-ecurie` (branche `bots-ecurie`), lis `ml/ecurie/PASSATION.md` (la partie du 27/11), `ml/evolution/README.md`
+> et `ml/evolution/notes/LIVRAISON.md`. Le cap est la sélection naturelle de `ml/evolution`, qui tourne seule sur le Ryzen sans jetons ni abonnement.
+> Vérifie que `bots-ecurie` est poussé, puis suis « À faire ensuite » de la passation. Ne lance jamais `chaine.js` ni `boucle.js` sur le Xeon, ne
+> touche ni à `code/` ni à `VERSION PRINCIPALE/`, et garde des traces de chaque décision pour le portfolio.
+
+---
+
+# L'état du 26/11/2026 à 17 h (gardé pour l'histoire)
+
+> ⚠ **Périmé depuis le 27/11/2026** : « Ce qui tourne : rien », les deux commandes à lancer (la chaîne, l'agent voltige), « À faire ensuite » et le
+> texte à coller de cette partie ne sont plus la voie suivie (voir le changement de cap, plus haut). Les chiffres du pilote et les défauts connus restent justes.
 
 ## Ce qui a changé le 26/11 (la demande de Sacha)
 
@@ -20,11 +156,11 @@ telle quelle dépenserait 12 € par jour à polir ce que Sacha vient de refuser
 | **Le pilote qui vole** (`ml/ecurie/pilote-voltige.js`) | **un premier palier, réglé le 26/11 après-midi** (détail et tableau : `ETAPES.md`, « L'étape C, deuxième temps ») — sur 20 courses de 900 s : palier médian **9,5**, record **21** (`pilote.js` : 11 et 20) ; **0,71 raccourci par minute** de 749 m (avant 0,24 ; les joueurs 3,49) ; **0,59 figure lancée par minute** (avant 0 ; joueurs 2,79) ; sous la dalle **14 %** du sol (avant 29 % ; joueurs 3 %) ; les plongeons voulus tuent 6 fois sur 100. **Le juge ne bouge pas : 0,97** (avant 0,974). `pilote.js` n'est pas remplacé |
 | **Le dessous de la dalle** (soir du 26/11 ; `ETAPES.md`, « Le soir du 26/11 ») | **fait** : le pilote ne se cache plus sous la route — **2,3 %** du sol (avant 14 % ; joueurs 3 %), passages de 1,5 s (avant jusqu'à 66 s). Écart aux joueurs **2,02** (avant 2,54, borne passée de 4 à 8 : `pilote.js` 3,05). Coût sur le moment : palier médian 7 (avant 9,5) — le dessous était un abri ; **regagné en fin de soirée** en corrigeant la loi « vers la route » du pilote (elle lâchait le volant au-delà de 1,6 rad de l'axe et braquait avec 0,25 s de retard sur la main) : palier médian 8,5, record 19, 8,3 morts pour 100 vols (avant 12), écart 2,00. **Puis la nitro au sol (nuit du 26 au 27/11)** : 53 % du temps au lieu de 31 % (joueurs 64 %), qui ne coûte plus qu'un demi-palier depuis que les vols tuent moins — **état du pilote : palier médian 7,5, record 14, écart aux joueurs 1,67** (`pilote.js` 3,05), mixte −2,5. Essayés et écartés le même soir : coups de nitro en vol à l'aveugle (−3 paliers), nitro à la sortie, biais doux, pose plus tôt |
 | Contrôles | `node ml/bot/verifier.js` **TOUT PASSE** (604 s, empreinte `a7b3171768ca`, après le dernier changement des yeux) ; `node ml/labo/rejouer.js --tout` : **34 rejeux exacts sur 34** (refaits le 26/11 à 17 h) |
-| GitHub | la branche `bots-ecurie` est poussée (`origin/bots-ecurie`), pour le second PC de Sacha (Ryzen 5 3600, 12 fils : à installer, voir plus bas) |
+| GitHub | la branche `bots-ecurie` est poussée (`origin/bots-ecurie`), pour le second PC de Sacha (Ryzen 5 3600, 12 fils : à installer, voir plus bas) — *au 27/11 au soir, le dernier commit (`7c5204afa`) n'est pas poussé : voir en tête* |
 
 **Dépensé : 36,92 € sur 200** au 26/11 à 14 h 30 (0 € aujourd'hui). L'abonnement : 3 à 4 % de la semaine après cette session.
 
-## Ce qui tourne : rien. Deux commandes prêtes, à lancer par Sacha
+## Ce qui tourne : rien. Deux commandes prêtes, à lancer par Sacha (périmé le 27/11/2026 : la boucle a ensuite tourné sur le Ryzen, puis le cap a changé)
 
 Une session Claude ne peut pas lancer elle-même ce qui dépense les crédits (l'app l'a refusé le 26/11 : c'est à Sacha de le déclencher), et un
 programme lancé par un outil de session meurt avec elle. Depuis un **terminal ordinaire** :
@@ -49,7 +185,7 @@ cd C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\ecurie; node agent-api.js --consi
 Sa tâche (`consignes-agents/voltige.md`) : ce que le réglage à la main n'a pas su faire — la nitro au bon endroit, la justesse des rayons `viser` du sol
 à la grotte, au canyon et sur la jade, des vols plus hauts. Son rapport : `agents/<date>-voltige.md`.
 
-## À faire ensuite, dans l'ordre
+## À faire ensuite, dans l'ordre (périmé le 27/11/2026 : remplacé par la liste du 27/11, en tête)
 
 1. **Ce qui trahit encore le plus le pilote qui vole** (le juge, 20 courses) : le slalom (ondulation z +4 : un aller toutes les 1,0 s sur 17 m, les
    joueurs 0,55 s sur 9 m — c'est la main et la ligne visée), la **nitro** (30 % du temps contre 63 %), la part du temps en l'air (17 % contre 28 %),
@@ -105,6 +241,6 @@ crédits API pour que ça dure toute la semaine ». Le rythme : ce qui reste des
 - **Les bots jouer, avec l'image** : `cd ml\labo; node projection.js`, puis http://localhost:3161/ . L'arbre : http://localhost:3161/labo/arbre.html .
 - **L'enquête** : `ml/ecurie/etude/realisme.md`. Les comptes rendus : `ml/ecurie/comptes-rendus/`. Le portfolio : `ml/ecurie/portfolio/index.html`.
 
-## Le texte à coller dans la session qui reprend
+## Le texte à coller dans la session qui reprend (périmé le 27/11/2026 : prendre celui du 27/11, en tête)
 
 > Dans `C:\Users\sacha\code\CASH-CAR-bots-ecurie` (branche `bots-ecurie`), lis `ml/ecurie/PASSATION.md`, `ml/ecurie/etude/realisme.md` puis `ml/ecurie/ETAPES.md`. Lis le rapport de l'agent voltige (`ml/ecurie/agents/*-voltige.md`), contrôle ses chiffres, puis suis « À faire ensuite » de la passation. Fais payer tout travail lourd par la clé d'API (`agent-api.js`), jamais par mon abonnement, sans dépasser 200 € au total d'ici le 08/12, et à chaque fin de contexte prépare un compte rendu esthétique et testable. Ne me pose pas de question.
