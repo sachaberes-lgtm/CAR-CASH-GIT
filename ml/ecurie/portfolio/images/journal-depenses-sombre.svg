@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 616" width="960" height="616" role="img" aria-label="Le crédit d’API dépensé sur ce PC : 36,92 € sur 200 €, poste par poste ; 4,63 € pour des variantes du pilote, dont aucune n’a tenu sur des courses neuves ; la boucle du second PC, plafonnée à 60 €, n’est pas comptée ici">
+<style>
+text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-variant-numeric:tabular-nums}
+.ti{font-size:15px;font-weight:650;fill:#e8e6e1}
+.t{font-size:12px;fill:#e8e6e1}
+.tb{font-size:12px;font-weight:650;fill:#e8e6e1}
+.t2{font-size:11.5px;fill:#9da2ab}
+.p{font-size:10.5px;fill:#9da2ab}
+.pt{font-size:10.5px;fill:#e8e6e1}
+.ptb{font-size:10.5px;font-weight:650;fill:#e8e6e1}
+.src{font-size:10px;font-style:italic;fill:#9da2ab}
+.m{text-anchor:middle}.e{text-anchor:end}
+</style>
+<defs><pattern id="hach-sombre" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#0f1115"/><line x1="0" y1="0" x2="0" y2="7" stroke="#9da2ab" stroke-width="1.6"/></pattern></defs>
+<rect width="960" height="616" fill="#0f1115"/>
+<text x="16" y="24" class="ti">Sur 36,92 €, 4,63 € ont servi à essayer des variantes du pilote : aucune n’a tenu sur des courses neuves</text>
+<text x="16" y="42" class="t2">Le crédit d’API dépensé sur ce PC, poste par poste : tout le journal des dépenses (26 lignes, toutes du 25/11/2026). Le reste, 32,29 €, a payé des</text>
+<text x="16" y="57" class="t2">agents chargés d’une seule tâche : écrire le pilote, le contrôler, choisir le modèle, faire le portfolio.</text>
+<text x="16" y="86" class="tb">Le crédit de 200 €</text>
+<path d="M16 96H182.3Q186.3 96 186.3 100V118Q186.3 122 182.3 122H16Z" fill="#6ea8fe"/>
+<rect x="188.3" y="96" width="276.4" height="26" fill="url(#hach-sombre)" stroke="#9da2ab" stroke-width="1" stroke-dasharray="4 3"/>
+<rect x="466.7" y="96.5" width="476.8" height="25" fill="none" stroke="#5a606a" stroke-width="1"/>
+<line x1="16" y1="122" x2="16" y2="126" stroke="#5a606a" stroke-width="1"/>
+<text x="20" y="137" class="p">0</text>
+<line x1="248" y1="122" x2="248" y2="126" stroke="#5a606a" stroke-width="1"/>
+<text x="248" y="137" class="p m">50</text>
+<line x1="480" y1="122" x2="480" y2="126" stroke="#5a606a" stroke-width="1"/>
+<text x="480" y="137" class="p m">100</text>
+<line x1="712" y1="122" x2="712" y2="126" stroke="#5a606a" stroke-width="1"/>
+<text x="712" y="137" class="p m">150</text>
+<line x1="944" y1="122" x2="944" y2="126" stroke="#5a606a" stroke-width="1"/>
+<text x="930" y="137" class="p e">200 €</text>
+<text x="16" y="156" class="ptb">36,92 € dépensés ici</text>
+<text x="16" y="169" class="p">(le détail ci-dessous)</text>
+<text x="193.3" y="156" class="ptb">La boucle du second PC : plafond 60 €</text>
+<text x="193.3" y="169" class="p">ce qu’elle a dépensé n’est pas vérifié ici</text>
+<text x="473.7" y="156" class="ptb">au moins 103,08 € encore libres</text>
+<text x="473.7" y="169" class="p">si la boucle s’arrête à son plafond et que rien d’autre n’est payé</text>
+<text x="16" y="209" class="tb">Le détail des 36,92 €</text>
+<text x="175.1" y="209" class="p">un poste par ligne, du plus cher au moins cher</text>
+<line x1="360" y1="221" x2="360" y2="513" stroke="#5a606a" stroke-width="1"/>
+<line x1="398.3" y1="221" x2="398.3" y2="513" stroke="#22262e" stroke-width="1"/>
+<line x1="436.7" y1="221" x2="436.7" y2="513" stroke="#22262e" stroke-width="1"/>
+<line x1="475" y1="221" x2="475" y2="513" stroke="#22262e" stroke-width="1"/>
+<line x1="513.3" y1="221" x2="513.3" y2="513" stroke="#22262e" stroke-width="1"/>
+<line x1="551.7" y1="221" x2="551.7" y2="513" stroke="#22262e" stroke-width="1"/>
+<line x1="590" y1="221" x2="590" y2="513" stroke="#22262e" stroke-width="1"/>
+<text x="16" y="239" class="t">Écrire le premier pilote</text>
+<text x="16" y="253" class="p">un agent Fable 5.2</text>
+<path d="M360 234H578.9Q582.9 234 582.9 238V246Q582.9 250 578.9 250H360Z" fill="#6ea8fe"/>
+<text x="588.9" y="246" class="pt">11,63 €</text>
+<text x="16" y="275" class="t">Finir les yeux et la main, contrôler le pilote</text>
+<text x="16" y="289" class="p">un agent Opus 5.5</text>
+<path d="M360 270H522.9Q526.9 270 526.9 274V282Q526.9 286 522.9 286H360Z" fill="#6ea8fe"/>
+<text x="532.9" y="282" class="pt">8,71 €</text>
+<text x="16" y="311" class="t">Dessiner les images du portfolio</text>
+<text x="16" y="325" class="p">un agent Opus 5.5</text>
+<path d="M360 306H491.5Q495.5 306 495.5 310V318Q495.5 322 491.5 322H360Z" fill="#6ea8fe"/>
+<text x="501.5" y="318" class="pt">7,07 €</text>
+<text x="16" y="347" class="t">Mettre quatre modèles à l’épreuve</text>
+<text x="16" y="361" class="p">18 variantes écrites, 1 réponse perdue</text>
+<path d="M360 342H444.7Q448.7 342 448.7 346V354Q448.7 358 444.7 358H360Z" fill="#6ea8fe"/>
+<text x="454.7" y="354" class="pt">4,63 €</text>
+<line x1="495.5" y1="350" x2="503.5" y2="350" stroke="#9da2ab" stroke-width="1"/>
+<text x="507.5" y="354" class="ptb">Aucune variante n’a gagné un palier qui tienne sur des courses neuves</text>
+<text x="507.5" y="368" class="p">la meilleure (Sonnet) : palier médian 13 contre 11 pour le pilote,</text>
+<text x="507.5" y="381" class="p">puis 10,5 contre 11 sur 20 courses neuves</text>
+<text x="507.5" y="394" class="p">par modèle, en € : Haiku 0,06 · Sonnet 0,77 · Opus 1,89 · Fable 1,91</text>
+<text x="507.5" y="407" class="p">(Fable : une seule réponse, coupée, sans variante)</text>
+<text x="16" y="383" class="t">Écrire la page du portfolio</text>
+<text x="16" y="397" class="p">un agent Opus 5.5</text>
+<path d="M360 378H429.4Q433.4 378 433.4 382V390Q433.4 394 429.4 394H360Z" fill="#6ea8fe"/>
+<text x="439.4" y="390" class="pt">3,83 €</text>
+<text x="16" y="419" class="t">Choisir le modèle de la boucle</text>
+<text x="16" y="433" class="p">un agent Opus 5.5</text>
+<path d="M360 414H369.6Q373.6 414 373.6 418V426Q373.6 430 369.6 430H360Z" fill="#6ea8fe"/>
+<text x="379.6" y="426" class="pt">0,71 €</text>
+<text x="16" y="455" class="t">Écrire le compte rendu n° 2</text>
+<text x="16" y="469" class="p">un agent Sonnet 5.5</text>
+<path d="M360 450H362.5Q366.5 450 366.5 454V462Q366.5 466 362.5 466H360Z" fill="#6ea8fe"/>
+<text x="372.5" y="462" class="pt">0,34 €</text>
+<text x="16" y="491" class="t">Essayer la facturation</text>
+<text x="16" y="505" class="p">un agent Haiku 5.5</text>
+<text x="366" y="498" class="pt">0,00 €</text>
+<line x1="360" y1="515" x2="360" y2="519" stroke="#5a606a" stroke-width="1"/>
+<text x="360" y="531" class="p m">0</text>
+<line x1="398.3" y1="515" x2="398.3" y2="519" stroke="#5a606a" stroke-width="1"/>
+<text x="398.3" y="531" class="p m">2</text>
+<line x1="436.7" y1="515" x2="436.7" y2="519" stroke="#5a606a" stroke-width="1"/>
+<text x="436.7" y="531" class="p m">4</text>
+<line x1="475" y1="515" x2="475" y2="519" stroke="#5a606a" stroke-width="1"/>
+<text x="475" y="531" class="p m">6</text>
+<line x1="513.3" y1="515" x2="513.3" y2="519" stroke="#5a606a" stroke-width="1"/>
+<text x="513.3" y="531" class="p m">8</text>
+<line x1="551.7" y1="515" x2="551.7" y2="519" stroke="#5a606a" stroke-width="1"/>
+<text x="551.7" y="531" class="p m">10</text>
+<line x1="590" y1="515" x2="590" y2="519" stroke="#5a606a" stroke-width="1"/>
+<text x="590" y="531" class="p m">12</text>
+<text x="475" y="547" class="t2 m">euros dépensés (estimés, 1 € compté pour 1 $)</text>
+<text x="16" y="573" class="src">source : ml/labo/journal/depenses.jsonl (26 lignes, total 36,92) · noms des agents et des modèles : ml/ecurie/agents/2026-11-25T*.md · plafond de 200 € :</text>
+<text x="16" y="586" class="src">ml/ecurie/portfolio/journal/2026-11-25.md · boucle du second PC, plafond de 60 € compté dans les 200 € : journal/2026-11-27.md · variantes : journal/2026-11-25_suite.md,</text>
+<text x="16" y="599" class="src">ml/ecurie/agents/sortie-calibrage-sonnet.log, commit 8610302d2 · montants estimés par les agents en dollars, inscrits 1 € pour 1 $ (ml/ecurie/agent-api.js)</text>
+</svg>

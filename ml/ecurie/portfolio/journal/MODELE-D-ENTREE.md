@@ -1,6 +1,6 @@
 # Modèle d'entrée du journal de bord
 
-À copier en fin de journée de travail, sous le nom `AAAA-MM-JJ.md` (exemple : `2026-11-28.md`), dans `ml/ecurie/portfolio/journal/`. Ensuite, ajouter une ligne par essai écarté au registre des impasses de `LISEZ-MOI.md`, et la ligne du chapitre à sa table des matières.
+À copier en fin de journée de travail, sous le nom `AAAA-MM-JJ.md` (exemple : `2026-11-28.md`), dans `ml/ecurie/portfolio/journal/`. Ensuite, ajouter une ligne par essai écarté au registre des impasses de `LISEZ-MOI.md`, la ligne du chapitre à sa table des matières, et tout mot nouveau à `LEXIQUE.md`.
 
 **Les règles, en bref.**
 - Rien d'inventé. Chaque chiffre, date ou citation vient d'une source ouverte ce jour-là (commit, fichier, journal) et nommée dans l'entrée.
@@ -17,6 +17,10 @@
 # JJ/MM/AAAA — <ce qui s'est passé, en un titre>
 
 **En une phrase.** <Le fait principal de la journée, réussite ou échec.>
+
+## En une minute
+
+<Six à huit phrases simples, une par ligne, sans jargon : ce qu'on voulait, ce qui s'est passé, ce qui a raté, qui a décidé. Elles doivent suivre la fin de l'« En une minute » du chapitre d'avant.>
 
 *Heures : messages de Sacha en UTC, commits à l'heure de Paris (UTC + 1).*
 
@@ -65,6 +69,10 @@
 
 **En une phrase.** Le fait principal. Si la journée a échoué, la phrase le dit.
 *Exemple :* « La sélection naturelle a tourné 9 heures sur le Ryzen ; son champion n'est pas mieux noté que le pilote témoin sur le coffre de graines. » (exemple fictif)
+
+**En une minute.** L'histoire du jour pour qui ne lira rien d'autre. Pas de chiffre sans son sens (« il ressemble davantage aux joueurs » plutôt que « écart 1,67 »), pas de mot du lexique sans explication. Relire la fin de l'« En une minute » du chapitre d'avant : on doit comprendre pourquoi on passe de l'un à l'autre.
+
+**Une image.** Quand une donnée du jour se dessine, la tracer avec un script dans `ml/ecurie/portfolio/figures-journal/` (en clair et en sombre, dans `images/journal-<nom>-*.svg`), l'insérer à sa place sous la forme `![<description en une phrase pour qui ne voit pas l'image>](../images/journal-<nom>-clair.svg)`, suivie de sa légende en italique avec ses sources, et l'ajouter au § 6 de `LISEZ-MOI.md`.
 
 **La question du moment.** L'état du chantier le matin, en trois ou quatre phrases, et la question du jour.
 *Exemple :* « Le système de sélection était construit mais n'avait jamais tourné. La question : une nuit suffit-elle à voir un progrès au-dessus du bruit ? »

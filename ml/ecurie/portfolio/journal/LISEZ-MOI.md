@@ -2,7 +2,9 @@
 
 Ce dossier raconte comment des bots apprennent à jouer à CASH CAR, le jeu de Sacha. Il est fait pour un lecteur qui a cinq minutes et ne programme pas. Chaque chiffre renvoie à un chapitre, et chaque chapitre à ses sources (un commit git, un fichier, un journal).
 
-*Heures : les messages de Sacha sont donnés en heure UTC, comme dans leur relevé (`ml/ecurie/agents/tmp-voltige/paroles-sacha.md`). Les commits sont à l'heure de Paris (UTC + 1).*
+Un mot vous arrête (palier, graine, génome, écart aux joueurs, témoin…) ? Il est expliqué en une ou deux phrases dans le **lexique**, [`LEXIQUE.md`](LEXIQUE.md), rangé par ordre alphabétique.
+
+*Heures : les messages de Sacha sont donnés en heure UTC, comme dans leur relevé (`ml/ecurie/agents/tmp-voltige/paroles-sacha.md`). Les commits sont à l'heure de Paris (UTC + 1). Exception : les deux chapitres du 25/11 donnent aussi les messages de Sacha à l'heure de Paris, et le disent en tête.*
 
 ---
 
@@ -17,7 +19,7 @@ Ce dossier raconte comment des bots apprennent à jouer à CASH CAR, le jeu de S
 7. Les 26 et 27/11, Claude a réglé un pilote à la main pour qu'il vole comme un joueur. Il ressemble davantage aux joueurs (écart aux joueurs 1,67, contre 3,05 pour le premier pilote), mais il atteint des paliers plus bas.
 8. Un juge automatique reconnaît toujours le bot (AUC 0,97, où 0,5 voudrait dire « pile ou face »).
 9. Le 27/11, Sacha a écarté le réglage à la main. Il a demandé une sélection naturelle qui tourne seule sur son PC. Le système est construit (`ml/evolution/`), mais il n'a pas encore tourné.
-10. Sur ce PC, 36,92 € de crédit d'API ont été dépensés sur 200. Une boucle lancée par Sacha sur son second PC, le Ryzen, n'est pas vérifiée ici.
+10. Sur ce PC, 36,92 € de crédit d'API ont été dépensés sur 200 (montants estimés par les agents en dollars, 1 € compté pour 1 $). Une boucle lancée par Sacha sur son second PC, le Ryzen, n'est pas vérifiée ici.
 
 Sources : chapitres `2026-11-24.md`, `2026-11-25_suite.md`, `2026-11-26.md`, `2026-11-27.md`, `comment-on-a-travaille.md`.
 
@@ -25,14 +27,11 @@ Sources : chapitres `2026-11-24.md`, `2026-11-25_suite.md`, `2026-11-26.md`, `20
 
 ## 2. Le fil : les changements de méthode
 
-```
- sept. ─────────── 20 oct. ──────── 22 nov. ───── 24 nov. ── 25 nov. ────── 26 nov. ────── 27 nov.
-   │                 │                 │             │          │               │              │
- ml/train          ml/reel          le plan       nouveau    boucle         pilote réglé    sélection
- sélection dans    sélection dans   « Claude      but :      payante :      à la main       naturelle
- une COPIE du      le VRAI jeu,     écrit le      indiscer-  4 modèles,     pour voler      hybride, dans
- jeu, de zéro      de zéro          cerveau »     nables     0 champion                     le vrai jeu
-```
+![Une frise du 7 septembre au 27 novembre 2026, avec l'axe du temps coupé pour sauter le mois sans travail : à gauche, deux marques espacées de six semaines (la sélection dans une copie du jeu, puis dans le vrai jeu) ; à droite, cinq marques serrées du 22 au 27 novembre ; des ronds pour les virages venus de Sacha, des losanges pour ceux venus de Claude, et à côté de chaque marque, au-dessus ou au-dessous, ce qui l'a arrêtée.](../images/journal-frise-clair.svg)
+
+*Pendant deux mois, à l'automne, on a laissé des voitures apprendre seules par sélection : d'abord dans une copie du jeu, puis dans le vrai jeu. Ensuite, un mois sans travail, puis cinq virages en six jours (du 22 au 27 novembre) : quatre méthodes et un nouveau but. Le rond marque un virage venu de Sacha, le losange un virage venu de Claude, et l'axe du temps est coupé pour sauter le mois vide. Sources : le journal de bord (ml/ecurie/portfolio/journal, LISEZ-MOI § 2 et les chapitres de chaque jour) et les commits deacc99ad, 6f4dbdc29, d2ee1f114 et ef630b812.*
+
+La même histoire, date par date :
 
 - **Septembre 2026 : la sélection par générations dans une copie du jeu (`ml/train`).** Vingt-quatre voitures, chacune pilotée par un petit réseau de neurones. Les moins bonnes sont remplacées par des enfants modifiés au hasard. *Provoqué par* le souhait de Sacha : des voitures qui « apprennent à contrôler leur corps ». *Décidé par* Sacha pour la règle (« la moitié la plus nulle se fait remplacer ») et par Claude pour les réseaux et les notes. Le plan du 22/11 date l'essai de « juillet → septembre », mais git n'en garde la trace qu'à partir du 7/09. → `00_avant-le-22-novembre.md`
 - **20/10 : la même sélection, mais dans le vrai jeu (`ml/reel`).** *Provoqué par* la copie du jeu, qui avait divergé du jeu publié (gravité, largeur de route, règles des figures), et par la demande de Sacha : des bots « fonctionnels sur la version actuelle du jeu ». Résultat : 3 survivants sur 6 pistes neuves, 0,2 figure par partie. → `00_avant-le-22-novembre.md`
@@ -162,7 +161,9 @@ Contrôlé le 27/11 avec `ls` et `git ls-files`.
 | pièce | ce que c'est | dans git ? |
 |---|---|---|
 | `ml/ecurie/portfolio/index.html` | la page portfolio du 25/11 : schémas de l'architecture et de la boucle, arbre du calibrage, « Ce qui n'a pas marché » | oui |
-| `ml/ecurie/portfolio/images/*.svg` | 5 figures (`course-dessus`, `radar`, `main`, `paliers`, `justesse`), chacune en clair et en sombre ; refaites par `node ml/ecurie/portfolio/figures.js` à partir de `donnees/radar-c0003-g910629.json.gz` | oui |
+| `ml/ecurie/portfolio/images/*.svg` (sauf `journal-*`) | 5 figures de la page du 25/11 (`course-dessus`, `radar`, `main`, `paliers`, `justesse`), chacune en clair et en sombre ; refaites par `node ml/ecurie/portfolio/figures.js` à partir de `donnees/radar-c0003-g910629.json.gz` | oui |
+| `ml/ecurie/portfolio/images/journal-*-clair.svg` et `-sombre.svg` | les 5 images du journal, chacune en clair et en sombre (les chapitres montrent la version claire) : la **frise** des changements de méthode (§ 2 ci-dessus et `2026-11-27.md`), les **apprentissages de zéro** de septembre et octobre (`00_avant-le-22-novembre.md`), les **dépenses** du crédit d'API (`2026-11-25_suite.md`), **ressembler ou gagner**, le chemin du pilote du 25 au 27/11 (`2026-11-26.md`), et le **bruit des notes** (`2026-11-27.md`) | **non** (non suivies au 27/11) |
+| `ml/ecurie/portfolio/figures-journal/*.js` | les 5 scripts qui fabriquent ces images, un par image, chacun avec en tête la liste des fichiers qu'il lit ; ils ne jouent aucune course. Pour refaire une image, depuis la racine du dépôt : `node ml/ecurie/portfolio/figures-journal/<nom>.js` (`frise`, `apprentissages-de-zero`, `depenses`, `ressembler-ou-gagner`, `bruit-des-notes`). Limite : `ressembler-ou-gagner.js` lit aussi `ml/labo/tampon/boucle/val-c0010.json`, hors git, et s'arrête sans lui | **non** (non suivis au 27/11) |
 | `ml/labo/arbre.html` | l'arbre des cerveaux du labo (calibrage du 25/11) | oui |
 | `ml/labo/rejeux/*.json` | les touches image par image des courses gardées (cerveaux c0001 à c0004 et suivants) : de quoi refaire un film | oui |
 | `ml/labo/trajectoires/*.json.gz` | les mêmes courses vues de dessus | oui |
@@ -174,11 +175,11 @@ Contrôlé le 27/11 avec `ls` et `git ls-files`.
 | `ml/ecurie/pilote.js`, `ml/ecurie/pilote-voltige.js` | les deux pilotes, avec leur stratégie en français en tête du fichier | oui |
 | `ml/bot/etalon/cashcar-parties-*.json` | les exports bruts des parties de Sacha et de Léo | oui |
 | `ml/sim/apercu-31415.png` | une image de septembre : la piste vue de dessus, 7 bots, « 0 pris » sur 5 981 raccourcis | oui |
-| `ml/train/results/runs/run-seed*.json`, `ml/reel/results/pop-reel-g1.json` | 21 courbes d'apprentissage de septembre et 57 valeurs d'octobre, jamais dessinées | oui |
+| `ml/train/results/runs/run-seed*.json`, `ml/reel/results/pop-reel-g1.json` | 21 courbes d'apprentissage de septembre et 57 valeurs d'octobre ; deux des 21 courbes (le run de 300 générations) et les 57 valeurs sont dessinées dans `journal-apprentissages-de-zero` | oui |
 | `ml/train/archive-2026-09-09/rapports/RAPPORT-SESSION-2026-09-08.md`, `ml/train/CRITIC-REPORT.md` | le rapport où Claude liste ses huit erreurs ; 83 verdicts d'un agent relecteur | oui |
 | `ml/evolution/` (README, tableaux d'essai `essais/test-tableau/complet/tableau.html` et `tests/relecture-robustesse/etat-journaux/tableau.html`) | le système de sélection naturelle et ses tableaux de bord, sur des données de test | **non** (dossier non suivi au 27/11) |
 | `ml/ecurie/agents/tmp-voltige/` (dont `paroles-sacha.md`) | les messages datés de Sacha ; 525 fichiers d'outils et de sorties de lots au soir du 27/11 | **non** (dossier ignoré : fragile) |
-| ce journal | `ml/ecurie/portfolio/journal/` | **non** (non suivi au 27/11) |
+| ce journal | `ml/ecurie/portfolio/journal/` | oui depuis `29bce656d` (27/11, 18 h 49) ; la mise en page du soir (images, lexique) n'est pas encore enregistrée |
 
 **Ce que le plan prévoyait et qui n'existe pas encore** (`passation/BOTS-ML.md`, § 5.2 et 5.3)
 
@@ -186,7 +187,7 @@ Contrôlé le 27/11 avec `ls` et `git ls-files`.
 - Les **cartes** : toutes les trajectoires d'une génération superposées sur la route vue de dessus, les endroits où l'on meurt, les raccourcis découverts. Il existe une seule course vue de dessus (`course-dessus-*.svg`).
 - Les **planches** : neuf instants d'une course en une image fixe, pour l'imprimé.
 - Les **duels côte à côte**, Sacha contre bot sur la même graine, et le « même virage à travers les générations ».
-- Les **courbes** par génération (note, figures par minute, poses, euros). Les données de septembre existent, aucune courbe n'est dessinée.
+- Les **courbes** par génération (note, figures par minute, poses, euros). Seule la meilleure distance par génération de septembre et d'octobre est dessinée (`journal-apprentissages-de-zero`) ; les figures, les poses et les euros par génération ne le sont pas, et la sélection du 27/11 n'a pas encore de génération à tracer.
 - Les **jalons** : un instantané figé par étape (`ml/labo/jalons/` n'existe pas).
 - Un film avec l'affichage du jeu (compteurs, argent) : les films actuels montrent l'image seule.
 
@@ -204,12 +205,16 @@ Contrôlé le 27/11 avec `ls` et `git ls-files`.
 | `2026-11-26.md` | 26/11 | apprendre au pilote à voler, un défaut à la fois ; l'écart aux joueurs |
 | `2026-11-27.md` | 27/11 | Sacha change de cap : du réglage à la main à la sélection naturelle |
 | `comment-on-a-travaille.md` | 21–27/11 | qui fait quoi, les règles de travail et le raté d'où chacune vient |
+| `LEXIQUE.md` | — | les mots du chantier, par ordre alphabétique, en une ou deux phrases chacun |
 | `MODELE-D-ENTREE.md` | — | le gabarit des entrées à venir |
 
 ---
 
 ## 8. Comment ce journal est tenu
 
+- Chaque chapitre commence par « **En une minute** » : six à huit phrases simples, sans jargon, qui disent ce qu'on voulait, ce qui s'est passé, ce qui a raté et qui a décidé. Lues à la suite, d'un chapitre à l'autre, elles racontent toute l'histoire ; le reste du chapitre donne les détails et les sources.
+- Les images du journal sont des fichiers SVG fabriqués par un script (`ml/ecurie/portfolio/figures-journal/`) à partir des fichiers du chantier, jamais dessinés à la main. Chacune est suivie de sa légende, qui nomme ses sources, et existe en clair et en sombre (§ 6).
+- Les mots techniques sont expliqués à leur première apparition dans chaque chapitre, et tous ensemble dans `LEXIQUE.md`.
 - Il est écrit par des agents Claude à partir de git (les messages de commit), des journaux du labo (`ml/labo/journal/*.jsonl`), des documents du chantier et du relevé daté des messages de Sacha. Personne n'écrit de mémoire.
 - Chaque chapitre a été relu par un agent vérificateur, qui a rouvert les sources, corrigé les erreurs de lecture et noté ce qui manquait. Plusieurs corrections ont rendu à Sacha des idées d'abord attribuées à Claude.
 - Le relevé des messages de Sacha se refait avec `node ml/ecurie/portfolio/outils/paroles.js <dossier des conversations> <sortie.md>`. Il reste hors git (c'est un relevé brut). Il a été complété le 27/11 au soir (49 messages au lieu de 40 : la première version oubliait les messages tapés pendant que Claude travaillait), et les chapitres ont été corrigés d'après lui.
