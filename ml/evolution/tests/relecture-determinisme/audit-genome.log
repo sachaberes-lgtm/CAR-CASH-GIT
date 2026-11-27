@@ -1,0 +1,11 @@
+genes jamais lus par modele.js : aucun
+cles REGLAGES lues mais absentes du bloc ecrit : aucune
+cles REGLAGES lues hors genome (figees) : volNitro
+muter : 12000 mutations ; genes jamais changes : aucun ; fautes : 0
+muter laisse le parent intact : true
+muter deterministe : true
+croiser : 0 enfants non conformes ; genes venus d'aucun parent (hors contraintes) : aucun
+contraintes au bord : braqueDoux 0.5 braqueFort 0.6 jaugeCoupe 0.2 departMax 4 ; valider : null
+pilote : CR false ; modele en CRLF -> meme texte : true ; sha 9830f1c4e6fd
+modele.js sur disque contient CR : false
+shaGenome independant de l'ordre des cles : true ; valider sur cles en desordre : A : cle « bRien » a la place de « marge »

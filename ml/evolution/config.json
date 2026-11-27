@@ -1,0 +1,100 @@
+{
+  "format": "evolution-config-1",
+  "_notes": [
+    "LA SELECTION NATURELLE DES BOTS : les nombres par defaut (SPECIFICATION.md § 5 a 7, INTERFACES.md § 3). Les chemins sont relatifs a ml/evolution/.",
+    "travailleurs : 4 sur le PC de developpement (4 coeurs, d'autres mesures tournent) ; sur le Ryzen, le banc de l'etape 0 (evoluer.js --banc) ecrit ici la valeur retenue (la specification attend 9).",
+    "cartesTirage : les maps du tirage en regime allege (code/maps/niveaux.js SF_CARTES moins SF_HORS : crypto, banquise, dunes) ; a reverifier a l'etape 0.",
+    "Une autre config (--config config-essai.json) est FUSIONNEE par-dessus celle-ci, cle par cle (objets fusionnes en profondeur, tableaux remplaces)."
+  ],
+  "dossierEtat": "etat",
+  "dossierChampions": "champions",
+
+  "mu": 20,
+  "lambda": 6,
+  "grainesParGeneration": 12,
+  "grainesEconomie": 8,
+  "seuilEconomie_s": 5400,
+  "tmax": 900,
+  "regime": "allege",
+
+  "travailleurs": 4,
+  "chienDeGarde_s": 1200,
+  "prioriteBasse": true,
+  "battement_s": 30,
+  "verrouPerime_s": 300,
+
+  "graineMaitre": 20261127,
+  "graineReseaux": 161,
+
+  "graines": {
+    "entrainement": { "depart": 910000, "pas": 37, "n": 1081 },
+    "exclureRecentes": 5,
+    "validation": { "depart": 1000000, "pas": 37, "repli": { "depart": 950000, "pas": 37, "n": 1081 } },
+    "coffre": { "depart": 990000, "pas": 37, "n": 40 }
+  },
+
+  "protectionCourses": 24,
+  "tournoi": 3,
+  "immigres": 1,
+  "immigreGenes": 8,
+  "immigreSigma": 0.30,
+  "pCroisement": 0.3,
+  "poissonMutations": 2,
+  "sigmaMutation": 0.15,
+  "pDrapeau": 0.03,
+  "pFigMax": 0.05,
+  "essaisDoublon": 20,
+  "pannesVire": 2,
+  "bornePoids": 4,
+
+  "phases": {
+    "B": { "pTete": 0.5, "sigma": 0.3, "part": 0.3 },
+    "C": { "pTete": 0.3, "sigma": 0.1, "part": 0.1 },
+    "passage": { "sansSacre": 20, "generations": 60 }
+  },
+
+  "generation0": { "genesMin": 3, "genesMax": 6, "sigma": 0.15 },
+
+  "note": {
+    "passes": 10,
+    "retrecir": 12,
+    "poidsEcart": 4,
+    "zoneMorte": 1,
+    "borneZ": 8,
+    "poidsMesures": { "volDuree": 0.5, "ondulation": 0.5, "vols": 0.5, "volsCourts": 0.5 },
+    "partiesMin": 5,
+    "ePire": 4,
+    "bootstrapE": 200,
+    "minS": 60
+  },
+
+  "validation": {
+    "intervalle": 5,
+    "nMin": 48,
+    "regle6": 2,
+    "regle6Haute": 3,
+    "graines": 24,
+    "bootstrap": 400,
+    "maledictionFenetre": 10,
+    "maledictionSeuil": 1,
+    "revalidationPerte": 1,
+    "seuilSacre": 2
+  },
+
+  "coffre": { "intervalle_h": 24 },
+
+  "banc": { "travailleurs": [2, 3, 4], "courses": 20, "tmax": 300 },
+
+  "identite": { "graines": [910000, 910037, 910074], "tmax": 45 },
+
+  "cartesTirage": ["nuages", "ville", "jade", "espace", "grotte", "canyon"],
+
+  "reseaux": {
+    "rayon": { "entrees": 36, "caches": 6, "sorties": 1, "echelle": 15 },
+    "sol": { "entrees": 12, "caches": 6, "sorties": 3, "kSeuil": 0.3, "kLigne": 5, "kRacc": 0.5 }
+  },
+
+  "retourFige": { "rv": 0.2, "rm": 0.24, "rn": 0.18 },
+
+  "alarmeDistance": 0.05
+}

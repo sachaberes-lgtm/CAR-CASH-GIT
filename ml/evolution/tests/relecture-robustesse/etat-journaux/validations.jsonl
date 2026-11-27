@@ -1,0 +1,3 @@
+{"generation":4,"date":"2026-11-27T16:55:49.736Z","usage":"validation","meneur":"d06b00776ec3","champion":"19e3767cc346","graines":[1000000,1000037,1000074],"entrainement":{"dF":1.0472,"se_dF":0.9444},"validation":{"graines":3,"dF":0.2856,"se_dF":2.4028,"dPalier":0.3333,"se_dPalier":0.3009,"dE":0.0119,"se_dE":0.6181},"criteres":{"a":false,"b":true,"c":true},"sacre":false,"malediction":0.7616,"maledictionMoyenne":0.7616,"fichier":null}
+{"generation":6,"usage":"validation","meneur":"x","champion":"y","graines":[1],"malediction":0.5}
+{"generation":7,"usage":"validation","meneur":"x","champion":"z","graines":[2],"malediction":0.5}

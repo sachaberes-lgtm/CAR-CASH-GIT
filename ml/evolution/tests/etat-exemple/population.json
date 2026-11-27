@@ -1,0 +1,1304 @@
+{
+ "format": "evolution-population-1",
+ "generation": 31,
+ "phase": "B",
+ "phaseDepuis": 25,
+ "sansSacre": 5,
+ "epoque": {
+  "courses": "7e8f90a1b2c3",
+  "note": "c3d4e5f6a7b8",
+  "depuis": 13
+ },
+ "rng": 2918734561,
+ "graines": {
+  "reserve": [
+   0,
+   4,
+   5,
+   9
+  ],
+  "recentes": [
+   [
+    910074
+   ],
+   [
+    910111
+   ]
+  ],
+  "validationK": 96,
+  "validationRepli": false,
+  "validationFinie": false
+ },
+ "grainesGeneration": [
+  910407,
+  911183,
+  912034,
+  913255,
+  914920,
+  915034,
+  916660,
+  917030
+ ],
+ "nGraines": 8,
+ "grainesRetirees": [],
+ "regle6": 2,
+ "temoin": "3c093def1e73",
+ "champion": {
+  "id": "deab1c9e9513",
+  "depuis": 20,
+  "fichier": "champions/g0020-8b6a3ad5.js",
+  "revalider": false
+ },
+ "derniereValidation": 26,
+ "dernierCoffre": "2026-11-27T03:06:17.781Z",
+ "nSacres": 1,
+ "vivants": [
+  {
+   "id": "3c093def1e73",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 99,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 3.6,
+     "glisse": 0.12,
+     "avance": 0.3,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "6c04ca045d6a2e3f29b0d4629aa2f7bee2fb1a7c",
+   "ne": 0,
+   "parents": [],
+   "origine": "temoin",
+   "mutes": [],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "deab1c9e9513",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 99,
+     "nitroDecor": 1,
+     "braqueNitro": 0.5315,
+     "figTemps": 1.5,
+     "figJauge": 0.334,
+     "raccTmax": 3.6,
+     "glisse": 0.12,
+     "avance": 0.3,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "8b6a3ad5a5d63e9f0f2698d92a2d727c8bb82925",
+   "ne": 16,
+   "parents": [
+    "3c093def1e73"
+   ],
+   "origine": "immigre",
+   "mutes": [
+    {
+     "cle": "figJauge",
+     "avant": 0.4,
+     "apres": 0.334
+    },
+    {
+     "cle": "braqueNitro",
+     "avant": 0.7,
+     "apres": 0.5315
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "c1b0f3a8ca1a",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 99,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 4.0602,
+     "glisse": 0.12,
+     "avance": 0.3,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 23.2497
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "d9a899a0ab30a5782710856d05f2bf6401ee8803",
+   "ne": 20,
+   "parents": [
+    "6b29994fc50b",
+    "ed436f0cff20"
+   ],
+   "origine": "croisement",
+   "mutes": [
+    {
+     "cle": "raccTmax",
+     "avant": 3.6,
+     "apres": 4.0602
+    },
+    {
+     "cle": "axePoids",
+     "avant": 20,
+     "apres": 23.2497
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "bad8b064c540",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 99,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 4.4148,
+     "glisse": 0.12,
+     "avance": 0.3,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "ecb6241ca41e1df142f7749f6b535a43f27818c1",
+   "ne": 24,
+   "parents": [
+    "deab1c9e9513"
+   ],
+   "origine": "immigre",
+   "mutes": [
+    {
+     "cle": "raccTmax",
+     "avant": 3.6,
+     "apres": 4.4148
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "bee8ea24d5c2",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 108.4934,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 3.6,
+     "glisse": 0.1259,
+     "avance": 0.3,
+     "retourOn": 0,
+     "retCap": 0.9591,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "f872c9fd381d072b5972db30ea97a9cb81ff9393",
+   "ne": 24,
+   "parents": [
+    "c1b0f3a8ca1a"
+   ],
+   "origine": "mutation",
+   "mutes": [
+    {
+     "cle": "retCap",
+     "avant": 0.8,
+     "apres": 0.9591
+    },
+    {
+     "cle": "glisse",
+     "avant": 0.12,
+     "apres": 0.1259
+    },
+    {
+     "cle": "bandeDecor",
+     "avant": 99,
+     "apres": 108.4934
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "29a13852a980",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 12.4039,
+     "bandeDecor": 99,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 3.6334,
+     "glisse": 0.12,
+     "avance": 0.3,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "38e1f40dd8e6dfefc17e0bcae1be541352ee78e0",
+   "ne": 27,
+   "parents": [
+    "f68459c46a57"
+   ],
+   "origine": "mutation",
+   "mutes": [
+    {
+     "cle": "raccTmax",
+     "avant": 3.6,
+     "apres": 3.6334
+    },
+    {
+     "cle": "marge",
+     "avant": 10,
+     "apres": 9.9165
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "cb71ce7b7ba1",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 9.2065,
+     "bandeDecor": 99,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 3.6,
+     "glisse": 0.12,
+     "avance": 0.3,
+     "retourOn": 0,
+     "retCap": 0.995,
+     "axePoids": 21.3047
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "40c9e1a9f5f189f6d090dd9aacf3dcb20545016d",
+   "ne": 28,
+   "parents": [
+    "deab1c9e9513"
+   ],
+   "origine": "mutation",
+   "mutes": [
+    {
+     "cle": "retCap",
+     "avant": 0.8,
+     "apres": 0.995
+    },
+    {
+     "cle": "marge",
+     "avant": 10,
+     "apres": 9.2065
+    },
+    {
+     "cle": "axePoids",
+     "avant": 20,
+     "apres": 21.3047
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "008bc35a92b4",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 99,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 3.6,
+     "glisse": 0.12,
+     "avance": 0.2256,
+     "retourOn": 0,
+     "retCap": 0.8751,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "16b736acc78219093a168f295fa86375e153baec",
+   "ne": 28,
+   "parents": [
+    "92bab12026cf"
+   ],
+   "origine": "mutation",
+   "mutes": [
+    {
+     "cle": "retCap",
+     "avant": 0.8,
+     "apres": 0.9659
+    },
+    {
+     "cle": "avance",
+     "avant": 0.3,
+     "apres": 0.2256
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "fe6b5e4682c2",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 99,
+     "nitroDecor": 0.851,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 3.6,
+     "glisse": 0.12,
+     "avance": 0.3,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "41d6426c9b6b7921bd2ddf90333c9174f17bbdff",
+   "ne": 29,
+   "parents": [
+    "deab1c9e9513"
+   ],
+   "origine": "immigre",
+   "mutes": [
+    {
+     "cle": "nitroDecor",
+     "avant": 1,
+     "apres": 0.851
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "544a74b39350",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 99,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 3.0508,
+     "glisse": 0.12,
+     "avance": 0.3606,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "abfaf984784255eb66d63c2aa8ac5be0ef9f7a5b",
+   "ne": 29,
+   "parents": [
+    "442da2445fbf",
+    "d069f0663445"
+   ],
+   "origine": "croisement",
+   "mutes": [
+    {
+     "cle": "raccTmax",
+     "avant": 3.6,
+     "apres": 3.0508
+    },
+    {
+     "cle": "avance",
+     "avant": 0.3,
+     "apres": 0.3606
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "bb5eee853403",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 99,
+     "nitroDecor": 0.973,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 3.6,
+     "glisse": 0.12,
+     "avance": 0.3,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "828fa91b900c6cc356cd4e9172d57cf3d25beb24",
+   "ne": 29,
+   "parents": [
+    "aa268622df9c"
+   ],
+   "origine": "mutation",
+   "mutes": [
+    {
+     "cle": "nitroDecor",
+     "avant": 1,
+     "apres": 0.973
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "97a2e62a8487",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10.3764,
+     "bandeDecor": 99,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 3.6,
+     "glisse": 0.12,
+     "avance": 0.295,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "83d32ff1612864e80262ad4623f04713dc487601",
+   "ne": 29,
+   "parents": [
+    "495466e2896c",
+    "495466e2896c"
+   ],
+   "origine": "croisement",
+   "mutes": [
+    {
+     "cle": "marge",
+     "avant": 10,
+     "apres": 10.3764
+    },
+    {
+     "cle": "avance",
+     "avant": 0.3,
+     "apres": 0.295
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "9e2e3b501507",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 99,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.3324,
+     "raccTmax": 3.6,
+     "glisse": 0.12,
+     "avance": 0.3,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "5e1644ef5c806ade0ab8125438c721898e1a9ef1",
+   "ne": 29,
+   "parents": [
+    "deab1c9e9513"
+   ],
+   "origine": "mutation",
+   "mutes": [
+    {
+     "cle": "figJauge",
+     "avant": 0.4,
+     "apres": 0.3324
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "618cadc78815",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 88.8834,
+     "nitroDecor": 1,
+     "braqueNitro": 0.8518,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 3.6,
+     "glisse": 0.1368,
+     "avance": 0.3,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "e36f7665b12e6131cb1cab025b868e39bf3af16e",
+   "ne": 29,
+   "parents": [
+    "97a2e62a8487",
+    "6fbe65e7f82d"
+   ],
+   "origine": "croisement",
+   "mutes": [
+    {
+     "cle": "glisse",
+     "avant": 0.12,
+     "apres": 0.1368
+    },
+    {
+     "cle": "braqueNitro",
+     "avant": 0.7,
+     "apres": 0.8518
+    },
+    {
+     "cle": "bandeDecor",
+     "avant": 99,
+     "apres": 88.8834
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "82ac95329d4a",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 8.4637,
+     "bandeDecor": 111.6946,
+     "nitroDecor": 1,
+     "braqueNitro": 0.6817,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 3.6,
+     "glisse": 0.12,
+     "avance": 0.3,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "14a6146d528eeb9e60e5c73be932d0589d7aede4",
+   "ne": 30,
+   "parents": [
+    "deab1c9e9513"
+   ],
+   "origine": "immigre",
+   "mutes": [
+    {
+     "cle": "bandeDecor",
+     "avant": 99,
+     "apres": 111.6946
+    },
+    {
+     "cle": "marge",
+     "avant": 10,
+     "apres": 8.4637
+    },
+    {
+     "cle": "braqueNitro",
+     "avant": 0.7,
+     "apres": 0.6817
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "ec680ea4048b",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 99,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7,
+     "figTemps": 1.4417,
+     "figJauge": 0.3176,
+     "raccTmax": 3.6,
+     "glisse": 0.12,
+     "avance": 0.3,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "b6ed8f4e88fb106898d513615b628744d716f80f",
+   "ne": 30,
+   "parents": [
+    "11941f83c082"
+   ],
+   "origine": "mutation",
+   "mutes": [
+    {
+     "cle": "figTemps",
+     "avant": 1.5,
+     "apres": 1.303
+    },
+    {
+     "cle": "figJauge",
+     "avant": 0.4,
+     "apres": 0.3176
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "bb682c98fe99",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 99,
+     "nitroDecor": 1.2148,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 3.6,
+     "glisse": 0.12,
+     "avance": 0.3,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "c4a8c4df7a413dd1f7b89dec62a442b95df85fd5",
+   "ne": 30,
+   "parents": [
+    "544a74b39350"
+   ],
+   "origine": "mutation",
+   "mutes": [
+    {
+     "cle": "nitroDecor",
+     "avant": 1,
+     "apres": 1.2148
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "f67fb2c06b9e",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 99,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 3.6,
+     "glisse": 0.12,
+     "avance": 0.372,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "2d117f565f0235ba729b32b1870c699634b09246",
+   "ne": 30,
+   "parents": [
+    "bb682c98fe99"
+   ],
+   "origine": "mutation",
+   "mutes": [
+    {
+     "cle": "avance",
+     "avant": 0.3,
+     "apres": 0.372
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "b467eafe3d91",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10.4108,
+     "bandeDecor": 99,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 3.6,
+     "glisse": 0.12,
+     "avance": 0.3,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "b47ce60de2c4cb1234676f7f1f868d21a4eee444",
+   "ne": 30,
+   "parents": [
+    "bb5eee853403",
+    "008bc35a92b4"
+   ],
+   "origine": "croisement",
+   "mutes": [
+    {
+     "cle": "marge",
+     "avant": 10,
+     "apres": 10.4108
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "b77715db350a",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 99,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 3.6,
+     "glisse": 0.133,
+     "avance": 0.3,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "6c53db63785a50dc326e954af9973c3a391306dd",
+   "ne": 30,
+   "parents": [
+    "bb682c98fe99",
+    "bb682c98fe99"
+   ],
+   "origine": "croisement",
+   "mutes": [
+    {
+     "cle": "glisse",
+     "avant": 0.12,
+     "apres": 0.133
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "fa9513b208a3",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 99,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.3325,
+     "raccTmax": 3.6,
+     "glisse": 0.12,
+     "avance": 0.3,
+     "retourOn": 1,
+     "retCap": 0.8776,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "a21e9796dd630b6fe40f954d156833f51955b6f8",
+   "ne": 31,
+   "parents": [
+    "deab1c9e9513"
+   ],
+   "origine": "immigre",
+   "mutes": [
+    {
+     "cle": "retourOn",
+     "avant": 0,
+     "apres": 1
+    },
+    {
+     "cle": "retCap",
+     "avant": 0.8,
+     "apres": 0.8776
+    },
+    {
+     "cle": "figJauge",
+     "avant": 0.4,
+     "apres": 0.3325
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "fffff8388a5a",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 99,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7,
+     "figTemps": 1.4378,
+     "figJauge": 0.4,
+     "raccTmax": 3.6,
+     "glisse": 0.1317,
+     "avance": 0.3,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "18054b01f3afc9c18a4dd5bea12b4f47905539d5",
+   "ne": 31,
+   "parents": [
+    "deab1c9e9513"
+   ],
+   "origine": "mutation",
+   "mutes": [
+    {
+     "cle": "figTemps",
+     "avant": 1.5,
+     "apres": 1.4378
+    },
+    {
+     "cle": "glisse",
+     "avant": 0.12,
+     "apres": 0.1317
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "80d74ed0a219",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 11.7276,
+     "bandeDecor": 99,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 3.6,
+     "glisse": 0.12,
+     "avance": 0.3,
+     "retourOn": 1,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "1635a6b8c2687a2740dc799f9a10b0ca4792f702",
+   "ne": 31,
+   "parents": [
+    "deab1c9e9513"
+   ],
+   "origine": "mutation",
+   "mutes": [
+    {
+     "cle": "marge",
+     "avant": 10,
+     "apres": 11.7276
+    },
+    {
+     "cle": "retourOn",
+     "avant": 0,
+     "apres": 1
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "0201e49bc7d4",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 99,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7048,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 3.6,
+     "glisse": 0.12,
+     "avance": 0.3,
+     "retourOn": 1,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "1a7e93b17c7bb48474b4bd8117f490486ecf44b6",
+   "ne": 31,
+   "parents": [
+    "deab1c9e9513"
+   ],
+   "origine": "mutation",
+   "mutes": [
+    {
+     "cle": "retourOn",
+     "avant": 0,
+     "apres": 1
+    },
+    {
+     "cle": "braqueNitro",
+     "avant": 0.7,
+     "apres": 0.7048
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "67880ffffeca",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 99.2476,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 3.6,
+     "glisse": 0.12,
+     "avance": 0.3,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 20
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "09b4c7dcb86b97c2fc04f3fe26f02062996ade53",
+   "ne": 31,
+   "parents": [
+    "deab1c9e9513"
+   ],
+   "origine": "mutation",
+   "mutes": [
+    {
+     "cle": "bandeDecor",
+     "avant": 99,
+     "apres": 99.2476
+    }
+   ],
+   "pannesGeneration": 0
+  },
+  {
+   "id": "a56392578718",
+   "genome": {
+    "v": 1,
+    "A": {
+     "marge": 10,
+     "bandeDecor": 99,
+     "nitroDecor": 1,
+     "braqueNitro": 0.7,
+     "figTemps": 1.5,
+     "figJauge": 0.4,
+     "raccTmax": 3.6,
+     "glisse": 0.1344,
+     "avance": 0.3,
+     "retourOn": 0,
+     "retCap": 0.8,
+     "axePoids": 17.5156
+    },
+    "WV": [],
+    "WS": []
+   },
+   "shaPilote": "b029794523b7f1002fa3bef6fff6303985d4c8cf",
+   "ne": 31,
+   "parents": [
+    "deab1c9e9513"
+   ],
+   "origine": "mutation",
+   "mutes": [
+    {
+     "cle": "glisse",
+     "avant": 0.12,
+     "apres": 0.1344
+    },
+    {
+     "cle": "axePoids",
+     "avant": 20,
+     "apres": 17.5156
+    }
+   ],
+   "pannesGeneration": 0
+  }
+ ],
+ "dejaVus": [
+  "3c093def1e73",
+  "69cffe9c2a20",
+  "687567fabe29",
+  "5e1bde83c64b",
+  "b23baca181d8",
+  "d339f5716f53",
+  "6b3d2df86b26",
+  "9c205ae1c487",
+  "c310aef1497d",
+  "6a6ce92e5fb5",
+  "32c38655f3ca",
+  "60a07d683663",
+  "5c59a1858b14",
+  "d2dc27ef3d1e",
+  "291afd50ae3e",
+  "e93fe99c6aa3",
+  "7d363b090bb9",
+  "74a284a368e2",
+  "e8ae6d550c5e",
+  "309b44be4135",
+  "80e60bbf792a",
+  "50df803a7072",
+  "80d62b828eb9",
+  "28afba7cdfb9",
+  "ca53e8a87382",
+  "78d778b875d0",
+  "8d2d3f206b50",
+  "ac1fff96ccd5",
+  "288cca871946",
+  "9e66c2f8aa59",
+  "90f4da3df1d9",
+  "d0721ff92f3e",
+  "5389b7efe7be",
+  "87ef74ddea3c",
+  "381df96f748a",
+  "69473f2cccc3",
+  "f27e3295ac35",
+  "b4a9bb8b47d5",
+  "353b84af2b2a",
+  "d3ec2a103f28",
+  "5d972e32b773",
+  "b47f32363334",
+  "5762d93ac848",
+  "df85bf4f1ba4",
+  "d74905dac5d6",
+  "308d5b871d60",
+  "b4c815ceeaa8",
+  "9fa671e789bd",
+  "8ffeb23134ce",
+  "f73f1d27201b",
+  "c55ce9d6672a",
+  "f8d03f355e12",
+  "2cf72b949e20",
+  "94508384ba39",
+  "dcb0a12b893c",
+  "80cb7efe0695",
+  "3f8fd5f8c88a",
+  "65e0cf95c2be",
+  "ffb493af49f6",
+  "a539659da847",
+  "7efd4fc2a5c7",
+  "8ea929042235",
+  "01d7b4ada242",
+  "dd016d45ec1b",
+  "a7bf412d698e",
+  "db36b00d35fa",
+  "eb026cb360df",
+  "77bf7f411731",
+  "8c6c0edeb56f",
+  "3efd14873ffd",
+  "9afae700da4f",
+  "67ea7ba9343d",
+  "69cbae34b529",
+  "63f842421cce",
+  "33e188587efe",
+  "9155fed75099",
+  "e344ed68a76e",
+  "c51992a0d551",
+  "e58fa09fead9",
+  "de96a4cb9446",
+  "0720e2cb6329",
+  "6b29994fc50b",
+  "f3cd886cb92c",
+  "b1f805eeeae0",
+  "5052eba87468",
+  "8b520b1139f8",
+  "fe7221745d7e",
+  "8dc2a07946ae",
+  "215103417b43",
+  "7188789aa6c3",
+  "14af3af34d80",
+  "47472a21249b",
+  "225bdef90e40",
+  "b34a09060a4e",
+  "3d263a28fb53",
+  "4211b027713d",
+  "147a31865ad4",
+  "382ab84b3bf9",
+  "587ee6b10060",
+  "022fa5566e76",
+  "7411f7fa6ee5",
+  "ef11d5a9eea2",
+  "e6a32c2b2f28",
+  "a21fd6e5fff8",
+  "04d0deea9025",
+  "86e7a1443419",
+  "b1c949a416cd",
+  "912b6fc0f9db",
+  "07d052a12c91",
+  "2330f528914f",
+  "deab1c9e9513",
+  "c794eaa416d5",
+  "f4caf869a3a0",
+  "155dbbb171a8",
+  "11341bd96fb0",
+  "549423775855",
+  "a64e6ff032bb",
+  "75f429861013",
+  "4a1c5be65c46",
+  "a5bd55910b32",
+  "f1421c12cfe6",
+  "fc55941becfc",
+  "23009fe45f95",
+  "3086fcb54b0c",
+  "41bd443a93e0",
+  "fd351e74bd39",
+  "ed436f0cff20",
+  "58c0ef0729f9",
+  "b7cccbb15872",
+  "8e7ce414a48e",
+  "4fe5b44b8583",
+  "51672eab0fe4",
+  "9fc833efeb76",
+  "b4893f6d8009",
+  "843930c87799",
+  "c1b0f3a8ca1a",
+  "26b776dcd7fe",
+  "f8a15d85477e",
+  "e099318c4099",
+  "0071e64c4da2",
+  "b49a9bfbcdbe",
+  "166c984bd387",
+  "e4ae8c17b9a0",
+  "3810b762957a",
+  "c894b6ecebc3",
+  "a61f9f0cc448",
+  "0a0f6d898715",
+  "c14942900a65",
+  "28c543dd99c7",
+  "a93d05875972",
+  "6c0401b3770a",
+  "5636fe0f3d5c",
+  "c61245ac70fa",
+  "93cd44059f19",
+  "de280a90f96d",
+  "b293dc168f87",
+  "7d300cb30cc0",
+  "b751dfc2808d",
+  "bad8b064c540",
+  "bee8ea24d5c2",
+  "76c3390c6fdb",
+  "b88c7450739a",
+  "bc59e44af4b8",
+  "e69d403f1610",
+  "d33927559529",
+  "7f56cf78b389",
+  "6b3ad902b047",
+  "d3a09cf6bdb6",
+  "d0c47b490701",
+  "7c30aacf1b7c",
+  "1aacc6a0e7f4",
+  "f2506bc7f827",
+  "442da2445fbf",
+  "83f3f876d9bb",
+  "92bab12026cf",
+  "f68459c46a57",
+  "d069f0663445",
+  "29a13852a980",
+  "6fbe65e7f82d",
+  "aa268622df9c",
+  "4b0f6ed6b625",
+  "495466e2896c",
+  "1114b0a59526",
+  "e991f4d3a209",
+  "11941f83c082",
+  "cb71ce7b7ba1",
+  "008bc35a92b4",
+  "c6fa83340f29",
+  "fe6b5e4682c2",
+  "544a74b39350",
+  "bb5eee853403",
+  "97a2e62a8487",
+  "9e2e3b501507",
+  "618cadc78815",
+  "82ac95329d4a",
+  "ec680ea4048b",
+  "bb682c98fe99",
+  "f67fb2c06b9e",
+  "b467eafe3d91",
+  "b77715db350a",
+  "fa9513b208a3",
+  "fffff8388a5a",
+  "80d74ed0a219",
+  "0201e49bc7d4",
+  "67880ffffeca",
+  "a56392578718"
+ ]
+}

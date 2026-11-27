@@ -1,0 +1,19 @@
+# ml/evolution : ce qui ne se committe pas (INTERFACES.md par. 7, SPECIFICATION.md par. 3)
+# Le cache des courses (lourd, une ligne par course) et les pilotes generes : ils se refont.
+etat/courses*.jsonl
+etat/pilotes/
+# La console, le verrou et les marqueurs d arret : propres a un PC et a un moment.
+etat/sortie.log
+etat/verrou.json
+# (2026-11-27, le correcteur) les restes du verrou repris (verrou.json.mort-<pid>, verrou.json.reprise) et les fins de journaux tronquees mises de cote
+etat/verrou.json.*
+etat/*.fragment-*
+etat/STOP
+etat/PAUSE
+etat/ARRETE
+# Les fichiers a moitie ecrits (ecriture atomique : .tmp puis rename), partout.
+*.tmp
+# Les essais (config-essai.json, tests) : leur etat vit a part et se jette.
+essais/
+# Les journaux legers (population.json, generations, validations, morts, coffre), tableau.html, resume.txt et champions/ se committent
+# a la main sur la branche de travail. Aucun commit automatique.

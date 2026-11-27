@@ -1,0 +1,13 @@
+# Les lanceurs Windows gardent leurs fins de ligne CRLF (cmd.exe lit mal les .cmd en LF : sauts vers une etiquette rates).
+*.cmd text eol=crlf
+# (2026-11-27, le correcteur ; relecture determinisme) LES OCTETS NE CHANGENT JAMAIS EN ROUTE. Avec core.autocrlf=true (le reglage de Git pour
+# Windows, pose sur ce PC), Git rendrait ces fichiers en CRLF a l'extraction : le sha de modele.js et d'enfant.js (l'epoque des courses), le sha des
+# pilotes et des champions (shaPilote, le sha1 du texte LF) ne correspondraient plus sur une autre extraction (le Ryzen). `-text` : ce qui est
+# commite est ce qui a ete ecrit, partout (comme ml/labo/cerveaux/*.js a la racine).
+*.js -text
+*.json -text
+*.jsonl -text
+*.md -text
+*.html -text
+*.txt -text
+champions/** -text

@@ -1,0 +1,10 @@
+Generation 7, phase A, epoque f86072c92889 (depuis la gen. 7), 3 graines par generation, 10 vivants
+ARRETE (proprement)
+Debit : 340 courses/h (gen. 6 : 24 courses dont 24 jouees, 0 du cache, en 4 min)
+Champion 19e3767cc346 (= le temoin) : F -1.4 +- 0.7, palier 2.9, ecart E 1.08 (5 courses)
+Meneur   b82672e76dc3 : F -0.9 +- 0.8, palier 2.9, ecart E 0.94 (5 courses)
+Temoin   19e3767cc346 : F -1.4 +- 0.7, palier 2.9, ecart E 1.08 (5 courses)
+Coffre (27/11 18:00, gen. 5, 2 courses) : champion - temoin = palier +0.00, E +0.00, ecart classique +0.00
+Validation (gen. 4) : d06b00776ec3 contre 19e3767cc346 : pas sacre (dF +0.29 +- 2.40 sur 3 graines)
+Gen. 6 : 4 course(s) non mesuree(s) sur 24 (16.7 %), 0 panne(s) de cerveau
+Alertes : plus de 2 % de courses non mesurees ; population trop semblable (distance 0.048)

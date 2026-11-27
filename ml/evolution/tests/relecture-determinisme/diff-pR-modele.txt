@@ -1,0 +1,221 @@
+diff --git a/pR.js b/modele-temoin.js
+index 92e260fce..bdc6ccc94 100644
+--- a/pR.js
++++ b/modele-temoin.js
+@@ -0,0 +1,13 @@
++/* ===== LE PILOTE FABRIQUE DE LA SELECTION NATURELLE (2026-11-27, etape 2 — Sacha : « une population de pilotes evolue seule, le moins bon est vire ») =====
++   CE FICHIER N'EST PAS UN MODULE NODE : c'est un PILOTE A TROUS, lu comme texte par ml/evolution/genome.js (ecrirePilote) qui remplace la ligne seule
++   de la balise du genome par le bloc REGLAGES / G / WV, WS / CONTROLE_RAYONS d'un individu ; le texte obtenu se charge dans le bac (piloter.charger).
++   Contrat : ml/evolution/INTERFACES.md § 2.4 et § 5 (il fait foi). C'est ml/ecurie/pilote-voltige.js recopie, plus :
++     · les retouches de ml/ecurie/agents/tmp-voltige/faire-pR.js (LA LOI « RETOUR » des yeux), gardees par REGLAGES.retours.length>0 : sans loi
++       demandee, le pilote ne met pas « retours » dans ses ordres et joue au bit pres comme pilote-voltige ;
++     · les 14 constantes promues de vaut(), raccourci() et enVol(), lues dans G ;
++     · LA TETE RAYON (36 entrees -> 6 tanh -> 1, ajoutee aux deux cotes de la comparaison des facons en vol) et LA TETE SOL (12 -> 6 -> 3 : le seuil
++       de la nitro, la ligne visee, le gout du raccourci). A la naissance W2 = 0 : chaque sortie vaut 0 et rien ne change ;
++     · LE CONTROLE DES RAYONS (amendement 3) : si les yeux changent l'ordre de leurs rayons, le pilote leve « YEUX CHANGES » et le maitre s'arrete.
++   Seul fichier qu'on retouche a la main quand on ajoute un geste (une nouvelle sortie de tete : W2 a 0 pour rester muette a la naissance).
++   Pas de require, Date, Math.random, eval, Function : le bac les refuse. Changer ce fichier change l'epoque des courses (tout est rejoue).
++   Ce qui suit est l'en-tete de pilote-voltige.js, tel quel. */
+@@ -30,72 +43,6 @@ const PROFIL={
+-const REGLAGES={
+-  marge:10,          /* m gardes entre la ligne visee et le bord (la reference : 9, avec une main de machine) */
+-  bandeDecor:99,     /* m : sur une map a decor, la ligne visee ne s'ecarte pas plus de l'axe (99 = pas de limite) */
+-  nitroDecor:1,    /* sur une map a decor, les seuils de virage de la nitro sont multiplies par ca (0 = jamais de nitro) */
+-  margeCouloir:15,   /* m gardes dans un couloir : le bord y est un mur */
+-  avance:.3,         /* s : on ne vise rien de plus proche (la reaction du volant : 0,2 s) */
+-  glisse:.12,        /* rad : la ligne visee ne se deplace pas plus vite que ce cap-la (a 115 m/s : 14 m de cote par seconde) */
+-  glisseUrgence:.3,  /* le meme quand la route lache : la, on ne menage plus rien */
+-  ligneLoin:320,     /* m : un objet de la ligne parfaite se vise jusque-la */
+-  piecesLoin:180,    /* m : une tranche de pieces se vise jusque-la */
+-  capLigne:.3,       /* rad : le cap le plus fort demande pour rejoindre la ligne */
+-  avanceCap:.25,     /* s : le cap prend cette avance sur le changement de lacet de la route (celui de dans 0,4 s moins celui d'ici) */
+-  capAvance:.25,     /* rad : l'avance ne depasse pas ca */
+-  braqueDoux:.15,    /* part de volant que demande un virage : en dessous, toute la largeur est permise */
+-  braqueFort:.5,     /* au-dessus, on se tient au moins a mi-largeur du cote INTERIEUR */
+-  braqueNitro:.7,    /* au-dessus, pas de nitro (.3 pour l'allumer) ; sur les maps a decor (une sortie y tue) : .25 et .18 */
+-  margeAllumer:.05,   /* part de ma vitesse : vSure doit la depasser d'autant pour ALLUMER la nitro… */
+-  margeTenir:0,     /* …et d'autant pour la GARDER */
+-  jaugeAllume:.45,   /* jauge + reserve au-dessus de laquelle la nitro s'allume… */
+-  jaugeCoupe:.25,    /* …et en dessous de laquelle elle se coupe (le fond garde pour planer en vol) */
+-  capMax:.35,        /* rad : au-dela, la caisse est de travers, pas de nitro */
+-  bascule:10,        /* points qu'un rayon doit avoir de plus que la facon tenue pour qu'on en change */
+-  tenirFacon:.35,    /* s au moins sur une facon avant d'en changer (sauf si elle mene a la mort) */
+-  derive:.3,         /* s : apres la pose, la caisse glisse dans son axe ce temps-la avant que le volant morde */
+-  /* --- LE RACCOURCI (sortir expres par le bord quand le radar promet une pose plus loin sur la piste) --- */
+-  raccVirage:.2,     /* rad : la route doit tourner d'au moins ca sur 400 m pour qu'on regarde les sorties (les joueurs : 86 % de leurs vols partent dans un virage) */
+-  raccGain:80,       /* m de piste gagnes au moins (le jeu crie RACCOURCI a 60) */
+-  raccAxe:.75,       /* rad : l'angle d'arrivee le plus fort accepte (la pose est ratee a 0,96) */
+-  raccTmin:.7,       /* s de vol au moins… */
+-  raccChute:120,     /* m : on ne plonge pas vers une cible plus basse que ca (MESURE, jade 910333 : a 350 m de chute la caisse atteint 300 m/s et ne s'aligne plus ;
+-                        les joueurs : 38 m en mediane, 147 m pour un vol sur dix) */
+-  raccTmax:3.6,      /* …et au plus (la jauge d'air : 6 s ; les joueurs : 2,3 s en mediane, 4 s pour un vol sur dix) */
+-  raccAir:1.2,       /* s de jauge d'air qui doivent rester a la pose annoncee */
+-  raccBord:5,        /* m : la pose annoncee doit tomber a plus de ca du bord */
+-  raccAttente:1.6,   /* s : on ne s'engage que si le bord est a moins de ca, volant a fond */
+-  raccCartes:{grotte:0,canyon:0,jade:0},   /* les maps ou l'on ne sort JAMAIS expres (0) ; absente = permis. MESURE (26/11, 12 courses) : a la grotte, 4 sorties
+-                        engagees sur 4 finissent contre la roche en 0,2 a 1,5 s (le rayon du sol annoncait une pose) ; au canyon la paroi est a 10 m du bord.
+-                        Les joueurs, eux, y coupent (grotte : 5 raccourcis par minute) : a rouvrir quand le rayon du sol y sera juste.
+-                        La JADE (26/11, 15 h) : sur 12 courses, 3 plongeons voulus sur 4 y finissent mal (2 jauge vide, 1 pic), contre 0 sur 13 aux nuages,
+-                        en ville et dans l'espace */
+-  raccJumeau:{jade:1,ville:1},      /* les maps a decor ou l'on exige que les DEUX rayons vers la cible (avec et sans reacteur) se posent */
+-  raccRepos:1.5,     /* s sans nouvelle sortie apres un engagement abandonne */
+-  figPlongeon:2.2,     /* s avant la pose annoncee pour une figure en plongeon (au lieu de figTemps) */
+-  /* --- LES FIGURES EN VOL --- */
+-  figTemps:1.5,      /* s avant la pose annoncee pour lancer une figure (reaction du geste 0,26 + double appui 0,27 + 0,84 que le jeu exige) */
+-  figJauge:.4,       /* jauge + reserve au moins (une figure coute 0,35 ; une pose propre en rend 0,40) */
+-  figEcart:.55,      /* s entre deux gestes (la main : 2 par seconde au plus) */
+-  dessousMax:.8,     /* s sous la dalle avant de chercher a en sortir par le bord (MESURE, ml/ecurie/etude/realisme.md : les joueurs y roulent 3 % du sol,
+-                        par passages de 1,2 s ; le pilote d'avant 29 %, par passages de 4 a 60 s — c'est ce qui saute le plus aux yeux d'un spectateur) */
+-  dessousAveugle:1,  /* 1 = sous la dalle, on file au bord SANS attendre qu'un rayon promette une pose (les joueurs : 1,1 s dessous) ; 0 = on attend la promesse */
+-  dessousDecor:1,    /* sur les maps a decor (canyon, grotte, jade, ville) : 0 = on reste dessous · 1 = on sort si un rayon de ce cote sauve · 2 = on sort comme ailleurs */
+-  dessousNitro:0,    /* 1 = nitro tenue pendant la sortie du dessous (les joueurs decollent nitro allumee) */
+-  dessousFuir:1,     /* 1 = en vol, quitter une facon qui mene SOUS la dalle des qu'un autre rayon promet une pose propre dessus */
+-  dessousPose:25,    /* points que perd une pose annoncee SOUS la dalle */
+-  departMin:1.5,     /* s : au depart, le pilote file droit au moins ce temps-la… */
+-  departMax:5.5,     /* …et au plus celui-la (tire de la piste, pas du hasard). MESURE (ml/ecurie/etude/realisme.md § 1.8) : le premier coup de volant
+-                        d'un joueur tombe a 3,8 s (il va tout droit jusqu'a la premiere piece, a 4,1 s) ; celui du pilote d'avant a 0,5 s, a chaque course */
+-  portailVol:1,      /* 1 = sortir par le bord pour passer le portail EN VOL quand un rayon du sol l'annonce (0 = jamais). MESURE (ml/ecurie/etude/realisme.md
+-                        § 1.8) : les joueurs passent 56 % des portails en vol, le pilote d'avant 16 % */
+-  volDemiTour:1,     /* 1 = la loi « vers la route » braque aussi quand la caisse est a plus de 1,6 rad de l'axe de la route (0 = elle lache le volant, comme les rayons) */
+-  volRetour:0,       /* s : le cap vise vers la route est -lat / (volRetour x vitesse), au lieu de -lat / 40 m (0 = 40 m, comme les rayons) */
+-  volAvance:.25,       /* s : la loi est appliquee a l'ecart et a l'axe qu'on aura dans ce temps-la (le retard de la main) ; 0 = a ceux du moment */
+-  retours:[{marge:8,cap:.6,avance:.25,rv:.2,rm:.24,rn:.18}],   /* LES LOIS « RETOUR » demandees aux yeux (yeux.js : 4 au plus) — marge : la ligne visee, en dedans du bord (m) ; cap : le cap de retour le plus fort (rad) ; nitro 2 : reacteur tenu tant que la caisse est en dehors de la ligne et sous nitroHaut metres ; cabre : cabrer sous cette hauteur a cote de la dalle ; sol : jouee aussi depuis les sorties du sol */
+-  retourPrime:4,     /* points de plus pour une loi « retour », a issue egale (la loi « vers la route » : 3) */
+-  volNitro:0,        /* points de plus pour une loi qui tient le reacteur (les joueurs : 96 % de leurs vols ont de la nitro) */
+-  volMieux:1,        /* 1 = on quitte une loi de retour qui se pose pour une autre qui se pose mieux de « bascule » points (0 = seulement si elle ne se pose plus) */
+-  axePoids:20,       /* points que coute un radian d'angle a la pose annoncee */
+-  figMax:2,          /* figures par vol au plus (le jeu : 3 a la fois) */
+-  figDepuis:.4,      /* s de vol avant la premiere figure (les joueurs : 0,56 s en mediane) */
+-  figHaut:15         /* m au-dessus de la route la plus proche pour une figure dans un vol subi (MESURE, grotte 910185 : une figure lancee a la 1re
+-                        vue d'une sortie au ras du bord — ↑ puis deux appuis NITRO — a envoye la caisse a 88 m au-dessus de la dalle, morte jauge vide) */
+-};
++/*@GENOME@ debut : ecrit par ml/evolution/genome.js (ecrirePilote), genome 19e3767cc346 — ne pas editer */
++const REGLAGES={marge:10,bandeDecor:99,nitroDecor:1,margeCouloir:15,avance:0.3,glisse:0.12,glisseUrgence:0.3,ligneLoin:320,piecesLoin:180,capLigne:0.3,avanceCap:0.25,capAvance:0.25,braqueDoux:0.15,braqueFort:0.5,braqueNitro:0.7,margeAllumer:0.05,margeTenir:0,jaugeAllume:0.45,jaugeCoupe:0.25,capMax:0.35,bascule:10,tenirFacon:0.35,derive:0.3,raccVirage:0.2,raccGain:80,raccAxe:0.75,raccTmin:0.7,raccChute:120,raccTmax:3.6,raccAir:1.2,raccBord:5,raccAttente:1.6,raccCartes:{jade:0,grotte:0,canyon:0},raccJumeau:{ville:1,jade:1},raccRepos:1.5,figPlongeon:2.2,figTemps:1.5,figJauge:0.4,figEcart:0.55,dessousMax:0.8,dessousAveugle:1,dessousDecor:1,dessousNitro:0,dessousFuir:1,dessousPose:25,departMin:1.5,departMax:5.5,portailVol:1,volDemiTour:1,volRetour:0,volAvance:0.25,figMax:2,figDepuis:0.4,figHaut:15,retourOn:0,retMarge:8,retCap:0.8,retGain:0.8,retAvance:0.15,retourPrime:4,volMieux:0,volNitro:0,retours:[]};
++const G={axePoids:20,vTemps:3,vPortail:94,vLevre:80,vLibreBase:12,vLibrePente:2,vCourt:34,rAxe:250,rTemps:25,rPlane:40,rLourde:40,bVersRoute:3,bVersRoutePlane:2,bRien:1};
++const WV=new Float64Array([0.006783,-0.276571,0.124331,-0.086888,0.039896,-0.073796,0.030411,0.276548,0.23558,0.06362,-0.130752,-0.096439,0.066365,0.143973,-0.097319,-0.005092,-0.000367,0.311519,-0.391334,-0.010082,0.096961,-0.010544,0.182511,0.068785,-0.176444,-0.349299,-0.131872,-0.060994,-0.066791,0.016602,-0.014336,0.08055,0.106255,0.116999,-0.216092,-0.333076,-0.233521,0.240254,-0.110334,0.125319,-0.134479,0.063388,0.14364,-0.244885,0.030184,0.034432,0.018114,-0.125366,-0.064794,0.164568,0.032471,0.196282,-0.00313,-0.000588,0.257263,0.234081,0.209279,0.255108,-0.004924,0.029351,-0.097905,-0.211765,0.156061,-0.289459,-0.038394,-0.202231,-0.090365,-0.210271,0.125884,-0.223606,-0.180318,-0.229574,0.324943,-0.132755,0.036071,-0.304319,-0.166788,-0.038887,-0.177744,-0.007873,0.139979,0.249845,-0.248559,-0.109381,0.175013,0.274153,0.064529,-0.036226,-0.236386,-0.065187,0.393641,0.082066,-0.121369,-0.121519,0.044818,0.140212,0.052304,0.028707,-0.066177,0.067028,0.090249,-0.103743,0.050764,0.137736,0.184355,0.055648,-0.063503,0.014576,-0.009553,-0.32576,0.028541,-0.05136,0.161253,0.158237,0.11012,0.097255,-0.130843,0.046864,0.138763,0.14454,0.152026,0.145779,0.061158,-0.045175,-0.009661,0.120406,-0.120361,-0.007947,-0.079286,-0.138872,0.401097,0.132438,-0.28638,-0.043337,-0.231667,0.132157,0.016791,0.139086,-0.093448,0.191622,-0.349439,-0.05472,0.118045,-0.187194,-0.385879,-0.117403,0.002724,-0.012036,0.11213,0.179482,-0.20486,-0.243418,0.163128,-0.215249,0.336319,0.237865,-0.014598,0.355694,-0.069776,-0.106062,-0.059285,0.177117,-0.032036,-0.012327,0.338474,0.136723,-0.068005,-0.221057,-0.097322,0.082079,0.041006,0.395872,0.128471,0.015706,0.038292,0.073833,0.082462,-0.107312,-0.172569,-0.239298,-0.437344,-0.002854,-0.062823,-0.161118,-0.113896,0.102469,0.430782,0.098601,-0.052977,-0.091649,0.053102,-0.009047,-0.200671,0.031687,-0.067782,0.067779,-0.547669,0.204983,-0.110227,-0.001827,-0.106523,-0.195961,-0.2551,-0.006157,0.23709,-0.385923,-0.353921,0.29318,0.067426,-0.183907,0.137839,0.343052,-0.329414,-0.08862,-0.013658,0.184245,0,0,0,0,0,0]),WS=new Float64Array([0.456533,0.0006,0.305025,-0.10004,0.586858,-0.155964,-0.171331,-0.243918,0.377883,0.12955,0.168627,0.413106,0.201042,0.907698,-0.004624,-0.214577,0.214169,0.154718,-0.002319,0.436319,0.234546,-0.452299,-0.161729,-0.164107,-0.554662,-0.158519,0.109072,0.299527,-0.543184,-0.351775,-0.000264,-0.493296,0.202044,-0.061973,0.631321,0.307498,-0.054833,0.134508,-0.209417,0.297479,0.029277,-0.145933,-0.012748,0.284387,0.261722,0.107933,-0.188576,-0.191069,-0.075122,0.365613,-0.098654,0.385014,-0.275145,0.348299,-0.082748,-0.455134,0.153532,-0.162558,-0.200561,0.330283,-0.343115,0.134814,0.081475,0.249844,0.678065,0.211699,0.025422,-0.000176,0.391179,-0.115232,0.448371,-0.163987,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
++const CONTROLE_RAYONS=true;
++/*@GENOME@ fin*/
+@@ -104,0 +52,48 @@ const cote=o=>o.latC!=null?o.latC:o.lat;     /* sous la dalle, le lat des pieces
++/* ===== LES DEUX TETES DE RESEAU (2026-11-27, la selection naturelle : INTERFACES.md § 5.4 a 5.6) =====
++   Une tete : nIn entrees -> nH tanh -> nOut sorties ; W1 en tete du tableau (W[j*nIn+i]), W2 ensuite (W[nIn*nH+j*nOut+k]). Les entrees sont bornees a
++   [-3,3] (une valeur non finie vaut 0). Avec W2 = 0 chaque sortie vaut +0 : x+0, x*exp(0) rendent x, et le pilote joue comme pilote-voltige.
++   Les tampons sont faits une fois (pas d'allocation par decision). Les gains 15, 5, 0,3 et 0,5 sont ceux de cfg.reseaux, ecrits ici en dur. */
++const XV=new Float64Array(36),OV=new Float64Array(1),XS=new Float64Array(12),OS=new Float64Array(3);
++function reseau(W,x,nIn,nH,nOut,out){
++  for(let k=0;k<nOut;k++)out[k]=0;
++  const b=nIn*nH;
++  for(let j=0;j<nH;j++){let s=0;for(let i=0;i<nIn;i++)s+=W[j*nIn+i]*x[i];const h=Math.tanh(s);for(let k=0;k<nOut;k++)out[k]+=W[b+j*nOut+k]*h;}
++  return out;}
++const borne3=v=>(typeof v==='number'&&v-v===0)?(v<-3?-3:v>3?3:v):0;   /* NaN, ±Infinity, undefined, non-nombre -> 0 ; puis [-3,3] */
++/* LA TETE RAYON : ce qu'un rayon vaut de plus (ou de moins), en points, pour la facon nom ; 0 sans rayon (le reseau n'est pas appele) */
++function teteRayon(ry,nom,v,m){
++  if(ry==null)return 0;
++  const f=v.vol,p=f.proche||{},demi=Math.max(1,+v.demi||28),x=XV;
++  x[0]=ry.issue==='pose'?1:0;x[1]=ry.issue==='levre'?1:0;x[2]=ry.issue==='portail'?1:0;x[3]=ry.issue==='choc'?1:0;
++  x[4]=ry.issue==='air'?1:0;x[5]=ry.issue==='fond'?1:0;x[6]=ry.issue==='libre'?1:0;x[7]=ry.issue==='coupe'?1:0;
++  x[8]=(+ry.t||0)/6;x[9]=Math.abs(+ry.axe||0)/1.4;x[10]=(+ry.lat||0)/demi;x[11]=ry.propre===true?1:0;x[12]=ry.dessous?1:0;x[13]=(+ry.gain||0)/200;
++  x[14]=nom.indexOf('retour')===0?1:0;x[15]=nom==='rien'?1:0;x[16]=nom==='gauche'?1:0;x[17]=nom==='droite'?1:0;x[18]=nom==='cabre'?1:0;
++  x[19]=nom==='pique'?1:0;x[20]=nom==='plane'?1:0;x[21]=nom==='planeCabre'?1:0;x[22]=nom==='versRoute'?1:0;x[23]=nom==='versRoutePlane'?1:0;
++  x[24]=nom==='viser'?1:0;x[25]=nom==='viserPlane'?1:0;
++  x[26]=(f.air&&f.air.reste!=null?+f.air.reste:+f.reste)/6;x[27]=((+v.nitro||0)+(+v.reserve||0))/2;x[28]=(+p.haut||0)/100;x[29]=(+p.lat||0)/demi;
++  x[30]=+p.axe||0;x[31]=nom===m.facon?1:0;x[32]=(v.t-m.tFacon)/1;x[33]=(+f.t||0)/6;x[34]=DECOR[v.carte]?1:0;x[35]=1;
++  for(let i=0;i<36;i++)x[i]=borne3(x[i]);
++  reseau(WV,x,36,6,1,OV);
++  return 15*Math.tanh(OV[0]);}
++/* LA TETE SOL : une fois par decision au sol (hors depart) ; rend OS : [0] le seuil de la nitro, [1] la ligne visee, [2] le gout du raccourci */
++function teteSol(v,force,margeV,jauge,decor,couloir,lache){
++  const x=XS;
++  x[0]=v.lat/Math.max(1,+v.demi||28);x[1]=(+v.cap||0)/0.5;x[2]=force;x[3]=margeV/3;x[4]=jauge/2;x[5]=v.vitesse/150;
++  x[6]=(v.palier&&+v.palier.n||0)/30;x[7]=decor?1:0;x[8]=couloir?1:0;x[9]=lache?1:0;x[10]=tourne(v,400);x[11]=1;
++  for(let i=0;i<12;i++)x[i]=borne3(x[i]);
++  return reseau(WS,x,12,6,3,OS);}
++/* ===== LE CONTROLE DES RAYONS (amendement 3, ecrit d'apres ml/bot/yeux.js, radarVol) =====
++   Les dix premiers rayons sont toujours la, dans cet ordre ; viser et viserPlane viennent ensemble, seulement quand les yeux ont une cible (vue.vol.cible
++   n'est alors pas null) ; viennent ensuite retour0, retour1… consecutifs, au plus autant que de lois demandees (moins a la premiere vue d'un vol : la
++   demande part avec l'ordre d'avant). Rien d'autre. Un controle qui passe n'ecrit rien et ne change rien a la course. */
++const ORDRE10=['tenu','rien','gauche','droite','cabre','pique','plane','planeCabre','versRoute','versRoutePlane'];
++function controleRayons(f){
++  const noms=f.radar.rayons.map(r=>r&&r.m);
++  let ok=noms.length>=10,j=10;
++  for(let i=0;ok&&i<10;i++)if(noms[i]!==ORDRE10[i])ok=false;
++  if(ok){
++    if(noms[j]==='viser'){if(noms[j+1]!=='viserPlane'||!f.cible||typeof f.cible!=='object')ok=false;j+=2;}
++    else if(f.cible!=null)ok=false;}
++  if(ok){let n=0;while(j<noms.length&&noms[j]==='retour'+n){n++;j++;}if(j!==noms.length||n>REGLAGES.retours.length)ok=false;}
++  if(!ok)throw new Error('YEUX CHANGES : rayons '+noms.join(','));}
++
+@@ -140 +135 @@ const DECOR={canyon:1,grotte:1,jade:1,ville:1};   /* les maps ou une sortie par
+-function raccourci(v,sortir){
++function raccourci(v,sortir,kGain){   /* kGain : exp(0,5 x la 3e sortie de la tete SOL) — 1 a la naissance */
+@@ -155 +150 @@ function raccourci(v,sortir){
+-      if((r.chute!=null&&r.chute>R.raccChute)||gain<R.raccGain||axe>R.raccAxe||t<R.raccTmin||t>R.raccTmax||Math.abs(+r.lat||0)>v.demi-R.raccBord||(r.air!=null&&r.air<R.raccAir))continue;
++      if((r.chute!=null&&r.chute>R.raccChute)||gain<R.raccGain*kGain||axe>R.raccAxe||t<R.raccTmin||t>R.raccTmax||Math.abs(+r.lat||0)>v.demi-R.raccBord||(r.air!=null&&r.air<R.raccAir))continue;
+@@ -162 +157 @@ function raccourci(v,sortir){
+-      const s=Math.min(gain,600)-250*axe-25*t-(r.m==='plane'?40:0)-(r.note==='lourde'?40:0);
++      const s=Math.min(gain,600)-G.rAxe*axe-G.rTemps*t-(r.m==='plane'?G.rPlane:0)-(r.note==='lourde'?G.rLourde:0);
+@@ -197,0 +193,6 @@ function auSol(v,m){
++  /* LA TETE SOL (2026-11-27) : elle voit la marge du virage et la jauge, calculees ici (plus bas dans pilote-voltige, memes expressions) */
++  const proche=!!(vg&&vg.d<vit*3),margeV=proche?vg.marge/vit:9;
++  const jauge=(v.nitro||0)+(v.reserve||0);
++  const oS=teteSol(v,force,margeV,jauge,decor,couloir,lache);
++  {const dc=5*Math.tanh(oS[1]);if(dc!==0)cible=cible+dc;}   /* la ligne visee (m) ; un decalage nul n'y touche pas (pas meme le signe d'un zero) */
++  const kSeuil=Math.exp(0.3*oS[0]),kGain=Math.exp(0.5*oS[2]);
+@@ -212 +212,0 @@ function auSol(v,m){
+-  const jauge=(v.nitro||0)+(v.reserve||0);
+@@ -214,2 +214 @@ function auSol(v,m){
+-  const proche=!!(vg&&vg.d<vit*3),margeV=proche?vg.marge/vit:9;
+-  const k=decor?R.nitroDecor:1,seuil=(m.nitro?R.braqueNitro:R.braqueNitro-.1)*k;
++  const k=decor?R.nitroDecor:1,seuil=(m.nitro?R.braqueNitro:R.braqueNitro-.1)*k*kSeuil;
+@@ -235 +234 @@ function auSol(v,m){
+-    else return {volant:m.sortie.cote,nitro:avecNitro(m.sortie.facon)||m.nitro||(tetu&&R.dessousNitro>0),ensuite:{volant:0},regarder:'sorties'};}
++    else return {volant:m.sortie.cote,nitro:(R.retours.length?avecNitro(m.sortie.facon):m.sortie.facon==='plane')||m.nitro||(tetu&&R.dessousNitro>0),ensuite:{volant:0},regarder:'sorties'};}
+@@ -248 +247 @@ function auSol(v,m){
+-    const rc=raccourci(v,sortir);
++    const rc=raccourci(v,sortir,kGain);
+@@ -253 +252 @@ function auSol(v,m){
+-      return {volant:rc.cote,nitro:avecNitro(rc.facon)||m.nitro,ensuite:{volant:0},regarder:'sorties'};}}
++      return {volant:rc.cote,nitro:(R.retours.length?avecNitro(rc.facon):rc.facon==='plane')||m.nitro,ensuite:{volant:0},regarder:'sorties'};}}
+@@ -289 +288 @@ const FACONS={
+-  /* LES LOIS « RETOUR » : la loi est celle des yeux (vue.vol.retours[i] : son volant, son manche et sa nitro du moment, avance comprise) */
++  /* LES LOIS « RETOUR » (faire-pR.js, 27/11) : la loi est celle des yeux (vue.vol.retours[i] : son volant, son manche et sa nitro du moment, avance comprise) */
+@@ -298 +297,2 @@ const avecNitro=nom=>nom==='versRoutePlane'||nom==='plane'||nom==='planeCabre'||
+-const prime=nom=>(nom==='versRoute'?3:nom==='versRoutePlane'?2:nom==='rien'?1:nom.indexOf('retour')===0?REGLAGES.retourPrime:0)+(avecNitro(nom)?REGLAGES.volNitro:0);   /* les rayons joues jusqu'au bout de l'air : « libre » y veut dire jauge vide */
++/* le bonus d'une facon a issue egale (pilote-voltige : versRoute 3, versRoutePlane 2, rien 1 — ici les genes G.bVersRoute, G.bVersRoutePlane, G.bRien) */
++const prime=nom=>(nom==='versRoute'?G.bVersRoute:nom==='versRoutePlane'?G.bVersRoutePlane:nom==='rien'?G.bRien:nom.indexOf('retour')===0?REGLAGES.retourPrime:0)+(avecNitro(nom)?REGLAGES.volNitro:0);   /* les rayons joues jusqu'au bout de l'air : « libre » y veut dire jauge vide */
+@@ -309,3 +309,3 @@ function vaut(r,long,v){
+-    return 100-REGLAGES.axePoids*Math.abs(axe)-3*t-Math.min(20,Math.max(0,Math.abs(glisse)-(v.demi-4)))-(r.propre===false?20:0)-(r.dessous?REGLAGES.dessousPose:0)+Math.min(12,Math.max(0,+r.gain||0)/40);}
+-  if(r.issue==='portail')return 94;
+-  if(r.issue==='levre')return 80-3*t;
++    return 100-G.axePoids*Math.abs(axe)-G.vTemps*t-Math.min(20,Math.max(0,Math.abs(glisse)-(v.demi-4)))-(r.propre===false?20:0)-(r.dessous?REGLAGES.dessousPose:0)+Math.min(12,Math.max(0,+r.gain||0)/40);}
++  if(r.issue==='portail')return G.vPortail;
++  if(r.issue==='levre')return G.vLevre-3*t;
+@@ -313,2 +313,2 @@ function vaut(r,long,v){
+-    if(long)return 12+2*t;                                    /* rien avant la fin de l'air : la jauge vide suit */
+-    return 34-Math.min(20,(Math.abs(+r.haut||0)+Math.abs(+r.lat||0))/10);}   /* un rayon court : on ne sait pas ; mieux vaut finir pres de la route */
++    if(long)return G.vLibreBase+G.vLibrePente*t;                                    /* rien avant la fin de l'air : la jauge vide suit */
++    return G.vCourt-Math.min(20,(Math.abs(+r.haut||0)+Math.abs(+r.lat||0))/10);}   /* un rayon court : on ne sait pas ; mieux vaut finir pres de la route */
+@@ -325,0 +326 @@ function enVol(v,m){
++  if(CONTROLE_RAYONS&&Y&&typeof f.radar==='object')controleRayons(f);   /* les yeux ont-ils change ? (leve « YEUX CHANGES ») */
+@@ -330,3 +331,2 @@ function enVol(v,m){
+-    /* LE CHOIX DU DEPART (27/11) : a la premiere vue qui porte un radar, la loi de retour dont le rayon vaut le plus — au lieu de « vers la route »
+-       d'office. MESURE (rayons-vol.js, 160 vols) : a la premiere vue « vers la route » annonce 67 poses sur la dalle (axe 0,27 rad en mediane), la loi
+-       « retour » a reacteur et manche 116 (axe 0,09). */
++    /* LE CHOIX DU DEPART (faire-pR.js, 27/11) : a la premiere vue qui porte un radar, la loi de retour dont le rayon vaut le plus — au lieu de « vers la
++       route » d'office. Seulement si des lois « retour » sont demandees. */
+@@ -335 +335 @@ function enVol(v,m){
+-      for(const nom of RETOURS){const ry=Y.find(x=>x&&x.m===nom);if(!ry)continue;const s=vaut(ry,true,v)+prime(nom);if(s>s9){s9=s;b9=nom;}}
++      for(const nom of RETOURS){const ry=Y.find(x=>x&&x.m===nom);if(!ry)continue;const s=vaut(ry,true,v)+prime(nom)+teteRayon(ry,nom,v,m);if(s>s9){s9=s;b9=nom;}}
+@@ -351 +351 @@ function enVol(v,m){
+-    const patience=m.facon.indexOf('viser')===0&&m.mal<3&&!(mien&&mien.issue==='choc'&&(+mien.t||0)<1.2),sMien=vaut(mien,true,v);
++    const patience=m.facon.indexOf('viser')===0&&m.mal<3&&!(mien&&mien.issue==='choc'&&(+mien.t||0)<1.2),sMien=vaut(mien,true,v)+teteRayon(mien,m.facon,v,m);
+@@ -355 +355 @@ function enVol(v,m){
+-    /* POUR MIEUX : la loi tenue se pose, mais une autre loi de retour se pose bien mieux (plus droit, plus tot, sans ressortir) */
++    /* POUR MIEUX (faire-pR.js) : la loi tenue se pose, mais une autre loi de retour se pose bien mieux (plus droit, plus tot, sans ressortir) */
+@@ -360,0 +361 @@ function enVol(v,m){
++        if(nom.indexOf('retour')===0&&+nom.slice(6)>=R.retours.length)continue;   /* une loi « retour » que les yeux ne jouent pas : pas de rayon */
+@@ -368 +369 @@ function enVol(v,m){
+-        const s=vaut(ry,!!LONGS[nom],v)+prime(nom);
++        const s=vaut(ry,!!LONGS[nom],v)+prime(nom)+teteRayon(ry,nom,v,m);
+@@ -394 +395 @@ module.exports={
+-  nom:'pilote',
++  nom:'evolution',

@@ -1,0 +1,37 @@
+18:39:28 evoluer : pid 3192, etat C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\evolution\tests\relecture-robustesse\etat-stop, config config-epoque.json, 4 travailleurs, node v24.22.3
+18:39:29 generation 7 : reprise (naissances deja faites, le cache rend les courses deja jouees)
+18:39:29 generation 7 : 30 courses (10 pilotes x 3 graines, 60 s au plus, 4 a la fois)
+18:39:57 course entrainement graine 949257 b82672e76dc3 : palier 3, 60 s, temps
+18:39:58 course entrainement graine 949257 19e3767cc346 : palier 3, 60 s, temps
+18:39:59 course entrainement graine 949257 0324fb2adc77 : palier 3, 60 s, temps
+18:40:00 course entrainement graine 949257 d06b00776ec3 : palier 5, 60 s, temps
+18:40:24 course entrainement graine 949257 a8c3828e3666 : palier 3, 60 s, temps
+18:40:26 course entrainement graine 949257 3fa7073e3bec : palier 3, 60 s, temps
+18:40:26 course entrainement graine 949257 918430da8348 : palier 3, 60 s, temps
+18:40:27 course entrainement graine 949257 8a0a47b9deae : palier 4, 60 s, temps
+18:40:48 course entrainement graine 923135 d06b00776ec3 : palier 3, 42.5 s, tour
+18:40:53 course entrainement graine 949257 40a03fb1382c : palier 3, 60 s, temps
+18:40:55 course entrainement graine 949257 a0b94b7eae7d : palier 3, 60 s, temps
+18:41:00 course entrainement graine 923135 19e3767cc346 : palier 5, 60 s, temps
+18:41:11 course entrainement graine 923135 a8c3828e3666 : palier 3, 21.8 s, tour
+18:41:18 course entrainement graine 923135 0324fb2adc77 : palier 4, 60 s, temps
+18:41:24 course entrainement graine 923135 b82672e76dc3 : palier 5, 60 s, temps
+18:41:28 course entrainement graine 923135 918430da8348 : palier 4, 60 s, temps
+18:41:38 course entrainement graine 923135 3fa7073e3bec : palier 3, 38.1 s, tour
+18:41:40 course entrainement graine 923135 40a03fb1382c : palier 3, 22.1 s, tour
+18:41:42 course entrainement graine 923135 8a0a47b9deae : palier 4, 60 s, temps
+18:41:57 course entrainement graine 923135 a0b94b7eae7d : palier 4, 60 s, temps
+18:42:05 course entrainement graine 943152 19e3767cc346 : palier 4, 60 s, temps
+18:42:07 course entrainement graine 943152 d06b00776ec3 : palier 4, 60 s, temps
+18:42:09 course entrainement graine 943152 0324fb2adc77 : palier 3, 60 s, temps
+18:42:22 course entrainement graine 943152 b82672e76dc3 : palier 3, 60 s, temps
+18:42:32 course entrainement graine 943152 a8c3828e3666 : palier 3, 60 s, temps
+18:42:34 course entrainement graine 943152 918430da8348 : palier 3, 60 s, temps
+18:42:36 course entrainement graine 943152 8a0a47b9deae : palier 4, 60 s, temps
+18:42:39 course : graine 943152 NON MESUREE (essai 1) : processus fini sans resultat (code 1) ASH-CAR-bots-ecurie\ml\reel\jeu-reel.js:140:34) at ouvrir (C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\bot\piloter.js:40:11) at jouer (C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\evolution\enfant.js:38:11) at process.<anonymous> (C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\evolution\enfant.js:74:13)
+18:42:39 STOP : plus aucune course lancee, on attend celles en cours
+18:42:39 course : graine 943152 NON MESUREE (essai 1) : processus fini sans resultat (code 1) ASH-CAR-bots-ecurie\ml\reel\jeu-reel.js:140:34) at ouvrir (C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\bot\piloter.js:40:11) at jouer (C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\evolution\enfant.js:38:11) at process.<anonymous> (C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\evolution\enfant.js:74:13)
+18:42:39 course : graine 943152 NON MESUREE (essai 1) : processus fini sans resultat (code 1) ASH-CAR-bots-ecurie\ml\reel\jeu-reel.js:140:34) at ouvrir (C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\bot\piloter.js:40:11) at jouer (C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\evolution\enfant.js:38:11) at process.<anonymous> (C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\evolution\enfant.js:74:13)
+18:42:39 generation 7 interrompue : elle sera reprise au prochain lancement
+18:42:39 STOP efface
+18:42:40 evoluer : fin, code 0
