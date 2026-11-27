@@ -42,3 +42,9 @@
 {"date":"2026-11-27T15:10:13.087Z","etape":"C2","generation":3,"cerveau":"c0041","modele":"claude-sonnet-5-5","entree":82596,"sortie":21075,"euros":0.22,"pour":"candidat"}
 {"date":"2026-11-27T15:10:13.287Z","etape":"C2","generation":3,"cerveau":"c0042","modele":"claude-sonnet-5-5","entree":82607,"sortie":21034,"euros":0.22,"pour":"candidat"}
 {"date":"2026-11-27T15:10:13.472Z","etape":"C2","generation":3,"cerveau":"c0043","modele":"claude-sonnet-5-5","entree":82553,"sortie":19986,"euros":0.21,"pour":"candidat"}
+{"date":"2026-11-27T15:27:53.786Z","etape":"C2","generation":4,"cerveau":"c0044","modele":"claude-sonnet-5-5","entree":83619,"sortie":19122,"euros":0.4,"pour":"candidat"}
+{"date":"2026-11-27T15:27:53.999Z","etape":"C2","generation":4,"cerveau":"c0045","modele":"claude-sonnet-5-5","entree":83681,"sortie":20707,"euros":0.22,"pour":"candidat"}
+{"date":"2026-11-27T15:27:54.219Z","etape":"C2","generation":4,"cerveau":"c0046","modele":"claude-sonnet-5-5","entree":83646,"sortie":19578,"euros":0.21,"pour":"candidat"}
+{"date":"2026-11-27T15:32:12.656Z","etape":"C2","generation":4,"cerveau":"c0047","modele":"claude-sonnet-5-5","entree":83632,"sortie":21267,"euros":0.22,"pour":"candidat"}
+{"date":"2026-11-27T15:36:29.885Z","etape":"C2","generation":4,"cerveau":"c0048","modele":"claude-sonnet-5-5","entree":83643,"sortie":20568,"euros":0.22,"pour":"candidat"}
+{"date":"2026-11-27T15:36:30.071Z","etape":"C2","generation":4,"cerveau":"c0049","modele":"claude-sonnet-5-5","entree":83589,"sortie":19583,"euros":0.21,"pour":"candidat"}
