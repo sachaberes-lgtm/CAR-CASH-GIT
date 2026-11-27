@@ -1,0 +1,44 @@
+{
+ "format": "cashcar-rejeu-1",
+ "cerveau": {
+  "id": "c0095",
+  "nom": "pilote",
+  "sha": "722501517c8c628b26953b6d8e72500c00b2a01b",
+  "code": "cerveaux/c0095-pilote.js"
+ },
+ "etape": "C2",
+ "generation": 12,
+ "jeu": {
+  "version": "cashcar-v1627",
+  "sha": "e7e1eed4718f",
+  "commit": "861808540",
+  "propre": true,
+  "simulateur": "relief-canyon",
+  "regime": "allege"
+ },
+ "graine": 910296,
+ "carte": null,
+ "meteo": null,
+ "tmax": 900,
+ "images": 834,
+ "empreinte": "a93d5d92f9d6",
+ "fin": {
+  "t": 13.9,
+  "cause": "air",
+  "argent": 106.8,
+  "pieces": 20,
+  "figures": 0,
+  "bumps": 0,
+  "zones": 0,
+  "vmax": 713
+ },
+ "cartes": [
+  "nuages"
+ ],
+ "pourquoi": [
+  "la pire course de la generation (la plus courte)"
+ ],
+ "trajectoire": "trajectoires/c0095-g910296.json.gz",
+ "aide": "touches : le nombre d'images (1/60 s) depuis le changement d'avant, puis la touche — MAJUSCULE enfoncee, minuscule relachee ; G D H B N = gauche droite haut bas ESPACE ; C = la plaque CONTINUER de la seconde chance touchee (c : attente abandonnee)",
+ "touches": "6N250D4d47n8N37D20d8G8g26G34n13N16g9D1H17h3B52H0b10d3G52g0h11G21n1g10D21d0G24g0D5N18d0G77g9D13d0n"
+}
