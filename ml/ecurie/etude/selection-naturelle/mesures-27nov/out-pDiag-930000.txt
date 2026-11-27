@@ -1,0 +1,118 @@
+ecrit C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\ecurie\agents\tmp-voltige\vols-pDiag-930000.json · 128 vols · paliers 6 10 6 5 10 6 8 2 3 10 10 7
+128 vols · 12 morts (9.4 pour 100) · durees medianes 2.13 s · depart nitro 0 % · depart dessous 31
+
+A. la facon TENUE, son rayon a la 4e vue du vol (0,3 s : la main a obei) → ce qui arrive
+  prevu                       pose dessus pose DESSOUS      portail         MORT
+  droite : libre                        0            0            0            1
+  planeCabre : pose DESSOUS             0            1            0            0
+  rien : air                            0            1            0            0
+  rien : pose                           1            0            0            0
+  versRoute : air                       9            5            0            1
+  versRoute : choc                      6            9            0            6
+  versRoute : fond                      0            2            1            1
+  versRoute : levre                     5            0            0            0
+  versRoute : libre                     2            2            0            2
+  versRoute : portail                   0            0            3            0
+  versRoute : pose                     38            6            1            1
+  versRoute : pose DESSOUS              3            5            0            0
+  versRoutePlane : pose                 1            0            0            0
+  viser : pose                          5            2            1            0
+  viserPlane : choc                     1            0            0            0
+  viserPlane : pose                     2            0            0            0
+  viserPlane : pose sale                0            0            1            0
+
+B. la facon tenue, son rayon a la derniere vue situee 1 s avant la fin → ce qui arrive
+  prevu                       pose dessus pose DESSOUS      portail         MORT
+  cabre : libre                         1            2            0            0
+  cabre : portail                       0            0            1            0
+  cabre : pose DESSOUS                  0            2            0            0
+  droite : air                          0            0            0            1
+  droite : libre                        0            3            0            0
+  droite : pose                         1            0            0            0
+  droite : pose sale                    1            0            0            0
+  gauche : choc                         0            1            0            0
+  gauche : pose DESSOUS                 0            1            0            0
+  gauche : pose sale                    3            0            0            0
+  pique : air                           0            0            1            0
+  pique : pose                          1            0            0            0
+  plane : choc                          0            1            0            0
+  plane : pose                          1            0            0            0
+  plane : pose DESSOUS                  0            3            0            0
+  plane : pose sale                     2            0            0            0
+  planeCabre : fond                     1            0            0            0
+  planeCabre : pose DESSOUS             0            2            0            0
+  rien : air                            0            0            0            1
+  rien : pose                           1            0            0            0
+  versRoute : air                       0            1            0            1
+  versRoute : choc                      0            1            0            0
+  versRoute : libre                     2            0            0            0
+  versRoute : portail                   0            0            4            0
+  versRoute : pose                     18            1            0            0
+  versRoute : pose DESSOUS              0            4            0            0
+  versRoutePlane : air                  0            1            0            1
+  versRoutePlane : choc                 1            0            0            0
+  versRoutePlane : portail              0            0            1            0
+  versRoutePlane : pose                 9            0            0            1
+  versRoutePlane : pose DESSOUS            0            1            0            0
+  viser : pose                          6            0            0            0
+  viserPlane : pose                     3            0            0            0
+
+C. a la 1re vue du vol : versRoute / versRoutePlane → ce qui arrive (le pilote suit presque toujours versRoute)
+  prevu                       pose dessus pose DESSOUS      portail         MORT
+  air / air                             5            5            0            2
+  air / libre                           1            0            0            0
+  air / pose                            6            1            0            0
+  air / pose DESSOUS                    1            1            0            0
+  choc / choc                           8            7            0            6
+  choc / pose                           0            3            0            0
+  choc / pose DESSOUS                   1            1            0            0
+  fond / portail                        0            0            1            0
+  fond / pose                           0            1            0            0
+  fond / pose DESSOUS                   0            1            0            0
+  levre / levre                         4            0            0            0
+  libre / air                           0            0            0            1
+  libre / levre                         0            1            0            0
+  libre / libre                         1            2            0            0
+  libre / pose                          1            0            0            0
+  portail / air                         1            0            0            0
+  portail / portail                     0            0            3            1
+  pose / air                            1            0            0            0
+  pose / choc                           3            0            0            0
+  pose / libre                          1            0            0            1
+  pose / portail                        0            0            1            0
+  pose / pose                          34            5            1            1
+  pose DESSOUS / choc                   1            2            0            0
+  pose DESSOUS / pose                   1            0            0            0
+  pose DESSOUS / pose DESSOUS            1            3            0            0
+  pose sale / choc                      1            0            0            0
+  pose sale / libre                     0            0            1            0
+  pose sale / pose                      1            0            0            0
+
+D. par carte
+  prevu                       pose dessus pose DESSOUS      portail         MORT
+  canyon                                2            1            0            1
+  espace                                5            1            2            2
+  grotte                               31           19            0            4
+  jade                                  9            2            0            1
+  nuages                               17            6            1            1
+  ville                                12            4            4            3
+
+E. par duree
+  prevu                       pose dessus pose DESSOUS      portail         MORT
+  1-2 s                                15           11            1            0
+  2-3 s                                16           10            3            0
+  3-5 s                                18            7            1            0
+  5 s +                                 4            0            2            5
+  <1 s                                 23            5            0            7
+
+F. part des vues ou le rayon de la facon tenue annonce pose / levre / portail, et changements de facon par vol
+  pose dessus     89 % des vues · 0.97 changement par vol
+  pose DESSOUS    68 % des vues · 1.76 changement par vol
+  MORT            29 % des vues · 1.42 changement par vol
+  portail         84 % des vues · 1.43 changement par vol
+
+G. poses annoncees 0,3 s avant (90) : axe annonce median 0.43 rad · glisse reelle mediane 0.36 · |cap| a la 1re vue du sol 0.40 · erreur de date mediane 0.02 s
+   axe annonce < 0,2 (17) : glisse reelle 0.10, re-sorties 12 % · axe annonce >= 0,35 (58) : glisse 0.57, re-sorties 33 %
+   toutes les poses (100) : glisse mediane 0.35 · re-sorties en moins de 0,8 s 26 % · poses dessous 28
+
+H. vols de plus de 1,5 s (82) : nitro ordonnee 37 % des vues · 0.83 allumage par vol · sans nitro 32 %

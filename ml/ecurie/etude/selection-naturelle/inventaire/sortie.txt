@@ -1,0 +1,17 @@
+preambule: Unexpected token ','
+🏎 CASH CAR — build 2026-07-20 v5 (anti-flicker + anti-cache)
+hub : accueil TypeError: undefined is not iterable (cannot read property Symbol(Symbol.iterator))
+    at Array.from (<anonymous>)
+    at index.html:79016:13
+    at index.html:90011:3
+    at Script.runInContext (node:vm:149:12)
+    at Object.runInContext (node:vm:301:6)
+    at loadGame (C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\reel\sim-env-reel.js:190:8)
+    at creer (C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\reel\jeu-reel.js:140:34)
+    at Object.ouvrir (C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\bot\piloter.js:40:11)
+    at Object.<anonymous> (C:\Users\sacha\code\CASH-CAR-bots-ecurie\ml\ecurie\agents\tmp-voltige\evolution-etude\inventaire\essai-course.js:3:31)
+    at Module._compile (node:internal/modules/cjs/loader:1929:14)
+ouvrir : 7265 ms
+[{"graine":910000,"ms":22674,"images":2700,"fois":2.59,"empreinte":"8d34b0578072","empreinteVues":"c3e43d836ec3","cause":"temps","palier":3,"yeux_ms":2.974,"cerveau_ms":4.369,"octets":3280,"cartes":["espace"]},{"graine":910037,"ms":59067,"images":2700,"fois":2.41,"empreinte":"c4b906ba0a4f","empreinteVues":"e4b2da1e2940","cause":"temps","palier":3,"yeux_ms":1.656,"cerveau_ms":1.075,"octets":2509,"cartes":["grotte"]},{"graine":910000,"ms":14784,"images":2700,"fois":3.73,"empreinte":"25db0c0ff610","empreinteVues":"3ba2b3b3ea51","cause":"temps","palier":4,"yeux_ms":2.08,"cerveau_ms":0.854,"octets":3262,"cartes":["espace"]}]
+cles au sol : mode fini mort carte meteo nitro reserve nitroOn nitroLibre flow flowNiveau argent pieces figures chaine moteur pouvoirs L demi s fin lat cap vitesse volant dessous drift glisse sursis rebond figureRoute bond lacetRoute lacetMax pente devers route plaques flaques fruits orbes piecesDevant modules troncons vitMult palier aimant invulnerable arret rayonMin virage couloirs mur ligne sautRefuse sorties tenue image t main
+cles en vol : mode fini mort carte meteo nitro reserve nitroOn nitroLibre flow flowNiveau argent pieces figures chaine moteur pouvoirs L demi vitesse volant s fin vol troncons vitMult palier aimant invulnerable image t main | vol : t reste monte plancher lacetMax proche anneau figure figuresDuVol air perdu hautRoute bascule bumps cible radar

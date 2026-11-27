@@ -1,0 +1,625 @@
+{
+ "sol": {
+  "image": 486,
+  "vue": {
+   "mode": "sol",
+   "fini": false,
+   "mort": null,
+   "carte": "espace",
+   "meteo": "soir",
+   "nitro": 0.708,
+   "reserve": 1,
+   "nitroOn": true,
+   "nitroLibre": false,
+   "flow": 28.38,
+   "flowNiveau": 1,
+   "argent": 200.85,
+   "pieces": 25,
+   "figures": 0,
+   "chaine": 0,
+   "moteur": 0,
+   "pouvoirs": {
+    "nitro": 0,
+    "vitesse": 0,
+    "air": 0,
+    "aimant": 10.7
+   },
+   "L": 9178,
+   "demi": 28,
+   "s": 565.9,
+   "fin": 8612,
+   "lat": -6.32,
+   "cap": 0.121,
+   "vitesse": 116.6,
+   "volant": -0.92,
+   "dessous": false,
+   "drift": false,
+   "glisse": false,
+   "sursis": 0,
+   "rebond": false,
+   "figureRoute": false,
+   "bond": 0,
+   "lacetRoute": -0.559,
+   "lacetMax": 1.555,
+   "pente": -0.012,
+   "devers": 0.179,
+   "route": [
+    {
+     "d": 30,
+     "virage": -0.148,
+     "monte": 1.2,
+     "devers": 0.076,
+     "envers": false,
+     "trou": false
+    },
+    {
+     "d": 60,
+     "virage": -0.315,
+     "monte": 4.1,
+     "devers": -0.03,
+     "envers": false,
+     "trou": false
+    },
+    {
+     "d": 100,
+     "virage": -0.548,
+     "monte": 8.2,
+     "devers": -0.168,
+     "envers": false,
+     "trou": false
+    },
+    {
+     "d": 150,
+     "virage": -0.623,
+     "monte": 13.8,
+     "devers": -0.291,
+     "envers": false,
+     "trou": false
+    },
+    {
+     "d": 220,
+     "virage": -0.272,
+     "monte": 18.2,
+     "devers": -0.132,
+     "envers": false,
+     "trou": false
+    },
+    {
+     "d": 300,
+     "virage": -0.128,
+     "monte": 13.9,
+     "devers": -0.044,
+     "envers": false,
+     "trou": false
+    },
+    {
+     "d": 400,
+     "virage": -0.069,
+     "monte": -5.3,
+     "devers": -0.348,
+     "envers": false,
+     "trou": false
+    },
+    {
+     "d": 550,
+     "virage": 0.366,
+     "monte": -61.6,
+     "devers": -0.889,
+     "envers": false,
+     "trou": false
+    }
+   ],
+   "plaques": [
+    {
+     "d": 224,
+     "lat": 6.7
+    }
+   ],
+   "flaques": [],
+   "fruits": [
+    {
+     "d": 98,
+     "lat": -6.8,
+     "nom": "CERISE",
+     "force": 0.4,
+     "latC": -6.8
+    }
+   ],
+   "orbes": [],
+   "piecesDevant": [
+    {
+     "d": 87,
+     "lat": 1.1,
+     "n": 5,
+     "latC": 1.1
+    },
+    {
+     "d": 112,
+     "lat": 6.9,
+     "n": 3,
+     "latC": 6.9
+    },
+    {
+     "d": 137,
+     "lat": 13,
+     "n": 4,
+     "latC": 13
+    },
+    {
+     "d": 187,
+     "lat": 13.7,
+     "n": 3,
+     "latC": 13.7
+    },
+    {
+     "d": 212,
+     "lat": 12.7,
+     "n": 4,
+     "latC": 12.7
+    },
+    {
+     "d": 237,
+     "lat": 13.5,
+     "n": 2,
+     "latC": 13.5
+    },
+    {
+     "d": 262,
+     "lat": 14.7,
+     "n": 3,
+     "latC": 14.7
+    },
+    {
+     "d": 287,
+     "lat": 14.2,
+     "n": 3,
+     "latC": 14.2
+    }
+   ],
+   "modules": [
+    {
+     "nom": "envers-entree",
+     "d0": 202,
+     "d1": 1060,
+     "climax": true
+    }
+   ],
+   "troncons": [],
+   "vitMult": 1,
+   "palier": {
+    "n": 1,
+    "pieces": 25,
+    "manque": 15,
+    "pousse": 1,
+    "jauge": 2,
+    "elan": 1,
+    "vmax": 25.3
+   },
+   "aimant": {
+    "moteur": false,
+    "sol": [
+     15,
+     9
+    ],
+    "prise": 3.8,
+    "vol": 11,
+    "pomme": 50
+   },
+   "invulnerable": 0,
+   "arret": 0,
+   "rayonMin": 75,
+   "virage": {
+    "d": 0,
+    "sens": -1,
+    "rayon": 138,
+    "angle": 0.64,
+    "vSure": 325,
+    "vSureDrift": 393.8,
+    "vCorde": 3178.2,
+    "marge": 208.4,
+    "braquage": 0.55
+   },
+   "couloirs": [],
+   "mur": {
+    "ici": false,
+    "bord": 26.85,
+    "angle": 0.52,
+    "mortel": true
+   },
+   "ligne": {
+    "cadence": 1.2,
+    "don": 1.15,
+    "prises": [
+     4.5,
+     5.6
+    ],
+    "objets": [
+     {
+      "d": 98,
+      "lat": -6.8,
+      "type": "fruit",
+      "don": 0.95
+     },
+     {
+      "d": 224,
+      "lat": 6.7,
+      "type": "plaque",
+      "don": 1.15
+     },
+     {
+      "d": 361,
+      "lat": 2.1,
+      "type": "fruit",
+      "don": 2.01
+     }
+    ]
+   },
+   "sautRefuse": false,
+   "sorties": null,
+   "tenue": {
+    "tient": true,
+    "approx": true
+   },
+   "image": 486,
+   "t": 8.1,
+   "main": {
+    "attente": {
+     "volant": 0,
+     "manche": 0,
+     "nitro": 0
+    },
+    "geste": null,
+    "refuse": false
+   }
+  },
+  "ordre": {
+   "ligne": -9.209298512499997,
+   "nitro": true
+  },
+  "demande": {
+   "doigts": {
+    "G": 8,
+    "D": 8,
+    "H": 19,
+    "B": 19,
+    "N": 7,
+    "r": {
+     "v": 8,
+     "m": 19,
+     "n": 7,
+     "g": 14
+    },
+    "saut": 24,
+    "vol": {
+     "fin": 1,
+     "c": 0,
+     "file": []
+    }
+   }
+  }
+ },
+ "vol": {
+  "image": 1488,
+  "vue": {
+   "mode": "vol",
+   "fini": false,
+   "mort": null,
+   "carte": "grotte",
+   "meteo": "midi",
+   "nitro": 0.075,
+   "reserve": 0.938,
+   "nitroOn": false,
+   "nitroLibre": false,
+   "flow": 51.17,
+   "flowNiveau": 2,
+   "argent": 760.07,
+   "pieces": 93,
+   "figures": 0,
+   "chaine": 8,
+   "moteur": 2,
+   "pouvoirs": {
+    "nitro": 0,
+    "vitesse": 0,
+    "air": 0,
+    "aimant": 0
+   },
+   "L": 9386,
+   "demi": 28,
+   "vitesse": 111.4,
+   "volant": 0.83,
+   "s": 2292.2,
+   "fin": 7093,
+   "vol": {
+    "t": 0.35,
+    "reste": 5.65,
+    "monte": -5.5,
+    "plancher": 818,
+    "lacetMax": 3.075,
+    "proche": {
+     "lat": -34.3,
+     "haut": -0.4,
+     "avant": 110.7,
+     "cote": -12,
+     "versRoute": 0,
+     "axe": -0.108,
+     "envers": false
+    },
+    "anneau": {
+     "delai": 1.68,
+     "dist": 180,
+     "dessous": 44.7,
+     "gisement": 0
+    },
+    "figure": null,
+    "figuresDuVol": 0,
+    "air": {
+     "reste": 5.65,
+     "jauges": 1
+    },
+    "perdu": 0,
+    "hautRoute": true,
+    "bascule": 0.35,
+    "bumps": 0,
+    "cible": {
+     "s": 3110,
+     "volant": 0.95,
+     "manche": 0,
+     "pres": false,
+     "dist": 80,
+     "chute": 37,
+     "lat": -79.6,
+     "haut": 37.6,
+     "axe": 0.31,
+     "demandee": false
+    },
+    "radar": {
+     "pas": 0.017,
+     "court": 2,
+     "long": 5.7,
+     "maille": 1.9,
+     "decor": "grotte",
+     "aveugle": null,
+     "approx": false,
+     "rayons": [
+      {
+       "m": "tenu",
+       "issue": "pose",
+       "t": 1.5,
+       "d": 118,
+       "approx": true,
+       "bumps": 3,
+       "s": 2384.9,
+       "lat": -25.7,
+       "axe": 0.55,
+       "impact": 0.6,
+       "note": "parfaite",
+       "gain": -19,
+       "air": 5.65,
+       "propre": true
+      },
+      {
+       "m": "rien",
+       "issue": "choc",
+       "t": 2.98,
+       "d": 349,
+       "approx": true,
+       "cause": "roche"
+      },
+      {
+       "m": "gauche",
+       "issue": "pose",
+       "t": 1.5,
+       "d": 118,
+       "approx": true,
+       "bumps": 3,
+       "s": 2384.9,
+       "lat": -25.7,
+       "axe": 0.55,
+       "impact": 0.6,
+       "note": "parfaite",
+       "gain": -19,
+       "air": 5.65,
+       "propre": true
+      },
+      {
+       "m": "droite",
+       "issue": "choc",
+       "t": 0.95,
+       "d": 106,
+       "approx": true,
+       "cause": "roche"
+      },
+      {
+       "m": "cabre",
+       "issue": "libre",
+       "t": 2,
+       "d": 216,
+       "approx": true,
+       "haut": 55.2,
+       "lat": -91.4,
+       "s": 2429.8
+      },
+      {
+       "m": "pique",
+       "issue": "pose",
+       "t": 1.17,
+       "d": 132,
+       "approx": true,
+       "s": 3208.6,
+       "lat": 1.7,
+       "axe": 0.8,
+       "impact": 82.6,
+       "note": "lourde",
+       "centre": true,
+       "gain": 789,
+       "air": 4.48,
+       "propre": true
+      },
+      {
+       "m": "plane",
+       "issue": "choc",
+       "t": 2.17,
+       "d": 356,
+       "approx": true,
+       "nitro": 0,
+       "cause": "roche"
+      },
+      {
+       "m": "planeCabre",
+       "issue": "choc",
+       "t": 1.18,
+       "d": 171,
+       "approx": true,
+       "nitro": 0,
+       "cause": "roche"
+      },
+      {
+       "m": "versRoute",
+       "issue": "pose",
+       "t": 1.52,
+       "d": 121,
+       "approx": true,
+       "bumps": 3,
+       "s": 2387.2,
+       "lat": -26.9,
+       "axe": 0.36,
+       "impact": 0.8,
+       "note": "parfaite",
+       "gain": -20,
+       "air": 5.65,
+       "propre": true
+      },
+      {
+       "m": "versRoutePlane",
+       "issue": "pose",
+       "t": 3.27,
+       "d": 431,
+       "approx": true,
+       "bumps": 2,
+       "nitro": 0.06,
+       "s": 2674.6,
+       "lat": -9.1,
+       "axe": -0.02,
+       "impact": 15.7,
+       "note": "lourde",
+       "gain": 78,
+       "air": 3.52,
+       "propre": true
+      },
+      {
+       "m": "viser",
+       "issue": "pose",
+       "t": 1.52,
+       "d": 172,
+       "approx": true,
+       "s": 3256.1,
+       "lat": 1.3,
+       "axe": -0.02,
+       "impact": 40,
+       "note": "lourde",
+       "centre": true,
+       "gain": 797,
+       "air": 4.13,
+       "propre": true,
+       "cible": 3110,
+       "chute": 37
+      },
+      {
+       "m": "viserPlane",
+       "issue": "pose",
+       "t": 1.3,
+       "d": 192,
+       "approx": true,
+       "nitro": 0,
+       "s": 3276.1,
+       "lat": 3.2,
+       "axe": -0.2,
+       "impact": 42.3,
+       "note": "lourde",
+       "centre": true,
+       "gain": 798,
+       "air": 4.35,
+       "propre": true,
+       "cible": 3110,
+       "chute": 37
+      }
+     ]
+    }
+   },
+   "troncons": [
+    {
+     "s": 3449,
+     "gain": 806,
+     "dist": 345,
+     "chute": 66,
+     "gisement": 0.06,
+     "axe": 0.09,
+     "tChute": 2.18,
+     "tTrajet": 3.1,
+     "longueur": 351
+    }
+   ],
+   "vitMult": 1,
+   "palier": {
+    "n": 3,
+    "pieces": 93,
+    "manque": 57,
+    "pousse": 1.12,
+    "jauge": 2.05,
+    "elan": 1,
+    "vmax": 28.4
+   },
+   "aimant": {
+    "moteur": false,
+    "sol": [
+     15,
+     9
+    ],
+    "prise": 3.8,
+    "vol": 11,
+    "pomme": 0
+   },
+   "invulnerable": 0,
+   "image": 1488,
+   "t": 24.8,
+   "main": {
+    "attente": {
+     "volant": 0,
+     "manche": 0,
+     "nitro": 0
+    },
+    "geste": null,
+    "refuse": false
+   }
+  },
+  "ordre": {
+   "volant": 0.7848000000000049,
+   "manche": 0,
+   "nitro": false,
+   "ensuite": {
+    "ligne": 0
+   }
+  },
+  "demande": {
+   "doigts": {
+    "G": 17,
+    "D": 17,
+    "H": 28,
+    "B": 28,
+    "N": 14,
+    "r": {
+     "v": 17,
+     "m": 28,
+     "n": 14,
+     "g": 12
+    },
+    "saut": 24,
+    "vol": {
+     "fin": 0,
+     "c": 1,
+     "file": []
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,138 @@
+controle du contrat · graine 910000 · 150 s · regime max · 31 processus neufs, 2 a la fois…
+
+1. LES GESTES dans le jeu
+  OK   figure sur la route · avant → sur la route : salto/avant 
+  OK   figure sur la route · arriere → sur la route : salto/arriere 
+  OK   figure sur la route · gauche → sur la route : tailwhip/ 
+  OK   figure sur la route · droite → sur la route : tailwhip/ 
+  OK   saut → sur la route : salto/avant · a decolle · en vol : salto/avant 
+  OK   figure en vol · avant → sur la route : tailwhip/ · a decolle · en vol : tailwhip/, salto/avant 
+  OK   figure en vol · arriere → sur la route : tailwhip/ · a decolle · en vol : tailwhip/, salto/arriere 
+  OK   figure en vol · gauche → sur la route : salto/avant · a decolle · en vol : salto/avant, tailwhip/ 
+  OK   figure en vol · droite → sur la route : salto/avant · a decolle · en vol : salto/avant, tailwhip/ 
+  OK   redresser → sur la route : salto/avant · a decolle · en vol : salto/avant · redressee
+
+2. LES DOIGTS (une main ne va pas plus vite)
+  OK   545 appuis en 150 s (espace > nuages > grotte) · le plus court 4 images (limite 4) · repos le plus court 4 (limite 4) · au plus 6 appuis par seconde sur une touche
+  OK   1500 decisions pour 9000 images : 10.0 par seconde
+
+3. MEME GRAINE = MEME COURSE (deux processus neufs)
+  OK   course a7b3171768ca / a7b3171768ca · touches 6195695442b6 / 6195695442b6 · 9000 / 9000 images
+  OK   le temoin d'avant les yeux v2 (jeu e7e1eed4718f) : course a7b3171768ca (attendu a7b3171768ca) · touches 6195695442b6 (6195695442b6) · 9000 images (9000)
+  OK   les vues (le radar est repetable) : 9239712a28bf / 9239712a28bf
+
+4. REGARDER NE CHANGE RIEN
+  OK   sans l'enregistreur du jeu : a7b3171768ca
+  OK   les yeux ouverts a chaque image, sorties demandees : course a7b3171768ca · vues 9239712a28bf
+
+5. LE BAC EST FERME (un cerveau qui triche)
+  OK   17 tentatives (horloge, hasard, process, require, Function, eval, Intl, WeakRef, pile d'appels), aucune ne passe
+  OK   17 erreurs comptees pour 17 tentatives, 0 panne
+  OK   la course continue : 400 decisions, 40 s, fin « temps »
+  OK   le jeu n'est pas touche : 135 pieces a la fin (le tricheur en voulait 5000)
+
+6. LE RADAR NE TOUCHE PAS LE JEU (yeux v2)
+  OK   6a. sans le radar (la vue d'avant a chaque decision) : a7b3171768ca · touches 6195695442b6 · 9000 images
+  OK   6b. aucun tirage du hasard du jeu pendant une vue, sur 9 courses
+  OK   6c. nuages        radar coupe / radar et sorties a chaque image : 37c692adf8a7 / 37c692adf8a7 · touches f02ddb651b0c / f02ddb651b0c · 1014 / 1014 images (16.9 s, fin « air », 2 vol(s))
+  OK   6c. espace        radar coupe / radar et sorties a chaque image : a02071e45528 / a02071e45528 · touches 433babe424cc / 433babe424cc · 966 / 966 images (16.1 s, fin « vide », 2 vol(s))
+  OK   6c. grotte        radar coupe / radar et sorties a chaque image : 9235ed17139f / 9235ed17139f · touches 9551fdfc7902 / 9551fdfc7902 · 1020 / 1020 images (17 s, fin « vide », 2 vol(s))
+  OK   6c. ville         radar coupe / radar et sorties a chaque image : 80ddc8859258 / 80ddc8859258 · touches d309b8afad4f / d309b8afad4f · 570 / 570 images (9.4 s, fin « tour », 2 vol(s))
+  OK   6c. jade          radar coupe / radar et sorties a chaque image : 4213195122a3 / 4213195122a3 · touches ed69c16dae7a / ed69c16dae7a · 1020 / 1020 images (17 s, fin « vide », 2 vol(s))
+  OK   6c. canyon        radar coupe / radar et sorties a chaque image : 97a6bfb554d4 / 97a6bfb554d4 · touches b4f9898ff1e9 / b4f9898ff1e9 · 672 / 672 images (11.1 s, fin « paroi », 2 vol(s))
+  OK   6c. le decor qui tue est allume (vu a une vue au moins) : grotte GROTTE.root 18/18 · ville CITY.col 10/10 · jade JADE.col 18/18 · canyon CY.on 12/12
+  OK   6c. aucun travailleur du jeu avec des messages sans reponse hors du decor permis (nuages, ciel de la carrosserie)
+  OK   6d. aucune erreur dans les yeux, aucun nom du jeu manquant
+  OK   6e. l'etat du jeu intact : 92 controles (une vue avec sorties entre deux photos de toutes les variables du jeu) — rien ne change · brouillons vus : V9J
+  OK   6f. le texte des yeux n'appelle aucune fonction du jeu qui ecrit et ne tire rien au hasard (20 noms cherches)
+  OK   6g. la loi versRoute tete en bas : a l'endroit (envers false) depart a 14 m de l'axe, versRoute finit « pose » a 8.5 m · tete en bas (envers true) depart a 14 m de l'axe, versRoute finit « pose » a 8.5 m · le voltigeur retourne sa loi : oui
+
+7. LE COUT DES YEUX
+  OK   les comptes au pire sous le budget, et les memes dans deux processus : 1649 / 1649 images de vol (budget 2400) · 1074 / 1074 sondes (5900) · 180 / 180 images de route (900) · 2460 / 2460 caracteres par vue
+  ·    espace > nuages > grotte 0.68 ms par vue (sol 0.602, vol 2.546, pire 12.736) · 60 vues en vol sur 1500 · sans le radar : 0.401 ms
+  ·    nuages                   1.092 ms par vue (sol 0.856, vol 1.412, pire 6.7) · 72 vues en vol sur 170 · au pire 2356 images, 0 sondes · 2251 caracteres par vue · les yeux : 5.1 % du temps de la course
+  ·    espace                   0.999 ms par vue (sol 0.726, vol 1.24, pire 4.303) · 86 vues en vol sur 162 · au pire 1727 images, 0 sondes · 2166 caracteres par vue · les yeux : 3.5 % du temps de la course
+  ·    grotte                   2.649 ms par vue (sol 1.031, vol 4.874, pire 10.784) · 72 vues en vol sur 171 · au pire 2222 images, 2222 sondes · 2390 caracteres par vue · les yeux : 6.4 % du temps de la course
+  ·    ville                    1.57 ms par vue (sol 0.902, vol 2.636, pire 7.021) · 37 vues en vol sur 96 · au pire 1150 images, 1150 sondes · 2258 caracteres par vue · les yeux : 7.2 % du temps de la course
+  ·    jade                     4.044 ms par vue (sol 1.673, vol 6.74, pire 16.473) · 80 vues en vol sur 171 · au pire 1934 images, 1934 sondes · 2204 caracteres par vue · les yeux : 6.6 % du temps de la course
+  ·    canyon                   4.554 ms par vue (sol 2.721, vol 15.669, pire 48.324) · 16 vues en vol sur 113 · au pire 955 images, 955 sondes · 2427 caracteres par vue · les yeux : 16.4 % du temps de la course
+  OK   moins de 3 ms par vue en moyenne sur la course du controle 3, moins de 6 sur celles du voltigeur (l'horloge de l'hote : elle depend de la charge du PC)
+
+8. LA JUSTESSE DU RADAR (le voltigeur, 40 s par carte ; le tableau complet : node justesse.js)
+  ·    nuages         2 vol(s) · issue juste a la premiere vue 2/2 · 1 s avant la fin 2/2
+  ·    espace         2 vol(s) · issue juste a la premiere vue 2/2 · 1 s avant la fin 2/2
+  ·    grotte         2 vol(s) · issue juste a la premiere vue 2/2 · 1 s avant la fin 2/2
+  ·    ville          2 vol(s) · issue juste a la premiere vue 2/2 · 1 s avant la fin 2/2 · chocs non prevus 0/1
+  ·    jade           2 vol(s) · issue juste a la premiere vue 2/2 · 1 s avant la fin 2/2
+  ·    canyon         2 vol(s) · issue juste a la premiere vue 2/2 · 1 s avant la fin 1/1
+
+  (a) a la premiere vue du vol : 12 vol(s) · issue juste 12/12 (100 %)
+    prevu \ arrive     pose    choc     air    fond portail   temps   autre
+    pose                  5       ·       ·       ·       ·       ·       ·
+    choc                  ·       2       ·       ·       ·       ·       ·
+    air                   ·       ·       3       ·       ·       ·       ·
+    libre                 1       ·       1       ·       ·       ·       ·
+    poses prevues ET arrivees (5) : |Δt| mediane 0 s, p90 0.02 · |Δs| mediane 0.2 m, p90 1.5 · |Δlat| mediane 0.02 m, p90 0.11 · note juste 5/5 · |Δchoc| mediane 0.05 m/s
+    chocs prevus ET arrives : la cause est la bonne 2/2
+    chocs NON PREVUS : 0/2 (0 %)
+
+  (b) a la derniere vue, 1 s au moins avant la fin : 11 vol(s) · issue juste 11/11 (100 %)
+    prevu \ arrive     pose    choc     air    fond portail   temps   autre
+    pose                  6       ·       ·       ·       ·       ·       ·
+    choc                  ·       1       ·       ·       ·       ·       ·
+    air                   ·       ·       4       ·       ·       ·       ·
+    poses prevues ET arrivees (6) : |Δt| mediane 0 s, p90 0.02 · |Δs| mediane 0.2 m, p90 1.5 · |Δlat| mediane 0.02 m, p90 0.11 · note juste 6/6 · |Δchoc| mediane 0.05 m/s
+    chocs prevus ET arrives : la cause est la bonne 1/1
+    chocs NON PREVUS : 0/1 (0 %)
+  OK   issue juste a la premiere vue : 12/12 (seuil 80 %)
+  OK   issue juste 1 s avant la fin : 11/11 (seuil 85 %)
+  OK   8 bis. le decor est sonde a chaque image (canyon compris) : une sonde toutes les 1.04 image(s) au pire, sur 205 vues en vol devant un decor
+  OK   8 ter. un saut prevu decolle : 6 saut(s) ordonne(s), 6 prevu(s) par les yeux dont 0 sans decollage · 6 decolle(s)
+  OK   8 ter. un saut dit refuse ne decolle pas : 0 refus annonce(s), 0 decolle(s) quand meme · 0 « figure en cours »
+  OK   8 ter. le saut decolle a l'image annoncee : ecart median 0 s (au pire 0.05 s) sur 6 saut(s) juge(s)
+  OK   8 quater. latC = lat au-dessus de la dalle, son oppose dessous : 3983 objets (pieces, fruits, orbes), 0 faux · 0 vu(s) sous la dalle (le retournement n'est PAS exerce par ces courses)
+
+9. LA MAIN (doigts v2), sans le jeu
+  OK   9a. le profil vide et le profil au defaut ecrit en entier = pas de profil ; un cerveau charge avec profil:{} n'en a pas ; avec modele:"clavier" il en a un
+  OK   9b. le hasard a graine : 0.728777 · 0.791407 · 0.616404 (attendu 0.728777 · 0.791407 · 0.616404) ; une loi tiree est croissante et reste dans ses bornes
+  OK   9c. un profil qui triche est ramene aux planchers (4 images d'appui, 600 ms avant la plaque, le suivi a 6 images au moins…) ; 10 profils mal ecrits refuses
+  OK   9d. le texte des doigts n'a ni le hasard ni l'horloge de l'hote
+  OK   9e. la main seule (clavier, volant 0,36, 60 s) : 132 coups par minute (90 a 150) · braquage 0.358 (0,31 a 0,41) · 19 durees de 4 a 25 images (bornes 4 a 28), la plus frequente 17 % · limites d'une main tenues · meme graine = memes touches oui · autre graine (du profil, de la course) = d'autres touches oui
+  OK   9f. aucun coup a contresens : 0.09 → 0 a droite, braquage 0.09 · 0.12 → 0 a droite, braquage 0.119 · 0.2 → 0 a droite, braquage 0.199 · 0,3 puis 0 (mort 0) : 0 appui(s) a droite, 0 appui(s) plus d'une seconde apres le lache
+  OK   9g. le double appui lu par le jeu, la NITRO hachee : 85 gestes joues · 57 doubles appuis lus, 57 attendus · 0 lu(s) au mauvais appui · 0 geste(s) sans le sien · limites d'une main tenues
+  OK   9h. erreur.parasite 6 par minute : 6 embardees par minute obtenues (5,1 a 6,9)
+  OK   9i. la fleche d'en face : 309 inversions, blanc le plus court 2 image(s) (plancher 2), 22 sous le repos d'une touche (4 images) · limites d'une main tenues
+  OK   9i. le drift : 40 drifts, la fleche 2/3/4/5/6/7/8/9/10/11 images avant ↓ · ↓ lache avant la fleche 40 fois sur 40 (de 5 a 22 images avant)
+  OK   9j. « ensuite » a la pose : fleche lachee 9 images apres la pose (6 a 12) · sans « ensuite » : tenue jusqu'au bout · la vue de la main : {"attente":{"volant":0,"manche":0,"nitro":0},"geste":null,"refuse":false}
+
+10. LA MAIN V2 SANS EFFET = LA MAIN D'AVANT (le bot de reference, profil {chance:{prend:1}})
+  OK   toute la course par ordreV2 / imageV2 : course a7b3171768ca (controle 3 : a7b3171768ca) · touches 6195695442b6 (6195695442b6) · 9000 images · vues 9239712a28bf (9239712a28bf) · fin « temps »
+
+11. UNE MAIN HUMAINE (le bot de reference, profil clavier, 60 s)
+  OK   (a) deux processus neufs : course 6f7a2f1b5782 / 6f7a2f1b5782 · touches 68991a29cd15 / 68991a29cd15 · 1284 / 1284 images (21.3 s, fin « vide », profil 03f79d27e507)
+  OK   (b) les limites d'une main : 53 appuis · le plus court 4 images (limite 4) · repos le plus court 4 (limite 4) · au plus 4 appuis par seconde sur une touche
+  OK   (c) le rejeu de son journal, sans cerveau ni profil : course 6f7a2f1b5782 (6f7a2f1b5782) · 1284 images (1284) · argent 205.55 (205.55)
+  OK   (d) une autre graine du profil : touches 9595dc668e27 (graine 1 : 68991a29cd15) · course 86ff9f437c94
+  OK   (e) des appuis varies : 43 coups de volant (120.6 par minute de course) · 22 durees de 4 a 63 images, la plus frequente 21 % · braquage 0.539
+
+12. LA SECONDE CHANCE (le bot de reference, graine 910407, 90 s)
+  OK   une main v2 qui ne prend pas la chance (palierMin 30) = la main d'avant : course 2b6e2fc56891 / 2b6e2fc56891 · touches 8498f1184939 / 8498f1184939 · 2394 / 2394 images · fin « pic » / « pic »
+  OK   un seul toucher de la plaque : 1 entree(s) C au journal (image 2556, acceptee) · la plaque parait a l'image 2508, touchee 48 images apres (36 a 330)
+  OK   au toucher, lu dans le jeu : l'ecran de mort est la depuis 733 ms (600 au moins : la plaque est sourde avant) · l'offre court encore 4700 ms (plus de 0)
+  OK   une reprise : 1 seconde chance au bilan · 1 evenement seconde_chance · le jeu la dit prise : true · reprise a l'image 2867 (311 images apres le toucher, 473 images de temps mort)
+  OK   un palier plus bas : moteur 3 a la mort → 2 a la reprise (invulnerable 2.97 s)
+  OK   la course continue : 5400 images (2394 sans la reprise) · 82.1 s de jeu · fin « temps »
+  OK   le rejeu du journal (la lettre C) : course a8cc67029a0c (a8cc67029a0c) · 5400 images (5400) · argent 2790.25 (2790.25) · fin « temps » (« temps »)
+
+13. LE DRIFT (un drift a gauche d'une demi-seconde, sur une droite des nuages)
+  OK   le jeu drifte : vue.drift vrai a 5 decisions (images 366 a 390) · la vitesse autour : 92.1 91.9 90.4 89.2 88 86.7 85.4 87.7 m/s
+  OK   la fleche d'abord, ↓ ensuite : ← a l'image 360, ↓ a l'image 362 (2 images apres : le volant du jeu a passe 0,35, ↓ ne freine pas)
+  OK   la fin : ↓ relache a l'image 390, ← a l'image 390 · 0 image(s) ou ↓ est tenu sans fleche
+  OK   sans profil l'ordre n'est pas lu : 0 appui(s) sur ↓, 0 decision(s) en drift, 5 ordre(s) « drift » comptes perdus au bilan
+
+14. LES OUTILS DE LA BOUCLE (ml/ecurie/lecture.js, ml/labo/labo.js : sans l'API)
+  OK   (a) lire une reponse de l'API : la forme demandee ✓ · « **Raison** : », retours chariot, ```JavaScript ✓ · un extrait cite avant le fichier ✓ · exports.decide ✓ · sans raison ✓
+  OK   (b) charger un pilote : profil faux → « Error : profil-faux.js : profil : champ inconnu « reaction.volnt » » · syntaxe → « SyntaxError : Unexpected token ';' » · throw null → « null » · la main de reference.js aucune, d'essai-main.js 6b1cce6c4905 (charger : 6b1cce6c4905)
+  OK   (c) la ligne du journal (labo.js, resumeCourse) : 1 mort(s) — 39.85 s pic sur jade en vol, reprise · 1 seconde chance · fin « temps », en vol false (dernier echantillon : false)
+
+TOUT PASSE · 691 s · results/verifier.json

@@ -1,0 +1,17 @@
+R. a la 1e vue du vol : ce qu annonce chaque loi (sur 160 vols)
+  versRoute       pose dessus  67 (axe median 0.27, sous 0,2 rad : 33, duree 1.67 s) · sale 0 · DESSOUS 9 · levre 11 · portail 7 · air 30 · fond 5 · choc 17 · libre 14
+  versRoutePlane  pose dessus  72 (axe median 0.33, sous 0,2 rad : 28, duree 1.30 s) · sale 0 · DESSOUS 18 · levre 11 · portail 8 · air 22 · fond 4 · choc 16 · libre 9
+  retour0         pose dessus  57 (axe median 0.16, sous 0,2 rad : 32, duree 2.72 s) · sale 0 · DESSOUS 6 · levre 8 · portail 7 · air 31 · fond 6 · choc 30 · libre 15
+  retour1         pose dessus  43 (axe median 0.20, sous 0,2 rad : 21, duree 2.18 s) · sale 0 · DESSOUS 6 · levre 7 · portail 6 · air 42 · fond 7 · choc 28 · libre 21
+  retour2         pose dessus  37 (axe median 0.27, sous 0,2 rad : 17, duree 2.17 s) · sale 0 · DESSOUS 6 · levre 7 · portail 6 · air 43 · fond 6 · choc 29 · libre 26
+  retour3         pose dessus  37 (axe median 0.21, sous 0,2 rad : 18, duree 2.13 s) · sale 2 · DESSOUS 5 · levre 7 · portail 6 · air 43 · fond 9 · choc 30 · libre 21
+
+R. a la 4e vue du vol : ce qu annonce chaque loi (sur 148 vols)
+  versRoute       pose dessus  70 (axe median 0.24, sous 0,2 rad : 34, duree 1.50 s) · sale 0 · DESSOUS 14 · levre 4 · portail 9 · air 30 · fond 3 · choc 12 · libre 6
+  versRoutePlane  pose dessus  72 (axe median 0.39, sous 0,2 rad : 23, duree 1.30 s) · sale 0 · DESSOUS 23 · levre 4 · portail 7 · air 23 · fond 3 · choc 8 · libre 8
+  retour0         pose dessus  65 (axe median 0.18, sous 0,2 rad : 33, duree 1.93 s) · sale 0 · DESSOUS 7 · levre 3 · portail 9 · air 35 · fond 4 · choc 17 · libre 8
+  retour1         pose dessus  53 (axe median 0.24, sous 0,2 rad : 26, duree 1.88 s) · sale 0 · DESSOUS 7 · levre 3 · portail 9 · air 42 · fond 3 · choc 18 · libre 13
+  retour2         pose dessus  44 (axe median 0.23, sous 0,2 rad : 20, duree 1.58 s) · sale 0 · DESSOUS 5 · levre 3 · portail 8 · air 46 · fond 3 · choc 26 · libre 13
+  retour3         pose dessus  49 (axe median 0.24, sous 0,2 rad : 23, duree 1.75 s) · sale 2 · DESSOUS 4 · levre 3 · portail 10 · air 44 · fond 4 · choc 21 · libre 11
+
+H. vols de plus de 1,5 s (110) : nitro ordonnee 32 % des vues · 0.59 allumage par vol · sans nitro 48 %

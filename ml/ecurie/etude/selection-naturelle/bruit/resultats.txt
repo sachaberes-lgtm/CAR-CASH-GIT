@@ -1,0 +1,113 @@
+DONNEES : 86 fichiers, 48 pilotes distincts (empreinte du fichier), 44 avec le lot 910000, 38 avec le lot 930000, 34 avec les deux, 4 avec une note de 900 s.
+
+== 0. DETERMINISME (meme pilote, meme graine : 300 s contre les 12 premieres graines de 900 s) ==
+mes-pN2-930000/mes-pN2/note-voltige4-t900 : 12 courses finies avant 300 s dans les deux notes, 12 identiques, 0 differentes ; palier reconstruit des evenements "piece" different du bilan sur 2/20 courses
+mes-pU6-930000/mes-pU6/note-voltige2-t900 : 12 courses finies avant 300 s dans les deux notes, 12 identiques, 0 differentes ; palier reconstruit des evenements "piece" different du bilan sur 1/20 courses
+mes-pV-930000/mes-pV/note-voltige-t900 : 10 courses finies avant 300 s dans les deux notes, 9 identiques, 1 differentes ; palier reconstruit des evenements "piece" different du bilan sur 6/20 courses
+   910037: 300s 17/300s coupee=temps -> 900s coupee a 300 : palier 17 (fin 17 a 316.5s)
+   910148: 300s 12/288.6s coupee=temps -> 900s coupee a 300 : palier 13 (fin 12 a 305.1s)
+   910185: 300s 15/292.2s, 900s 15/294.5s
+mes-pX4-930000/mes-pX4/note-voltige3-t900 : 11 courses finies avant 300 s dans les deux notes, 10 identiques, 1 differentes ; palier reconstruit des evenements "piece" different du bilan sur 5/20 courses
+   910111: 300s 15/291.6s, 900s 15/296.3s
+   910185: 300s 14/292.4s coupee=temps -> 900s coupee a 300 : palier 15 (fin 16 a 334.6s)
+
+== 1. BRUIT D'UN LOT DE 12 COURSES DE 300 S A L'AUTRE, MEME PILOTE (34 pilotes, lots 910000 et 930000) ==
+stat              | moy lot1 | moy lot2 | decalage moyen (graines) | ET lot->lot (d centre)/V2 | ET bootstrap 12 graines (meme pilote) | corr lot1/lot2 entre pilotes (Pearson / Spearman)
+palier_median     |     7.46 |     6.40 |     1.06 |     1.21 |     1.36 | 0.35 / 0.37  (ET entre pilotes lot1 1.59)
+palier_moyen      |     7.56 |     6.76 |     0.80 |     0.97 |     0.97 | 0.44 / 0.45  (ET entre pilotes lot1 1.44)
+somme_paliers     |     90.7 |     81.1 |     9.59 |     11.6 |     11.7 | 0.44 / 0.45  (ET entre pilotes lot1 17.3)
+survie_mediane    |      129 |      126 |     3.31 |     26.6 |     27.7 | 0.28 / 0.29  (ET entre pilotes lot1 32.4)
+survie_moyenne    |      136 |      129 |     6.39 |     19.7 |     21.7 | 0.50 / 0.51  (ET entre pilotes lot1 30.8)
+pieces_min        |      239 |      217 |     22.1 |     19.5 |     18.0 | 0.00 / 0.06  (ET entre pilotes lot1 17.6)
+distance_min      |     6754 |     6641 |      114 |      244 |      212 | 0.31 / 0.20  (ET entre pilotes lot1 251)
+morts_100vols     |     10.6 |     11.3 |    -0.76 |     2.39 |     2.90 | 0.34 / 0.29  (ET entre pilotes lot1 3.13)
+log_palier        |     1.90 |     1.75 |     0.15 |     0.15 |     0.15 | 0.38 / 0.38  (ET entre pilotes lot1 0.22)
+coupees_pct       |     4.90 |     7.11 |    -2.21 |     6.85 |     4.97 | 0.26 / 0.68  (ET entre pilotes lot1 8.24)
+ecart             |     2.04 |     2.09 |    -0.05 |     0.13 |     0.12 | 0.88 / 0.71  (ET entre pilotes lot1 0.32)
+mixte             |    -4.80 |    -6.14 |     1.34 |     1.41 |     1.61 | 0.54 / 0.50  (ET entre pilotes lot1 1.81)
+mixte_moyen       |    -4.70 |    -5.78 |     1.08 |     1.38 |     1.28 | 0.50 / 0.55  (ET entre pilotes lot1 1.71)
+
+== 2. CE QUE LES GRAINES COMMUNES APPORTENT (analyse de variance pilote x graine, 34 pilotes x 24 graines, une course par case) ==
+stat par course   | ET totale | ET graine | ET pilote | ET residu | rho (2 pilotes, meme graine) | variance de la difference : graines communes / graines differentes | courses pour 1 ET pilote a 80 % (communes / differentes)
+palier            |     3.59 |     1.40 |     0.86 |     3.21 | 0.16 | 0.84 | 172 / 205
+log_palier        |     0.56 |     0.26 |     0.12 |     0.48 | 0.23 | 0.77 | 192 / 250
+survie            |     78.7 |     32.6 |     18.6 |     69.5 | 0.18 | 0.82 | 173 / 211
+pieces            |      386 |      133 |     91.5 |      352 | 0.13 | 0.87 | 183 / 209
+pieces_min        |     61.8 |     33.8 |     5.26 |     51.9 | 0.30 | 0.70 | 1205 / 1714
+distance          |     9948 |     3980 |     2171 |     8899 | 0.17 | 0.83 | 208 / 250
+distance_min      |      931 |      543 |      149 |      750 | 0.34 | 0.66 | 312 / 474
+morts_vol         |     0.28 |     0.04 |     0.00 |     0.28 | 0.02 | 0.98 | Infinity / Infinity
+vols_min          |     1.75 |     0.73 |     0.11 |     1.59 | 0.17 | 0.83 | 2732 / 3305
+coupee            |     0.24 |     0.02 |     0.04 |     0.23 | 0.01 | 0.99 | 386 / 388
+(« courses pour 1 ET pilote » : nombre de graines pour voir, une fois sur 1,25 au moins (80 %, seuil unilateral 5 %), une difference de UN ecart-type de la dispersion VRAIE entre ces variantes)
+
+-- la difference entre deux pilotes se repete-t-elle d'un lot a l'autre ? (toutes les paires parmi les 34 pilotes) --
+stat du lot      | ET du bruit de la difference, graines communes (lot1 vs lot2) | ET du bruit, graines differentes (bootstrap) | corr(diff lot1, diff lot2)
+palier_median    |   1.70 (bootstrap 1.80) |   1.98 | 0.35
+somme_paliers    |   16.4 (bootstrap 15.2) |   17.2 | 0.44
+palier_moyen     |   1.37 (bootstrap 1.30) |   1.39 | 0.44
+survie_mediane   |   37.6 (bootstrap 38.0) |   41.0 | 0.33
+pieces_min       |   27.6 (bootstrap 23.7) |   25.8 | 0.02
+distance_min     |    345 (bootstrap 285) |    309 | 0.31
+morts_100vols    |   3.37 (bootstrap 3.83) |   3.98 | 0.34
+log_palier       |   0.21 (bootstrap 0.19) |   0.22 | 0.39
+ecart            |   0.18 (bootstrap 0.15) |   0.17 | 0.87
+mixte            |   2.00 (bootstrap 2.07) |   2.29 | 0.55
+mixte_moyen      |   1.95 (bootstrap 1.67) |   1.89 | 0.51
+
+== 3. FIABILITE POUR CLASSER (test-retest entre pilotes, lot 910000 contre lot 930000) et LIEN AVEC LE PALIER ==
+stat du lot      | fiabilite r (Spearman) | signal/bruit sqrt(r/(1-r)) | corr avec le palier moyen de l'AUTRE lot | corr avec l'ecart de l'autre lot
+palier_median    | 0.35 (0.37) | 0.73 | 0.38 | 0.35
+palier_moyen     | 0.44 (0.45) | 0.89 | 0.44 | 0.48
+somme_paliers    | 0.44 (0.45) | 0.89 | 0.44 | 0.48
+survie_mediane   | 0.28 (0.29) | 0.63 | 0.38 | 0.35
+survie_moyenne   | 0.50 (0.51) | 0.99 | 0.47 | 0.51
+pieces_min       | 0.00 (0.06) | 0.01 | 0.25 | 0.40
+distance_min     | 0.31 (0.20) | 0.68 | 0.00 | -0.15
+morts_100vols    | 0.34 (0.29) | 0.71 | -0.36 | -0.34
+log_palier       | 0.38 (0.38) | 0.79 | 0.41 | 0.40
+coupees_pct      | 0.26 (0.68) | 0.60 | 0.36 | 0.42
+ecart            | 0.88 (0.71) | 2.68 | 0.48 | 0.88
+mixte            | 0.54 (0.50) | 1.07 | -0.20 | -0.62
+mixte_moyen      | 0.50 (0.55) | 0.99 | -0.22 | -0.61
+les 15 mesures de ressemblance, une par une (moyenne du lot ; fiabilite lot1/lot2 et part du bruit) :
+  nitro allumee (part du temps)                    r 0.97 · z moyen -2.77 · ET du z d'un lot a l'autre 0.19 · ET du z entre pilotes 1.07
+  nitro allumee au sol (part du sol)               r 0.97 · z moyen -3.24 · ET du z d'un lot a l'autre 0.19 · ET du z entre pilotes 1.12
+  nitro allumee au decollage (part des vols)       r 0.96 · z moyen -4.49 · ET du z d'un lot a l'autre 0.31 · ET du z entre pilotes 1.36
+  en l'air (part du temps)                         r 0.26 · z moyen -2.29 · ET du z d'un lot a l'autre 0.35 · ET du z entre pilotes 0.44
+  vols par minute                                  r 0.17 · z moyen -2.43 · ET du z d'un lot a l'autre 0.31 · ET du z entre pilotes 0.35
+  duree mediane d'un vol (s)                       r -0.10 · z moyen -0.29 · ET du z d'un lot a l'autre 0.73 · ET du z entre pilotes 0.64
+  hauteur mediane d'un vol pose (m)                r 0.59 · z moyen -1.53 · ET du z d'un lot a l'autre 0.16 · ET du z entre pilotes 0.26
+  vols de moins de 0,7 s (part des vols)           r 0.20 · z moyen 0.83 · ET du z d'un lot a l'autre 0.57 · ET du z entre pilotes 0.60
+  raccourcis par minute                            r 0.31 · z moyen -2.33 · ET du z d'un lot a l'autre 0.14 · ET du z entre pilotes 0.10
+  figures lancees par minute                       r 0.56 · z moyen -1.13 · ET du z d'un lot a l'autre 0.06 · ET du z entre pilotes 0.10
+  poses pres de l'axe (part des poses)             r 0.35 · z moyen -0.98 · ET du z d'un lot a l'autre 0.39 · ET du z entre pilotes 0.47
+  sous la dalle (part du sol)                      r 0.93 · z moyen 1.04 · ET du z d'un lot a l'autre 0.55 · ET du z entre pilotes 2.14
+  duree mediane d'un aller du slalom (s)           r 0.38 · z moyen 4.61 · ET du z d'un lot a l'autre 0.21 · ET du z entre pilotes 0.28
+  ondulation (vitesse laterale / vitesse au sol)   r -0.16 · z moyen 1.62 · ET du z d'un lot a l'autre 0.82 · ET du z entre pilotes 0.78
+  vitesse moyenne des deux premieres minutes (km/h) r 0.76 · z moyen -0.76 · ET du z d'un lot a l'autre 0.10 · ET du z entre pilotes 0.16
+
+== 4. COMBIEN DE COURSES POUR VOIR +1 PALIER MEDIAN OU -0,2 D'ECART (80 %, unilateral 5 % : (1,645+0,842)^2 = 6,18) ==
+palier_median  delta 1 : ET de la difference sur 12 courses = 1.70 (communes) / 1.98 (differentes) -> 216 courses par pilote (communes), 291 (differentes)
+palier_moyen   delta 1 : ET de la difference sur 12 courses = 1.37 (communes) / 1.39 (differentes) -> 140 courses par pilote (communes), 145 (differentes)
+somme_paliers  delta 12 : ET de la difference sur 12 courses = 16.4 (communes) / 17.2 (differentes) -> 140 courses par pilote (communes), 153 (differentes)
+ecart          delta 0.2 : ET de la difference sur 12 courses = 0.18 (communes) / 0.17 (differentes) -> 60 courses par pilote (communes), 56 (differentes)
+mixte          delta 1 : ET de la difference sur 12 courses = 2.00 (communes) / 2.29 (differentes) -> 297 courses par pilote (communes), 391 (differentes)
+mixte_moyen    delta 1 : ET de la difference sur 12 courses = 1.95 (communes) / 1.89 (differentes) -> 282 courses par pilote (communes), 265 (differentes)
+
+-- 300 s contre 900 s : 4 pilotes x 20 graines, les memes courses coupees a 300 s et a 600 s --
+coupe a 300 s : cout moyen d'une course 155 s de jeu · palier median par pilote 7.5 7 9.5 8.5 · palier moyen 7.75 7.60 9.55 8.90 · ET residu par course 3.90 · ET graine 0.00 · ET pilote 0.34 · ET de la diff. de palier median sur 12 courses communes 2.00 -> 297 courses pour +1 palier median (soit 765 min de jeu par pilote)
+coupe a 600 s : cout moyen d'une course 158 s de jeu · palier median par pilote 7.5 7 9.5 8.5 · palier moyen 7.75 7.60 9.65 9.05 · ET residu par course 4.12 · ET graine 0.00 · ET pilote 0.39 · ET de la diff. de palier median sur 12 courses communes 1.97 -> 289 courses pour +1 palier median (soit 761 min de jeu par pilote)
+coupe a 900 s : cout moyen d'une course 158 s de jeu · palier median par pilote 7.5 7 9.5 8.5 · palier moyen 7.75 7.60 9.65 9.05 · ET residu par course 4.12 · ET graine 0.00 · ET pilote 0.39 · ET de la diff. de palier median sur 12 courses communes 1.95 -> 282 courses pour +1 palier median (soit 742 min de jeu par pilote)
+correlation, course par course (80 courses), du palier a 300 s avec le palier final a 900 s : 0.99
+part des courses de 900 s encore en vie a 300 s : 7.50 % ; a 600 s : 0.00 %
+courses coupees (encore en vie) a 300 s dans les lots de 300 s : 6.00 %
+
+== 5. LA RESSEMBLANCE : STABLE SUR 12 COURSES DE 300 S ? ==
+parties de plus de 60 s (MIN_S) par lot de 12 : min 5, mediane 9, max 12 (moyenne 9.15)
+biais de taille : ecart moyen sur 12 courses 2.07 contre 2.05 sur 24 (le bruit des moyennes gonfle les |z|)
+  ET bootstrap de l'ecart, 6 courses de 300 s : 0.17
+  ET bootstrap de l'ecart, 12 courses de 300 s : 0.12
+  ET bootstrap de l'ecart, 24 courses de 300 s : 0.09
+  ET bootstrap de l'ecart, 48 courses de 300 s : 0.06
+  ET bootstrap de l'ecart, 12 courses de 900 s (4 pilotes) : 0.12 ; ecart sur les 20 courses : 1.67 2.02 2.54 2.00 ; sur leurs 24 courses de 300 s : 1.68 2.10 2.56 2.04
