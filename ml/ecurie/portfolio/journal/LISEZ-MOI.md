@@ -8,6 +8,10 @@ Un mot vous arrête (palier, graine, génome, écart aux joueurs, témoin…) ? 
 
 ---
 
+![Le jeu vu de derrière la voiture : une caisse orange aux ailes déployées vole au-dessus d'une route grise et étroite qui serpente dans le ciel, entre de hautes aiguilles de roche vertes, au-dessus d'une mer bleue ; deux traînées rouges partent de l'arrière de la voiture.](../images/journal-le-jeu.jpg)
+
+*Voici CASH CAR, sur la map des Pics de Jade : la voiture a quitté la route et vole, ailes ouvertes ; ce vol dure cinq secondes avant qu'elle se repose. C'est le premier pilote du 25/11 qui conduit (image tirée du film de sa course, à 1 min 05 s), pas le pilote actuel, dont aucun film n'existe.*
+
 ## 1. Le chantier en dix lignes
 
 1. CASH CAR est un jeu de course pour téléphone : une route suspendue dans le ciel, des vols, des figures en l'air, des pièces à ramasser.
@@ -168,6 +172,11 @@ Contrôlé le 27/11 avec `ls` et `git ls-files`.
 | `ml/labo/rejeux/*.json` | les touches image par image des courses gardées (cerveaux c0001 à c0004 et suivants) : de quoi refaire un film | oui |
 | `ml/labo/trajectoires/*.json.gz` | les mêmes courses vues de dessus | oui |
 | `ml/labo/videos/*.webm` | 4 films de courses (c0001-g910407, c0003-g910407, c0003-g910629, c0004-g910000), du 24 et 25/11 | **non** (dossier ignoré ; ils se refont à partir des rejeux) |
+| `ml/ecurie/portfolio/images/journal-le-jeu.jpg` | une image du jeu, la voiture en vol au-dessus de la route (premier pilote, 25/11), en tête de ce LISEZ-MOI | **non** (faite le 27/11, non suivie) |
+| `ml/ecurie/portfolio/images/journal-planche-reference.jpg` | la **planche** du bot de référence : neuf instants de sa course de 39,9 s, jusqu'à sa chute sur la roche (`2026-11-24.md`) | **non** (faite le 27/11, non suivie) |
+| `ml/ecurie/portfolio/images/journal-planche-pilote.jpg` | la **planche** du premier pilote : neuf instants de sa meilleure course (5 min 40 s, quatre maps, des vols de 5 s) (`2026-11-25_suite.md`) | **non** (faite le 27/11, non suivie) |
+| `ml/ecurie/portfolio/images/journal-duel-meme-piste.jpg` | le **duel** : la référence et le premier pilote sur la même piste, aux mêmes instants, côte à côte (`2026-11-25_suite.md`) | **non** (faite le 27/11, non suivie) |
+| `ml/ecurie/portfolio/figures-journal/planche.js` | le script de ces quatre images : il lit un film (Chrome sans écran et muet, sans ffmpeg) et compose la planche ; il ne joue aucune course. Les commandes exactes sont dans les chapitres où les images paraissent. Limite : il lit les films, qui sont hors git | **non** (fait le 27/11, non suivi) |
 | `ml/labo/projection/page.html` | la salle de projection (`node ml/labo/projection.js`) | oui |
 | `ml/ecurie/comptes-rendus/compte-rendu-01.html`, `-02.html` | les deux comptes rendus pour Sacha, du 25/11 | oui |
 | `ml/ecurie/etude/*.md`, `etude/selection-naturelle/` | l'étude du 24/11 (neuf rapports, 28 défauts), l'enquête réalisme du 26/11, la spécification, l'étude du bruit et les quatre enquêtes du 27/11 | oui (la sélection naturelle depuis `033bfebeb`) |
@@ -185,8 +194,8 @@ Contrôlé le 27/11 avec `ls` et `git ls-files`.
 
 - Le **bêtisier** : les morts les plus bêtes et les triches trouvées par les bots.
 - Les **cartes** : toutes les trajectoires d'une génération superposées sur la route vue de dessus, les endroits où l'on meurt, les raccourcis découverts. Il existe une seule course vue de dessus (`course-dessus-*.svg`).
-- Les **planches** : neuf instants d'une course en une image fixe, pour l'imprimé.
-- Les **duels côte à côte**, Sacha contre bot sur la même graine, et le « même virage à travers les générations ».
+- Les **planches** : deux existent depuis le 27/11 (la référence et le premier pilote, ci-dessus). Il n'en existe aucune du pilote actuel (celui réglé les 26 et 27/11), ni d'une partie de Sacha : aucun film d'eux n'a été tourné.
+- Les **duels côte à côte** : un duel bot contre bot existe (référence contre premier pilote, même graine). Le duel Sacha contre bot sur la même graine et le « même virage à travers les générations » n'existent pas.
 - Les **courbes** par génération (note, figures par minute, poses, euros). Seule la meilleure distance par génération de septembre et d'octobre est dessinée (`journal-apprentissages-de-zero`) ; les figures, les poses et les euros par génération ne le sont pas, et la sélection du 27/11 n'a pas encore de génération à tracer.
 - Les **jalons** : un instantané figé par étape (`ml/labo/jalons/` n'existe pas).
 - Un film avec l'affichage du jeu (compteurs, argent) : les films actuels montrent l'image seule.
