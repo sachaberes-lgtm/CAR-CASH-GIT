@@ -6,7 +6,7 @@
    (e') sur les vrais yeux (une course de 45 s tracee, loi « retour » demandee) : chaque vue de vol suit la forme que le controle exige, et l'on y voit
        passer viser/viserPlane et retour0.
    Au plus 4 courses a la fois. Environ 3 a 5 minutes.
-   usage : node ml/evolution/tests/identite.test.js [--graines 910000,910037,910074] [--tmax 45]   (code 0 si tout passe, 1 sinon) */
+   usage : node ml/evolution/tests/identite.test.js [--graines 910000,910037,910074] [--tmax 45] [--travailleurs 4]   (code 0 si tout passe, 1 sinon) */
 'use strict';
 const path=require('path'),fs=require('fs'),{fork}=require('child_process');
 const D=path.join(__dirname,'..');
@@ -27,6 +27,8 @@ if(A[0]==='--trace'){
 
 const cfg=C.lireConfig();
 const graines=(opt('graines',null)?opt('graines').split(','):cfg.identite.graines).map(Number),tmax=+opt('tmax',cfg.identite.tmax||45);
+/* (27/11/2026, tache « gestes ») --travailleurs N : courses a la fois (4 par defaut, comme avant ; 2 quand une autre evolution tourne sur le PC) */
+const travailleurs=Math.max(1,Math.min(4,+opt('travailleurs',4)||4));
 let rates=0,passes=0;
 function bilan(nom,ok,detail){if(ok)passes++;else rates++;console.log((ok?'PASSE  ':'ECHEC  ')+nom+(detail?'\n       '+detail.split('\n').join('\n       '):''));}
 const court=l=>l?[l.empreinte,l.empreinteVues,l.empreinteTouches].join(' ')+' palier '+l.palier+' '+l.survie_s+' s '+l.vols+' vols'+(l.erreurs?' ERREURS '+l.erreurs+' « '+l.derniereErreur+' »':'')+(l.mesuree===false?' [non mesuree : '+l.raison+']':''):'(rien)';
@@ -43,8 +45,8 @@ const pareil=(a,b)=>!!(a&&b)&&EMP.every(k=>a[k]&&a[k]===b[k]);
     {nom:'w2rayon',source:Gn.ecrirePilote(I.genomeW2(cfg,'rayon',.5),{cfg}),fichier:'evolution.js'},
     {nom:'w2sol',source:Gn.ecrirePilote(I.genomeW2(cfg,'sol',.5),{cfg}),fichier:'evolution.js'},
     {nom:'retour',source:Gn.ecrirePilote(R,{cfg}),fichier:'evolution.js'}];
-  console.log('15 courses ('+textes.length+' pilotes x '+graines.length+' graines x '+tmax+' s), 4 a la fois, un processus neuf chacune…');
-  const L=await I.jouerTextes({cfg,graines,tmax,travailleurs:4,textes});
+  console.log('15 courses ('+textes.length+' pilotes x '+graines.length+' graines x '+tmax+' s), '+travailleurs+' a la fois, un processus neuf chacune…');
+  const L=await I.jouerTextes({cfg,graines,tmax,travailleurs,textes});
 
   /* (a) */
   {const det=[];let ok=true;

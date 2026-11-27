@@ -57,7 +57,11 @@ C.vivant(pid)                    /* -> bool (process.kill(pid,0) ; EPERM = vivan
 | `ARRETE` (ajout, dév. 5) | `arreter.cmd` le crée ; `lancer.cmd` lancé à la main l'efface. evoluer.js ne le lit pas | `lancer.cmd auto` (la tâche planifiée) : présent → ne lance rien ; etat.js |
 | `sortie.log` | `lancer.cmd` (redirection) | humains |
 | `cfg.dossierChampions/gNNNN-<shaPilote8>.js` + `.json` | `evoluer.js` | noter.js (à la main), inscrire-champion.js |
-| `config.json` | à la main ; **une** exception : `evoluer.js --banc` y réécrit `travailleurs` et `banc.resultats` (atomique) | tous |
+| `config.json` | à la main, **seulement** (27/11 au soir : ~~`evoluer.js --banc` y réécrit `travailleurs`~~ ; le banc écrit `machine.json`, § 9.1) | tous |
+| `machine.json` (§ 9.1) | `evoluer.js` (le banc : au premier lancement sur un PC, ou `--banc`) | `commun.lireConfig` (résout `travailleurs:"auto"`), etat.js (ligne 3) |
+| `arbre.html`, `histoire.md` (§ 9.2) | `arbre.js`, `histoire.js`, appelés par `tableau.ecrire` (donc par evoluer.js en fin de génération) ou en ligne de commande ; contenu dérivé, atomique | humains |
+| `traces.log`, `traces.log.ancien` (§ 9.2) | `sauver-traces.cmd` (redirection ; au-delà de ~1 Mo, l'ancien est mis de côté) | humains |
+| `PAS-D-ENVOI` (§ 9.2) | Sacha (création) ; personne ne l'efface | `sauver-traces.cmd` : présent → commit local, pas d'envoi |
 
 Une seule évolution par dossier d'état : c'est le verrou (§ 3.9). `identite.js` n'écrit **rien** dans l'état (ni cache, ni pilotes).
 `ml/labo/` : seul `inscrire-champion.js` y écrit, par l'API de `labo.js`, à la main.
@@ -154,7 +158,7 @@ par course (graine, palier, survie, cause, mesurée/raison, « cache » si rendu
 ```js
 const Gn=require('./genome');
 Gn.BORNES                     /* Borne[] (§ 4.1), dans l'ordre d'ecriture ; fige (Object.freeze) */
-Gn.CONTINUS                   /* les cles des genes de type 'reel' (64), dans l'ordre de BORNES : l'urne des mutations */
+Gn.CONTINUS                   /* les cles des genes de type 'reel' (64 ; 79 depuis les gestes, § 9.3), dans l'ordre de BORNES : l'urne des mutations */
 Gn.TETES                      /* {rayon:{cle:'WV',nIn:36,nH:6,nOut:1,nW1:216,nW2:6}, sol:{cle:'WS',nIn:12,nH:6,nOut:3,nW1:72,nW2:18}} */
 Gn.genomeTemoin(cfg)          /* -> Genome : lit REGLAGES dans ml/ecurie/pilote-voltige.js (regex /const REGLAGES=\{[\s\S]*?\r?\n\};/, evalue par vm dans
                                  un contexte vide), les 14 constantes promues aux valeurs du § 4.1 (verifiees : leve « pilote-voltige.js a change » si un des
@@ -172,7 +176,11 @@ Gn.ecrirePilote(genome, o?)   /* o : {modele?: texte de modele.js (defaut : lu),
 Gn.shaPilote(texte)           /* -> 40 hex, sha1 du texte EXACT envoye a l'enfant */
 Gn.distance(g1, g2)           /* -> [0,1] : moyenne sur les genes de BORNES de |a-b|/(max-min) (drapeaux et choix : 0 ou 1), tetes non comprises */
 Gn.distanceW2(g1, g2)         /* -> moyenne des |dW2| des deux tetes (le tableau, phase B) */
-Gn.valider(genome)            /* -> null si conforme, sinon le texte du premier defaut (cle manquante, hors borne, longueur des tetes) */
+Gn.valider(genome)            /* -> null si conforme, sinon le texte du premier defaut (cle manquante, hors borne, longueur des tetes)
+                                 (27/11 au soir, § 9.3) appelle d'abord migrer : un v:1 conforme est migre EN PLACE en v:2 */
+Gn.migrer(genome)             /* (§ 9.3) v:1 aux 86 cles de CLES_V1 dans leur ordre -> v:2 en place (les 21 genes des gestes a leur naissance) ;
+                                 tout autre genome est rendu tel quel (valider dit son defaut) */
+Gn.VERSION, Gn.GESTES, Gn.CLES_V1   /* (§ 9.3) 2 ; les 21 Borne des gestes (fin de BORNES) ; les 86 cles de v:1 */
 ```
 **Ligne de commande** : `node ml/evolution/genome.js --temoin [--ecrire sortie.js]` (imprime le génome témoin en JSON, ou écrit son pilote) ;
 `node ml/evolution/genome.js --essai-reparer 10000` (10 000 mutations au hasard, vérifie bornes et contraintes ; code 0/1).
@@ -311,6 +319,9 @@ Ajouts (dév. 5) : `page(cfg, o?)` → le texte HTML sans rien écrire (tests) ;
 d'un journal est sautée et signalée en alerte (là où `commun.lireJsonl` lève), un population.json tronqué n'arrête rien. Des courses-*.jsonl, seules les lignes du
 champion (ses 15 z, par `ressemblance.ecart` sur ses courses d'entraînement mesurées de l'époque) et celles qui portent des pannes sont décodées (filtre sur le texte).
 La page porte `<meta http-equiv="refresh" content="300">` (elle se recharge seule) et aucun script.
+(27/11 au soir, § 9.2) `ecrire` refait aussi `arbre.html` puis `histoire.md` (chacun dans un `try/catch` : un échec des traces ne fait jamais échouer le
+tableau) et rend en plus `traces:{arbre, histoire, erreurs:[…]}` ; l'en-tête porte les liens vers les deux pages et dit que seul `sauver-traces.cmd` envoie
+la page (branche `evolution-…`, jamais main).
 
 ### 2.9 `etat.js`
 
@@ -325,6 +336,7 @@ journaux, verrou, STOP/PAUSE/ARRETE, liste des courses-*.jsonl, alertes de lectu
 Les lignes sont **sans accents** et de 118 caractères au plus (console Windows en page de code 850, et resume.txt). « En marche » = verrou dont le pid vit et dont
 le battement a moins de `verrouPerime_s` ; un verrou sans processus = « ARRETE SANS PREVENIR » (alerte). Les pannes de la ligne 9 sont lues dans les deux
 derniers courses-*.jsonl (lignes de la dernière génération, filtre sur le texte).
+(27/11 au soir, § 9.1) Ligne 3 (Débit) : `… ; 9 a la fois (banc du 27/11)` ; les autres fins possibles : `ecrit dans la config`, `banc a faire`, `sans banc`.
 
 ### 2.9 bis Les lanceurs (`lancer.cmd`, `arreter.cmd`, `installer-tache.cmd`) — dév. 5
 - Chemins relatifs au fichier (`%~dp0`) ; fins de ligne **CRLF** (`ml/evolution/.gitattributes` : `*.cmd text eol=crlf`), ASCII seulement.
@@ -337,6 +349,11 @@ derniers courses-*.jsonl (lignes de la dernière génération, filtre sur le tex
   Ici : `schtasks /create /tn CashCarEvolution /sc onlogon /delay 0005:00 /tr "\"…\lancer.cmd\" auto" /it` (peut demander les droits d'administrateur),
   `schtasks /create /tn CashCarEvolution-relance /sc hourly /mo 1 /tr "… auto" /it`, `powercfg /change standby-timeout-ac 0` ; tout est expliqué et demandé (O/N) avant.
   Limite connue : Windows coupe une tâche au bout de 72 h (réglage par défaut de schtasks) ; la relance horaire la fait repartir (la reprise ne perd que les courses en cours).
+- (27/11 au soir, § 9) `lancer.cmd` : seul le **premier** mot peut être `auto` ; un argument vide `""` est sauté ; `"%ICI%"` entre guillemets (un chemin à
+  parenthèses, `CASH CAR (2)`, marche) ; sans `etat\machine.json`, une ligne dit que les premières minutes mesurent le PC ; le message du code 2 cite aussi
+  « une option est mal ecrite ». `installer-tache.cmd` pose une **troisième** tâche, `CashCarEvolution-traces` (`/sc hourly /mo 1 /tr "\"…\sauver-traces.cmd\" auto" /it`),
+  la retire avec `enlever`, et dit avant le O / N ce qui part sur Internet, l'adresse de `origin` (sans identifiant ni jeton) et la branche ; il avertit si le
+  dossier n'est pas sur une branche `evolution-`. `sauver-traces.cmd` : § 9.2.
 
 ### 2.10 `evoluer.js` — le maître
 
@@ -352,12 +369,12 @@ E.refusDePartir()        /* -> null | texte : un marqueur d'inscription du labo 
 **Ligne de commande** : `node ml/evolution/evoluer.js [--config f.json] [--travailleurs N] [--une-generation] [--arret-apres N] [--banc] [--valider-maintenant]`
 - sans option : boucle de générations jusqu'à `STOP`, Ctrl+C ou une erreur fatale ;
 - `--une-generation` = `--arret-apres 1` ; `--travailleurs` remplace `cfg.travailleurs` pour ce lancement ;
-- `--banc` : `cfg.banc.courses` courses de `cfg.banc.tmax` s du témoin à chaque nombre de `cfg.banc.travailleurs` (graines d'entraînement depuis 910000, cache non utilisé,
-  rien dans courses.jsonl) ; écrit `banc.resultats:[{travailleurs, coursesParHeure, pannes, nonMesurees}]` et `travailleurs` (le meilleur débit sans panne) dans
-  **config.json** (le fichier de base, jamais la surcouche) ;
+- `--banc` : ~~écrit dans **config.json**~~ **(27/11 au soir, § 9.1)** refait le banc et écrit `<etat>/machine.json`, puis sort ; le banc se fait aussi tout
+  seul au premier lancement sur un PC (pas de machine.json valable, pas de nombre forcé) ;
 - `--valider-maintenant` : une validation meneur contre champion tout de suite (sans les conditions de la règle 6), puis sortie.
 
-Codes de sortie : 0 arrêt propre ; 1 erreur fatale (dont « YEUX CHANGES », identité ratée) ; 2 refus de partir (verrou vivant, labo, boucle.js).
+Codes de sortie : 0 arrêt propre ; 1 erreur fatale (dont « YEUX CHANGES », identité ratée) ; 2 refus de partir (verrou vivant, labo, boucle.js) **ou option
+mal écrite** (§ 9.1 : toute la ligne est contrôlée avant la config, le verrou et toute course ; `--aide`/`--help`/`-h` → l'usage, code 0).
 Ctrl+C : comme `STOP` ; un second Ctrl+C : `ord.arreter({dur:true})` et sortie 1 (la reprise ne perd que les courses en cours).
 Toute la console va sur stdout, une ligne par événement, préfixée de l'heure `HH:MM:SS`.
 
@@ -380,7 +397,8 @@ Toute la console va sur stdout, une ligne par événement, préfixée de l'heure
 - Un enfant abandonné pour doublon n'est écrit que comme événement (pas de ligne `morts.jsonl` : son id est déjà celui d'un pilote vu). `raison:'doublon'`
   n'est donc jamais écrit.
 - Le tableau est réécrit en fin de génération, à l'interruption, et une dernière fois après le retrait du verrou (son résumé dit alors « ARRETE »).
-- `config-essai.json` : `travailleurs` 4 (la mission de test) et `protectionCourses` 6 (deux générations de 3 graines, comme 24 = deux de 12 : sinon un
+- `config-essai.json` : ~~`travailleurs` 4 (la mission de test)~~ `travailleurs "auto"` et `banc.travailleurs [1, 2]` (§ 9.1 : un essai ne dépasse jamais
+  2 courses à la fois ; les tests passent `--travailleurs N`) et `protectionCourses` 6 (deux générations de 3 graines, comme 24 = deux de 12 : sinon un
   nouveau-né de l'essai pouvait être viré à sa première génération).
 
 ### 2.11 `inscrire-champion.js` — à la main seulement (étape 9)
@@ -422,6 +440,8 @@ Le fichier `ml/evolution/config.json` donne **toutes** les clés et leurs valeur
 | `identite` | les graines et la durée du contrôle d'identité |
 | `reseaux` | tailles et gains des deux têtes (§ 5.4, 5.5) ; les changer change le génome : nouvelle époque et génomes incompatibles (refus de charger) |
 | `retourFige` | rv, rm, rn de la loi « retour » (figés, hors génome) |
+| `travailleurs`, `banc.travailleurs` | (§ 9.1) `"auto"` : le nombre de courses à la fois vient de `machine.json` (le banc de CE PC), sinon le repli `max(1, L−2)` ; un nombre écrit l'emporte sur tous les PC ; `banc.travailleurs "auto"` = essayer {⌈L/2⌉, L−4, L−2, L−1} ; une liste reste acceptée |
+| `alarmeDistance` | l'alarme « population trop semblable » ; 0,012 (la moitié de la distance d'une vraie population de 20 à la naissance : 0,028 sur 86 gènes, 0,0225 sur 107 ; à 0,04 l'alerte était levée dès la génération 0) ; hors de toute époque |
 
 ### 3.2 Le génome (`Genome`)
 ```json
@@ -430,6 +450,8 @@ Le fichier `ml/evolution/config.json` donne **toutes** les clés et leurs valeur
   "WV": [0.0731, -0.2215, "… 216 poids W1 puis 6 poids W2 (= 0 a la naissance) …"],
   "WS": [0.1402, "… 72 poids W1 puis 18 poids W2 …"] }
 ```
+- **(27/11 au soir, § 9.3) `"v": 2`** : `A` porte en plus, à la fin, les 21 gènes des gestes (107 clés). Un `"v": 1` aux 86 clés est migré à la lecture
+  (`migrer`) ; son identifiant ne change pas tant que les 21 gènes sont à leur naissance.
 - `A` porte **toutes** les clés de `BORNES`, dans son ordre, et rien d'autre. Valeurs : `reel` arrondi à 4 décimales (`+x.toFixed(4)`), `entier`/`choix` entiers,
   `drapeau` 0 ou 1 ; jamais −0.
 - Têtes : `WV.length===222`, `WS.length===90`, chaque poids arrondi à 6 décimales, borné à `±cfg.bornePoids`, jamais −0. Disposition :
@@ -650,6 +672,7 @@ Ordre de `BORNES` : les 45 réels dans l'ordre de leur apparition dans `REGLAGES
 de REGLAGES à leur place d'apparition (`raccCartes_*`, `raccJumeau_*` à la place de leur objet, `volRetourOn` juste avant `volRetour`), puis `retourOn, retMarge,
 retCap, retGain, retAvance, retourPrime, volMieux`, puis les 14 de `G` dans l'ordre du tableau. Total : 64 réels (`CONTINUS`) + 5 drapeaux de REGLAGES +
 `volRetourOn` + 12 `racc*_<map>` + `retourOn` + `volMieux` + `dessousDecor` + `figMax` = **86 gènes**.
+**(27/11 au soir, § 9.3)** puis les 21 gènes des gestes (`GESTES`, tableau au § 9.3) : **107 gènes** = 79 réels + 26 drapeaux + `dessousDecor` + `figMax`.
 **Figés, jamais dans le génome** : `PROFIL`, le garage (aucun), `DECOR`, `FACONS`, `LONGS`, la structure ; `volNitro` = 0 (clé de faire-pR.js gardée à 0 : elle
 n'est pas dans la liste de l'amendement) ; `rv`, `rm`, `rn` de `cfg.retourFige`.
 
@@ -677,7 +700,8 @@ const CONTROLE_RAYONS=true;
 ```
 - Nombres écrits par `String(x)` (la plus courte écriture qui relit le même double). Clés de `REGLAGES` dans l'ordre de **pilote-voltige.js**
   (`genome.ORDRE_VOLTIGE`, comme l'exemple ci-dessus ; correction du 27/11, dév. 2 : « l'ordre de BORNES » contredisait l'exemple, qui fait foi — l'ordre
-  des clés ne change rien à la course), puis `retourOn, retMarge, retCap, retGain, retAvance, retourPrime, volMieux`, puis `volNitro:0` et `retours` en dernier.
+  des clés ne change rien à la course), puis `retourOn, retMarge, retCap, retGain, retAvance, retourPrime, volMieux`, **(§ 9.3) puis les 21 clés des gestes**
+  (`…,volMieux:0,lacheOn:0,lacheAvant:0.35,slalomOn:0,…,suitMarge:0.25,`), puis `volNitro:0` et `retours` en dernier.
 - `raccCartes` : les seules maps de drapeau **0**, dans l'ordre de `cfg.cartesTirage` ; `raccJumeau` : les seules maps de drapeau **1**, même ordre
   (le code lit `R.raccCartes[v.carte]!==0` et `R.raccJumeau[v.carte]` : une map absente vaut « permis » / « non exigé », comme aujourd'hui).
 - `volRetour` : `volRetourOn ? A.volRetour : 0`.
@@ -807,6 +831,7 @@ const ORDRE10=['tenu','rien','gauche','droite','cabre','pique','plane','planeCab
 2. reste = noms.slice(10) ; s'il commence par 'viser', il commence par 'viser','viserPlane' (les deux ensemble), et v.vol.cible est un objet ;
    s'il ne commence pas par 'viser', v.vol.cible est null ou absent (yeux.js le pose a null par defaut, ligne ~977, et ne le remplit qu'avec les deux rayons) ;
 3. apres eux : 'retour0','retour1',… consecutifs, au plus REGLAGES.retours.length (0 si la loi est coupee) — et rien d'autre.
+   (27/11 au soir, § 9.3) : au plus RETOURS_DEMANDES.length = R.retours, plus les deux lois du coup de nitro quand coupOn.
 ```
 Échec → `throw new Error('YEUX CHANGES : rayons '+noms.join(','))`. L'erreur sort par le bac dans `bilan.derniereErreur` (et `erreurs`) ; le maître, qui la lit
 dans `derniereErreur`, arrête tout (code 1). Un contrôle qui passe ne change rien à la course (aucune écriture dans `m`, aucune vue).
@@ -900,7 +925,7 @@ note : palier moyen (simple moyenne, pas de modèle), `ecartFoule` pour E et l'�
 | 5 | `tableau.js`, `etat.js`, `inscrire-champion.js`, `lancer.cmd`, `arreter.cmd`, `installer-tache.cmd`, `README.md`, `.gitignore` | commun, formats § 3 |
 
 `.gitignore` de `ml/evolution/` : `etat/courses*.jsonl`, `etat/pilotes/`, `etat/sortie.log`, `etat/verrou.json`, `etat/STOP`, `etat/PAUSE`, `etat/ARRETE`,
-`*.tmp` (partout : champions/ aussi), `essais/`. L'état d'exemple des tests (`tests/etat-exemple/`, fabriqué par `tests/fabriquer-etat-exemple.js`) se committe.
+`*.tmp` (partout : champions/ aussi), `essais/` ; (27/11 au soir) `etat/verrou.json.*`, `etat/*.fragment-*`, `etat/traces.log*`, `etat/PAS-D-ENVOI`. L'état d'exemple des tests (`tests/etat-exemple/`, fabriqué par `tests/fabriquer-etat-exemple.js`) se committe.
 Tests : chaque développeur range ses tests dans `ml/evolution/tests/<module>.test.js` (Node pur, `node tests/x.test.js`, code 0/1) ; au plus 4 courses à la fois,
 45 à 60 s de jeu, sauf si le test de la spec en demande plus.
 
@@ -957,3 +982,135 @@ l'avaler. `verrouiller(cfg, {surPerte})` (§ 3.9). `preparer` relit la référen
 enfant.js et des champions changeraient à l'extraction) ; `*.cmd` garde `text eol=crlf`.
 
 **Non corrigé :** la rotation des `courses-*.jsonl` des époques closes (ils restent sur le disque et sont relus — mais plus gardés en mémoire — à chaque lancement).
+
+---
+
+## 9. Les finitions du 27/11 au soir (trois lots, puis l'intégrateur)
+
+Trois lots faits et relus le soir du 27/11 : « machine », « traces », « gestes ». Leurs notes complètes (formats, essais, relectures) : `notes/machine.md`,
+`notes/traces.md`, `notes/gestes.md`. Ce paragraphe fait foi là où il contredit ce qui précède (les endroits touchés y renvoient). L'état de la livraison et
+les commandes à taper sur le PC de nuit : `notes/LIVRAISON.md`.
+
+### 9.1 Le même dépôt sur n'importe quel PC : `machine.json` et le banc automatique (lot « machine »)
+
+- **La ligne de commande** de evoluer.js est contrôlée en entier par `lireOptions(argv, {existe})` **avant** la config, le verrou et toute course :
+  ```
+  node ml/evolution/evoluer.js [--config f.json] [--etat dossier] [--travailleurs N] [--une-generation | --arret-apres N]
+                               [--banc] [--valider-maintenant] [--bavard] [--aide | --help | -h]
+  ```
+  Option inconnue, mot en trop, valeur manquante ou absurde, option répétée, options incompatibles (`--banc` avec `--valider-maintenant`, `--une-generation`,
+  `--arret-apres` ou `--travailleurs` ; `--valider-maintenant` avec `--une-generation` ou `--arret-apres` ; `--une-generation` avec `--arret-apres`), `--config`
+  introuvable → l'erreur et l'usage sur stderr, **code 2**. `--option=valeur` est accepté. `--travailleurs` de 1 à 256.
+- **D'où vient le nombre de courses à la fois**, dans l'ordre : (1) `--travailleurs N`, pour ce lancement, rien n'est écrit ; (2) un nombre écrit dans la config ;
+  (3) `<etat>/machine.json` s'il est de CE PC (même `os.hostname()`, même nombre de cœurs logiques L, format `evolution-machine-1`, nombre dans [1, L] — ou
+  dans `banc.liste` si la liste a été écrite à la main) ; (4) le repli `max(1, L−2)`, borné par le plus grand nombre d'une liste `banc.travailleurs` écrite.
+  `commun.lireConfig` résout `"auto"` : `cfg.travailleurs` est **toujours un entier** ; en plus `_travailleursConfig`, `_travailleursSource`
+  (`'ligne de commande'|'config'|'banc'|'auto'`), `_bancAFaire`, `_machine`, `_machinePourquoi`.
+- **Le banc** (`banc(cfg, dire, {dossierEtat, doitArreter, surOrd, ecrire})` → `{travailleurs, retenu, interrompu, raison, resultats, machine}`) : liste « auto »
+  `{⌈L/2⌉, L−4, L−2, L−1}` bornée à [1, L] ; pour chaque n, le témoin joue `n × max(2, ⌈courses/n⌉)` courses de `banc.tmax` s (vagues pleines, graines
+  d'entraînement depuis 910000, sans cache, rien dans courses.jsonl) ; un n est écarté s'il a une panne, une course non mesurée ou relancée ; on garde le
+  meilleur débit, et à moins de 5 % de lui le plus PETIT n. Fait au premier lancement sur un PC, **après la prise du verrou** et avant la génération 0
+  (pas pour `--valider-maintenant`, qui prend le repli) ; refait au lancement suivant s'il a été interrompu (STOP, PAUSE, Ctrl+C), et au plus 3 fois
+  (`C.ECHECS_BANC_MAX`) s'il finit sans nombre valable. Un banc raté n'écrase jamais un machine.json réussi. Une écriture impossible de machine.json est dite
+  et n'arrête rien (le nombre vaut pour ce lancement). Durée estimée : vraie config sur 16 cœurs, 11 à 46 min ; essai (liste [1, 2]), 1 à 5 min.
+- **Le nombre de travailleurs n'entre ni dans `K.epoque`, ni dans `K.cle`, ni dans `shaIdentite`** : changer de PC ne change pas d'époque.
+- `refusDePartir({dire, timeout_ms, commande})` : PowerShell a 5 s au plus ; absent, lent ou illisible → on part, et une ligne le dit.
+- La console : `process.stdout`/`stderr` ont un écouteur `error` ; si elle meurt (EPIPE), la suite du journal va à la fin de `<etat>/sortie.log`.
+- Exports nouveaux : commun.js `FORMAT_MACHINE`, `TRAVAILLEURS_MAX`, `ECHECS_BANC_MAX`, `coeursLogiques`, `listeBancAuto`, `listeBanc`, `repliTravailleurs`,
+  `choisirTravailleurs`, `controlerTravailleurs`, `descriptionMachine`, `cheminMachine`, `lireMachine(d)` → `{machine, pourquoi}`, `ecrireMachine`, `bancAFaire`,
+  `resoudreTravailleurs` ; evoluer.js `lireOptions`, `USAGE`, `planBanc`, `processusNode`.
+
+**Format `<etat>/machine.json`** (un par PC ; atomique, LF ; il se committe sur la branche `evolution-…` de ce PC, jamais sur bots-ecurie) :
+```json
+{ "format": "evolution-machine-1", "ordinateur": "NOM-DU-PC", "cpus": 8, "modeleCpu": "Intel(R) Xeon(R) CPU E3-1245 v5 @ 3.50GHz",
+  "memoireGo": 15.9, "node": "v24.22.3", "travailleurs": 2, "source": "banc", "date": "2026-11-27T19:02:29.156Z",
+  "banc": { "date": "2026-11-27T19:02:29.151Z", "liste": [1, 2], "tmax": 45, "retenu": 2,
+            "resultats": [ {"travailleurs": 1, "coursesParHeure": 103.6, "pannes": 0, "nonMesurees": 0, "relancees": 0, "courses": 4, "duree_s": 139},
+                           {"travailleurs": 2, "coursesParHeure": 180.9, "pannes": 0, "nonMesurees": 0, "relancees": 0, "courses": 4, "duree_s": 80} ] } }
+```
+`source` : `'banc'` ou `'auto'` (le repli). Après un banc raté, `banc` porte aussi `raison`, `interrompu`, `echecs`, et `retenu` vaut `null`.
+
+### 9.2 L'histoire : l'arbre, le récit, la mise à l'abri (lot « traces »)
+
+- **`arbre.js`** → `<etat>/arbre.html` : une page seule (HTML + SVG dessiné par un petit programme inclus ; aucune ressource extérieure ; `file://`), clair et
+  sombre, lisible de 380 à 1 300 px. Un pilote = un point à sa naissance et un trait jusqu'à son renvoi, rangé sur une « voie » (la hauteur reste fixe, ~32 voies) ;
+  un fil vers chaque parent ; forme et couleur = l'origine ; la lignée du champion en titre en vert épais ; les 60 dernières générations en détail, les
+  anciennes resserrées. La fiche d'un pilote (clic, clavier, recherche, `arbre.html#p=<id>`) dit sa naissance, ses parents, **ce qui a changé gène par gène,
+  recalculé à partir des génomes** (avec un mot simple : `MOTS`), ses notes, son renvoi, ses sacres, ses enfants.
+  API : `ecrire(cfg, o?)`, `page`, `modele(cfg, {donnees?})`, `donneesPage(M, o)`, `programme`, `motDe`, `lireLigne`, `MOTS` ; ligne de commande
+  `node ml/evolution/arbre.js [--config f] [--etat dossier]`. `modele` ne garde qu'une ligne par génération (la dernière écrite : une génération refaite après
+  une coupure n'est comptée qu'une fois). Le format des données de la page : `notes/traces.md` § 2.
+- **`histoire.js`** → `<etat>/histoire.md` : le récit, réécrit en entier (Markdown simple, sans HTML) : une phrase, « Les mots », « Où on en est » en dix lignes,
+  puis une entrée par génération et la génération en cours. « La sélection apprend-elle vraiment ? » compte **une mesure du coffre par champion** et ne conclut
+  qu'au-delà du bruit (1,5 palier sur 40 courses, estimation tirée de `ml/ecurie/etude/selection-naturelle/bruit/resultats.txt` § 1). Les événements inconnus
+  sont recopiés tels quels. API : `ecrire`, `texte`, `message` (la ligne du commit, ASCII), `nomPc`, `evenementClair`, `phraseValidation`, `phraseCoffre` ;
+  ligne de commande `node ml/evolution/histoire.js [--config f] [--etat dossier] [--message | --pc]`.
+- `tableau.ecrire` appelle les deux (§ 2.8) : ils sont donc refaits à chaque génération, sans toucher à evoluer.js (mesuré : 0,9 s pour 5 054 pilotes).
+- **`sauver-traces.cmd [auto]`** (CRLF, ASCII), dans le dossier de la sélection :
+  1. refuse (code 2) hors d'un dépôt git, sur `main`, sur `bots-ecurie`, sur toute branche qui ne commence pas par `evolution-`, sur une HEAD détachée, et
+     pendant une fusion, un cherry-pick, un revert pas finis ou un fichier en conflit ;
+  2. `node ml\evolution\tableau.js` (repli : arbre.js puis histoire.js) ;
+  3. `git add` des journaux légers qui existent (`population.json`, `generations.jsonl`, `validations.jsonl`, `morts.jsonl`, `coffre.jsonl`, `machine.json`,
+     `champions` s'il porte un `.js` ou un `.json`) ; **du nouveau se juge sur les journaux seuls** (les pages portent l'heure) ; une page jamais sauvée compte ;
+  4. s'il y a du nouveau : `git commit --only -m "BOTS-ML evolution <pc> : <histoire.js --message>" -- <ces fichiers et les pages>` (identité de repli
+     `selection CASH CAR (<pc>)` / `selection@<pc>.invalid` pour ce seul commit si git n'en a pas), puis `git -c gc.auto=500 gc --auto --quiet` ;
+  5. sauf si `etat\PAS-D-ENVOI` existe : `git -c http.lowSpeedLimit=1 -c http.lowSpeedTime=120 push origin HEAD:refs/heads/<la branche courante>`, même sans
+     nouveau commit ; jamais `--force`, jamais vers main. Un envoi raté n'est pas une erreur (code 0).
+  En `auto` : rien à l'écran, aucune question (`GIT_TERMINAL_PROMPT=0`, `GCM_INTERACTIVE=never`, `GIT_SSH_COMMAND=ssh -o BatchMode=yes -o ConnectTimeout=30` s'il
+  n'y en a pas déjà un). Le détail va dans `etat\traces.log` (mis de côté en `traces.log.ancien` au-delà de ~1 Mo) ; la ligne de bilan dans traces.log
+  (réessayée 5 fois : un enfant de git peut tenir le fichier un instant) et, si personne ne le tient, dans sortie.log. `<pc>` = `os.hostname()` en minuscules,
+  hors `[a-z0-9._-]` → `-` (ou `EVOLUTION_PC`). Vercel ne publie que `main` : une branche `evolution-…` ne déclenche rien.
+- `installer-tache.cmd` pose la tâche horaire `CashCarEvolution-traces` (§ 2.9 bis).
+
+### 9.3 Les gestes des joueurs (lot « gestes ») : 21 gènes, le génome v:2
+
+Cinq gestes des joueurs (`ml/ecurie/etude/selection-naturelle/PROPOSITIONS.md`, remarques des vérificateurs comprises), chacun gardé par un drapeau **éteint
+à la naissance** : drapeau à 0, son code ne s'exécute pas, ses réglages ne sont pas lus, la mémoire du pilote ne reçoit aucun champ (vérifié au bit près :
+`identite.test.js`, et 6 graines longues avec les réglages poussés à leurs bornes, `notes/gestes.md`).
+
+| geste | drapeau | réglages : [min ; max] naissance |
+|---|---|---|
+| 1. lâcher le volant juste avant la pose sur la dalle (`versRoute`/`versRoutePlane`) | `lacheOn` | `lacheAvant` [0,15 ; 0,5] 0,35 s |
+| 2. slalom : cap alterné, horizon allongé (même bloc que capZ, virage doux u<0,5) | `slalomOn` | `slalomCap` [0,2 ; 0,5] 0,35 rad ; `slalomDemi` [0,38 ; 0,65] 0,45 s ; `slalomH` [0,9 ; 3,5] 3 s |
+| 3. coup de nitro vu, version serrée (au plus 3 par vol) | `coupOn` | `coupDepuis` [0,35 ; 1,2] 0,6 ; `coupEcart` [0,5 ; 1,5] 0,7 ; `coupDuree` [0,1 ; 0,3] 0,15 ; `coupPoseMin` [0,5 ; 1,5] 0,8 ; `coupAxe` [0,2 ; 0,5] 0,35 ; `coupAir` [0,4 ; 1,5] 0,8 ; `coupJauge` [0,2 ; 0,6] 0,35 ; `coupPerte` [0 ; 60] 10 m ; `coupDecor` (drapeau) 0 |
+| 4. garder la nitro après un décollage nitro tenue (pas pour `plane`/`viserPlane`) | `relacheOn` | `relacheT` [0,12 ; 0,45] 0,25 s |
+| 5. au sol après la pose, la ligne suit la glisse | `suitOn` | `suitDerive` [0,1 ; 0,6] 0,3 s ; `suitMarge` [0 ; 0,5] 0,25 s |
+
+- `BORNES` : les 21 en **fin** (6 drapeaux, 15 réels) → 107 gènes, `CONTINUS` 79. Les drapeaux suivent la règle commune (`pDrapeau` 0,03 : chaque geste est essayé
+  par ~3 % des enfants, ~une génération sur cinq) ; le croisement les mélange gène par gène.
+- **Génome v:2** (§ 3.2) ; `migrer` (§ 2.3) ; `valider` migre en place, donc `evoluer.charger` (qui valide chaque vivant lu) passe toute la population en v:2 en
+  mémoire, et population.json est réécrit en v:2 au prochain `ecrirePop`. `copier`, `croiser`, `reparer` écrivent v:2.
+- **L'identifiant ne change pas** : `shaGenome` d'un génome dont les 21 gènes sont à leur naissance = le sha1 de sa forme v:1 (`{v:1, A:(les 86 premiers), WV, WS}`).
+  Le témoin garde `19e3767cc346` ; `dejaVus`, `champion.id`, `temoin` et les journaux restent justes. Dès qu'un gène de geste s'écarte : sha1 du v:2 entier.
+- `ecrirePilote` écrit les 21 clés dans `REGLAGES` après `volMieux` (§ 5.1). `modele.js` : `RETOURS_DEMANDES` (= `R.retours`, plus les deux lois du coup si
+  `coupOn`) est envoyé aux yeux et compté par le contrôle des rayons (§ 5.7).
+- **`modele.js` et `genome.js` font partie de l'époque** : au premier lancement avec ce code, une population existante change d'époque (les notes repartent de
+  zéro, les courses sont rejouées, les pilotes restent) et refait le contrôle d'identité. Voulu.
+- `distance` divise par 107 et non plus 86 : la diversité affichée baisse d'environ 20 % ; `alarmeDistance` passe à 0,04, puis à 0,012 après la mesure d'une vraie population (§ 3.1).
+
+### 9.4 Ce que l'intégrateur a ajouté ou corrigé (27/11 au soir)
+
+- `arbre.js` : un génome v:1 relu des journaux (morts.jsonl, ou population.json d'avant les gestes) est **migré** (`Gn.migrer`, sur l'objet lu, jamais réécrit) :
+  l'enfant v:2 d'un parent mort v:1 montrait 21 changements « undefined → naissance ». Les 21 gènes des gestes ont leur mot simple dans `MOTS`
+  (`tests/traces.test.js` l'exige : il échouait).
+- `tableau.js` : l'en-tête ne dit plus « Rien n'est publié » (faux depuis sauver-traces.cmd).
+- `sauver-traces.cmd` : la ligne de bilan dans traces.log est réessayée (elle s'y perdait parfois après un envoi SSH raté : `tests/relecture-traces.test.js` échouait).
+- `config.json` : `alarmeDistance` 0,04, ramenée à 0,012 par Fable le soir même (+ une note dans `_notes`).
+- `installer-tache.cmd` : la troisième tâche ; le texte d'avant le O / N dit exactement ce qui part, vers quelle adresse et quelle branche (§ 2.9 bis).
+- `tests/evoluer.test.js` : `--travailleurs N` (4 par défaut, comme avant) ; la copie temporaire d'un relecteur (`tests/zz-relecteur-evoluer.tmp.test.js`) est effacée.
+- `.gitignore` : le commentaire de fin dit où et par qui les journaux se committent.
+- README : « INSTALLER SUR UN NOUVEAU PC » et « METTRE À JOUR » (vérifiés dans un clone jetable : `git worktree add -b evolution-ryzen …`, `git merge --no-edit`,
+  et l'identité git qu'exige une fusion sur un PC qui n'en a pas).
+- Test : `tests/integration.test.js` (aucune course, ~15 s).
+
+### 9.5 Ce qui n'est pas fait (connu)
+
+- Le tableau (section « 7. La machine ») ne montre pas encore machine.json (etat.js le montre, ligne 3).
+- Les tâches planifiées s'ouvrent dans une fenêtre noire (`/it`) : une fois par heure, quelques secondes (il faudrait un lanceur caché, `.vbs`).
+- `valider` migre encore en place (le conseil du lot « gestes » : `Gn.migrer` en clair dans `evoluer.charger`, puis `valider` pur) : pas fait, le comportement
+  est juste et testé.
+- Un enfant dont seuls des réglages de gestes éteints ont muté conduit comme son parent mais est rejoué (~4 % des enfants) : coût de calcul accepté.
+- `morts.jsonl` grossit d'~1 Mo par jour : vers 100 Mo (refus de GitHub) dans 2 à 3 mois, il faudra le découper (evoluer.js).
+- `machine.json` se committe sur la branche `evolution-<pc>` de chaque PC : deux PC ne doivent pas partager la même branche.
+- `lancer.cmd` ne dit « Premier lancement sur ce PC » que si `etat\machine.json` manque (pas s'il vient d'un autre PC : le banc a quand même lieu, dit dans sortie.log).
+- `tests/evoluer.test.js` (étapes bd, c, f, g) et `tests/courses.test.js` n'ont pas été relancés avec ce code.

@@ -2,8 +2,9 @@
   "format": "evolution-config-1",
   "_notes": [
     "LA SELECTION NATURELLE DES BOTS : les nombres par defaut (SPECIFICATION.md § 5 a 7, INTERFACES.md § 3). Les chemins sont relatifs a ml/evolution/.",
-    "travailleurs : 4 sur le PC de developpement (4 coeurs, d'autres mesures tournent) ; sur le Ryzen, le banc de l'etape 0 (evoluer.js --banc) ecrit ici la valeur retenue (la specification attend 9).",
+    "travailleurs : \"auto\" (27/11, « machine ») = le nombre de courses a la fois est mesure sur CHAQUE PC par le banc (au premier lancement, ou evoluer.js --banc) et range dans etat/machine.json, jamais ici. Un nombre ecrit ici l'emporte sur tous les PC ; --travailleurs N l'emporte pour un lancement. banc.travailleurs \"auto\" = essayer {L/2, L-4, L-2, L-1} (L = coeurs logiques) ; une liste reste acceptee.",
     "cartesTirage : les maps du tirage en regime allege (code/maps/niveaux.js SF_CARTES moins SF_HORS : crypto, banquise, dunes) ; a reverifier a l'etape 0.",
+    "alarmeDistance 0.04 (27/11, l'integrateur) : avec les gestes, la distance moyenne divise par 107 genes au lieu de 86 ; l'alarme d'avant (0.05) est ramenee d'autant (0.05 x 86/107), elle n'entre dans aucune epoque. Puis 0.012 (27/11, Fable) : une vraie population de 20 mesuree a la naissance (le temoin et 19 mutants) vaut 0.028 sur 86 genes, soit 0.0225 sur 107 ; a 0.04 l'alerte etait levee des la generation 0 et ne disait rien. Le seuil est la moitie de la distance de naissance : l'alerte ne se leve que si la population se resserre vraiment.",
     "Une autre config (--config config-essai.json) est FUSIONNEE par-dessus celle-ci, cle par cle (objets fusionnes en profondeur, tableaux remplaces)."
   ],
   "dossierEtat": "etat",
@@ -17,7 +18,7 @@
   "tmax": 900,
   "regime": "allege",
 
-  "travailleurs": 4,
+  "travailleurs": "auto",
   "chienDeGarde_s": 1200,
   "prioriteBasse": true,
   "battement_s": 30,
@@ -83,7 +84,7 @@
 
   "coffre": { "intervalle_h": 24 },
 
-  "banc": { "travailleurs": [2, 3, 4], "courses": 20, "tmax": 300 },
+  "banc": { "travailleurs": "auto", "courses": 20, "tmax": 300 },
 
   "identite": { "graines": [910000, 910037, 910074], "tmax": 45 },
 
@@ -96,5 +97,5 @@
 
   "retourFige": { "rv": 0.2, "rm": 0.24, "rn": 0.18 },
 
-  "alarmeDistance": 0.05
+  "alarmeDistance": 0.012
 }

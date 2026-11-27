@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* ===== LES TESTS DU MAITRE (2026-11-27, etapes 4 et 5 de SPECIFICATION.md § 10 ; l'integrateur) =====
-   node ml/evolution/tests/evoluer.test.js [a] [bd] [c] [e] [f] [g] [t]   (sans argument : tout, dans cet ordre ; ~40 min)
+   node ml/evolution/tests/evoluer.test.js [a] [bd] [c] [e] [f] [g] [t] [--travailleurs N]   (sans argument : tout, dans cet ordre ; ~40 min)
    Un seul etat, a part : ml/evolution/essais/tests-evoluer/etat (config-essai.json : mu 4, lambda 2, 3 graines, tmax 60, 4 travailleurs).
    Les etapes se suivent : a part d'un etat vide, les autres reprennent l'etat laisse par la precedente.
      a  : --une-generation finit (generation 0) et ecrit tous les fichiers
@@ -18,7 +18,11 @@ const DOSSIER=path.join(__dirname,'..'),RACINE=path.join(DOSSIER,'..','..');
 const C=require('../commun');
 const BAC=path.join(DOSSIER,'essais','tests-evoluer'),ETAT=path.join(BAC,'etat');
 const EVOLUER=path.join(DOSSIER,'evoluer.js');
-const BASE=['--config','config-essai.json','--etat',path.relative(DOSSIER,ETAT),'--travailleurs','4'];
+/* (27/11/2026, l'integrateur) --travailleurs N : courses a la fois (4 par defaut, comme avant ; 2 quand une autre evolution tourne sur le PC),
+   comme tests/identite.test.js ; la copie tests/zz-relecteur-evoluer.tmp.test.js (a 2 en dur) n'a plus de raison d'etre. */
+const ARGS=process.argv.slice(2),iTrav=ARGS.indexOf('--travailleurs');
+const TRAVAILLEURS=String(Math.max(1,Math.min(4,(iTrav>=0?+ARGS[iTrav+1]:4)||4)));
+const BASE=['--config','config-essai.json','--etat',path.relative(DOSSIER,ETAT),'--travailleurs',TRAVAILLEURS];
 const F=n=>path.join(ETAT,n);
 
 let echecs=0,nLog=0;
@@ -224,7 +228,7 @@ async function etapeG(){
   const fc=path.join(BAC,'config-epoque.json');
   fs.writeFileSync(fc,JSON.stringify(base,null,2)+'\n');
   const P0=pop(),G0=lignes(F('generations.jsonl'));
-  const L=lancer(['--config',path.relative(DOSSIER,fc),'--etat',path.relative(DOSSIER,ETAT),'--travailleurs','4','--une-generation'],'g');
+  const L=lancer(['--config',path.relative(DOSSIER,fc),'--etat',path.relative(DOSSIER,ETAT),'--travailleurs',TRAVAILLEURS,'--une-generation'],'g');
   const code=await L.fin;
   verifie(code===0,'g : code 0',String(code)+' ('+L.log+')');
   verifie(/nouvelle epoque : reseaux\/retourFige/.test(L.texte),'g : nouvelle epoque annoncee',(L.texte.match(/nouvelle epoque.*/)||[''])[0]);

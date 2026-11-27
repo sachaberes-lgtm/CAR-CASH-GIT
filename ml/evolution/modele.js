@@ -8,6 +8,10 @@
      · LA TETE RAYON (36 entrees -> 6 tanh -> 1, ajoutee aux deux cotes de la comparaison des facons en vol) et LA TETE SOL (12 -> 6 -> 3 : le seuil
        de la nitro, la ligne visee, le gout du raccourci). A la naissance W2 = 0 : chaque sortie vaut 0 et rien ne change ;
      · LE CONTROLE DES RAYONS (amendement 3) : si les yeux changent l'ordre de leurs rayons, le pilote leve « YEUX CHANGES » et le maitre s'arrete.
+     · LES CINQ GESTES DES JOUEURS (27/11/2026, tache « gestes » ; PROPOSITIONS.md de l'etude) : les mains lachees avant le contact (R.lacheOn), le
+       slalom demande par le pilote (R.slalomOn), le coup de nitro vu en vol (R.coupOn), le relache apres le decollage (R.relacheOn), la ligne qui suit
+       la caisse apres la pose (R.suitOn). Chacun est garde par son drapeau : drapeau a 0, son code ne s'execute pas, ses reglages ne sont pas lus,
+       et le pilote joue au bit pres comme pilote-voltige. Le detail : ml/evolution/notes/gestes.md.
    Seul fichier qu'on retouche a la main quand on ajoute un geste (une nouvelle sortie de tete : W2 a 0 pour rester muette a la naissance).
    Pas de require, Date, Math.random, eval, Function : le bac les refuse. Changer ce fichier change l'epoque des courses (tout est rejoue).
    Ce qui suit est l'en-tete de pilote-voltige.js, tel quel. */
@@ -43,6 +47,14 @@ const PROFIL={
 /*@GENOME@*/
 const cl=(v,a,b)=>v<a?a:v>b?b:v;
 const cote=o=>o.latC!=null?o.latC:o.lat;     /* sous la dalle, le lat des pieces, fruits et orbes est en miroir : latC */
+/* ===== LES LOIS DEMANDEES AUX YEUX (27/11/2026, tache « gestes ») =====
+   Le coup de nitro vu (R.coupOn) demande DEUX lois « retour » de plus, APRES celle du pilote (R.retours) : la loi du pilote sans coup, puis la meme
+   avec un coup de NITRO de 0,2 s (ml/ecurie/agents/tmp-voltige/etude-nitro-vol/faire-coup.js, recopiee). Leurs rayons sont retour<b> et retour<b+1>,
+   b = R.retours.length ; ce ne sont jamais des facons du pilote (la boucle des candidats saute retour<i> pour i >= R.retours.length).
+   Coup eteint : RETOURS_DEMANDES est R.retours lui-meme (le meme tableau), rien ne change. */
+const LOI_PILOTE={marge:28,cap:.6,porteeMin:40,gain:1.6,avance:.25,pique:10,rv:.2,rm:.2,rn:.2};
+const COUP_LOIS=[Object.assign({},LOI_PILOTE),Object.assign({},LOI_PILOTE,{coup:.2})];
+const RETOURS_DEMANDES=REGLAGES.coupOn>0?REGLAGES.retours.concat(COUP_LOIS):REGLAGES.retours;
 
 /* ===== LES DEUX TETES DE RESEAU (2026-11-27, la selection naturelle : INTERFACES.md § 5.4 a 5.6) =====
    Une tete : nIn entrees -> nH tanh -> nOut sorties ; W1 en tete du tableau (W[j*nIn+i]), W2 ensuite (W[nIn*nH+j*nOut+k]). Les entrees sont bornees a
@@ -89,7 +101,7 @@ function controleRayons(f){
   if(ok){
     if(noms[j]==='viser'){if(noms[j+1]!=='viserPlane'||!f.cible||typeof f.cible!=='object')ok=false;j+=2;}
     else if(f.cible!=null)ok=false;}
-  if(ok){let n=0;while(j<noms.length&&noms[j]==='retour'+n){n++;j++;}if(j!==noms.length||n>REGLAGES.retours.length)ok=false;}
+  if(ok){let n=0;while(j<noms.length&&noms[j]==='retour'+n){n++;j++;}if(j!==noms.length||n>RETOURS_DEMANDES.length)ok=false;}
   if(!ok)throw new Error('YEUX CHANGES : rayons '+noms.join(','));}
 
 /* ---------- AU SOL ---------- */
@@ -193,15 +205,31 @@ function auSol(v,m){
   const kSeuil=Math.exp(0.3*oS[0]),kGain=Math.exp(0.5*oS[2]);
   cible=cl(cible,-max,max);
   /* LA LIGNE GLISSE VERS SA CIBLE, elle n'y saute pas. Apres un vol, elle repart d'ou la caisse est. */
-  if(m.ligne==null||m.tSol==null||v.t-m.tSol>.25)m.ligne=cl(v.lat,-max,max);
+  if(m.ligne==null||m.tSol==null||v.t-m.tSol>.25){m.ligne=cl(v.lat,-max,max);if(R.suitOn>0&&m.facon!=null)m.tPose=v.t;}
+  /* GESTE 5 — AU SOL APRES LA POSE, LA LIGNE SUIT LA CAISSE (27/11/2026, tache « gestes » ; PROPOSITIONS.md, enquete 1, proposition 4) : pendant
+     suitDerive + suitMarge secondes apres une pose, la ligne est mise chaque vue la ou la caisse sera dans ce qui reste de suitDerive (elle glisse dans
+     son cap), au lieu de la ramener au point de contact : la main ne contre-braque plus une glisse qu'elle laisserait finir (les joueurs : +0,1 a
+     +0,7 s ; le bot : jusqu'a +1 s, 37 % du temps a fond). m.tPose : la premiere vue au sol apres un vol (m.facon y est encore celle du vol). */
+  if(R.suitOn>0&&m.tPose!=null&&v.t-m.tPose<R.suitDerive+R.suitMarge)
+    m.ligne=cl(v.lat+vit*Math.sin(cl(+v.cap||0,-1,1))*Math.max(0,R.suitDerive-(v.t-m.tPose)),-max,max);
   m.tSol=v.t;
   const pas=(lache?R.glisseUrgence:R.glisse)*vit*.1;
   m.ligne=cl(m.ligne+cl(cible-m.ligne,-pas,pas),-max,max);
   /* LE CAP D'AVANCE : la main vise le cap (ligne − lat) / (0,9 × vitesse). On lui donne ce cap PLUS l'avance sur le virage qui arrive :
      la caisse tourne deja vers lui quand il commence, au lieu de le decouvrir 0,15 s apres. */
-  let capVoulu=cl((m.ligne-v.lat)/(.9*vit),-R.capLigne,R.capLigne)+cl((lTot-lIci)*R.avanceCap,-R.capAvance,R.capAvance);
+  /* GESTE 2 — LE SLALOM DEMANDE PAR LE PILOTE (27/11/2026, tache « gestes » ; PROPOSITIONS.md, enquete 3) : hors urgence (ni route qui lache, ni
+     couloir, ni glisse, ni rebond, virage doux u<0,5), la loi de ligne est adoucie (horizon slalomH au lieu de 0,9 s) ET le pilote ajoute un cap
+     alterne franc de ±slalomCap rad, un cote puis l'autre, toutes les slalomDemi s (duree tiree par une suite fixe, entre 0,7 et 1,3 fois), jamais
+     vers le bord quand on y est. Les deux vont ensemble (le verificateur : avec l'horizon 0,9 le slalom ne prend pas ; l'horizon 3 seul ne suffit pas). */
+  const zActif=R.slalomOn>0&&!lache&&!couloir&&!v.glisse&&!v.rebond&&u<.5;
+  let capVoulu=cl((m.ligne-v.lat)/((zActif?R.slalomH:.9)*vit),-R.capLigne,R.capLigne)+cl((lTot-lIci)*R.avanceCap,-R.capAvance,R.capAvance);
   if(v.lat>max)capVoulu=Math.min(capVoulu,-.05);else if(v.lat<-max)capVoulu=Math.max(capVoulu,.05);   /* jamais vers le bord quand on y est */
-  const ligne=v.lat+.9*vit*cl(capVoulu,-.4,.4);
+  let capZ=0;
+  if(zActif){
+    if(m.zT==null||v.t>=m.zT){m.zS=-(m.zS||1);m.zN=(m.zN|0)+1;m.zT=v.t+R.slalomDemi*(.7+.6*((m.zN*7919)%13)/13);}
+    capZ=m.zS*R.slalomCap*(1-u);
+    if((capZ>0&&v.lat>max-4)||(capZ<0&&v.lat<-max+4))capZ=0;}
+  const ligne=v.lat+.9*vit*cl(zActif?capVoulu+capZ:capVoulu,-.4,.4);
   /* LA NITRO : partout ou elle ne met pas la caisse dehors. Jamais de travers, en glisse, en rebond, quand la route lache, ni dans un virage
      qui demande du volant ; sur les maps a decor, encore moins. */
   const pose=Math.abs(v.lat)<v.demi-6&&Math.abs(v.cap)<R.capMax&&!v.glisse&&!v.rebond;
@@ -320,14 +348,22 @@ function enVol(v,m){
   const R=REGLAGES,f=v.vol,Y=f.radar&&Array.isArray(f.radar.rayons)?f.radar.rayons:null;
   if(CONTROLE_RAYONS&&Y&&typeof f.radar==='object')controleRayons(f);   /* les yeux ont-ils change ? (leve « YEUX CHANGES ») */
   /* sorti expres : la facon que le radar a promise au sol ; sinon la loi « vers la route » */
-  if(!m.facon){m.facon=m.sortie&&FACONS[m.sortie.facon]?m.sortie.facon:'versRoute';m.tFacon=v.t;m.voulu=!!m.sortie;m.cible=m.sortie&&m.sortie.cible!=null?m.sortie.cible:null;m.sortie=null;m.nFigVol=0;m.tGeste=null;m.choix=false;}
+  if(!m.facon){m.facon=m.sortie&&FACONS[m.sortie.facon]?m.sortie.facon:'versRoute';m.tFacon=v.t;m.voulu=!!m.sortie;m.cible=m.sortie&&m.sortie.cible!=null?m.sortie.cible:null;m.sortie=null;m.nFigVol=0;m.tGeste=null;m.choix=false;
+    /* les gestes (27/11/2026) : remis a zero au decollage, seulement s'ils sont allumes (eteints, la memoire ne change pas) */
+    if(R.coupOn>0){m.nCoupVol=0;m.coupFin=null;m.tCoup=null;m.nitroAvant=false;}
+    /* GESTE 4 : la nitro est TENUE au decollage si elle a ete demandee au sol dans les 0,35 s d'avant (un ordre met 0,2 s a partir : la caisse
+       decolle nitro allumee meme si la derniere vue au sol l'avait coupee, au bord ; essai du 27/11 : la derniere vue seule ne la voit jamais) */
+    if(R.relacheOn>0)m.nitroDecol=m.tNitroSol!=null&&v.t-m.tNitroSol<.35;   /* < 0,35 : les vues sont a 0,1 s, et 12,4 − 12,1 vaut 0,3000…07 */
+    if(R.lacheOn>0)m.tContactAbs=null;}
   let tenuPose=null;
   if(Y){
     /* LE CHOIX DU DEPART (faire-pR.js, 27/11) : a la premiere vue qui porte un radar, la loi de retour dont le rayon vaut le plus — au lieu de « vers la
        route » d'office. Seulement si des lois « retour » sont demandees. */
     if(!m.choix&&R.retours.length&&estRetour(m.facon)){m.choix=true;
       let b9=null,s9=-99;
-      for(const nom of RETOURS){const ry=Y.find(x=>x&&x.m===nom);if(!ry)continue;const s=vaut(ry,true,v)+prime(nom)+teteRayon(ry,nom,v,m);if(s>s9){s9=s;b9=nom;}}
+      for(const nom of RETOURS){
+        if(nom.indexOf('retour')===0&&+nom.slice(6)>=R.retours.length)continue;   /* (27/11, gestes) les rayons du coup de nitro ne sont pas des facons ; coup eteint, ces rayons n'existent pas */
+        const ry=Y.find(x=>x&&x.m===nom);if(!ry)continue;const s=vaut(ry,true,v)+prime(nom)+teteRayon(ry,nom,v,m);if(s>s9){s9=s;b9=nom;}}
       if(b9&&b9!==m.facon){m.facon=b9;m.tFacon=v.t;}}
     const tenu=Y.find(x=>x&&x.m==='tenu'),depuis=v.t-m.tFacon,loi=estRetour(m.facon)||m.facon.indexOf('viser')===0;
     /* le rayon d'une facon : pour « viser », celui de MA cible si j'en tiens une */
@@ -364,8 +400,19 @@ function enVol(v,m){
         const s=vaut(ry,!!LONGS[nom],v)+prime(nom)+teteRayon(ry,nom,v,m);
         if(s>sMieux){sMieux=s;mieux=nom;cibleMieux=ry&&typeof ry.cible==='number'?ry.cible:null;}}
       if(mieux&&sMieux>sMien+(fuit?4:R.bascule)){m.facon=mieux;m.tFacon=v.t;m.cible=mieux.indexOf('viser')===0?cibleMieux:null;}}
+    /* GESTE 1 (voir plus bas) : l'instant du contact annonce par le rayon de la facon tenue (apres une bascule : celui de la nouvelle facon) — une
+       pose SUR la dalle seulement (le verificateur : pas pour une levre ni dessous, qui ont besoin du cap vers l'interieur) */
+    if(R.lacheOn>0){const q=rayonDe(m.facon);m.tContactAbs=q&&q.issue==='pose'&&!q.dessous?v.t+(+q.t||0):null;}
   }
   const o=FACONS[m.facon](v,m);
+  /* GESTE 1 — LES MAINS LACHEES AVANT LE CONTACT (27/11/2026, tache « gestes » ; PROPOSITIONS.md, enquete 2) : la main obeit 0,11 a 0,38 s plus
+     tard ; un ordre de volant donne a moins de lacheAvant s du contact agit donc au sol, dans la glisse. Les joueurs : |volant| 0,00 dans la
+     demi-seconde avant la pose ; le bot : 0,31 a 0,48. Seulement pour la loi « vers la route » (pas les plongeons viser). */
+  if(R.lacheOn>0&&(m.facon==='versRoute'||m.facon==='versRoutePlane')&&m.tContactAbs!=null&&m.tContactAbs-v.t<=R.lacheAvant)o.volant=0;
+  /* GESTE 4 — LE RELACHE APRES LE DECOLLAGE (27/11/2026, tache « gestes » ; PROPOSITIONS.md, enquete 4) : la nitro tenue au decollage
+     (m.nitroDecol, d'apres m.tNitroSol ecrit par decide) reste tenue jusqu'a relacheT s de vol, puis lachee (le pilote la lachait des la premiere vue, 0,09 s ; les
+     joueurs a 0,29 s). Le jeu arme le coup au decollage et ne le donne qu'au re-appui : le relache rend le premier coup possible. */
+  if(R.relacheOn>0&&m.nitroDecol&&!o.nitro&&(+f.t||0)<R.relacheT)o.nitro=true;
   /* LES FIGURES. MESURE (joueurs au clavier) : 2,8 figures lancees par minute, toutes en vol ; 18 % des vols en ont, 1,9 par vol a figure (5 au
      plus), la premiere 0,56 s apres le decollage, dans des vols de 2,8 s. On en lance une quand la facon tenue mene a une pose propre dans plus de
      figTemps secondes, que la jauge la paie et que le reacteur ne sert pas (tenir la NITRO redresse la figure). La direction : avant, arriere en
@@ -381,8 +428,30 @@ function enVol(v,m){
     const n=m.nFig|0;
     o.geste='figure';o.direction=o.manche<0?'avant':o.manche>0?'arriere':o.volant>.5?'gauche':o.volant<-.5?'droite':(n%2?'arriere':'avant');
     m.nFig=n+1;m.nFigVol=(m.nFigVol|0)+1;m.tGeste=v.t;}
+  /* GESTE 3 — LE COUP DE NITRO VU, VERSION SERREE (27/11/2026, tache « gestes » ; PROPOSITIONS.md, enquete 4 ; le bloc de faire-coup.js, recopie) :
+     un coup bref (coupDuree s de NITRO) quand le rayon de la loi du pilote AVEC le coup se pose propre, sur la dalle, pas plus de travers que sans,
+     pas plus pres que coupPoseMin s, avec de l'air a revendre et sans perdre plus de coupPerte m de piste — et que celui SANS coup se pose aussi.
+     Resserre par le verificateur : coupDepuis 0,6 s de vol, pas sur les maps a decor (coupDecor 0), 3 coups par vol au plus.
+     (relecture du 27/11) Le jeu ne donne le coup qu'au RE-APPUI : pas de coup quand la nitro est deja demandee a cette vue (le relache, geste 4) ni
+     a la vue d'avant (m.nitroAvant) — sinon le coup partait pendant le relache, ne donnait rien, et coupEcart bloquait le vrai coup qui suivait. */
+  if(R.coupOn>0){
+    if(m.coupFin!=null&&v.t<m.coupFin)o.nitro=true;
+    else if(Y&&m.facon==='versRoute'&&!o.nitro&&!m.nitroAvant&&!o.geste&&!M.geste&&enCours===0&&(R.coupDecor>0||!DECOR[v.carte])){
+      const b=R.retours.length,r0=Y.find(x=>x&&x.m==='retour'+b),r1=Y.find(x=>x&&x.m==='retour'+(b+1));
+      const bonne=r=>!!r&&r.issue==='pose'&&r.propre!==false&&!r.dessous;
+      const air=f.air&&f.air.reste!=null?+f.air.reste:0,t1=r1?+r1.t||0:0;
+      if(bonne(r0)&&bonne(r1)&&t1>=R.coupPoseMin&&Math.abs(+r1.axe||0)<=Math.max(R.coupAxe,Math.abs(+r0.axe||0)+.05)&&air>t1+R.coupAir
+         &&(+r1.gain||0)>=(+r0.gain||0)-R.coupPerte
+         &&(+f.t||0)>=R.coupDepuis&&(m.tCoup==null||v.t-m.tCoup>=R.coupEcart)&&(m.nCoupVol|0)<3&&(m.tGeste==null||v.t-m.tGeste>.6)
+         &&(jauge>=R.coupJauge||v.nitroLibre)){
+        o.nitro=true;m.coupFin=v.t+R.coupDuree;m.tCoup=v.t;m.nCoupVol=(m.nCoupVol|0)+1;}}
+    m.nitroAvant=!!o.nitro;}
   if(m.cible!=null)o.cible=m.cible;   /* a la vue suivante, les rayons « viser » et vue.vol.cible portent sur MA cible */
   o.ensuite={ligne:0};   /* a la pose, la main lache la fleche du vol et reprend la route sans attendre la decision suivante */
+  /* GESTE 5 (suite) : a la pose, la main vise la ou la caisse glissera (la lat de la pose annoncee + vitesse x sin(axe) x suitDerive, bornee a
+     ±(demi − marge)) au lieu du milieu ; sans pose annoncee, le milieu comme avant */
+  if(R.suitOn>0&&tenuPose&&!tenuPose.dessous){const bord=Math.max(0,(+v.demi||28)-R.marge);
+    o.ensuite={ligne:cl((+tenuPose.lat||0)+(+v.vitesse||0)*Math.sin(cl(+tenuPose.axe||0,-1.5,1.5))*R.suitDerive,-bord,bord)};}
   return o;
 }
 
@@ -391,6 +460,7 @@ module.exports={
   profil:PROFIL,
   REGLAGES:REGLAGES,
   decide:function(vue,m){const o=vue.mode==='sol'?auSol(vue,m):vue.mode==='vol'?enVol(vue,m):{};
-    if(REGLAGES.retours.length&&(vue.mode==='sol'||vue.mode==='vol'))o.retours=REGLAGES.retours;   /* les lois que les yeux joueront a la vue suivante */
+    if(RETOURS_DEMANDES.length&&(vue.mode==='sol'||vue.mode==='vol'))o.retours=RETOURS_DEMANDES;   /* les lois que les yeux joueront a la vue suivante (coup eteint : R.retours) */
+    if(REGLAGES.relacheOn>0&&vue.mode==='sol'&&o.nitro)m.tNitroSol=vue.t;   /* GESTE 4 : la derniere vue au sol qui demandait la nitro */
     return o;}
 };

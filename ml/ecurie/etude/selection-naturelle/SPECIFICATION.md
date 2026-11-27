@@ -368,3 +368,24 @@ Débit réel du Ryzen et gain des 12 fils ; que le jeu accepte les graines ≥ 9
 bonnes (propositions tirées des commentaires) ; la cause des 2 courses sur 45 qui diffèrent de 2-5 s vers 290 s entre deux notes ; que les chiffres
 de bruit (corrélation 0,16 sur graines communes) tiennent pour des pilotes à réseau plus différents (à remesurer après 10 générations depuis
 courses.jsonl) ; le contenu de `doigts.js`, `mesures.js`, `arbre.js` au-delà de ce qu'en disent l'inventaire et les conceptions.
+
+
+## 14. Ce qui a changé à la construction (27/11/2026)
+
+Cette spécification d'origine ne se réécrit pas : les écarts décidés pendant la construction sont tenus ailleurs, et y font foi.
+
+- **Le contrat des modules** : `ml/evolution/INTERFACES.md`. Son § 8 rassemble les corrections d'après les trois relectures de l'après-midi
+  (déterminisme, robustesse, statistique) : le sacre exige `ΔF > 2·se(ΔF)` et non `1·se` (§ 7.6 ci-dessus), le rétrécissement sur les seuls vivants,
+  les échecs d'environnement rejoués, l'époque qui compte le régime et l'empreinte des fichiers du bot, etc.
+- **Les finitions du soir** : `ml/evolution/INTERFACES.md` § 9, trois lots faits et relus puis intégrés :
+  - « machine » (`ml/evolution/notes/machine.md`) : le banc du § 8 ci-dessus n'écrit plus dans `config.json` mais dans `etat/machine.json`, un par PC,
+    et se fait tout seul au premier lancement sur un PC ; `travailleurs: "auto"` ; une ligne de commande de travers ne lance rien (code 2) ;
+  - « traces » (`ml/evolution/notes/traces.md`) : l'arbre généalogique (`etat/arbre.html`, la pièce que le plan d'origine appelait « maîtresse ») et le récit
+    (`etat/histoire.md`), refaits à chaque génération ; `sauver-traces.cmd`, qui les committe sur la branche `evolution-<pc>` et les envoie sur GitHub
+    (jamais main) — un écart au « rien n'est publié » d'origine, demandé par Sacha (« garder des traces de tous les process, pour un portfolio ») ;
+  - « gestes » (`ml/evolution/notes/gestes.md`) : cinq gestes des joueurs (`PROPOSITIONS.md`), 21 gènes éteints à la naissance, le génome passe en v:2
+    (107 gènes au lieu de 86 ; les identifiants ne changent pas tant que les gestes sont à leur naissance).
+- **L'état de la livraison** et les commandes à taper sur le Ryzen : `ml/evolution/notes/LIVRAISON.md`.
+- **L'automatisme du § 8** : la tâche « au démarrage » est devenue une tâche à l'ouverture de session plus une relance horaire (INTERFACES.md § 2.9 bis), et
+  une troisième tâche horaire met l'histoire à l'abri (§ 9.2). La sélection tourne dans un dossier à elle, un worktree `CASH-CAR-evolution` sur la branche
+  `evolution-<pc>` (README, « INSTALLER SUR UN NOUVEAU PC »).

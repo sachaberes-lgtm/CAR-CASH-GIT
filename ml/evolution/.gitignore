@@ -11,9 +11,12 @@ etat/*.fragment-*
 etat/STOP
 etat/PAUSE
 etat/ARRETE
+# (27/11/2026, les traces) le detail de sauver-traces.cmd et son marqueur « ne rien envoyer » : propres a un PC.
+etat/traces.log*
+etat/PAS-D-ENVOI
 # Les fichiers a moitie ecrits (ecriture atomique : .tmp puis rename), partout.
 *.tmp
 # Les essais (config-essai.json, tests) : leur etat vit a part et se jette.
 essais/
-# Les journaux legers (population.json, generations, validations, morts, coffre), tableau.html, resume.txt et champions/ se committent
-# a la main sur la branche de travail. Aucun commit automatique.
+# Les journaux legers (population.json, generations, validations, morts, coffre), tableau.html, resume.txt, machine.json (le banc de ce PC, 27/11) et champions/ se committent
+# sur la branche de la selection (evolution-<pc>) : a la main, ou par sauver-traces.cmd (27/11/2026). Jamais sur main ni sur bots-ecurie.

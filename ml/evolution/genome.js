@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /* ===== LE GENOME DE LA SELECTION NATURELLE (2026-11-27, etape 2 — Sacha : « une population de pilotes evolue seule sur un PC, le moins bon est vire ») =====
    Contrat : ml/evolution/INTERFACES.md § 2.3, § 3.2, § 4 et § 5 (il fait foi). Specification : SPECIFICATION.md § 4.
-   Un genome = { v:1, A:{86 genes, dans l'ordre de BORNES}, WV:[222 poids de la tete RAYON], WS:[90 poids de la tete SOL] }.
+   Un genome = { v:2, A:{107 genes, dans l'ordre de BORNES}, WV:[222 poids de la tete RAYON], WS:[90 poids de la tete SOL] }.
+   (27/11/2026, tache « gestes ») v:2 = les 86 genes de v:1 puis les 21 genes des cinq gestes (GESTES, en fin de BORNES) ; un genome v:1 se lit (migrer).
    - BORNES : 64 reels (45 de REGLAGES, 5 de la loi « retour », 14 constantes promues de pilote-voltige.js), 20 drapeaux, dessousDecor (choix 0/1/2),
      figMax (entier 0..5). Les cartes de raccCartes_* / raccJumeau_* sont celles de config.json (cartesTirage), lues une fois au chargement.
    - genomeTemoin(cfg) : le genome de ml/ecurie/pilote-voltige.js (REGLAGES lu par une regex, evalue dans un contexte vide) ; les tetes tirees une fois
@@ -60,15 +61,53 @@ const EXTRAITS=['100-20*Math.abs(axe)-3*t-',"if(r.issue==='portail')return 94;",
   "const s=Math.min(gain,600)-250*axe-25*t-(r.m==='plane'?40:0)-(r.note==='lourde'?40:0);",
   "(nom==='versRoute'?3:nom==='versRoutePlane'?2:nom==='rien'?1:0)"];
 
+/* ===== LES GESTES DES JOUEURS (27/11/2026, tache « gestes » — Sacha : « donner a la selection de quoi trouver du neuf ») =====
+   Cinq gestes que les vrais joueurs font et que le bot ne fait pas (ml/ecurie/etude/selection-naturelle/PROPOSITIONS.md, les verdicts « a essayer »
+   et la proposition 4 de l'enquete 1). Chacun : un DRAPEAU a 0 a la naissance (le geste eteint, le pilote joue comme pilote-voltige au bit pres) et
+   ses reglages, qui ne changent RIEN tant que le drapeau est eteint. Naissance = la valeur que propose l'enquete ; « l.N » = la ligne de PROPOSITIONS.md.
+   Ajoutes A LA FIN de BORNES : un genome ecrit avant (v:1, 86 genes) se lit (migrer) et garde son identifiant (shaGenome). */
+const GESTES=[
+  /* 1. LES MAINS LACHEES AVANT LE CONTACT (enquete 2, l.115-119) : volant a 0 quand la pose annoncee sur la dalle est a moins de lacheAvant s */
+  {cle:'lacheOn',type:'drapeau',min:0,max:1,naissance:0,ou:'R'},
+  {cle:'lacheAvant',type:'reel',min:.15,max:.5,naissance:.35,ou:'R'},      /* l.115 « lacheAvant:.35 » ; la main obeit 0,11 a 0,38 s plus tard (l.93) ; les joueurs : |volant| 0,00 dans les 0,5 s avant la pose (l.104) */
+  /* 2. LE SLALOM DEMANDE PAR LE PILOTE (enquete 3, l.227-239) : un cap alterne franc, avec la loi de ligne adoucie dans le meme bloc */
+  {cle:'slalomOn',type:'drapeau',min:0,max:1,naissance:0,ou:'R'},
+  {cle:'slalomCap',type:'reel',min:.2,max:.5,naissance:.35,ou:'R'},       /* l.235 « slalomCap:.35 » ; essais a 0,3 et 0,4 (l.194, l.216) */
+  {cle:'slalomDemi',type:'reel',min:.38,max:.65,naissance:.45,ou:'R'},     /* l.235 « slalomDemi:.42 », corrige par le verificateur l.239 « garder slalomDemi a 0,45 au moins » (relecture du 27/11 : naissance .45) ; « ne pas descendre sous 0,38 » (l.237) ; l'aller des joueurs 0,55 a 0,65 s (l.201) */
+  {cle:'slalomH',type:'reel',min:.9,max:3.5,naissance:3,ou:'R'},           /* l'horizon de la loi de ligne pendant le slalom : 3 (l.221, l.235 « toujours avec la proposition 1 ») ; 0,9 aujourd'hui ; essais 0,45 a 3 (l.215) */
+  /* 3. LE COUP DE NITRO VU, VERSION SERREE (enquete 4, l.316-321) : un coup bref en vol quand le rayon AVEC le coup se pose aussi bien que SANS */
+  {cle:'coupOn',type:'drapeau',min:0,max:1,naissance:0,ou:'R'},
+  {cle:'coupDepuis',type:'reel',min:.35,max:1.2,naissance:.6,ou:'R'},      /* l.317 « coupDepuis .6 au lieu de .35 » ; les joueurs : premier coup a 0,80 s (l.308) */
+  {cle:'coupEcart',type:'reel',min:.5,max:1.5,naissance:.7,ou:'R'},        /* l.317 « 0,7 s depuis le dernier coup » ; le jeu ne donne rien sous 0,5 s (l.305) ; joueurs 0,80, bot 1,52 (l.301) */
+  {cle:'coupDuree',type:'reel',min:.1,max:.3,naissance:.15,ou:'R'},        /* l.317 « coupDuree=.15 s (deux vues) » ; les joueurs : 0,21 s, la moitie d'un seul echantillon de 0,108 s (l.301) */
+  {cle:'coupPoseMin',type:'reel',min:.5,max:1.5,naissance:.8,ou:'R'},      /* l.317 « retour1.t >= .8 » ; le dernier coup des joueurs tombe 0,42 s avant la pose (l.303) */
+  {cle:'coupAxe',type:'reel',min:.2,max:.5,naissance:.35,ou:'R'},          /* l.317 « |retour1.axe| <= max(.35, …) » ; 0,35 rad = le seuil d'une pose de travers (l.12) */
+  {cle:'coupAir',type:'reel',min:.4,max:1.5,naissance:.8,ou:'R'},          /* l.317 « air.reste > retour1.t+.8 » */
+  {cle:'coupJauge',type:'reel',min:.2,max:.6,naissance:.35,ou:'R'},        /* l.317 « jauge+reserve >= .35 » (un coup coute 0,12 : etude-nitro-vol/faire-coup.js) */
+  {cle:'coupPerte',type:'reel',min:0,max:60,naissance:10,ou:'R'},          /* l.321 « retour1.gain >= retour0.gain - petit seuil » : le seuil (m de piste) n'est pas mesure, 10 est un choix */
+  {cle:'coupDecor',type:'drapeau',min:0,max:1,naissance:0,ou:'R'},         /* l.317 « coupDecor:0 » : pas de coup en grotte, canyon, jade, ville */
+  /* 4. LE RELACHE APRES LE DECOLLAGE (enquete 4, l.333-338) : la nitro tenue au decollage est gardee jusqu'a relacheT s de vol, puis lachee */
+  {cle:'relacheOn',type:'drapeau',min:0,max:1,naissance:0,ou:'R'},
+  {cle:'relacheT',type:'reel',min:.12,max:.45,naissance:.25,ou:'R'},       /* l.334 « vol.t >= .25 s » ; joueurs relachent a 0,17 / 0,29 / 0,43 s (l.308), 0,23 (0,12 / 0,42) au verificateur (l.359) */
+  /* 5. AU SOL APRES LA POSE, LA LIGNE SUIT LA CAISSE (enquete 1, proposition 4, l.51-54) */
+  {cle:'suitOn',type:'drapeau',min:0,max:1,naissance:0,ou:'R'},
+  {cle:'suitDerive',type:'reel',min:.1,max:.6,naissance:.3,ou:'R'},        /* l.52 « R.derive » (0,3 dans pilote-voltige) ; les joueurs contre-braquent de +0,1 a +0,7 s (l.9) */
+  {cle:'suitMarge',type:'reel',min:0,max:.5,naissance:.25,ou:'R'}];        /* l.52 « R.derive+.25 (0,55 s) » ; le bot contre-braque encore a +1 s (l.15) */
+const ORDRE_GESTES=GESTES.map(b=>b.cle);
+const N_V1=86;   /* les genes d'un genome v:1 (avant les gestes) : les 86 premiers de BORNES */
+
 const BORNES=Object.freeze([].concat(
   REELS_R.map(([cle,min,max,n])=>({cle,type:'reel',min,max,naissance:n,ou:cle==='volRetour'?'volRetour':'R'})),
   NON_REELS,RETOUR,
-  PROMUES.map(([cle,min,max,n])=>({cle,type:'reel',min,max,naissance:n,ou:'G'}))).map(b=>Object.freeze(b)));
+  PROMUES.map(([cle,min,max,n])=>({cle,type:'reel',min,max,naissance:n,ou:'G'})),
+  GESTES).map(b=>Object.freeze(b)));
 const PAR_CLE=Object.freeze(BORNES.reduce((o,b)=>{o[b.cle]=b;return o;},{}));
 const CONTINUS=Object.freeze(BORNES.filter(b=>b.type==='reel').map(b=>b.cle));
 const TETES=Object.freeze({rayon:Object.freeze({cle:'WV',nIn:36,nH:6,nOut:1,nW1:216,nW2:6}),sol:Object.freeze({cle:'WS',nIn:12,nH:6,nOut:3,nW1:72,nW2:18})});
 const LONGUEUR={WV:222,WS:90};
-if(BORNES.length!==86||CONTINUS.length!==64)throw new Error('genome : BORNES mal construites ('+BORNES.length+' genes, '+CONTINUS.length+' reels)');
+const VERSION=2;   /* v:1 = 86 genes (27/11, etape 2) ; v:2 = + les 21 genes des gestes (27/11, tache « gestes ») */
+if(BORNES.length!==107||CONTINUS.length!==79)throw new Error('genome : BORNES mal construites ('+BORNES.length+' genes, '+CONTINUS.length+' reels)');
+const CLES_V1=Object.freeze(BORNES.slice(0,N_V1).map(b=>b.cle));
 for(const b of BORNES)if(!(b.naissance>=b.min&&b.naissance<=b.max))throw new Error('genome : naissance hors borne pour « '+b.cle+' »');
 
 /* L'ORDRE DES CLES DE REGLAGES dans pilote-voltige.js (le bloc ecrit suit cet ordre, comme l'exemple du § 5.1 ; les cles de la loi « retour » ensuite) */
@@ -119,7 +158,7 @@ function reparer(genome,cfg){
   if(A.jaugeCoupe>A.jaugeAllume)A.jaugeCoupe=A.jaugeAllume;
   /* 3. departMax >= departMin */
   if(A.departMax<A.departMin)A.departMax=A.departMin;
-  genome.v=1;genome.A=A;
+  genome.v=VERSION;genome.A=A;
   const bp=bornePoids(cfg);
   for(const t of ['WV','WS']){
     const W=genome[t];
@@ -132,7 +171,8 @@ function reparer(genome,cfg){
 /* ===== VALIDER : null si conforme, sinon le premier defaut ===== */
 function valider(genome,cfg){
   if(!genome||typeof genome!=='object')return 'pas un objet';
-  if(genome.v!==1)return 'version '+genome.v+' (attendu 1)';
+  migrer(genome);   /* un genome v:1 conforme devient v:2, EN PLACE : evoluer.js valide chaque vivant au chargement, c'est la qu'il migre (tache « gestes ») */
+  if(genome.v!==VERSION)return 'version '+genome.v+' (attendu '+VERSION+', ou 1 avec ses 86 genes)';
   const A=genome.A;if(!A||typeof A!=='object')return 'A manque';
   const k=Object.keys(A);
   if(k.length!==BORNES.length)return 'A a '+k.length+' genes (attendu '+BORNES.length+')';
@@ -155,7 +195,22 @@ function valider(genome,cfg){
       if(x===0&&1/x<0)return 'tete '+t+' : poids '+i+' vaut -0';}}
   return null;}
 
-function copier(g){return {v:1,A:Object.assign({},g.A),WV:Array.from(g.WV),WS:Array.from(g.WS)};}
+function copier(g){const A=migrer({v:g.v,A:Object.assign({},g.A)}).A;return {v:VERSION,A:Object.assign({},A),WV:Array.from(g.WV),WS:Array.from(g.WS)};}
+
+/* ===== MIGRER (27/11/2026, tache « gestes ») =====
+   Un genome v:1 (les 86 genes d'avant les gestes, dans leur ordre, rien d'autre) recoit les 21 genes des gestes a leur naissance (drapeaux a 0) et
+   devient v:2, EN PLACE ; rend le meme objet. Tout autre genome est rendu tel quel (valider dira son defaut). Ni les 86 valeurs ni les tetes ne
+   bougent : un pilote migre conduit comme avant (gestes eteints), et son identifiant (shaGenome) ne change pas. */
+function migrer(genome){
+  if(!genome||typeof genome!=='object'||genome.v!==1||!genome.A||typeof genome.A!=='object')return genome;
+  const k=Object.keys(genome.A);
+  if(k.length!==N_V1)return genome;
+  for(let i=0;i<N_V1;i++)if(k[i]!==CLES_V1[i])return genome;
+  const A={};
+  for(const c of CLES_V1)A[c]=genome.A[c];
+  for(const b of GESTES)A[b.cle]=b.naissance;
+  genome.A=A;genome.v=VERSION;
+  return genome;}
 
 /* ===== LE TEMOIN : le genome de ml/ecurie/pilote-voltige.js ===== */
 function lireReglagesVoltige(texte){
@@ -233,11 +288,18 @@ function croiser(g1,g2,rng){
   const A={};
   for(const b of BORNES)A[b.cle]=rng.suivant()<.5?g1.A[b.cle]:g2.A[b.cle];
   const WV=Array.from(rng.suivant()<.5?g1.WV:g2.WV),WS=Array.from(rng.suivant()<.5?g1.WS:g2.WS);
-  return reparer({v:1,A,WV,WS});}
+  return reparer({v:VERSION,A,WV,WS});}
 
 /* ===== LES EMPREINTES ===== */
 function enOrdre(genome){const A={};for(const b of BORNES)A[b.cle]=genome.A[b.cle];return A;}
-function shaGenome(genome){return C.sha1(JSON.stringify({v:genome.v,A:enOrdre(genome),WV:Array.from(genome.WV),WS:Array.from(genome.WS)}));}
+/* (27/11/2026, tache « gestes ») L'IDENTIFIANT NE CHANGE PAS A LA MIGRATION : tant que les 21 genes des gestes sont TOUS a leur naissance, le sha est
+   celui du genome v:1 d'avant (v:1 et les 86 premiers genes) ; sinon, celui du genome v:2 entier. Les deux formes ne se confondent pas (v differe). */
+function gestesANaissance(genome){for(const b of GESTES)if(genome.A[b.cle]!==b.naissance)return false;return true;}
+function shaGenome(genome0){
+  const genome=genome0&&genome0.v===1?migrer({v:1,A:Object.assign({},genome0.A),WV:genome0.WV,WS:genome0.WS}):genome0;   /* l'entree n'est pas touchee */
+  if(genome.v===VERSION&&gestesANaissance(genome)){const A={};for(const c of CLES_V1)A[c]=genome.A[c];
+    return C.sha1(JSON.stringify({v:1,A:A,WV:Array.from(genome.WV),WS:Array.from(genome.WS)}));}
+  return C.sha1(JSON.stringify({v:genome.v,A:enOrdre(genome),WV:Array.from(genome.WV),WS:Array.from(genome.WS)}));}
 function idDe(genome){return shaGenome(genome).slice(0,12);}
 function shaPilote(texte){return C.sha1(texte);}
 
@@ -262,6 +324,7 @@ function bloc(genome,o){
     else if(k==='volRetour')r.push('volRetour:'+(A.volRetourOn?String(A.volRetour):'0'));
     else r.push(k+':'+String(A[k]));}
   for(const k of ORDRE_RETOUR)r.push(k+':'+String(A[k]));
+  for(const k of ORDRE_GESTES)r.push(k+':'+String(A[k]));   /* les gestes (27/11, tache « gestes ») : drapeaux et reglages, lus R.<cle> dans modele.js */
   r.push('volNitro:0');
   r.push('retours:['+(A.retourOn?'{marge:'+A.retMarge+',cap:'+A.retCap+',gain:'+A.retGain+',avance:'+A.retAvance+',rv:'+String(+F.rv)+',rm:'+String(+F.rm)+',rn:'+String(+F.rn)+'}':'')+']');
   const gG=PROMUES.map(([k])=>k+':'+String(A[k])).join(',');
@@ -282,8 +345,9 @@ function ecrirePilote(genome,o){
   return L.join('\n');}
 
 module.exports={BORNES,CONTINUS,TETES,genomeTemoin,tirerReseaux,muter,croiser,reparer,shaGenome,idDe,ecrirePilote,shaPilote,distance,distanceW2,valider,
+  migrer,VERSION,
   /* outillage pour les tests */
-  CARTES,ORDRE_VOLTIGE,EXTRAITS,MODELE,VOLTIGE};
+  CARTES,ORDRE_VOLTIGE,EXTRAITS,MODELE,VOLTIGE,GESTES,CLES_V1};
 
 /* ===== LA LIGNE DE COMMANDE ===== */
 function essaiReparer(n){

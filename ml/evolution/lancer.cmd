@@ -5,6 +5,9 @@ REM Par la tache planifiee : "lancer.cmd auto". Si arreter.cmd a ete utilise (fi
 REM   un arret voulu par Sacha tient jusqu'au prochain lancement a la main.
 REM Si l'evolution tourne deja, evoluer.js le voit (etat\verrou.json) et sort tout de suite (code 2) : on peut le lancer deux fois sans risque.
 REM Toute la console de evoluer.js va dans etat\sortie.log. Les autres options sont passees a evoluer.js (ex. --travailleurs 6).
+REM (27/11, "machine") seul le PREMIER mot peut etre "auto" : "--etat auto" garde son "auto" ; un argument vide "" est saute.
+REM   evoluer.js controle toutes les options : un mot de travers ne lance rien (code 2, l'erreur est dans sortie.log).
+REM   Sans etat\machine.json (premier lancement sur ce PC), la fenetre dit que les premieres minutes servent a mesurer le PC (le banc).
 REM Le depot peut etre n'importe ou : tous les chemins partent de ce fichier (%~dp0).
 setlocal EnableExtensions
 set "ICI=%~dp0"
@@ -12,9 +15,13 @@ set "ETAT=%ICI%etat"
 set "JOURNAL=%ETAT%\sortie.log"
 set "MODE=main"
 set "ARGS="
+if /i "%~1"=="auto" (
+  set "MODE=auto"
+  shift
+)
 :options
-if "%~1"=="" goto options_finies
-if /i "%~1"=="auto" (set "MODE=auto") else (set ARGS=%ARGS% %1)
+if [%1]==[] goto options_finies
+if not "%~1"=="" set ARGS=%ARGS% %1
 shift
 goto options
 :options_finies
@@ -38,8 +45,8 @@ if errorlevel 1 (
   exit /b 1
 )
 if not exist "%ICI%evoluer.js" (
-  >>"%JOURNAL%" echo [%date% %time%] evoluer.js manque dans %ICI%
-  echo evoluer.js manque dans %ICI% : rien a lancer.
+  >>"%JOURNAL%" echo [%date% %time%] evoluer.js manque dans "%ICI%"
+  echo evoluer.js manque dans "%ICI%" : rien a lancer.
   if "%MODE%"=="main" pause
   exit /b 1
 )
@@ -52,6 +59,7 @@ if "%MODE%"=="main" (
   echo   Laisse cette fenetre ouverte : elle ne montre rien, tout va dans ml\evolution\etat\sortie.log.
   echo   Pour suivre : ouvre ml\evolution\etat\tableau.html, ou tape  node ml\evolution\etat.js
   echo   Pour arreter proprement : double-clic sur ml\evolution\arreter.cmd
+  if not exist "%ETAT%\machine.json" echo   Premier lancement sur ce PC : les premieres minutes ^(jusqu'a une heure^) servent a mesurer combien de courses il joue a la fois.
   echo.
 )
 >>"%JOURNAL%" echo [%date% %time%] ===== lancement (%MODE%)%ARGS% =====
@@ -62,7 +70,7 @@ set "CODE=%ERRORLEVEL%"
 if "%MODE%"=="main" (
   if "%CODE%"=="0" echo   Arrete proprement.
   if "%CODE%"=="1" echo   Arrete sur une erreur : regarde la fin de ml\evolution\etat\sortie.log
-  if "%CODE%"=="2" echo   Pas lance : il tourne deja, ou un autre travail l'en empeche. Le detail est a la fin de ml\evolution\etat\sortie.log
+  if "%CODE%"=="2" echo   Pas lance : il tourne deja, un autre travail l'en empeche, ou une option est mal ecrite. Le detail est a la fin de ml\evolution\etat\sortie.log
   pause
 )
 exit /b %CODE%

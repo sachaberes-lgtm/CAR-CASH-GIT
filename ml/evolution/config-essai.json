@@ -3,7 +3,8 @@
   "_notes": [
     "LE PETIT JEU « ESSAI » (etape 4 de la specification) : fusionne par-dessus config.json (evoluer.js --config config-essai.json).",
     "Son etat vit a part (essais/etat, essais/champions) : un essai ne touche jamais l'etat de la vraie evolution.",
-    "protectionCourses 6 = deux generations de 3 graines (la vraie config : 24 = deux generations de 12) : un nouveau-ne n'est jamais vire a sa premiere generation (27/11, l'integrateur)."
+    "protectionCourses 6 = deux generations de 3 graines (la vraie config : 24 = deux generations de 12) : un nouveau-ne n'est jamais vire a sa premiere generation (27/11, l'integrateur).",
+    "travailleurs \"auto\" et banc [1, 2] (27/11, « machine ») : le premier lancement d'un essai fait un petit banc (4 courses de 45 s a 1 puis 2 a la fois, quelques minutes) et ne depasse jamais 2 courses a la fois, meme en repli ; --travailleurs N l'emporte (les tests passent --travailleurs 4)."
   ],
   "dossierEtat": "essais/etat",
   "dossierChampions": "essais/champions",
@@ -12,12 +13,12 @@
   "grainesParGeneration": 3,
   "grainesEconomie": 3,
   "tmax": 60,
-  "travailleurs": 4,
+  "travailleurs": "auto",
   "protectionCourses": 6,
   "immigres": 1,
   "graines": { "coffre": { "depart": 990000, "pas": 37, "n": 2 } },
   "validation": { "intervalle": 1, "nMin": 3, "graines": 3, "bootstrap": 50 },
   "note": { "bootstrapE": 50, "partiesMin": 1 },
-  "banc": { "travailleurs": [2, 3], "courses": 4, "tmax": 45 },
+  "banc": { "travailleurs": [1, 2], "courses": 4, "tmax": 45 },
   "identite": { "graines": [910000, 910037, 910074], "tmax": 45 }
 }

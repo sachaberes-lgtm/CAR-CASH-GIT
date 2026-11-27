@@ -9,14 +9,43 @@
    une coupure ne perd que les courses en cours (le cache courses-*.jsonl rend les autres). Les journaux d'une generation refaite ne sont
    pas ecrits deux fois.
    Ligne de commande : node ml/evolution/evoluer.js [--config f.json] [--etat dossier] [--travailleurs N] [--une-generation] [--arret-apres N]
-                       [--banc] [--valider-maintenant] [--bavard]
-   Codes de sortie : 0 arret propre ; 1 erreur fatale (YEUX CHANGES, identite ratee, temoin en panne…) ; 2 refus de partir (verrou, labo, boucle.js). */
+                       [--banc] [--valider-maintenant] [--bavard] [--aide]   (USAGE, plus bas ; toute option est controlee avant de partir)
+   Codes de sortie : 0 arret propre (ou --aide) ; 1 erreur fatale (YEUX CHANGES, identite ratee, temoin en panne…) ; 2 refus de partir (verrou, labo,
+   boucle.js) ou option mal ecrite.
+   (27/11, « machine ») le nombre de courses a la fois vient de <etat>/machine.json (le banc, fait seul au premier lancement sur un PC) : voir LE BANC. */
 'use strict';
 const fs=require('fs'),path=require('path'),{execFileSync}=require('child_process');
 const C=require('./commun'),K=require('./courses'),Gn=require('./genome'),Gr=require('./graines'),N=require('./note');
 
 const hh=()=>new Date().toTimeString().slice(0,8);
-const direDefaut=t=>process.stdout.write(hh()+' '+t+'\n');
+
+/* ===== LA CONSOLE QUI NE TUE PAS LE MAITRE (27/11/2026, « machine » ; Fable : le maitre est mort sans prevenir quand sa console a ete fermee,
+   sa sortie etait un tube vers « head » : EPIPE) =====
+   Un maitre qui tourne des jours ne doit pas mourir parce que personne ne lit sa console. Toute erreur de process.stdout / process.stderr (EPIPE,
+   EOF, console fermee…) est attrapee : la console est declaree morte, le travail continue. L'essentiel est deja dans les journaux de etat/
+   (population.json, generations.jsonl, courses-*.jsonl…) ; a partir de la mort de la console, les lignes du maitre vont en plus a la fin de
+   <etat>/sortie.log (CONSOLE.secours, pose par principal une fois le dossier d'etat connu : sous lancer.cmd la console EST sortie.log et ne meurt pas). */
+const CONSOLE={morte:false,erreurMorte:false,raison:null,secours:null,gardee:false};
+function ajouterSecours(t){if(CONSOLE.secours){try{fs.mkdirSync(path.dirname(CONSOLE.secours),{recursive:true});fs.appendFileSync(CONSOLE.secours,t);}catch(e){}}}
+function consoleMorte(e){
+  if(CONSOLE.morte)return;
+  CONSOLE.morte=true;CONSOLE.raison=String(e&&(e.code||e.message)||e);
+  ajouterSecours(hh()+' evoluer : la console ne repond plus ('+CONSOLE.raison+') : le travail continue, la suite du journal est ici (pid '+process.pid+')\n');
+}
+function ecrireConsole(t){
+  if(!CONSOLE.morte){try{process.stdout.write(t);return;}catch(e){consoleMorte(e);}}
+  ajouterSecours(t);
+}
+function ecrireErreur(t){
+  if(!CONSOLE.erreurMorte){try{process.stderr.write(t);return;}catch(e){CONSOLE.erreurMorte=true;}}
+  ajouterSecours(t);
+}
+function garderConsole(){
+  if(CONSOLE.gardee)return;CONSOLE.gardee=true;
+  try{process.stdout.on('error',consoleMorte);}catch(e){}
+  try{process.stderr.on('error',function(){CONSOLE.erreurMorte=true;});}catch(e){}
+}
+const direDefaut=t=>ecrireConsole(hh()+' '+t+'\n');
 const fini=x=>typeof x==='number'&&x-x===0;
 const r4=x=>fini(x)?+x.toFixed(4):(x==null?null:x);
 const court=id=>String(id||'?').slice(0,12);
@@ -40,7 +69,7 @@ function chemins(cfg){
 function lireVerrou(f){try{return {texte:fs.readFileSync(f,'utf8')};}catch(e){return e.code==='ENOENT'?null:{texte:null};}}
 /* un pid vivant est-il un processus node (donc peut-etre un maitre) ? Un pid reutilise apres un redemarrage est presque toujours un autre programme. */
 function estMaitre(pid){
-  const L=processusNode();
+  const L=processusNode({timeout_ms:15000});
   if(!L)return true;   /* on ne sait pas : prudence, on le croit maitre */
   return L.some(x=>x.pid===pid);
 }
@@ -106,28 +135,49 @@ function verrouiller(cfg,o){
 }
 
 /* ---------- LE REFUS DE PARTIR (§ 8) : une inscription du labo en cours, ou ml/ecurie/boucle.js qui tourne. Lecture seule. ---------- */
-function processusNode(){
+/* (2026-11-27, « machine » ; essaye pour de vrai avec un faux ml/ecurie/boucle.js : ~0,6 s sur le PC de developpement) : PowerShell a au plus
+   o.timeout_ms (5 s par defaut ; il etait de 60 s) ; PowerShell absent, lent, ou une sortie illisible : null, et o.pourquoi.texte dit pourquoi.
+   o.commande = [exe, ...arguments] remplace PowerShell (les tests : un faux PowerShell lent, absent ou qui repond n'importe quoi). */
+const PS_NODE="Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | Select-Object ProcessId,CommandLine | ConvertTo-Json -Compress";
+function processusNode(o){
+  o=o||{};
+  const t0=Date.now(),dit=t=>{if(o.pourquoi)o.pourquoi.texte=t;};
   try{
-    if(process.platform==='win32'){
-      const s=execFileSync('powershell.exe',['-NoProfile','-NonInteractive','-Command',
-        "Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | Select-Object ProcessId,CommandLine | ConvertTo-Json -Compress"],
-        {encoding:'utf8',windowsHide:true,timeout:60000,stdio:['ignore','pipe','ignore']});
-      const t=s.trim();if(!t)return [];
-      const j=JSON.parse(t);return (Array.isArray(j)?j:[j]).map(p=>({pid:p.ProcessId,ligne:String(p.CommandLine||'')}));
+    if(process.platform==='win32'||o.commande){
+      const cmd=o.commande||['powershell.exe','-NoProfile','-NonInteractive','-Command',PS_NODE];
+      const s=execFileSync(cmd[0],cmd.slice(1),{encoding:'utf8',windowsHide:true,timeout:o.timeout_ms||5000,killSignal:'SIGKILL',
+        maxBuffer:32*1024*1024,stdio:['ignore','pipe','ignore']});
+      const t=String(s||'').trim();if(!t)return [];
+      const j=JSON.parse(t);
+      const L=(Array.isArray(j)?j:[j]).filter(p=>p&&typeof p==='object').map(p=>({pid:+p.ProcessId,ligne:String(p.CommandLine||'')}));
+      if(o.pourquoi)o.pourquoi.ms=Date.now()-t0;
+      return L;
     }
-    const s=execFileSync('ps',['-eo','pid=,args='],{encoding:'utf8',stdio:['ignore','pipe','ignore']});
+    const s=execFileSync('ps',['-eo','pid=,args='],{encoding:'utf8',timeout:o.timeout_ms||5000,stdio:['ignore','pipe','ignore']});
     return s.split('\n').map(l=>{const m=/^\s*(\d+)\s+(.*)$/.exec(l);return m?{pid:+m[1],ligne:m[2]}:null;}).filter(Boolean);
-  }catch(e){return null;}
+  }catch(e){
+    const ms=Date.now()-t0;
+    dit(e&&e.code==='ETIMEDOUT'?'pas de reponse en '+Math.round(ms/100)/10+' s':e&&e.code==='ENOENT'?'PowerShell introuvable':
+      e instanceof SyntaxError?'reponse illisible':String(e&&(e.code||e.message)||e).slice(0,120));
+    return null;
+  }
 }
-function refusDePartir(){
+/* o.dire : dit quand boucle.js n'a pas pu etre cherche (en cas de doute, on part, et on l'ecrit) ; o.timeout_ms, o.commande : voir processusNode */
+function refusDePartir(o){
+  o=o||{};
   const tampon=path.join(C.RACINE,'ml','labo','tampon');
   let noms=[];try{noms=fs.readdirSync(tampon);}catch(e){noms=[];}
   for(const f of noms){
     const m=/^inscription-(\d+)\.en-cours$/.exec(f);
     if(m&&+m[1]!==process.pid&&C.vivant(+m[1]))return 'une inscription du labo est en cours (ml/labo/tampon/'+f+', pid '+m[1]+') : attendre qu\'elle finisse';
   }
-  const L=processusNode();
-  if(L)for(const p of L){
+  const pourquoi={};
+  const L=processusNode({timeout_ms:o.timeout_ms||5000,commande:o.commande,pourquoi:pourquoi});
+  if(!L){
+    if(o.dire)o.dire('refus de partir : impossible de verifier que ml/ecurie/boucle.js ne tourne pas ('+(pourquoi.texte||'?')+') : on part quand meme');
+    return null;
+  }
+  for(const p of L){
     if(p.pid===process.pid)continue;
     if(/ecurie[\\\/]boucle\.js/i.test(p.ligne)||/node(\.exe)?"?\s+boucle\.js(\s|$)/i.test(p.ligne))
       return 'ml/ecurie/boucle.js tourne (pid '+p.pid+') : la selection naturelle ne part pas en meme temps';
@@ -737,59 +787,209 @@ async function validerMaintenant(ctx){
   return l;
 }
 
-/* ---------- --banc (§ 5.4) : le debit a chaque nombre de travailleurs, ecrit dans config.json ---------- */
-async function banc(cfg,dire){
-  const T=Gn.ecrirePilote(Gn.genomeTemoin(cfg),{cfg:cfg}),sha=Gn.shaPilote(T),E=cfg.graines.entrainement,B=cfg.banc,res=[];
-  for(const n of B.travailleurs){
-    const ord=K.creer({cfg:cfg,cache:false,ecrire:false,travailleurs:n});
-    const taches=[];for(let i=0;i<B.courses;i++)taches.push({source:T,shaPilote:sha,id:'banc',graine:E.depart+E.pas*i,tmax:B.tmax,usage:'essai',generation:null});
-    dire('banc : '+B.courses+' courses de '+B.tmax+' s, '+n+' a la fois');
-    const t0=Date.now(),L=await ord.demander(taches);await ord.arreter();
-    const h=(Date.now()-t0)/3600e3,ok=L.filter(l=>l&&l.mesuree);
-    const r={travailleurs:n,coursesParHeure:+(ok.length/h).toFixed(1),pannes:L.reduce((s,l)=>s+((l&&l.pannes)|0),0),nonMesurees:L.filter(l=>!l||!l.mesuree).length};
-    res.push(r);dire('banc : '+JSON.stringify(r));
+/* ===== LE BANC : COMBIEN DE COURSES A LA FOIS SUR CE PC (§ 5.4 ; 2026-11-27, « machine » : plus jamais dans config.json, dans <etat>/machine.json) =====
+   Pour chaque nombre n de la liste (C.listeBanc : "auto" = {L/2, L-4, L-2, L-1}, L = coeurs logiques ; ou la liste de la config), le temoin joue
+   n x max(2, ceil(cfg.banc.courses / n)) courses de cfg.banc.tmax s (des vagues pleines : le meme travail par vague pour chaque n), sur les memes
+   graines d'entrainement depuis 910000, sans cache et sans rien ecrire dans courses.jsonl. Retenu : le meilleur debit sans panne, sans course non
+   mesuree ni relancee ; a moins de 5 % du meilleur, le plus PETIT n (C.choisirTravailleurs).
+   o = {dossierEtat, doitArreter:fn, surOrd:fn(ord), ecrire:true}. STOP, PAUSE ou Ctrl+C (doitArreter) : interrompu.
+   Sans nombre valable (echec, interruption, erreur) : repli C.repliTravailleurs (max(1, L-2)), source 'auto', et le banc sera refait au lancement
+   suivant (un banc FINI sans nombre valable : au plus C.ECHECS_BANC_MAX fois). Un machine.json qui avait deja un banc reussi n'est jamais ecrase
+   par un banc rate (--banc refait a la main sur un PC charge).
+   -> {travailleurs, retenu:N|null, interrompu, raison, resultats, machine:objet ecrit|null} */
+const SECONDES_REELLES_PAR_SECONDE_DE_JEU=[0.25,1];   /* mesure du 27/11 : ~0,37 s par seconde de jeu en moyenne, jusqu'a ~1 s */
+function planBanc(cfg,L){
+  const B=cfg.banc||{},liste=C.listeBanc(cfg,L),nC=B.courses||20,tmax=B.tmax||300;
+  const etapes=liste.map(n=>{const vagues=Math.max(2,Math.ceil(nC/n));return {travailleurs:n,courses:n*vagues,vagues:vagues};});
+  const vagues=etapes.reduce((s,e)=>s+e.vagues,0);
+  return {liste:liste,tmax:tmax,etapes:etapes,min_s:Math.round(vagues*tmax*SECONDES_REELLES_PAR_SECONDE_DE_JEU[0]),max_s:Math.round(vagues*tmax*SECONDES_REELLES_PAR_SECONDE_DE_JEU[1]+vagues*5)};
+}
+const minutes=s=>s<90?Math.round(s)+' s':Math.round(s/60)+' min';
+async function banc(cfg,dire,o){
+  o=o||{};dire=dire||direDefaut;
+  const L=C.coeursLogiques(),dossier=o.dossierEtat||C.chemin(cfg,cfg.dossierEtat),doitArreter=o.doitArreter||(()=>false);
+  const plan=planBanc(cfg,L),res=[];
+  const avant=C.lireMachine(dossier).machine;
+  let interrompu=false,raison=null;
+  dire('banc : '+L+' coeurs logiques ; essais a '+plan.liste.join(', ')+' courses a la fois, '+plan.tmax+' s de jeu chacune ('+plan.etapes.map(e=>e.courses+' a '+e.travailleurs).join(', ')+
+    ') ; entre '+minutes(plan.min_s)+' et '+minutes(plan.max_s)+' environ');
+  try{
+    const T=Gn.ecrirePilote(Gn.genomeTemoin(cfg),{cfg:cfg}),sha=Gn.shaPilote(T),E=cfg.graines.entrainement;
+    for(const et of plan.etapes){
+      if(doitArreter()){interrompu=true;raison='arret demande (STOP, PAUSE ou Ctrl+C)';break;}
+      const n=et.travailleurs;
+      const ord=K.creer({cfg:cfg,cache:false,ecrire:false,travailleurs:n,doitArreter:doitArreter,
+        journal:function(t){if(/NON MESUREE|ERREUR|chien de garde/.test(t))dire('banc : '+t);}});
+      if(o.surOrd)o.surOrd(ord);
+      const taches=[];for(let i=0;i<et.courses;i++)taches.push({source:T,shaPilote:sha,id:'banc',graine:E.depart+E.pas*i,tmax:plan.tmax,usage:'essai',generation:null});
+      dire('banc : '+et.courses+' courses de '+plan.tmax+' s, '+n+' a la fois');
+      const t0=Date.now(),R=await ord.demander(taches);await ord.arreter();
+      if(o.surOrd)o.surOrd(null);
+      const s=(Date.now()-t0)/1000,st=ord.stats();
+      if(R.some(l=>l===null)||doitArreter()){interrompu=true;raison='arret demande pendant les courses a '+n+' a la fois';break;}
+      const mes=R.filter(l=>l&&l.mesuree===true);
+      const r={travailleurs:n,coursesParHeure:+(mes.length*3600/Math.max(1e-3,s)).toFixed(1),
+        pannes:R.reduce((x,l)=>x+(((l.pannesEssais!=null?l.pannesEssais:l.pannes))|0),0),nonMesurees:R.filter(l=>l.mesuree!==true).length,
+        relancees:st.relancees|0,courses:et.courses,duree_s:Math.round(s)};
+      res.push(r);
+      dire('banc : '+n+' a la fois : '+r.coursesParHeure+' courses/h en '+minutes(r.duree_s)+(r.pannes||r.nonMesurees||r.relancees?' ; '+r.pannes+' panne(s), '+
+        r.nonMesurees+' non mesuree(s), '+r.relancees+' relancee(s) : ce nombre est ecarte':''));
+    }
+  }catch(e){
+    raison='erreur : '+String(e&&e.message||e).slice(0,200);
+    dire('banc : '+raison);
   }
-  const sans=res.filter(r=>r.pannes===0),meilleur=(sans.length?sans:res).slice().sort((a,b)=>b.coursesParHeure-a.coursesParHeure)[0];
-  const f=path.join(C.DOSSIER,'config.json'),base=JSON.parse(fs.readFileSync(f,'utf8'));
-  base.travailleurs=meilleur.travailleurs;base.banc=Object.assign({},base.banc,{resultats:res,date:new Date().toISOString()});
-  C.ecrireAtomique(f,JSON.stringify(base,null,2)+'\n');
-  dire('banc : travailleurs = '+meilleur.travailleurs+' ecrit dans config.json');
-  return res;
+  const retenu=interrompu||raison?null:C.choisirTravailleurs(res);
+  if(!retenu&&!raison)raison='aucun nombre sans panne ni course non mesuree';
+  const bancObj={date:new Date().toISOString(),liste:plan.liste,tmax:plan.tmax,resultats:res,retenu:retenu};
+  let machine=null,travailleurs;
+  /* (27/11, le relecteur de « machine ») machine.json impossible a ecrire (un dossier a sa place, un fichier tenu ou en lecture seule) : ce n'est
+     PAS une erreur fatale (avant : ERREUR FATALE apres des minutes de banc, a chaque lancement) ; le nombre vaut pour ce lancement, on le dit */
+  const ecrire=x=>{
+    if(o.ecrire===false)return null;
+    try{return C.ecrireMachine(dossier,x);}
+    catch(e){dire('banc : '+C.cheminMachine(dossier)+' impossible a ecrire ('+String(e&&(e.code||e.message)||e).slice(0,80)+
+      ') : le nombre ne vaut que pour ce lancement, le banc sera refait au prochain');return null;}
+  };
+  if(retenu){
+    travailleurs=retenu;
+    machine=ecrire({travailleurs:retenu,source:'banc',banc:bancObj});
+    dire('banc : '+retenu+' courses a la fois retenu'+(machine?' -> '+C.cheminMachine(dossier):''));
+  }else if(avant&&avant.banc&&avant.banc.retenu){
+    travailleurs=avant.travailleurs;
+    dire('banc : pas de nouveau nombre ('+raison+') : on garde '+avant.travailleurs+', mesure le '+String(avant.banc.date||'?').slice(0,10)+' (machine.json inchange)');
+  }else{
+    travailleurs=C.repliTravailleurs(L,cfg);
+    const echecs=((avant&&avant.banc&&avant.banc.echecs)|0)+(interrompu?0:1);
+    Object.assign(bancObj,{raison:raison,interrompu:interrompu,echecs:echecs});
+    machine=ecrire({travailleurs:travailleurs,source:'auto',banc:bancObj});
+    dire('banc : pas de nombre mesure ('+raison+') : repli sur '+travailleurs+' courses a la fois ; '+
+      (interrompu||echecs<C.ECHECS_BANC_MAX?'le banc sera refait au prochain lancement':'banc rate '+echecs+' fois : il ne sera plus refait seul (evoluer.js --banc pour le refaire)'));
+  }
+  return {travailleurs:travailleurs,retenu:retenu,interrompu:interrompu,raison:raison,resultats:res,machine:machine};
 }
 
-module.exports={generation,charger,verrouiller,refusDePartir,ecrireChampion,validerMaintenant,preparer,banc,chemins};
+/* ===== LA LIGNE DE COMMANDE (27/11/2026, « machine » ; Fable : « node ml/evolution/evoluer.js --aide a LANCE LA VRAIE EVOLUTION ») =====
+   Toute option est controlee AVANT la config, le verrou et toute course : --aide / --help / -h affichent l'usage (code 0) ; une option inconnue,
+   un mot en trop, une valeur manquante ou absurde, une option donnee deux fois ou deux options incompatibles : l'erreur et l'usage sur stderr, code 2.
+   « --option=valeur » vaut « --option valeur ». */
+const USAGE=['Usage : node ml/evolution/evoluer.js [options]',
+  '  sans option            la selection tourne jusqu\'a STOP (arreter.cmd), Ctrl+C ou une erreur',
+  '  --config f.json        une config fusionnee par-dessus config.json (ex. config-essai.json)',
+  '  --etat dossier         le dossier d\'etat (relatif a ml/evolution/, ou absolu) ; les champions vont dans <dossier>/champions',
+  '  --travailleurs N       N courses a la fois pour ce lancement seulement (1 a '+C.TRAVAILLEURS_MAX+', rien n\'est ecrit)',
+  '  --une-generation       une generation, puis arret (= --arret-apres 1)',
+  '  --arret-apres N        N generations (N >= 1), puis arret',
+  '  --banc                 refait le banc de ce PC (combien de courses a la fois), l\'ecrit dans <etat>/machine.json, puis sort',
+  '  --valider-maintenant   une validation meneur contre champion tout de suite, puis sortie',
+  '  --bavard               le journal entier des courses',
+  '  --aide, --help, -h     ce texte',
+  'Sans --travailleurs : le nombre de <etat>/machine.json, mesure par le banc ; au premier lancement sur un PC, le banc est fait d\'abord.',
+  'Codes de sortie : 0 arret propre (ou l\'aide) ; 1 erreur fatale ; 2 refus de partir (deja lance, labo, boucle.js) ou option mal ecrite.'].join('\n');
+const OPTIONS={'--config':'fichier','--etat':'dossier','--travailleurs':'entier','--arret-apres':'entier',
+  '--une-generation':null,'--banc':null,'--valider-maintenant':null,'--bavard':null};
+const INCOMPATIBLES=[['--banc','--valider-maintenant'],['--banc','--une-generation'],['--banc','--arret-apres'],['--banc','--travailleurs'],
+  ['--valider-maintenant','--une-generation'],['--valider-maintenant','--arret-apres'],['--une-generation','--arret-apres']];
+/* -> {aide:true} | {erreur:texte} | {o:{config, etat, travailleurs, arretApres, banc, validerMaintenant, bavard}} ; o.existe(f) (tests) */
+function lireOptions(argv,o){
+  o=o||{};
+  const existe=o.existe||(f=>{try{return fs.existsSync(f);}catch(e){return false;}});
+  const A=(argv||[]).map(String),vus=new Map();
+  if(A.some(a=>a==='--aide'||a==='--help'||a==='-h'||a==='/?'))return {aide:true};
+  for(let i=0;i<A.length;i++){
+    let a=A[i],v;
+    const eg=/^(--[a-z-]+)=(.*)$/.exec(a);
+    if(eg&&Object.prototype.hasOwnProperty.call(OPTIONS,eg[1])){a=eg[1];v=eg[2];}
+    if(!Object.prototype.hasOwnProperty.call(OPTIONS,a))
+      return {erreur:(/^-/.test(a)?'option inconnue "'+a+'"':'mot inattendu "'+a+'" (une option commence par --)')};
+    if(vus.has(a))return {erreur:'option donnee deux fois : '+a};
+    const genre=OPTIONS[a];
+    if(genre===null){if(v!==undefined)return {erreur:a+' ne prend pas de valeur (lu : "'+A[i]+'")'};vus.set(a,true);continue;}
+    if(v===undefined){v=A[i+1];if(v===undefined||/^--/.test(v))return {erreur:a+' attend une valeur ('+genre+')'};i++;}
+    if(v.trim()==='')return {erreur:a+' attend une valeur ('+genre+'), pas un texte vide'};
+    if(genre==='entier'){
+      if(!/^\d+$/.test(v.trim()))return {erreur:a+' attend un nombre entier (lu : "'+v+'")'};
+      const n=+v.trim(),max=a==='--travailleurs'?C.TRAVAILLEURS_MAX:1e6;
+      if(n<1||n>max)return {erreur:a+' attend un nombre de 1 a '+max+' (lu : '+v+')'};
+      v=n;
+    }
+    if(genre==='fichier'&&!existe(path.resolve(process.cwd(),v))&&!existe(path.resolve(C.DOSSIER,v)))
+      return {erreur:a+' : fichier introuvable "'+v+'" (cherche depuis le dossier courant, puis dans ml/evolution/)'};
+    vus.set(a,v);
+  }
+  for(const [x,y] of INCOMPATIBLES)if(vus.has(x)&&vus.has(y))return {erreur:x+' et '+y+' ne vont pas ensemble'};
+  const g=k=>vus.has(k)?vus.get(k):null;
+  return {o:{config:g('--config'),etat:g('--etat'),travailleurs:g('--travailleurs'),arretApres:vus.has('--une-generation')?1:g('--arret-apres'),
+    banc:vus.has('--banc'),validerMaintenant:vus.has('--valider-maintenant'),bavard:vus.has('--bavard')}};
+}
+/* le nombre de travailleurs et d'ou il vient, en une phrase */
+function sourceTravailleurs(cfg){
+  const s=cfg._travailleursSource,m=cfg._machine;
+  if(s==='ligne de commande')return 'force par --travailleurs';
+  if(s==='config')return 'ecrit dans la config';
+  if(s==='banc'&&m&&m.banc)return 'mesure par le banc du '+String(m.banc.date||'?').slice(0,10)+', etat/machine.json';
+  return 'repli sans banc'+(cfg._bancAFaire?', le banc est a faire':' (banc rate, evoluer.js --banc pour le refaire)');
+}
 
-/* ---------- LA LIGNE DE COMMANDE ---------- */
 async function principal(argv){
-  const A=argv,opt=(n,d)=>{const i=A.indexOf('--'+n);return i>=0&&A[i+1]!==undefined?A[i+1]:d;};
-  const dire=direDefaut;
+  garderConsole();
+  const lu=lireOptions(argv);
+  if(lu.aide){ecrireConsole(USAGE+'\n');return 0;}
+  if(lu.erreur){ecrireErreur('evoluer : '+lu.erreur+'\n\n'+USAGE+'\n');return 2;}
+  const op=lu.o,dire=direDefaut;
   let cfg;
   try{
-    cfg=C.lireConfig(opt('config',null));
-    if(opt('etat',null)){const d=path.resolve(C.DOSSIER,opt('etat'));cfg.dossierEtat=d;cfg.dossierChampions=path.join(d,'champions');}
-    if(opt('travailleurs',null))cfg.travailleurs=Math.max(1,+opt('travailleurs')|0);
-  }catch(e){process.stderr.write(String(e&&e.message||e)+'\n');return 1;}
-  const arretApres=A.includes('--une-generation')?1:(opt('arret-apres',null)!=null?Math.max(1,+opt('arret-apres')|0):Infinity);
-  dire('evoluer : pid '+process.pid+', etat '+C.chemin(cfg,cfg.dossierEtat)+(cfg._fichier?', config '+path.basename(cfg._fichier):'')+', '+cfg.travailleurs+' travailleurs, node '+process.version);
-  let ctx=null,code=0,ctrlC=0;
-  const refus=refusDePartir();
+    cfg=C.lireConfig(op.config);
+    if(op.etat){const d=path.resolve(C.DOSSIER,op.etat);cfg.dossierEtat=d;cfg.dossierChampions=path.join(d,'champions');}
+    C.resoudreTravailleurs(cfg,{ligne:op.travailleurs});
+  }catch(e){ecrireErreur(String(e&&e.message||e)+'\n');return 1;}
+  CONSOLE.secours=path.join(C.chemin(cfg,cfg.dossierEtat),'sortie.log');
+  const arretApres=op.arretApres!=null?op.arretApres:Infinity;
+  dire('evoluer : pid '+process.pid+', etat '+C.chemin(cfg,cfg.dossierEtat)+(cfg._fichier?', config '+path.basename(cfg._fichier):'')+', '+cfg.travailleurs+
+    ' courses a la fois ('+sourceTravailleurs(cfg)+'), '+C.coeursLogiques()+' coeurs, node '+process.version);
+  let ctx=null,code=0,ctrlC=0,ordBanc=null;
+  const avant={demande:false};   /* Ctrl+C avant que ctx n'existe (pendant le banc) */
+  const refus=refusDePartir({dire:dire});
   if(refus){dire('REFUS DE PARTIR : '+refus);return 2;}
   /* verrouiller ne leve jamais (toute erreur : refus, code 2) ; surPerte : un autre a pris le verrou, on s'arrete comme sur STOP */
-  const V=verrouiller(cfg,{surPerte:function(q){dire('VERROU PERDU ('+q+') : on s\'arrete comme sur STOP');if(ctx)ctx.arret.demande=true;}});
+  const V=verrouiller(cfg,{surPerte:function(q){dire('VERROU PERDU ('+q+') : on s\'arrete comme sur STOP');avant.demande=true;if(ctx)ctx.arret.demande=true;}});
   if(!V.ok){dire('REFUS DE PARTIR : '+V.raison);return 2;}
   if(V.repris)dire('verrou repris'+(V.repris.pid?' (laisse par le pid '+V.repris.pid+', qui ne vit plus)':' (illisible)'));
   process.on('SIGINT',function(){
     ctrlC++;
-    if(ctrlC===1){dire('Ctrl+C : comme STOP (encore Ctrl+C : on tue les courses en cours)');if(ctx)ctx.arret.demande=true;}
+    if(ctrlC===1){dire('Ctrl+C : comme STOP (encore Ctrl+C : on tue les courses en cours)');avant.demande=true;if(ctx)ctx.arret.demande=true;}
     else{dire('Ctrl+C encore : les courses en cours sont tuees (la reprise ne perd qu\'elles)');
       const fin=()=>{V.lacher();process.exit(1);};
-      if(ctx&&ctx.ord)ctx.ord.arreter({dur:true}).then(fin,fin);else fin();}
+      const o=(ctx&&ctx.ord)||ordBanc;
+      if(o)o.arreter({dur:true}).then(fin,fin);else fin();}
   });
+  const P=chemins(cfg);
+  const arretBanc=()=>avant.demande||fs.existsSync(P.stop)||fs.existsSync(P.pause);
   try{
-    if(A.includes('--banc')){await banc(cfg,dire);}
-    else{
-      ctx=charger(cfg,{dire:dire,bavard:A.includes('--bavard')});
-      if(A.includes('--valider-maintenant'))await validerMaintenant(ctx);
+    if(op.banc){
+      const R=await banc(cfg,dire,{dossierEtat:P.dossier,doitArreter:arretBanc,surOrd:o=>{ordBanc=o;}});
+      if(!R.retenu&&!R.interrompu)code=1;
+    }else{
+      /* (27/11, le relecteur) --valider-maintenant ne fait pas le banc (jusqu'a une heure avant une validation demandee « maintenant ») : le repli,
+         et le banc reste a faire au prochain lancement ordinaire */
+      if(cfg._bancAFaire&&op.validerMaintenant){cfg._bancAFaire=false;dire('banc : pas de banc pour --valider-maintenant : '+cfg.travailleurs+' courses a la fois (repli), le banc sera fait au prochain lancement');}
+      /* une PAUSE posee avant le banc : on attend qu'elle soit levee (le banc mesure un PC libre) */
+      if(cfg._bancAFaire)while(fs.existsSync(P.pause)&&!avant.demande&&!fs.existsSync(P.stop)){
+        if(!avant.pauseDite){avant.pauseDite=true;dire('PAUSE : le banc attend que le fichier PAUSE soit efface');}
+        await new Promise(r=>setTimeout(r,5000));}
+      if(cfg._bancAFaire&&!arretBanc()){
+        dire('banc : premier lancement sur ce PC ('+(cfg._machinePourquoi==='absent'?'pas de machine.json':'machine.json '+(cfg._machinePourquoi||'sans banc reussi'))+
+          ') : avant la generation, on mesure combien de courses ce PC joue a la fois sans se gener ; le resultat va dans '+C.cheminMachine(P.dossier));
+        const R=await banc(cfg,dire,{dossierEtat:P.dossier,doitArreter:arretBanc,surOrd:o=>{ordBanc=o;}});
+        cfg.travailleurs=R.travailleurs;cfg._travailleursSource=R.retenu?'banc':'auto';
+        /* (27/11, le relecteur) le tableau et etat.js lisent cfg._machine : sans cela, « banc du ? » jusqu'au lancement suivant */
+        if(R.machine){cfg._machine=R.machine;cfg._machinePourquoi=null;}
+        cfg._bancAFaire=C.bancAFaire(R.machine||cfg._machine);
+        dire('evoluer : '+cfg.travailleurs+' courses a la fois pour la suite');
+      }
+      ctx=charger(cfg,{dire:dire,bavard:op.bavard});
+      if(avant.demande)ctx.arret.demande=true;
+      if(op.validerMaintenant)await validerMaintenant(ctx);
       else{
         let faites=0,relus=0;
         for(;;){
@@ -802,7 +1002,7 @@ async function principal(argv){
                et la generation reprend dans la nouvelle epoque */
             dire('generation '+r.generation+' coupee : les fichiers du bot ont change ; elle reprend dans la nouvelle epoque');
             await ctx.ord.arreter({dur:false});
-            ctx=charger(cfg,{dire:dire,bavard:A.includes('--bavard')});
+            ctx=charger(cfg,{dire:dire,bavard:op.bavard});
             continue;
           }
           if(r&&r.interrompue){dire('generation '+r.generation+' interrompue : elle sera reprise au prochain lancement');ecrireTableau(ctx);break;}
@@ -814,17 +1014,19 @@ async function principal(argv){
   }catch(e){
     code=1;
     dire('ERREUR FATALE : '+String(e&&e.message||e));
-    if(e&&e.stack&&!/^evoluer : /.test(String(e.message)))process.stdout.write(String(e.stack)+'\n');
+    if(e&&e.stack&&!/^evoluer : /.test(String(e.message)))ecrireConsole(String(e.stack)+'\n');
   }
   if(ctx&&ctx.ord){try{await ctx.ord.arreter({dur:false});}catch(e){}}
   V.lacher();
-  if(code===0&&ctx){try{if(fs.existsSync(ctx.P.stop)){fs.unlinkSync(ctx.P.stop);dire('STOP efface');}}catch(e){}}
+  if(code===0){try{if(fs.existsSync(P.stop)){fs.unlinkSync(P.stop);dire('STOP efface');}}catch(e){}}
   /* le tableau une derniere fois, verrou rendu : son resume dit « ARRETE » */
   if(ctx&&ctx.pop)ecrireTableau(ctx);
   dire('evoluer : fin, code '+code);
   return code;
 }
 
+module.exports={generation,charger,verrouiller,refusDePartir,ecrireChampion,validerMaintenant,preparer,banc,chemins,lireOptions,USAGE,planBanc,processusNode};
+
 if(require.main===module){
-  principal(process.argv.slice(2)).then(c=>process.exit(c),e=>{process.stderr.write(String(e&&e.stack||e)+'\n');process.exit(1);});
+  principal(process.argv.slice(2)).then(c=>process.exit(c),e=>{ecrireErreur(String(e&&e.stack||e)+'\n');process.exit(1);});
 }

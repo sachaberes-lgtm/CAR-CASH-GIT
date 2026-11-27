@@ -37,7 +37,7 @@ ok('lireJsonl leve sur une ligne illisible au milieu',leve(()=>C.lireJsonl(fj)))
 /* lireConfig : la surcouche fusionnee en profondeur, tableaux remplaces */
 const cfg=C.lireConfig('config-essai.json');
 ok('lireConfig fusionne',cfg.mu===4&&cfg.lambda===2&&cfg.graines.coffre.n===2&&cfg.graines.entrainement.depart===910000&&cfg.note.poidsEcart===4&&cfg.note.partiesMin===1&&
-  JSON.stringify(cfg.banc.travailleurs)==='[2,3]'&&!!cfg._fichier&&C.lireConfig()._fichier===null);
+  JSON.stringify(cfg.banc.travailleurs)==='[1,2]'&&!!cfg._fichier&&C.lireConfig()._fichier===null);
 
 /* vivant */
 ok('vivant',C.vivant(process.pid)&&!C.vivant(999999999));

@@ -2,7 +2,7 @@
    Pur outillage, sans etat : la config, les chemins, l'ecriture atomique, les journaux JSONL, le sha1, la semaine ISO, « ce processus vit-il ».
    Tous les fichiers ecrits ici le sont en LF, en UTF-8. */
 'use strict';
-const fs=require('fs'),path=require('path'),crypto=require('crypto');
+const fs=require('fs'),path=require('path'),crypto=require('crypto'),os=require('os');
 
 const DOSSIER=__dirname;
 const RACINE=path.join(__dirname,'..','..');
@@ -25,7 +25,10 @@ function lireJsonFichier(f,quoi){
   try{return JSON.parse(t);}catch(e){throw new Error('commun : '+quoi+' n\'est pas du JSON ('+f+') : '+e.message);}
 }
 
-/* config.json, puis `fichier` (relatif au cwd, sinon a ml/evolution) fusionne par-dessus ; cfg._fichier = le chemin du second ou null */
+/* config.json, puis `fichier` (relatif au cwd, sinon a ml/evolution) fusionne par-dessus ; cfg._fichier = le chemin du second ou null.
+   (2026-11-27, « machine ») travailleurs et banc.travailleurs sont controles ; travailleurs "auto" est resolu ici en un NOMBRE (machine.json du
+   dossier d'etat, sinon le repli) : tout lecteur de cfg.travailleurs (courses.js, identite.js, inscrire-champion.js) recoit un entier.
+   Voir LE REGLAGE PAR MACHINE plus bas. */
 function lireConfig(fichier){
   const base=lireJsonFichier(path.join(DOSSIER,'config.json'),'config.json');
   if(base.format!=='evolution-config-1')throw new Error('commun : config.json n\'a pas le format evolution-config-1');
@@ -38,6 +41,139 @@ function lireConfig(fichier){
     cfg=fusionner(base,dessus);
   }
   cfg._fichier=second;
+  const d=controlerTravailleurs(cfg);
+  if(d)throw new Error('commun : '+d+(second?' ('+path.basename(second)+' par-dessus config.json)':' (config.json)'));
+  cfg._travailleursConfig=cfg.travailleurs===undefined?'auto':cfg.travailleurs;
+  resoudreTravailleurs(cfg);
+  return cfg;
+}
+
+/* ===== LE REGLAGE PAR MACHINE (2026-11-27, « machine » ; Fable : « le meme depot doit marcher sur n'importe quel PC sans retouche a la main ») =====
+   Le nombre de courses a la fois (« travailleurs ») depend du PC, pas de la selection : il ne vit plus dans config.json (suivi par git, partage)
+   mais dans <dossierEtat>/machine.json (un par PC, ecrit par le banc d'evoluer.js). Il ne change le resultat d'AUCUNE course (une course = un
+   processus neuf, meme graine = meme course ; un PC trop charge donne des pannes, donc une course NON mesuree et rejouee, jamais une autre note) :
+   il n'entre pas dans l'epoque.
+   config.json : "travailleurs": "auto" (ou un nombre, qui l'emporte partout) ; "banc": {"travailleurs": "auto" (ou une liste), courses, tmax}.
+   machine.json : {format:'evolution-machine-1', ordinateur, cpus, modeleCpu, memoireGo, node, travailleurs, source:'auto'|'banc', date,
+                   banc:{date, resultats:[{travailleurs, coursesParHeure, pannes, nonMesurees, …}], retenu:N|null, raison?, echecs?, interrompu?}|null}
+   Un machine.json d'un autre ordinateur (autre nom, autre nombre de coeurs) est ignore : le banc est refait. */
+const FORMAT_MACHINE='evolution-machine-1';
+const TRAVAILLEURS_MAX=256;
+const ECHECS_BANC_MAX=3;   /* un banc FINI sans aucun nombre valable n'est retente que 3 fois (un interrompu, toujours) */
+const entierDans=(x,a,b)=>typeof x==='number'&&Number.isInteger(x)&&x>=a&&x<=b;
+
+function coeursLogiques(){
+  let n=0;
+  try{n=typeof os.availableParallelism==='function'?os.availableParallelism():os.cpus().length;}catch(e){n=0;}
+  if(!(n>=1)){try{n=os.cpus().length;}catch(e){n=0;}}
+  return n>=1?n:1;
+}
+/* la liste essayee par le banc « auto » : {ceil(L/2), L-4, L-2, L-1}, sans doublon, chacun dans [1, L], en ordre croissant */
+function listeBancAuto(L){
+  L=Math.max(1,Math.floor(L)||1);
+  const r=[...new Set([Math.ceil(L/2),L-4,L-2,L-1])].filter(n=>n>=1&&n<=L).sort((a,b)=>a-b);
+  return r.length?r:[1];
+}
+/* la liste du banc pour cette config ("auto" ou la liste ecrite) */
+function listeBanc(cfg,L){
+  const b=cfg&&cfg.banc&&cfg.banc.travailleurs;
+  if(Array.isArray(b))return [...new Set(b)].sort((a,c)=>a-c);
+  return listeBancAuto(L==null?coeursLogiques():L);
+}
+/* le repli sans banc reussi : max(1, L-2) ; borne par le plus grand nombre d'une liste de banc ecrite a la main (un essai a 2 courses a la fois
+   ne doit pas en lancer 6 parce que son banc a echoue) */
+function repliTravailleurs(L,cfg){
+  let n=Math.max(1,(Math.floor(L)||1)-2);
+  const b=cfg&&cfg.banc&&cfg.banc.travailleurs;
+  if(Array.isArray(b)&&b.length)n=Math.min(n,Math.max(...b));
+  return n;
+}
+/* le choix du banc : le meilleur debit SANS panne, sans course non mesuree ni relancee ; a debit egal (moins de 5 % d'ecart) le plus PETIT nombre
+   (le PC reste utilisable). null si aucun nombre n'est valable. */
+function choisirTravailleurs(resultats){
+  const ok=(resultats||[]).filter(r=>r&&entierDans(r.travailleurs,1,TRAVAILLEURS_MAX)&&(r.pannes|0)===0&&(r.nonMesurees|0)===0&&!(r.relancees>0)&&
+    typeof r.coursesParHeure==='number'&&r.coursesParHeure>0&&!r.interrompu);
+  if(!ok.length)return null;
+  const max=Math.max(...ok.map(r=>r.coursesParHeure));
+  return ok.filter(r=>r.coursesParHeure>=0.95*max).sort((a,b)=>a.travailleurs-b.travailleurs)[0].travailleurs;
+}
+/* "auto" ou un entier ; la liste du banc : "auto" ou des entiers. Rend le defaut en texte, ou null. */
+function controlerTravailleurs(cfg){
+  const t=cfg.travailleurs;
+  if(t!==undefined&&t!=='auto'&&!entierDans(t,1,TRAVAILLEURS_MAX))
+    return 'travailleurs doit etre "auto" ou un nombre entier de 1 a '+TRAVAILLEURS_MAX+' (lu : '+JSON.stringify(t)+')';
+  const b=cfg.banc;
+  if(b!==undefined){
+    if(!b||typeof b!=='object'||Array.isArray(b))return 'banc doit etre un objet {travailleurs, courses, tmax}';
+    const bt=b.travailleurs;
+    if(bt!==undefined&&bt!=='auto'&&!(Array.isArray(bt)&&bt.length&&bt.every(n=>entierDans(n,1,TRAVAILLEURS_MAX))))
+      return 'banc.travailleurs doit etre "auto" ou une liste de nombres entiers de 1 a '+TRAVAILLEURS_MAX+' (lu : '+JSON.stringify(bt)+')';
+    if(b.courses!==undefined&&!entierDans(b.courses,1,10000))return 'banc.courses doit etre un nombre entier de 1 a 10000 (lu : '+JSON.stringify(b.courses)+')';
+    if(b.tmax!==undefined&&!entierDans(b.tmax,1,100000))return 'banc.tmax doit etre un nombre entier de secondes (lu : '+JSON.stringify(b.tmax)+')';
+  }
+  return null;
+}
+function empreintePc(){return 'pc-'+require('crypto').createHash('sha256').update(String(os.hostname()||'')).digest('hex').slice(0,8);}
+/* ce que l'on sait de ce PC (les champs d'identite de machine.json) */
+function descriptionMachine(){
+  let modele='?',mem=null;
+  try{const c=os.cpus();modele=c&&c[0]?String(c[0].model).trim():'?';}catch(e){}
+  try{mem=+(os.totalmem()/1073741824).toFixed(1);}catch(e){}
+  /* (27/11/2026, Fable) machine.json part sur GitHub avec les traces, et le depot est public : on n'y ecrit pas le nom Windows du PC,
+     seulement son empreinte (assez pour reconnaitre « ce PC-ci », rien a lire pour un inconnu) */
+  return {ordinateur:empreintePc(),cpus:coeursLogiques(),modeleCpu:modele,memoireGo:mem,node:process.version};
+}
+function cheminMachine(dossierEtat){return path.join(dossierEtat,'machine.json');}
+/* -> {machine|null, pourquoi|null} : null si absent, illisible, d'un autre format ou d'un autre ordinateur (pourquoi le dit) */
+function lireMachine(dossierEtat){
+  const f=cheminMachine(dossierEtat);
+  let t;
+  try{t=fs.readFileSync(f,'utf8');}catch(e){return {machine:null,pourquoi:e.code==='ENOENT'?'absent':'illisible ('+e.code+')'};}
+  let m;
+  try{m=JSON.parse(t);}catch(e){return {machine:null,pourquoi:'illisible (pas du JSON)'};}
+  if(!m||m.format!==FORMAT_MACHINE)return {machine:null,pourquoi:'format inconnu'};
+  if(!entierDans(m.travailleurs,1,TRAVAILLEURS_MAX))return {machine:null,pourquoi:'travailleurs absurde ('+JSON.stringify(m.travailleurs)+')'};
+  const ici=descriptionMachine();
+  if(m.ordinateur!==ici.ordinateur||m.cpus!==ici.cpus)
+    return {machine:null,pourquoi:'il vient d\'un autre PC ('+m.ordinateur+', '+m.cpus+' coeurs ; ici '+ici.ordinateur+', '+ici.cpus+' coeurs)',autre:m};
+  /* (27/11, le relecteur) plus de courses a la fois que de coeurs logiques : jamais donne par « auto » (le banc auto et le repli restent dans [1, L]) ;
+     seule une liste de banc ecrite a la main peut le mesurer (elle est alors dans banc.liste). Sinon, un machine.json retouche : ignore, banc refait. */
+  const liste=m.banc&&Array.isArray(m.banc.liste)?m.banc.liste:[];
+  if(m.travailleurs>ici.cpus&&!liste.includes(m.travailleurs))
+    return {machine:null,pourquoi:'travailleurs '+m.travailleurs+' pour '+ici.cpus+' coeurs logiques (retouche a la main ?)'};
+  return {machine:m,pourquoi:null};
+}
+/* ecriture atomique ; o = {travailleurs, source, banc} -> l'objet ecrit */
+function ecrireMachine(dossierEtat,o){
+  const m=Object.assign({format:FORMAT_MACHINE},descriptionMachine(),{travailleurs:o.travailleurs,source:o.source,date:new Date().toISOString(),banc:o.banc||null});
+  ecrireAtomique(cheminMachine(dossierEtat),JSON.stringify(m,null,1)+'\n');
+  return m;
+}
+/* faut-il (re)faire le banc avec ce machine.json ? */
+function bancAFaire(m){
+  if(!m)return true;
+  const b=m.banc;
+  if(b&&entierDans(b.retenu,1,TRAVAILLEURS_MAX))return false;
+  if(b&&!b.interrompu&&(b.echecs|0)>=ECHECS_BANC_MAX)return false;
+  return true;
+}
+/* cfg.travailleurs devient un entier ; o.ligne (--travailleurs N) l'emporte ; o.dossierEtat (sinon cfg.dossierEtat).
+   Pose cfg._travailleursSource ('ligne de commande' | 'config' (un nombre ecrit dans la config) | 'banc' | 'auto'), cfg._bancAFaire (bool), cfg._machine (machine.json lu ou null),
+   cfg._machinePourquoi (pourquoi il ne sert pas). */
+function resoudreTravailleurs(cfg,o){
+  o=o||{};
+  const brut=cfg._travailleursConfig!==undefined?cfg._travailleursConfig:(cfg.travailleurs===undefined?'auto':cfg.travailleurs);
+  const dossier=o.dossierEtat||chemin(cfg,cfg.dossierEtat||'etat');
+  const lu=lireMachine(dossier);
+  cfg._machine=lu.machine;cfg._machinePourquoi=lu.pourquoi;cfg._bancAFaire=false;
+  if(o.ligne!=null){cfg.travailleurs=o.ligne;cfg._travailleursSource='ligne de commande';return cfg;}
+  if(brut!=='auto'){cfg.travailleurs=brut;cfg._travailleursSource='config';return cfg;}
+  if(lu.machine){
+    cfg.travailleurs=lu.machine.travailleurs;cfg._travailleursSource=lu.machine.source==='banc'?'banc':'auto';
+    cfg._bancAFaire=bancAFaire(lu.machine);
+    return cfg;
+  }
+  cfg.travailleurs=repliTravailleurs(coeursLogiques(),cfg);cfg._travailleursSource='auto';cfg._bancAFaire=true;
   return cfg;
 }
 
@@ -167,5 +303,7 @@ function vivant(pid){
   try{process.kill(pid,0);return true;}catch(e){return e.code==='EPERM';}
 }
 
-module.exports={RACINE,DOSSIER,lireConfig,chemin,ecrireAtomique,ecrireAtomiqueOctets,renommerSur,dormir,ajouterLigne,lireJsonl,lireJson,sha1,semaineIso,vivant,
-  fusionner,reparerFin,FICHIERS_EPOQUE,shaFichiersEpoque,shaDesFichiers,nettoyerTmp};
+module.exports={empreintePc,RACINE,DOSSIER,lireConfig,chemin,ecrireAtomique,ecrireAtomiqueOctets,renommerSur,dormir,ajouterLigne,lireJsonl,lireJson,sha1,semaineIso,vivant,
+  fusionner,reparerFin,FICHIERS_EPOQUE,shaFichiersEpoque,shaDesFichiers,nettoyerTmp,
+  FORMAT_MACHINE,TRAVAILLEURS_MAX,ECHECS_BANC_MAX,coeursLogiques,listeBancAuto,listeBanc,repliTravailleurs,choisirTravailleurs,controlerTravailleurs,
+  descriptionMachine,cheminMachine,lireMachine,ecrireMachine,bancAFaire,resoudreTravailleurs};

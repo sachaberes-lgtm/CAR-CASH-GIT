@@ -18,10 +18,11 @@ const copie=g=>JSON.parse(JSON.stringify(g));
 const T=Gn.genomeTemoin(cfg);
 
 /* ---------- le genome ---------- */
-test('BORNES : 86 genes, 64 reels, cles uniques, temoin dans ses bornes',()=>{
-  vrai(Gn.BORNES.length===86,'genes '+Gn.BORNES.length);vrai(Gn.CONTINUS.length===64,'reels '+Gn.CONTINUS.length);
-  vrai(new Set(Gn.BORNES.map(b=>b.cle)).size===86,'cles en double');vrai(Object.isFrozen(Gn.BORNES)&&Object.isFrozen(Gn.BORNES[0]),'BORNES non figees');
-  const n={reel:0,drapeau:0,choix:0,entier:0};for(const b of Gn.BORNES)n[b.type]++;egal(n,{reel:64,drapeau:20,choix:1,entier:1});
+/* (27/11/2026, tache « gestes ») 86 -> 107 genes : les 21 des cinq gestes (15 reels, 6 drapeaux) en fin de BORNES ; leurs tests : tests/gestes.test.js */
+test('BORNES : 107 genes, 79 reels, cles uniques, temoin dans ses bornes',()=>{
+  vrai(Gn.BORNES.length===107,'genes '+Gn.BORNES.length);vrai(Gn.CONTINUS.length===79,'reels '+Gn.CONTINUS.length);
+  vrai(new Set(Gn.BORNES.map(b=>b.cle)).size===107,'cles en double');vrai(Object.isFrozen(Gn.BORNES)&&Object.isFrozen(Gn.BORNES[0]),'BORNES non figees');
+  const n={reel:0,drapeau:0,choix:0,entier:0};for(const b of Gn.BORNES)n[b.type]++;egal(n,{reel:79,drapeau:26,choix:1,entier:1});
   vrai(Gn.valider(T)===null,'temoin non conforme : '+Gn.valider(T));
   egal(Object.keys(T.A),Gn.BORNES.map(b=>b.cle),'ordre de A');});
 
@@ -114,7 +115,7 @@ test('croiser : chaque gene vient d\'un parent, chaque tete entiere d\'un seul',
 
 test('distance et distanceW2',()=>{
   vrai(Gn.distance(T,T)===0&&Gn.distanceW2(T,T)===0);
-  const g=copie(T);g.A.marge=20;vrai(Math.abs(Gn.distance(T,g)-((20-10)/17)/86)<1e-12,'distance '+Gn.distance(T,g));
+  const g=copie(T);g.A.marge=20;vrai(Math.abs(Gn.distance(T,g)-((20-10)/17)/Gn.BORNES.length)<1e-12,'distance '+Gn.distance(T,g));
   g.WV[216]=.24;vrai(Math.abs(Gn.distanceW2(T,g)-.01)<1e-12,'distanceW2 '+Gn.distanceW2(T,g));});
 
 /* ---------- (d) ecrirePilote ---------- */
@@ -125,7 +126,7 @@ test('(d) ecrirePilote : le bloc du § 5.1, zero \\r, sha stable, balise unique 
   vrai(t.split('\n').filter(l=>l==='/*@GENOME@*/').length===0,'balise restee');
   const L=t.split('\n'),i=L.findIndex(l=>l.startsWith('const REGLAGES={'));
   vrai(L[i-1].startsWith('/*@GENOME@ debut : ecrit par ml/evolution/genome.js (ecrirePilote), genome '+Gn.idDe(T)),'en-tete du bloc');
-  vrai(L[i]==='const REGLAGES={marge:10,bandeDecor:99,nitroDecor:1,margeCouloir:15,avance:0.3,glisse:0.12,glisseUrgence:0.3,ligneLoin:320,piecesLoin:180,capLigne:0.3,avanceCap:0.25,capAvance:0.25,braqueDoux:0.15,braqueFort:0.5,braqueNitro:0.7,margeAllumer:0.05,margeTenir:0,jaugeAllume:0.45,jaugeCoupe:0.25,capMax:0.35,bascule:10,tenirFacon:0.35,derive:0.3,raccVirage:0.2,raccGain:80,raccAxe:0.75,raccTmin:0.7,raccChute:120,raccTmax:3.6,raccAir:1.2,raccBord:5,raccAttente:1.6,raccCartes:{jade:0,grotte:0,canyon:0},raccJumeau:{ville:1,jade:1},raccRepos:1.5,figPlongeon:2.2,figTemps:1.5,figJauge:0.4,figEcart:0.55,dessousMax:0.8,dessousAveugle:1,dessousDecor:1,dessousNitro:0,dessousFuir:1,dessousPose:25,departMin:1.5,departMax:5.5,portailVol:1,volDemiTour:1,volRetour:0,volAvance:0.25,figMax:2,figDepuis:0.4,figHaut:15,retourOn:0,retMarge:8,retCap:0.8,retGain:0.8,retAvance:0.15,retourPrime:4,volMieux:0,volNitro:0,retours:[]};',
+  vrai(L[i]==='const REGLAGES={marge:10,bandeDecor:99,nitroDecor:1,margeCouloir:15,avance:0.3,glisse:0.12,glisseUrgence:0.3,ligneLoin:320,piecesLoin:180,capLigne:0.3,avanceCap:0.25,capAvance:0.25,braqueDoux:0.15,braqueFort:0.5,braqueNitro:0.7,margeAllumer:0.05,margeTenir:0,jaugeAllume:0.45,jaugeCoupe:0.25,capMax:0.35,bascule:10,tenirFacon:0.35,derive:0.3,raccVirage:0.2,raccGain:80,raccAxe:0.75,raccTmin:0.7,raccChute:120,raccTmax:3.6,raccAir:1.2,raccBord:5,raccAttente:1.6,raccCartes:{jade:0,grotte:0,canyon:0},raccJumeau:{ville:1,jade:1},raccRepos:1.5,figPlongeon:2.2,figTemps:1.5,figJauge:0.4,figEcart:0.55,dessousMax:0.8,dessousAveugle:1,dessousDecor:1,dessousNitro:0,dessousFuir:1,dessousPose:25,departMin:1.5,departMax:5.5,portailVol:1,volDemiTour:1,volRetour:0,volAvance:0.25,figMax:2,figDepuis:0.4,figHaut:15,retourOn:0,retMarge:8,retCap:0.8,retGain:0.8,retAvance:0.15,retourPrime:4,volMieux:0,lacheOn:0,lacheAvant:0.35,slalomOn:0,slalomCap:0.35,slalomDemi:0.45,slalomH:3,coupOn:0,coupDepuis:0.6,coupEcart:0.7,coupDuree:0.15,coupPoseMin:0.8,coupAxe:0.35,coupAir:0.8,coupJauge:0.35,coupPerte:10,coupDecor:0,relacheOn:0,relacheT:0.25,suitOn:0,suitDerive:0.3,suitMarge:0.25,volNitro:0,retours:[]};',
     'REGLAGES du temoin : '+L[i]);
   vrai(L[i+1]==='const G={axePoids:20,vTemps:3,vPortail:94,vLevre:80,vLibreBase:12,vLibrePente:2,vCourt:34,rAxe:250,rTemps:25,rPlane:40,rLourde:40,bVersRoute:3,bVersRoutePlane:2,bRien:1};','G');
   vrai(L[i+3]==='const CONTROLE_RAYONS=true;'&&L[i+4]==='/*@GENOME@ fin*/','fin du bloc');

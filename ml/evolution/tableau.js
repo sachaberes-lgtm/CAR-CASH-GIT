@@ -184,7 +184,9 @@ function page(cfg,o){
   /* EN TETE */
   S.push('<header><h1>CASH CAR · la sélection naturelle des bots</h1>'+
     '<p class="sous">Page refaite à la fin de chaque génération (dernière fois : '+esc(dateFr(new Date(maintenant).toISOString()))+'). '+
-    'Elle se recharge seule toutes les 5 minutes. Rien n\'est publié : elle ne vit que sur ce PC.</p></header>');
+    'Elle se recharge seule toutes les 5 minutes. La sélection n\'envoie rien elle-même ; seul <code>sauver-traces.cmd</code> (à la main, ou toutes les heures si la tâche est posée) '+
+    'envoie cette page, l\'arbre et le récit sur une branche à part du dépôt GitHub (<code>evolution-…</code>), jamais sur main.</p>'+
+    '<p class="sous">Les traces : <a href="arbre.html">l\'arbre généalogique des pilotes</a> · <a href="histoire.md">le récit, génération par génération</a></p></header>');
   S.push('<section class="bref"><h2>En bref</h2><pre>'+esc(resume.join('\n'))+'</pre></section>');
 
   /* 1. LE COFFRE */
@@ -365,7 +367,14 @@ function ecrire(cfg,o){
   const resume=ET.resume(cfg,o).join('\n').replace(/\r/g,'')+'\n';
   const fh=path.join(dossier,'tableau.html'),fr_=path.join(dossier,'resume.txt');
   ecrireAtomique(fh,html);ecrireAtomique(fr_,resume);
-  return {html:fh,resume:fr_};}
+  /* ===== LES TRACES : L'ARBRE ET LE RECIT (27/11/2026, Sacha : « il faut qu'on garde des traces de tous les process, pour un portfolio ») =====
+     arbre.html et histoire.md sont refaits avec le tableau. Leur echec (module absent, journal etrange) ne peut pas faire echouer le tableau :
+     il est seulement rendu dans le resultat (traces.arbre / traces.histoire = null, traces.erreurs = les messages). */
+  const traces={arbre:null,histoire:null,erreurs:[]};
+  for(const nom of ['arbre','histoire']){
+    try{traces[nom]=require('./'+nom).ecrire(cfg,o);}
+    catch(e){traces.erreurs.push(nom+' : '+String(e&&e.message||e).slice(0,200));}}
+  return {html:fh,resume:fr_,traces};}
 
 module.exports={ecrire,page,courbe,barresZ};
 

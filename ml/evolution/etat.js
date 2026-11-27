@@ -106,6 +106,13 @@ function note(x){
   if(!x||typeof x!=='object')return 'pas encore note';
   return 'F '+nb(x.F)+(x.se_F!=null?' +- '+nb(x.se_F):'')+', palier '+nb(x.ahat!=null?x.ahat:x.a)+', ecart E '+nb(x.E,2)+(x.n!=null?' ('+x.n+' courses)':'');}
 const couper=s=>s.length>LARGEUR?s.slice(0,LARGEUR-3)+'...':s;
+/* « ; 9 a la fois (banc du 27/11) » : ce que ce PC joue a la fois et d'ou ca vient ('' si la config ne le dit pas) */
+function machineCourte(cfg){
+  if(!cfg||typeof cfg.travailleurs!=='number')return '';
+  const s=cfg._travailleursSource,m=cfg._machine;
+  const d=m&&m.banc&&m.banc.date?dateCourte(m.banc.date).slice(0,5):null;
+  const q=s==='banc'?'banc du '+(d||'?'):s==='config'?'ecrit dans la config':s==='auto'?(cfg._bancAFaire?'banc a faire':'sans banc'):String(s||'?');
+  return ' ; '+cfg.travailleurs+' a la fois ('+q+')';}
 
 /* L'ETAT DE MARCHE : en marche, arrete proprement, arrete sans prevenir */
 function marche(cfg,D,maintenant){
@@ -143,11 +150,12 @@ function resume(cfg,o){
   /* 2. en marche ou arrete */
   L.push(M.texte);
 
-  /* 3. debit */
+  /* 3. debit ; (27/11, « machine ») et le nombre de courses a la fois de ce PC (etat/machine.json, resolu par commun.lireConfig) */
+  const aLaFois=machineCourte(cfg);
   if(G){const c=G.courses||{};
     L.push('Debit : '+nb(G.debit_h,0)+' courses/h (gen. '+G.generation+' : '+(c.demandees!=null?c.demandees:'?')+' courses dont '+
-      (c.jouees!=null?c.jouees:'?')+' jouees, '+(c.cache!=null?c.cache:'?')+' du cache, en '+duree(G.duree_s)+')');}
-  else L.push('Debit : pas encore de generation finie');
+      (c.jouees!=null?c.jouees:'?')+' jouees, '+(c.cache!=null?c.cache:'?')+' du cache, en '+duree(G.duree_s)+')'+aLaFois);}
+  else L.push('Debit : pas encore de generation finie'+aLaFois);
 
   /* 4. 5. 6. champion, meneur, temoin (les notes de la derniere generation) */
   const champId=(pop&&pop.champion&&pop.champion.id)||(G&&G.champion&&G.champion.id);
