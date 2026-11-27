@@ -1,0 +1,45 @@
+{
+ "format": "cashcar-rejeu-1",
+ "cerveau": {
+  "id": "c0025",
+  "nom": "pilote",
+  "sha": "3fabdc8bfbd063b452e5b53d4d6089eaa2fd689b",
+  "code": "cerveaux/c0025-pilote.js"
+ },
+ "etape": "C2",
+ "generation": 0,
+ "jeu": {
+  "version": "cashcar-v1627",
+  "sha": "e7e1eed4718f",
+  "commit": "1ee936e15",
+  "propre": true,
+  "simulateur": "relief-canyon",
+  "regime": "allege"
+ },
+ "graine": 910185,
+ "carte": null,
+ "meteo": null,
+ "tmax": 900,
+ "images": 1206,
+ "empreinte": "8eef09b8afd1",
+ "fin": {
+  "t": 20.1,
+  "cause": "roche",
+  "argent": 1117.84,
+  "pieces": 93,
+  "figures": 0,
+  "bumps": 0,
+  "zones": 0,
+  "vmax": 505
+ },
+ "cartes": [
+  "grotte"
+ ],
+ "pourquoi": [
+  "champion : sa course la plus courte",
+  "la pire course de la generation (la plus courte)"
+ ],
+ "trajectoire": "trajectoires/c0025-g910185.json.gz",
+ "aide": "touches : le nombre d'images (1/60 s) depuis le changement d'avant, puis la touche — MAJUSCULE enfoncee, minuscule relachee ; G D H B N = gauche droite haut bas ESPACE ; C = la plaque CONTINUER de la seconde chance touchee (c : attente abandonnee)",
+ "touches": "13N22n19N190D4n8N5d36G23g3D4n38N8n3d4D4d8N29G19n4N11g7G11n2g9G4g6N13D10d5n6N13n11G3N3g21G7g4G7g8G4g6G25g8G15g13n8G7N4g7G4n1g22D6N18d32G0n15N3g5D5d14D7n3d10D5d4N3D4d7D4n3d15G8g4G25g0N8G4g8G3n1g15D1N5d14D12d14D5d16D13d13n1G36g26G20g13D33d14D2d"
+}
