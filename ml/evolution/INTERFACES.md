@@ -440,6 +440,7 @@ Le fichier `ml/evolution/config.json` donne **toutes** les clés et leurs valeur
 | `nonMesureesVire` | (absent de config.json : 2 par défaut) courses non mesurées d'un pilote dans une génération qui le virent d'office (`raison:'non-mesuree'`), jamais le témoin |
 | ~~`protectionCourses`~~ `protectionGenerations` | (28/11/2026, lot « règles », A4) ~~un vivant ne peut être viré ni être parent qu'avec au moins ce nombre de courses mesurées d'entraînement dans l'époque (24)~~ protection par l'âge (`v.ne`) : renvoyable à G si `ne ≤ G − p`, parent des naissances de G si `ne ≤ G − 1 − p` (p = 1) ; `protectionCourses` n'est plus lu |
 | `immigres` | enfants immigrés par génération (1 sur λ = 6) |
+| `greffes` | (28/11/2026) liste facultative d'ensembles gène → valeur (interrupteurs, choix, entiers ; jamais un réel, une tête ni un gène figé). La place de l'immigré suit un cycle de longueur n + 1 : rang = ((G − 1) · immigres + k) mod (n + 1) ; rang < n : une **greffe** (le champion recopié, ces gènes forcés, aucun tirage) ; rang = n : l'immigré ordinaire. Absente ou vide : rien ne change, au bit près. Règle complète : `notes/greffes.md` |
 | `essaisDoublon` | remutations au plus quand un enfant a un `id` déjà vu ; au-delà il est abandonné (λ − 1 enfants, écrit) |
 | `pannesVire` | pannes de cerveau (décisions coupées, somme sur ses lignes de la génération) qui virent d'office |
 | `bornePoids` | tout poids des têtes est borné à [−4, 4] après mutation |
@@ -893,6 +894,7 @@ c'est permis (« au plus »).
   (rayon : 2 sur 6 ; sol : 5 sur 18). Phase C en plus : avec `phases.C.pTete`, une tête reçoit `N(0, phases.C.sigma)` sur `max(1, round(part·nW1))` W1 (22 ; 7).
   Puis `reparer`. `mutes` liste les gènes réellement changés (et `'WV'`/`'WS'` pour une tête).
 - **Immigré** : `muter(champion, {genes:immigreGenes, sigma:immigreSigma})` (les têtes suivent la règle de la phase).
+- **Greffe** (28/11/2026, config `greffes`, `greffes.js`) : à la place de l'immigré quand le cycle le dit : `forcer(champion, ensemble)`, sans tirage ; si le champion porte déjà ces valeurs ou si l'enfant est déjà vu : une mutation ordinaire du génome greffé, valeurs reforcées (aussi après chaque remutation de doublon). L'enfant garde `origine:'immigre'` et porte `greffe:{…}` (vivants et `naissancesGeneration`) ; un événement « greffe … » est écrit, et redit à la reprise d'une génération interrompue.
 - **Croisement** : chaque gène de BORNES pris chez g1 ou g2 (`rng.suivant()<.5` → g1) ; `WV` entier chez l'un (un tirage), `WS` entier chez l'un (un tirage).
 - **Génération 0** : le témoin (`origine:'temoin'`), puis μ−1 mutants du témoin, `muter(temoin, {genes: genesMin + rng.entier(genesMax−genesMin+1), sigma:.15})`,
   `origine:'g0'`. Le témoin est le champion (`champion.id = temoin`, sans validation, sans fichier). `pop.rng` part de `cfg.graineMaitre`.

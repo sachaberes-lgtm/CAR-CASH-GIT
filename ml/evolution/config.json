@@ -48,6 +48,7 @@
   "immigres": 1,
   "immigreGenes": 8,
   "immigreSigma": 0.30,
+  "greffes": [{"bordOn": 1}, {"slalomOn": 1}, {"bordOn": 1, "slalomOn": 1}, {"bordOn": 1, "suitOn": 1, "fuirVite": 1}, {"raccCartes_ville": 0}],
   "pCroisement": 0.3,
   "poissonMutations": 2,
   "sigmaMutation": 0.15,

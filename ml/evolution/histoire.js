@@ -42,6 +42,14 @@ const RAISONS={renvoi:['note trop basse','notes trop basses'],pannes:['d\'office
 function compter(L,cle,noms){
   const c=new Map();for(const x of L){const k=x&&x[cle]||'?';c.set(k,(c.get(k)||0)+1);}
   return [...c.entries()].map(([k,n])=>n+' '+((noms[k]||[k,k])[n>1?1:0])).join(', ');}
+/* ===== LES GREFFES EN CLAIR (28/11/2026, greffes ; notes/greffes.md) =====
+   Une naissance qui porte greffe:{gene:valeur} (evoluer.js, config "greffes") : une phrase de plus. Sans greffe, rien ne change dans le recit. */
+const texteGreffe=g=>Object.keys(g).map(c=>c+' = '+g[c]).join(', ');
+function phraseGreffes(nes){
+  const L=(nes||[]).filter(x=>x&&x.greffe&&typeof x.greffe==='object');
+  if(!L.length)return '';
+  return (L.length>1?'Dont '+L.length+' nés par greffe':'Dont 1 né par greffe')+' (le champion du moment, recopié avec des interrupteurs forcés) : '+
+    L.map(x=>court(x.id)+' ('+texteGreffe(x.greffe)+')').join(', ')+'.';}
 const note=x=>x?'palier '+fr(x.ahat!=null?x.ahat:x.a)+', écart aux joueurs '+fr(x.E)+', note F '+fr(x.F,1)+(fini(x.n)?', '+x.n+' courses':''):'';
 
 /* ===== LES EVENEMENTS EN CLAIR (les textes d'evoluer.js, § 6 et § 8 d'INTERFACES.md) ===== */
@@ -72,6 +80,10 @@ function evenementClair(e){
   if((m=/^graine (\d+) : seul ([0-9a-f]+) n'est pas mesure/.exec(e)))return 'La course '+m[1]+' a été ratée par '+court(m[2])+' seulement : elle reste comptée pour les autres.';
   if((m=/^sacre : ([0-9a-f]+)$/i.exec(e)))return 'Sacre : '+court(m[1])+' devient le champion.';
   if(/^enfant abandonne : doublon/.test(e))return 'Un enfant a été abandonné : il était identique à un pilote déjà né.';
+  /* (28/11/2026, greffes) l'evenement d'evoluer.js naissances() : « greffe bordOn=1 + slalomOn=1 : <id> ne du champion <id> (…) » */
+  if((m=/^greffe (.+?) : ([0-9a-f]+) ne du champion ([0-9a-f]+) \((.*)\)$/.exec(e)))
+    return 'Greffe : '+court(m[2])+' est né du champion '+court(m[3])+', copié tel quel, avec '+m[1].split(' + ').map(x=>x.replace('=',' = ')).join(', ')+
+      (/aucune autre mutation/.test(m[4])?' (rien d\'autre ne change).':' (le champion les portait déjà, ou cette copie existait déjà : une petite mutation ordinaire en plus).');
   if(/^ATTENTION/.test(e))return '**'+e+'**';
   if(/controle d'identite$/.test(e))return 'Un fichier du pilote a changé ('+e.replace(/ : controle d'identite$/,'')+') : le contrôle d\'identité est refait.';
   return e;}
@@ -245,7 +257,8 @@ function texte(cfg,o){
     const nesP=pop.naissancesGeneration||[];
     out.push('### Génération '+pop.generation+' — en cours');
     out.push('');
-    out.push((nesP.length?pluriel(nesP.length,'naissance')+' ('+compter(nesP,'origine',ORIG)+')':'Aucune naissance')+'. Les courses sont en train de se jouer.');
+    out.push((nesP.length?pluriel(nesP.length,'naissance')+' ('+compter(nesP,'origine',ORIG)+')':'Aucune naissance')+'. '+
+      (phraseGreffes(nesP)?phraseGreffes(nesP)+' ':'')+'Les courses sont en train de se jouer.');   /* (28/11/2026, greffes) la phrase des greffes, s'il y en a */
     out.push('');}
   return out.join('\n')+'\n';}
 
@@ -280,6 +293,7 @@ function entree(g,avant,vals,cofs,cfg,pop){   /* pop : le temoin en clair (28/11
   if(g.generation===0){const n=(g.population||[]).length||nes.length;
     P.push('La population de départ : '+pluriel(n,'pilote')+', le témoin ('+ET.temoinClair(pop)+') et '+Math.max(0,n-1)+' mutants de départ, des copies du témoin aux réglages un peu changés.');}
   else P.push(nes.length?pluriel(nes.length,'naissance')+' ('+compter(nes,'origine',ORIG)+').':'Aucune naissance.');
+  {const pg=g.generation===0?'':phraseGreffes(nes);if(pg)P.push(pg);}   /* (28/11/2026, greffes) */
   const mo=g.morts||[];
   P.push(!mo.length?'Aucun renvoi.':mo.every(m=>m&&m.raison==='renvoi')?pluriel(mo.length,'renvoi')+' : '+(mo.length>1?'les notes F les plus basses.':'la note F la plus basse.'):
     pluriel(mo.length,'renvoi')+' ('+compter(mo,'raison',RAISONS)+').');

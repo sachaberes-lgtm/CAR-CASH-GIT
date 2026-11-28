@@ -16,6 +16,7 @@
 'use strict';
 const fs=require('fs'),path=require('path'),{execFileSync}=require('child_process');
 const C=require('./commun'),K=require('./courses'),Gn=require('./genome'),Gr=require('./graines'),N=require('./note');
+const Gf=require('./greffes');   /* (28/11/2026, greffes) la config "greffes" et le cycle des greffes : notes/greffes.md */
 
 const hh=()=>new Date().toTimeString().slice(0,8);
 
@@ -255,6 +256,7 @@ function charger(cfg,o){
   o=o||{};
   const P=chemins(cfg);
   planValidation(cfg);   /* (28/11, lot « sacre ») un plan de validation mal ecrit dans la config : refus tout de suite, pas a la premiere validation */
+  Gf.lireGreffes(cfg);   /* (28/11/2026, greffes) de meme pour la config "greffes" (principal l'a deja controlee, avant le banc) */
   fs.mkdirSync(P.dossier,{recursive:true});
   const dire0=o.dire||direDefaut;
   for(const f of [P.generations,P.validations,P.morts,P.coffre]){
@@ -262,6 +264,7 @@ function charger(cfg,o){
     else C.reparerFin(f,t=>dire0('evoluer : '+t));
   }
   C.nettoyerTmp(P.dossier,t=>dire0('evoluer : '+t));
+  if(Gf.lireGreffes(cfg).length&&!(cfg.immigres>0))dire0('greffes : la config en demande, mais "immigres" vaut '+JSON.stringify(cfg.immigres)+' : aucune greffe ne sera faite (elles prennent la place de l\'immigre)');
   const pop=C.lireJson(P.pop,null);
   if(pop){
     if(pop.format!=='evolution-population-1')throw new Error('evoluer : population.json au format inconnu « '+pop.format+' »');
@@ -416,6 +419,13 @@ function tournoi(ctx,notes,rng,exclure,G){
   pris.sort((a,b)=>(fDe(notes,b.id)-fDe(notes,a.id))||(a.id<b.id?-1:a.id>b.id?1:0));
   return pris[0];
 }
+/* ===== L'EVENEMENT D'UNE GREFFE (28/11/2026, greffes, le relecteur) =====
+   Le meme texte a la naissance et a la reprise d'une generation interrompue (generation() le redit : les evenements de naissances() ne vivent
+   qu'en memoire jusqu'a la fin de la generation, un STOP les perdait, et la ligne de generations.jsonl n'aurait plus dit la greffe). */
+function texteGreffe(greffe,id,champ,muteEnPlus,essais){
+  return 'greffe '+Gf.texte(greffe)+' : '+court(id)+' ne du champion '+court(champ)+
+    (muteEnPlus?' (le champion portait deja ces valeurs ou l\'enfant etait deja vu : plus une mutation ordinaire'+(essais?', '+essais+' remutation(s)':'')+')':' (aucune autre mutation)');
+}
 function naissances(ctx,G){
   const cfg=ctx.cfg,pop=ctx.pop;
   /* (28/11, lot « regles », M6) plus assez de graines d'entrainement neuves : arret AVANT toute naissance (rien n'est change ni ecrit ; l'etat reste a la
@@ -427,10 +437,23 @@ function naissances(ctx,G){
   const notes=noterTous(ctx),vus=new Set(pop.dejaVus),phase=pop.phase;
   const champion=vivantDe(ctx,pop.champion.id)||vivantDe(ctx,pop.temoin);
   const nes=[],abandons=[];
+  /* ===== LES GREFFES (28/11/2026, greffes ; notes/greffes.md) =====
+     cfg.greffes absente ou [] : greffes vide, aucune ligne ci-dessous ne s'execute (memes tirages, memes enfants, memes journaux qu'avant).
+     Sinon, la place de l'immigre k suit le cycle de greffes.js : soit une greffe (le champion tel quel, des genes forces, AUCUN tirage), soit
+     l'immigre ordinaire. Une greffe qui ne change rien (le champion porte deja ces valeurs) ou qui retombe sur un pilote deja vu : une mutation
+     ordinaire du genome greffe, valeurs reforcees, puis la boucle des doublons, qui les reforce apres chaque remutation. L'enfant reste
+     origine 'immigre' et porte greffe:{...}. */
+  const greffes=Gf.lireGreffes(cfg);
   for(let k=0;k<cfg.lambda;k++){
-    let g,parents,origine;
+    let g,parents,origine,greffe=null,repli=false;
     if(k<(cfg.immigres||0)){
-      g=Gn.muter(champion.genome,rng,{phase:phase,cfg:cfg,genes:cfg.immigreGenes,sigma:cfg.immigreSigma}).genome;parents=[champion.id];origine='immigre';
+      greffe=greffes.length?Gf.ensembleDe(greffes,G,k,cfg.immigres||0):null;
+      if(greffe){
+        g=Gf.forcer(champion.genome,greffe);parents=[champion.id];origine='immigre';
+        if(Gf.dejaPorte(champion.genome,greffe)||vus.has(Gn.idDe(g))){g=Gf.forcer(Gn.muter(g,rng,{phase:phase,cfg:cfg}).genome,greffe);repli=true;}
+      }else{
+        g=Gn.muter(champion.genome,rng,{phase:phase,cfg:cfg,genes:cfg.immigreGenes,sigma:cfg.immigreSigma}).genome;parents=[champion.id];origine='immigre';
+      }
     }else{
       const p1=tournoi(ctx,notes,rng,null,G),u=rng.suivant();
       if(u<cfg.pCroisement){
@@ -439,11 +462,16 @@ function naissances(ctx,G){
       }else{g=Gn.muter(p1.genome,rng,{phase:phase,cfg:cfg}).genome;parents=[p1.id];origine='mutation';}
     }
     let id=Gn.idDe(g),essais=0;
-    while(vus.has(id)&&essais<cfg.essaisDoublon){g=Gn.muter(g,rng,{phase:phase,cfg:cfg}).genome;id=Gn.idDe(g);essais++;}
-    if(vus.has(id)){abandons.push({id:id,parents:parents,origine:origine});evenement(ctx,'enfant abandonne : doublon apres '+essais+' remutations');continue;}
+    while(vus.has(id)&&essais<cfg.essaisDoublon){g=Gn.muter(g,rng,{phase:phase,cfg:cfg}).genome;if(greffe)g=Gf.forcer(g,greffe);id=Gn.idDe(g);essais++;}
+    if(vus.has(id)){abandons.push(Object.assign({id:id,parents:parents,origine:origine},greffe?{greffe:greffe}:{}));
+      evenement(ctx,'enfant abandonne : doublon apres '+essais+' remutations'+(greffe?' (greffe '+Gf.texte(greffe)+')':''));continue;}
     vus.add(id);
     const p0=vivantDe(ctx,parents[0]);
     const v={id:id,genome:g,shaPilote:null,ne:G,parents:parents,origine:origine,mutes:diffGenomes(g,p0.genome),pannesGeneration:0};
+    if(greffe){
+      v.greffe=Object.assign({},greffe);
+      evenement(ctx,texteGreffe(greffe,id,champion.id,repli||essais>0,essais));
+    }
     nes.push(v);
   }
   for(const v of nes){pop.vivants.push(v);texteDe(ctx,v);}
@@ -452,11 +480,11 @@ function naissances(ctx,G){
   {const reste=Gr.grainesRestantes(r.eg,cfg);
     if(reste<20*pop.nGraines)evenement(ctx,'graines d\'entrainement : il n\'en reste que '+reste+' neuves (moins de 20 generations) : allonger cfg.graines.entrainement.suite.fin');}
   pop.rng=rng.etat();pop.generation=G;pop.etape='courses';pop.dejaVus=[...vus];
-  pop.naissancesGeneration=nes.map(v=>({id:v.id,parents:v.parents,origine:v.origine,mutes:v.mutes.map(m=>m.cle)}));
+  pop.naissancesGeneration=nes.map(v=>Object.assign({id:v.id,parents:v.parents,origine:v.origine,mutes:v.mutes.map(m=>m.cle)},v.greffe?{greffe:Object.assign({},v.greffe)}:{}));
   pop.abandonsGeneration=abandons;
   for(const v of pop.vivants)v.pannesGeneration=0;
   ecrirePop(ctx);
-  ctx.dire('generation '+G+' : '+nes.length+' naissance(s) ('+nes.map(v=>court(v.id)+' '+v.origine).join(', ')+') ; graines '+r.graines.join(' '));
+  ctx.dire('generation '+G+' : '+nes.length+' naissance(s) ('+nes.map(v=>court(v.id)+' '+v.origine+(v.greffe?' greffe '+Gf.texte(v.greffe):'')).join(', ')+') ; graines '+r.graines.join(' '));
 }
 
 /* ---------- LA GENERATION 0 (§ 6.2) ---------- */
@@ -783,7 +811,11 @@ async function generation(ctx){
   await preparer(ctx);
   const pop=ctx.pop;
   if(pop.etape==='fin')naissances(ctx,pop.generation+1);
-  else if(!ctx.neeIci)ctx.dire('generation '+pop.generation+' : reprise (naissances deja faites, le cache rend les courses deja jouees)');
+  else if(!ctx.neeIci){ctx.dire('generation '+pop.generation+' : reprise (naissances deja faites, le cache rend les courses deja jouees)');
+    /* (28/11/2026, greffes, le relecteur) l'evenement des greffes de cette generation, perdu avec la memoire du lancement interrompu : redit ici.
+       Le nombre de remutations n'est pas garde : « plus une mutation » se deduit de mutes (un gene change hors de la greffe). Sans greffe : rien. */
+    for(const n of pop.naissancesGeneration||[])if(n&&n.greffe&&typeof n.greffe==='object'&&n.parents&&n.parents[0]!=null)
+      evenement(ctx,texteGreffe(n.greffe,n.id,n.parents[0],(n.mutes||[]).some(c=>!Object.prototype.hasOwnProperty.call(n.greffe,c)),0));}
   const G=pop.generation;
   const stA=ctx.ord.stats();   /* l'ordonnanceur a pu etre recree par preparer */
   const base=stA.jouees<st0.jouees?{jouees:0,cache:0,nonMesurees:0,relancees:0,tuees:0,ms:0}:st0;
@@ -1234,6 +1266,7 @@ async function principal(argv){
     cfg=C.lireConfig(op.config);
     if(op.etat){const d=path.resolve(C.DOSSIER,op.etat);cfg.dossierEtat=d;cfg.dossierChampions=path.join(d,'champions');}
     C.resoudreTravailleurs(cfg,{ligne:op.travailleurs});
+    Gf.lireGreffes(cfg);   /* (28/11/2026, greffes) une config "greffes" mal ecrite : refus avant toute course (banc compris), code 1 comme une config illisible */
   }catch(e){ecrireErreur(String(e&&e.message||e)+'\n');return 1;}
   CONSOLE.secours=path.join(C.chemin(cfg,cfg.dossierEtat),'sortie.log');
   const arretApres=op.arretApres!=null?op.arretApres:Infinity;
@@ -1334,6 +1367,7 @@ module.exports={generation,charger,verrouiller,refusDePartir,ecrireChampion,vali
   repartir,archiverEtat,refusNode,
   planValidation,decisionRegard,borneRegard,regarder,zDe,alarmeMalediction,   /* (28/11, lot « sacre ») la validation sequentielle et l'alarme, pour les tests et la mesure */
   ordreLongues,ordreLignes,   /* (28/11, lot « regles ») l'ordre des demandes (A6) et l'ordre fixe des lignes de la note, pour les tests */
+  naissances,generation0,texteGreffe,   /* (28/11/2026, greffes) pour tests/greffes.test.js : les naissances sans aucune course, le texte redit a la reprise */
   principal};   /* (28/11, le relecteur) pour le test p7 de portage.test.js (--repartir-de et un STOP), lance dans un processus a part */
 
 if(require.main===module){
