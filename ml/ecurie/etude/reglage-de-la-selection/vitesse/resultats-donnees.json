@@ -1,0 +1,169 @@
+{
+ "lignes": 567,
+ "parUsage": {
+  "entrainement gen 0": 240,
+  "coffre gen 0": 40,
+  "entrainement gen 1": 287
+ },
+ "boucle": {
+  "a_s": -10.26,
+  "b_s_par_s": 0.608,
+  "r2": 0.801,
+  "n": 567,
+  "foisTempsReelMoyen": 1.89
+ },
+ "tranches": [
+  {
+   "de": 0,
+   "a": 15,
+   "n": 4,
+   "survie": 13.6,
+   "boucle": 5.6
+  },
+  {
+   "de": 15,
+   "a": 30,
+   "n": 54,
+   "survie": 21.6,
+   "boucle": 9.2
+  },
+  {
+   "de": 30,
+   "a": 60,
+   "n": 70,
+   "survie": 45.8,
+   "boucle": 17.3
+  },
+  {
+   "de": 60,
+   "a": 120,
+   "n": 163,
+   "survie": 94,
+   "boucle": 47
+  },
+  {
+   "de": 120,
+   "a": 240,
+   "n": 220,
+   "survie": 168.7,
+   "boucle": 88.9
+  },
+  {
+   "de": 240,
+   "a": 900.1,
+   "n": 56,
+   "survie": 298.3,
+   "boucle": 178
+  }
+ ],
+ "fenetres": [
+  {
+   "nom": "generation 1 (en cours, aucune fin de generation dedans)",
+   "n": 287,
+   "duree_s": 7932.7,
+   "sommeBoucles_s": 23997.8,
+   "parCourse_s": 110.6,
+   "boucleMoy_s": 83.6,
+   "fixeHaut_s": 26.9,
+   "fixeBas_s": 25.4,
+   "fixeMilieu_s": 26.2
+  },
+  {
+   "nom": "generation 0 apres la reprise (fin de generation dedans)",
+   "n": 218,
+   "duree_s": 4120,
+   "sommeBoucles_s": 12156.9,
+   "parCourse_s": 75.6,
+   "boucleMoy_s": 55.8,
+   "fixeHaut_s": 19.8,
+   "fixeBas_s": null,
+   "fixeMilieu_s": 19.8
+  },
+  {
+   "nom": "coffre (fin de lot dedans)",
+   "n": 40,
+   "duree_s": 754,
+   "sommeBoucles_s": 2134.3,
+   "parCourse_s": 75.4,
+   "boucleMoy_s": 53.4,
+   "fixeHaut_s": 22,
+   "fixeBas_s": null,
+   "fixeMilieu_s": 22
+  }
+ ],
+ "cerveau": {
+  "part": 0.024,
+  "decisionMediane_ms": 1.103
+ },
+ "courtes": {
+  "moins15": 4,
+  "moins30": 58,
+  "n": 567,
+  "partFixe": 0.276
+ },
+ "generation312_min": 143.8,
+ "doubles": {
+  "survieMediane": 47.4,
+  "sous60": 33,
+  "n": 50,
+  "partBoucle": 0.038
+ },
+ "pourRien": {
+  "identiques": 50,
+  "n": 567,
+  "clones": 1,
+  "doublonsCle": 0,
+  "naissances1": [
+   {
+    "id": "d361ff1483f5",
+    "origine": "immigre",
+    "courses": 11,
+    "parents": [
+     "19e3767cc346 0/11"
+    ]
+   },
+   {
+    "id": "9627905cd5bb",
+    "origine": "mutation",
+    "courses": 11,
+    "parents": [
+     "3032bf8184f5 11/11"
+    ]
+   },
+   {
+    "id": "9ae0f54f48ae",
+    "origine": "mutation",
+    "courses": 11,
+    "parents": [
+     "95cd1fe7216b 0/11"
+    ]
+   },
+   {
+    "id": "5a2962dde73d",
+    "origine": "croisement",
+    "courses": 11,
+    "parents": [
+     "d0281d911fb9 0/11",
+     "1a146f9f0ffc 0/11"
+    ]
+   },
+   {
+    "id": "9e65b289560d",
+    "origine": "croisement",
+    "courses": 10,
+    "parents": [
+     "3032bf8184f5 0/10",
+     "1a146f9f0ffc 0/10"
+    ]
+   },
+   {
+    "id": "92bcfe194dd3",
+    "origine": "mutation",
+    "courses": 11,
+    "parents": [
+     "3032bf8184f5 0/11"
+    ]
+   }
+  ]
+ }
+}

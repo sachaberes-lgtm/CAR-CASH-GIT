@@ -1,6 +1,6 @@
-# Les orchestrations du 27 novembre 2026
+# Les orchestrations du 27 et du 28 novembre 2026
 
-Ce dossier garde la trace de quatre travaux faits le 27/11/2026 par des équipes d'agents. Il montre comment le travail a été réparti, ce que les agents ont rendu, ce que leurs relecteurs ont trouvé, et ce qui a encore dû être corrigé après eux.
+Ce dossier garde la trace de huit travaux faits par des équipes d'agents : quatre le 27/11/2026, quatre dans la nuit du 27 au 28/11. Il montre comment le travail a été réparti, ce que les agents ont rendu, ce que leurs relecteurs ont trouvé, et ce qui a encore dû être corrigé après eux.
 
 Pour chaque travail, un sous-dossier contient deux fichiers :
 
@@ -13,9 +13,15 @@ Pour chaque travail, un sous-dossier contient deux fichiers :
 | `journal/` | écrire le journal de bord du portfolio | 16 | 25 min | 2 444 100 | 523 |
 | `images/` | tirer cinq images des données et rendre le journal lisible | 20 | 26 min | 2 463 737 | 547 |
 | `finitions/` | finir `ml/evolution` avant de l'installer sur le Ryzen | 7 | 3 h 18 | 1 993 694 | 568 |
-| **total** | | **53** | | **9 300 742** | **2 180** |
+| *sous-total du 27/11* | | *53* | | *9 300 742* | *2 180* |
+| `traces-du-soir/` | ranger le soir du 27/11 dans le journal, la passation et ce dossier | 4 | 16 min | 782 967 | 260 |
+| `reglage/` | étudier le réglage de la sélection, sans jouer de course | 11 | 2 h 11 | 2 604 327 | 619 |
+| `portage/` | faire des idées de la boucle payante des gènes, fixer Node, mesurer le coffre | 9 | 1 h 26 | 1 819 083 | 542 |
+| `changements-surs/` | faire entrer les changements sûrs de l'étude dans la sélection | 7 | 5 h 03 | 1 986 602 | 597 |
+| *sous-total de la nuit* | | *31* | | *7 192 979* | *2 018* |
+| **total** | | **84** | | **16 493 721** | **4 198** |
 
-Les chiffres viennent du bilan que Claude Code écrit à la fin de chaque orchestration. Le journal et les images ont tourné pendant que la construction tournait encore. Deux autres orchestrations du même jour, plus tôt dans l'après-midi (la conception de la sélection naturelle et les enquêtes sur ce qui distingue le bot d'un joueur), ne sont pas rangées ici.
+Les chiffres viennent du bilan que Claude Code écrit à la fin de chaque orchestration (`workflows/<identifiant>.json` : `agentCount`, `durationMs`, `totalTokens`, `totalToolCalls`), relus le 28/11 au matin. Ils redonnent les nombres que la session principale avait en mémoire pour la nuit : 0,78, 2,60, 1,82 et 1,99 million de jetons. Le journal et les images ont tourné pendant que la construction tournait encore ; la nuit, les traces du soir et l'étude du réglage ont démarré à moins de trois minutes d'écart, et l'étude tournait encore quand le portage a commencé. Deux autres orchestrations du 27/11, plus tôt dans l'après-midi (la conception de la sélection naturelle et les enquêtes sur ce qui distingue le bot d'un joueur), ne sont pas rangées ici. Deux autres encore ont démarré le 28/11 au matin et n'étaient pas finies quand ce dossier a été complété (les « prochaines idées », et celle qui a rangé les quatre travaux de la nuit) : elles n'ont pas encore de bilan et ne sont pas rangées ici.
 
 ---
 
@@ -140,6 +146,112 @@ L'intégrateur a corrigé 7 points de plus et fait un essai de 3 générations s
 
 ---
 
+## La nuit du 27 au 28/11 : ce qui se passe autour des quatre équipes
+
+Les quatre travaux de la nuit répondent à ce qui arrive du Ryzen. Les faits, dans l'ordre, d'après git :
+
+- À 0 h 12, un commit signé Sacha sur le Ryzen arrête la boucle payante (`b1ff8af89` : « arret pour la selection naturelle », génération 15 interrompue, champion c0101, journal total 58,53 EUR sur 200). La boucle payante, c'est l'ancienne méthode : un modèle de langage réécrit le pilote, le vrai jeu le note, et chaque version coûte de l'argent d'API.
+- À 0 h 29, la sélection naturelle démarre sur le Ryzen (« lance le 28/11 00:29 », dans le `resume.txt` que le Ryzen a envoyé sur la branche `evolution-ryzen`). Elle y tient 10 courses à la fois et joue 418 courses à l'heure ; sa génération 0, 280 courses, a pris 40 minutes. Le Xeon, à 4 courses à la fois, en faisait 191 à l'heure.
+- À 0 h 36, les résultats de la boucle payante rejoignent `bots-ecurie` (commit `7f9543955`) : cinq champions sacrés à la suite (c0026, c0064, c0072, c0087, c0101), 21,61 EUR dépensés sur le Ryzen.
+- L'installation a révélé deux défauts. Le rapport d'installation que Sacha a transmis est recopié dans la consigne du lot « lanceurs » (`portage/script.js`) : un mauvais Node passait devant dans le PATH, et les tâches planifiées avaient la limite de 72 heures que Windows met par défaut.
+
+Les quatre équipes ont été lancées par la session principale. Les décisions de cap restent celles de Sacha : arrêter la boucle payante, installer la sélection sur le Ryzen. Le choix des études, des lots, des consignes et de l'ordre est celui de Claude.
+
+---
+
+## 5. Les traces du soir du 27/11 (27/11, 23 h 13 – 23 h 29)
+
+**Le but.** Ranger la soirée du 27/11 avant qu'elle s'oublie : la compléter dans le journal de bord, mettre à jour les deux documents de passation (`ml/ecurie/ETAPES.md`, `ml/ecurie/PASSATION.md`, qui servent à une session qui reprendrait le chantier sans rien savoir), et créer ce dossier.
+
+**L'équipe : 4 agents.** Trois **rédacteurs** en même temps (le journal, la passation, les traces des orchestrations), puis un **vérificateur** qui reçoit leurs trois comptes rendus. C'est le rédacteur des traces qui a écrit l'outil `orchestration.js` et les sections 1 à 4 ci-dessus.
+
+**Ce que le vérificateur a trouvé.** Il dit avoir recontrôlé plus de 40 chiffres, dates et citations dans les sources. Ses corrections les plus nettes viennent de la consigne elle-même, donc de la session principale :
+
+- La consigne donnait le premier vrai lancement « vers 19 h 40 ». L'heure écrite dans le verrou de ce lancement est 19 h 33. Corrigé dans trois fichiers.
+- La consigne donnait « le journal de bord (7 agents, 2,44 millions) ». L'équipe du journal comptait 16 agents. Corrigé dans la passation.
+- L'outil de nettoyage révélait lui-même un détail familial, parce que sa règle cherchait une tournure trop précise. Le vérificateur l'a remplacée par une règle générale ; le résultat du nettoyage est le même.
+
+Il a laissé un doute ouvert : il n'a trouvé dans aucun fichier le contrôle d'identité « IDENTIQUE sur 3 graines » de la vraie évolution du Xeon ; le journal et la passation l'écrivent donc « d'après Fable ».
+
+**Ce que la session principale a fait après.** Elle a enregistré le tout une minute après la fin de l'équipe (commit `e93ff5cb5`, 23 h 30). C'est ce commit que le Ryzen a installé une heure plus tard. Aucune correction de sa part n'est signalée dans le message du commit.
+
+---
+
+## 6. L'étude du réglage de la sélection (27/11, 23 h 16 – 28/11, 1 h 26)
+
+**Le but.** Avant de laisser le Ryzen tourner des jours, savoir si la sélection telle qu'elle est réglée peut progresser, et ce qui la freine. Sans jouer de course : sur les deux vraies générations jouées par le Xeon le 27/11. Le résultat est dans `ml/ecurie/etude/reglage-de-la-selection/LISEZ-MOI.md`.
+
+**L'équipe : 11 agents.** Cinq **auteurs d'études**, en même temps : ce que font vraiment les mutations (« effets ») ; un **simulateur** de la sélection, qui ne joue aucune course ; où part le temps d'une course (« vitesse ») ; faut-il finir les courses d'un enfant visiblement raté (« tri précoce ») ; comment reconnaître un vrai meilleur sans sacrer un chanceux (« sacre »). Chaque étude, dès qu'elle est finie, passe à son **relecteur**, qui doit chercher à la réfuter, refaire au moins un résultat par un autre chemin et corriger le texte en place. Enfin un agent écrit la **synthèse** classée.
+
+**Ce que les relecteurs ont trouvé.** Ils ont jugé 26 recommandations : 6 « tiennent », 18 « tiennent avec réserve », 2 « ne tiennent pas ». Ils ont corrigé 33 erreurs en tout. Quelques exemples, tirés de leurs comptes rendus :
+
+- **Un gain mesuré sur les données qui ont servi à le choisir.** Le simulateur proposait de ne rejouer qu'une partie des anciens pilotes, pour +0,31 palier. Ce réglage avait été choisi parmi 15 sur les mêmes mondes simulés. Le relecteur l'a rejoué sur 40 mondes neufs : +0,05. C'est le même piège que celui de la boucle payante, raconté à la section 7.
+- **Des gains surestimés de deux à trois fois.** L'étude « vitesse » rapportait les secondes gagnées à une course courte (42,7 s), puis appliquait le pourcentage à une course moyenne (110,6 s). Une accélération annoncée à 12,4 % vaut 4,7 à 6,1 %.
+- **La mauvaise base de comparaison.** L'étude « tri précoce » comparait tout à une génération de 12 graines. Le relecteur a vu dans les journaux que la vraie évolution était déjà passée à 8 graines par génération. Le gain annoncé (2,1 fois plus de générations par jour) devient 1,4 fois.
+- **Un bruit compté deux fois.** Les paramètres que l'étude « effets » donnait au simulateur doublaient le hasard d'une course d'enfant.
+
+Le résultat qui compte, dans la synthèse : le hasard d'une course vaut 3,26 paliers ; l'écart vrai entre deux mutants vaut 0,32 palier, avec un intervalle de 0 à 1,07. Dans le cas le plus probable, le classement de la sélection est fait à 80 ou 90 % de hasard. D'après le message du commit `1f64c426b`, la synthèse classe quatre changements sûrs, deux à grouper avec une époque, cinq à essayer après une mesure, cinq décisions pour Sacha et neuf idées écartées.
+
+**Ce que la session principale a fait après.** Elle a enregistré l'étude à 1 h 28 (commit `1f64c426b`). Son message ne signale aucune correction de sa part. Les quatre changements sûrs sont devenus la consigne de la section 8.
+
+---
+
+## 7. Les idées de la boucle payante deviennent des gènes, le Node fixe, la mesure du coffre (28/11, 0 h 38 – 2 h 04)
+
+**Le but.** Le Ryzen venait de rendre cinq champions de la boucle payante. Quatre questions : c0101, le dernier, est-il vraiment meilleur que le pilote de départ c0025 sur des courses neuves ? Que raconte la boucle, génération par génération ? La sélection peut-elle reprendre ses idées sous forme de gènes ? Et les deux défauts de l'installation sur le Ryzen.
+
+**L'équipe : 9 agents.** Quatre **constructeurs**, chacun suivi de son **relecteur** dès qu'il a fini, puis un **intégrateur** :
+
+1. « **mesure** » : jouer c0025, c0026, c0064 et c0101 sur les 40 graines du « coffre ». Une graine fixe une course (les cartes tirées, la route) ; les graines du coffre n'ont jamais servi à choisir un pilote.
+2. « **lignée** » : l'histoire de la boucle payante, pour le portfolio (`ml/ecurie/etude/boucle-payante-ryzen/LISEZ-MOI.md`) : 88 versions écrites en 15 générations pour 21,61 EUR, et la règle du sacre de la boucle (à égalité en validation, on sacre).
+3. « **portage** » : le génome passe à la version 3, avec 121 gènes. Les quatre idées de la boucle deviennent quatre interrupteurs, éteints à la naissance. Tout éteint, le pilote écrit joue comme c0025 au bit près ; tout allumé, comme c0101.
+4. « **lanceurs** » : un Node fixe par PC (`etat/node.txt`), et des tâches planifiées sans limite de durée.
+
+**Ce que les relecteurs ont trouvé.**
+
+- **Le verdict provisoire de la mesure ne tenait pas.** L'agent de la mesure a été arrêté avant la fin de ses courses : il dit lui-même avoir rendu son compte rendu après 20 courses sur 164. Sur les 20 graines de validation de la boucle, il trouvait c0064 meilleur que c0025 de 2 paliers, et proposait c0064 comme pilote de départ. Son relecteur a joué 6 graines de plus du coffre : sur 10 graines, c0064 fait −1,20 palier par rapport à c0025 (intervalle à 95 % de −3,20 à +0,40). Il a écrit que le verdict n'était pas soutenu.
+- **Deux lots qui se gênaient.** Le même relecteur a trouvé que le lot « portage », qui tournait en même temps, avait modifié `ml/evolution/modele.js`. Ce fichier entre dans l'« époque » des courses : quand il change, les courses déjà jouées ne comptent plus. L'outil d'analyse de la mesure ne gardait plus aucune course. Le relecteur l'a corrigé. La cause est dans la consigne de la session principale : elle lançait en même temps une mesure et un lot qui touchait un fichier de l'époque. La consigne suivante (section 8, `changements-surs/script.js`) interdit de toucher `modele.js` et `enfant.js` pendant qu'une mesure tourne.
+- **Un état vide après un arrêt.** Le relecteur du portage a trouvé que la commande qui fait repartir la population d'un autre pilote (`--repartir-de c0101`) pouvait laisser l'état vide si on l'arrêtait au mauvais moment. La relance horaire aurait alors fait renaître la population de c0025 sans le dire. Corrigé, avec un test.
+- **Des tâches vérifiées par Windows sans être posées.** Le relecteur des lanceurs a fait contrôler les trois fichiers de tâches par le Planificateur de tâches de Windows, dans un mode qui vérifie sans rien enregistrer : ils sont acceptés. Il a corrigé deux défauts, dont un qui aurait fait refuser au lanceur le Node que l'installateur venait de fixer.
+- **Deux phrases fausses dans l'histoire de la boucle**, corrigées par le relecteur de la lignée.
+
+L'intégrateur a fermé un dernier trou entre le portage et les lanceurs : sur le Ryzen, la commande de changement de pilote se tape à la main, avec le mauvais Node du PATH ; `evoluer.js` refuse désormais de partir sous un autre Node que celui de la population. Il dit que tous les tests rapides passent ; la commande de changement de pilote n'a pas été essayée de bout en bout par le lanceur `lancer.cmd`. Il a laissé le pilote de départ à c0025 : la décision revenait à la session principale.
+
+**Ce que la session principale a fait après.** Elle a enregistré le travail à 2 h 08 (commit `7b1df608e`), puis fini elle-même la mesure du coffre : 40 graines sur 40, 160 courses (`ml/ecurie/etude/boucle-payante-ryzen/coffre/LISEZ-MOI.md`, commit `00fb4cfad`, 3 h 04). **Le résultat est une impasse.** Sur ces 40 courses neuves, c0064 fait +0,03 palier par rapport à c0025 (intervalle à 95 % de −1,18 à +1,38), c0101 aussi (de −1,18 à +1,23). Le « +2 paliers » vu en validation venait de 20 graines rejouées à chaque sacre : le champion était celui que le hasard y favorisait. La boucle payante a coûté 21,61 EUR et une nuit de Ryzen pour l'apprendre. La décision de la session principale : le pilote de départ reste c0025, et les quatre idées de la boucle restent des gènes éteints à la naissance, que la sélection essaiera une par une.
+
+---
+
+## 8. Les changements sûrs de l'étude entrent dans la sélection (28/11, 2 h 10 – 7 h 13)
+
+**Le but.** Appliquer à `ml/evolution` les changements que l'étude du réglage (section 6) jugeait sûrs, avant la mise à jour du Ryzen. Le détail est dans `ml/evolution/notes/LIVRAISON-REGLAGE.md`.
+
+**L'équipe : 7 agents.** Deux **constructeurs** en même temps, « sacre » et « tau », puis un troisième, « règles », qui attend le premier parce qu'ils touchent le même fichier. Puis trois **relecteurs** en même temps, et un **intégrateur**.
+
+1. « **sacre** » : la validation devient séquentielle. Le meilleur pilote du moment affronte le champion sur 24 graines neuves, puis par paquets de 12, jusqu'à 96. Et l'alarme « malédiction du gagnant » est coupée : l'étude avait montré qu'elle sonnait par construction.
+2. « **tau** » : un outil neuf, `mesure-tau.js`. Il dit, sans jouer une course de plus, si les mutations comptent : un enfant bon sur ses premières graines l'est-il aussi sur les suivantes ?
+3. « **règles** » : les enfants sont protégés par leur âge et non par un nombre de courses ; les courses longues sont demandées d'abord ; la réserve de graines d'entraînement ne s'épuise plus ; les mutations ne tombent plus sur un réglage que le pilote ne lit pas.
+
+**Ce que les relecteurs et les constructeurs ont trouvé.**
+
+- **Une règle que personne n'avait relue.** La synthèse le disait d'un des changements (la protection des enfants). Le constructeur des règles a vérifié le code avant de le changer : la règle en place ne faisait pas ce que la synthèse décrivait dans trois cas, dont un où aucun pilote n'était renvoyé pendant toute la première génération d'une nouvelle époque.
+- **Une note qui dépendait de l'ordre d'arrivée des courses.** En changeant l'ordre des courses, le même constructeur a découvert que la note d'un pilote changeait selon l'ordre où les courses finissaient. Il a trié les lignes avant le calcul. Son relecteur l'a vérifié : sur 10 mélanges des mêmes 48 courses, la note changeait 10 fois avant la correction, 0 fois après.
+- **Une conclusion trop rapide.** L'outil « tau » ne doit jamais conclure avant d'avoir mesuré assez d'enfants (191). Son relecteur a trouvé deux états d'essai, laissés par un autre test, où le hasard mesuré valait zéro : l'outil n'exigeait plus que 4 enfants et concluait « les mutations comptent » sur 7. Corrigé par un plancher.
+- **Un prix assumé.** Avec les garde-fous du sacre laissés à leur valeur par défaut, un vrai +2 paliers est reconnu environ 80 fois sur 100, et non 86 comme l'étude l'annonçait avec des garde-fous plus sévères. Ce choix est laissé à Sacha.
+
+Cette équipe a duré 5 h 03, la plus longue des huit : l'intégrateur a relancé les tests lents. D'après le message du commit `3b1bf15e5`, le test de bout en bout a pris 3 602 secondes, et un état écrit par le code exact du Ryzen a été repris par le nouveau code en vraies courses. L'intégrateur n'a pas lancé `tests/courses.test.js` : ce test joue 4 courses à la fois, et le PC en jouait déjà 4 pour le banc des gènes.
+
+**Ce que la session principale a fait après** (commits `3b1bf15e5` et `2a3bea3c1`, 7 h 20 et 7 h 22 ; `LIVRAISON-REGLAGE.md` § 5). Elle a relancé une par une les 19 suites de tests rapides. Puis elle a fait lire par le nouveau code le dernier état envoyé par le Ryzen : ses 26 génomes se relisent en version 3 avec les mêmes identifiants, et la fusion avec la branche du Ryzen ne fait aucun conflit. Elle a relevé un point à regarder d'abord sur place : le dernier envoi du Ryzen datait de 2 h 00. À 418 courses à l'heure, il aurait dû envoyer cinq fois depuis.
+
+---
+
+## La leçon de méthode de la nuit
+
+C'est une décision de la session principale. La sélection naturelle et la boucle payante butent sur le même mur : le hasard d'une course. Il vaut environ 3 paliers ; l'écart vrai entre deux mutants, environ 0,3. Les petits réglages ne se voient donc pas, ni sur 20 graines de validation, ni dans le classement d'une génération. Il faut des changements de structure (une nouvelle façon de conduire, pas un réglage de plus), écrits comme des gènes éteints à la naissance, et jugés un par un sur beaucoup de graines identiques.
+
+C'est ce que fait le « banc des gènes » (`ml/ecurie/etude/banc-des-genes/LISEZ-MOI.md`) : 13 variantes du pilote de départ, chacune avec un seul interrupteur allumé ou quelques mélanges, sur les mêmes 96 graines. Il n'est pas une orchestration : c'est un programme qui joue des courses sur le Xeon. Son journal commence à 3 h 28. À 7 h 26 (dernière ligne lue), il en était à 708 courses sur 1 250. Son résultat n'existe pas encore.
+
+---
+
 ## Ce que cette méthode ne garantit pas
 
 Un compte rendu d'agent n'est pas une preuve. C'est ce que l'agent dit avoir fait. Les exemples de ce dossier :
@@ -153,6 +265,16 @@ Un compte rendu d'agent n'est pas une preuve. C'est ce que l'agent dit avoir fai
 - **Des tests n'ont pas été relancés.** Le PC était occupé par la vraie évolution : certains tests lents n'ont pas tourné avec le code final, et `LIVRAISON.md` le dit.
 - **Rien de cela ne dit si les bots jouent mieux.** Ces travaux construisent l'outil et racontent le chantier. La seule mesure qui comptera, des pilotes nés de la sélection qui battent le pilote écrit à la main sur des courses neuves, n'existe pas encore.
 
+Ajouté le 28/11, avec les quatre travaux de la nuit :
+
+- **Un agent ne sait pas attendre une longue mesure.** L'agent de la mesure du coffre a rendu son compte rendu après 20 courses sur 164, avec un verdict provisoire. Il a fallu que la session principale finisse elle-même la mesure.
+- **Deux agents lancés en même temps peuvent se gêner.** Le lot « portage » a changé un fichier de l'époque pendant que la mesure jouait ses courses : elles ne comptaient plus. L'erreur est dans la consigne de la session principale ; c'est un relecteur qui l'a vue.
+- **Le même piège peut revenir sous une autre forme.** Choisir et juger sur les mêmes données a trompé la boucle payante (20 graines de validation rejouées à chaque sacre) et le simulateur de l'étude (un réglage choisi et jugé sur les mêmes mondes). Le relecteur du simulateur l'a vu en rejouant sur des mondes neufs. Pour la boucle payante, il a fallu 160 courses neuves.
+- **Un relecteur peut renverser un verdict, mais pas le trancher.** Le relecteur de la mesure a montré sur 10 graines que le verdict « c0064 » n'était pas soutenu. Seules les 40 graines du coffre ont dit qu'il n'y avait pas de gain.
+- **Ce que personne ne relit reste faux.** Un changement que la synthèse donnait comme non relu décrivait mal la règle en place ; c'est le constructeur suivant, en vérifiant le code avant de le changer, qui l'a vu.
+- **La langue n'est toujours pas fixée.** Sept des 31 comptes rendus de la nuit sont en anglais, au moins en partie.
+- **Des tests ne sont toujours pas tous relancés.** `tests/courses.test.js` n'a pas tourné avec le code des changements sûrs, et rien de ce code n'a encore tourné sur le Ryzen.
+
 ---
 
 ## Comment ce dossier est fait
@@ -165,4 +287,6 @@ node ml/ecurie/portfolio/outils/orchestration.js <dossier de la session Claude C
 
 L'outil nettoie tout ce qu'il écrit, parce que le dépôt est public. Le 27/11 à 23 h 18, il a fait 16 remplacements : 10 chemins vers le dossier temporaire de Claude Code raccourcis en « <dossier temporaire> », 5 détails de famille retirés, et 1 nom de PC remplacé par « le-xeon » (c'était un nom d'exemple écrit par un relecteur, pas le vrai nom du PC). Il n'a trouvé ni clé, ni jeton, ni adresse e-mail. Le résultat a été recontrôlé à la main par une recherche sur les mêmes motifs, et le vrai nom du PC n'apparaît dans aucun fichier.
 
-Ce LISEZ-MOI a été écrit par un agent Opus le 27/11 au soir, à partir de ces comptes rendus, des bilans des orchestrations, des messages de commit et des journaux de l'évolution en cours.
+Le 28/11 au matin, l'outil a reçu les quatre travaux de la nuit et il a été relancé sur les huit. Les fichiers des quatre travaux du 27/11 sortent à l'identique (`git diff` vide sur leurs dossiers). Pour les nouveaux seulement, l'outil écrit « Réussi : oui / non » au lieu de « Passe : true / false » pour un test, et remet les accents dans les noms de lots. Sur les quatre travaux de la nuit, il a fait 6 remplacements, tous dans `traces-du-soir/` : 3 noms de PC (des noms d'exemple écrits dans les consignes et les comptes rendus, pas le vrai nom), 2 chemins temporaires et 1 détail familial. Rien dans les trois autres. Une recherche à la main sur les mêmes motifs ne trouve ni clé, ni jeton, ni adresse e-mail, ni nom de PC réel ; l'assistant de Sacha sur le Ryzen n'est nommé dans aucun des nouveaux fichiers.
+
+Ce LISEZ-MOI a été écrit par un agent Opus le 27/11 au soir, à partir de ces comptes rendus, des bilans des orchestrations, des messages de commit et des journaux de l'évolution en cours. Les sections sur la nuit du 27 au 28/11 (de « La nuit du 27 au 28/11 » à « La leçon de méthode de la nuit ») ont été ajoutées par un autre agent Opus le 28/11 au matin, à partir des mêmes sources : les huit bilans, les quatre scripts et les 31 comptes rendus de la nuit, les messages des commits `b1ff8af89` à `2a3bea3c1`, le `resume.txt` de la branche `evolution-ryzen`, et les LISEZ-MOI des études citées.

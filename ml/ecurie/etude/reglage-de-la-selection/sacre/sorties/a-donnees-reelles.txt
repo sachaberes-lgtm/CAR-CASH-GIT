@@ -1,0 +1,20 @@
+lignes lues 573, illisibles 0
+par usage et generation : {"entrainement g0":240,"coffre g0":40,"entrainement g1":293}
+entrainement mesure : 533 courses, 26 pilotes, 24 graines
+courses par pilote : min 11, max 24
+
+== generation 0 : 20 pilotes x 12 graines (240 courses) ==
+ecart-type du residu d'une course (sigmaRes, ddl N-P-G+1) : 2.92
+ecart-type des effets de graine b (observe) : 2.16
+ecart-type des a observes entre pilotes : 1.00 ; part due au bruit (sigmaRes/sqrt(12)) : 0.84 ; dispersion VRAIE estimee sqrt(max(0, obs^2 - bruit^2)) : 0.54 palier
+E des pilotes de la generation 0 : moyenne 0.914, ecart-type observe 0.099, bruit moyen (bootstrap de 12 courses) 0.109, dispersion VRAIE estimee 0.000
+  en F (x4) : dispersion vraie de 4E estimee 0.00
+a (palier moyen corrige des graines) et E, par pilote : 449cb0 8.6/0.92 ; 3032bf 8.6/0.85 ; 95cd1f 7.5/0.84 ; af68f7 7.1/0.98 ; 1a146f 7.0/0.72 ; 916e2a 6.9/0.84 ; 4ee745 6.9/0.91 ; c725eb 6.8/0.96 ; 75c51f 6.7/0.87 ; 9885ec 6.5/0.90 ; 19e376(temoin) 6.4/0.90 ; dcd093 6.3/0.85 ; d0281d 6.3/0.79 ; fca749 5.9/0.90 ; 25ef7a 5.8/1.01 ; f6e4be 5.6/1.11 ; 189e2c 5.5/0.96 ; 6fc0d3 5.3/1.12 ; 75f072 5.2/1.01 ; 780ada 5.0/0.85
+
+== generations 0+1 : 7 pilotes a 24 graines ==
+sigmaRes 2.99 ; ET des a observes 0.76, bruit 0.61, dispersion VRAIE estimee 0.45
+correlation des a, generation 0 contre generation 1 (memes pilotes, graines differentes) : 0.16 sur 7 pilotes
+
+courses d'entrainement sans mesures (moins de 60 s) : 118 sur 533 (22.1 %)
+temps reel d'une course (ms) : mediane 61007, moyenne 69825
+palier par course : moyenne 7.11, ecart-type 3.60

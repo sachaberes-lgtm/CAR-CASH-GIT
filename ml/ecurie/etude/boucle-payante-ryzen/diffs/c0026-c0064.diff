@@ -1,0 +1,20 @@
+diff --git a/ml/labo/cerveaux/c0026-pilote.js b/ml/labo/cerveaux/c0064-pilote.js
+index 160196dbf..7a9702479 100644
+--- a/ml/labo/cerveaux/c0026-pilote.js
++++ b/ml/labo/cerveaux/c0064-pilote.js
+@@ -52,4 +52,7 @@ const REGLAGES={
+   tenirFacon:.35,    /* s au moins sur une facon avant d'en changer (sauf si elle mene a la mort) */
+   derive:.3,         /* s : apres la pose, la caisse glisse dans son axe ce temps-la avant que le volant morde */
++  /* --- LE DECOLLAGE NITRO ALLUMEE (sorties subies, maps sans decor) --- */
++  bordNitro:.7,      /* s : si le bord est dans moins de ca et que la route lache, la nitro reste tenue jusqu'au decollage (les joueurs : 63 % des decollages nitro allumee, le parent 17 %) */
++  bordJauge:.5,      /* jauge + reserve au moins pour ce decollage nitro allumee (le fond sert a planer ensuite) */
+   /* --- LE RACCOURCI (sortir expres par le bord quand le radar promet une pose plus loin sur la piste) --- */
+   raccVirage:.2,     /* rad : la route doit tourner d'au moins ca sur 400 m pour qu'on regarde les sorties (les joueurs : 86 % de leurs vols partent dans un virage) */
+@@ -212,4 +215,7 @@ function auSol(v,m){
+   const sur=margeV>(m.nitro?R.margeTenir:R.margeAllumer)&&Math.max(force,Math.abs(lIci)/lmax)<seuil;
+   m.nitro=!lache&&pose&&sur&&(v.nitroLibre||!!m.plein);
++  /* LE DECOLLAGE NITRO ALLUMEE : sur une map sans decor, quand le bord est imminent (la sortie ne se discute plus), on garde la nitro tenue
++     jusqu'au decollage au lieu de la couper : les joueurs partent nitro allumee 63 fois sur 100, le parent 17. En vol, la loi « vers la route » reprend. */
++  if(!decor&&lache&&!v.dessous&&!v.glisse&&!v.rebond&&tn.t!=null&&tn.t<R.bordNitro&&jauge>R.bordJauge)m.nitro=true;
+   m.facon=null;m.nFigVol=0;
+   /* LE RACCOURCI : on regarde les sorties la ou la route tourne (ou quand un troncon s'offre en contrebas), hors des couloirs et du dessous */

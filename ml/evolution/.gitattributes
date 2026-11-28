@@ -11,3 +11,5 @@
 *.html -text
 *.txt -text
 champions/** -text
+# (28/11/2026, les lanceurs) le lanceur cache des taches planifiees : CRLF comme les .cmd.
+*.vbs text eol=crlf

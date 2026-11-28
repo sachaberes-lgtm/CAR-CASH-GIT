@@ -20,3 +20,14 @@ etat/PAS-D-ENVOI
 essais/
 # Les journaux legers (population.json, generations, validations, morts, coffre), tableau.html, resume.txt, machine.json (le banc de ce PC, 27/11) et champions/ se committent
 # sur la branche de la selection (evolution-<pc>) : a la main, ou par sauver-traces.cmd (27/11/2026). Jamais sur main ni sur bots-ecurie.
+# (28/11/2026, les lanceurs) le Node de ce PC (un chemin propre a ce PC, qui porte le nom du compte Windows), son refus et ses fichiers d'un instant, le marqueur du changement voulu.
+etat/node.txt
+etat/node.txt.*
+etat/NODE-REFUSE.txt
+etat/node-choix-*
+etat/CHANGER-DE-NODE
+# (28/11/2026, tache « portage ») les etats archives par evoluer.js --repartir-de : leur cache des courses et leurs pilotes generes restent dehors,
+# comme ceux de l'etat vivant ; le reste d'une archive (journaux, champions, ARCHIVE.json) peut se committer a la main.
+etat/archives/*/courses*.jsonl
+etat/archives/*/pilotes/
+etat/archives/*/*.fragment-*

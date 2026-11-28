@@ -13,11 +13,17 @@ type nul >"%ETAT%\STOP"
 echo.
 echo   Arret demande.
 
+REM (28/11/2026, les lanceurs) le Node de etat\node.txt s'il existe (sinon "node" du PATH) : ici il ne sert qu'a lire le verrou, sa version est sans effet.
+set "NODE="
+if exist "%ETAT%\node.txt" for /f "usebackq delims=" %%n in ("%ETAT%\node.txt") do if not defined NODE set "NODE=%%~n"
+if defined NODE if not exist "%NODE%" set "NODE="
+if not defined NODE set "NODE=node"
+
 set /a N=0
 :attendre
 if not exist "%ETAT%\verrou.json" goto fini
 REM le verrou est-il tenu par un processus vivant ? 0 oui ; 1 non, il s'est arrete sans prevenir ; 2 le verrou vient de partir, l'arret est fini
-node -e "try{const v=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));process.kill(v.pid,0);process.exit(0);}catch(e){process.exit(e&&e.code==='EPERM'?0:e&&e.code==='ENOENT'?2:1);}" "%ETAT%\verrou.json" >nul 2>&1
+"%NODE%" -e "try{const v=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));process.kill(v.pid,0);process.exit(0);}catch(e){process.exit(e&&e.code==='EPERM'?0:e&&e.code==='ENOENT'?2:1);}" "%ETAT%\verrou.json" >nul 2>&1
 if errorlevel 2 goto fini
 if errorlevel 1 goto mort
 if %N%==0 echo   Il finit les courses en cours (quelques minutes). Tu peux fermer cette fenetre : l'arret se fera quand meme.

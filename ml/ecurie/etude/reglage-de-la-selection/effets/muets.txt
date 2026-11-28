@@ -1,0 +1,6 @@
+Genome v:2 : 107 genes, 79 reels, dont 21 muets au temoin (26.6 %).
+  dans les 86 genes du v:1 : 64 reels, dont 6 muets (9.4 %) : volRetour, retMarge, retCap, retGain, retAvance, retourPrime
+4000 naissances « mutation » du temoin (1 + Poisson(2) reels, sigma 0.15, drapeaux 0.03) : 25.3 % des reels tires sont muets ;
+  81 enfants (2.0 %) n'ont QUE des changements muets ; 0 sans aucun changement. Ces enfants jouent les courses du parent : 12 courses chacun a la generation de leur naissance, et toutes les suivantes tant qu'ils vivent.
+Immigres (8 reels, sigma 0.3) : 25.6 % des reels tires muets ; 0.00 % entierement muets.
+(2.8 s)

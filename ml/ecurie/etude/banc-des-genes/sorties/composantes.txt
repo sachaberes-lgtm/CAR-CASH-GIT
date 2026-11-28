@@ -1,0 +1,222 @@
+LE BANC DES GENES — LES COMPOSANTES DE E ET LE PALIER DECOUPE (composantes.js : aucune course jouee, lecture des lignes de etat/)
+
+epoque 66f66d2ae1c2 · 96 graines communes aux 13 bras · bootstrap apparie : 2000 tirages de graines, les memes pour tous les bras (graines.rngDe)
+E = Σ c_k, c_k = w_k · max(0, min(8, |z_k|) − 1) / Σ w (Σ w = 13 : poids 0,5 pour vols, volDuree, volsCourts, ondulation) ; z_k par ml/bot/ressemblance.js
+
+LE CONTROLE (Σ c_k contre note.ecartFoule et note.noter, egalite exacte ; contre resultats.json, a 0,001 pres) : TOUT PASSE
+  depart 0.8823/0.882 · lacheOn 0.8062/0.806 · slalomOn 0.7073/0.707 · coupOn 0.8827/0.883 · relacheOn 0.8685/0.868 · suitOn 0.8404/0.84 · gestes5 0.6646/0.665 · fuirVite 0.8627/0.863 · c0026 0.9023/0.902 · bordOn 0.7277/0.728 · largeOn 0.8788/0.879 · libreOn 0.8950/0.895 · c0101 0.7646/0.765
+
+1. LES COMPOSANTES DE E PAR BRAS (part de E ; la somme de la colonne = E)
+mesure      |    depart |   lacheOn |  slalomOn |    coupOn | relacheOn |    suitOn |   gestes5 |  fuirVite |     c0026 |    bordOn |   largeOn |   libreOn |     c0101
+nitro       |     0.000 |     0.000 |     0.026 |     0.003 |     0.000 |     0.005 |     0.027 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000
+nitroSol    |     0.023 |     0.019 |     0.039 |     0.026 |     0.021 |     0.025 |     0.043 |     0.024 |     0.023 |     0.024 |     0.024 |     0.021 |     0.020
+nitroDecol  |     0.248 |     0.235 |     0.222 |     0.256 |     0.245 |     0.243 |     0.238 |     0.243 |     0.248 |     0.155 |     0.248 |     0.254 |     0.156
+air         |     0.082 |     0.056 |     0.028 |     0.067 |     0.074 |     0.049 |     0.018 |     0.076 |     0.082 |     0.060 |     0.080 |     0.085 |     0.075
+vols        |     0.043 |     0.035 |     0.017 |     0.042 |     0.043 |     0.029 |     0.016 |     0.040 |     0.050 |     0.033 |     0.042 |     0.046 |     0.042
+volDuree    |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000
+volHaut     |     0.061 |     0.060 |     0.062 |     0.057 |     0.062 |     0.065 |     0.059 |     0.061 |     0.057 |     0.057 |     0.061 |     0.061 |     0.054
+volsCourts  |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000
+raccourcis  |     0.100 |     0.094 |     0.099 |     0.097 |     0.099 |     0.095 |     0.090 |     0.102 |     0.099 |     0.095 |     0.099 |     0.100 |     0.097
+figures     |     0.009 |     0.000 |     0.002 |     0.005 |     0.006 |     0.002 |     0.000 |     0.009 |     0.008 |     0.006 |     0.009 |     0.009 |     0.002
+poseCentre  |     0.004 |     0.003 |     0.006 |     0.010 |     0.001 |     0.012 |     0.000 |     0.000 |     0.000 |     0.000 |     0.004 |     0.012 |     0.005
+dessous     |     0.000 |     0.009 |     0.035 |     0.000 |     0.000 |     0.017 |     0.015 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000
+aller       |     0.284 |     0.272 |     0.129 |     0.281 |     0.286 |     0.271 |     0.115 |     0.280 |     0.286 |     0.276 |     0.284 |     0.282 |     0.288
+ondulation  |     0.027 |     0.022 |     0.042 |     0.038 |     0.031 |     0.029 |     0.044 |     0.027 |     0.050 |     0.023 |     0.028 |     0.024 |     0.024
+vitesse     |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000 |     0.000
+E           |     0.882 |     0.806 |     0.707 |     0.883 |     0.869 |     0.840 |     0.665 |     0.863 |     0.902 |     0.728 |     0.879 |     0.895 |     0.765
+parties     |        79 |        75 |        77 |        79 |        76 |        75 |        75 |        80 |        77 |        78 |        79 |        78 |        75
+
+le z de chaque mesure (bot − joueurs) / sigma des joueurs ; zone morte |z| < 1, borne 8
+mesure      |    depart |   lacheOn |  slalomOn |    coupOn | relacheOn |    suitOn |   gestes5 |  fuirVite |     c0026 |    bordOn |   largeOn |   libreOn |     c0101
+nitro       |     -0.95 |     -0.97 |     -1.34 |     -1.04 |     -0.94 |     -1.06 |     -1.35 |     -0.96 |     -0.92 |     -1.00 |     -0.97 |     -0.92 |     -0.90
+nitroSol    |     -1.30 |     -1.25 |     -1.51 |     -1.34 |     -1.28 |     -1.33 |     -1.56 |     -1.31 |     -1.30 |     -1.31 |     -1.31 |     -1.27 |     -1.26
+nitroDecol  |     -4.23 |     -4.06 |     -3.88 |     -4.33 |     -4.18 |     -4.16 |     -4.09 |     -4.16 |     -4.22 |     -3.01 |     -4.22 |     -4.30 |     -3.03
+air         |     -2.07 |     -1.73 |     -1.36 |     -1.87 |     -1.96 |     -1.63 |     -1.24 |     -1.99 |     -2.06 |     -1.78 |     -2.04 |     -2.11 |     -1.98
+vols        |     -2.13 |     -1.92 |     -1.43 |     -2.10 |     -2.12 |     -1.75 |     -1.42 |     -2.05 |     -2.31 |     -1.85 |     -2.09 |     -2.20 |     -2.09
+volDuree    |     -0.40 |     -0.05 |     -0.35 |     -0.22 |     -0.36 |     -0.31 |     -0.14 |     -0.29 |     -0.06 |     -0.37 |     -0.44 |     -0.32 |     -0.45
+volHaut     |     -1.79 |     -1.78 |     -1.81 |     -1.74 |     -1.81 |     -1.84 |     -1.76 |     -1.80 |     -1.74 |     -1.74 |     -1.80 |     -1.79 |     -1.70
+volsCourts  |     +0.54 |     +0.45 |     +0.53 |     +0.39 |     +0.53 |     +0.84 |     +0.56 |     +0.44 |     +0.50 |     +0.68 |     +0.57 |     +0.64 |     +0.70
+raccourcis  |     -2.30 |     -2.22 |     -2.29 |     -2.26 |     -2.29 |     -2.23 |     -2.17 |     -2.32 |     -2.29 |     -2.23 |     -2.29 |     -2.30 |     -2.26
+figures     |     -1.12 |     -1.00 |     -1.03 |     -1.06 |     -1.08 |     -1.03 |     -0.98 |     -1.12 |     -1.10 |     -1.08 |     -1.12 |     -1.12 |     -1.03
+poseCentre  |     -1.05 |     -1.04 |     -1.08 |     -1.13 |     -1.01 |     -1.16 |     -0.94 |     -0.91 |     -0.92 |     -1.00 |     -1.05 |     -1.16 |     -1.07
+dessous     |     +0.54 |     +1.12 |     +1.46 |     +0.75 |     +0.89 |     +1.22 |     +1.20 |     +0.61 |     +0.20 |     +0.80 |     +0.61 |     +0.57 |     +0.20
+aller       |     +4.69 |     +4.53 |     +2.68 |     +4.66 |     +4.72 |     +4.52 |     +2.49 |     +4.64 |     +4.72 |     +4.59 |     +4.69 |     +4.67 |     +4.75
+ondulation  |     +1.71 |     +1.58 |     +2.08 |     +1.99 |     +1.80 |     +1.74 |     +2.14 |     +1.70 |     +2.29 |     +1.59 |     +1.72 |     +1.63 |     +1.63
+vitesse     |     -0.60 |     -0.58 |     -0.95 |     -0.62 |     -0.57 |     -0.57 |     -0.96 |     -0.57 |     -0.59 |     -0.57 |     -0.60 |     -0.59 |     -0.60
+
+LA DIFFERENCE DE CHAQUE COMPOSANTE AVEC LE DEPART (dc, se par bootstrap apparie) : 180 comparaisons (12 bras × 15 mesures),
+seuil de Bonferroni 5 % / 180 = 0.0278 %, |z| > 3.64 (marque **) ; |z| > 2.87 = seuil d'une seule famille de 12 (marque *, une piste)
+lacheOn   dE -0.076 (se 0.029) : air -0.026 (0.015, z -1.8) · nitroDecol -0.013 (0.011, z -1.2) · aller -0.012 (0.006, z -1.9) · dessous +0.009 (0.013, z 0.7) · figures -0.009 (0.002, z -4.2)** · vols -0.008 (0.007, z -1.1)
+slalomOn  dE -0.175 (se 0.034) : aller -0.155 (0.012, z -13.1)** · air -0.055 (0.016, z -3.4)* · dessous +0.035 (0.018, z 1.9) · nitroDecol -0.027 (0.014, z -1.9) · vols -0.027 (0.008, z -3.4)* · nitro +0.026 (0.005, z 5.6)**
+coupOn    dE +0.000 (se 0.020) : air -0.015 (0.008, z -1.9) · ondulation +0.011 (0.007, z 1.6) · nitroDecol +0.008 (0.006, z 1.2) · poseCentre +0.006 (0.008, z 0.8) · figures -0.005 (0.002, z -2.7) · volHaut -0.004 (0.004, z -1.0)
+relacheOn dE -0.014 (se 0.024) : air -0.009 (0.010, z -0.8) · nitroDecol -0.004 (0.008, z -0.5) · ondulation +0.004 (0.005, z 0.7) · figures -0.003 (0.002, z -1.5) · poseCentre -0.003 (0.007, z -0.4) · aller +0.002 (0.005, z 0.5)
+suitOn    dE -0.042 (se 0.033) : air -0.034 (0.017, z -2.1) · dessous +0.017 (0.017, z 1.0) · vols -0.015 (0.007, z -2.0) · aller -0.013 (0.007, z -1.8) · poseCentre +0.009 (0.011, z 0.7) · figures -0.007 (0.003, z -2.4)
+gestes5   dE -0.218 (se 0.035) : aller -0.169 (0.011, z -15.8)** · air -0.064 (0.015, z -4.3)** · vols -0.027 (0.008, z -3.6)* · nitro +0.027 (0.005, z 5.9)** · nitroSol +0.020 (0.004, z 4.4)** · ondulation +0.017 (0.009, z 1.9)
+fuirVite  dE -0.020 (se 0.011) : air -0.006 (0.006, z -1.0) · nitroDecol -0.005 (0.004, z -1.4) · aller -0.004 (0.003, z -1.4) · poseCentre -0.004 (0.005, z -0.7) · vols -0.003 (0.004, z -0.9) · raccourcis +0.002 (0.003, z 0.6)
+c0026     dE +0.020 (se 0.029) : ondulation +0.022 (0.026, z 0.9) · vols +0.007 (0.004, z 1.5) · poseCentre -0.004 (0.007, z -0.5) · volHaut -0.004 (0.004, z -0.9) · aller +0.002 (0.005, z 0.5) · figures -0.002 (0.002, z -0.7)
+bordOn    dE -0.155 (se 0.028) : nitroDecol -0.094 (0.014, z -6.8)** · air -0.022 (0.013, z -1.7) · vols -0.011 (0.006, z -1.8) · aller -0.008 (0.005, z -1.6) · raccourcis -0.005 (0.005, z -1.1) · ondulation -0.005 (0.005, z -0.8)
+largeOn   dE -0.004 (se 0.003) : air -0.002 (0.002, z -1.3) · vols -0.002 (0.001, z -1.3) · nitroDecol -0.001 (0.001, z -0.8) · nitroSol +0.001 (0.001, z 1.3) · raccourcis -0.001 (0.001, z -1.0) · volHaut +0.001 (0.000, z 1.8)
+libreOn   dE +0.013 (se 0.009) : poseCentre +0.009 (0.004, z 2.0) · nitroDecol +0.005 (0.005, z 1.1) · air +0.003 (0.004, z 0.8) · ondulation -0.003 (0.003, z -1.2) · vols +0.003 (0.002, z 1.3) · nitroSol -0.002 (0.001, z -1.7)
+c0101     dE -0.118 (se 0.030) : nitroDecol -0.092 (0.014, z -6.4)** · air -0.007 (0.014, z -0.5) · figures -0.007 (0.003, z -2.5) · volHaut -0.007 (0.006, z -1.1) · aller +0.005 (0.006, z 0.8) · nitroSol -0.003 (0.004, z -0.8)
+
+LES COMPOSANTES QUI BOUGENT AU SEUIL CORRIGE (|z| > 3.64)
+  lacheOn   figures     -0.009 (se 0.002, z -4.15) : z joueurs -1.12 -> -1.00 ; bot 0.581 -> 0.875 (joueurs 3.256)
+  slalomOn  nitro       +0.026 (se 0.005, z 5.55) : z joueurs -0.95 -> -1.34 ; bot 0.546 -> 0.509 (joueurs 0.637)
+  slalomOn  aller       -0.155 (se 0.012, z -13.13) : z joueurs 4.69 -> 2.68 ; bot 0.982 -> 0.808 (joueurs 0.576)
+  gestes5   nitro       +0.027 (se 0.005, z 5.85) : z joueurs -0.95 -> -1.35 ; bot 0.546 -> 0.507 (joueurs 0.637)
+  gestes5   nitroSol    +0.020 (se 0.004, z 4.40) : z joueurs -1.30 -> -1.56 ; bot 0.627 -> 0.597 (joueurs 0.779)
+  gestes5   air         -0.064 (se 0.015, z -4.29) : z joueurs -2.07 -> -1.24 ; bot 0.188 -> 0.237 (joueurs 0.309)
+  gestes5   figures     -0.009 (se 0.002, z -4.27) : z joueurs -1.12 -> -0.98 ; bot 0.581 -> 0.934 (joueurs 3.256)
+  gestes5   aller       -0.169 (se 0.011, z -15.81) : z joueurs 4.69 -> 2.49 ; bot 0.982 -> 0.791 (joueurs 0.576)
+  bordOn    nitroDecol  -0.094 (se 0.014, z -6.85) : z joueurs -4.23 -> -3.01 ; bot 0.149 -> 0.286 (joueurs 0.625)
+  c0101     nitroDecol  -0.092 (se 0.014, z -6.39) : z joueurs -4.23 -> -3.03 ; bot 0.149 -> 0.284 (joueurs 0.625)
+
+2. SUR QUELLES COURSES E EST CALCULE
+E ne lit que les courses qui ont des mesures : ressemblance.mesuresPartie rend null sous 60 s de course (ou sous 100 echantillons), et enfant.js
+ecrit mesures:null. Ici les deux regles coincident : toute course de 60 s ou plus a ses mesures, aucune course plus courte n'en a.
+bras      | parties bras/depart | les deux | bras seul | depart seul | aucun | dE toutes (se)   | dE graines communes (se) [IC 95 %]  | part due au choix des courses
+lacheOn   |               75/79 |       71 |         4 |           8 |    13 | -0.076 (0.029)   | -0.065 (0.029) [-0.118 ; -0.004]    | -0.011
+slalomOn  |               77/79 |       67 |        10 |          12 |     7 | -0.175 (0.034)   | -0.172 (0.035) [-0.241 ; -0.101]    | -0.004
+coupOn    |               79/79 |       79 |         0 |           0 |    17 | +0.000 (0.020)   | +0.000 (0.019) [-0.035 ; +0.040]    | +0.000
+relacheOn |               76/79 |       76 |         0 |           3 |    17 | -0.014 (0.024)   | -0.011 (0.024) [-0.053 ; +0.043]    | -0.003
+suitOn    |               75/79 |       70 |         5 |           9 |    12 | -0.042 (0.033)   | -0.043 (0.033) [-0.104 ; +0.021]    | +0.001
+gestes5   |               75/79 |       67 |         8 |          12 |     9 | -0.218 (0.035)   | -0.203 (0.035) [-0.267 ; -0.134]    | -0.015
+fuirVite  |               80/79 |       77 |         3 |           2 |    14 | -0.020 (0.011)   | -0.018 (0.010) [-0.037 ; +0.000]    | -0.002
+c0026     |               77/79 |       73 |         4 |           6 |    13 | +0.020 (0.029)   | +0.029 (0.028) [-0.021 ; +0.088]    | -0.009
+bordOn    |               78/79 |       73 |         5 |           6 |    12 | -0.155 (0.028)   | -0.151 (0.028) [-0.204 ; -0.094]    | -0.003
+largeOn   |               79/79 |       79 |         0 |           0 |    17 | -0.004 (0.003)   | -0.004 (0.003) [-0.011 ; +0.002]    | +0.000
+libreOn   |               78/79 |       78 |         0 |           1 |    17 | +0.013 (0.009)   | +0.012 (0.009) [-0.007 ; +0.028]    | +0.001
+c0101     |               75/79 |       71 |         4 |           8 |    13 | -0.118 (0.030)   | -0.121 (0.030) [-0.180 ; -0.064]    | +0.003
+(sur les graines communes, les deux bras sont mesures sur les memes routes ; mais rester en course 60 s est lui-meme un effet du bras : ce sous-ensemble
+ est choisi APRES le traitement, la comparaison n'y est pas tout a fait propre non plus. Les deux chiffres ensemble bornent l'effet du choix des courses.)
+
+3. LE PALIER DECOUPE (la ligne de course ne dit ni la map ni le biome : seulement la cause de mort, la survie, le palier et l'empreinte)
+sur les graines ou la course DIFFERE du depart (empreinte) : mieux / pareil / moins, gains et pertes en paliers, d moyen sur ces graines, p du signe
+bras      | differentes | mieux/pareil/moins | gains | pertes | d moyen (et-type) | p signe | somme / 96
+lacheOn   |          80 |           38/11/31 |  +134 |   -124 |      +0.13 (4.17) |    0.47 | +0.104
+slalomOn  |          95 |            37/9/49 |  +123 |   -171 |      -0.51 (4.02) |   0.235 | -0.500
+coupOn    |          37 |            16/7/14 |   +56 |    -48 |      +0.22 (3.50) |   0.856 | +0.083
+relacheOn |          51 |            23/7/21 |   +74 |    -73 |      +0.02 (3.75) |    0.88 | +0.010
+suitOn    |          87 |           40/14/33 |  +166 |   -109 |      +0.66 (4.20) |   0.483 | +0.594
+gestes5   |          95 |           29/17/49 |   +94 |   -166 |      -0.76 (3.55) |   0.031 | -0.750
+fuirVite  |          30 |             15/9/6 |   +58 |    -23 |      +1.17 (3.42) |   0.078 | +0.365
+c0026     |          63 |            30/9/24 |   +87 |    -96 |      -0.14 (3.87) |   0.497 | -0.094
+bordOn    |          62 |            31/7/24 |  +133 |    -83 |      +0.81 (4.68) |   0.419 | +0.521
+largeOn   |           3 |              2/1/0 |   +15 |      0 |      +5.00 (4.36) |     0.5 | +0.156
+libreOn   |          13 |              3/2/8 |   +15 |    -29 |      -1.08 (4.31) |   0.227 | -0.146
+c0101     |          78 |            33/8/37 |  +122 |   -142 |      -0.26 (4.38) |    0.72 | -0.208
+
+la difference de palier sur les graines differentes, rangee par la cause de mort du DEPART sur la meme graine (somme des d : graines)
+bras      |         air |      canyon |         eau |       glace |        lave |       paroi |         pic |       roche |        tour |        vide
+lacheOn   |    -14 : 17 |           - |      -2 : 1 |           - |           - |     -11 : 4 |     -16 : 8 |    +22 : 20 |     -9 : 19 |    +40 : 11
+slalomOn  |     +3 : 23 |           - |      +2 : 1 |      +2 : 1 |           - |      -6 : 6 |     -23 : 9 |    -16 : 21 |     -9 : 23 |     -1 : 11
+coupOn    |     +22 : 9 |           - |           - |           - |           - |     -10 : 2 |      +2 : 3 |     +4 : 11 |      -2 : 8 |      -8 : 4
+relacheOn |     -7 : 13 |           - |      +3 : 1 |           - |           - |      -9 : 3 |      +7 : 6 |     +5 : 12 |      -6 : 9 |      +8 : 7
+suitOn    |     -5 : 21 |           - |      -3 : 1 |           - |           - |      +3 : 6 |     +18 : 8 |     -8 : 20 |    +29 : 20 |    +23 : 11
+gestes5   |     -6 : 23 |           - |      -1 : 1 |      +0 : 1 |           - |      +5 : 6 |     -23 : 9 |    -31 : 21 |     -5 : 23 |    -11 : 11
+fuirVite  |     +11 : 8 |           - |           - |           - |           - |           - |      +7 : 2 |    +13 : 10 |      +4 : 7 |      +0 : 3
+c0026     |     +6 : 17 |           - |           - |           - |           - |      -2 : 3 |      -2 : 7 |     -9 : 14 |    -10 : 15 |      +8 : 7
+bordOn    |    +66 : 21 |           - |           - |           - |           - |      -5 : 2 |     -12 : 5 |    +13 : 14 |     -7 : 12 |      -5 : 8
+largeOn   |      +0 : 1 |           - |           - |           - |           - |           - |           - |           - |      +7 : 1 |      +8 : 1
+libreOn   |      -7 : 3 |           - |           - |           - |           - |      -5 : 1 |      -4 : 1 |      +8 : 3 |      -3 : 4 |      -3 : 1
+c0101     |    +29 : 22 |           - |           - |           - |           - |     -13 : 3 |     -14 : 8 |    -19 : 17 |     -4 : 18 |     +1 : 10
+
+la meme, rangee par la cause de mort du BRAS (somme des d : graines)
+bras      |         air |      canyon |         eau |       glace |        lave |       paroi |         pic |       roche |        tour |        vide
+lacheOn   |     +5 : 17 |           - |      -5 : 1 |      +2 : 1 |      +1 : 1 |    +18 : 10 |      +3 : 7 |     -6 : 21 |    -17 : 18 |      +9 : 4
+slalomOn  |    -46 : 18 |      -1 : 1 |      -7 : 2 |           - |      -3 : 1 |    +33 : 15 |     +13 : 7 |    -28 : 25 |     -3 : 16 |     -6 : 10
+coupOn    |    -16 : 15 |           - |      +4 : 1 |           - |           - |      +5 : 4 |      +2 : 1 |      +4 : 4 |      +2 : 6 |      +7 : 6
+relacheOn |     -1 : 15 |           - |           - |           - |           - |     +10 : 5 |      -2 : 3 |     -5 : 13 |     -5 : 11 |      +4 : 4
+suitOn    |    +12 : 24 |      +1 : 1 |           - |      -4 : 1 |           - |    +22 : 10 |      -4 : 9 |    +26 : 22 |     -1 : 11 |      +5 : 9
+gestes5   |    -26 : 23 |           - |      -5 : 5 |      +0 : 1 |      -1 : 1 |      -4 : 7 |      +6 : 3 |    -29 : 22 |     -5 : 23 |     -8 : 10
+fuirVite  |      +3 : 4 |           - |      +5 : 1 |           - |           - |      +7 : 6 |      +6 : 1 |      +7 : 7 |      +5 : 6 |      +2 : 5
+c0026     |    -35 : 19 |           - |           - |           - |           - |      +7 : 4 |      -2 : 5 |     +7 : 14 |     +0 : 12 |     +14 : 9
+bordOn    |    -22 : 14 |      +6 : 1 |           - |      -6 : 1 |      +8 : 1 |      +4 : 5 |           - |    +38 : 15 |    +11 : 13 |    +11 : 12
+largeOn   |           - |           - |           - |           - |           - |           - |           - |      +8 : 1 |      +0 : 1 |      +7 : 1
+libreOn   |     -16 : 4 |           - |           - |      +1 : 1 |           - |      +6 : 2 |      -8 : 2 |      +4 : 3 |      -1 : 1 |           -
+c0101     |    -36 : 24 |           - |           - |           - |           - |     +35 : 8 |     -17 : 5 |    +11 : 14 |    +11 : 14 |    -24 : 13
+
+la meme, rangee par la duree du depart sur la graine (sous 60 s : course courte, hors de E chez le depart)
+lacheOn   | depart < 60 s :  6 graines, somme  +19 (4 mieux, 1 moins) | depart >= 60 s : 74 graines, somme   -9 (34 mieux, 30 moins)
+slalomOn  | depart < 60 s : 16 graines, somme  +39 (10 mieux, 2 moins) | depart >= 60 s : 79 graines, somme  -87 (27 mieux, 47 moins)
+coupOn    | depart < 60 s :  0 graines, somme   +0 (0 mieux, 0 moins) | depart >= 60 s : 37 graines, somme   +8 (16 mieux, 14 moins)
+relacheOn | depart < 60 s :  3 graines, somme   -1 (0 mieux, 1 moins) | depart >= 60 s : 48 graines, somme   +2 (23 mieux, 20 moins)
+suitOn    | depart < 60 s :  9 graines, somme  +20 (5 mieux, 1 moins) | depart >= 60 s : 78 graines, somme  +37 (35 mieux, 32 moins)
+gestes5   | depart < 60 s : 16 graines, somme  +37 (8 mieux, 4 moins) | depart >= 60 s : 79 graines, somme -109 (21 mieux, 45 moins)
+fuirVite  | depart < 60 s :  4 graines, somme  +15 (3 mieux, 1 moins) | depart >= 60 s : 26 graines, somme  +20 (12 mieux, 5 moins)
+c0026     | depart < 60 s :  6 graines, somme  +18 (4 mieux, 1 moins) | depart >= 60 s : 57 graines, somme  -27 (26 mieux, 23 moins)
+bordOn    | depart < 60 s :  5 graines, somme  +49 (5 mieux, 0 moins) | depart >= 60 s : 57 graines, somme   +1 (26 mieux, 24 moins)
+largeOn   | depart < 60 s :  0 graines, somme   +0 (0 mieux, 0 moins) | depart >= 60 s :  3 graines, somme  +15 (2 mieux, 0 moins)
+libreOn   | depart < 60 s :  0 graines, somme   +0 (0 mieux, 0 moins) | depart >= 60 s : 13 graines, somme  -14 (3 mieux, 8 moins)
+c0101     | depart < 60 s :  7 graines, somme  +19 (4 mieux, 1 moins) | depart >= 60 s : 71 graines, somme  -39 (29 mieux, 36 moins)
+
+le palier moyen par cause de mort du bras (courses : palier moyen)
+bras      |         air |      canyon |         eau |       glace |        lave |       paroi |         pic |       roche |        tour |        vide
+depart    |    23 : 6.6 |           - |     1 : 8.0 |     1 : 3.0 |           - |     6 : 6.8 |     9 : 7.6 |    21 : 7.4 |    24 : 6.3 |    11 : 7.2
+lacheOn   |    23 : 7.0 |           - |     1 : 5.0 |     2 : 6.0 |    1 : 11.0 |    12 : 7.9 |     8 : 8.5 |    22 : 7.0 |    23 : 5.3 |     4 : 9.8
+slalomOn  |    18 : 4.9 |     1 : 7.0 |     2 : 4.5 |           - |     1 : 8.0 |    15 : 8.1 |     7 : 8.4 |    25 : 6.6 |    17 : 5.1 |    10 : 6.3
+coupOn    |    29 : 7.1 |           - |    2 : 10.5 |     1 : 3.0 |           - |     8 : 6.6 |     7 : 6.3 |    14 : 6.8 |    22 : 6.5 |    13 : 7.7
+relacheOn |    25 : 6.5 |           - |           - |     1 : 3.0 |           - |     8 : 7.3 |     6 : 8.3 |    22 : 7.5 |    26 : 6.3 |     8 : 6.5
+suitOn    |    26 : 6.7 |     1 : 5.0 |           - |     2 : 6.0 |           - |    10 : 8.9 |    10 : 7.1 |    23 : 8.8 |    15 : 5.5 |     9 : 8.6
+gestes5   |    23 : 6.4 |           - |     5 : 5.8 |     1 : 3.0 |     1 : 8.0 |     7 : 6.4 |     3 : 9.0 |    22 : 5.8 |    24 : 5.8 |    10 : 5.9
+fuirVite  |    19 : 6.3 |           - |     2 : 8.5 |     1 : 3.0 |           - |    12 : 9.1 |     8 : 7.5 |    18 : 7.5 |    23 : 6.4 |    13 : 7.7
+c0026     |    25 : 5.9 |           - |     1 : 8.0 |     1 : 3.0 |           - |     7 : 7.0 |     7 : 5.3 |    21 : 7.9 |    21 : 6.4 |    13 : 7.9
+bordOn    |    16 : 6.3 |    1 : 14.0 |     1 : 8.0 |     2 : 5.0 |    1 : 14.0 |     9 : 8.1 |     4 : 4.5 |    22 : 8.5 |    25 : 6.4 |    15 : 8.1
+largeOn   |    22 : 6.6 |           - |     1 : 8.0 |     1 : 3.0 |           - |     6 : 6.8 |     9 : 7.6 |    22 : 7.8 |    24 : 6.1 |    11 : 8.0
+libreOn   |    24 : 6.0 |           - |     1 : 8.0 |     2 : 5.5 |           - |     7 : 6.9 |    10 : 7.4 |    21 : 7.8 |    21 : 5.8 |    10 : 7.1
+c0101     |    25 : 5.9 |           - |     1 : 8.0 |     1 : 3.0 |           - |    11 : 8.8 |     6 : 4.5 |    18 : 7.8 |    20 : 6.2 |    14 : 6.4
+
+4a. SLALOMON ET BORDON S'ADDITIONNENT-ILS ? (le banc n'a pas le bras slalomOn + bordOn)
+gestes5 contre lacheOn + slalomOn + coupOn + relacheOn + suitOn :
+  dE observe -0.218 ; somme des seuls -0.306 ; interaction +0.089 (se 0.074, IC 95 % [-0.075 ; +0.218])
+  d palier observe -0.75 ; somme des seuls +0.29 ; interaction -1.04 (se 0.91, IC 95 % [-2.79 ; +0.76])
+  par composante (observe / somme des seuls / interaction (se)) : air -0.064 / -0.139 / +0.075 (0.038) · dessous +0.015 / +0.061 / -0.046 (0.032) · nitroDecol -0.011 / -0.042 / +0.031 (0.029) · vols -0.027 / -0.051 / +0.024 (0.016) · figures -0.009 / -0.031 / +0.021 (0.006) · poseCentre -0.004 / +0.013 / -0.017 (0.025) · aller -0.169 / -0.180 / +0.011 (0.022) · ondulation +0.017 / +0.025 / -0.008 (0.018) · nitro +0.027 / +0.034 / -0.007 (0.009) · raccourcis -0.010 / -0.016 / +0.006 (0.015) · nitroSol +0.020 / +0.016 / +0.004 (0.009)
+c0101 contre c0026 + bordOn + largeOn + libreOn :
+  dE observe -0.118 ; somme des seuls -0.125 ; interaction +0.008 (se 0.038, IC 95 % [-0.077 ; +0.073])
+  d palier observe -0.21 ; somme des seuls +0.44 ; interaction -0.65 (se 0.49, IC 95 % [-1.64 ; +0.26])
+  par composante (observe / somme des seuls / interaction (se)) : ondulation -0.003 / +0.015 / -0.018 (0.025) · air -0.007 / -0.022 / +0.015 (0.013) · nitroDecol -0.092 / -0.090 / -0.002 (0.012)
+slalomOn et bordOn, composante par composante (dc slalomOn / dc bordOn / somme si tout s'additionnait ; correlation de leurs dc d'un tirage a l'autre) :
+  nitro       +0.026 / +0.000 / +0.026 (r 0.03)
+  nitroSol    +0.016 / +0.001 / +0.017 (r 0.29)
+  nitroDecol  -0.027 / -0.094 / -0.121 (r 0.23)
+  air         -0.055 / -0.022 / -0.077 (r 0.29)
+  vols        -0.027 / -0.011 / -0.038 (r 0.34)
+  raccourcis  -0.001 / -0.005 / -0.006 (r 0.52)
+  figures     -0.007 / -0.003 / -0.010 (r 0.39)
+  dessous     +0.035 / +0.000 / +0.035 (r -0.14)
+  aller       -0.155 / -0.008 / -0.162 (r 0.28)
+  ondulation  +0.014 / -0.005 / +0.010 (r 0.52)
+  graines dont la course change : slalomOn 95, bordOn 62, les deux 62 (sur 96)
+  aller et nitroDecol course par course (courses mesurees : moyenne / mediane) : depart|aller 79 : 0.982 / 1.000 · depart|nitroDecol 76 : 0.149 / 0.138 · slalomOn|aller 77 : 0.808 / 0.800 · slalomOn|nitroDecol 77 : 0.188 / 0.192 · bordOn|aller 78 : 0.973 / 0.983 · bordOn|nitroDecol 76 : 0.286 / 0.273 · gestes5|aller 75 : 0.791 / 0.800 · gestes5|nitroDecol 74 : 0.165 / 0.155 · c0101|aller 75 : 0.987 / 1.000 · c0101|nitroDecol 72 : 0.284 / 0.255
+  joueurs : aller 0.576 ± 0.086 s, nitroDecol 0.625 ± 0.113
+
+4b. LE PRIX EN PALIER DES GESTES
+correlation des d palier graine par graine, slalomOn et gestes5 : 0.586 ; graines perdues : slalomOn 49, gestes5 49, les deux 34
+slalomOn : somme des d palier sur 96 graines -48 ; 13 graines perdent 5 paliers ou plus (somme -89) ; sans elles il reste +41
+  3002072 -10 (depart 13 air 263.4 s -> 3 air 47.1 s) · 3002220 -10 (depart 11 pic 156.3 s -> 1 air 12.3 s) · 3002812 -8 (depart 12 pic 227 s -> 4 eau 72.1 s) · 3002997 -8 (depart 11 pic 211 s -> 3 air 44.9 s) · 3003182 -7 (depart 12 air 242.2 s -> 5 paroi 78 s) · 3000148 -6 (depart 10 roche 198.9 s -> 4 air 60.4 s) · 3000185 -6 (depart 10 air 197.3 s -> 4 roche 64 s) · 3000296 -6 (depart 9 vide 160.4 s -> 3 roche 44.1 s) · 3001147 -6 (depart 14 air 286.1 s -> 8 roche 197.1 s) · 3001258 -6 (depart 9 pic 146.1 s -> 3 vide 51.5 s) · 3002627 -6 (depart 13 paroi 258.7 s -> 7 roche 159.7 s) · 3000814 -5 (depart 9 vide 176.6 s -> 4 paroi 44.5 s) · 3003145 -5 (depart 9 air 140.7 s -> 4 roche 57.1 s)
+  le pendant : 9 graines GAGNENT 5 paliers ou plus (somme +63) ; les grosses pertes tombent sur des graines ou le depart allait loin : un retirage regresse vers la moyenne
+  la perte par cause de mort du BRAS (somme des d, se sous « aucun effet », z) : air -46 : 18 (17.0, z -2.7) · canyon -1 : 1 (4.0, z -0.2) · eau -7 : 2 (5.7, z -1.2) · lave -3 : 1 (4.0, z -0.7) · paroi +33 : 15 (15.6, z 2.1) · pic +13 : 7 (10.6, z 1.2) · roche -28 : 25 (20.1, z -1.4) · tour -3 : 16 (16.1, z -0.2) · vide -6 : 10 (12.7, z -0.5)
+gestes5 : somme des d palier sur 96 graines -72 ; 15 graines perdent 5 paliers ou plus (somme -96) ; sans elles il reste +24
+  3001147 -9 (depart 14 air 286.1 s -> 5 roche 143.6 s) · 3002812 -8 (depart 12 pic 227 s -> 4 eau 63.7 s) · 3002997 -8 (depart 11 pic 211 s -> 3 air 37.5 s) · 3000185 -7 (depart 10 air 197.3 s -> 3 roche 44.6 s) · 3001480 -7 (depart 10 air 168.6 s -> 3 air 57.2 s) · 3000296 -6 (depart 9 vide 160.4 s -> 3 roche 47.5 s) · 3000814 -6 (depart 9 vide 176.6 s -> 3 tour 30.1 s) · 3001628 -6 (depart 10 tour 190.3 s -> 4 vide 69.3 s) · 3002035 -6 (depart 10 roche 173.8 s -> 4 vide 67.3 s) · 3003034 -6 (depart 13 roche 284.3 s -> 7 paroi 172.7 s) · 3003145 -6 (depart 9 air 140.7 s -> 3 roche 51.9 s) · 3003182 -6 (depart 12 air 242.2 s -> 6 paroi 97.4 s) · 3001258 -5 (depart 9 pic 146.1 s -> 4 air 87.2 s) · 3001739 -5 (depart 11 tour 245.3 s -> 6 roche 99.8 s) · 3003330 -5 (depart 9 vide 160.7 s -> 4 roche 79.5 s)
+  le pendant : 8 graines GAGNENT 5 paliers ou plus (somme +49) ; les grosses pertes tombent sur des graines ou le depart allait loin : un retirage regresse vers la moyenne
+  la perte par cause de mort du BRAS (somme des d, se sous « aucun effet », z) : air -26 : 23 (17.0, z -1.5) · eau -5 : 5 (7.9, z -0.6) · glace +0 : 1 (3.6, z 0.0) · lave -1 : 1 (3.6, z -0.3) · paroi -4 : 7 (9.4, z -0.4) · pic +6 : 3 (6.2, z 1.0) · roche -29 : 22 (16.7, z -1.7) · tour -5 : 23 (17.0, z -0.3) · vide -8 : 10 (11.2, z -0.7)
+
+LE RYTHME (graines ou les deux courses durent 60 s ou plus : paliers par minute, difference appariee, se par bootstrap ; d survie sur les 96 graines ;
+vitesse = la mesure « vitesse » de ressemblance.js, moyenne des courses mesurees, km/h des deux premieres minutes au sol ; joueurs 449.554 ± 67.433)
+bras      | graines | paliers/min depart -> bras | d (se) z              | d survie (s) | vitesse depart -> bras | d vitesse appariee (se) z, graines
+lacheOn   |      71 |             3.348 -> 3.354 | +0.006 (0.092) z 0.1  |         +2.0 | 408.983 -> 410.287     | -0.5 (3.6) z -0.2, 71
+slalomOn  |      67 |             3.330 -> 2.972 | -0.358 (0.097) z -3.7 |         +3.9 | 408.983 -> 385.564     | -24.2 (4.1) z -5.9, 67
+coupOn    |      79 |             3.350 -> 3.261 | -0.088 (0.042) z -2.1 |         +4.4 | 408.983 -> 407.973     | -1.0 (1.8) z -0.5, 79
+relacheOn |      76 |             3.333 -> 3.303 | -0.030 (0.047) z -0.6 |         +2.2 | 408.983 -> 411.158     | +1.7 (2.6) z 0.6, 76
+suitOn    |      70 |             3.370 -> 3.227 | -0.142 (0.090) z -1.6 |        +15.0 | 408.983 -> 411.092     | +0.5 (3.7) z 0.1, 70
+gestes5   |      67 |             3.354 -> 2.941 | -0.413 (0.091) z -4.5 |         -0.4 | 408.983 -> 384.49      | -26.5 (3.5) z -7.6, 67
+fuirVite  |      77 |             3.351 -> 3.330 | -0.021 (0.036) z -0.6 |        +10.0 | 408.983 -> 410.823     | +1.3 (1.1) z 1.2, 77
+c0026     |      73 |             3.352 -> 3.366 | +0.014 (0.055) z 0.3  |         -1.7 | 408.983 -> 409.887     | +0.8 (2.6) z 0.3, 73
+bordOn    |      73 |             3.336 -> 3.278 | -0.058 (0.050) z -1.2 |        +13.8 | 408.983 -> 411.354     | +1.8 (2.6) z 0.7, 73
+largeOn   |      79 |             3.350 -> 3.359 | +0.009 (0.008) z 1.2  |         +2.4 | 408.983 -> 408.915     | -0.1 (0.1) z -1.0, 79
+libreOn   |      78 |             3.348 -> 3.331 | -0.017 (0.027) z -0.6 |         -2.4 | 408.983 -> 409.691     | +1.0 (1.2) z 0.8, 78
+c0101     |      71 |             3.357 -> 3.339 | -0.018 (0.070) z -0.3 |         -4.1 | 408.983 -> 409.167     | -0.0 (3.0) z -0.0, 71
+
+A LIRE AVEC LA SECTION 3 : quand la course differe, la nouvelle course est presque un nouveau tirage. Les graines ou le depart allait loin
+perdent donc souvent, celles ou il mourait tot gagnent souvent, pour TOUS les bras (la regression vers la moyenne). Ranger par l'issue du depart
+(sa cause, sa duree) montre surtout cela ; seul le total sur les 96 graines (d palier de resume.txt) est une mesure de l'effet.

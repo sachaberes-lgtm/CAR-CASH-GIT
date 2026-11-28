@@ -1,0 +1,13 @@
+ensemble partie 1/10 : 12 runs en 160 s -> resultats\ensemble-1.json
+ensemble partie 2/10 : 12 runs en 157 s -> resultats\ensemble-2.json
+ensemble partie 3/10 : 12 runs en 154 s -> resultats\ensemble-3.json
+ensemble partie 4/10 : 12 runs en 153 s -> resultats\ensemble-4.json
+ensemble partie 5/10 : 12 runs en 142 s -> resultats\ensemble-5.json
+ensemble partie 6/10 : 12 runs en 138 s -> resultats\ensemble-6.json
+ensemble partie 7/10 : 12 runs en 140 s -> resultats\ensemble-7.json
+ensemble partie 8/10 : 12 runs en 138 s -> resultats\ensemble-8.json
+ensemble partie 9/10 : 12 runs en 156 s -> resultats\ensemble-9.json
+ensemble partie 10/10 : 12 runs en 152 s -> resultats\ensemble-10.json
+note partie 1/2 : 135 runs en 76 s -> resultats\note-1.json
+note partie 2/2 : 135 runs en 75 s -> resultats\note-2.json
+nul partie 1/1 : 72 runs en 40 s -> resultats\nul-1.json

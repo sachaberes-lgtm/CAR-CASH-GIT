@@ -1,0 +1,13 @@
+generation 1 : 287 courses, survie moyenne 142.8 s ; base 110.6 s de travailleur par course
+controle : graine 990000 du temoin dans la vraie evolution : boucle 26.7 s ; seule : 30.9 s (x 0.87)
+
+A1 (ciel) : 3.6 a 6.4 s par course en moyenne -> 3.3 % a 5.8 % de la generation (l'etude : 9,3 %, 5,8 a 12,8 %)
+   rapporte a la course 2 comme l'etude : (3,7 s + 1,8 s) / 42,7 s = 12.9 %
+
+A2 (ouvrir une fois) : 5.2 a 6.7 s par course -> 4.7 % a 6.1 % de la generation (l'etude : 12,4 %, 9,0 a 15,8 %)
+   (borne haute non mesuree : si les ~14 s de hors-boucle que la mesure directe n'explique pas (26,2 s en moyenne, 16,2 s en mediane, contre 11,8 s seule) venaient du chargement a 4 a la fois, A2 en reprendrait une part)
+
+A4 (cache V8) : 0,26 s par course -> 0.2 % (l'etude : 0,6 %)
+
+cumul sans A2 (A1 milieu, A3, A4, A5) : 8.6 % -> 131.4 min (142 courses/h au lieu de 130)
+cumul avec A2 : 13.5 % -> 124.3 min (151 courses/h)

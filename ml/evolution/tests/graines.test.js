@@ -42,7 +42,11 @@ test('reprise des graines : un arret au milieu (population.json relue) redonne l
       const x=Gr.grainesEntrainement(eg,r,n,cfg);eg=x.eg;repris.push(x.graines);}}
   egal(repris,tout,'lots apres reprise');});
 
-test('entrainement : sans remise sur les 1081 graines, puis avec remise hors des 5 derniers lots',()=>{
+/* (28/11/2026, lot « regles ») l'ancien comportement a l'epuisement (le retirage avec remise) n'existe plus qu'avec auBout "rejouer" (ou une config sans
+   suite) : ce test le garde, sur une config d'avant ce lot */
+const cfgAncien=JSON.parse(JSON.stringify(cfg));delete cfgAncien.graines.entrainement.suite;delete cfgAncien.graines.auBout;
+test('entrainement (config d\'avant, sans suite) : sans remise sur les 1081 graines, puis avec remise hors des 5 derniers lots',()=>{
+  const cfg=cfgAncien;
   const E=cfg.graines.entrainement,r=Gr.mulberry32(5);let eg=Gr.etatInitial(cfg);
   egal(eg.reserve.length,E.n);
   const vues=new Map(),lots=[];
@@ -76,5 +80,79 @@ test('rngDe : tire d\'un sha1, deterministe, sans toucher au maitre',()=>{
   const m=Gr.mulberry32(42),e0=m.etat();const a=Gr.rngDe('abc|12'),b=Gr.rngDe('abc|12'),c=Gr.rngDe('abc|13');
   const x=[a.suivant(),a.suivant()],y=[b.suivant(),b.suivant()];egal(x,y);vrai(c.suivant()!==x[0]);egal(m.etat(),e0);
   const sha=require('crypto').createHash('sha1').update('abc|12').digest('hex');egal(Gr.rngDe('abc|12').suivant(),temoinMulberry(parseInt(sha.slice(0,8),16))());});
+
+/* ===== LA RESERVE D'ENTRAINEMENT (28/11/2026, lot « regles » ; la synthese § 4 M6) ===== */
+const cp=require('child_process');
+/* le graines.js d'avant ce lot, relu dans git (le commit du Ryzen, e93ff5cb5) ; null si git ne le donne pas */
+function grainesAncien(){
+  try{const t=cp.execFileSync('git',['show','e93ff5cb5:ml/evolution/graines.js'],{cwd:path.join(__dirname,'..'),encoding:'utf8',stdio:['ignore','pipe','ignore']});
+    const dos=path.join(__dirname,'..','essais','regles');fs.mkdirSync(dos,{recursive:true});
+    const f=path.join(dos,'graines-ancien.js');fs.writeFileSync(f,t.replace(/\r\n/g,'\n'));delete require.cache[f];return require(f);}catch(e){return null;}}
+const GA=grainesAncien();
+const lots=(G,cfg,graine,n,k,eg0)=>{const r=Gr.mulberry32(graine);let eg=eg0||G.etatInitial(cfg);const L=[];for(let g=0;g<k;g++){const x=G.grainesEntrainement(eg,r,n,cfg);eg=x.eg;L.push(x.graines);}return {L,eg,r};};
+test('M6 AUJOURD\'HUI (le graines.js du Ryzen, e93ff5cb5) : apres 90 generations a 12 graines, les lots REJOUENT des graines deja jouees, sans rien dire',()=>{
+  if(!GA)return console.log('       SAUTE : git ne donne pas graines.js du commit e93ff5cb5');
+  const {L}=lots(GA,cfg,cfg.graineMaitre,12,120),vues=new Set();let premier=-1,rejouees=0;
+  for(let g=0;g<L.length;g++){for(const s of L[g]){if(vues.has(s)){rejouees++;if(premier<0)premier=g;}vues.add(s);}}
+  egal(premier,90,'premier lot qui rejoue (la generation 90, le 91e lot)');vrai(vues.size===1081,'graines distinctes '+vues.size);
+  vrai(rejouees===120*12-1081,'graines rejouees '+rejouees);
+  console.log('       ancien code : la generation '+premier+' (le '+(premier+1)+'e lot) tire 12 graines dont 11 deja jouees ; sur 120 lots, '+rejouees+' graines rejouees, aucune alerte');});
+test('M6 : la meme plage en tete : les 90 premiers lots sont ceux d\'avant au bit pres, puis la suite (1000021 + 37 j), aucune graine rejouee sur 2 500 lots',()=>{
+  const neuf=lots(Gr,cfg,cfg.graineMaitre,12,2500).L;
+  if(GA){const vieux=lots(GA,cfg,cfg.graineMaitre,12,91).L;egal(neuf.slice(0,90),vieux.slice(0,90),'les 90 premiers lots');
+    /* le 91e : la derniere graine de la reserve d'avant, au meme rang ; le reste vient de la suite */
+    vrai(neuf[90].filter(s=>s<950000).length===1&&vieux[90].includes(neuf[90].find(s=>s<950000)),'le 91e lot');}
+  const vues=new Set(),E=cfg.graines.entrainement,S=E.suite;let derniereAncienne=-1,premiereSuite=-1;
+  for(let g=0;g<neuf.length;g++)for(const s of neuf[g]){
+    vrai(!vues.has(s),'graine rejouee '+s+' (lot '+g+')');vues.add(s);
+    if(s<950000){vrai((s-E.depart)%E.pas===0&&(s-E.depart)/E.pas<E.n,'hors de la plage d\'avant '+s);derniereAncienne=g;}
+    else{vrai(s>=S.depart&&s<=S.fin&&(s-S.depart)%S.pas===0,'hors de la suite '+s);if(premiereSuite<0)premiereSuite=g;
+      vrai(!(s>=950000&&s<=991443),'plage reservee '+s);vrai((s-1000000)%37!==0,'graine de la forme de la validation '+s);}}
+  vrai(derniereAncienne===90&&premiereSuite===90,'les 1081 d\'avant d\'abord : derniere '+derniereAncienne+', premiere de la suite '+premiereSuite);
+  vrai([...vues].filter(s=>s<950000).length===1081,'les 1081 graines d\'avant toutes jouees');
+  /* combien la reserve tient */
+  const tout=E.n+Math.floor((S.fin-S.depart)/S.pas)+1;egal(tout,27001081);
+  egal(Gr.grainesRestantes(Gr.etatInitial(cfg),cfg),27001081);
+  console.log('       '+tout+' graines : '+Math.floor(tout/12)+' generations a 12 graines, '+Math.floor(tout/8)+' a 8 ; 2 500 lots joues sans une graine rejouee');});
+test('M6 : un etat ecrit par l\'ancien code (sans « blocs »), en cours ou deja vide, continue sans rejouer ni sauter une graine ; reprise a cheval sur un bloc',()=>{
+  /* en cours : 50 lots par l'ancien code, puis la suite par le nouveau */
+  const A=GA||Gr,a=lots(A,cfg,7,12,50),avant=new Set(a.L.flat());
+  const sauve=JSON.parse(JSON.stringify({rng:a.r.etat(),graines:a.eg}));vrai(!('blocs' in sauve.graines)||GA===null,'l\'ancien etat a deja « blocs »');
+  const b=lots(Gr,cfg,sauve.rng,12,100,sauve.graines),apres=b.L.flat();
+  vrai(apres.every(s=>!avant.has(s)),'une graine rejouee apres la reprise');vrai(new Set(apres).size===apres.length,'doublon apres la reprise');
+  vrai(apres.filter(s=>s<950000).length===1081-600,'des graines d\'avant sautees : '+apres.filter(s=>s<950000).length);
+  /* vide : la reserve d'avant epuisee, en retirage (l'ancien etat ne peut pas le dire autrement) : la suite repart, rien n'est rejoue */
+  const vide={reserve:[],recentes:[[910000]],validationK:48,validationRepli:false,validationFinie:false};
+  const c=lots(Gr,cfg,9,12,3,vide).L.flat();vrai(c.every(s=>s>=1000021),'un etat vide rejoue : '+c.join(' '));egal(lots(Gr,cfg,9,1,1,vide).eg.blocs,1);egal(lots(Gr,cfg,9,1,1,vide).eg.validationK,48);
+  /* reprise : population.json relu a chaque lot, en travers des blocs */
+  const ref=lots(Gr,cfg,11,12,300).L;let r=Gr.mulberry32(11),eg=Gr.etatInitial(cfg);const rep=[];
+  for(let g=0;g<300;g++){const p=JSON.parse(JSON.stringify({rng:r.etat(),graines:eg}));r=Gr.mulberry32(p.rng);eg=p.graines;const x=Gr.grainesEntrainement(eg,r,12,cfg);eg=x.eg;rep.push(x.graines);}
+  egal(rep,ref,'reprise lot par lot');vrai(eg.blocs===3,'blocs '+eg.blocs);});
+test('M6 : au bout de la reserve, un arret clair (GRAINES_EPUISEES), jamais un rejeu ; auBout « rejouer » garde l\'ancien retirage',()=>{
+  const petit=JSON.parse(JSON.stringify(cfg));petit.graines.entrainement.suite.fin=1000021+37*(1081+500-1);   /* 1081 + 1581 graines */
+  egal(Gr.grainesRestantes(Gr.etatInitial(petit),petit),1081+1581);
+  const r=Gr.mulberry32(3);let eg=Gr.etatInitial(petit),n=0,leve=null;const vues=new Set();
+  try{for(;;){const x=Gr.grainesEntrainement(eg,r,12,petit);for(const s of x.graines){vrai(!vues.has(s),'rejouee '+s);vues.add(s);}eg=x.eg;n++;}}catch(e){leve=e;}
+  vrai(leve&&leve.code==='GRAINES_EPUISEES'&&/epuisees/.test(leve.message),'pas d\'arret clair : '+(leve&&leve.message));
+  egal(n,Math.floor((1081+1581)/12),'lots joues');egal(vues.size,n*12);egal(Gr.grainesRestantes(eg,petit),(1081+1581)%12);
+  /* le dernier lot incomplet n'est pas tire : la demande qui depasse est refusee entiere, eg n'a pas bouge */
+  const avant=JSON.stringify(eg);try{Gr.grainesEntrainement(eg,r,12,petit);}catch(e){}egal(JSON.stringify(eg),avant);
+  /* une demande qui tient exactement passe */
+  const x=Gr.grainesEntrainement(eg,r,(1081+1581)%12,petit);egal(Gr.grainesRestantes(x.eg,petit),0);
+  /* auBout "rejouer" : l'ancien retirage, sans erreur */
+  const rej=JSON.parse(JSON.stringify(petit));rej.graines.auBout='rejouer';
+  vrai(Gr.grainesRestantes(eg,rej)===Infinity,'rejouer : restantes');const y=Gr.grainesEntrainement(x.eg,r,12,rej);egal(y.graines.length,12);
+  console.log('       '+n+' lots de 12, puis l\'arret : « '+leve.message.slice(0,120)+'… »');});
+test('M6 : la validation jusqu\'a 96 graines (1 000 000 + 37 k) ne touche jamais l\'entrainement (les deux plages), le coffre ni le repli, sur 3 000 generations',()=>{
+  const r=Gr.mulberry32(cfg.graineMaitre);let eg=Gr.etatInitial(cfg);const ent=new Set(),val=new Set();const coffre=new Set(Gr.grainesCoffre(cfg));
+  for(let g=0;g<3000;g++){
+    const x=Gr.grainesEntrainement(eg,r,g%3?12:8,cfg);eg=x.eg;for(const s of x.graines){vrai(!ent.has(s),'entrainement rejoue '+s);ent.add(s);}
+    if(g%5===4){let n=0;for(const t of [24,12,12,12,12,12,12]){if(r.suivant()<.3&&n)break;const v=Gr.grainesValidation(eg,t,cfg);eg=v.eg;n+=t;egal(v.graines.length,t);
+      for(const s of v.graines){vrai(!val.has(s),'validation reprise '+s);val.add(s);}}vrai(n<=96);}}
+  for(const s of val){vrai(!ent.has(s),'validation = entrainement '+s);vrai(!coffre.has(s)&&!(s>=950000&&s<992000),'validation dans une plage reservee '+s);}
+  for(const s of ent){vrai(!coffre.has(s)&&!(s>=950000&&s<1000000),'entrainement dans une plage reservee '+s);}
+  /* et pour toujours : les deux progressions n'ont pas le meme reste modulo 37 (22 et 1) */
+  egal(cfg.graines.entrainement.suite.depart%37,cfg.graines.entrainement.depart%37);vrai(cfg.graines.entrainement.depart%37!==cfg.graines.validation.depart%37);
+  console.log('       '+ent.size+' graines d\'entrainement, '+val.size+' de validation (k = '+eg.validationK+') : aucune en commun ; restes modulo 37 : entrainement '+(910000%37)+', validation '+(1000000%37));});
 
 console.log(`\n${passes} passe(s), ${rates} echec(s)`);process.exit(rates?1:0);

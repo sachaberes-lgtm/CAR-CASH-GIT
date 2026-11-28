@@ -1,0 +1,64 @@
+DONNEES : 566 lignes lues ; entrainement mesure : gen. 0 240 (20 pilotes x 12 graines), gen. 1 286 lignes (26 pilotes, 12 graines entamees)
+ordre des graines de la gen. 0 (l'ordre ou elles ont ete jouees) : 912627 949220 922987 943078 927760 948961 920138 940895 924023 923653 915217 914736
+
+== A. LA NOTE DE LA GENERATION 0 (note.js tel quel, 12 graines) ==
+id           |    a  |  â    |  E   | se_E | parties |   F   | se_F
+3032bf8184f5 | 8.58 | 7.54 | 0.85 | 0.09 |   10    |  4.15 | 0.91
+1a146f9f0ffc | 7.00 | 6.75 | 0.72 | 0.13 |    9    |  3.86 | 0.99
+449cb03217b0 | 8.58 | 7.54 | 0.92 | 0.05 |   12    |  3.86 | 0.87
+95cd1fe7216b | 7.50 | 7.00 | 0.84 | 0.11 |   10    |  3.63 | 0.94
+916e2ab472f8 | 6.92 | 6.70 | 0.84 | 0.08 |    8    |  3.33 | 0.90
+d0281d911fb9 | 6.25 | 6.37 | 0.79 | 0.08 |    9    |  3.21 | 0.90
+75c51f600b13 | 6.67 | 6.58 | 0.87 | 0.07 |   10    |  3.12 | 0.88
+4ee745c9047b | 6.92 | 6.70 | 0.91 | 0.11 |    8    |  3.08 | 0.94
+dcd093fdc1bf | 6.33 | 6.41 | 0.85 | 0.08 |    9    |  3.00 | 0.91
+9885ec853c79 | 6.50 | 6.50 | 0.90 | 0.10 |    7    |  2.90 | 0.93
+af68f7e8f019 | 7.08 | 6.79 | 0.98 | 0.11 |    9    |  2.89 | 0.96
+19e3767cc346*| 6.42 | 6.45 | 0.90 | 0.09 |    8    |  2.84 | 0.91
+c725eb9853c8 | 6.83 | 6.66 | 0.96 | 0.14 |   10    |  2.82 | 1.02
+fca7498ee261 | 5.92 | 6.20 | 0.90 | 0.08 |    8    |  2.61 | 0.90
+780adaceba8f | 5.00 | 5.75 | 0.85 | 0.11 |    9    |  2.37 | 0.95
+189e2ce7fa40 | 5.50 | 6.00 | 0.96 | 0.16 |    7    |  2.14 | 1.06
+25ef7a22a9b2 | 5.75 | 6.12 | 1.01 | 0.13 |    8    |  2.10 | 0.98
+75f072ea9346 | 5.17 | 5.83 | 1.01 | 0.12 |    7    |  1.79 | 0.96
+f6e4be64ff88 | 5.58 | 6.04 | 1.11 | 0.12 |   10    |  1.60 | 0.97
+6fc0d3c07790 | 5.33 | 5.91 | 1.12 | 0.14 |    8    |  1.44 | 1.01
+sigmaRes 2.92 ; ET des a entre pilotes 1.00 (bruit attendu sigma/sqrt12 = 0.84) -> ET VRAIE des a ~ 0.54
+ET des E entre pilotes 0.10 (bruit moyen se_E 0.11) -> ET VRAIE des E ~ 0.00 ; x4 dans F : 0.00
+ET des F entre pilotes 0.76 ; corr(a, E) entre pilotes -0.43
+
+== B. TEST-RETEST : LES 20 ANCIENS NOTES SUR LA GEN. 0 PUIS SUR LA GEN. 1 (graines differentes, au moins 10 courses en gen. 1) ==
+a  : corr gen0/gen1 Pearson -0.21 Spearman -0.21 ; ET gen0 1.00 gen1 1.31 ; ET de la difference 1.81
+E  : corr gen0/gen1 Pearson 0.24 Spearman -0.03 ; ET gen0 0.10 gen1 0.11 ; ET de la difference 0.13
+F  : corr gen0/gen1 Pearson -0.23 Spearman -0.34 ; ET gen0 0.76 gen1 0.72 ; ET de la difference 1.16
+les 6 F les plus bas : 1 en commun sur 6 entre gen0 et gen1 (au hasard : 1.80 attendus)
+
+== C. RESIDUS (gen. 0 + 1, 526 courses) ==
+sigmaRes (ddl du modele) 3.19 ; ET brute des residus 3.04 ; aplatissement 3.20 (3 = normal) ; ET des b (graines) 1.98
+
+== D. HEREDITE : MUTANT ET TEMOIN SUR LA MEME GRAINE (gen. 0 et 1, le jeu est deterministe) ==
+courses mutant/temoin sur une meme graine : 437 ; meme palier ET meme survie : 44 (10.07 %) ; meme empreinte : 44
+correlation des residus mutant / temoin, meme graine : -0.01 (0 = bruit neuf ; 1 = la meme course)
+entre deux mutants (cousins) : 3933 paires-courses, identiques 2.92 %, correlation des residus -0.04
+
+== E. LE TEMPS REEL D'UNE COURSE (ms, gen. 0 et 1) ==
+course moyenne 69.85 s de calcul ; regression : temps = -24.52 + 13.25 x palier (corr 0.86) ; palier moyen 7.12
+par pilote : corr(palier moyen, temps moyen) 0.94 ; le plus lent 88.58 s, le plus rapide 54.14 s
+
+== F. LE BRUIT DE E ==
+part des courses qui donnent une partie (plus de 60 s, mesures non nulles) : 77.95 %
+se_E x sqrt(parties), moyenne gen. 0 : 0.31 (l'etude du bruit : 0,17 a 6 parties -> 0,42 ; 0,12 a 12 -> 0,42)
+E sur les 2 premieres graines : 20/20 pilotes sous 5 parties (E = 4, le pire) ; les autres : E_k - E_12 moyen   -   ET   -  
+E sur les 3 premieres graines : 20/20 pilotes sous 5 parties (E = 4, le pire) ; les autres : E_k - E_12 moyen   -   ET   -  
+E sur les 4 premieres graines : 20/20 pilotes sous 5 parties (E = 4, le pire) ; les autres : E_k - E_12 moyen   -   ET   -  
+E sur les 6 premieres graines : 13/20 pilotes sous 5 parties (E = 4, le pire) ; les autres : E_k - E_12 moyen 0.07 ET 0.07
+
+== G. LES k PREMIERES GRAINES PREDISENT-ELLES LES 12 ? (gen. 0, ordre joue, palier corrige de la graine b_g du modele gen. 0) ==
+k=2 : corr(moyenne des k premieres, a sur 12) 0.57 (en partie la meme course) ; corr(moyenne des k premieres, a sur gen0+gen1) 0.35 ; theorie sans heredite : sqrt(k/12) = 0.41
+k=3 : corr(moyenne des k premieres, a sur 12) 0.78 (en partie la meme course) ; corr(moyenne des k premieres, a sur gen0+gen1) 0.38 ; theorie sans heredite : sqrt(k/12) = 0.50
+k=4 : corr(moyenne des k premieres, a sur 12) 0.83 (en partie la meme course) ; corr(moyenne des k premieres, a sur gen0+gen1) 0.55 ; theorie sans heredite : sqrt(k/12) = 0.58
+k=6 : corr(moyenne des k premieres, a sur 12) 0.88 (en partie la meme course) ; corr(moyenne des k premieres, a sur gen0+gen1) 0.57 ; theorie sans heredite : sqrt(k/12) = 0.71
+F sur gen. 0 + 1 (24 courses) des 20 anciens, du plus bas au plus haut : f6e4 2.00, 25ef 2.65, 189e 2.71, 780a 2.71, 75f0 2.75, 6fc0 3.03, 75c5 3.09, 4ee7 3.13, c725 3.34, d028 3.40, 1a14 3.43, 95cd 3.44, 916e 3.63, 449c 3.68, 9885 3.69, 19e3 3.70, 3032 3.71, dcd0 3.93, af68 4.01, fca7 4.20
+le 7e plus bas (le « moins bon vivant » apres 6 renvois) : F 3.09 ; â de ce pilote 6.52, E 0.86
+
+(residus.json ecrit : 526 residus, et les nombres du simulateur)

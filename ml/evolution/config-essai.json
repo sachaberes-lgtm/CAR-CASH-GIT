@@ -3,8 +3,9 @@
   "_notes": [
     "LE PETIT JEU « ESSAI » (etape 4 de la specification) : fusionne par-dessus config.json (evoluer.js --config config-essai.json).",
     "Son etat vit a part (essais/etat, essais/champions) : un essai ne touche jamais l'etat de la vraie evolution.",
-    "protectionCourses 6 = deux generations de 3 graines (la vraie config : 24 = deux generations de 12) : un nouveau-ne n'est jamais vire a sa premiere generation (27/11, l'integrateur).",
-    "travailleurs \"auto\" et banc [1, 2] (27/11, « machine ») : le premier lancement d'un essai fait un petit banc (4 courses de 45 s a 1 puis 2 a la fois, quelques minutes) et ne depasse jamais 2 courses a la fois, meme en repli ; --travailleurs N l'emporte (les tests passent --travailleurs 4)."
+    "(28/11, lot « regles ») protectionCourses (6 ici, deux generations de 3 graines) n'est plus lu : la protection se fait par l'age (protectionGenerations 1 de config.json), la meme regle a 3 graines comme a 12 : un nouveau-ne n'est jamais vire a sa premiere generation.",
+    "travailleurs \"auto\" et banc [1, 2] (27/11, « machine ») : le premier lancement d'un essai fait un petit banc (4 courses de 45 s a 1 puis 2 a la fois, quelques minutes) et ne depasse jamais 2 courses a la fois, meme en repli ; --travailleurs N l'emporte (les tests passent --travailleurs 4).",
+    "validation pas 3, plafond 9 (28/11, lot « sacre ») : la validation sequentielle en petit, 3 graines puis 3 par 3 jusqu'a 9 (regards a 3, 6, 9 ; bornes 3,81, 2,69, 2,2) ; plan, borneOBF, futilite, seuilB, seuilC viennent de config.json."
   ],
   "dossierEtat": "essais/etat",
   "dossierChampions": "essais/champions",
@@ -14,10 +15,9 @@
   "grainesEconomie": 3,
   "tmax": 60,
   "travailleurs": "auto",
-  "protectionCourses": 6,
   "immigres": 1,
   "graines": { "coffre": { "depart": 990000, "pas": 37, "n": 2 } },
-  "validation": { "intervalle": 1, "nMin": 3, "graines": 3, "bootstrap": 50 },
+  "validation": { "intervalle": 1, "nMin": 3, "graines": 3, "bootstrap": 50, "pas": 3, "plafond": 9 },
   "note": { "bootstrapE": 50, "partiesMin": 1 },
   "banc": { "travailleurs": [1, 2], "courses": 4, "tmax": 45 },
   "identite": { "graines": [910000, 910037, 910074], "tmax": 45 }

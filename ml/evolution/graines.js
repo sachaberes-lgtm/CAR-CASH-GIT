@@ -38,22 +38,71 @@ function cfgGraines(cfg){
   if(!g||!g.entrainement||!g.validation||!g.coffre)throw new Error('graines : cfg.graines incomplet (entrainement, validation, coffre)');
   return g;}
 
+/* ===== LA RESERVE D'ENTRAINEMENT QUI TIENT DES ANNEES (28/11/2026, lot « regles » ; la synthese ml/ecurie/etude/reglage-de-la-selection/LISEZ-MOI.md
+   § 4 M6 : « 1 081 graines, epuisees apres environ 90 generations a 12 graines ») =====
+   Avant : 1 081 graines (910000 + 37·i), puis un RETIRAGE avec remise parmi elles (hors des 5 derniers lots) : un ancien retombait sur une graine
+   qu'il avait jouee (le cache la rendait, il n'apprenait rien) et un enfant sur une graine que son parent connaissait. Sans rien dire.
+   Maintenant : la meme progression continue APRES les plages reservees. Un indice i de la reserve donne
+     i < n (1 081)  : depart + pas·i            910000 a 949960 (la plage d'avant, inchangee : une selection deja commencee continue au bit pres) ;
+     i >= n         : suite.depart + suite.pas·(i − n), jusqu'a suite.fin   1000021 a 999999984 (27 000 000 graines).
+   1000021 = 910000 + 37·2433 : la meme progression (910000 modulo 37 = 22), qui SAUTE 950000 a 999999 (le repli de la validation et la validation de
+   la boucle payante, 950000 a 989999 ; le coffre, 990000 a 991443). Elle ne rencontre jamais la validation de la selection (1 000 000 + 37·k : 1 modulo
+   37), si loin qu'elle monte. Les graines deja jouees restent jouees : la suite ne reprend aucune graine de la plage d'avant.
+   La reserve reste un tableau d'au plus n indices : quand elle est vide, elle recoit le BLOC suivant de n indices de la suite (eg.blocs = le nombre de
+   blocs deja recus apres le premier ; absent = 0, un etat d'avant ce lot). Le tirage dans un bloc est celui d'avant (rng.entier puis splice).
+   27 000 000 graines = 2 250 000 generations a 12 graines (3 375 000 a 8). Au bout (et seulement si cfg.graines.auBout ne vaut pas "rejouer") :
+   grainesEntrainement LEVE une erreur claire (« graines d'entrainement epuisees ») plutot que de rejouer en silence ; evoluer.js la voit AVANT les
+   naissances (grainesRestantes) et s'arrete sans rien ecrire. auBout "rejouer" (ou une config sans suite et sans auBout) : l'ancien retirage. */
+function suiteDe(E){
+  const S=E.suite;
+  if(!S)return null;
+  if(!(Number.isInteger(S.depart)&&Number.isInteger(S.pas)&&S.pas>0&&Number.isInteger(S.fin)&&S.fin>=S.depart&&S.fin<=2147483647))
+    throw new Error('graines : cfg.graines.entrainement.suite mal ecrite (depart, pas, fin entiers, fin >= depart, fin <= 2147483647)');
+  if(S.depart<=E.depart+E.pas*(E.n-1))throw new Error('graines : la suite d\'entrainement doit commencer apres la plage d\'avant');
+  return {depart:S.depart,pas:S.pas,n:Math.floor((S.fin-S.depart)/S.pas)+1};}
+/* la graine d'un indice de la reserve */
+function graineDe(E,i){
+  if(i<E.n)return E.depart+E.pas*i;
+  const S=suiteDe(E);
+  if(!S||i-E.n>=S.n)throw new Error('graines : indice d\'entrainement hors de la reserve ('+i+')');
+  return S.depart+S.pas*(i-E.n);}
+/* le bloc b (b >= 1) de la suite : les indices n + (b-1)·n a n + b·n − 1, coupes a la fin de la suite ; [] au-dela */
+function blocDe(E,b){
+  const S=suiteDe(E);if(!S)return [];
+  const a=E.n+(b-1)*E.n,z=Math.min(E.n+b*E.n,E.n+S.n),r=[];
+  for(let i=a;i<z;i++)r.push(i);
+  return r;}
+/* rejouer au bout : explicite (auBout "rejouer"), ou une config d'avant ce lot (sans suite ni auBout) */
+const rejouerAuBout=G=>G.auBout==='rejouer'||(G.auBout==null&&!G.entrainement.suite);
+
 function etatInitial(cfg){
   const n=cfgGraines(cfg).entrainement.n,reserve=[];for(let i=0;i<n;i++)reserve.push(i);
-  return {reserve:reserve,recentes:[],validationK:0,validationRepli:false,validationFinie:false};}
+  return {reserve:reserve,recentes:[],validationK:0,validationRepli:false,validationFinie:false,blocs:0};}
 
 function copieEtat(eg){
-  return {reserve:eg.reserve.slice(),recentes:eg.recentes.map(l=>l.slice()),validationK:eg.validationK|0,
-    validationRepli:!!eg.validationRepli,validationFinie:!!eg.validationFinie};}
+  return {reserve:eg.reserve.slice(),recentes:(eg.recentes||[]).map(l=>l.slice()),validationK:eg.validationK|0,
+    validationRepli:!!eg.validationRepli,validationFinie:!!eg.validationFinie,blocs:eg.blocs|0};}
 
-/* n graines d'entrainement : indices tires SANS remise dans la reserve (rng.entier puis splice) ; reserve vide : retirage avec remise parmi
-   les n de la table, hors des graines des lots recents (et hors de celles deja prises dans ce lot : un lot n'a jamais deux fois la meme graine). */
+/* combien de graines d'entrainement neuves restent (la reserve et les blocs a venir) ; Infinity si l'on rejoue au bout */
+function grainesRestantes(eg,cfg){
+  const G=cfgGraines(cfg),E=G.entrainement,S=suiteDe(E);
+  if(rejouerAuBout(G))return Infinity;
+  const recus=(eg.blocs|0)*E.n;   /* indices de la suite deja passes dans la reserve */
+  return eg.reserve.length+(S?Math.max(0,S.n-recus):0);}
+
+/* n graines d'entrainement : indices tires SANS remise dans la reserve (rng.entier puis splice) ; reserve vide : le bloc suivant de la suite ;
+   plus de bloc : erreur claire, ou (auBout "rejouer") retirage avec remise parmi les n de la plage d'avant, hors des graines des lots recents
+   (et hors de celles deja prises dans ce lot : un lot n'a jamais deux fois la meme graine). */
 function grainesEntrainement(eg,rng,n,cfg){
   const G=cfgGraines(cfg),E=G.entrainement,garder=G.exclureRecentes==null?5:G.exclureRecentes;
   if(!(n>=0)||n!==Math.floor(n))throw new Error('graines : nombre de graines invalide « '+n+' »');
   const e=copieEtat(eg),graines=[],pris=new Set();
+  if(!rejouerAuBout(G)&&grainesRestantes(e,cfg)<n)
+    throw Object.assign(new Error('graines : les graines d\'entrainement sont epuisees ('+grainesRestantes(e,cfg)+' neuves restent, '+n+' demandees) : '+
+      'aucune ne sera rejouee ; allonger cfg.graines.entrainement.suite.fin (sans toucher aux plages reservees) ou mettre cfg.graines.auBout a "rejouer"'),{code:'GRAINES_EPUISEES'});
   for(let t=0;t<n;t++){
     let i;
+    if(!e.reserve.length&&!rejouerAuBout(G)){e.blocs++;e.reserve=blocDe(E,e.blocs);}
     if(e.reserve.length){const k=rng.entier(e.reserve.length);i=e.reserve.splice(k,1)[0];}
     else{
       const exclues=new Set();for(const lot of e.recentes)for(const g of lot)exclues.add(g);
@@ -61,7 +110,7 @@ function grainesEntrainement(eg,rng,n,cfg){
       if(!cand.length){cand=[];for(let j=0;j<E.n;j++)if(!pris.has(E.depart+E.pas*j))cand.push(j);}
       if(!cand.length)throw new Error('graines : plus aucune graine d\'entrainement disponible ('+n+' demandees, '+E.n+' en tout)');
       i=cand[rng.entier(cand.length)];}
-    const g=E.depart+E.pas*i;graines.push(g);pris.add(g);}
+    const g=graineDe(E,i);graines.push(g);pris.add(g);}
   e.recentes.push(graines.slice());while(e.recentes.length>garder)e.recentes.shift();
   return {graines:graines,eg:e};}
 
@@ -79,7 +128,8 @@ function grainesValidation(eg,n,cfg){
 
 function grainesCoffre(cfg){const C=cfgGraines(cfg).coffre,r=[];for(let j=0;j<C.n;j++)r.push(C.depart+C.pas*j);return r;}
 
-module.exports={mulberry32,rngDe,etatInitial,grainesEntrainement,grainesValidation,grainesCoffre};
+module.exports={mulberry32,rngDe,etatInitial,grainesEntrainement,grainesValidation,grainesCoffre,
+  grainesRestantes,graineDe};   /* (28/11, lot « regles ») la reserve qui tient des annees */
 
 /* ===== LIGNE DE COMMANDE : node graines.js --essai (trois tirages de demonstration) ===== */
 if(require.main===module){

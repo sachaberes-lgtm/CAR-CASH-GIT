@@ -1,0 +1,45 @@
+{
+ "format": "cashcar-rejeu-1",
+ "cerveau": {
+  "id": "c0044",
+  "nom": "pilote",
+  "sha": "a0f9f69cba56f2f344b6b3dddc4a6074003034d3",
+  "code": "cerveaux/c0044-pilote.js"
+ },
+ "etape": "C2",
+ "generation": 4,
+ "jeu": {
+  "version": "cashcar-v1627",
+  "sha": "e7e1eed4718f",
+  "commit": "de3fe2c40",
+  "propre": true,
+  "simulateur": "relief-canyon",
+  "regime": "allege"
+ },
+ "graine": 910074,
+ "carte": null,
+ "meteo": null,
+ "tmax": 600,
+ "images": 7260,
+ "empreinte": "bef964678944",
+ "fin": {
+  "t": 121,
+  "cause": "pic",
+  "argent": 2986.84,
+  "pieces": 280,
+  "figures": 4,
+  "bumps": 3,
+  "zones": 1,
+  "vmax": 949
+ },
+ "cartes": [
+  "nuages",
+  "jade"
+ ],
+ "pourquoi": [
+  "le plus de figures en un vol : 2"
+ ],
+ "trajectoire": "trajectoires/c0044-g910074.json.gz",
+ "aide": "touches : le nombre d'images (1/60 s) depuis le changement d'avant, puis la touche — MAJUSCULE enfoncee, minuscule relachee ; G D H B N = gauche droite haut bas ESPACE ; C = la plaque CONTINUER de la seconde chance touchee (c : attente abandonnee)",
+ "touches": "11N25n5N34n10N20n13N60n24N27n8N29G4g75G8g99G5g15n4G4g17G1N10g10G4g42D8d30G14g12G13g16D7d6D6d42G4g35G18g13D4n18d2N4D6n4d13N40G10n6g7G4g10G9g1N14D4d16D8d89D5d83n23G2N2g5n20G5N5g31D5d69G17g10D5d0G18n16g7D23H25h6d4G26g10D33d11G4g4G48g13D5d13G9N6g5B57G1b7g9G4g6D34n28d1G27N8g6G19g31D15B8d4G0n13b11g22D15d23D26d5D13d17G6g27H30h26G6N12g18D5n1d12D13N10n2d9D4d3N4D4d5D6d14D16d42n20N2D5n6d7D5d2N5D5d6D21d17D1n6N4d9G7n24N11n22g2H4D2N23h0B27d7G3b24g12G11g8G4g4G42g11D5n2d0G4g0D4d0G5N53n19N20n15g7D27N5n5N5d5n5G6g5G6g4G5N4n4N5g0D0B1n6d6D20d11b6G12g10D6d12G13g4G9B10g24D21d10G6g18D17d2G7b1g0D54d3N6D13d7n3G34N1g4G4g27n6N12D21d5D7d11D17d16G17g21D6d7D10d6G44n4g9D43d8G9g0D25d3G16g4G5g22N69G5g13G8g34D7d48G11g20n23G27g45G40g7G12g12G5g1N4G6g11G8g8G8g5n2G24g26G22g15G8g4G8g6G7g8G5g13G19N13g9G7g10G4g6D6d8D14d10D15d2G2n2g2N5G2n3g18G9g13G24g8D50d16D15N2d3G5g1n6G19g11G2N3g51D5n9N13d32G12g42D15n1d12N2D4d9D6d20G7g10n2G5g1N10n20G0N11g22G15g10G4g19G7g14G5g2n9N82G28g9n2D18d11D17d7D14d11G4g9G23g0H1D10h8d14G4g6G10g7N1G13g8G7g12D13n21d7D4d8D3N2d3n7D12d3N11n12G14g11D10d4D4d7D4d3N8D8d15n27N10n16G1N11g51D6d29G5g24n9N7D4d25n9N31D16d46n10N1D16d6D4n4d16N2D21d20G8g39D17d11D7d17G5g62D17d4G4g9G17g9G1n12N2g40D6d7n32G3N10g15G5g132D14d20n8N36G16g36D13d23D19d16G11g26D5d10D8d7n3D5d13D4d12D4d14G6g5N4G4g11G5g7G13g46G5g9G4g24G23g9D6d4D1n3d14D22d2N9D4d13D4d7D13d5G24g0D23d6D6d4D19d7D7d16D1H2n12d12G14g4D9h13d4G14g6G18g"
+}

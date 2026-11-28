@@ -1,0 +1,3 @@
+source evolution : 7 pilotes a 24 graines ou plus
+d = +0 palier : sacre 3.5 % (+- 0.8 a 95 %), critere (a) 3.5 %, critere (c) 84.0 % ; 2000 essais (77 s)
+d = +1 palier : sacre 16.9 % (+- 2.3 a 95 %), critere (a) 17.3 %, critere (c) 82.8 % ; 1000 essais (115 s)

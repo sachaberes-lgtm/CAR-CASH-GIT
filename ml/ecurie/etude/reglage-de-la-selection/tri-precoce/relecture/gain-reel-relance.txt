@@ -1,0 +1,18 @@
+gen. 1 : 286 courses lues, 12 graines entamees, 10 completes (26 pilotes) ; on ne compte que les graines completes, ramenees a 12
+schema | temps des courses (s, ramene a 12 graines) | part de A | generations par jour sur le Xeon (A = 24 x 191 / 312 = 14.7)
+A      |   26786 | 100.0 % | 14.7
+B2     |    9458 |  35.3 % | 41.6
+B4     |   12792 |  47.8 % | 30.8
+B8     |   20446 |  76.3 % | 19.2
+B4+K   |   12198 |  45.5 % | 32.3
+A+K    |   26192 |  97.8 % | 15.0
+D      |    5540 |  20.7 % | 71.0
+clones a k = 4 dans la gen. 1 : 9627905cd5bb
+
+precision de la note d'un pilote ne en gen. 0, a la gen. 10 (sigma 3.19, kE 0.31, parties 78 %) :
+A   : 132 courses -> se_a 0.28, se_F 0.30 palier
+B8  :  92 courses -> se_a 0.33, se_F 0.36 palier
+B4  :  52 courses -> se_a 0.44, se_F 0.48 palier
+B2  :  32 courses -> se_a 0.56, se_F 0.62 palier
+D   :  12 courses -> se_a 0.92, se_F 1.01 palier
+(l'ET VRAIE entre les mutants de la gen. 0, mesures.txt § A : 0.54 palier sur a, 0 sur E ; test-retest gen. 0 / gen. 1 : negatif)

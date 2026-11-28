@@ -12,15 +12,86 @@ Le plan d'ensemble est dans `PLAN.md`, l'étude dans `etude/`.
 | A | L'étude : ce qui donne des pièces, ce qui tue, les vrais joueurs mesurés | **faite** (commit `67ea1f009`) |
 | B | Les fondations : défauts corrigés, yeux v2, doigts v2 | **faite** (25/11/2026) : défauts corrigés, yeux v2 et doigts v2 écrits, relus par des agents, corrigés, puis contrôlés une dernière fois (`verifier.js` TOUT PASSE en régime max et en régime allégé, 5 rejeux exacts sur 5, la boucle à blanc va au bout avec un cerveau à profil) ; **finitions du 25/11 au soir** : le radar sonde le canyon à chaque image (exact, +0,2 % de coût), la justesse refaite avec la main réglée, les fins de ligne du labo. Ce qui reste faux ou non mesuré est écrit plus bas : ce sont des limites connues, pas des oublis |
 | C | Le pilote d'élite, amélioré par tours (le réglage à la main s'arrête le 27/11/2026 : le dernier pilote réglé, `pilote-voltige.js`, devient le témoin et le point de départ de la sélection) | **commencée (25/11/2026) : le premier pilote existe** (`ml/ecurie/pilote.js`, main `clavier`). Au tri (12 graines, 600 s, allégé) : **palier médian 12,5, meilleur 20**, contre 6 et 17 pour le bot de référence sur les mêmes graines. **Contrôlé le 25/11 au soir** (aucune erreur ; sur 8 graines de 600 s : médian 11,5 et meilleur 18, contre 7 et 16). **Pas encore fait** (le travail de la chaîne) : la note de 20 graines de 900 s, l'inscription au labo, les tours payés de la boucle |
-| C bis | La boucle automatique sur le crédit API (les 200 €), avec un plafond de dépense | **prête, essayée à blanc** : un tour complet le 24/11 puis de nouveau le 25/11 avec un cerveau à profil (0 €) ; la clé d'API est acceptée par les quatre modèles (`essai-api.js` du 24/11 : Opus 5.5, Sonnet 5.5 et Fable 5.2 avec repli, Haiku 5.5 sans) ; `boucle.js` a un plafond général de 200 € lu au journal des dépenses (`--plafond`, commit `71f3c7bea`). **Calibrée le 25/11** : un tour de 6 variantes par modèle sur le même pilote (4,63 €) ; aucun palier gagné validé, écart entre modèles dans le bruit ; **choix : Sonnet 5.5, départ `pilote.js`** (`agents/choix.json`, détails dans la partie C bis). **Abandonnée comme voie le 27/11/2026** (décision de Sacha : la sélection naturelle, étape S) ; lancée par Sacha sur le Ryzen le 27/11, elle doit y être arrêtée avant la sélection |
-| S | **La sélection naturelle** (`ml/evolution/`, décidée par Sacha le 27/11/2026) : remplace l'amélioration à la main et la boucle payante | **construite et commitée le 27/11/2026** (`e2ea8d2c9`, puis les finitions `7c5204afa`, pas encore poussées) ; une vraie évolution tourne sur le Xeon dans une copie à part du dépôt ; **jamais lancée sur le Ryzen** (voir « Le changement de cap du 27/11 », ci-dessous) |
+| C bis | La boucle automatique sur le crédit API (les 200 €), avec un plafond de dépense | **prête, essayée à blanc** : un tour complet le 24/11 puis de nouveau le 25/11 avec un cerveau à profil (0 €) ; la clé d'API est acceptée par les quatre modèles (`essai-api.js` du 24/11 : Opus 5.5, Sonnet 5.5 et Fable 5.2 avec repli, Haiku 5.5 sans) ; `boucle.js` a un plafond général de 200 € lu au journal des dépenses (`--plafond`, commit `71f3c7bea`). **Calibrée le 25/11** : un tour de 6 variantes par modèle sur le même pilote (4,63 €) ; aucun palier gagné validé, écart entre modèles dans le bruit ; **choix : Sonnet 5.5, départ `pilote.js`** (`agents/choix.json`, détails dans la partie C bis). **Abandonnée comme voie le 27/11/2026** (décision de Sacha : la sélection naturelle, étape S) ; lancée par Sacha sur le Ryzen le 27/11, **arrêtée le 28/11 à 0 h 12** (`b1ff8af89`). **Jugée le 28/11** sur les 40 graines du coffre : ses champions ne font pas mieux que le pilote de départ (+0,03 palier [−1,18 ; +1,38], `00fb4cfad`) ; à ne pas relancer telle quelle (voir « La nuit du 27 au 28/11 », ci-dessous) |
+| S | **La sélection naturelle** (`ml/evolution/`, décidée par Sacha le 27/11/2026) : remplace l'amélioration à la main et la boucle payante | **construite le 27/11/2026** (`e2ea8d2c9`, `7c5204afa`) ; **tourne sur le Ryzen depuis le 28/11 à 0 h 29** (code `e93ff5cb5`, 418 courses à l'heure ; aucun envoi depuis 2 h) ; le réglage de la nuit (`3b1bf15e5`, `2a3bea3c1`) est poussé, **pas encore installé sur le Ryzen** (voir « La nuit du 27 au 28/11 », ci-dessous) |
 | D | Le facteur humain et les 30 niveaux | à faire |
 | E | Le juge, niveau par niveau | à faire |
 | F | Le paquet du matchmaking et le dossier du portfolio | à faire |
 
 ---
 
-## OÙ ON EN EST — à lire en premier (mis à jour le 27/11/2026 à 23 h 15 ; le titre d'origine, du 25/11, disait « la chaîne tourne » : périmé)
+## OÙ ON EN EST — à lire en premier (mis à jour le 28/11/2026 vers 7 h 40 ; le titre d'origine, du 25/11, disait « la chaîne tourne » : périmé)
+
+### La nuit du 27 au 28/11/2026 : la sélection sur le Ryzen, la boucle payante jugée, le mur du hasard
+
+Le récit pour le portfolio : `portfolio/journal/2026-11-28.md`. Les équipes d'agents de la nuit : `portfolio/orchestration/LISEZ-MOI.md`, sections 5 à 8.
+Heures de Paris ; les messages de Sacha sont dans le relevé daté (`outils/paroles.js`, hors git).
+
+**Ce qui a été fait.**
+- **La sélection s'installe sur le Ryzen** (Sacha et l'assistant de Sacha sur le Ryzen, code `e93ff5cb5`). La boucle payante est arrêtée à 0 h 12 (`b1ff8af89`) ;
+  la sélection tourne depuis 0 h 29. Sacha accepte l'envoi horaire de l'histoire sur GitHub (branche `evolution-ryzen`) et signale deux défauts de
+  l'installation : une autre version de Node passait devant dans le PATH, et les tâches planifiées avaient une limite de 72 heures. Le banc du Ryzen
+  retient 10 courses à la fois (`origin/evolution-ryzen:ml/evolution/etat/machine.json`) ; sa génération 0 : 280 courses en 40 minutes, 418 à l'heure
+  (`resume.txt` de la même branche ; champion = témoin à 2 h). Dernier envoi : 28/11, 2 h 00 (`71e7c7c2c`). À 7 h 30, rien de plus n'était arrivé
+  (`ml/evolution/notes/LIVRAISON-REGLAGE.md` § 5).
+- **Les résultats de la boucle payante rejoignent `bots-ecurie`** (fusion `7f9543955`, 0 h 36 ; 13 commits de la branche `ryzen-boucle-payante`) :
+  une quinzaine de générations parties de c0025 (`pilote-voltige.js`), cinq champions sacrés à la suite (c0026, c0064, c0072, c0087, c0101), deux échecs
+  en validation, 21,61 € sur le Ryzen. Le journal des dépenses des deux PC dit 58,53 € sur 200 (`b1ff8af89`). Son histoire : `etude/boucle-payante-ryzen/LISEZ-MOI.md`.
+- **L'étude du réglage de la sélection** (`1f64c426b`, 1 h 28 ; `etude/reglage-de-la-selection/LISEZ-MOI.md` ; 11 agents Opus) : cinq études sans jouer
+  une course (effets des mutations, simulateur de la boucle de sélection, vitesse d'une course, tri précoce, sacre), chacune relue par un second agent.
+- **Les idées de la boucle deviennent des gènes** (`7b1df608e`, 2 h 08 ; 9 agents Opus ; `ml/evolution/notes/LIVRAISON-C0101.md`) : genome v:3, 121 gènes,
+  quatre interrupteurs (un par idée) et dix réglages, éteints à la naissance ; tout éteint = c0025 au bit près, tout allumé = c0101 ; le témoin se choisit
+  dans `config.json` (c0025 par défaut) ; un Node fixe par PC (`etat/node.txt`) ; des tâches planifiées sans limite de 72 heures.
+- **Le coffre** (`00fb4cfad`, 3 h 04 ; `etude/boucle-payante-ryzen/coffre/`) : c0025, c0026, c0064 et c0101 rejoués sur les 40 graines du coffre, jamais
+  utilisées pour choisir un pilote (160 courses, aucune ratée).
+- **Le banc des gènes** lancé à 3 h 28 sur le Xeon (`etude/banc-des-genes/LISEZ-MOI.md`, hors git) : 13 pilotes (c0025, chacun des neuf interrupteurs
+  seul, et des mélanges : les cinq gestes ensemble, c0026, c0101) sur les mêmes 96 graines (3 000 000 + 37 × j), comparés graine par graine au départ.
+- **Les changements sûrs de l'étude entrent dans la sélection** (`3b1bf15e5`, 7 h 20, et la relecture `2a3bea3c1`, 7 h 22 ; 7 agents Opus ;
+  `ml/evolution/notes/LIVRAISON-REGLAGE.md`, `ml/evolution/README.md` « Le réglage de la sélection ») : sacre séquentiel (24 courses neuves, puis 12 par 12
+  jusqu'à 96) ; alarme « malédiction du gagnant » coupée ; enfants protégés par leur âge ; courses longues demandées d'abord ; réserve de graines qui ne
+  s'épuise plus ; mutations qui ne tombent plus sur un réglage que le pilote ne lit pas ; la mesure « les mutations comptent-elles ? ». Ce lot ne change
+  aucune époque ; le portage (`modele.js`) en changera une sur le Ryzen. Le dernier état envoyé par le Ryzen se relit avec ce code (§ 5 de la livraison).
+- **Les prochaines idées** (vers 7 h 20, 11 agents Opus) : relever dans les études déjà écrites les changements de structure à mettre sur le banc.
+  En cours : à 7 h 40, `etude/prochaines-idees/` contient un `LISEZ-MOI.md` (7 h 35) et un `candidats.json` (7 h 37), sans bilan de l'équipe.
+
+**Les chiffres.**
+
+| mesure | valeur | source |
+|---|---|---|
+| c0064 − c0025, sur les 20 graines de validation de la boucle (rejouées à chaque sacre) | +2,00 paliers [+0,75 ; +3,40] | `coffre/sorties/resume.txt` |
+| c0064 − c0025, sur les 40 graines du coffre | +0,03 [−1,18 ; +1,38] ; c0101 − c0025 : +0,03 [−1,18 ; +1,23] | idem |
+| c0101 et c0064 au coffre | 34 courses sur 40 identiques | idem |
+| écart aux joueurs E au coffre, c0064 contre c0025 | 0,84 contre 0,91 (trop proche pour conclure) | idem |
+| Xeon et Ryzen | 4 courses de contrôle identiques sur 4 | idem |
+| hasard d'une course (écart-type) ; écart vrai entre mutants τ | 3,26 paliers ; 0,32 [0 ; 1,07] | `etude/reglage-de-la-selection/LISEZ-MOI.md` |
+| mutants nettement meilleurs ou pires | 0 sur 25 | idem |
+| sacre : un vrai +1 palier reconnu ; faux sacres | 15 → 33 sur 100 ; 3 % → 1,8 % | `3b1bf15e5`, `LIVRAISON-REGLAGE.md` § 1 |
+| sans la réserve de graines | la sélection aurait rejoué des routes vers la génération 90 | idem |
+| banc des gènes | 1 248 courses et 2 de contrôle ; 744 faites à 7 h 40, environ 172 minutes restantes d'après le programme | `etude/banc-des-genes/jouer.log` |
+| jetons des quatre équipes de la nuit | 7 192 979 (31 agents) | `portfolio/orchestration/LISEZ-MOI.md` |
+
+**Ce qui est écarté.**
+- **La boucle payante comme source de progrès** : son « +2 paliers » venait des 20 courses de validation, réutilisées à chaque sacre (la chance du
+  gagnant) ; au coffre, rien. 21,61 € et plus de neuf heures de Ryzen. Ne pas la relancer telle quelle (décision de la session principale, 3 h 05).
+- **c0101 comme point de départ** de la sélection : proposé par Claude à 0 h 23, démenti par le coffre. Le témoin reste c0025 ; les quatre idées restent
+  des gènes éteints à la naissance.
+- **Le verdict provisoire de l'agent de la mesure** (« le témoin doit être c0064 », après 4 graines) : son relecteur, sur 10 graines, trouve −1,20 palier ;
+  la session principale fait finir la mesure sur 40.
+- **Les petits réglages de la sélection** : sur des mondes simulés neufs, aucun changement étudié ne rapporte plus de 0 à 0,4 palier. Écartés en particulier
+  (`etude/reglage-de-la-selection/LISEZ-MOI.md`, § 2 E) : le tri précoce des enfants (environ 1 % du temps) ; « rejouer seulement les jeunes et les
+  4 meilleurs » (+0,05 ± 0,06 sur mondes neufs) ; compter les courses d'entraînement dans le sacre (53 à 62 % de faux sacres) ; écrire les gènes éteints à
+  leur valeur de naissance (environ 0,1 %) ; plusieurs courses dans un même processus.
+
+**La leçon de méthode** (session principale, 3 h 05 : « les deux méthodes butent sur le même mur »). Le hasard d'une course cache les petits réglages, dans
+la sélection comme dans la boucle. On cherche donc des changements de structure, écrits comme des gènes éteints à la naissance, et jugés un par un sur
+beaucoup de graines identiques (le banc). La sélection reste en marche comme juge gratuit.
+
+**Mise à jour, 28/11 à 10 h 45 : le banc des gènes est fini** (1 250 courses sur 1 250, aucune ratée) : rien ne change le palier ni F au seuil
+corrigé ; slalomOn, bordOn et gestes5 rapprochent sûrement des joueurs. Résultat et suite : `etude/banc-des-genes/LISEZ-MOI.md`, « Le résultat (28/11/2026) ».
+
+**Ce qui n'est pas fait au matin du 28/11** (écrit à 7 h 40) : le banc des gènes tourne encore (aucun résultat ; fini depuis, voir juste au-dessus) ; la mise à jour du Ryzen (portage et réglage) attend Sacha
+(`LIVRAISON-REGLAGE.md` § 4 et § 5) ; `tests/courses.test.js` non relancé ; la sévérité des deux garde-fous du sacre (`seuilB`, `seuilC`) reste à Sacha.
+La suite, dans l'ordre : **`PASSATION.md`, partie du 28/11**.
 
 ### Le changement de cap du 27/11/2026 : la sélection naturelle (`ml/evolution/`)
 

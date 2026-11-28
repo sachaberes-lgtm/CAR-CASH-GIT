@@ -1,0 +1,384 @@
+{
+ "format": "banc-des-genes-bras-1",
+ "date": "2026-11-28T02:28:31.482Z",
+ "epoque": "66f66d2ae1c2",
+ "jeu": "cashcar-v1627 e7e1eed4718f",
+ "node": "v24.22.3",
+ "regime": "allege",
+ "tmax": 900,
+ "graines": {
+  "depart": 3000000,
+  "pas": 37,
+  "n": 96
+ },
+ "temoin": "c0025",
+ "bras": [
+  {
+   "nom": "depart",
+   "dit": "le temoin c0025 (pilote-voltige), tous les interrupteurs eteints",
+   "differences": {},
+   "genome": "19e3767cc346",
+   "shaPilote": "6e05036f219e13d55e72547ddea4dc3c3c1fbdf0"
+  },
+  {
+   "nom": "lacheOn",
+   "dit": "geste 1 : lacher le volant juste avant la pose sur la dalle",
+   "differences": {
+    "lacheOn": [
+     0,
+     1
+    ]
+   },
+   "genome": "6f1fe32f5334",
+   "shaPilote": "7eeea02aa5fb476e29774a8ff2970f259d7eafac"
+  },
+  {
+   "nom": "slalomOn",
+   "dit": "geste 2 : le slalom demande par le pilote (cap alterne, horizon allonge)",
+   "differences": {
+    "slalomOn": [
+     0,
+     1
+    ]
+   },
+   "genome": "a886019a3ca4",
+   "shaPilote": "4abf45232186f35d96eca5145404928c26ca45e2"
+  },
+  {
+   "nom": "coupOn",
+   "dit": "geste 3 : le coup de nitro bref en vol, version serree",
+   "differences": {
+    "coupOn": [
+     0,
+     1
+    ]
+   },
+   "genome": "d064442c13dc",
+   "shaPilote": "f25b13bb44cd9c245f540daf769b492f561703e0"
+  },
+  {
+   "nom": "relacheOn",
+   "dit": "geste 4 : garder la nitro un instant apres un decollage nitro tenue, puis la lacher",
+   "differences": {
+    "relacheOn": [
+     0,
+     1
+    ]
+   },
+   "genome": "f062af8ad8e9",
+   "shaPilote": "c9a6bbe16671ff811471173ba6b53dfea1dd11e2"
+  },
+  {
+   "nom": "suitOn",
+   "dit": "geste 5 : au sol apres la pose, la ligne suit la glisse de la caisse",
+   "differences": {
+    "suitOn": [
+     0,
+     1
+    ]
+   },
+   "genome": "4ef9295c8796",
+   "shaPilote": "5e4a733e9ef7a882d6f7af74e7030554ed2665bd"
+  },
+  {
+   "nom": "gestes5",
+   "dit": "les cinq gestes allumes ensemble",
+   "differences": {
+    "lacheOn": [
+     0,
+     1
+    ],
+    "slalomOn": [
+     0,
+     1
+    ],
+    "coupOn": [
+     0,
+     1
+    ],
+    "relacheOn": [
+     0,
+     1
+    ],
+    "suitOn": [
+     0,
+     1
+    ]
+   },
+   "genome": "58c39de2c896",
+   "shaPilote": "726b296e08f98ff2b64b5c187f6a16b0d601a41a"
+  },
+  {
+   "nom": "fuirVite",
+   "dit": "boucle payante, idee de c0026 seule : sous la dalle, fuir tout de suite vers un rayon qui se pose",
+   "differences": {
+    "fuirVite": [
+     0,
+     1
+    ]
+   },
+   "genome": "a89df42f9cec",
+   "shaPilote": "fba2e28a644f87698b1b15d7d554a61c89d31034"
+  },
+  {
+   "nom": "c0026",
+   "dit": "l'etape c0026 entiere : fuirVite, dessousMax .8 -> .4, dessousPose 25 -> 40",
+   "differences": {
+    "dessousMax": [
+     0.8,
+     0.4
+    ],
+    "dessousPose": [
+     25,
+     40
+    ],
+    "fuirVite": [
+     0,
+     1
+    ]
+   },
+   "genome": "8cf6101b653f",
+   "shaPilote": "b3c11e918e4cc72ae8f9778741ea542cb5d5340c",
+   "egalTemoin": "c0026",
+   "memeGenomeQueLeTemoin": true
+  },
+  {
+   "nom": "bordOn",
+   "dit": "boucle payante, idee de c0064 : decoller nitro allumee quand le bord arrive (maps sans decor)",
+   "differences": {
+    "bordOn": [
+     0,
+     1
+    ]
+   },
+   "genome": "e0131036d529",
+   "shaPilote": "4393f42db5125b971b6c3892d0fae7a3ce827efc"
+  },
+  {
+   "nom": "largeOn",
+   "dit": "boucle payante, idee de c0072 (reglages de c0101) : des figures dans les vols subis bien partis",
+   "differences": {
+    "largeOn": [
+     0,
+     1
+    ]
+   },
+   "genome": "ac50ec2f3a00",
+   "shaPilote": "5ad93e9e0e67a24848343c68cb46f91fc7ae0045"
+  },
+  {
+   "nom": "libreOn",
+   "dit": "boucle payante, idee de c0087 : la nitro deja allumee tenue plus longtemps en virage (maps sans decor)",
+   "differences": {
+    "libreOn": [
+     0,
+     1
+    ]
+   },
+   "genome": "78e046eeeff0",
+   "shaPilote": "685530cdb649f844d8de573275aec5d8fe8d3ae1"
+  },
+  {
+   "nom": "c0101",
+   "dit": "le genome du temoin c0101 (le dernier champion de la boucle payante : les quatre idees et les reglages de c0026)",
+   "differences": {
+    "dessousMax": [
+     0.8,
+     0.4
+    ],
+    "dessousPose": [
+     25,
+     40
+    ],
+    "fuirVite": [
+     0,
+     1
+    ],
+    "bordOn": [
+     0,
+     1
+    ],
+    "largeOn": [
+     0,
+     1
+    ],
+    "libreOn": [
+     0,
+     1
+    ]
+   },
+   "genome": "f70ddcb5a565",
+   "shaPilote": "eb7493e8b2e3a1c221d0e3764c3c7b69d363749f",
+   "egalTemoin": "c0101",
+   "memeGenomeQueLeTemoin": true
+  }
+ ],
+ "controle": {
+  "id": "voltige",
+  "fichier": "ml/ecurie/pilote-voltige.js",
+  "shaPilote": "c3e8b81953b381f17dadc1768cdc751022eaa2ca",
+  "graines": [
+   3000000,
+   3000037
+  ],
+  "dit": "le c0025 ecrit a la main : ses empreintes doivent etre celles du bras depart sur les memes graines"
+ },
+ "verifications": [
+  {
+   "ok": true,
+   "dit": "le temoin c0025 a ses neuf interrupteurs a 0 et leurs reglages a la naissance"
+  },
+  {
+   "ok": true,
+   "dit": "le bras c0026 a le genome de Gn.genomeTemoin(temoin c0026) (8cf6101b653f / 8cf6101b653f)"
+  },
+  {
+   "ok": true,
+   "dit": "le bras c0101 a le genome de Gn.genomeTemoin(temoin c0101) (f70ddcb5a565 / f70ddcb5a565)"
+  },
+  {
+   "ok": true,
+   "dit": "le pilote du bras depart (6e05036f219e) est celui que la selection ecrit pour le temoin c0025 (6e05036f219e)"
+  },
+  {
+   "ok": true,
+   "dit": "le genome du bras depart garde l'identifiant du temoin 19e3767cc346 (19e3767cc346)"
+  },
+  {
+   "ok": true,
+   "dit": "le bras depart ne differe en rien du temoin"
+  },
+  {
+   "ok": true,
+   "dit": "le bras lacheOn differe du depart : lacheOn 0 -> 1"
+  },
+  {
+   "ok": true,
+   "dit": "le bras slalomOn differe du depart : slalomOn 0 -> 1"
+  },
+  {
+   "ok": true,
+   "dit": "le bras coupOn differe du depart : coupOn 0 -> 1"
+  },
+  {
+   "ok": true,
+   "dit": "le bras relacheOn differe du depart : relacheOn 0 -> 1"
+  },
+  {
+   "ok": true,
+   "dit": "le bras suitOn differe du depart : suitOn 0 -> 1"
+  },
+  {
+   "ok": true,
+   "dit": "le bras gestes5 differe du depart : lacheOn 0 -> 1, slalomOn 0 -> 1, coupOn 0 -> 1, relacheOn 0 -> 1, suitOn 0 -> 1"
+  },
+  {
+   "ok": true,
+   "dit": "le bras fuirVite differe du depart : fuirVite 0 -> 1"
+  },
+  {
+   "ok": true,
+   "dit": "le bras c0026 differe du depart : dessousMax 0.8 -> 0.4, dessousPose 25 -> 40, fuirVite 0 -> 1"
+  },
+  {
+   "ok": true,
+   "dit": "le bras bordOn differe du depart : bordOn 0 -> 1"
+  },
+  {
+   "ok": true,
+   "dit": "le bras largeOn differe du depart : largeOn 0 -> 1"
+  },
+  {
+   "ok": true,
+   "dit": "le bras libreOn differe du depart : libreOn 0 -> 1"
+  },
+  {
+   "ok": true,
+   "dit": "le bras c0101 differe du depart : dessousMax 0.8 -> 0.4, dessousPose 25 -> 40, fuirVite 0 -> 1, bordOn 0 -> 1, largeOn 0 -> 1, libreOn 0 -> 1"
+  },
+  {
+   "ok": true,
+   "dit": "les 13 bras ont 13 pilotes differents"
+  }
+ ],
+ "historique": [
+  {
+   "nom": "depart",
+   "shaPilote": "6e05036f219e13d55e72547ddea4dc3c3c1fbdf0",
+   "genome": "19e3767cc346",
+   "date": "2026-11-28T02:28:31.482Z"
+  },
+  {
+   "nom": "lacheOn",
+   "shaPilote": "7eeea02aa5fb476e29774a8ff2970f259d7eafac",
+   "genome": "6f1fe32f5334",
+   "date": "2026-11-28T02:28:31.482Z"
+  },
+  {
+   "nom": "slalomOn",
+   "shaPilote": "4abf45232186f35d96eca5145404928c26ca45e2",
+   "genome": "a886019a3ca4",
+   "date": "2026-11-28T02:28:31.482Z"
+  },
+  {
+   "nom": "coupOn",
+   "shaPilote": "f25b13bb44cd9c245f540daf769b492f561703e0",
+   "genome": "d064442c13dc",
+   "date": "2026-11-28T02:28:31.482Z"
+  },
+  {
+   "nom": "relacheOn",
+   "shaPilote": "c9a6bbe16671ff811471173ba6b53dfea1dd11e2",
+   "genome": "f062af8ad8e9",
+   "date": "2026-11-28T02:28:31.482Z"
+  },
+  {
+   "nom": "suitOn",
+   "shaPilote": "5e4a733e9ef7a882d6f7af74e7030554ed2665bd",
+   "genome": "4ef9295c8796",
+   "date": "2026-11-28T02:28:31.482Z"
+  },
+  {
+   "nom": "gestes5",
+   "shaPilote": "726b296e08f98ff2b64b5c187f6a16b0d601a41a",
+   "genome": "58c39de2c896",
+   "date": "2026-11-28T02:28:31.482Z"
+  },
+  {
+   "nom": "fuirVite",
+   "shaPilote": "fba2e28a644f87698b1b15d7d554a61c89d31034",
+   "genome": "a89df42f9cec",
+   "date": "2026-11-28T02:28:31.482Z"
+  },
+  {
+   "nom": "c0026",
+   "shaPilote": "b3c11e918e4cc72ae8f9778741ea542cb5d5340c",
+   "genome": "8cf6101b653f",
+   "date": "2026-11-28T02:28:31.482Z"
+  },
+  {
+   "nom": "bordOn",
+   "shaPilote": "4393f42db5125b971b6c3892d0fae7a3ce827efc",
+   "genome": "e0131036d529",
+   "date": "2026-11-28T02:28:31.482Z"
+  },
+  {
+   "nom": "largeOn",
+   "shaPilote": "5ad93e9e0e67a24848343c68cb46f91fc7ae0045",
+   "genome": "ac50ec2f3a00",
+   "date": "2026-11-28T02:28:31.482Z"
+  },
+  {
+   "nom": "libreOn",
+   "shaPilote": "685530cdb649f844d8de573275aec5d8fe8d3ae1",
+   "genome": "78e046eeeff0",
+   "date": "2026-11-28T02:28:31.482Z"
+  },
+  {
+   "nom": "c0101",
+   "shaPilote": "eb7493e8b2e3a1c221d0e3764c3c7b69d363749f",
+   "genome": "f70ddcb5a565",
+   "date": "2026-11-28T02:28:31.482Z"
+  }
+ ]
+}

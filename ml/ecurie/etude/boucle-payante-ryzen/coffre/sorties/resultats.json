@@ -1,0 +1,1054 @@
+{
+ "format": "coffre-boucle-payante-1",
+ "date": "2026-11-28T02:03:29.757Z",
+ "epoque": "66f66d2ae1c2",
+ "epoqueDuJour": "66f66d2ae1c2",
+ "jeu": "cashcar-v1627 e7e1eed4718f",
+ "node": "v24.22.3",
+ "regime": "allege",
+ "tmax": 900,
+ "note": {
+  "passes": 10,
+  "retrecir": 12,
+  "poidsEcart": 4,
+  "zoneMorte": 1,
+  "borneZ": 8,
+  "poidsMesures": {
+   "volDuree": 0.5,
+   "ondulation": 0.5,
+   "vols": 0.5,
+   "volsCourts": 0.5
+  },
+  "partiesMin": 5,
+  "ePire": 4,
+  "bootstrapE": 200,
+  "minS": 60
+ },
+ "graines": {
+  "depart": 990000,
+  "pas": 37,
+  "n": 40,
+  "communes": 40
+ },
+ "nonMesurees": [],
+ "tirages": 4000,
+ "pilotes": {
+  "c0025": {
+   "courses": 40,
+   "palierMoyen": 6.15,
+   "palierMedian": 5,
+   "palierRecord": 14,
+   "palierMin": 1,
+   "survieMoyenne_s": 110.693,
+   "survieMediane_s": 94.8,
+   "a": 6.15,
+   "ahat": 6.117,
+   "se_a": 0.361,
+   "E": 0.91,
+   "se_E": 0.063,
+   "F": 2.475,
+   "se_F": 0.44,
+   "ecartClassique": 1.797,
+   "parties": 29,
+   "causes": {
+    "air": 7,
+    "vide": 6,
+    "canyon": 2,
+    "pic": 6,
+    "roche": 7,
+    "tour": 3,
+    "paroi": 9
+   },
+   "paliers": [
+    6,
+    3,
+    6,
+    5,
+    11,
+    2,
+    12,
+    9,
+    3,
+    5,
+    7,
+    5,
+    5,
+    4,
+    5,
+    5,
+    5,
+    1,
+    6,
+    10,
+    6,
+    11,
+    4,
+    6,
+    5,
+    3,
+    14,
+    5,
+    4,
+    3,
+    13,
+    8,
+    7,
+    5,
+    9,
+    4,
+    7,
+    4,
+    10,
+    3
+   ]
+  },
+  "c0026": {
+   "courses": 40,
+   "palierMoyen": 5.525,
+   "palierMedian": 5,
+   "palierRecord": 13,
+   "palierMin": 1,
+   "survieMoyenne_s": 100.125,
+   "survieMediane_s": 85.85,
+   "a": 5.525,
+   "ahat": 5.636,
+   "se_a": 0.361,
+   "E": 0.947,
+   "se_E": 0.079,
+   "F": 1.848,
+   "se_F": 0.479,
+   "ecartClassique": 1.791,
+   "parties": 26,
+   "causes": {
+    "air": 6,
+    "vide": 5,
+    "roche": 11,
+    "tour": 5,
+    "pic": 3,
+    "paroi": 9,
+    "canyon": 1
+   },
+   "paliers": [
+    6,
+    3,
+    1,
+    4,
+    12,
+    2,
+    10,
+    5,
+    3,
+    5,
+    7,
+    6,
+    5,
+    4,
+    5,
+    5,
+    5,
+    1,
+    6,
+    8,
+    6,
+    4,
+    4,
+    11,
+    5,
+    3,
+    8,
+    7,
+    4,
+    3,
+    5,
+    8,
+    13,
+    5,
+    3,
+    4,
+    7,
+    4,
+    11,
+    3
+   ]
+  },
+  "c0064": {
+   "courses": 40,
+   "palierMoyen": 6.175,
+   "palierMedian": 5,
+   "palierRecord": 18,
+   "palierMin": 2,
+   "survieMoyenne_s": 109.123,
+   "survieMediane_s": 90.65,
+   "a": 6.175,
+   "ahat": 6.136,
+   "se_a": 0.361,
+   "E": 0.836,
+   "se_E": 0.083,
+   "F": 2.793,
+   "se_F": 0.49,
+   "ecartClassique": 1.685,
+   "parties": 28,
+   "causes": {
+    "vide": 6,
+    "canyon": 2,
+    "air": 5,
+    "paroi": 11,
+    "roche": 9,
+    "tour": 3,
+    "pic": 4
+   },
+   "paliers": [
+    7,
+    3,
+    6,
+    4,
+    13,
+    2,
+    3,
+    5,
+    3,
+    4,
+    8,
+    6,
+    5,
+    4,
+    5,
+    5,
+    5,
+    18,
+    6,
+    9,
+    6,
+    4,
+    4,
+    7,
+    5,
+    3,
+    10,
+    7,
+    4,
+    11,
+    4,
+    10,
+    13,
+    6,
+    3,
+    4,
+    7,
+    4,
+    11,
+    3
+   ]
+  },
+  "c0101": {
+   "courses": 40,
+   "palierMoyen": 6.175,
+   "palierMedian": 5,
+   "palierRecord": 13,
+   "palierMin": 2,
+   "survieMoyenne_s": 103.923,
+   "survieMediane_s": 93.3,
+   "a": 6.175,
+   "ahat": 6.136,
+   "se_a": 0.361,
+   "E": 0.847,
+   "se_E": 0.08,
+   "F": 2.748,
+   "se_F": 0.481,
+   "ecartClassique": 1.691,
+   "parties": 28,
+   "causes": {
+    "vide": 7,
+    "canyon": 2,
+    "air": 5,
+    "pic": 4,
+    "roche": 9,
+    "tour": 3,
+    "paroi": 10
+   },
+   "paliers": [
+    7,
+    3,
+    6,
+    4,
+    12,
+    2,
+    3,
+    5,
+    3,
+    8,
+    8,
+    11,
+    5,
+    4,
+    5,
+    5,
+    5,
+    13,
+    6,
+    9,
+    6,
+    4,
+    4,
+    7,
+    5,
+    3,
+    7,
+    7,
+    4,
+    11,
+    4,
+    10,
+    13,
+    6,
+    3,
+    4,
+    7,
+    4,
+    11,
+    3
+   ]
+  }
+ },
+ "paires": {
+  "c0026-c0025": {
+   "palier": {
+    "n": 40,
+    "moyenne": -0.625,
+    "mediane": 0,
+    "ic95": [
+     -1.475,
+     0.2
+    ],
+    "se": 0.426,
+    "partPlusPetitQueZero": 0.936,
+    "mieux": 6,
+    "pareil": 25,
+    "moins": 9,
+    "pSigne": 0.607
+   },
+   "survie_s": {
+    "n": 40,
+    "moyenne": -10.567,
+    "mediane": 0,
+    "ic95": [
+     -30.93,
+     8.383
+    ],
+    "se": 10.092,
+    "partPlusPetitQueZero": 0.85,
+    "mieux": 7,
+    "pareil": 21,
+    "moins": 12,
+    "pSigne": 0.359
+   },
+   "selection": {
+    "dF": -0.771,
+    "se_dF": 0.38,
+    "dPalier": -0.625,
+    "se_dPalier": 0.412,
+    "dE": 0.037,
+    "se_dE": 0.047,
+    "criteres": {
+     "a": false,
+     "b": false,
+     "c": true
+    },
+    "sacre": false
+   },
+   "coursesIdentiques": 21,
+   "grainesIdentiques": [
+    990000,
+    990037,
+    990185,
+    990296,
+    990370,
+    990444,
+    990481,
+    990518,
+    990592,
+    990629,
+    990666,
+    990740,
+    990814,
+    990888,
+    991036,
+    991073,
+    991147,
+    991221,
+    991295,
+    991369,
+    991443
+   ],
+   "touchesIdentiques": 21
+  },
+  "c0064-c0025": {
+   "palier": {
+    "n": 40,
+    "moyenne": 0.025,
+    "mediane": 0,
+    "ic95": [
+     -1.175,
+     1.376
+    ],
+    "se": 0.661,
+    "partPlusPetitQueZero": 0.506,
+    "mieux": 12,
+    "pareil": 19,
+    "moins": 9,
+    "pSigne": 0.664
+   },
+   "survie_s": {
+    "n": 40,
+    "moyenne": -1.57,
+    "mediane": 0,
+    "ic95": [
+     -28.199,
+     27.64
+    ],
+    "se": 14.125,
+    "partPlusPetitQueZero": 0.563,
+    "mieux": 14,
+    "pareil": 14,
+    "moins": 12,
+    "pSigne": 0.845
+   },
+   "selection": {
+    "dF": 0.323,
+    "se_dF": 0.702,
+    "dPalier": 0.025,
+    "se_dPalier": 0.639,
+    "dE": -0.075,
+    "se_dE": 0.06,
+    "criteres": {
+     "a": false,
+     "b": true,
+     "c": true
+    },
+    "sacre": false
+   },
+   "coursesIdentiques": 14,
+   "grainesIdentiques": [
+    990037,
+    990185,
+    990296,
+    990444,
+    990481,
+    990518,
+    990592,
+    990666,
+    990740,
+    990814,
+    990888,
+    991295,
+    991369,
+    991443
+   ],
+   "touchesIdentiques": 14
+  },
+  "c0101-c0025": {
+   "palier": {
+    "n": 40,
+    "moyenne": 0.025,
+    "mediane": 0,
+    "ic95": [
+     -1.175,
+     1.225
+    ],
+    "se": 0.621,
+    "partPlusPetitQueZero": 0.495,
+    "mieux": 13,
+    "pareil": 19,
+    "moins": 8,
+    "pSigne": 0.383
+   },
+   "survie_s": {
+    "n": 40,
+    "moyenne": -6.77,
+    "mediane": 0,
+    "ic95": [
+     -31.759,
+     18.698
+    ],
+    "se": 12.852,
+    "partPlusPetitQueZero": 0.696,
+    "mieux": 13,
+    "pareil": 14,
+    "moins": 13,
+    "pSigne": 1
+   },
+   "selection": {
+    "dF": 0.279,
+    "se_dF": 0.658,
+    "dPalier": 0.025,
+    "se_dPalier": 0.601,
+    "dE": -0.063,
+    "se_dE": 0.057,
+    "criteres": {
+     "a": false,
+     "b": true,
+     "c": true
+    },
+    "sacre": false
+   },
+   "coursesIdentiques": 14,
+   "grainesIdentiques": [
+    990037,
+    990185,
+    990296,
+    990444,
+    990481,
+    990518,
+    990592,
+    990666,
+    990740,
+    990814,
+    990888,
+    991295,
+    991369,
+    991443
+   ],
+   "touchesIdentiques": 14
+  },
+  "c0064-c0026": {
+   "palier": {
+    "n": 40,
+    "moyenne": 0.65,
+    "mediane": 0,
+    "ic95": [
+     -0.3,
+     1.8
+    ],
+    "se": 0.528,
+    "partPlusPetitQueZero": 0.102,
+    "mieux": 10,
+    "pareil": 26,
+    "moins": 4,
+    "pSigne": 0.18
+   },
+   "survie_s": {
+    "n": 40,
+    "moyenne": 8.997,
+    "mediane": 0,
+    "ic95": [
+     -11.912,
+     34.03
+    ],
+    "se": 11.619,
+    "partPlusPetitQueZero": 0.234,
+    "mieux": 9,
+    "pareil": 22,
+    "moins": 9,
+    "pSigne": 1
+   },
+   "selection": {
+    "dF": 1.095,
+    "se_dF": 0.637,
+    "dPalier": 0.65,
+    "se_dPalier": 0.514,
+    "dE": -0.111,
+    "se_dE": 0.054,
+    "criteres": {
+     "a": false,
+     "b": true,
+     "c": true
+    },
+    "sacre": false
+   },
+   "coursesIdentiques": 22,
+   "grainesIdentiques": [
+    990037,
+    990111,
+    990185,
+    990259,
+    990296,
+    990444,
+    990481,
+    990518,
+    990555,
+    990592,
+    990666,
+    990740,
+    990777,
+    990814,
+    990888,
+    990925,
+    990999,
+    991258,
+    991295,
+    991332,
+    991369,
+    991443
+   ],
+   "touchesIdentiques": 22
+  },
+  "c0101-c0026": {
+   "palier": {
+    "n": 40,
+    "moyenne": 0.65,
+    "mediane": 0,
+    "ic95": [
+     -0.15,
+     1.625
+    ],
+    "se": 0.451,
+    "partPlusPetitQueZero": 0.064,
+    "mieux": 10,
+    "pareil": 26,
+    "moins": 4,
+    "pSigne": 0.18
+   },
+   "survie_s": {
+    "n": 40,
+    "moyenne": 3.798,
+    "mediane": 0,
+    "ic95": [
+     -14.654,
+     24.252
+    ],
+    "se": 9.989,
+    "partPlusPetitQueZero": 0.359,
+    "mieux": 9,
+    "pareil": 22,
+    "moins": 9,
+    "pSigne": 1
+   },
+   "selection": {
+    "dF": 1.05,
+    "se_dF": 0.549,
+    "dPalier": 0.65,
+    "se_dPalier": 0.441,
+    "dE": -0.1,
+    "se_dE": 0.047,
+    "criteres": {
+     "a": false,
+     "b": true,
+     "c": true
+    },
+    "sacre": false
+   },
+   "coursesIdentiques": 22,
+   "grainesIdentiques": [
+    990037,
+    990111,
+    990185,
+    990259,
+    990296,
+    990444,
+    990481,
+    990518,
+    990555,
+    990592,
+    990666,
+    990740,
+    990777,
+    990814,
+    990888,
+    990925,
+    990999,
+    991258,
+    991295,
+    991332,
+    991369,
+    991443
+   ],
+   "touchesIdentiques": 22
+  },
+  "c0101-c0064": {
+   "palier": {
+    "n": 40,
+    "moyenne": 0,
+    "mediane": 0,
+    "ic95": [
+     -0.425,
+     0.45
+    ],
+    "se": 0.218,
+    "partPlusPetitQueZero": 0.535,
+    "mieux": 2,
+    "pareil": 35,
+    "moins": 3,
+    "pSigne": 1
+   },
+   "survie_s": {
+    "n": 40,
+    "moyenne": -5.2,
+    "mediane": 0,
+    "ic95": [
+     -16.455,
+     4.475
+    ],
+    "se": 5.299,
+    "partPlusPetitQueZero": 0.841,
+    "mieux": 2,
+    "pareil": 34,
+    "moins": 4,
+    "pSigne": 0.688
+   },
+   "selection": {
+    "dF": -0.045,
+    "se_dF": 0.292,
+    "dPalier": 0,
+    "se_dPalier": 0.212,
+    "dE": 0.011,
+    "se_dE": 0.027,
+    "criteres": {
+     "a": false,
+     "b": true,
+     "c": true
+    },
+    "sacre": false
+   },
+   "coursesIdentiques": 34,
+   "grainesIdentiques": [
+    990000,
+    990037,
+    990074,
+    990111,
+    990185,
+    990222,
+    990259,
+    990296,
+    990370,
+    990444,
+    990481,
+    990518,
+    990555,
+    990592,
+    990666,
+    990703,
+    990740,
+    990777,
+    990814,
+    990851,
+    990888,
+    990925,
+    990999,
+    991036,
+    991073,
+    991110,
+    991147,
+    991184,
+    991221,
+    991258,
+    991295,
+    991332,
+    991369,
+    991443
+   ],
+   "touchesIdentiques": 34
+  }
+ },
+ "boucle": {
+  "pilotes": {
+   "c0025": {
+    "date": "2026-11-27T14:19:44.335Z",
+    "jeu": "cashcar-v1627 e7e1eed4718f",
+    "graines": {
+     "n": 20,
+     "depart": 950000,
+     "pas": 37
+    },
+    "tmax": 900,
+    "courses": 20,
+    "palierMoyen": 4.8,
+    "palierMedian": 4,
+    "palierRecord": 9,
+    "survieMoyenne_s": 83.45,
+    "noteDeLaBoucle": -6.23
+   },
+   "c0026": {
+    "date": "2026-11-27T14:22:59.873Z",
+    "jeu": "cashcar-v1627 e7e1eed4718f",
+    "graines": {
+     "n": 20,
+     "depart": 950000,
+     "pas": 37
+    },
+    "tmax": 900,
+    "courses": 20,
+    "palierMoyen": 5.7,
+    "palierMedian": 4,
+    "palierRecord": 14,
+    "survieMoyenne_s": 105.6,
+    "noteDeLaBoucle": -6.06
+   },
+   "c0064": {
+    "date": "2026-11-27T16:53:49.544Z",
+    "jeu": "cashcar-v1627 e7e1eed4718f",
+    "graines": {
+     "n": 20,
+     "depart": 950000,
+     "pas": 37
+    },
+    "tmax": 900,
+    "courses": 20,
+    "palierMoyen": 6.8,
+    "palierMedian": 6,
+    "palierRecord": 16,
+    "survieMoyenne_s": 121.425,
+    "noteDeLaBoucle": -2.35
+   },
+   "c0101": {
+    "date": "2026-11-27T22:17:20.270Z",
+    "jeu": "cashcar-v1627 e7e1eed4718f",
+    "graines": {
+     "n": 20,
+     "depart": 950000,
+     "pas": 37
+    },
+    "tmax": 900,
+    "courses": 20,
+    "palierMoyen": 6.8,
+    "palierMedian": 6,
+    "palierRecord": 16,
+    "survieMoyenne_s": 121.425,
+    "noteDeLaBoucle": -2.35
+   }
+  },
+  "paires": {
+   "c0026-c0025": {
+    "palier": {
+     "n": 20,
+     "moyenne": 0.9,
+     "mediane": 0,
+     "ic95": [
+      -0.1,
+      2.1
+     ],
+     "se": 0.567,
+     "partPlusPetitQueZero": 0.05,
+     "mieux": 5,
+     "pareil": 13,
+     "moins": 2,
+     "pSigne": 0.453
+    },
+    "survie_s": {
+     "n": 20,
+     "moyenne": 22.15,
+     "mediane": 0,
+     "ic95": [
+      -0.301,
+      49.366
+     ],
+     "se": 12.624,
+     "partPlusPetitQueZero": 0.028,
+     "mieux": 7,
+     "pareil": 11,
+     "moins": 2,
+     "pSigne": 0.18
+    },
+    "coursesIdentiques": 11,
+    "graines": 20
+   },
+   "c0064-c0025": {
+    "palier": {
+     "n": 20,
+     "moyenne": 2,
+     "mediane": 0.5,
+     "ic95": [
+      0.75,
+      3.4
+     ],
+     "se": 0.672,
+     "partPlusPetitQueZero": 0,
+     "mieux": 10,
+     "pareil": 8,
+     "moins": 2,
+     "pSigne": 0.039
+    },
+    "survie_s": {
+     "n": 20,
+     "moyenne": 37.975,
+     "mediane": 4.65,
+     "ic95": [
+      13.567,
+      65.961
+     ],
+     "se": 13.383,
+     "partPlusPetitQueZero": 0,
+     "mieux": 10,
+     "pareil": 7,
+     "moins": 3,
+     "pSigne": 0.092
+    },
+    "coursesIdentiques": 6,
+    "graines": 20
+   },
+   "c0101-c0025": {
+    "palier": {
+     "n": 20,
+     "moyenne": 2,
+     "mediane": 0.5,
+     "ic95": [
+      0.8,
+      3.4
+     ],
+     "se": 0.668,
+     "partPlusPetitQueZero": 0,
+     "mieux": 10,
+     "pareil": 8,
+     "moins": 2,
+     "pSigne": 0.039
+    },
+    "survie_s": {
+     "n": 20,
+     "moyenne": 37.975,
+     "mediane": 4.65,
+     "ic95": [
+      13.649,
+      66.159
+     ],
+     "se": 13.537,
+     "partPlusPetitQueZero": 0,
+     "mieux": 10,
+     "pareil": 7,
+     "moins": 3,
+     "pSigne": 0.092
+    },
+    "coursesIdentiques": 6,
+    "graines": 20
+   },
+   "c0064-c0026": {
+    "palier": {
+     "n": 20,
+     "moyenne": 1.1,
+     "mediane": 0,
+     "ic95": [
+      -0.3,
+      2.45
+     ],
+     "se": 0.714,
+     "partPlusPetitQueZero": 0.065,
+     "mieux": 8,
+     "pareil": 8,
+     "moins": 4,
+     "pSigne": 0.388
+    },
+    "survie_s": {
+     "n": 20,
+     "moyenne": 15.825,
+     "mediane": 0,
+     "ic95": [
+      -15.655,
+      46.136
+     ],
+     "se": 16.116,
+     "partPlusPetitQueZero": 0.169,
+     "mieux": 8,
+     "pareil": 8,
+     "moins": 4,
+     "pSigne": 0.388
+    },
+    "coursesIdentiques": 8,
+    "graines": 20
+   },
+   "c0101-c0026": {
+    "palier": {
+     "n": 20,
+     "moyenne": 1.1,
+     "mediane": 0,
+     "ic95": [
+      -0.4,
+      2.55
+     ],
+     "se": 0.739,
+     "partPlusPetitQueZero": 0.073,
+     "mieux": 8,
+     "pareil": 8,
+     "moins": 4,
+     "pSigne": 0.388
+    },
+    "survie_s": {
+     "n": 20,
+     "moyenne": 15.825,
+     "mediane": 0,
+     "ic95": [
+      -16.732,
+      47.111
+     ],
+     "se": 16.17,
+     "partPlusPetitQueZero": 0.165,
+     "mieux": 8,
+     "pareil": 8,
+     "moins": 4,
+     "pSigne": 0.388
+    },
+    "coursesIdentiques": 8,
+    "graines": 20
+   },
+   "c0101-c0064": {
+    "palier": {
+     "n": 20,
+     "moyenne": 0,
+     "mediane": 0,
+     "ic95": [
+      0,
+      0
+     ],
+     "se": 0,
+     "partPlusPetitQueZero": 1,
+     "mieux": 0,
+     "pareil": 20,
+     "moins": 0,
+     "pSigne": 1
+    },
+    "survie_s": {
+     "n": 20,
+     "moyenne": 0,
+     "mediane": 0,
+     "ic95": [
+      0,
+      0
+     ],
+     "se": 0,
+     "partPlusPetitQueZero": 1,
+     "mieux": 0,
+     "pareil": 20,
+     "moins": 0,
+     "pSigne": 1
+    },
+    "coursesIdentiques": 20,
+    "graines": 20
+   }
+  }
+ },
+ "controle": [
+  {
+   "id": "c0025",
+   "graine": 950000,
+   "xeon": "a96b1191e430",
+   "ryzen": "a96b1191e430",
+   "palierXeon": 1,
+   "palierRyzen": 1,
+   "meme": true
+  },
+  {
+   "id": "c0025",
+   "graine": 950037,
+   "xeon": "af3b1aa17953",
+   "ryzen": "af3b1aa17953",
+   "palierXeon": 4,
+   "palierRyzen": 4,
+   "meme": true
+  },
+  {
+   "id": "c0101",
+   "graine": 950000,
+   "xeon": "7b2c8f9e25f2",
+   "ryzen": "7b2c8f9e25f2",
+   "palierXeon": 6,
+   "palierRyzen": 6,
+   "meme": true
+  },
+  {
+   "id": "c0101",
+   "graine": 950037,
+   "xeon": "203760c008a7",
+   "ryzen": "203760c008a7",
+   "palierXeon": 7,
+   "palierRyzen": 7,
+   "meme": true
+  }
+ ]
+}

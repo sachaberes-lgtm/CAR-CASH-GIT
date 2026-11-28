@@ -1,0 +1,8 @@
+1. E rapide contre note.ecartFoule : 300 lots, plus grand ecart 6.66e-16
+2. comparer rapide (arrondi toFixed, exact) contre note.comparer : 40 paires reelles, plus grand ecart sur dF/se/dPalier/dE 4.44e-15, criteres identiques 40/40
+2. comparer rapide (arrondi Math.round, celui des simulations) contre note.comparer : 40 paires reelles, plus grand ecart sur dF/se/dPalier/dE 4.44e-15, criteres identiques 40/40
+3. identiques : dF 0 se 0 sacre false ; +5 paliers : dPalier 5.000000 dE 0 se_dF 7.701483624381566e-17 sacre false
+4. modele evolution (pilotes egaux, 24 graines) : ET vraie de dPalier 0.94, de 4 dE 0.38, de dF 1.08 ; se moyenne du bootstrap : dPalier 0.90, dF 1.06 ; correlation dP/dE -0.19
+4. modele bruit     (pilotes egaux, 24 graines) : ET vraie de dPalier 0.92, de 4 dE 0.59, de dF 1.12 ; se moyenne du bootstrap : dPalier 0.91, dF 1.12 ; correlation dP/dE -0.06
+4. modele gabarit   (pilotes egaux, 24 graines) : ET vraie de dPalier 0.93, de 4 dE 0.41, de dF 1.07 ; se moyenne du bootstrap : dPalier 0.89, dF 1.10 ; correlation dP/dE -0.15
+   reference (etude du bruit) : ET de la difference de palier moyen sur 12 graines communes 1,37, soit ~0,97 sur 24 ; ET bootstrap de l'ecart d'un pilote sur 24 courses 0,09

@@ -6,7 +6,9 @@
    Si ce controle rate, le pilote fabrique n'est plus pilote-voltige a la naissance : evoluer.js s'arrete (code 1).
    verifierW2 : le contraire — un genome temoin dont la tete RAYON a W2 = 0,5 partout doit donner une course DIFFERENTE sur au moins une graine.
    identite.js n'ecrit RIEN (ni cache, ni pilotes, ni journal).
-   Ligne de commande : node ml/evolution/identite.js [--graines 910000,910037,910074] [--tmax 45] [--travailleurs 3] [--w2] [--config f.json] */
+   (28/11/2026, tache « portage ») le temoin est celui de cfg.temoin (c0025 = pilote-voltige.js par defaut ; c0101 = ml/labo/cerveaux/c0101-pilote.js ;
+   ou un sacre entre les deux) : le pilote fabrique est compare au fichier de CE temoin (genome.sourceTemoin). --temoin c0101 en ligne de commande.
+   Ligne de commande : node ml/evolution/identite.js [--graines 910000,910037,910074] [--tmax 45] [--travailleurs 3] [--w2] [--config f.json] [--temoin c0101] */
 'use strict';
 const fs=require('fs'),path=require('path');
 const C=require('./commun'),Gn=require('./genome'),K=require('./courses');
@@ -35,11 +37,12 @@ function laDuree(cfg,o){return +(o.tmax||(cfg.identite&&cfg.identite.tmax)||45);
 
 async function verifier(o){
   o=o||{};const cfg=o.cfg||C.lireConfig(),graines=lesGraines(cfg,o),tmax=laDuree(cfg,o);
-  const temoin=Gn.ecrirePilote(Gn.genomeTemoin(cfg),{cfg}),voltige=fs.readFileSync(Gn.VOLTIGE,'utf8');
+  const temoin=Gn.ecrirePilote(Gn.genomeTemoin(cfg),{cfg}),fichier=Gn.sourceTemoin(cfg),voltige=fs.readFileSync(fichier,'utf8');
   const R=await jouerTextes({cfg,graines,tmax,travailleurs:o.travailleurs,journal:o.journal,
-    textes:[{nom:'evolution',source:temoin,fichier:'evolution.js'},{nom:'voltige',source:voltige,fichier:'pilote-voltige.js'}]});
+    textes:[{nom:'evolution',source:temoin,fichier:'evolution.js'},{nom:'voltige',source:voltige,fichier:path.basename(fichier)}]});
+  /* « voltige » = le fichier ecrit a la main du temoin (le nom reste, pour les journaux et les appelants d'avant le portage) */
   const lignes=graines.map((g,i)=>{const a=R.evolution[i],b=R.voltige[i];return {graine:g,temoin:resume(a),voltige:resume(b),identique:pareil(a,b)};});
-  return {ok:lignes.every(l=>l.identique),lignes};}
+  return {ok:lignes.every(l=>l.identique),lignes,temoin:Gn.nomTemoin(cfg),fichier:path.relative(C.RACINE,fichier).split(path.sep).join('/')};}
 
 /* un genome temoin dont la tete RAYON a W2 = 0,5 partout : sa course doit differer de celle de pilote-voltige sur au moins une graine */
 function genomeW2(cfg,tete,valeur){
@@ -48,9 +51,9 @@ function genomeW2(cfg,tete,valeur){
   return Gn.reparer(g,cfg);}
 async function verifierW2(o){
   o=o||{};const cfg=o.cfg||C.lireConfig(),graines=lesGraines(cfg,o),tmax=laDuree(cfg,o);
-  const w2=Gn.ecrirePilote(genomeW2(cfg,'rayon',.5),{cfg}),voltige=fs.readFileSync(Gn.VOLTIGE,'utf8');
+  const w2=Gn.ecrirePilote(genomeW2(cfg,'rayon',.5),{cfg}),fichier=Gn.sourceTemoin(cfg),voltige=fs.readFileSync(fichier,'utf8');
   const R=await jouerTextes({cfg,graines,tmax,travailleurs:o.travailleurs,journal:o.journal,
-    textes:[{nom:'w2',source:w2,fichier:'evolution.js'},{nom:'voltige',source:voltige,fichier:'pilote-voltige.js'}]});
+    textes:[{nom:'w2',source:w2,fichier:'evolution.js'},{nom:'voltige',source:voltige,fichier:path.basename(fichier)}]});
   const lignes=graines.map((g,i)=>{const a=R.w2[i],b=R.voltige[i];return {graine:g,w2:resume(a),voltige:resume(b),identique:pareil(a,b)};});
   return {ok:lignes.some(l=>!l.identique)&&lignes.every(l=>l.w2&&l.w2.empreinte&&!l.w2.erreurs),lignes};}
 
@@ -60,6 +63,8 @@ if(require.main===module){
   const A=process.argv.slice(2),opt=(k,d)=>{const i=A.indexOf('--'+k);return i>=0?A[i+1]:d;};
   (async function(){
     const cfg=C.lireConfig(opt('config',null));
+    if(opt('temoin',null))cfg.temoin=opt('temoin');
+    const qui=Gn.nomTemoin(cfg)+' ('+path.basename(Gn.sourceTemoin(cfg))+')';
     const o={cfg,graines:opt('graines',null)?opt('graines').split(',').map(Number):undefined,tmax:opt('tmax',null)?+opt('tmax'):undefined,
       travailleurs:opt('travailleurs',null)?+opt('travailleurs'):undefined};
     const t0=Date.now();
@@ -73,8 +78,8 @@ if(require.main===module){
       const a=l.temoin||{},b=l.voltige||{};
       console.log('graine '+l.graine+' : '+(l.identique?'IDENTIQUE ('+a.empreinte+' '+a.empreinteVues+' '+a.empreinteTouches+', palier '+a.palier+', '+a.survie_s+' s)':
         'DIFFERENT (temoin '+[a.empreinte,a.empreinteVues,a.empreinteTouches].join(' ')+' palier '+a.palier+' '+a.survie_s+' s'+(a.erreurs?' erreurs '+a.erreurs+' '+a.derniereErreur:'')+(a.raison?' ['+a.raison+']':'')+
-        ' ; voltige '+[b.empreinte,b.empreinteVues,b.empreinteTouches].join(' ')+' palier '+b.palier+' '+b.survie_s+' s'+(b.raison?' ['+b.raison+']':'')+')'));}
-    console.log((r.ok?'OK : le temoin rejoue pilote-voltige au bit pres':'ECHEC : le temoin ne rejoue pas pilote-voltige')+' ('+Math.round((Date.now()-t0)/1000)+' s)');
+        ' ; fichier '+[b.empreinte,b.empreinteVues,b.empreinteTouches].join(' ')+' palier '+b.palier+' '+b.survie_s+' s'+(b.raison?' ['+b.raison+']':'')+')'));}
+    console.log((r.ok?'OK : le temoin '+qui+' rejoue son fichier au bit pres':'ECHEC : le temoin '+qui+' ne rejoue pas son fichier')+' ('+Math.round((Date.now()-t0)/1000)+' s)');
     process.exit(r.ok?0:1);
   })().catch(e=>{console.error('identite : '+String(e&&e.stack||e));process.exit(1);});
 }

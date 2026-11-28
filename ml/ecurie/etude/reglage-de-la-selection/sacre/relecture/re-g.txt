@@ -1,0 +1,6 @@
+pilotes egaux, 9000 essais, bootstrap 400 tirages, graine 99 (59 s)
+  actuel (24, z>2)             faux sacres : (b)(c) a 1 se 3.0 % [2.7 ; 3.4] ; a 2 se 3.0 % [2.7 ; 3.4] ; graines jouees 24
+  seqOBF-2.2-0.5-96            faux sacres : (b)(c) a 1 se 1.8 % [1.5 ; 2.1] ; a 2 se 1.8 % [1.5 ; 2.1] ; graines jouees 37
+  seqOBF-2-0.5-96              faux sacres : (b)(c) a 1 se 2.5 % [2.2 ; 2.9] ; a 2 se 2.5 % [2.2 ; 2.9] ; graines jouees 37
+  2etages-0.5-96-2.33 +direct  faux sacres : (b)(c) a 1 se 1.2 % [1.0 ; 1.5] ; a 2 se 1.2 % [1.0 ; 1.5] ; graines jouees 47
+  2etages-1-96-2               faux sacres : (b)(c) a 1 se 1.4 % [1.2 ; 1.6] ; a 2 se 1.4 % [1.2 ; 1.6] ; graines jouees 36

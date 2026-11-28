@@ -5,8 +5,11 @@
        moins une graine), sans erreur du cerveau (« YEUX CHANGES » compris) ;
    (e') sur les vrais yeux (une course de 45 s tracee, loi « retour » demandee) : chaque vue de vol suit la forme que le controle exige, et l'on y voit
        passer viser/viserPlane et retour0.
-   Au plus 4 courses a la fois. Environ 3 a 5 minutes.
-   usage : node ml/evolution/tests/identite.test.js [--graines 910000,910037,910074] [--tmax 45] [--travailleurs 4]   (code 0 si tout passe, 1 sinon) */
+   (28/11/2026, tache « portage ») (a) pour LES DEUX temoins : c0025 (pilote-voltige.js) et c0101 (ml/labo/cerveaux/c0101-pilote.js, le dernier
+       champion de la boucle payante), chacun contre son fichier ecrit a la main, sur les memes 3 graines ; (b) et (e') sur c0025, comme avant.
+       --temoins c0025,c0101,c0072 : la liste des temoins a controler en (a).
+   2 courses a la fois par defaut (le PC est partage ; 4 au plus). 21 courses de 45 s : environ 6 a 10 minutes.
+   usage : node ml/evolution/tests/identite.test.js [--graines 910000,910037,910074] [--tmax 45] [--travailleurs 2] [--temoins c0025,c0101]   (code 0 si tout passe, 1 sinon) */
 'use strict';
 const path=require('path'),fs=require('fs'),{fork}=require('child_process');
 const D=path.join(__dirname,'..');
@@ -28,7 +31,9 @@ if(A[0]==='--trace'){
 const cfg=C.lireConfig();
 const graines=(opt('graines',null)?opt('graines').split(','):cfg.identite.graines).map(Number),tmax=+opt('tmax',cfg.identite.tmax||45);
 /* (27/11/2026, tache « gestes ») --travailleurs N : courses a la fois (4 par defaut, comme avant ; 2 quand une autre evolution tourne sur le PC) */
-const travailleurs=Math.max(1,Math.min(4,+opt('travailleurs',4)||4));
+const travailleurs=Math.max(1,Math.min(4,+opt('travailleurs',2)||2));
+const TEMOINS=String(opt('temoins','c0025,c0101')).split(',').filter(Boolean);
+for(const n of TEMOINS)if(!Gn.TEMOINS[n])throw new Error('temoin inconnu : '+n);
 let rates=0,passes=0;
 function bilan(nom,ok,detail){if(ok)passes++;else rates++;console.log((ok?'PASSE  ':'ECHEC  ')+nom+(detail?'\n       '+detail.split('\n').join('\n       '):''));}
 const court=l=>l?[l.empreinte,l.empreinteVues,l.empreinteTouches].join(' ')+' palier '+l.palier+' '+l.survie_s+' s '+l.vols+' vols'+(l.erreurs?' ERREURS '+l.erreurs+' « '+l.derniereErreur+' »':'')+(l.mesuree===false?' [non mesuree : '+l.raison+']':''):'(rien)';
@@ -37,24 +42,35 @@ const pareil=(a,b)=>!!(a&&b)&&EMP.every(k=>a[k]&&a[k]===b[k]);
 
 (async function(){
   const t0=Date.now();
-  const T=Gn.genomeTemoin(cfg);
+  const cfg25=Object.assign({},cfg,{temoin:'c0025'});
+  const T=Gn.genomeTemoin(cfg25);
   const R=Gn.reparer(JSON.parse(JSON.stringify(T)),cfg);R.A.retourOn=1;
   const textes=[
     {nom:'temoin',source:Gn.ecrirePilote(T,{cfg}),fichier:'evolution.js'},
     {nom:'voltige',source:fs.readFileSync(Gn.VOLTIGE,'utf8'),fichier:'pilote-voltige.js'},
-    {nom:'w2rayon',source:Gn.ecrirePilote(I.genomeW2(cfg,'rayon',.5),{cfg}),fichier:'evolution.js'},
-    {nom:'w2sol',source:Gn.ecrirePilote(I.genomeW2(cfg,'sol',.5),{cfg}),fichier:'evolution.js'},
+    {nom:'w2rayon',source:Gn.ecrirePilote(I.genomeW2(cfg25,'rayon',.5),{cfg}),fichier:'evolution.js'},
+    {nom:'w2sol',source:Gn.ecrirePilote(I.genomeW2(cfg25,'sol',.5),{cfg}),fichier:'evolution.js'},
     {nom:'retour',source:Gn.ecrirePilote(R,{cfg}),fichier:'evolution.js'}];
-  console.log('15 courses ('+textes.length+' pilotes x '+graines.length+' graines x '+tmax+' s), '+travailleurs+' a la fois, un processus neuf chacune…');
+  /* (28/11, portage) les autres temoins : le genome et le fichier ecrit a la main */
+  for(const n of TEMOINS){if(n==='c0025')continue;const c=Object.assign({},cfg,{temoin:n}),f=Gn.sourceTemoin(c);
+    textes.push({nom:'temoin_'+n,source:Gn.ecrirePilote(Gn.genomeTemoin(c),{cfg}),fichier:'evolution.js'},{nom:'fichier_'+n,source:fs.readFileSync(f,'utf8'),fichier:path.basename(f)});}
+  console.log((textes.length*graines.length)+' courses ('+textes.length+' pilotes x '+graines.length+' graines x '+tmax+' s), '+travailleurs+' a la fois, un processus neuf chacune…');
   const L=await I.jouerTextes({cfg,graines,tmax,travailleurs,textes});
 
   /* (a) */
-  {const det=[];let ok=true;
-    graines.forEach((g,i)=>{const a=L.temoin[i],b=L.voltige[i],s=pareil(a,b);ok=ok&&s&&!a.erreurs;
-      det.push('graine '+g+' : '+(s?'IDENTIQUE  ':'DIFFERENT  ')+'temoin '+court(a)+(s?'':'\n         voltige '+court(b)));});
-    bilan('(a) identite : le genome temoin rejoue pilote-voltige au bit pres ('+graines.length+' graines x '+tmax+' s)',ok,det.join('\n'));
-    const vols=graines.reduce((s,g,i)=>s+((L.voltige[i]&&L.voltige[i].vols)|0),0);
-    bilan('(a) les courses de l\'identite passent par le vol (sinon la tete RAYON et le controle n\'y seraient pas exerces)',vols>0,vols+' vols en tout');}
+  const empreintes={};
+  for(const n of TEMOINS){
+    const kT=n==='c0025'?'temoin':'temoin_'+n,kF=n==='c0025'?'voltige':'fichier_'+n,f=path.basename(Gn.sourceTemoin(Object.assign({},cfg,{temoin:n})));
+    const det=[];let ok=true;
+    graines.forEach((g,i)=>{const a=L[kT][i],b=L[kF][i],s=pareil(a,b);ok=ok&&s&&!a.erreurs;
+      det.push('graine '+g+' : '+(s?'IDENTIQUE  ':'DIFFERENT  ')+'temoin '+court(a)+(s?'':'\n         fichier '+court(b)));});
+    empreintes[n]=graines.map((g,i)=>L[kT][i]&&L[kT][i].empreinte).join(',');
+    bilan('(a) identite '+n+' : son genome rejoue '+f+' au bit pres ('+graines.length+' graines x '+tmax+' s)',ok,det.join('\n'));
+    const vols=graines.reduce((s,g,i)=>s+((L[kF][i]&&L[kF][i].vols)|0),0);
+    bilan('(a) '+n+' : les courses de l\'identite passent par le vol (sinon la tete RAYON et le controle n\'y seraient pas exerces)',vols>0,vols+' vols en tout');}
+  /* deux temoins differents ne doivent pas jouer la meme course partout (sinon le controle ne distinguerait pas c0025 de c0101) */
+  if(TEMOINS.length>1){const v=TEMOINS.map(n=>empreintes[n]);
+    bilan('(a) les temoins controles jouent des courses differentes ('+TEMOINS.join(', ')+')',new Set(v).size===v.length,TEMOINS.map(n=>n+' : '+empreintes[n]).join('\n'));}
   /* (b) */
   for(const nom of ['w2rayon','w2sol','retour']){
     const det=[];let diff=0,err=0;

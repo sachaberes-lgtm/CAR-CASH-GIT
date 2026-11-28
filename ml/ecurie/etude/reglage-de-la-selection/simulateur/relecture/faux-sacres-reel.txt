@@ -1,0 +1,8 @@
+FAUX SACRES PAR VALIDATION SOUS L'HYPOTHESE NULLE, VRAI note.comparer SUR LES VRAIES COURSES DU 27/11 (527 lignes, 23 graines) ; 900 essais par case
+n graines | part identique | seuil 1          | seuil 2          | seuil 3          | ET reelle de dF / se_dF moyen du bootstrap
+12       | 0              | 9.4 % ± 1.0      | 1.2 % ± 0.4      | 0.3 % ± 0.2      | 1.955 / 2.439 (rapport 0.80)
+24       | 0              | 18.2 % ± 1.3     | 3.2 % ± 0.6      | 0.9 % ± 0.3      | 1.062 / 1.039 (rapport 1.02)
+24       | 0.5            | 18.4 % ± 1.3     | 2.2 % ± 0.5      | 0.1 % ± 0.1      | 0.756 / 0.719 (rapport 1.05)
+24       | 0.8            | 19.4 % ± 1.3     | 0.7 % ± 0.3      | 0.0 % ± 0.0      | 0.471 / 0.423 (rapport 1.11)
+48       | 0              | 16.6 % ± 1.2     | 3.3 % ± 0.6      | 0.4 % ± 0.2      | 0.750 / 0.740 (rapport 1.01)
+(189 s)

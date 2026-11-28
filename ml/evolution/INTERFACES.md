@@ -222,6 +222,9 @@ Gr.rngDe(texte)                     /* -> mulberry32(parseInt(sha1(texte).slice(
 Gr.etatInitial(cfg)                 /* -> EtatGraines : {reserve:[0..n-1], recentes:[], validationK:0, validationRepli:false, validationFinie:false} */
 Gr.grainesEntrainement(eg, rng, n, cfg) /* -> {graines:number[n], eg:EtatGraines neuf} : n indices tires SANS remise dans eg.reserve (rng.entier puis splice) ;
                                        reserve vide : retirage avec remise parmi les 1 081, en excluant les graines de eg.recentes (5 dernieres generations) ;
+                                       (28/11/2026, lot « regles », M6 ; relu) depuis : reserve vide -> le BLOC suivant de 1 081 indices de
+                                       cfg.graines.entrainement.suite (1000021 + 37*j, j < 27 000 000), eg.blocs +1 (absent = 0) ; plus rien :
+                                       erreur code GRAINES_EPUISEES (auBout "arret") ; le retirage d'avant seulement si auBout = "rejouer" ;
                                        eg.recentes garde les cfg.graines.exclureRecentes derniers lots. graine = depart + pas*i. */
 Gr.grainesValidation(eg, n, cfg)    /* -> {graines, eg, alerte:null|texte} : 1 000 000 + 37*k, k = eg.validationK..+n-1 ; repli (eg.validationRepli) :
                                        950000+37*k, k < 1 081 ; au-dela : graines:[] et alerte, eg.validationFinie=true */
@@ -257,7 +260,9 @@ N.comparer(lignesA, lignesB, o)  /* validation appariee par graine. o : {REF, cf
                                     sur les graines mesurees CHEZ LES DEUX : dPalier = moyenne(palierA-palierB) ; dE = E_A - E_B (ecartFoule sur les 24 parties
                                     de chacun) ; dF = dPalier - poidsEcart*dE ; se_* = ecart-type sur les tirages (graines tirees avec remise, memes pour A et B) ;
                                     a: dF > seuilSacre*se_dF (cfg.validation.seuilSacre, 2 par defaut ; o.seuilSacre le remplace — § 8, ecart a la spec § 7.6) ;
-                                    b: dPalier > -1*se_dPalier ; c: dE < +1*se_dE ; sacre = a && b && c */
+                                    b: dPalier > -1*se_dPalier ; c: dE < +1*se_dE ; sacre = a && b && c
+                                    (28/11/2026, lot « sacre », § 11.1) b et c : -seuilB*se_dPalier et +seuilC*se_dE, o.seuilB/o.seuilC puis
+                                    cfg.validation.seuilB/seuilC, 1 par defaut (au bit pres la regle d'avant) */
 N.depuisEtude(tableau)           /* courses-0.json de l'etude du bruit -> lignes (§ 4.3) : id = sha du pilote, graine, palier, survie_s = duree_s,
                                     mesures = m, mesuree:true, usage:'entrainement' (pour l'etape 3) */
 ```
@@ -310,7 +315,8 @@ Précisions de l'implémentation (27/11, dév. 2) :
 
 ```js
 require('./tableau').ecrire(cfg)   /* -> {html:chemin, resume:chemin} : relit population.json et les journaux, reecrit tableau.html (SVG en ligne, aucune
-                                       ressource externe, s'ouvre en file://) et resume.txt (les 10 lignes de etat.js) ; atomique */
+                                       ressource externe, s'ouvre en file://) et resume.txt (les 10 lignes de etat.js ; (28/11, § 11.7) puis une ligne
+                                       vide et la ligne « Mutations comptent-elles ? ») ; atomique */
 ```
 Sections du tableau : celles de la spec § 8 (coffre ; F/palier/E du meneur et du témoin par génération ; 15 z du champion ; population ; malédiction du gagnant ;
 distance génétique et alarme `cfg.alarmeDistance` ; débit, pannes, non mesurées, époque, phase).
@@ -331,6 +337,8 @@ require('./etat').resume(cfg)   /* -> string[] (au plus 10 lignes) : generation,
                                     derniere validation ; non mesurees et pannes de la derniere generation ; alertes */
 ```
 **Ligne de commande** : `node ml/evolution/etat.js [--config f]` → imprime les lignes. Lecture seule.
+(28/11/2026, l'intégrateur, § 11.7) `resume` garde ses 10 lignes (la ligne de commande aussi) ; `resumeComplet(cfg, o?)` = ces lignes, une ligne vide,
+puis `tauLigne(mesureTau(cfg, o))` : c'est ce qu'écrit resume.txt. `mesureTau(cfg, o?)` (ne lève jamais ; `o.tau` = une mesure déjà faite) et `tauLigne(x)`.
 Ajouts (dév. 5) : `resume(cfg, o?)` accepte `o.maintenant` (ms) et `o.donnees` (le rendu de `lire`) ; `lire(cfg, {morts?})` → les données lues (population,
 journaux, verrou, STOP/PAUSE/ARRETE, liste des courses-*.jsonl, alertes de lecture) ; `lireConfig`, `chemin`, `args`, `lireJsonlTolerant`, `fichiersCourses`.
 Les lignes sont **sans accents** et de 118 caractères au plus (console Windows en page de code 850, et resume.txt). « En marche » = verrou dont le pid vit et dont
@@ -398,7 +406,7 @@ Toute la console va sur stdout, une ligne par événement, préfixée de l'heure
   n'est donc jamais écrit.
 - Le tableau est réécrit en fin de génération, à l'interruption, et une dernière fois après le retrait du verrou (son résumé dit alors « ARRETE »).
 - `config-essai.json` : ~~`travailleurs` 4 (la mission de test)~~ `travailleurs "auto"` et `banc.travailleurs [1, 2]` (§ 9.1 : un essai ne dépasse jamais
-  2 courses à la fois ; les tests passent `--travailleurs N`) et `protectionCourses` 6 (deux générations de 3 graines, comme 24 = deux de 12 : sinon un
+  2 courses à la fois ; les tests passent `--travailleurs N`) et ~~`protectionCourses` 6~~ (retiré le 28/11 : la protection par l'âge, § 11.3) (deux générations de 3 graines, comme 24 = deux de 12 : sinon un
   nouveau-né de l'essai pouvait être viré à sa première génération).
 
 ### 2.11 `inscrire-champion.js` — à la main seulement (étape 9)
@@ -430,8 +438,9 @@ Le fichier `ml/evolution/config.json` donne **toutes** les clés et leurs valeur
 | `grainesParGeneration`, `grainesEconomie`, `seuilEconomie_s` | 12 graines ; 8 si les **courses d'entraînement** d'une génération, hors PAUSE, ramenées à 12 graines, ont duré plus de 5 400 s ; retour à 12 sous 90 % du seuil (§ 8 ; écrit dans generations.jsonl) |
 | `validation.seuilSacre` | critère (a) du sacre : ΔF > seuilSacre × se(ΔF) ; 2 (§ 8 ; la spec § 7.6 disait 1) |
 | `nonMesureesVire` | (absent de config.json : 2 par défaut) courses non mesurées d'un pilote dans une génération qui le virent d'office (`raison:'non-mesuree'`), jamais le témoin |
-| `protectionCourses` | un vivant ne peut être viré ni être parent qu'avec au moins ce nombre de courses mesurées d'entraînement dans l'époque (24) |
+| ~~`protectionCourses`~~ `protectionGenerations` | (28/11/2026, lot « règles », A4) ~~un vivant ne peut être viré ni être parent qu'avec au moins ce nombre de courses mesurées d'entraînement dans l'époque (24)~~ protection par l'âge (`v.ne`) : renvoyable à G si `ne ≤ G − p`, parent des naissances de G si `ne ≤ G − 1 − p` (p = 1) ; `protectionCourses` n'est plus lu |
 | `immigres` | enfants immigrés par génération (1 sur λ = 6) |
+| `greffes` | (28/11/2026) liste facultative d'ensembles gène → valeur (interrupteurs, choix, entiers ; jamais un réel, une tête ni un gène figé). La place de l'immigré suit un cycle de longueur n + 1 : rang = ((G − 1) · immigres + k) mod (n + 1) ; rang < n : une **greffe** (le champion recopié, ces gènes forcés, aucun tirage) ; rang = n : l'immigré ordinaire. Absente ou vide : rien ne change, au bit près. Règle complète : `notes/greffes.md` |
 | `essaisDoublon` | remutations au plus quand un enfant a un `id` déjà vu ; au-delà il est abandonné (λ − 1 enfants, écrit) |
 | `pannesVire` | pannes de cerveau (décisions coupées, somme sur ses lignes de la génération) qui virent d'office |
 | `bornePoids` | tout poids des têtes est borné à [−4, 4] après mutation |
@@ -441,7 +450,11 @@ Le fichier `ml/evolution/config.json` donne **toutes** les clés et leurs valeur
 | `reseaux` | tailles et gains des deux têtes (§ 5.4, 5.5) ; les changer change le génome : nouvelle époque et génomes incompatibles (refus de charger) |
 | `retourFige` | rv, rm, rn de la loi « retour » (figés, hors génome) |
 | `travailleurs`, `banc.travailleurs` | (§ 9.1) `"auto"` : le nombre de courses à la fois vient de `machine.json` (le banc de CE PC), sinon le repli `max(1, L−2)` ; un nombre écrit l'emporte sur tous les PC ; `banc.travailleurs "auto"` = essayer {⌈L/2⌉, L−4, L−2, L−1} ; une liste reste acceptée |
-| `alarmeDistance` | l'alarme « population trop semblable » ; 0,012 (la moitié de la distance d'une vraie population de 20 à la naissance : 0,028 sur 86 gènes, 0,0225 sur 107 ; à 0,04 l'alerte était levée dès la génération 0) ; hors de toute époque |
+| `ordreCourses` | (28/11, § 11.4) `"longues"` (défaut) : les courses d'entraînement demandées de la plus longue attendue à la plus courte ; `"origine"` : l'ordre des tâches |
+| `graines.entrainement.suite`, `graines.auBout` | (28/11, § 11.5) la suite des graines d'entraînement après la réserve de 1 081 (`{depart:1000021, pas:37, fin:999999999}`) ; au bout : `"arret"` (défaut quand une suite existe) ou `"rejouer"` (l'ancien retirage) |
+| `validation.plan`, `pas`, `plafond`, `borneOBF`, `futilite`, `seuilB`, `seuilC` | (28/11, § 11.1) la validation séquentielle ; `plan` absent ou `"fixe"` = la règle d'avant ; `seuilB`/`seuilC` 1 |
+| `validation.maledictionSeuil` | (28/11, § 11.2) `null` : l'alarme « malédiction » est coupée (la mesure reste écrite) ; un nombre remet l'alarme d'avant |
+| `alarmeDistance` | (28/11, lot « règles ») **0,011** (121 gènes : 0,0221 à la naissance). Avant : l'alarme « population trop semblable » ; 0,012 (la moitié de la distance d'une vraie population de 20 à la naissance : 0,028 sur 86 gènes, 0,0225 sur 107 ; à 0,04 l'alerte était levée dès la génération 0) ; hors de toute époque |
 
 ### 3.2 Le génome (`Genome`)
 ```json
@@ -478,7 +491,7 @@ des yeux : un yeux.js changé ne doit pas rendre une vieille course).
   "phase": "A", "phaseDepuis": 0, "sansSacre": 5,
   "epoque": { "courses": "0b1c2d3e4f50", "note": "a1b2c3d4e5f6", "depuis": 3 },
   "rng": 2918734561,
-  "graines": { "reserve": [0, 4, 5, "…"], "recentes": [[910074, "…"], "…"], "validationK": 24, "validationRepli": false, "validationFinie": false },
+  "graines": { "reserve": [0, 4, 5, "…"], "recentes": [[910074, "…"], "…"], "validationK": 24, "validationRepli": false, "validationFinie": false, "blocs": 0 },
   "grainesGeneration": [910407, 911183, "… 12 …"],
   "nGraines": 12,
   "grainesRetirees": [],
@@ -501,6 +514,8 @@ recopiait ses journaux. Champs en plus : `etape`, `naissancesGeneration` ([{id, 
 même quand les naissances ont été faites par un processus tué), `abandonsGeneration`, `coffreEpoque` (un coffre « époque » reste dû), `epoque.composants`
 (pour dire **ce qui** a changé à la nouvelle époque : `nouvelle epoque : yeux.js, …`). Les journaux d'une génération refaite ne sont jamais écrits deux fois
 (morts par id, validations par génération + usage + meneur + champion + première graine, coffre par génération + raison, generations par génération).
+(28/11/2026, § 11.5) `graines.blocs` : combien de blocs de la suite ont rechargé la réserve (absent = 0, un état d'avant). Les indices ≥ 1 081 de `reserve`
+désignent la suite (`suite.depart + 37·(i − 1081)`).
 `origine` ∈ `temoin | g0 | mutation | croisement | immigre`. `epoque.depuis` = la génération où l'époque a commencé. `rng` = l'état du générateur du maître
 **après** les naissances et les graines de cette génération. `grainesRetirees` : graines retirées pour l'époque (§ 6.3, règle 3). `shaPilote` est recalculé
 pour tous les vivants au changement d'époque (modele.js en fait partie).
@@ -526,6 +541,8 @@ pour tous les vivants au changement d'époque (modele.js en fait partie).
  "criteres":{"a":true,"b":true,"c":false},"sacre":false,"malediction":0.9,"maledictionMoyenne":0.7,"fichier":null}
 ```
 `usage:'revalidation'` pour la revalidation d'après une nouvelle époque (meneur = champion, champion = témoin ; `sacre` y veut dire « garde son titre »).
+(28/11/2026, lot « sacre ») Une validation porte en plus `plan`, `regards[]`, `arret`, `courses` : format au § 11.1. Une ligne sans `regards` (d'avant) se lit
+comme un seul lot. Dans `generations.jsonl`, la clé `validation` d'une validation séquentielle porte en plus `graines` (jouées), `regards` (leur nombre), `arret`.
 
 ### 3.7 Une ligne de `morts.jsonl`
 ```json
@@ -851,22 +868,25 @@ c'est permis (« au plus »).
    Doublon (`id` dans `dejaVus`) → `muter` encore, `essaisDoublon` fois au plus. Puis **graines** : `grainesEntrainement(pop.graines, rng, nGraines)`.
    Puis `pop.rng=rng.etat()` et **écriture de population.json**.
 3. **Courses** : tous les vivants × `grainesGeneration`, ordre des tâches : graine par graine, puis vivant par vivant (dans l'ordre de `vivants`), usage `entrainement`.
+   (28/11/2026, lot « règles », A6, § 11.4) Les tâches gardent cet ordre, mais elles sont **demandées** à l'ordonnanceur de la plus longue attendue à la
+   plus courte (`cfg.ordreCourses` `"longues"` ; `"origine"` = l'ordre ci-dessus) ; chaque résultat revient à sa place.
 4. **Retraits** (corrigés le 27/11, § 8) : une graine non mesurée chez **deux pilotes ou plus** (ou chez le témoin) entre dans `grainesRetirees` (pour toute l'époque :
    elle sort de la note de tous) ; ratée par un seul pilote, elle reste pour les autres (événement). Un vivant dont la somme des `pannesEssais` de ses lignes de la
    génération atteint `pannesVire` → mort `pannes` (même le champion ; jamais le témoin : arrêt, code 1). Puis un vivant (hors témoin) qui a `nonMesureesVire` (2)
    courses non mesurées dans la génération → mort `non-mesuree`.
-5. **Note** de tous : `note.noter(lignes d'entrainement de l'époque des courses, {REF, exclure:grainesRetirees})`.
-6. **Renvoi** : éligibles = vivants hors témoin et champion avec `n ≥ protectionCourses` ; on en vire `min(éligibles, vivants − μ)`, les F les plus bas (égalité : la
+5. **Note** de tous : `note.noter(lignes d'entrainement de l'époque des courses, {REF, exclure:grainesRetirees})`. (28/11/2026, lot « règles », § 11.4) Les lignes
+   sont d'abord **rangées** (génération, graine, pilote, clé : `E.ordreLignes`) : la note ne dépend plus de l'ordre où les courses ont fini.
+6. **Renvoi** : éligibles = vivants hors témoin et champion avec ~~`n ≥ protectionCourses`~~ `ne ≤ G − protectionGenerations` (28/11, lot « règles », A4) ; on en vire `min(éligibles, vivants − μ)`, les F les plus bas (égalité : la
    survie `a` la plus basse, puis l'`id`). Chaque mort → morts.jsonl, **à la fin de la génération seulement** (avec generations.jsonl et population.json `fin`, § 8).
 7. **Validation**, **coffre**, **phase**, **économie** (§ 6.5 à 6.7).
 8. generations.jsonl, `tableau.ecrire(cfg)`, lecture de `STOP` / `PAUSE`.
-La population.json n'est pas réécrite en fin de génération : une reprise relit le début de G, refait les courses (toutes en cache), la note, le renvoi et la validation
+~~La population.json n'est pas réécrite en fin de génération~~ (elle l'est, avec `etape:'fin'` : écart de l'intégrateur, § 3.4) : une reprise relit le début de G, refait les courses (toutes en cache), la note, le renvoi et la validation
 (déterministes : les bootstraps ont leur propre générateur `rngDe`), puis passe à G+1.
 
 ### 6.2 Mutation, croisement, tournoi
-- **Tournoi** : 3 tirés sans remise (`rng.entier`) parmi les éligibles (vivants, témoin compris, avec `n ≥ protectionCourses`) ; le meilleur F gagne (égalité : `id`).
+- **Tournoi** : 3 tirés sans remise (`rng.entier`) parmi les éligibles (vivants, témoin compris, avec ~~`n ≥ protectionCourses`~~ `ne ≤ G − 1 − protectionGenerations`, 28/11, lot « règles », A4) ; le meilleur F gagne (égalité : `id`).
   Moins de 3 éligibles : les éligibles sont les vivants qui ont le plus de courses (tous ceux qui ont le `n` maximal) — c'est le cas de la génération 1.
-- **Mutation** (`muter`, phase A et suivantes) : `m = genes ?? 1+rng.poisson(poissonMutations)` réels **distincts** tirés dans `CONTINUS` ; chacun reçoit
+- **Mutation** (`muter`, phase A et suivantes) : `m = genes ?? 1+rng.poisson(poissonMutations)` réels **distincts** tirés dans ~~`CONTINUS`~~ `reelsLus(parent)` (28/11, lot « règles », C2 : `CONTINUS` moins les réels dont le drapeau de garde, table `genome.GARDES`, vaut 0 chez le parent ; m borné à cette urne) ; chacun reçoit
   `x + rng.normal()·sigma·(max−min)` (sigma = `o.sigma ?? sigmaMutation`), réflexion aux bornes (`x>max → 2max−x`, `x<min → 2min−x`, puis bornage) ;
   puis chaque drapeau bascule avec `pDrapeau` (un `rng.suivant()` par drapeau, dans l'ordre de BORNES) ; `dessousDecor` prend une autre de ses 3 valeurs avec
   `pDrapeau` ; `figMax` ±1 (moitié-moitié) avec `pFigMax`.
@@ -874,6 +894,7 @@ La population.json n'est pas réécrite en fin de génération : une reprise rel
   (rayon : 2 sur 6 ; sol : 5 sur 18). Phase C en plus : avec `phases.C.pTete`, une tête reçoit `N(0, phases.C.sigma)` sur `max(1, round(part·nW1))` W1 (22 ; 7).
   Puis `reparer`. `mutes` liste les gènes réellement changés (et `'WV'`/`'WS'` pour une tête).
 - **Immigré** : `muter(champion, {genes:immigreGenes, sigma:immigreSigma})` (les têtes suivent la règle de la phase).
+- **Greffe** (28/11/2026, config `greffes`, `greffes.js`) : à la place de l'immigré quand le cycle le dit : `forcer(champion, ensemble)`, sans tirage ; si le champion porte déjà ces valeurs ou si l'enfant est déjà vu : une mutation ordinaire du génome greffé, valeurs reforcées (aussi après chaque remutation de doublon). L'enfant garde `origine:'immigre'` et porte `greffe:{…}` (vivants et `naissancesGeneration`) ; un événement « greffe … » est écrit, et redit à la reprise d'une génération interrompue.
 - **Croisement** : chaque gène de BORNES pris chez g1 ou g2 (`rng.suivant()<.5` → g1) ; `WV` entier chez l'un (un tirage), `WS` entier chez l'un (un tirage).
 - **Génération 0** : le témoin (`origine:'temoin'`), puis μ−1 mutants du témoin, `muter(temoin, {genes: genesMin + rng.entier(genesMax−genesMin+1), sigma:.15})`,
   `origine:'g0'`. Le témoin est le champion (`champion.id = temoin`, sans validation, sans fichier). `pop.rng` part de `cfg.graineMaitre`.
@@ -884,9 +905,10 @@ La population.json n'est pas réécrite en fin de génération : une reprise rel
 
 ### 6.4 La note du meneur et la règle 6
 Meneur = vivant au plus haut F avec `n ≥ validation.nMin` (48), hors champion. Condition : `G − derniereValidation ≥ validation.intervalle` et
-`F_meneur − F_champion > regle6 · sqrt(se_F_meneur² + se_F_champion²)`. Alors 24 graines `grainesValidation`, 48 courses, `note.comparer(meneur, champion)`.
-`malediction = dF_entrainement − dF_validation` ; si les `maledictionFenetre` dernières validations ont une moyenne > `maledictionSeuil` : `regle6 = regle6Haute`
-(une fois, événement). Sacré → fichier champion, `champion = {id, depuis:G, fichier}`, `sansSacre = 0`, coffre « sacre ». Sinon `sansSacre` continue de compter.
+`F_meneur − F_champion > regle6 · sqrt(se_F_meneur² + se_F_champion²)`. Alors ~~24 graines `grainesValidation`, 48 courses, `note.comparer(meneur, champion)`~~
+**(28/11/2026, lot « sacre », § 11.1)** la validation séquentielle : 24 graines, puis des paquets de 12 jusqu'à 96, un regard (`note.comparer`) après chaque lot.
+`malediction = dF_entrainement − dF_validation` (le dF du **premier** regard, § 11.2) ; ~~si les `maledictionFenetre` dernières validations ont une moyenne > `maledictionSeuil` : `regle6 = regle6Haute`
+(une fois, événement)~~ l'alarme ne sonne que si `maledictionSeuil` est un nombre ; `null` (config.json) ou absent : jamais (§ 11.2). Sacré → fichier champion, `champion = {id, depuis:G, fichier}`, `sansSacre = 0`, coffre « sacre ». Sinon `sansSacre` continue de compter.
 `--valider-maintenant` : le meneur (ou, à défaut de n ≥ 48, le plus haut F) contre le champion, sans condition. Sa ligne porte `forcee:true` et n'entre **pas**
 dans la malédiction du gagnant (27/11, le correcteur).
 
@@ -1084,9 +1106,15 @@ Cinq gestes des joueurs (`ml/ecurie/etude/selection-naturelle/PROPOSITIONS.md`, 
   Le témoin garde `19e3767cc346` ; `dejaVus`, `champion.id`, `temoin` et les journaux restent justes. Dès qu'un gène de geste s'écarte : sha1 du v:2 entier.
 - `ecrirePilote` écrit les 21 clés dans `REGLAGES` après `volMieux` (§ 5.1). `modele.js` : `RETOURS_DEMANDES` (= `R.retours`, plus les deux lois du coup si
   `coupOn`) est envoyé aux yeux et compté par le contrôle des rayons (§ 5.7).
-- **`modele.js` et `genome.js` font partie de l'époque** : au premier lancement avec ce code, une population existante change d'époque (les notes repartent de
+- **`modele.js` fait partie de l'époque** : au premier lancement avec ce code, une population existante change d'époque (les notes repartent de
   zéro, les courses sont rejouées, les pilotes restent) et refait le contrôle d'identité. Voulu.
-- `distance` divise par 107 et non plus 86 : la diversité affichée baisse d'environ 20 % ; `alarmeDistance` passe à 0,04, puis à 0,012 après la mesure d'une vraie population (§ 3.1).
+  **(28/11/2026, lot « règles » — correction : la phrase disait « `modele.js` et `genome.js` ».)** `genome.js` n'est **pas** dans l'époque des courses :
+  `commun.FICHIERS_EPOQUE` ne le contient pas (§ 3.10), et une course ne dépend de lui que par le **texte** du pilote, dont le sha (`shaPilote`) est
+  déjà dans la clé du cache. Changer `genome.js` sans changer `ecrirePilote` (par exemple `muter`) ne change aucune course ni aucune note : seulement
+  la suite des naissances. Il entre en revanche dans l'**empreinte d'identité** (`evoluer.shaIdentite`, population.json `identite`) : à son premier
+  lancement avec un `genome.js` changé, le maître refait le contrôle d'identité (3 courses du témoin), sans changer d'époque. Ce qui changeait
+  l'époque avec les gestes, c'était `modele.js`.
+- `distance` divise par 107 et non plus 86 : la diversité affichée baisse d'environ 20 % ; `alarmeDistance` passe à 0,04, puis à 0,012 après la mesure d'une vraie population (§ 3.1) ; 0,011 sur 121 gènes (28/11, § 11.3).
 
 ### 9.4 Ce que l'intégrateur a ajouté ou corrigé (27/11 au soir)
 
@@ -1106,7 +1134,8 @@ Cinq gestes des joueurs (`ml/ecurie/etude/selection-naturelle/PROPOSITIONS.md`, 
 ### 9.5 Ce qui n'est pas fait (connu)
 
 - Le tableau (section « 7. La machine ») ne montre pas encore machine.json (etat.js le montre, ligne 3).
-- Les tâches planifiées s'ouvrent dans une fenêtre noire (`/it`) : une fois par heure, quelques secondes (il faudrait un lanceur caché, `.vbs`).
+- ~~Les tâches planifiées s'ouvrent dans une fenêtre noire (`/it`) : une fois par heure, quelques secondes (il faudrait un lanceur caché, `.vbs`).~~
+  (28/11, l'intégrateur) Fait : `cache.vbs` et les tâches XML, § 10.5.
 - `valider` migre encore en place (le conseil du lot « gestes » : `Gn.migrer` en clair dans `evoluer.charger`, puis `valider` pur) : pas fait, le comportement
   est juste et testé.
 - Un enfant dont seuls des réglages de gestes éteints ont muté conduit comme son parent mais est rejoué (~4 % des enfants) : coût de calcul accepté.
@@ -1114,3 +1143,250 @@ Cinq gestes des joueurs (`ml/ecurie/etude/selection-naturelle/PROPOSITIONS.md`, 
 - `machine.json` se committe sur la branche `evolution-<pc>` de chaque PC : deux PC ne doivent pas partager la même branche.
 - `lancer.cmd` ne dit « Premier lancement sur ce PC » que si `etat\machine.json` manque (pas s'il vient d'un autre PC : le banc a quand même lieu, dit dans sortie.log).
 - `tests/evoluer.test.js` (étapes bd, c, f, g) et `tests/courses.test.js` n'ont pas été relancés avec ce code.
+
+## 10. Le portage de la boucle payante (28/11/2026, tâche « portage » — « le génome doit savoir écrire c0101 comme il écrit c0025 »)
+
+Ce paragraphe complète les § 2.3, 2.7, 2.10, 3.1, 3.2, 3.4, 3.11 et 4.1 ; en cas de doute, il l'emporte sur eux. Le détail et les mesures : `notes/portage.md`.
+
+### 10.1 Le génome v:3 (121 gènes)
+
+- `BORNES` = les 107 gènes de v:2, puis les **14 gènes du portage** (`Gn.PORTAGE`), dans cet ordre :
+  `fuirVite` (drapeau, c0026), `bordOn` (drapeau, c0064), `bordNitro` [0,3 ; 1,2] 0,7, `bordJauge` [0,2 ; 1] 0,5,
+  `largeOn` (drapeau, c0072), `largeHaut` [2 ; 15] 4, `largeT1` [1,6 ; 3] 2,2, `largeT2` [1,2 ; 3] 1,8, `largeAxe` [0,25 ; 0,8] 0,5, `largeAir` [0,5 ; 3] 1,5,
+  `largeMax` (entier) [1 ; 5] 3, `libreOn` (drapeau, c0087), `nitroLibreK` [1 ; 1,6] 1,25, `tenirLibre` [0 ; 0,15] 0,05.
+  Tous `ou:'R'` (lus `R.<clé>` dans `modele.js`, écrits dans REGLAGES après les gestes). 88 réels, 30 drapeaux, 1 choix, 2 entiers (`largeMax` mute comme `figMax`, `pFigMax`).
+- Naissance : drapeaux à 0 (la conduite de c0025, au bit près), réglages à la valeur de c0101 (inertes tant que le drapeau est éteint).
+- `Gn.migrer` : v:1 (86 gènes) → v:3 (gestes et portage à leur naissance) ; v:2 (107 gènes, `Gn.CLES_V2` dans l'ordre) → v:3 (portage à sa naissance). En place.
+- `Gn.shaGenome` : portage tout à sa naissance → le sha du génome v:2 d'avant (lui-même ramené au v:1 si les gestes sont aussi à leur naissance) ; sinon le
+  sha du v:3 entier. **Un pilote né avant le portage garde son identifiant** (`tests/portage.test.js` p4 : 200 mutants écrits par le genome.js du commit 7f9543955).
+- `modele.js` porte les quatre blocs, chacun gardé par son drapeau (`R.fuirVite`, `R.bordOn`, `R.largeOn`, `R.libreOn`) ; `poseNette` est une constante de plus.
+  `modele.js` est dans l'époque : une population existante change d'époque au premier lancement avec ce code (§ 9.3, même règle).
+
+### 10.2 Le témoin choisi
+
+- `config.json` `"temoin"` : `c0025` (défaut, `ml/ecurie/pilote-voltige.js`), `c0026`, `c0064`, `c0072`, `c0087`, `c0101` (`ml/labo/cerveaux/cNNNN-pilote.js`). Hors de l'époque.
+- `Gn.nomTemoin(cfg)` (lève sur un nom inconnu), `Gn.sourceTemoin(cfg)` (le chemin absolu du fichier écrit à la main), `Gn.TEMOINS`, `Gn.TEMOIN_DEFAUT`.
+- `Gn.genomeTemoin(cfg)` lit REGLAGES dans le fichier du témoin ; les drapeaux du portage sont lus dans son **code** (`Gn.BLOCS` : les extraits de chaque bloc) et
+  recoupés avec ses clés de REGLAGES (code sans clés, clés sans code, bloc à moitié : refus).
+- `I.verifier({cfg})` compare le pilote fabriqué au fichier de **ce** témoin ; il rend aussi `temoin` (le nom) et `fichier` (chemin relatif à la racine).
+  Les résumés gardent le nom `voltige` pour le fichier écrit à la main (compatibilité). `node ml/evolution/identite.js --temoin c0101`.
+- `node ml/evolution/genome.js --temoin --nom c0101 [--ecrire f.js]`.
+
+### 10.3 Un état garde son témoin ; `--repartir-de`
+
+- `population.json` : `+ "temoinNom": "c0025"` (absent = c0025). `evoluer.charger` met `cfg.temoin` au témoin de la population ; si `config.json` en demande un
+  autre, il le dit (une ligne) et garde celui de la population. `cfg._temoinDemande` garde la demande de la config.
+- `champions/gNNNN-….json` : `+ "temoin"` (le nom). `inscrire-champion.js` en tire le parent au labo quand le précédent est le témoin.
+- `node ml/evolution/evoluer.js --repartir-de NOM [--config …] [--etat …] [--travailleurs N] [--une-generation | --arret-apres N]` (incompatible avec `--banc`
+  et `--valider-maintenant`) : 1. contrôle d'identité du nouveau témoin (raté : refus, code 1, rien ne bouge) ; 2. tout le dossier d'état va dans
+  `<etat>/archives/<date UTC>-<ancien témoin>/` sauf machine.json, verrou*, sortie.log, STOP, PAUSE, ARRETE, PAS-D-ENVOI, traces.log*, le Node du PC (node.txt*,
+  NODE-REFUSE.txt, node-choix-*, CHANGER-DE-NODE) et `archives/` ; les champions (`dossierChampions`, s'il est hors de l'état) vont dans `<archive>/champions/` ;
+  `ARCHIVE.json` (`format: evolution-archive-1`) dit ce qui a bougé ; **rien n'est effacé** ; un déplacement raté remet les autres en place ; 3. la marche continue
+  comme un premier lancement (génération 0 du nouveau témoin, sans refaire le contrôle qui vient de passer). Exports : `E.repartir(cfg, nom, dire, {doitArreter})`, `E.archiverEtat(cfg, neuf, dire)`.
+  (28/11, le relecteur) Un STOP / PAUSE / Ctrl+C pendant le contrôle : refus **avant** l'archivage. Après l'archivage, la génération 0 naît (population.json
+  écrit, `temoinNom`) avant tout test d'arrêt : un état n'est jamais laissé vide entre deux témoins (`tests/portage.test.js` p7).
+- Pages : `etat.temoinNom(pop)`, `etat.temoinClair(pop)` ; le résumé, le tableau, l'arbre et l'histoire nomment le témoin de la population au lieu de « pilote-voltige ».
+- Tests : `tests/portage.test.js` (sans course, ~20 s) ; `tests/identite.test.js` contrôle c0025 ET c0101 (21 courses de 45 s, 2 à la fois par défaut).
+- (28/11, l'intégrateur) `histoire.md`, « Où on en est » : quand `<etat>/archives/*/ARCHIVE.json` existe (`format: evolution-archive-1`), une ligne de plus dit que
+  la population est née d'un changement de témoin, combien de populations sont rangées et de quel témoin était née la dernière (`histoire.archivesAnciennes`).
+  L'arbre et le tableau nomment le témoin de la population (`temoinClair`) ; ils ne parlent pas des archives.
+
+### 10.4 Le Node fixe par PC (28/11/2026, lot « lanceurs » — « il faudrait que lancer.cmd utilise un chemin de Node fixe »)
+
+La version de Node est dans l'époque des courses (§ 3.10, `composants.node`) : une autre version = une époque neuve, notes à zéro. Le détail : `notes/lanceurs.md`.
+
+- **`etat/node.txt`** : une ligne, le chemin complet de `node.exe` (CRLF ; lu avec ou sans BOM, en UTF-8 ou UTF-16, avec ou sans guillemets). **Propre au PC, jamais
+  committé** (`.gitignore` ; il contient le nom du compte Windows et le dépôt est public). Gardé en place par `--repartir-de` (§ 10.3).
+- **`node node-fixe.js choisir --etat <etat> [--sans-ecrire] [--garder-marqueur]`** : la version attendue est `population.json` → `epoque.composants.node`
+  (absente : aucune). `node.txt` présent : son Node doit exister et avoir cette version, sinon code 2. Absent : recherche (PATH dans l'ordre, le Node courant,
+  Program Files, `%LOCALAPPDATA%\Programs\nodejs`, nvm-windows, fnm, Volta, Scoop, dossiers `nodejs` / `node-v*` près du dépôt et dans le profil), le premier de la
+  bonne version est écrit dans `node.txt`. Sortie : ligne 1 = le chemin, la suite = l'explication. Code 2 = refus (le texte dit attendue, trouvées, comment corriger).
+- **`etat/NODE-REFUSE.txt`** : le texte du dernier refus de `lancer.cmd` (effacé au premier lancement qui passe). **`etat/node-choix-*.tmp`** : la sortie de
+  `node-fixe.js`, le temps d'un lancement.
+- **`etat/CHANGER-DE-NODE`** (vide) : accepte **une fois** un Node d'une autre version (nouvelle époque voulue). Effacé par `node-fixe.js choisir` (sauf
+  `--garder-marqueur`, que passe `installer-tache.cmd`), ou par `evoluer.js` quand c'est lui qui s'en sert (ci-dessous).
+- **`lancer.cmd`** : Node d'amorce (`node.txt`, sinon `where node.exe`, sinon les deux dossiers usuels) → `node-fixe.js choisir` → `"%NODE%" evoluer.js …`, avec
+  **`CASHCAR_NODE_FIXE=<chemin>`** dans l'environnement (28/11, l'intégrateur). `arreter.cmd`, `sauver-traces.cmd` : le Node de `node.txt` s'il existe, sans
+  contrôle de version (ils ne jouent aucune course).
+- **`evoluer.js` se garde seul** (28/11, l'intégrateur ; la demande n° 1 de `notes/lanceurs.md`) : `E.refusNode(cfg, op, {env, version, dire})` avant le verrou et
+  le banc. Si `population.json` a `epoque.composants.node` ≠ `process.version` : **refus, code 2** (« REFUS DE PARTIR : la population … court sous Node … »), sauf
+  `CASHCAR_NODE_FIXE` (lancer.cmd a déjà choisi, marqueur compris), `--nouveau-node`, `--banc`, ou `etat/CHANGER-DE-NODE` (accepté une fois, effacé, dit).
+  Nouvelle option : **`--nouveau-node`**. Test : `tests/node-epoque.test.js` (sans course, quelques secondes).
+  Ce qui reste : avec `--etat` / `--config` à part, `lancer.cmd` (`node-fixe.js`) ne regarde que l'époque de `etat/` ; `evoluer.js` regarde celle de l'état demandé.
+
+### 10.5 Les tâches planifiées sans limite de durée (28/11/2026, lot « lanceurs »)
+
+- `installer-tache.cmd` pose les trois tâches par **`schtasks /create /tn NOM /xml FICHIER /f`** (le `/f` remplace des tâches de mêmes noms, posées à la main
+  comme sur le Ryzen). XML écrits par **`node node-fixe.js taches --ici <ml\evolution> --sortie <dossier> --node <node.exe> [--utilisateur D\nom] [--debut AAAA-MM-JJ]`**
+  (UTF-16 avec BOM, plus `commandes.txt`).
+- Communs : `ExecutionTimeLimit PT0S` (aucune limite ; `schtasks /sc` mettait 72 h), `MultipleInstancesPolicy IgnoreNew`, départ et marche sur batterie,
+  `StartWhenAvailable`, `InteractiveToken` + `LeastPrivilege` (compte de la session, aucun mot de passe), priorité 7 ; action
+  `wscript.exe //B //Nologo "<ici>\cache.vbs" "<ici>\lancer.cmd" auto` (ou `sauver-traces.cmd auto`), dossier de travail `ml\evolution`.
+- `CashCarEvolution` : `LogonTrigger` + 5 min. `CashCarEvolution-relance` : chaque heure (00:05). `CashCarEvolution-traces` : chaque heure (00:35).
+- **`cache.vbs`** : `wscript //B cache.vbs "<x>.cmd" args…` lance le .cmd dans une fenêtre cachée, attend, rend son code. Plus de fenêtre noire (§ 9.5 corrigé).
+- **`installer-tache.cmd essai DOSSIER`** : le même texte, les XML et `commandes.txt` dans DOSSIER, rien de posé (ni `choice`, ni `schtasks`, ni `powercfg`,
+  ni `node.txt`). `installer-tache.cmd enlever` : inchangé.
+- Vérifié sans rien poser : les trois XML acceptés par le Planificateur en validation seule (COM, `TASK_VALIDATE_ONLY`). Non vérifié : le droit de poser le
+  `LogonTrigger` sans administrateur, une stratégie qui couperait `wscript`.
+
+### 10.6 Où ces formats sont décrits
+
+| Format | Écrit par | Décrit dans |
+|---|---|---|
+| génome v:3, `Gn.PORTAGE`, `Gn.BLOCS`, `Gn.TEMOINS` | `genome.js` | § 10.1-10.2, `notes/portage.md`, commentaires de `genome.js` (`PORTAGE`) |
+| `config.json` `"temoin"` | à la main | § 10.2, `config.json` `_notes` |
+| `population.json` `temoinNom`, champion `.json` `temoin` | `evoluer.js` | § 10.3 |
+| `<etat>/archives/<date>-<témoin>/`, `ARCHIVE.json` (`evolution-archive-1`) | `evoluer.js --repartir-de` | § 10.3, `notes/portage.md` |
+| `etat/node.txt`, `NODE-REFUSE.txt`, `CHANGER-DE-NODE`, `node-choix-*` | `node-fixe.js`, `lancer.cmd`, à la main | § 10.4, `notes/lanceurs.md`, en-tête de `node-fixe.js` |
+| `CASHCAR_NODE_FIXE`, `--nouveau-node` | `lancer.cmd`, `evoluer.js` | § 10.4 |
+| les trois tâches (XML), `commandes.txt` | `node-fixe.js taches`, `installer-tache.cmd` | § 10.5, `notes/lanceurs.md` |
+| l'état de la livraison, les gestes sur le Ryzen | — | `notes/LIVRAISON-C0101.md` |
+
+## 11. Le réglage de la sélection (28/11/2026, trois lots « sacre », « règles », « tau », puis l'intégrateur)
+
+La source : `ml/ecurie/etude/reglage-de-la-selection/LISEZ-MOI.md` (la synthèse, § 2 et § 4) et ses cinq études, relectures comprises. Ce paragraphe
+complète les § 2.3, 2.5, 2.6, 2.8, 2.9, 2.10, 3.1, 3.4, 3.5, 3.6, 6.1, 6.2 et 6.4 ; en cas de doute, il l'emporte sur eux. Le détail et les mesures :
+`notes/sacre.md`, `notes/regles.md`, `notes/tau.md` ; l'état de la livraison : `notes/LIVRAISON-REGLAGE.md`.
+
+**Aucun de ces changements n'entre dans une époque** : ni `modele.js`, ni `enfant.js`, ni `cfg.reseaux`, ni `cfg.note` n'ont bougé ; `cfg.validation`,
+`cfg.graines`, `protectionGenerations`, `ordreCourses` sont hors de l'époque. `genome.js` (C2) entre seulement dans l'empreinte d'identité (§ 11.6).
+
+### 11.1 La validation séquentielle (A5, lot « sacre »)
+
+- `cfg.validation.plan` : `"sequentiel"` (config.json) ou `"fixe"` / absent (la règle d'avant : un lot de `graines`, critère (a) à `seuilSacre`).
+  Séquentiel : un premier lot de `graines` (24) graines neuves, puis des paquets de `pas` (12) jusqu'à `plafond` (96). Après chaque lot, un **regard** :
+  `note.comparer` sur **toutes** les graines jouées jusque-là, le critère (a) à la borne `borneOBF × √(plafond / m)` (`borneOBF` 2,2 ; m = graines mesurées
+  chez les deux pilotes, au plus n : 4,4 à 24, 3,1 à 48, 2,2 à 96).
+  Décision (`E.decisionRegard`, pure) : **sacre** si (a), (b) et (c) passent ; sinon **futilite** si z = dF / se_dF < `futilite` (0,5) ; sinon **plafond** si
+  n = plafond ; sinon **continuer**. Plus de graines de validation au milieu : **epuisees** (arrêt sans sacre) ; dès le premier lot : pas de validation (`null`).
+- (b) et (c) : `dPalier > −seuilB·se_dPalier`, `dE < seuilC·se_dE` ; `seuilB`, `seuilC` 1 (absents = 1 : au bit près la règle d'avant). Passer à 2 est la
+  décision D1 de Sacha (synthèse § 2 D) : non prise.
+- Un plan mal écrit (entier attendu, nombre attendu, plan inconnu) est refusé au chargement (`E.planValidation`), avant toute course.
+- La **revalidation** (§ 6.5) est inchangée : 24 graines, `revalidationPerte`, ni `plan` ni `regards`.
+- **Reprise** : une validation interrompue (STOP, Ctrl+C, kill, coupure) n'écrit rien ; `population.json` (donc `graines.validationK`) n'est réécrit qu'à la
+  fin de la génération ; la reprise retire les mêmes graines, le cache rend les courses jouées, `comparer` a son propre générateur (`rngDe('comparer|'+n)`) :
+  mêmes regards, même ligne (`tests/validation-sequentielle.test.js` V5 ; un kill dur en vraies courses, `notes/sacre.md`).
+- **Mesuré avec ce code** sur les vraies courses du 27/11 (`tests/mesure-sacre.js`, relu par un second chemin) : faux sacres 1,8 % (règle d'avant 3,0 %) ;
+  un vrai +1 palier reconnu 31 à 33 fois sur 100 (avant 15) ; un +2, 80 à 84 fois (avant 44 ; 86 seulement à `seuilB` = `seuilC` = 2) ; un −0,5 : 0,1 %.
+  Coût : environ 37 graines (74 courses) par validation quand le meneur ne vaut pas mieux, 60 quand il vaut +1, au lieu de 24.
+- **Une ligne de `validations.jsonl`** (usage `validation`), exemple réel (essai, 3 puis 3 par 3 jusqu'à 9) :
+
+```json
+{"generation":0,"date":"2026-11-28T01:21:39.831Z","usage":"validation","forcee":true,"meneur":"6c66b73cb5e2","champion":"19e3767cc346",
+ "graines":[1000000,1000037,1000074,1000111,1000148,1000185,1000222,1000259,1000296],"entrainement":{"dF":-0.2,"se_dF":0},
+ "validation":{"graines":9,"dF":1.8,"se_dF":0.8041,"dPalier":0.2,"se_dPalier":0.8041,"dE":-0.4,"se_dE":0},"criteres":{"a":true,"b":true,"c":true},
+ "sacre":true,"malediction":-1,"maledictionMoyenne":null,"fichier":"essais/sacre/A/champions/g0000-d936e49f.js",
+ "plan":{"nom":"sequentiel","premier":3,"pas":3,"plafond":9,"borneOBF":2.2,"futilite":0.5,"seuilB":1,"seuilC":1},
+ "regards":[{"n":3,"mesurees":3,"borne":3.8105,"z":0.5917,"dF":0.8,"se_dF":1.352,"dPalier":-0.8,"se_dPalier":1.352,"dE":-0.4,"se_dE":0,
+             "criteres":{"a":false,"b":true,"c":true},"decision":"continuer"},
+            {"n":6,"…":"…","decision":"continuer"},{"n":9,"mesurees":9,"borne":2.2,"z":2.2384,"…":"…","decision":"sacre"}],
+ "arret":"sacre","courses":18}
+```
+  `graines` : toutes les graines jouées ; `validation` et `criteres` : ceux du **dernier** regard ; `regards[k]` : `n` (graines jouées), `mesurees`
+  (communes aux deux), `borne`, `z` (`"+inf"` / `"-inf"` si `se_dF` = 0, `null` sans graine commune), les six nombres de `comparer`, ses critères, `decision`
+  ∈ `sacre | continuer | futilite | plafond | epuisees` ; `arret` = la décision du dernier regard ; `courses` = 2 × graines ; `plan` = les réglages utilisés
+  (plan fixe : `{nom:'fixe', premier, seuilSacre, seuilB, seuilC}`, un seul regard). La clé de reprise (génération, usage, meneur, champion, première graine)
+  ne change pas. **Une ligne d'avant** (sans `regards`) se lit partout comme un seul lot : « pas sacre sur 24 graines (un seul lot) ».
+- `generations.jsonl` : la clé `validation` d'une validation séquentielle porte en plus `graines` (combien), `regards` (combien), `arret`.
+- Les pages : `etat.regardsClair(v, {accents})` → « SACRE au 3e regard, sur 48 graines », « arrete au 1er regard, sur 24 graines (z 0.31 sous 0.50) »,
+  « pas sacre au plafond (7e regard, 96 graines) » ; `histoire.js`, `tableau.js` (section 5), `arbre.js` (la fiche d'un sacré) le reprennent.
+
+### 11.2 La malédiction du gagnant : mesurée, plus d'alarme (A1, lot « sacre »)
+
+- `malediction` = dF d'entraînement − dF du **premier** regard (24 graines, une taille fixe : le dernier regard d'un plan qui s'arrête selon ce qu'il voit
+  est biaisé). Toujours écrite dans `validations.jsonl`, `maledictionMoyenne` aussi.
+- `cfg.validation.maledictionSeuil` : `null` (config.json) ou absent → l'alarme ne sonne jamais (`regle6` ne passe plus seule à `regle6Haute`) ; un nombre
+  → l'alarme d'avant. Raison : pour un meneur jeune, la malédiction attendue quand tout marche vaut 1,1 à 1,8 palier ; l'alarme à 1 sonnait par construction.
+- Une population où `regle6` est **déjà** passée à 3 y reste (rien ne la redescend) : à regarder dans `population.json` (`regle6`).
+
+### 11.3 La protection par l'âge (A4, lot « règles »)
+
+- `cfg.protectionGenerations` (p, 1 ; absent = 1) remplace `protectionCourses` (plus lu ; une config qui l'a encore n'est pas refusée).
+  À la génération G : **renvoyable** si `ne ≤ G − p` (témoin et champion toujours exclus) ; **parent** des naissances de G si `ne ≤ G − 1 − p`
+  (`v.ne` absent = 0). Moins de 3 parents possibles : comme avant, les vivants qui ont le plus de courses.
+- Un enfant né en G joue donc les graines de G puis celles de G+1 avant de pouvoir être renvoyé (à la fin de G+1) : c'est ce que demande la mesure de τ (§ 11.7).
+- Changements de comportement, voulus : à 8 graines (économie), une graine retirée ou une course non mesurée, la protection ne dure plus qu'une génération ;
+  à la **première génération d'une époque neuve**, les pilotes assez âgés sont renvoyables (la règle des 24 courses n'en renvoyait aucun).
+- `alarmeDistance` 0,011 (121 gènes ; mesuré : 0,0221 à la naissance d'une population de 20, `tests/mesure-distance.js`).
+
+### 11.4 L'ordre des courses et l'ordre des lignes de la note (A6, lot « règles »)
+
+- `cfg.ordreCourses` `"longues"` (défaut) : `E.ordreLongues(ctx, taches)` range les courses d'entraînement d'une génération par durée attendue décroissante
+  (la survie moyenne du pilote dans l'époque ; un enfant sans course : celle de son premier parent ; sinon la moyenne de tous ; égalité : l'ordre d'origine).
+  `courir(ctx, taches, {ordre})` demande dans cet ordre et remet chaque résultat à son indice. La validation et le coffre gardent leur ordre. `"origine"` :
+  l'ordre d'avant.
+- `E.ordreLignes` : `noterTous` range les lignes (génération, graine, pilote, clé) avant `note.noter`, dont le bootstrap de E tire des **positions** : la note
+  dépendait de l'ordre où les courses finissaient (et changeait déjà d'une reprise à l'autre). Conséquence : à la première génération avec ce code, les `se_F`
+  d'une population existante peuvent bouger un peu, une fois.
+
+### 11.5 La réserve de graines d'entraînement (M6, lot « règles »)
+
+- Avant : 1 081 graines (910000 + 37·i) ; la réserve vide (génération 90 à 12 graines), un retirage **avec remise** parmi elles, sans alerte.
+- `cfg.graines.entrainement.suite` `{depart:1000021, pas:37, fin:999999999}` : quand la réserve est vide, elle reçoit le **bloc** suivant de 1 081 indices
+  (indice i ≥ 1 081 → `1000021 + 37·(i − 1081)`), `pop.graines.blocs` +1 (absent = 0). 27 000 000 graines de plus : 2 250 090 générations à 12 graines.
+  Les 90 premiers lots sont ceux de l'ancien code au bit près (même hasard) : une sélection commencée continue sans rejouer ni sauter de graine.
+- Les plages : 910000-949960 (l'entraînement d'avant), 950000-989999 (repli de la validation, validation de la boucle payante), 990000-991443 (coffre),
+  1 000 000 + 37·k (la validation de la sélection, reste 1 modulo 37), 1000021-999999984 (la suite, reste 22 modulo 37) : la suite ne touche jamais la validation.
+- `cfg.graines.auBout` : `"arret"` (défaut quand une suite existe) → au bout, `naissances` lève **avant** toute naissance (erreur `GRAINES_EPUISEES`,
+  « evoluer : generation G non commencee : les graines d'entrainement sont epuisees … ») : code 1, rien n'est écrit ; à moins de 20 générations de la fin,
+  un événement le dit à chaque génération. `"rejouer"` (ou une config sans suite) : l'ancien retirage.
+- `Gr.grainesRestantes(eg, cfg)`, `Gr.graineDe(E, i)` : exportés.
+- Risque connu, non mesuré (relecture du lot) : le hasard du jeu (mulberry32) ajoute 0x6D2B79F5 à chaque tirage ; deux graines dont l'écart vaut k·0x6D2B79F5
+  (mod 2³²) jouent le même ruban de nombres décalé de k tirages. Dans la suite, les plus petits décalages entre graines réellement atteintes sont de quelques
+  milliers de tirages après 1 000 à 10 000 générations. Ce n'est pas une même course ; l'écarter tout à fait (hacher la graine dans `enfant.js`) serait une époque.
+
+### 11.6 L'urne des mutations : seulement les réglages lus (C2, lot « règles ») ; genome.js hors de l'époque (C7)
+
+- `genome.GARDES` : la seule table drapeau → réels qu'il garde (10 drapeaux, 30 réels), relue dans `modele.js` ; `GARDE_DE` (réel → drapeau) ;
+  `reelsLus(genome)` = `CONTINUS` moins les réels dont le drapeau vaut 0. `muter` tire ses m réels dans `reelsLus(parent)` (m borné à cette urne) ;
+  `o.urneComplete` = l'ancienne urne (mesures seulement). Le nombre de réels tirés, les drapeaux, les entiers et les têtes sont ceux de l'ancienne urne à la
+  même graine. Part des mutations perdues sur le témoin : 34 % (v:3) et 27 % (v:2, le Ryzen) avant, 0 après (`tests/genes-muets.test.js`).
+- **C7** : `genome.js` n'est **pas** dans `commun.FICHIERS_EPOQUE` ; une course n'en dépend que par le texte du pilote, dont le sha est dans la clé du cache.
+  Changer `genome.js` sans changer `ecrirePilote` ne change aucune course ni aucune note ; il entre dans l'**empreinte d'identité** (`evoluer.shaIdentite`) :
+  le premier lancement avec ce code refait le contrôle d'identité (3 courses du témoin), sans changer d'époque (§ 9.3 corrigé).
+
+### 11.7 La mesure de τ : les mutations comptent-elles ? (M1 et M4, lot « tau », branchée par l'intégrateur)
+
+- `mesure-tau.js` (lecture seule ; `mesurer()` ne lève jamais) : pour chaque enfant, son niveau (moyenne de palier − b_g, b_g de `note.ajuster` sur les seuls
+  pilotes **établis** : le témoin et les pilotes dans leur 3e génération ou plus) sur les graines de sa génération de naissance, puis sur celles de la suivante,
+  chaque moitié **centrée** sur les enfants nés la même génération ; τ² = la covariance groupée des deux moitiés, r leur corrélation, un intervalle par
+  re-échantillonnage des enfants et des graines de chaque génération. **Verdict** `trop-tot` tant que les enfants mesurés ou les degrés de liberté sont sous le
+  requis (191 enfants à λ = 6 et 12 graines ; le hasard d'une course compté à 3,26 au moins), puis `comptent` (r au-dessus de tanh(1,96/√(ddl − 2))) ou
+  `ne-comptent-pas`. **M4** : les courses d'un enfant de même `empreinte` que celle d'un parent sur la même graine (« pour rien »), en nombre et en temps.
+- Ligne de commande : `node ml/evolution/mesure-tau.js [--config f] [--etat dossier] [--json] [--tirages N]` (code 0 toujours).
+- Format rendu (`--json`), exemple réel (le 27/11, abrégé) :
+
+```json
+{"format":"evolution-mesure-tau-1","verdict":"trop-tot","phrase":"trop tôt pour le dire (19 enfants mesurés sur 191)",
+ "enfants":{"mesures":19,"requis":191,"ddl":18,"ddlRequis":159,"parGeneration":6,"tauVise":0.5,"grainesParMoitie":[12,12],"sigma":3.2599,
+   "sigmaRequis":3.26,"sourceSigma":"epoque 6fa41a143ead (503 degres de liberte)","coupesParEpoque":0,"sansGeneration":0,"renvoyesAvantSecondeMoitie":0},
+ "r":-0.1287,"seuilR":0.4542,"icR":[-0.5628,0.4992],"tau":0,"tau2":-0.1563,"icTau":[0,0.9443],"tirages":1000,"significatif":false,
+ "clones":{"comparees":528,"identiques":62,"part":0.1174,"partTempsEntrainement":0.0511,"nulsExacts":["9627905cd5bb"],"…":"…"},"defauts":[]}
+```
+- **Les pages** (l'intégrateur, 28/11) : `etat.mesureTau(cfg, o?)` appelle `mesurer(dossierEtat, optionsDe(cfg, {tirages:400}))` dans un `try` (toute
+  erreur : `{verdict:'trop-tot', phrase:'trop tôt pour le dire', defauts:['mesure impossible : …']}`) ; au-delà de `etat.TAU_MAX_OCTETS` (100 Mo) de
+  `courses-*.jsonl`, elle ne lit rien et sa phrase dit de lancer la mesure à part (le tableau est refait dans le processus de la sélection : un état de
+  plusieurs mois ne doit pas lui coûter la mémoire). `tableau.ecrire` la fait **une fois** et la passe (`o.tau`) à la page, à resume.txt et au récit :
+  - `resume.txt` : les 10 lignes de `etat.resume`, une ligne vide, puis `etat.tauLigne(x)`, sans accents, 118 colonnes au plus :
+    `Mutations comptent-elles ? trop tot pour le dire (19 enfants mesures sur 191) ; r -0.13, tau 0.00 [0.00 ; 0.94] ; courses pour rien 12 %` ;
+    `node etat.js` imprime toujours les 10 lignes seules ;
+  - `tableau.html` : la section « 1 bis. Les mutations comptent-elles ? » (après le coffre) : la phrase en gras, une barre « enfants mesurés / requis »,
+    r et τ avec leurs intervalles, les courses pour rien, puis le détail de `MT.lignes` en petit ; une erreur rend la section avec « Trop tôt pour le dire » ;
+  - `histoire.md` : le paragraphe « ## Les mutations comptent-elles ? » après « Où on en est » ; il dit que le **premier** verdict sorti de « trop tôt »
+    est celui qui compte (le verdict est recalculé à chaque génération : regardé tous les jours, il crie à tort environ deux fois plus qu'un seul regard,
+    5,8 % contre 2,5 % à τ = 0, relecture du lot).
+- Rien dans `evoluer.js` ni dans les journaux : la mesure se refait depuis les journaux. `sauver-traces.cmd` n'a rien à changer (il envoie déjà les trois pages
+  et resume.txt).
+- Ne pas faire C5 (`grainesAnciens`) : la seconde moitié d'un enfant tomberait à 4 graines.
+
+### 11.8 Où ces formats sont décrits
+
+| Format | Écrit par | Décrit dans |
+|---|---|---|
+| `cfg.validation.plan`, `pas`, `plafond`, `borneOBF`, `futilite`, `seuilB`, `seuilC`, `maledictionSeuil: null` | à la main | § 11.1-11.2, `config.json` `_notes`, `notes/sacre.md` |
+| `validations.jsonl` `plan`, `regards[]`, `arret`, `courses` ; `generations.jsonl` `validation.graines/regards/arret` | `evoluer.js` | § 11.1 |
+| `cfg.protectionGenerations`, `cfg.ordreCourses` | à la main | § 11.3-11.4, `notes/regles.md` |
+| `cfg.graines.entrainement.suite`, `cfg.graines.auBout`, `population.json` `graines.blocs`, erreur `GRAINES_EPUISEES` | à la main, `graines.js`, `evoluer.js` | § 11.5, `notes/regles.md` |
+| `genome.GARDES`, `reelsLus` | `genome.js` | § 11.6, `notes/regles.md` |
+| `evolution-mesure-tau-1`, la ligne « Mutations comptent-elles ? » de resume.txt, la section 1 bis, le paragraphe du récit | `mesure-tau.js`, `etat.js`, `tableau.js`, `histoire.js` | § 11.7, `notes/tau.md`, `notes/integrateur-reglage.md` |
+| l'état de la livraison, les gestes sur le Ryzen | — | `notes/LIVRAISON-REGLAGE.md` |

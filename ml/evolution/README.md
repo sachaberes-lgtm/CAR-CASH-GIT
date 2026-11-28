@@ -65,6 +65,35 @@ Ce que ça fait :
 - Si le bot a changé (ses yeux, sa main, le pilote fabriqué, le jeu), une **nouvelle époque** commence. Les notes repartent de zéro, les courses sont rejouées, mais **les pilotes restent**. Le contrôle d'identité est refait (quelques minutes).
 - Si seuls des textes ont changé, rien ne se voit : la sélection reprend où elle en était.
 - L'histoire déjà écrite (l'arbre, le récit, les champions) n'est jamais effacée.
+- Depuis le 28/11, `lancer.cmd` prend toujours le même Node (celui de `etat/node.txt`, qu'il trouve tout seul la première fois). Tape donc les commandes de la sélection **par `lancer.cmd`**, pas par `node …` : sur le Ryzen, le `node` tout court n'est pas le bon. Les options passent : `ml\evolution\lancer.cmd --une-generation`.
+- La mise à jour de la fin novembre (le « portage », voir plus bas) et ses gestes pas à pas sont dans `notes/LIVRAISON-C0101.md`.
+- La mise à jour du réglage de la sélection (28/11, voir « Le réglage de la sélection » plus bas) : ses gestes, et ce qui change, sont dans `notes/LIVRAISON-REGLAGE.md`. Elle reprend ceux de `LIVRAISON-C0101.md`.
+
+---
+
+## Le réglage de la sélection (depuis le 28/11)
+
+Cinq études ont regardé comment la sélection est réglée (`ml/ecurie/etude/reglage-de-la-selection`). Ce qui en est sorti, et ce que ça change pour toi :
+
+- **Le sacre est plus juste.** Avant, le meilleur pilote rejouait 24 courses neuves contre le champion, et un pilote vraiment meilleur d'un palier n'était reconnu qu'une fois sur 7. Maintenant, s'il semble devant après 24 courses, il en rejoue 12 de plus, puis encore 12, jusqu'à 96. S'il est clairement derrière, on arrête tout de suite. Résultat mesuré : un vrai +1 palier reconnu une fois sur 3, et moins de faux champions qu'avant (environ 2 sur 100 validations au lieu de 3). Le récit et le résumé disent « SACRE au 3e regard, sur 48 graines » ou « arrete au 1er regard ».
+- **L'alarme « malédiction du gagnant » est coupée.** Elle aurait rendu les sacres plus rares au bout de 10 validations, alors qu'elle sonnait par construction. La mesure reste écrite dans le journal.
+- **Les bébés pilotes sont protégés par leur âge** : un enfant ne peut pas être renvoyé pendant sa génération de naissance, et il ne devient parent que deux générations après.
+- **Les courses longues partent en premier** dans chaque génération, pour que tous les cœurs travaillent jusqu'au bout. Les résultats ne changent pas.
+- **Les graines ne s'épuisent plus.** Il y avait 1 081 routes d'entraînement : au bout d'environ 90 générations, la sélection se mettait à rejouer en silence des routes déjà jouées. Il y en a maintenant 27 millions de plus. Au tout bout (dans des siècles), elle s'arrête avec un message clair.
+- **Les mutations ne tombent plus dans le vide** : une naissance ne change plus un réglage que le pilote ne lit pas (avant, environ un réglage changé sur quatre ne servait à rien).
+- **Une question nouvelle sur les pages : « Les mutations comptent-elles ? »** C'est la question dont tout dépend : un enfant « bon » l'est-il vraiment, ou seulement chanceux ? La sélection la mesure elle-même, sans jouer une course de plus. La réponse est « trop tôt pour le dire » pendant environ 30 générations (il faut 191 enfants mesurés). Ensuite, elle dira « les mutations comptent » (la sélection trie de vrais écarts) ou « ne semblent pas compter » (il faudra changer quelque chose de plus profond). C'est le **premier** verdict sorti de « trop tôt » qui compte. Elle est dans le tableau (section « 1 bis »), dans le récit, et en dernière ligne de `etat/resume.txt`.
+- **Une décision reste à toi** : les deux garde-fous du sacre (« il ne va pas moins loin », « il ne ressemble pas moins aux joueurs ») restent à leur sévérité d'avant. Les assouplir (`validation.seuilB` et `seuilC` à 2 dans `config.json`) ferait reconnaître un peu plus de vrais progrès, mais laisserait passer plus souvent un pilote qui ressemble un peu moins aux joueurs.
+
+---
+
+## Le témoin : de quel pilote part la sélection (depuis le 28/11)
+
+- Le **témoin** est le pilote de départ, écrit à la main. Il n'est jamais modifié et sert de mètre étalon.
+- Jusqu'ici, c'était toujours **c0025** (pilote-voltige). La sélection sait maintenant partir aussi de **c0101**, le dernier champion de la boucle payante du Ryzen (ou de c0026, c0064, c0072, c0087).
+- Les idées que la boucle payante a ajoutées sont devenues **quatre interrupteurs** dans les réglages des pilotes (`fuirVite`, `bordOn`, `largeOn`, `libreOn`) et quelques réglages qui vont avec. Tout éteint = c0025 exactement ; tout allumé avec les réglages de c0101 = c0101 exactement. Dans l'arbre, la fiche d'un pilote dit en mots simples ce que fait chacun.
+- **Par défaut, rien ne change** : `config.json` dit `"temoin": "c0025"`, et une population garde toujours le témoin dont elle est née.
+- **Pour changer de témoin**, il faut une commande exprès (sélection arrêtée) : `ml\evolution\lancer.cmd --repartir-de c0101`. Elle vérifie d'abord que c0101 est bien recopié au bit près (quelques minutes), puis **range** toute l'ancienne population dans `etat/archives/<date>-c0025/` (rien n'est effacé), et une population neuve naît de c0101. Le récit le dit en tête.
+- Ne mets jamais `--repartir-de` dans une tâche planifiée : elle rangerait la population à chaque lancement.
 
 ---
 
@@ -76,7 +105,7 @@ Ce que ça fait :
 - La fermer arrête tout d'un coup. Ce n'est pas grave (seules les courses en cours sont perdues), mais `arreter.cmd` est plus propre.
 - Si c'est déjà lancé, le second lancement s'en rend compte et ne fait rien.
 - Au tout premier lancement sur un PC, il **mesure d'abord ce PC**. Il joue quelques courses avec plusieurs nombres de courses à la fois (par exemple 8, puis 12, puis 14 sur un PC à 16 cœurs), et garde le nombre le plus rapide qui ne fait rien rater. Cela prend entre 10 minutes et une heure. La fenêtre le dit.
-- Ensuite il vérifie que le pilote fabriqué conduit exactement comme pilote-voltige (quelques minutes). Puis la sélection commence.
+- Ensuite il vérifie que le pilote fabriqué conduit exactement comme le témoin, le pilote de départ écrit à la main (pilote-voltige, ou c0101 si la population en est née ; quelques minutes). Puis la sélection commence.
 - Le résultat de la mesure est rangé dans `etat/machine.json`. Il ne sert qu'à ce PC : sur un autre PC, la mesure est refaite toute seule. Rien à régler à la main.
 - Si la mesure est interrompue (arrêt, pause), la sélection part quand même avec un nombre prudent. La mesure sera refaite au lancement suivant.
 - Pour refaire la mesure (par exemple après avoir changé de processeur) : arrête la sélection, puis tape `node ml\evolution\evoluer.js --banc` à la racine du dossier.
@@ -93,7 +122,11 @@ Ce qu'il fait :
 
 Il ne relance pas une sélection que tu as arrêtée avec `arreter.cmd`. Pour la reprendre, refais un double-clic sur `lancer.cmd`.
 
-Une petite fenêtre noire peut apparaître quelques secondes, une fois par heure. C'est la relance ou la mise à l'abri.
+Aucune fenêtre noire n'apparaît : les tâches passent par `cache.vbs`. Elles n'ont pas de limite de durée (sans cela, Windows les arrête au bout de 72 heures). *(28/11/2026, le relecteur des lanceurs)*
+
+Si des tâches de mêmes noms existent déjà, posées à la main comme sur le Ryzen, `installer-tache.cmd` les **remplace**. Si tu ne le relances pas, rien ne casse : elles appellent le nouveau `lancer.cmd`.
+
+**Le Node de ce PC.** `lancer.cmd` lance toujours le même Node, celui écrit dans `etat/node.txt`. Ce fichier est propre à ce PC et ne se commite pas. Au premier lancement, `lancer.cmd` le trouve tout seul. S'il refuse de partir parce que la version de Node n'est pas la bonne, lis `etat/NODE-REFUSE.txt`, puis écris dans `etat/node.txt`, sur une seule ligne, le chemin complet du bon `node.exe`.
 
 Après un redémarrage, ta session Windows doit être ouverte pour que ça reparte.
 
@@ -124,16 +157,16 @@ Dans une fenêtre de commande, à la racine du dossier :
 node ml\evolution\etat.js
 ```
 
-Ces 10 lignes sont aussi dans `etat/resume.txt`. Elles disent, dans l'ordre :
+Ces 10 lignes sont aussi dans `etat/resume.txt`, suivies d'une ligne vide et d'une onzième : « Mutations comptent-elles ? … » (la mesure expliquée dans « Le réglage de la sélection »). Les 10 lignes disent, dans l'ordre :
 
 1. la génération, la phase (A, B ou C) et l'époque ;
 2. **EN MARCHE** ou **ARRETE** ;
 3. le débit (courses jouées par heure), et combien de courses à la fois (et la date de la mesure du PC) ;
 4. le champion : sa note F, son palier, son écart aux joueurs E ;
 5. le meneur (le mieux noté après le champion) ;
-6. le témoin (pilote-voltige tel qu'il est, jamais modifié) ;
+6. le témoin (le pilote de départ tel qu'il est, jamais modifié : c0025 = pilote-voltige, ou c0101 ; son nom est entre parenthèses) ;
 7. la dernière mesure du coffre : de combien le champion fait mieux que le témoin ;
-8. la dernière validation (le meneur a-t-il été sacré ?) ;
+8. la dernière validation (le meneur a-t-il été sacré ? à quel « regard », sur combien de graines) ;
 9. les courses ratées et les pannes de la dernière génération ;
 10. les alertes. « Alertes : aucune » veut dire que tout va bien.
 
@@ -148,6 +181,7 @@ Ce qu'il faut regarder, dans l'ordre :
 1. **Est-ce que ça apprend ? (le coffre).** C'est le seul vrai juge. Le champion et le témoin jouent les mêmes 40 courses, qui ne servent jamais à l'entraînement.
    Si la ligne verte (le champion) passe et reste au-dessus de la grise (le témoin), la sélection a vraiment trouvé mieux.
    Les premiers jours, elles se confondent : c'est normal.
+   **1 bis. Les mutations comptent-elles ?** « Trop tôt pour le dire » pendant une trentaine de générations ; la barre montre combien d'enfants sont déjà mesurés.
 2. **Génération par génération.** La note F du meneur, du champion et du témoin. Le témoin doit rester à peu près stable. S'il dérive beaucoup, quelque chose cloche dans les courses.
 3. **Le champion conduit-il comme un joueur ?** Les barres vertes sont « comme un joueur », les rouges sont très loin.
 4. **La population.** Tous les pilotes vivants, du mieux au moins bien noté.
@@ -239,11 +273,14 @@ Pour l'inscrire au labo ou le mettre dans le jeu, donne le fichier à Claude. Le
 | Alerte « population trop semblable » | Les pilotes se ressemblent trop. | Pas urgent. Le signaler à Claude. |
 | Alerte « aucune generation finie depuis ... » | Il tourne mais n'avance plus. | Regarder la fin de `etat/sortie.log`. Arrêter puis relancer. |
 | Les relances automatiques ne repartent pas | La tâche n'est pas posée, ou `arreter.cmd` a été utilisé. | Double-clic sur `lancer.cmd`. |
+| `sortie.log` dit « les graines d'entrainement sont epuisees » (et la fenêtre « Arrêté sur une erreur ») | La sélection a joué toutes ses routes d'entraînement (27 millions : cela ne devrait jamais arriver). Elle s'est arrêtée avant de faire naître qui que ce soit ; rien n'est perdu. Les générations d'avant le disaient (« moins de 20 générations »). | Ne pas relancer en boucle : donner la fin de `etat/sortie.log` à Claude (il faut allonger `graines.entrainement.suite` dans `config.json`). |
 | `etat/traces.log` dit « envoi rate » à chaque heure | GitHub refuse ou n'est pas joignable. Tout reste gardé sur le PC. | Double-clic sur `sauver-traces.cmd` et connecte-toi à GitHub si on te le demande. |
 | `sauver-traces.cmd` dit « refuse : la branche courante est … » | Il a été lancé hors du dossier de la sélection. | Le lancer depuis `CASH-CAR-evolution\ml\evolution`. |
 | La fenêtre se ferme tout de suite, avec « … était inattendu » | Plus depuis le 27/11 : `lancer.cmd` marche aussi dans un dossier dont le nom a des parenthèses, comme `CASH CAR (2)`. | Si ça revient : renommer le dossier sans parenthèses. |
+| La fenêtre (ou `etat/NODE-REFUSE.txt`) dit que le Node n'est pas le bon | `lancer.cmd` n'a pas trouvé le Node de la version de l'époque en cours, ou `etat/node.txt` montre un autre Node. Rien n'a été lancé : les notes sont intactes. | Écrire dans `etat/node.txt`, sur une seule ligne, le chemin complet du bon `node.exe`, puis relancer. |
+| `sortie.log` dit « REFUS DE PARTIR : la population … court sous Node … » | `evoluer.js` a été tapé à la main avec un autre Node que celui de l'époque. Rien n'a été lancé. | Passer par `lancer.cmd` (il prend le Node de `etat/node.txt` et transmet les options), par exemple `ml\evolution\lancer.cmd --repartir-de c0101`. |
 
-Windows arrête une tâche planifiée au bout de 3 jours. La relance de toutes les heures la fait repartir. Rien n'est perdu.
+Depuis le 28/11, les tâches posées par `installer-tache.cmd` n'ont plus de limite de durée : Windows ne les arrête plus au bout de 3 jours. Une tâche posée avant, avec la limite, est quand même relancée par la tâche de chaque heure. Rien n'est perdu.
 
 Le journal complet est `etat/sortie.log`. La fin du fichier est le plus récent.
 
@@ -272,12 +309,20 @@ Le journal complet est `etat/sortie.log`. La fin du fichier est le plus récent.
 | `etat/tableau.html` | Le tableau à ouvrir. |
 | `etat/arbre.html` | L'arbre généalogique des pilotes. |
 | `etat/histoire.md` | Le récit, génération par génération. |
-| `etat/resume.txt` | Les 10 lignes, dans un fichier. |
+| `etat/resume.txt` | Les 10 lignes, dans un fichier, et la ligne « Mutations comptent-elles ? ». |
+| `mesure-tau.js` | La mesure « Les mutations comptent-elles ? » (le tableau, le récit et resume.txt l'appellent ; `node ml\evolution\mesure-tau.js` pour le détail). |
 | `etat/machine.json` | Ce que la mesure a trouvé pour ce PC (combien de courses à la fois). |
 | `etat/sortie.log` | Tout ce qui s'est passé. |
 | `etat/traces.log` | Le détail de la mise à l'abri. |
 | `etat/PAS-D-ENVOI` | (si tu le crées) la mise à l'abri n'envoie plus rien. |
+| `etat/node.txt` | Le chemin du Node de ce PC (une ligne). Propre au PC, jamais envoyé. |
+| `etat/NODE-REFUSE.txt` | Pourquoi le dernier lancement a refusé de partir (Node pas le bon). |
+| `etat/CHANGER-DE-NODE` | (si tu le crées) accepte une fois un autre Node : nouvelle époque voulue, les notes repartent de zéro. |
+| `etat/archives/` | Les anciennes populations, rangées par `--repartir-de` (rien n'est effacé). |
+| `node-fixe.js`, `cache.vbs` | Le choix du Node de ce PC ; le lanceur sans fenêtre des tâches. |
 | `champions/` | Les champions sacrés. |
 | `config.json` | Tous les réglages de la sélection. |
 | `notes/LIVRAISON.md` | Ce qui est prêt, et les commandes à taper sur le PC de nuit. |
+| `notes/LIVRAISON-C0101.md` | La mise à jour du 28/11 (témoin c0101, Node fixe, tâches sans limite) : le verdict de la mesure et les gestes sur le Ryzen. |
+| `notes/LIVRAISON-REGLAGE.md` | La mise à jour du réglage de la sélection (28/11) : ce qui est prêt, ce qu'elle fera sur le Ryzen, les gestes. |
 | `INTERFACES.md` | Pour les développeurs : comment les morceaux s'emboîtent. |

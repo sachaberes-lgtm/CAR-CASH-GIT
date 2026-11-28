@@ -215,6 +215,31 @@ function page(cfg,o){
         xTitre:'génération',yTitre:'écart aux joueurs sur le coffre (plus bas = plus humain)',hauteur:200,marques:RP.epoques,vide:''})+
       '</section>');}
 
+  /* ===== 1 BIS. LES MUTATIONS COMPTENT-ELLES ? (28/11/2026, l'integrateur : « une section dans tableau.html » ; mesure-tau.js, notes/tau.md) =====
+     Toute la section est dans un try : une mesure qui casse ne fait jamais echouer la page, elle dit « trop tot ». */
+  try{
+    const x=ET.mesureTau(cfg,o),e=x.enfants||{},c=x.clones;
+    const req=fini(e.requis)&&e.requis>0?e.requis:null,mes=fini(e.mesures)?e.mesures:0;
+    const pct=req?Math.max(0,Math.min(100,100*mes/req)):0;
+    const cl=x.verdict==='comptent'?'bien':x.verdict==='ne-comptent-pas'?'alerte':'';
+    let MTl=[];try{MTl=require('./mesure-tau').lignes(x).slice(1);}catch(err){MTl=[];}
+    S.push('<section><h2>1 bis. Les mutations comptent-elles ?</h2>'+
+      '<p class="explique">La sélection garde les enfants qui ont eu les meilleures courses. Ça ne sert que si un enfant « bon » l\'est vraiment, et pas seulement chanceux. '+
+      'On le vérifie sans jouer une course de plus : chaque enfant joue les routes de sa génération de naissance, puis celles, neuves, de la génération suivante. Si les mutations comptent, un enfant bon sur les premières l\'est aussi sur les secondes. '+
+      'La réponse ne vient qu\'après assez d\'enfants mesurés (la barre) : avant, même des chiffres nets peuvent venir du hasard. '+
+      'Le verdict est recalculé à chaque génération : c\'est le premier qui sort de « trop tôt » qui compte, les suivants l\'affinent.</p>'+
+      '<p class="verdict"><b'+(cl?' class="'+cl+'"':'')+'>'+esc(String(x.phrase||'trop tôt pour le dire').replace(/^./,m=>m.toUpperCase()))+'.</b></p>'+
+      (req?'<div class="barre" role="img" aria-label="enfants mesurés : '+esc(mes)+' sur '+esc(req)+'"><i style="width:'+pct.toFixed(1)+'%"></i></div>'+
+        '<p class="petit">'+esc(mes)+' enfant'+(mes>1?'s':'')+' mesuré'+(mes>1?'s':'')+' sur les deux moitiés, '+esc(req)+' requis.</p>':'')+
+      (fini(x.r)?'<p>Corrélation entre les deux moitiés : <b>'+fr(x.r,2)+'</b>'+(Array.isArray(x.icR)?' [entre '+fr(x.icR[0],2)+' et '+fr(x.icR[1],2)+']':'')+
+        ' ; écart vrai entre enfants τ ≈ <b>'+fr(x.tau,2)+' palier</b>'+(Array.isArray(x.icTau)?' [entre '+fr(x.icTau[0],2)+' et '+fr(x.icTau[1],2)+']':'')+
+        ' (0 = les écarts entre enfants ne sont que de la chance).</p>':'')+
+      (c&&c.comparees>0?'<p>Courses jouées pour rien (un enfant qui rejoue exactement la course de son parent sur la même route) : '+esc(c.identiques)+' sur '+esc(c.comparees)+
+        ' ('+fr(100*c.part,0)+' %)'+(fini(c.partTempsEntrainement)?', soit '+fr(100*c.partTempsEntrainement,1)+' % du temps d\'entraînement':'')+'.</p>':'')+
+      (MTl.length?'<ul class="petit">'+MTl.map(l=>'<li>'+esc(l)+'</li>').join('')+'</ul>':'')+
+      '</section>');
+  }catch(err){S.push('<section><h2>1 bis. Les mutations comptent-elles ?</h2><p class="verdict">Trop tôt pour le dire.</p></section>');}
+
   /* 2. GENERATION PAR GENERATION */
   S.push('<section><h2>2. Génération par génération</h2>'+
     '<p class="explique">Chaque génération, tous les pilotes vivants jouent les mêmes courses. On en tire trois nombres : le <b>palier</b> (jusqu\'où il va, corrigé de la '+
@@ -253,7 +278,9 @@ function page(cfg,o){
     const mortsG=(dern&&dern.morts)||[],nes=(dern&&dern.naissances)||[];
     S.push('<section><h2>4. La population</h2>'+
       '<p class="explique">Les pilotes vivants, du mieux noté au moins bien noté. Le point est la note F, la barre son incertitude : deux pilotes dont les barres '+
-      'se chevauchent ne sont pas vraiment départagés. Un nouveau-né est protégé tant qu\'il n\'a pas '+esc(cfg.protectionCourses||24)+' courses. '+
+      /* (28/11/2026, le relecteur du lot « regles ») la protection se fait par l'AGE (evoluer.js, A4) : protectionCourses n'est plus lu */
+      'se chevauchent ne sont pas vraiment départagés. '+(p=>'Un nouveau-né est protégé par son âge : il n\'est renvoyable que '+p+' génération'+(p>1?'s':'')+
+      ' après sa naissance et ne devient parent que '+(p+1)+' générations après. ')(Number.isInteger(cfg.protectionGenerations)&&cfg.protectionGenerations>=0?cfg.protectionGenerations:1)+
       '« Âge » = générations depuis sa naissance.</p>'+
       moustaches(R)+
       '<div class="table"><table><thead><tr><th></th><th>pilote</th><th>origine</th><th>âge</th><th>courses</th><th>palier</th><th>écart E</th><th>note F</th><th>réglages changés</th></tr></thead><tbody>'+
@@ -266,16 +293,23 @@ function page(cfg,o){
   /* 5. LA MALEDICTION DU GAGNANT */
   {const Vv=D.validations.filter(v=>v&&v.usage!=='revalidation'&&fini(v.generation));
     const derV=Vv.length?Vv[Vv.length-1]:null;
+    /* (28/11/2026, lot « sacre ») la validation sequentielle : la malediction se lit sur le PREMIER regard (24 graines, une taille fixe : le dernier
+       regard d'un plan qui s'arrete selon ce qu'il voit est biaise) ; une ligne d'avant (sans regards) n'a qu'un lot */
+    const cv=cfg.validation||{},seq=cv.plan==='sequentiel';
+    const dF1=v=>Array.isArray(v.regards)&&v.regards.length&&v.regards[0]&&fini(v.regards[0].dF)?v.regards[0].dF:(v.validation&&v.validation.dF);
     S.push('<section><h2>5. La chance du meneur (la « malédiction du gagnant »)</h2>'+
-      '<p class="explique">Quand le meneur paraît assez meilleur que le champion, les deux rejouent '+esc((cfg.validation&&cfg.validation.graines)||24)+' courses neuves. '+
+      '<p class="explique">Quand le meneur paraît assez meilleur que le champion, les deux rejouent '+esc(cv.graines||24)+' courses neuves'+
+      (seq?' (puis '+esc(cv.pas)+' de plus à la fois tant que le meneur semble devant, jusqu\'à '+esc(cv.plafond)+' : on ne paie des courses que quand il a une chance ; '+
+        'la courbe verte est son avance sur les '+esc(cv.graines||24)+' premières)':'')+'. '+
       'Le meneur avait souvent été un peu chanceux : son avance fond sur les courses neuves. La ligne <span style="color:var(--meneur)">bleue</span> est son avance '+
       'à l\'entraînement, la <span style="color:var(--champion)">verte</span> son avance sur les courses neuves. Plus elles sont loin l\'une de l\'autre, plus la chance a compté. '+
       'S\'il garde assez d\'avance, il est sacré nouveau champion.</p>'+
       (derV?'<p class="petit">'+Vv.length+' validation(s), '+Vv.filter(v=>v.sacre).length+' sacre(s). Dernière (génération '+esc(derV.generation)+') : '+
-        (derV.sacre?'<b class="bien">sacré</b>':'pas sacré')+', chance moyenne '+fr(derV.maledictionMoyenne,2)+' point(s) de note.</p>':'')+
+        (derV.sacre?'<b class="bien">'+esc(ET.regardsClair(derV,{accents:true})||'sacré')+'</b>':esc(ET.regardsClair(derV,{accents:true})||'pas sacré'))+
+        ', chance moyenne '+fr(derV.maledictionMoyenne,2)+' point(s) de note.</p>':'')+
       courbe({series:[
           {nom:'avance à l\'entraînement',couleur:COUL.meneur,points:Vv.map(v=>({x:v.generation,y:v.entrainement&&v.entrainement.dF,info:'meneur '+court(v.meneur)}))},
-          {nom:'avance sur les courses neuves',couleur:COUL.champion,points:Vv.map(v=>({x:v.generation,y:v.validation&&v.validation.dF,info:v.sacre?'sacré':'pas sacré'}))}],
+          {nom:'avance sur les courses neuves',couleur:COUL.champion,points:Vv.map(v=>({x:v.generation,y:dF1(v),info:ET.regardsClair(v,{accents:true})||(v.sacre?'sacré':'pas sacré')}))}],
         xTitre:'génération',yTitre:'avance de note F du meneur sur le champion',lignesH:[{y:0,texte:'',couleur:'var(--temoin)'}],marques:RP.epoques,
         vide:'Aucune validation encore.'})+
       '</section>');}
@@ -315,7 +349,7 @@ function page(cfg,o){
 
   /* LE PETIT LEXIQUE */
   S.push('<section class="lexique"><h2>Les mots de cette page</h2><dl>'+
-    '<dt>Témoin</dt><dd>Le pilote de départ (pilote-voltige), jamais modifié, jamais renvoyé. Il sert de mètre étalon.</dd>'+
+    '<dt>Témoin</dt><dd>Le pilote de départ ('+esc(ET.temoinClair(pop))+'), jamais modifié, jamais renvoyé. Il sert de mètre étalon.</dd>'+
     '<dt>Champion</dt><dd>Le meilleur pilote prouvé sur des courses neuves. Au début, c\'est le témoin. Chaque nouveau champion est rangé dans le dossier champions/.</dd>'+
     '<dt>Meneur</dt><dd>Le mieux noté des autres, candidat au titre.</dd>'+
     '<dt>Palier</dt><dd>Jusqu\'où le pilote va dans une course (le niveau atteint), corrigé de la difficulté de la course.</dd>'+
@@ -357,14 +391,17 @@ const CSS=[
   'th{color:var(--doux);font-weight:600}tr.champion td{background:color-mix(in srgb,var(--champion) 12%,transparent)}',
   'tr.temoin td{background:color-mix(in srgb,var(--temoin) 12%,transparent)}tr.meneur td{background:color-mix(in srgb,var(--meneur) 12%,transparent)}',
   'ul.evenements{margin:0;padding-left:1.1em;font-size:.9rem}',
+  '.barre{height:10px;border-radius:5px;background:var(--bande);overflow:hidden;margin:4px 0}.barre i{display:block;height:100%;background:var(--meneur)}',
   '.lexique dl{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:4px 14px}.lexique dt{font-weight:600}.lexique dd{margin:0;color:var(--doux)}',
   '@media (max-width:560px){.lexique dl{grid-template-columns:1fr}.lexique dd{margin-bottom:6px}section{padding:14px 12px}}',
   ''].join('\n');
 
 function ecrire(cfg,o){
   const dossier=ET.chemin(cfg,cfg.dossierEtat||'etat');
+  /* (28/11/2026, l'integrateur) la mesure de tau une seule fois pour la page, resume.txt et le recit (ET.mesureTau ne leve jamais) */
+  o=Object.assign({},o||{});o.tau=ET.mesureTau(cfg,o);
   const html=page(cfg,o).replace(/\r/g,'');
-  const resume=ET.resume(cfg,o).join('\n').replace(/\r/g,'')+'\n';
+  const resume=ET.resumeComplet(cfg,o).join('\n').replace(/\r/g,'')+'\n';
   const fh=path.join(dossier,'tableau.html'),fr_=path.join(dossier,'resume.txt');
   ecrireAtomique(fh,html);ecrireAtomique(fr_,resume);
   /* ===== LES TRACES : L'ARBRE ET LE RECIT (27/11/2026, Sacha : « il faut qu'on garde des traces de tous les process, pour un portfolio ») =====

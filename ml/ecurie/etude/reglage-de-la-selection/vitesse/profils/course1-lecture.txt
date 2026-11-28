@@ -1,0 +1,103 @@
+PROFIL course1-990000-profil.cpuprofile : 35004 echantillons, 43797 ms de profil, somme des temps propres 43756 ms (controle : ecart -0.09 %)
+
+TEMPS PROPRE PAR FAMILLE (toute la vie du processus)
+  le jeu (index.html)                               34072 ms  77.9 %
+  natif (sans fichier : JSON, regex, vm...)          3375 ms  7.7 %
+  le simulateur (sim-env-reel, jeu-reel)             2178 ms  5.0 %
+  three.js                                           1650 ms  3.8 %
+  node                                                755 ms  1.7 %
+  autre : evalmachine.<anonymous>                     536 ms  1.2 %
+  le pilote (bac)                                     496 ms  1.1 %
+  piloter.js (boucle, decide, vues en texte)          219 ms  0.5 %
+  ramasse-miettes                                     193 ms  0.4 %
+  les doigts (doigts.js)                               74 ms  0.2 %
+  autre : preambule                                    71 ms  0.2 %
+  moteur hors JS (program)                             68 ms  0.2 %
+  autre : chronometrer.js                              28 ms  0.1 %
+  le jeu (figures.js)                                  20 ms  0.0 %
+  mesures                                              10 ms  0.0 %
+  les yeux (yeux.js)                                    8 ms  0.0 %
+  autre : voltige.js                                    2 ms  0.0 %
+
+PAR ETAPE (bornes de chronometrer.js)
+  avant le jeu (node, require) : 134 ms
+      node                                               98 ms  73.4 %
+      natif (sans fichier : JSON, regex, vm...)          18 ms  13.6 %
+      three.js                                           12 ms  8.8 %
+      ramasse-miettes                                     3 ms  1.9 %
+      moteur hors JS (program)                            2 ms  1.3 %
+      piloter.js (boucle, decide, vues en texte)          1 ms  1.0 %
+  chargement du jeu (ouvrir) : 7097 ms
+      le jeu (index.html)                              5580 ms  78.6 %
+      node                                              535 ms  7.5 %
+      natif (sans fichier : JSON, regex, vm...)         392 ms  5.5 %
+      three.js                                          374 ms  5.3 %
+      le simulateur (sim-env-reel, jeu-reel)            122 ms  1.7 %
+      ramasse-miettes                                    72 ms  1.0 %
+      moteur hors JS (program)                           10 ms  0.1 %
+  pilote (charger) : 19 ms
+      natif (sans fichier : JSON, regex, vm...)          19 ms  100.0 %
+  mise en piste (J.lancer) et fin : 4987 ms
+      le jeu (index.html)                              4558 ms  91.4 %
+      natif (sans fichier : JSON, regex, vm...)         192 ms  3.8 %
+      three.js                                          191 ms  3.8 %
+      ramasse-miettes                                    31 ms  0.6 %
+      moteur hors JS (program)                            9 ms  0.2 %
+      piloter.js (boucle, decide, vues en texte)          3 ms  0.1 %
+      les doigts (doigts.js)                              2 ms  0.0 %
+  la boucle de course : 31519 ms
+      le jeu (index.html)                             23934 ms  75.9 %
+      natif (sans fichier : JSON, regex, vm...)        2755 ms  8.7 %
+      le simulateur (sim-env-reel, jeu-reel)           2056 ms  6.5 %
+      three.js                                         1073 ms  3.4 %
+      autre : evalmachine.<anonymous>                   531 ms  1.7 %
+      le pilote (bac)                                   495 ms  1.6 %
+      piloter.js (boucle, decide, vues en texte)        212 ms  0.7 %
+
+LES 25 FONCTIONS LES PLUS CHERES (temps propre)
+     4870 ms   11.1 %  envCielCalc @ index.html:44783
+     4733 ms   10.8 %  loop @ index.html:83844
+     3766 ms    8.6 %  nfeuPas @ index.html:33099
+     1927 ms    4.4 %  J.image @ jeu-reel.js:160
+     1515 ms    3.5 %  ventDessine @ index.html:67172
+     1363 ms    3.1 %  updateMoneyRain @ index.html:60688
+     1317 ms    3.0 %  hs @ index.html:29587
+     1306 ms    3.0 %  pickupsTick @ index.html:81440
+     1179 ms    2.7 %  fr @ index.html:30653
+      788 ms    1.8 %  fabT @ index.html:10398
+      694 ms    1.6 %  sillageStep @ index.html:32289
+      687 ms    1.6 %  avance @ :276
+      576 ms    1.3 %  proche @ :161
+      530 ms    1.2 %  Math.random @ evalmachine.<anonymous>:1
+      522 ms    1.2 %  Script @ node:vm:85
+      486 ms    1.1 %  (anonyme) @ index.html:53125
+      482 ms    1.1 %  nuPouTick @ index.html:6088
+      424 ms    1.0 %  appel @ bac.js:22
+      417 ms    1.0 %  (anonyme) @ index.html:11506
+      369 ms    0.8 %  lunePinceau @ index.html:29559
+      367 ms    0.8 %  pisteRoute @ index.html:12053
+      358 ms    0.8 %  silRuban @ index.html:32340
+      337 ms    0.8 %  bornes9 @ index.html:11246
+      309 ms    0.7 %  hn @ three.min.js:6
+      296 ms    0.7 %  dalleLb @ index.html:68683
+
+TEMPS INCLUS (la fonction et tout ce qu'elle appelle)
+  loop (la boucle du jeu, une image)                    29570 ms  67.6 %
+  __YEUX / voir (les yeux, une vue)                      2564 ms  5.9 %
+  decide (le pilote, piloter.js)                          969 ms  2.2 %
+  resetGame (mise en piste)                              4714 ms  10.8 %
+  newTrack / buildTrack (bâtir une piste)                4639 ms  10.6 %
+  loadGame (le chargement du faux navigateur)            2533 ms  5.8 %
+  photo de l'etat propre (__propre.photo)                 286 ms  0.7 %
+  remise de l'etat propre (__propre.remet)                211 ms  0.5 %
+  nomsHautNiveau (relire code/ a chaque processus)        155 ms  0.4 %
+  tick (les minuteries du jeu)                             54 ms  0.1 %
+  mesures (de la partie)                                   12 ms  0.0 %
+  envCielCalc (le ciel reflete sur la caisse : pur, sans hasard)   4953 ms  11.3 %
+  nfeuPas (la flamme de nitro : tire au hasard)          4458 ms  10.2 %
+  J.image (une image : minuteries + loop)               31580 ms  72.2 %
+  runInContext / Script (compiler un texte dans vm)      3271 ms  7.5 %
+
+envCielCalc par etape (ms) : {"chargement du jeu (ouvrir)":1661,"mise en piste (J.lancer) et fin":1590,"la boucle de course":1701}
+
+FICHIERS VUS (echantillons par url) : {"index.html":26375,"(vide)":3341,"acha/code/CASH-CAR-bots-ecurie/ml/reel/jeu-reel.js":1543,"ts-ecurie/VERSION%20PRINCIPALE/vendor/three.min.js":1278,"node:vm":425,"evalmachine.<anonymous>":423,"bac.js":326,"/sacha/code/CASH-CAR-bots-ecurie/ml/bot/piloter.js":165,"/code/CASH-CAR-bots-ecurie/ml/reel/sim-env-reel.js":129,"s/sacha/code/CASH-CAR-bots-ecurie/ml/bot/doigts.js":58,"preambule":55,"node:fs":53}

@@ -1,0 +1,3 @@
+preambule: Unexpected token ','
+%c🏎 CASH CAR — build 2026-07-20 v5 (anti-flicker + anti-cache) color:#f24aa0;font-weight:bold
+hub : accueil TypeError: undefined is not iterable (cannot read property Symbol(Symbol.iterator))

@@ -52,13 +52,19 @@ function parentsLabo(L,cfg,J,dossierChampions){
       const p=JSON.parse(fs.readFileSync(path.join(dossierChampions,f),'utf8'));
       if(p.id===J.precedent){sha=p.shaPilote;break;}}
   }catch(e){}
+  /* (28/11/2026, tache « portage ») le temoin de la population qui a sacre ce champion (J.temoin ; absent = c0025, pilote-voltige.js) */
+  const nomT=typeof J.temoin==='string'&&J.temoin?J.temoin:'c0025';
   if(!sha){
-    /* le precedent est le temoin (il n'a pas de fichier) : pilote-voltige.js, s'il est au labo */
-    try{sha=C.sha1(fs.readFileSync(path.join(C.RACINE,'ml','ecurie','pilote-voltige.js')));}catch(e){sha=null;}
+    /* le precedent est le temoin (il n'a pas de fichier) : son fichier ecrit a la main (pilote-voltige.js pour c0025), s'il est au labo */
+    try{sha=C.sha1(fs.readFileSync(require('./genome').sourceTemoin({temoin:nomT})));}catch(e){sha=null;}
   }
-  if(!sha)return [];
-  const l=L.lire(L.F.cerveaux).filter(x=>x.sha===sha).pop();
-  return l?[l.id]:[];
+  if(!sha&&nomT==='c0025')return [];
+  const C9=L.lire(L.F.cerveaux);
+  const l=sha?C9.filter(x=>x.sha===sha).pop():null;
+  if(l)return [l.id];
+  /* un temoin venu du labo (c0101…) y porte son propre nom : s'il n'est pas retrouve par son sha (fin de ligne changee par git), par son nom */
+  if(nomT!=='c0025'&&C9.some(x=>x&&x.id===nomT))return [nomT];
+  return [];
 }
 
 async function inscrire(fichierJson,o){

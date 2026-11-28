@@ -1,0 +1,17 @@
+controle : la fonction nuCubeNew contient Math.random en clair -> tireDirect = true
+envCielCalc (4239 caracteres) : tire lui-meme non ; appelle 0 fonctions du jeu, aucune ne tire en clair ; rend : les 6 faces (OUT), rien d'autre ecrit hors de ses variables locales
+nfeuPas (12320 caracteres) : tire lui-meme OUI ; appelle 10 fonctions du jeu, dont qui tirent : flmGauss, nfeuNait, nfeuEtincelle
+ventDessine (4187 caracteres) : tire lui-meme non ; appelle 4 fonctions du jeu, dont qui tirent : ventPose
+updateMoneyRain (7366 caracteres) : tire lui-meme OUI ; appelle 4 fonctions du jeu, aucune ne tire en clair
+hs : introuvable (une fonction locale, ou un nom de methode)
+fr : introuvable (une fonction locale, ou un nom de methode)
+pickupsTick (17737 caracteres) : tire lui-meme non ; appelle 41 fonctions du jeu, dont qui tirent : zapTick, magSpirale, sparkBurst, coinVolLance
+fabT : introuvable (une fonction locale, ou un nom de methode)
+sillageStep (4312 caracteres) : tire lui-meme OUI ; appelle 6 fonctions du jeu, dont qui tirent : nfeuGicle
+nuPouTick (2429 caracteres) : tire lui-meme OUI ; appelle 2 fonctions du jeu, dont qui tirent : nuPouInit
+lunePinceau : introuvable (une fonction locale, ou un nom de methode)
+silRuban (9720 caracteres) : tire lui-meme non ; appelle 8 fonctions du jeu, aucune ne tire en clair
+pisteRoute : introuvable (une fonction locale, ou un nom de methode)
+bornes9 (1167 caracteres) : tire lui-meme non ; appelle 2 fonctions du jeu, aucune ne tire en clair
+dalleLb (136 caracteres) : tire lui-meme non ; appelle 0 fonctions du jeu, aucune ne tire en clair
+loop (242827 caracteres) : tire lui-meme OUI ; appelle 361 fonctions du jeu, dont qui tirent : ligneTick, gsolTick, btrDoigt, startFall, sparkBurst, dmtConduite, bkCongere, boostSnd, fil, smashPig, banqVerglas, dropChip, dmtPose, spawnBill, potAuHasard, figPose, sensBoomRebond, impTick, impMiniTick, updateMoneyRain, updatePigeons, pluieCaisseTick, flmPas, nfeuPas, sillageStep, nyanPixNitro, wowStep, regPas, crackle, engLoadStep, rugPas, drawSpeedLines, orbFxTick, survTick, orageTick, garageRender, atchTick, cryptoTick, cyVautours, grueTick

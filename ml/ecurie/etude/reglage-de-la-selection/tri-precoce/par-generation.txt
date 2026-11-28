@@ -1,0 +1,10 @@
+faible  A   : vrai theta du meneur a la generation 10 : 0.43, 30 : 1.38 ; des anciens a la gen. 30 : 1.19
+faible  B8  : vrai theta du meneur a la generation 10 : 0.56, 30 : 1.39 ; des anciens a la gen. 30 : 1.08
+faible  B4  : vrai theta du meneur a la generation 10 : 0.47, 30 : 1.10 ; des anciens a la gen. 30 : 0.90
+faible  B2  : vrai theta du meneur a la generation 10 : 0.29, 30 : 0.86 ; des anciens a la gen. 30 : 0.68
+faible  D0  : vrai theta du meneur a la generation 10 : 0.08, 30 : 0.26 ; des anciens a la gen. 30 : 0.20
+moyen   A   : vrai theta du meneur a la generation 10 : 1.52, 30 : 3.96 ; des anciens a la gen. 30 : 3.15
+moyen   B8  : vrai theta du meneur a la generation 10 : 1.60, 30 : 3.69 ; des anciens a la gen. 30 : 2.98
+moyen   B4  : vrai theta du meneur a la generation 10 : 1.23, 30 : 3.32 ; des anciens a la gen. 30 : 2.74
+moyen   B2  : vrai theta du meneur a la generation 10 : 1.08, 30 : 3.21 ; des anciens a la gen. 30 : 2.55
+moyen   D0  : vrai theta du meneur a la generation 10 : 0.77, 30 : 1.42 ; des anciens a la gen. 30 : 1.08

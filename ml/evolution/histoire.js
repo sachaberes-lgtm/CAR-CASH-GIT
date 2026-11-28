@@ -42,13 +42,21 @@ const RAISONS={renvoi:['note trop basse','notes trop basses'],pannes:['d\'office
 function compter(L,cle,noms){
   const c=new Map();for(const x of L){const k=x&&x[cle]||'?';c.set(k,(c.get(k)||0)+1);}
   return [...c.entries()].map(([k,n])=>n+' '+((noms[k]||[k,k])[n>1?1:0])).join(', ');}
+/* ===== LES GREFFES EN CLAIR (28/11/2026, greffes ; notes/greffes.md) =====
+   Une naissance qui porte greffe:{gene:valeur} (evoluer.js, config "greffes") : une phrase de plus. Sans greffe, rien ne change dans le recit. */
+const texteGreffe=g=>Object.keys(g).map(c=>c+' = '+g[c]).join(', ');
+function phraseGreffes(nes){
+  const L=(nes||[]).filter(x=>x&&x.greffe&&typeof x.greffe==='object');
+  if(!L.length)return '';
+  return (L.length>1?'Dont '+L.length+' nés par greffe':'Dont 1 né par greffe')+' (le champion du moment, recopié avec des interrupteurs forcés) : '+
+    L.map(x=>court(x.id)+' ('+texteGreffe(x.greffe)+')').join(', ')+'.';}
 const note=x=>x?'palier '+fr(x.ahat!=null?x.ahat:x.a)+', écart aux joueurs '+fr(x.E)+', note F '+fr(x.F,1)+(fini(x.n)?', '+x.n+' courses':''):'';
 
 /* ===== LES EVENEMENTS EN CLAIR (les textes d'evoluer.js, § 6 et § 8 d'INTERFACES.md) ===== */
 function evenementClair(e){
   e=String(e);let m;
   if((m=/^premier lancement/.exec(e)))return 'Premier lancement : la population de départ est née.';
-  if(e==='identite verifiee')return 'Contrôle d\'identité réussi : le pilote fabriqué à partir du génome du témoin conduit exactement comme pilote-voltige, au bit près.';
+  if(e==='identite verifiee')return 'Contrôle d\'identité réussi : le pilote fabriqué à partir du génome du témoin conduit exactement comme le fichier écrit du témoin, au bit près.';
   if((m=/^nouvelle epoque de notes : (.*?)( \(les courses restent valables\))?$/.exec(e)))
     return 'Nouvelle époque de notes ('+m[1]+' a changé) : les notes sont recalculées, les courses déjà jouées restent valables.';
   if((m=/^nouvelle epoque : (.*?) \(([0-9a-f]+) -> ([0-9a-f]+)\)$/.exec(e))||(m=/^nouvelle epoque : (.*)$/.exec(e)))
@@ -72,6 +80,10 @@ function evenementClair(e){
   if((m=/^graine (\d+) : seul ([0-9a-f]+) n'est pas mesure/.exec(e)))return 'La course '+m[1]+' a été ratée par '+court(m[2])+' seulement : elle reste comptée pour les autres.';
   if((m=/^sacre : ([0-9a-f]+)$/i.exec(e)))return 'Sacre : '+court(m[1])+' devient le champion.';
   if(/^enfant abandonne : doublon/.test(e))return 'Un enfant a été abandonné : il était identique à un pilote déjà né.';
+  /* (28/11/2026, greffes) l'evenement d'evoluer.js naissances() : « greffe bordOn=1 + slalomOn=1 : <id> ne du champion <id> (…) » */
+  if((m=/^greffe (.+?) : ([0-9a-f]+) ne du champion ([0-9a-f]+) \((.*)\)$/.exec(e)))
+    return 'Greffe : '+court(m[2])+' est né du champion '+court(m[3])+', copié tel quel, avec '+m[1].split(' + ').map(x=>x.replace('=',' = ')).join(', ')+
+      (/aucune autre mutation/.test(m[4])?' (rien d\'autre ne change).':' (le champion les portait déjà, ou cette copie existait déjà : une petite mutation ordinaire en plus).');
   if(/^ATTENTION/.test(e))return '**'+e+'**';
   if(/controle d'identite$/.test(e))return 'Un fichier du pilote a changé ('+e.replace(/ : controle d'identite$/,'')+') : le contrôle d\'identité est refait.';
   return e;}
@@ -82,6 +94,21 @@ function phraseValidation(v,cfg){
   const neuves=fini(V.graines)?V.graines+' courses neuves':'des courses neuves';
   if(v.usage==='revalidation')
     return 'Revalidation (le champion '+court(v.meneur)+' contre le témoin, sur '+neuves+') : avance de note '+frs(V.dF)+' ± '+fr(V.se_dF)+' ; '+(v.sacre?'il garde son titre.':'il perd son titre.');
+  /* (28/11/2026, lot « sacre ») la validation sequentielle : a quel regard elle a fini, sur combien de graines */
+  const R=Array.isArray(v.regards)&&v.regards.length&&!(v.plan&&v.plan.nom==='fixe')?v.regards:null;
+  if(R){
+    const P=v.plan||{},der=R[R.length-1],R1=R[0],crit=v.criteres||{},manque=[];
+    const clair=ET.regardsClair(v,{accents:true});
+    if(v.arret==='plafond'||der.decision==='plafond'){
+      if(crit.a===false)manque.push('avance de note pas assez nette (il fallait plus de '+fr(der.borne,2)+' fois l\'incertitude)');
+      if(crit.b===false)manque.push('il va moins loin');
+      if(crit.c===false)manque.push('il ressemble moins aux joueurs');}
+    let s='Validation'+(v.forcee?' (demandée à la main)':'')+' : le meneur '+court(v.meneur)+' rejoue contre le champion '+court(v.champion)+' sur des courses neuves, '+
+      (fini(P.premier)?P.premier:'?')+' d\'abord, puis '+(fini(P.pas)?P.pas:'?')+' de plus tant qu\'il semble devant, jusqu\'à '+(fini(P.plafond)?P.plafond:'?')+'. '+
+      'Son avance de note '+(R.length>1?'à la fin ':'')+'est de '+frs(V.dF)+' ± '+fr(V.se_dF)+
+      (R.length>1&&fini(R1.dF)?' (sur les '+R1.n+' premières : '+frs(R1.dF)+')':'')+(fini(T.dF)?' ; elle était de '+frs(T.dF)+' à l\'entraînement':'')+'. ';
+    s+=v.sacre?'**Il est '+clair+'.**':'Il n\'est pas sacré : '+clair.replace(/^pas sacré /,'')+(manque.length?' ; '+manque.join(' ; '):'')+'.';
+    return s;}
   const crit=v.criteres||{},manque=[];
   if(crit.a===false)manque.push('avance de note pas assez nette (il faut plus de '+seuil+' fois l\'incertitude)');
   if(crit.b===false)manque.push('il va moins loin');
@@ -121,6 +148,16 @@ function phraseApprend(K){
   else s+='Aucun ne va plus loin que le témoin au-delà du bruit : on ne peut pas encore dire que la sélection apprend.';
   if(moins)s+=' '+pluriel(moins,'champion','champions')+' '+(moins>1?'vont':'va')+' nettement moins loin que le témoin.';
   return s;}
+
+/* les populations rangees par evoluer.js --repartir-de (<etat>/archives/<date>-<temoin>/ARCHIVE.json), de la plus ancienne a la plus recente */
+function archivesAnciennes(cfg){
+  const R=[];
+  try{const d=path.join(ET.chemin(cfg,cfg.dossierEtat),'archives');
+    for(const n of fs.readdirSync(d).sort()){
+      try{const j=JSON.parse(fs.readFileSync(path.join(d,n,'ARCHIVE.json'),'utf8'));
+        if(j&&j.format==='evolution-archive-1')R.push({dossier:n,temoin:String(j.temoinAncien||'?'),generation:j.generation});}catch(e){}}}
+  catch(e){}
+  return R;}
 
 /* ===== LE TEXTE ===== */
 function texte(cfg,o){
@@ -176,7 +213,12 @@ function texte(cfg,o){
   const men=dern&&dern.meneur;
   L.push(men?'Le meneur de la dernière génération (le mieux noté après le champion) est '+court(men.id)+' : '+note(men)+'.':'Pas encore de meneur (il faut '+((cfg.validation&&cfg.validation.nMin)||48)+' courses pour être candidat).');
   const tem=dern&&dern.temoin;
-  L.push('Le témoin, pilote-voltige jamais modifié : '+(tem?note(tem):'pas encore noté')+'.');
+  L.push('Le témoin, '+ET.temoinClair(pop)+', jamais modifié : '+(tem?note(tem):'pas encore noté')+'.');
+  /* (28/11/2026, l'integrateur : « l'arbre et le recit disent le changement de temoin ») une population plus ancienne, rangee par --repartir-de */
+  const arch=archivesAnciennes(cfg);
+  if(arch.length){const a=arch[arch.length-1];
+    L.push('Cette population est née d\'un changement de témoin : '+(arch.length>1?pluriel(arch.length,'population plus ancienne est rangée','populations plus anciennes sont rangées'):'l\'ancienne population est rangée')+
+      ' dans `archives/` (rien n\'est effacé) ; la dernière, née de '+a.temoin+(fini(a.generation)?', s\'était arrêtée à la génération '+a.generation:'')+'.');}
   const Vv=D.validations.filter(v=>v&&v.usage==='validation'&&!v.forcee);
   if(Vv.length){const mal=Vv.map(v=>v.malediction).filter(fini),moy=mal.length?mal.reduce((s,x)=>s+x,0)/mal.length:null;
     L.push(pluriel(Vv.length,'tentative','tentatives')+' de sacre, '+pluriel(Vv.filter(v=>v.sacre).length,'réussie','réussies')+'.'+
@@ -197,33 +239,61 @@ function texte(cfg,o){
   L.forEach((l,i)=>out.push((i+1)+'. '+l));
   out.push('');
 
+  /* ===== LES MUTATIONS COMPTENT-ELLES ? (28/11/2026, l'integrateur : « un paragraphe dans histoire.md » ; mesure-tau.js, notes/tau.md) =====
+     Dans un try : une mesure qui casse ne fait jamais echouer le recit ; « trop tot » par defaut. */
+  out.push('## Les mutations comptent-elles ?');
+  out.push('');
+  out.push(paragrapheTau(cfg,o));
+  out.push('');
+
   /* ---------- GENERATION PAR GENERATION ---------- */
   out.push('## Génération par génération');
   out.push('');
   out.push('*De la plus ancienne à la plus récente.*');
   out.push('');
   let avant=null;
-  for(const g of G){out.push(...entree(g,avant,VAL.get(g.generation)||[],COF.get(g.generation)||[],cfg));avant=g;}
+  for(const g of G){out.push(...entree(g,avant,VAL.get(g.generation)||[],COF.get(g.generation)||[],cfg,pop));avant=g;}
   if(pop&&pop.etape!=='fin'&&(!dern||pop.generation>dern.generation)){
     const nesP=pop.naissancesGeneration||[];
     out.push('### Génération '+pop.generation+' — en cours');
     out.push('');
-    out.push((nesP.length?pluriel(nesP.length,'naissance')+' ('+compter(nesP,'origine',ORIG)+')':'Aucune naissance')+'. Les courses sont en train de se jouer.');
+    out.push((nesP.length?pluriel(nesP.length,'naissance')+' ('+compter(nesP,'origine',ORIG)+')':'Aucune naissance')+'. '+
+      (phraseGreffes(nesP)?phraseGreffes(nesP)+' ':'')+'Les courses sont en train de se jouer.');   /* (28/11/2026, greffes) la phrase des greffes, s'il y en a */
     out.push('');}
   return out.join('\n')+'\n';}
+
+/* le paragraphe de la mesure de tau : ce que dit la mesure, en mots simples, et les chiffres qui la portent. Ne leve jamais. */
+function paragrapheTau(cfg,o){
+  const base='La sélection garde les enfants qui ont eu les meilleures courses ; ça ne sert que si un enfant « bon » l\'est vraiment, et pas seulement chanceux. '+
+    'La mesure le vérifie sans jouer une course de plus : chaque enfant joue les routes de sa génération de naissance, puis celles de la suivante ; '+
+    'si les mutations comptent, un enfant bon sur les premières l\'est aussi sur les secondes. ';
+  try{
+    const x=ET.mesureTau(cfg,o),e=x.enfants||{},c=x.clones;
+    let s=base+'**Aujourd\'hui : '+String(x.phrase||'trop tôt pour le dire')+'.**';
+    if(x.verdict==='trop-tot'&&fini(e.requis))s+=' La mesure ne conclut pas avant '+e.requis+' enfants mesurés, même si les chiffres ont l\'air nets.';
+    if(fini(x.r))s+=' Corrélation entre les deux moitiés : '+fr(x.r)+(Array.isArray(x.icR)?' [entre '+fr(x.icR[0])+' et '+fr(x.icR[1])+']':'')+
+      ' ; écart vrai entre enfants τ ≈ '+fr(x.tau)+' palier'+(Array.isArray(x.icTau)?' [entre '+fr(x.icTau[0])+' et '+fr(x.icTau[1])+']':'')+'.';
+    if(x.verdict==='comptent')s+=' La sélection trie donc de vrais écarts : les réglages fins de la sélection (C1 à C5 de l\'étude du réglage) valent la peine d\'être essayés.';
+    if(x.verdict==='ne-comptent-pas')s+=' La sélection trie donc surtout du hasard : il faudra changer quelque chose de plus profond (mutations plus fortes, autre témoin).';
+    if(x.verdict!=='trop-tot')s+=' (Ce verdict est recalculé à chaque génération : c\'est le premier sorti de « trop tôt » qui compte ; les suivants l\'affinent.)';
+    if(c&&c.comparees>0)s+=' Courses jouées pour rien (un enfant qui rejoue exactement la course de son parent sur la même route) : '+c.identiques+' sur '+c.comparees+
+      ' ('+fr(100*c.part,0)+' %)'+(fini(c.partTempsEntrainement)?', '+fr(100*c.partTempsEntrainement,1)+' % du temps d\'entraînement':'')+'.';
+    return s;
+  }catch(err){return base+'**Aujourd\'hui : trop tôt pour le dire.**';}}
 
 /* le temps sans travail avant la generation g (en s) : son debut moins la fin de la precedente */
 function trou(a,g){const fa=Date.parse(a&&a.date),dg=Date.parse(g&&g.date)-((g&&g.duree_s)||0)*1000;return isFinite(fa)&&isFinite(dg)?(dg-fa)/1000:0;}
 
-function entree(g,avant,vals,cofs,cfg){
+function entree(g,avant,vals,cofs,cfg,pop){   /* pop : le temoin en clair (28/11, portage) */
   const out=[],P=[];
   out.push('### Génération '+g.generation+(g.date?' — '+dateFr(g.date):''));
   out.push('');
   if(avant){const t=trou(avant,g);if(t>3600)P.push('Avant elle, '+duree(t)+' sans génération (arrêt, veille ou coupure).');}
   const nes=g.naissances||[];
   if(g.generation===0){const n=(g.population||[]).length||nes.length;
-    P.push('La population de départ : '+pluriel(n,'pilote')+', le témoin (pilote-voltige, écrit à la main) et '+Math.max(0,n-1)+' mutants de départ, des copies du témoin aux réglages un peu changés.');}
+    P.push('La population de départ : '+pluriel(n,'pilote')+', le témoin ('+ET.temoinClair(pop)+') et '+Math.max(0,n-1)+' mutants de départ, des copies du témoin aux réglages un peu changés.');}
   else P.push(nes.length?pluriel(nes.length,'naissance')+' ('+compter(nes,'origine',ORIG)+').':'Aucune naissance.');
+  {const pg=g.generation===0?'':phraseGreffes(nes);if(pg)P.push(pg);}   /* (28/11/2026, greffes) */
   const mo=g.morts||[];
   P.push(!mo.length?'Aucun renvoi.':mo.every(m=>m&&m.raison==='renvoi')?pluriel(mo.length,'renvoi')+' : '+(mo.length>1?'les notes F les plus basses.':'la note F la plus basse.'):
     pluriel(mo.length,'renvoi')+' ('+compter(mo,'raison',RAISONS)+').');

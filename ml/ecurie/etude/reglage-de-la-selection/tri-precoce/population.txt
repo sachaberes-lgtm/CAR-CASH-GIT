@@ -1,0 +1,109 @@
+TRI PRECOCE ET REJEU DES ANCIENS : 40 repetitions par case ; budget de 1 et 3 jours du Xeon (320 000 s de courses par jour ; le Ryzen : x2 a x4, non mesure)
+(les effets des mutations et la part des clones sont SUPPOSES ; le bruit, le temps des courses, l'E, les courses identiques sont MESURES)
+CONTROLE sans bruit ni retrecissement (attendu : toutes), schema A : le meneur est le meilleur vrai a 32/32 generations
+CONTROLE sans bruit ni retrecissement (attendu : toutes), schema B4 : le meneur est le meilleur vrai a 52/52 generations
+CONTROLE sans bruit ni retrecissement (attendu : toutes), schema C : le meneur est le meilleur vrai a 53/53 generations
+CONTROLE sans bruit ni retrecissement (attendu : toutes), schema D0 : le meneur est le meilleur vrai a 86/86 generations
+CONTROLE sans bruit ni retrecissement (attendu : toutes), schema D1 : le meneur est le meilleur vrai a 96/96 generations
+CONTROLE avec les seuls effets de graine, sans retrecissement (le modele les retire : attendu toutes, a la convergence pres), schema A : le meneur est le meilleur vrai a 31/31 generations
+CONTROLE avec les seuls effets de graine, sans retrecissement (le modele les retire : attendu toutes, a la convergence pres), schema B4 : le meneur est le meilleur vrai a 51/53 generations
+CONTROLE avec les seuls effets de graine, sans retrecissement (le modele les retire : attendu toutes, a la convergence pres), schema D1 : le meneur est le meilleur vrai a 91/93 generations
+CONTROLE sans bruit MAIS avec le retrecissement de note.js (un enfant a 12 courses est tire a mi-chemin de la moyenne : pas toutes, c est voulu), schema A : le meneur est le meilleur vrai a 14/31 generations
+CONTROLE du tri des clones (scenario moyen, A+K) : 40 clones nes, 40 renvoyes comme clones dont 0 qui n'en etaient pas, sur 170 non-clones testes
+
+===== MUTATIONS « tres-faible » : delta ~ N(-0.05 ; 0.15), clones 25 % des mutations simples =====
+schema  | courses/gen | h de calcul/gen | gen/jour Xeon | VRAI theta apres 1 jour : anciens / meneur / meilleur | apres 3 jours : anciens / meneur / meilleur | gen. 10 : Spearman / erreur de F / malediction / n moyen / clones vivants
+A       |   312       |  6.17           |  14.4         | 0.12±0.02 / 0.15±0.04 / 0.47±0.03 | 0.53±0.04 / 0.60±0.05 / 0.86±0.04 | 0.20 / 0.36 / 0.55 / 61 / 2.5
+A+T     |   311       |  6.16           |  14.4         | 0.13±0.02 / 0.24±0.04 / 0.47±0.03 | 0.52±0.04 / 0.64±0.06 / 0.83±0.05 | 0.19 / 0.36 / 0.60 / 61 / 2.4
+          tri : 208 enfants renvoyes tot sur 10362 (2.0 %), dont 47 au-dessus de la mediane vraie des vivants (22.6 %) ; renvoi selon theta - theta du moins bon vivant : -1 : 5.0 % · 0 : 1.9 % · +1 : 0.2 %
+A+K     |   305       |  6.01           |  14.8         | 0.10±0.02 / 0.20±0.04 / 0.46±0.03 | 0.46±0.04 / 0.48±0.05 / 0.81±0.04 | 0.17 / 0.34 / 0.59 / 66 / 0.0
+          clones : 1509 nes, 1521 renvoyes apres 4 graines, dont 12 faux clones (sur 9081 non-clones testes : 0.13 %)
+B2      |   112       |  2.21           |  40.2         | 0.14±0.02 / 0.13±0.04 / 0.51±0.03 | 0.44±0.05 / 0.56±0.06 / 0.77±0.05 | 0.03 / 0.43 / 0.67 / 22 / 2.0
+B4      |   152       |  3.01           |  29.6         | 0.12±0.03 / 0.18±0.03 / 0.45±0.03 | 0.48±0.05 / 0.48±0.06 / 0.81±0.05 | 0.21 / 0.42 / 0.63 / 30 / 2.8
+B4+K    |   145       |  2.88           |  30.9         | 0.16±0.03 / 0.23±0.04 / 0.57±0.04 | 0.63±0.05 / 0.71±0.06 / 1.03±0.06 | 0.10 / 0.43 / 0.74 / 32 / 0.0
+          clones : 3274 nes, 3289 renvoyes apres 4 graines, dont 15 faux clones (sur 18746 non-clones testes : 0.08 %)
+B4+T+K  |   144       |  2.87           |  30.9         | 0.14±0.02 / 0.20±0.05 / 0.53±0.03 | 0.65±0.05 / 0.79±0.06 / 1.04±0.06 | 0.16 / 0.43 / 0.73 / 32 / 0.0
+          tri : 405 enfants renvoyes tot sur 22044 (1.8 %), dont 115 au-dessus de la mediane vraie des vivants (28.4 %) ; renvoi selon theta - theta du moins bon vivant : -2 : 10.5 % · -1 : 3.6 % · 0 : 1.7 % · +1 : 0.9 %
+          clones : 3191 nes, 3162 renvoyes apres 4 graines, dont 10 faux clones (sur 18487 non-clones testes : 0.05 %)
+B8      |   232       |  4.60           |  19.3         | 0.15±0.02 / 0.20±0.05 / 0.51±0.03 | 0.51±0.04 / 0.54±0.05 / 0.84±0.04 | 0.18 / 0.35 / 0.54 / 48 / 2.4
+C       |   311       |  6.13           |  14.5         | 0.12±0.02 / 0.20±0.04 / 0.46±0.03 | 0.50±0.04 / 0.58±0.06 / 0.82±0.04 | 0.17 / 0.37 / 0.56 / 59 / 2.5
+D0      |    72       |  1.51           |  59.0         | -0.10±0.03 / -0.09±0.04 / 0.14±0.02 | -0.03±0.04 / -0.02±0.04 / 0.19±0.03 | 0.00 / 0.41 / 0.50 / 12 / 6.2
+D1      |    72       |  1.39           |  64.2         | 0.02±0.02 / -0.01±0.03 / 0.33±0.03 | 0.06±0.03 / 0.05±0.04 / 0.35±0.03 | -0.02 / 0.43 / 0.70 / 12 / 4.2
+
+===== MUTATIONS « faible » : delta ~ N(-0.1 ; 0.3), clones 25 % des mutations simples =====
+schema  | courses/gen | h de calcul/gen | gen/jour Xeon | VRAI theta apres 1 jour : anciens / meneur / meilleur | apres 3 jours : anciens / meneur / meilleur | gen. 10 : Spearman / erreur de F / malediction / n moyen / clones vivants
+A       |   312       |  6.69           |  13.3         | 0.49±0.04 / 0.71±0.08 / 1.07±0.05 | 1.61±0.08 / 1.84±0.10 / 2.27±0.09 | 0.42 / 0.36 / 0.55 / 62 / 2.8
+A+T     |   310       |  6.57           |  13.5         | 0.46±0.04 / 0.46±0.06 / 1.02±0.04 | 1.51±0.08 / 1.78±0.10 / 2.15±0.09 | 0.32 / 0.37 / 0.44 / 64 / 3.2
+          tri : 274 enfants renvoyes tot sur 9738 (2.8 %), dont 48 au-dessus de la mediane vraie des vivants (17.5 %) ; renvoi selon theta - theta du moins bon vivant : -3 : 28.6 % · -2 : 15.6 % · -1 : 5.3 % · 0 : 1.9 % · +1 : 1.3 % · +2 : 0.0 %
+A+K     |   305       |  6.46           |  13.8         | 0.44±0.03 / 0.68±0.05 / 1.03±0.04 | 1.51±0.05 / 1.75±0.09 / 2.20±0.06 | 0.33 / 0.38 / 0.54 / 66 / 0.0
+          clones : 1442 nes, 1450 renvoyes apres 4 graines, dont 8 faux clones (sur 8470 non-clones testes : 0.09 %)
+B2      |   112       |  2.50           |  35.6         | 0.82±0.06 / 1.04±0.09 / 1.45±0.08 | 2.16±0.12 / 2.48±0.15 / 2.90±0.14 | 0.17 / 0.49 / 0.78 / 21 / 3.0
+B4      |   152       |  3.45           |  25.8         | 0.82±0.06 / 1.02±0.09 / 1.46±0.10 | 2.43±0.11 / 2.77±0.12 / 3.14±0.12 | 0.27 / 0.44 / 0.59 / 30 / 2.8
+B4+K    |   145       |  3.24           |  27.5         | 0.76±0.06 / 1.02±0.10 / 1.52±0.07 | 2.22±0.09 / 2.52±0.11 / 2.98±0.12 | 0.24 / 0.45 / 0.52 / 32 / 0.0
+          clones : 2870 nes, 2884 renvoyes apres 4 graines, dont 14 faux clones (sur 16738 non-clones testes : 0.08 %)
+B4+T+K  |   143       |  3.21           |  27.7         | 0.74±0.06 / 1.05±0.09 / 1.44±0.07 | 2.11±0.09 / 2.30±0.14 / 2.82±0.10 | 0.22 / 0.47 / 0.56 / 31 / 0.0
+          tri : 663 enfants renvoyes tot sur 19836 (3.3 %), dont 74 au-dessus de la mediane vraie des vivants (11.2 %) ; renvoi selon theta - theta du moins bon vivant : -4 : 54.3 % · -3 : 27.5 % · -2 : 16.7 % · -1 : 5.1 % · 0 : 1.8 % · +1 : 1.0 % · +2 : 1.9 %
+          clones : 2865 nes, 2851 renvoyes apres 4 graines, dont 17 faux clones (sur 16339 non-clones testes : 0.10 %)
+B8      |   232       |  5.09           |  17.5         | 0.64±0.05 / 0.76±0.09 / 1.24±0.07 | 1.85±0.09 / 2.11±0.10 / 2.46±0.09 | 0.26 / 0.43 / 0.50 / 46 / 3.5
+C       |   311       |  6.61           |  13.5         | 0.46±0.04 / 0.69±0.06 / 1.08±0.05 | 1.52±0.07 / 1.83±0.10 / 2.18±0.08 | 0.38 / 0.36 / 0.51 / 62 / 2.8
+D0      |    72       |  1.56           |  57.1         | 0.27±0.06 / 0.26±0.07 / 0.64±0.07 | 0.37±0.08 / 0.42±0.09 / 0.67±0.07 | 0.07 / 0.47 / 0.44 / 12 / 6.2
+D1      |    72       |  1.45           |  61.5         | 0.33±0.06 / 0.39±0.08 / 0.89±0.07 | 0.59±0.08 / 0.64±0.09 / 1.17±0.09 | 0.05 / 0.50 / 0.72 / 12 / 4.7
+
+===== MUTATIONS « moyen » : delta ~ N(-0.2 ; 0.6), clones 25 % des mutations simples =====
+schema  | courses/gen | h de calcul/gen | gen/jour Xeon | VRAI theta apres 1 jour : anciens / meneur / meilleur | apres 3 jours : anciens / meneur / meilleur | gen. 10 : Spearman / erreur de F / malediction / n moyen / clones vivants
+A       |   312       |  7.72           |  11.5         | 1.40±0.05 / 1.96±0.10 / 2.43±0.08 | 3.68±0.10 / 4.46±0.15 / 4.97±0.14 | 0.52 / 0.43 / 0.26 / 61 / 3.1
+A+T     |   309       |  7.81           |  11.4         | 1.41±0.05 / 1.93±0.11 / 2.53±0.08 | 3.85±0.11 / 4.70±0.16 / 5.08±0.15 | 0.56 / 0.42 / 0.25 / 62 / 3.3
+          tri : 421 enfants renvoyes tot sur 8226 (5.1 %), dont 19 au-dessus de la mediane vraie des vivants (4.5 %) ; renvoi selon theta - theta du moins bon vivant : -5 : 70.8 % · -4 : 50.3 % · -3 : 33.8 % · -2 : 17.8 % · -1 : 4.0 % · 0 : 1.9 % · +1 : 0.6 % · +2 : 0.2 % · +3 : 0.0 %
+A+K     |   305       |  7.55           |  11.8         | 1.35±0.08 / 2.22±0.13 / 2.62±0.12 | 3.80±0.13 / 4.58±0.18 / 5.05±0.16 | 0.60 / 0.42 / 0.36 / 67 / 0.0
+          clones : 1240 nes, 1252 renvoyes apres 4 graines, dont 12 faux clones (sur 7286 non-clones testes : 0.16 %)
+B2      |   112       |  3.37           |  26.4         | 2.83±0.11 / 3.29±0.15 / 4.08±0.14 | 6.61±0.13 / 7.58±0.14 / 8.22±0.14 | 0.38 / 0.57 / 0.56 / 22 / 2.9
+B4      |   152       |  4.31           |  20.6         | 2.30±0.10 / 2.77±0.14 / 3.51±0.13 | 5.67±0.17 / 6.73±0.21 / 7.09±0.20 | 0.41 / 0.50 / 0.40 / 30 / 3.2
+B4+K    |   145       |  4.09           |  21.7         | 2.28±0.09 / 3.03±0.16 / 3.56±0.13 | 5.84±0.14 / 6.61±0.16 / 7.34±0.18 | 0.47 / 0.56 / 0.35 / 31 / 0.0
+          clones : 2353 nes, 2370 renvoyes apres 4 graines, dont 17 faux clones (sur 13223 non-clones testes : 0.13 %)
+B4+T+K  |   141       |  4.02           |  22.1         | 2.20±0.10 / 2.87±0.13 / 3.35±0.12 | 5.83±0.13 / 6.62±0.16 / 7.28±0.16 | 0.44 / 0.55 / 0.33 / 31 / 0.0
+          tri : 1261 enfants renvoyes tot sur 15840 (8.0 %), dont 39 au-dessus de la mediane vraie des vivants (3.1 %) ; renvoi selon theta - theta du moins bon vivant : -8 : 94.3 % · -7 : 94.5 % · -6 : 83.5 % · -5 : 73.5 % · -4 : 53.3 % · -3 : 38.3 % · -2 : 13.1 % · -1 : 5.0 % · 0 : 1.8 % · +1 : 0.9 % · +2 : 0.5 % · +3 : 0.0 %
+          clones : 2300 nes, 2283 renvoyes apres 4 graines, dont 9 faux clones (sur 12305 non-clones testes : 0.07 %)
+B8      |   232       |  6.10           |  14.6         | 1.85±0.08 / 2.38±0.14 / 2.92±0.11 | 4.47±0.11 / 5.16±0.13 / 5.69±0.12 | 0.50 / 0.43 / 0.33 / 46 / 2.8
+C       |   308       |  7.67           |  11.6         | 1.43±0.06 / 1.99±0.11 / 2.44±0.09 | 3.74±0.11 / 4.46±0.15 / 4.97±0.13 | 0.50 / 0.43 / 0.31 / 59 / 2.9
+D0      |    72       |  1.85           |  48.0         | 1.50±0.18 / 1.87±0.21 / 2.34±0.24 | 2.63±0.33 / 2.92±0.36 / 3.40±0.37 | 0.26 / 0.59 / 0.23 / 12 / 5.9
+D1      |    72       |  1.92           |  46.2         | 2.13±0.15 / 2.48±0.18 / 3.33±0.16 | 4.46±0.28 / 4.98±0.32 / 5.87±0.31 | 0.23 / 0.64 / 0.58 / 12 / 4.8
+
+===== MUTATIONS « moyen-sans-clones » : delta ~ N(-0.2 ; 0.6), clones 0 % des mutations simples, aucune course identique =====
+schema  | courses/gen | h de calcul/gen | gen/jour Xeon | VRAI theta apres 1 jour : anciens / meneur / meilleur | apres 3 jours : anciens / meneur / meilleur | gen. 10 : Spearman / erreur de F / malediction / n moyen / clones vivants
+A       |   312       |  8.15           |  10.9         | 1.74±0.08 / 2.39±0.11 / 2.93±0.10 | 4.49±0.10 / 5.46±0.12 / 5.95±0.12 | 0.59 / 0.44 / 0.27 / 61 / 0.0
+A+T     |   309       |  8.10           |  11.0         | 1.76±0.08 / 2.52±0.12 / 2.99±0.11 | 4.38±0.11 / 5.38±0.17 / 5.76±0.13 | 0.57 / 0.45 / 0.30 / 60 / 0.0
+          tri : 452 enfants renvoyes tot sur 7968 (5.7 %), dont 13 au-dessus de la mediane vraie des vivants (2.9 %) ; renvoi selon theta - theta du moins bon vivant : -6 : 81.8 % · -5 : 75.3 % · -4 : 53.3 % · -3 : 35.6 % · -2 : 13.7 % · -1 : 3.8 % · 0 : 1.2 % · +1 : 0.6 % · +2 : 0.1 % · +3 : 1.2 %
+A+K     |   312       |  8.15           |  10.9         | 1.74±0.08 / 2.39±0.11 / 2.93±0.10 | 4.49±0.10 / 5.46±0.12 / 5.95±0.12 | 0.59 / 0.44 / 0.27 / 61 / 0.0
+          clones : 0 nes, 0 renvoyes apres 4 graines, dont 0 faux clones (sur 7920 non-clones testes : 0.00 %)
+B2      |   112       |  3.49           |  25.5         | 3.15±0.11 / 3.87±0.17 / 4.58±0.14 | 7.45±0.19 / 8.45±0.24 / 9.20±0.24 | 0.37 / 0.65 / 0.38 / 21 / 0.0
+B4      |   152       |  4.53           |  19.6         | 2.71±0.08 / 3.38±0.15 / 4.11±0.11 | 6.61±0.16 / 7.53±0.23 / 8.22±0.20 | 0.46 / 0.57 / 0.54 / 30 / 0.0
+B4+K    |   152       |  4.53           |  19.6         | 2.71±0.08 / 3.38±0.15 / 4.11±0.11 | 6.61±0.16 / 7.53±0.23 / 8.22±0.20 | 0.46 / 0.57 / 0.54 / 30 / 0.0
+          clones : 0 nes, 0 renvoyes apres 4 graines, dont 0 faux clones (sur 14106 non-clones testes : 0.00 %)
+B4+T+K  |   147       |  4.48           |  19.9         | 2.77±0.11 / 3.58±0.15 / 4.13±0.14 | 6.56±0.14 / 7.50±0.17 / 8.01±0.17 | 0.45 / 0.58 / 0.43 / 29 / 0.0
+          tri : 1284 enfants renvoyes tot sur 14280 (9.0 %), dont 17 au-dessus de la mediane vraie des vivants (1.3 %) ; renvoi selon theta - theta du moins bon vivant : -9 : 100.0 % · -8 : 97.5 % · -7 : 93.0 % · -6 : 85.2 % · -5 : 77.3 % · -4 : 60.6 % · -3 : 36.4 % · -2 : 11.3 % · -1 : 3.9 % · 0 : 1.5 % · +1 : 0.4 % · +2 : 0.2 % · +3 : 0.0 %
+          clones : 0 nes, 0 renvoyes apres 4 graines, dont 0 faux clones (sur 12996 non-clones testes : 0.00 %)
+B8      |   232       |  6.44           |  13.8         | 2.06±0.09 / 2.92±0.12 / 3.36±0.11 | 5.50±0.13 / 6.39±0.18 / 7.01±0.16 | 0.53 / 0.50 / 0.33 / 45 / 0.0
+C       |   307       |  7.97           |  11.2         | 1.75±0.08 / 2.44±0.14 / 2.97±0.11 | 4.44±0.11 / 5.53±0.14 / 5.87±0.14 | 0.63 / 0.43 / 0.29 / 58 / 0.0
+D0      |    72       |  2.13           |  41.8         | 3.08±0.22 / 3.83±0.25 / 4.63±0.25 | 6.90±0.29 / 7.80±0.37 / 8.75±0.35 | 0.34 / 0.69 / 0.41 / 12 / 0.0
+D1      |    72       |  2.23           |  40.0         | 3.21±0.19 / 3.97±0.24 / 4.93±0.23 | 6.88±0.36 / 7.81±0.41 / 8.72±0.40 | 0.35 / 0.69 / 0.41 / 12 / 0.0
+
+===== MUTATIONS « casse » : delta ~ N(-0.2 ; 0.6), 20 % d'enfants casses (delta -4 a -6), clones 25 % des mutations simples =====
+schema  | courses/gen | h de calcul/gen | gen/jour Xeon | VRAI theta apres 1 jour : anciens / meneur / meilleur | apres 3 jours : anciens / meneur / meilleur | gen. 10 : Spearman / erreur de F / malediction / n moyen / clones vivants
+A       |   312       |  7.29           |  12.2         | 1.25±0.06 / 1.82±0.10 / 2.29±0.10 | 3.48±0.11 / 4.27±0.14 / 4.65±0.13 | 0.58 / 0.39 / 0.46 / 66 / 3.5
+A+T     |   304       |  7.26           |  12.3         | 1.19±0.06 / 1.81±0.09 / 2.18±0.07 | 3.29±0.07 / 3.91±0.11 / 4.42±0.10 | 0.47 / 0.40 / 0.39 / 68 / 3.0
+          tri : 1238 enfants renvoyes tot sur 8856 (14.0 %), dont 22 au-dessus de la mediane vraie des vivants (1.8 %) ; renvoi selon theta - theta du moins bon vivant : -8 : 95.2 % · -7 : 91.3 % · -6 : 85.3 % · -5 : 68.4 % · -4 : 57.7 % · -3 : 38.2 % · -2 : 18.5 % · -1 : 4.7 % · 0 : 2.0 % · +1 : 0.8 % · +2 : 0.0 % · +3 : 0.0 %
+A+K     |   305       |  7.05           |  12.6         | 1.19±0.05 / 2.07±0.09 / 2.35±0.07 | 3.37±0.09 / 4.41±0.11 / 4.73±0.11 | 0.64 / 0.39 / 0.26 / 73 / 0.0
+          clones : 1364 nes, 1370 renvoyes apres 4 graines, dont 6 faux clones (sur 7762 non-clones testes : 0.08 %)
+B2      |   112       |  3.04           |  29.3         | 2.58±0.11 / 3.24±0.17 / 3.71±0.13 | 6.00±0.18 / 6.80±0.19 / 7.53±0.20 | 0.45 / 0.57 / 0.29 / 22 / 3.2
+B4      |   152       |  3.99           |  22.3         | 2.19±0.12 / 2.76±0.16 / 3.39±0.15 | 5.15±0.17 / 5.83±0.20 / 6.34±0.19 | 0.46 / 0.53 / 0.32 / 31 / 2.9
+B4+K    |   145       |  3.77           |  23.6         | 2.26±0.11 / 2.92±0.18 / 3.45±0.15 | 5.31±0.16 / 6.34±0.18 / 6.82±0.17 | 0.45 / 0.55 / 0.53 / 33 / 0.0
+          clones : 2460 nes, 2477 renvoyes apres 4 graines, dont 17 faux clones (sur 14526 non-clones testes : 0.12 %)
+B4+T+K  |   137       |  3.71           |  24.0         | 2.18±0.10 / 2.94±0.16 / 3.45±0.14 | 5.37±0.16 / 6.20±0.22 / 6.87±0.19 | 0.49 / 0.53 / 0.51 / 33 / 0.0
+          tri : 2688 enfants renvoyes tot sur 17232 (15.6 %), dont 17 au-dessus de la mediane vraie des vivants (0.6 %) ; renvoi selon theta - theta du moins bon vivant : -10 : 100.0 % · -9 : 100.0 % · -8 : 96.7 % · -7 : 92.0 % · -6 : 82.0 % · -5 : 70.4 % · -4 : 53.3 % · -3 : 35.8 % · -2 : 18.9 % · -1 : 4.3 % · 0 : 1.4 % · +1 : 0.3 % · +2 : 0.2 % · +3 : 0.0 % · +4 : 0.0 %
+          clones : 2504 nes, 2509 renvoyes apres 4 graines, dont 12 faux clones (sur 12047 non-clones testes : 0.10 %)
+B8      |   232       |  5.70           |  15.6         | 1.62±0.08 / 2.24±0.11 / 2.75±0.10 | 4.19±0.12 / 4.93±0.17 / 5.43±0.16 | 0.52 / 0.43 / 0.35 / 49 / 3.0
+C       |   307       |  7.22           |  12.3         | 1.35±0.07 / 2.04±0.13 / 2.41±0.10 | 3.57±0.12 / 4.31±0.16 / 4.74±0.15 | 0.53 / 0.40 / 0.37 / 64 / 2.9
+D0      |    72       |  1.67           |  53.2         | 1.37±0.16 / 1.58±0.19 / 2.16±0.20 | 2.30±0.23 / 2.55±0.25 / 2.97±0.27 | 0.26 / 0.61 / 0.20 / 12 / 5.7
+D1      |    72       |  1.71           |  51.9         | 2.02±0.20 / 2.41±0.23 / 3.22±0.24 | 3.93±0.28 / 4.31±0.32 / 5.20±0.30 | 0.21 / 0.64 / 0.55 / 12 / 4.7
+
+(calcul : 116 s)

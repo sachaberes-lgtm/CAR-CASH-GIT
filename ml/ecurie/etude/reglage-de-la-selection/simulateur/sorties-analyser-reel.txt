@@ -1,0 +1,48 @@
+courses lues : 567 ; entrainement mesurees : 527 (generation 0 : 240, generation 1 : 287)
+
+== 1. generation 0 : note recalculee contre generations.jsonl ==
+id           |  n |  â recalc |  â journal |  E recalc | E journal |  F recalc | F journal | se_E  | parties
+19e3767cc346 | 12 |    6.4542 |     6.4542 |    0.9046 |    0.9046 |    2.8357 |    2.8357 | 0.088 | 8
+780adaceba8f | 12 |    5.7458 |     5.7458 |    0.8450 |    0.8450 |    2.3658 |    2.3658 | 0.109 | 9
+d0281d911fb9 | 12 |    6.3708 |     6.3708 |    0.7892 |    0.7892 |    3.2139 |    3.2139 | 0.079 | 9
+189e2ce7fa40 | 12 |    5.9958 |     5.9958 |    0.9646 |    0.9646 |    2.1374 |    2.1374 | 0.161 | 7
+449cb03217b0 | 12 |    7.5375 |     7.5375 |    0.9192 |    0.9192 |    3.8606 |    3.8606 | 0.052 | 12
+75c51f600b13 | 12 |    6.5792 |     6.5792 |    0.8658 |    0.8658 |    3.1161 |    3.1161 | 0.068 | 10
+3032bf8184f5 | 12 |    7.5375 |     7.5375 |    0.8465 |    0.8465 |    4.1513 |    4.1513 | 0.090 | 10
+916e2ab472f8 | 12 |    6.7042 |     6.7042 |    0.8427 |    0.8427 |    3.3334 |    3.3334 | 0.076 | 8
+fca7498ee261 | 12 |    6.2042 |     6.2042 |    0.8985 |    0.8985 |    2.6103 |    2.6103 | 0.080 | 8
+f6e4be64ff88 | 12 |    6.0375 |     6.0375 |    1.1092 |    1.1092 |    1.6006 |    1.6006 | 0.123 | 10
+95cd1fe7216b | 12 |    6.9958 |     6.9958 |    0.8408 |    0.8408 |    3.6328 |    3.6328 | 0.106 | 10
+1a146f9f0ffc | 12 |    6.7458 |     6.7458 |    0.7204 |    0.7204 |    3.8643 |    3.8643 | 0.131 | 9
+4ee745c9047b | 12 |    6.7042 |     6.7042 |    0.9062 |    0.9062 |    3.0796 |    3.0796 | 0.106 | 8
+6fc0d3c07790 | 12 |    5.9125 |     5.9125 |    1.1169 |    1.1169 |    1.4448 |    1.4448 | 0.140 | 8
+75f072ea9346 | 12 |    5.8292 |     5.8292 |    1.0096 |    1.0096 |    1.7907 |    1.7907 | 0.115 | 7
+9885ec853c79 | 12 |    6.4958 |     6.4958 |    0.8992 |    0.8992 |    2.8989 |    2.8989 | 0.101 | 7
+dcd093fdc1bf | 12 |    6.4125 |     6.4125 |    0.8523 |    0.8523 |    3.0033 |    3.0033 | 0.084 | 9
+c725eb9853c8 | 12 |    6.6625 |     6.6625 |    0.9615 |    0.9615 |    2.8163 |    2.8163 | 0.142 | 10
+af68f7e8f019 | 12 |    6.7875 |     6.7875 |    0.9754 |    0.9754 |    2.8860 |    2.8860 | 0.113 | 9
+25ef7a22a9b2 | 12 |    6.1208 |     6.1208 |    1.0058 |    1.0058 |    2.0978 |    2.0978 | 0.125 | 8
+plus grand ecart (â, E, F) : 4.87e-5 : IDENTIQUE (aux arrondis du journal pres)
+classement par F identique : true
+
+== 2. residus du palier (modele pilote + graine, 527 courses, 26 pilotes, 24 graines) ==
+sigma des residus (ddl du modele) 3.189 ; ET des b (graines) 1.991 ; palier moyen 7.112 ; min 1 ; max 20
+loi du palier par course : 1:24 2:20 3:57 4:34 5:48 6:60 7:58 8:51 9:43 10:41 11:35 12:14 13:13 14:13 15:4 16:7 17:2 18:2 20:1
+ET vraie des graines (variance des b moins le bruit de leur estimation) : 1.822
+
+== 3. le bruit de E (generation 0, 12 courses par pilote) ==
+se_E moyen 0.104 (min 0.052, max 0.161) ; parties de plus de 60 s par pilote : moyenne 8.80, min 7 ; part des courses de plus de 60 s (toutes generations) 0.778
+bruit de E ramene a UNE partie (se_E x racine(parties)) : 0.307
+E sur 12 courses moins E sur toutes leurs courses (~22) : moyenne 0.009 (le biais de taille : un petit lot gonfle les |z|)
+
+== 4. les 19 mutants de la generation 0 : dispersion vraie = variance observee - variance du bruit ==
+a (palier, sans retrecissement) : variance observee 1.054, bruit moyen se_a^2 0.708 -> ET vraie 0.588 ; moyenne des mutants - temoin : 0.079 (temoin a = 6.417, se 0.842)
+E : variance observee 0.0103, bruit moyen se_E^2 0.0119 -> ET vraie 0.0000 ; moyenne des mutants - temoin : 0.010 (temoin E = 0.905)
+correlation observee a / E entre mutants : -0.426 (un mutant qui va plus loin ressemble-t-il plus ?)
+
+== 5. temps reel d'une course (4 a la fois sur le Xeon) ==
+moyenne 69.8 s ; par palier : 1:7s 2:10s 3:16s 4:27s 5:45s 6:55s 7:66s 8:78s 9:82s 10:97s 11:110s 12:146s 13:155s 14:166s 15:216s 16:230s 17:229s 18:251s 20:279s
+secondes reelles par seconde de jeu (une course) : 0.499
+part des courses de plus de 60 s selon le palier : 1:0.00 2:0.00 3:0.11 4:0.44 5:0.94 6:1.00 7:1.00 8:1.00 9:1.00 10:1.00 11:1.00 12:1.00 13:1.00 14:1.00 15:1.00 16:1.00 17:1.00 18:1.00 20:1.00
+
+ecrit : donnees/calibrage.json

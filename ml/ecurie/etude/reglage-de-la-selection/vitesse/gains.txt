@@ -1,0 +1,26 @@
+BASE : generation 1 de la vraie evolution, 4 a la fois sur le Xeon : 110.6 s de travailleur par course -> 312 courses = 143.8 min (130.2 courses/h)
+       (le tableau de bord disait 191 courses/h pour la generation 0 : 75.6 s par course ; la generation 1 tourne plus lentement : PC plus charge, et courses plus longues — boucle moyenne 83.6 s contre 55.8)
+
+A1. envCielCalc : 3 appels dans la course 1 (1.8 s, 1.7 s, 1.8 s), 1.2 s (la chauffe) + 2 remplaces dans la course 4
+    mesure directe, graine 990000 : 42.7 s -> 39 s (-3.7 s) avec 2 appels remplaces ; avec la chauffe en plus : 12.8 % de la course
+    graine 990740 (estime) : 5.8 % (appels au cout de sa chauffe) a 7.5 % (au cout moyen de la course 1)
+
+A2. un processus qui joue plusieurs courses : ouvrir = 6732 ms sur 42676 (course 2), 5232 sur 58342 (course 4)
+
+A3. naissances de la generation 1 qui conduisent comme un parent sur toutes leurs graines : 1 sur 6 -> 12 courses sur 312
+
+A4. compilation du premier niveau du jeu : 264 ms a froid, 9 ms avec le cache (2.7 Mo)
+
+A5. fin de generation 0 : au plus 30 s de travailleurs inoccupes sur 16480 -> 0.2 % sur le Xeon
+
+A6. ramasse-miettes : 0,4 % (course 1) et 1,3 % (course 4) du temps : rien a gagner avec les options de memoire de node (lire profils/course*-lecture.txt)
+
+TABLEAU (part du temps d'une course ; gain sur une generation de 312 courses a 143.8 min)
+  A1 ciel reflete remplace par des faces noires (envCielCalc)          9.3 %  (5.8 % a 12.8 %)  -> 13.3 min par generation  [a] 2 courses identiques au bit pres ; nouvelle epoque (fichier du simulateur)
+  A2 plusieurs courses par processus (ouvrir paye une fois)           12.4 %  (9.0 % a 15.8 %)  -> 17.8 min par generation  [a SI prouve] AUJOURD'HUI FAUX sur 2 maps sur 7 (ml/reel/README.md, 25/11) : a reparer d'abord
+  A3 ne pas rejouer un enfant dont seuls des genes inertes ont change   3.8 %  (1.9 % a 3.8 %)  -> 5.5 min par generation  [a (preuve gene par gene)] 1 cas observe sur 6 naissances ; INTERFACES.md § 9.5 l'estime a ~4 %
+  A4 cache de code V8 du jeu (premier niveau)                          0.6 %  (0.6 % a 1.8 %)  -> 0.9 min par generation  [a] les fonctions compilees a la demande ne sont pas mesurees (x3 au plus, suppose)
+  A5 lancer les courses les plus longues d'abord                       0.2 %  (0.2 % a 3.0 %)  -> 0.3 min par generation  [a (l'ordre ne change aucune course)] 0,2 % mesure sur le Xeon ; jusqu'a ~3 % suppose sur un PC a 12-16 travailleurs
+
+  cumul des (a) sans A2 : 13.4 % -> 124.4 min par generation (150.4 courses/h au lieu de 130.2)
+  cumul avec A2 (si on le rend exact) : 24.2 % -> 109.1 min (171.7 courses/h) ; deux fois plus = 50 % : pas atteint par les (a)

@@ -1,0 +1,5 @@
+Copie figee de la vraie evolution (dossier etat\ de l'essai lance le 27/11 sur le Xeon, code du commit e2ea8d2c9), lue le 27/11/2026 a 23:16:26.
+courses-2026-48.jsonl : 566 lignes (gen. 0 : 240 courses d'entrainement + 40 de coffre ; gen. 1 : 286 courses sur 312, en cours)
+generations.jsonl : 1 ligne (la gen. 0) ; population.json : la gen. 1 (etape "courses", 26 vivants).
+sortie.log a ete lu mais pas garde (il contient le chemin du dossier de l'utilisateur, et aucun script ne s'en sert).
+Rien n'a ete ecrit ni lance dans le dossier de l'essai.

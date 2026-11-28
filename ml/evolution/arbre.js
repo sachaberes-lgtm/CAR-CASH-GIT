@@ -18,7 +18,8 @@ let C=null;
 try{C=require('./commun');}catch(e){C=null;}
 let Gn=null;
 function genome(){if(Gn===null){try{Gn=require('./genome');}catch(e){Gn=false;}}return Gn||null;}
-/* (27/11/2026, l'integrateur) un genome v:1 relu des journaux (morts.jsonl, ou population.json d'avant les gestes) est migre en v:2
+/* (27/11/2026, l'integrateur) un genome v:1 relu des journaux (morts.jsonl, ou population.json d'avant les gestes) est migre (en v:3 depuis le
+   portage du 28/11, comme un v:2)
    (les 21 genes des gestes a leur naissance) : sinon l'enfant v:2 d'un parent mort v:1 montrait 21 changements « undefined -> naissance ».
    migrer change l'objet lu en place ; il n'est jamais reecrit. */
 function migre(g){const G=genome();if(G&&typeof G.migrer==='function'){try{G.migrer(g);}catch(e){}}return g;}
@@ -71,7 +72,16 @@ const MOTS={
   coupDecor:'coups de nitro permis aussi sur les maps à décor',
   relacheOn:'geste : garder la nitro un instant après le décollage',relacheT:'combien de temps on garde la nitro après le décollage',
   suitOn:'geste : laisser la voiture finir sa glisse à la pose',suitDerive:'durée pendant laquelle on suit la glisse',
-  suitMarge:'temps de plus avant de revenir à la ligne'};
+  suitMarge:'temps de plus avant de revenir à la ligne',
+  /* (28/11/2026, tache « portage ») les 14 genes des apports de la boucle payante (notes/portage.md) */
+  fuirVite:'apport c0026 : quitter tout de suite une trajectoire qui mène sous la route',
+  bordOn:'apport c0064 : décoller nitro allumée quand le bord arrive',bordNitro:'temps avant le bord où l\'on garde la nitro',
+  bordJauge:'jauge minimale pour décoller nitro allumée',
+  largeOn:'apport c0072 : des figures dans les vols subis bien partis',largeHaut:'hauteur minimale pour ces figures',
+  largeT1:'temps avant la pose pour la première de ces figures',largeT2:'temps avant la pose pour les suivantes',
+  largeAxe:'angle d\'arrivée maximal pour ces figures',largeAir:'temps de vol qui doit rester pour ces figures',largeMax:'figures au plus dans un tel vol',
+  libreOn:'apport c0087 : garder la nitro plus longtemps dans les virages sans décor',nitroLibreK:'tolérance de virage de la nitro déjà allumée',
+  tenirLibre:'excès de vitesse permis à la nitro déjà allumée'};
 function motDe(cle){
   if(MOTS[cle])return MOTS[cle];
   let m=/^raccCartes_(.+)$/.exec(cle);if(m)return 'raccourcis permis sur la map '+m[1];
@@ -125,6 +135,11 @@ function modele(cfg,o){
   /* les sacres : validations.jsonl, et les evenements « SACRE : <id> » (une ligne de validation perdue ne fait pas oublier un champion) */
   const sacres=new Map(),ajSacre=(id,g)=>{if(!id)return;const L=sacres.get(id)||[];if(L.indexOf(g)<0)L.push(g);sacres.set(id,L);};
   for(const v of (D.validations||[]))if(v&&v.usage==='validation'&&v.sacre===true)ajSacre(v.meneur,v.generation);
+  /* (28/11/2026, lot « sacre ») comment chaque sacre a ete gagne, en clair : « sacré au 3e regard, sur 48 graines » (validation sequentielle) */
+  const sacresClair=new Map();
+  for(const v of (D.validations||[]))if(v&&v.usage==='validation'&&v.sacre===true&&v.meneur){
+    const t=ET.regardsClair(v,{accents:true});if(!t)continue;
+    const Lc=sacresClair.get(v.meneur)||[];Lc.push('génération '+v.generation+' : '+t);sacresClair.set(v.meneur,Lc);}
   for(const g of G)for(const e of (g.evenements||[])){const m=/^SACRE : ([0-9a-f]{6,40})/i.exec(String(e));if(m)ajSacre(m[1],g.generation);}
   /* l'ordre : par naissance, le temoin en tete, puis l'ordre ou les journaux les citent */
   const L=[...P.values()].sort((a,b)=>(a.ne-b.ne)||((a.id===temoin?0:1)-(b.id===temoin?0:1))||(a.seq-b.seq));
@@ -143,8 +158,8 @@ function modele(cfg,o){
     for(let v=0;v<finVoie.length;v++)if(finVoie[v]<x.ne&&(choix<0||Math.abs(v-pref)<Math.abs(choix-pref)))choix=v;
     if(choix<0){choix=finVoie.length;finVoie.push(0);}
     finVoie[choix]=Math.max(fin,x.ne);voies.set(x.id,choix);}
-  return {individus:L,index:idx,temoin,champion,meneur,sacres,lignee,aEnfants,voies,nVoies:finVoie.length,generation:gCour,
-    generations:G,pop,donnees:D};}
+  return {individus:L,index:idx,temoin,champion,meneur,sacres,sacresClair,lignee,aEnfants,voies,nVoies:finVoie.length,generation:gCour,
+    generations:G,pop,donnees:D,temoinDit:ET.temoinClair(pop)};}
 
 /* ===== CE QUI A CHANGE PAR RAPPORT AU PARENT (27/11/2026) =====
    -> un tableau d'entrees [indiceGene, avant, apres, deP2?] (deP2 = 1 : la valeur vient du second parent d'un croisement) ;
@@ -188,6 +203,7 @@ function donneesPage(M,o){
       M.voies.get(x.id),dr,r4(n.F),r4(fini(n.ahat)?n.ahat:n.a),r4(n.E),fini(n.n)?n.n:null,r4(n.se_F),x.raison||null,difference(x,M,GENES,posGene),
       fini(x.noteG)?x.noteG:null,x.parents.filter(p=>!M.index.has(p))];});
   const sacres={};for(const [id,L] of M.sacres)if(M.index.has(id))sacres[M.index.get(id)]=L.slice().sort((a,b)=>a-b);
+  const sacresClair={};if(M.sacresClair)for(const [id,L] of M.sacresClair)if(M.index.has(id))sacresClair[M.index.get(id)]=L.slice();   /* (28/11, lot « sacre ») */
   /* les reperes de l'axe : nouvelle epoque, nouvelle phase */
   const reperes=[];let ep=null,ph=null;
   for(const g of M.generations){
@@ -198,9 +214,9 @@ function donneesPage(M,o){
   for(let i=reperes.length-1;i>0;i--)if(reperes[i][0]===reperes[i-1][0]){reperes[i-1][1]+=' · '+reperes[i][1];reperes.splice(i,1);}
   const nes=M.individus.length,morts=M.individus.filter(x=>!x.vivant).length,vivants=nes-morts;
   return {g:M.generation,detail:o.detail||60,voies:M.nVoies,genes:GENES,types:TYPES,mots:GENES.map(motDe),tetes:TETES,
-    noeuds,sacres,reperes,chiffres:{generations:M.generations.length,nes,morts,vivants,sacres:[...M.sacres.values()].reduce((s,L)=>s+L.length,0)},
+    noeuds,sacres,sacresClair,reperes,chiffres:{generations:M.generations.length,nes,morts,vivants,sacres:[...M.sacres.values()].reduce((s,L)=>s+L.length,0)},
     champion:M.index.has(M.champion)?M.index.get(M.champion):-1,temoin:M.index.has(M.temoin)?M.index.get(M.temoin):-1,
-    meneur:M.meneur&&M.index.has(M.meneur)?M.index.get(M.meneur):-1};}
+    meneur:M.meneur&&M.index.has(M.meneur)?M.index.get(M.meneur):-1,temoinDit:M.temoinDit||'pilote-voltige (c0025)'};}
 
 /* ===== LE PROGRAMME DE LA PAGE (27/11/2026) =====
    Ecrit ici comme une fonction ordinaire, recopiee telle quelle dans la page (programme.toString()). Hors navigateur (tests : vm, sans document),
@@ -241,7 +257,7 @@ function programme(){
     h.push('<h3>Pilote <span class="code">'+esc(a[ID])+'</span> '+badges.join(' ')+'</h3>');
     const inc=(a[PINC]||[]).map(p=>'<span class="code">'+esc(String(p).slice(0,8))+'</span>');
     const p1=a[P1]>=0?lien(a[P1]):(inc[0]||'un parent inconnu'),p2=a[P2]>=0?lien(a[P2]):(inc[1]||'un parent inconnu');
-    if(o==='temoin')h.push('<p><b>Le témoin</b> : pilote-voltige, le pilote écrit à la main, tel qu\'il est. Il n\'est jamais modifié ni renvoyé : '+
+    if(o==='temoin')h.push('<p><b>Le témoin</b> : '+esc(D.temoinDit||'pilote-voltige (c0025)')+', le pilote de départ, tel qu\'il est. Il n\'est jamais modifié ni renvoyé : '+
       'c\'est le mètre étalon. Tous les autres descendent de lui.</p>');
     else if(o==='g0')h.push('<p>Né à la <b>génération '+a[NE]+'</b>, <b>mutant de départ</b> : une copie de '+p1+' (le témoin) dont quelques réglages ont été changés au hasard.</p>');
     else if(o==='mutation')h.push('<p>Né à la <b>génération '+a[NE]+'</b> par <b>mutation</b> de '+p1+' : une copie dont un ou quelques réglages ont été changés au hasard.</p>');
@@ -279,7 +295,8 @@ function programme(){
     const R={renvoi:'sa note F était parmi les plus basses',pannes:'renvoyé d\'office : pannes de cerveau','non-mesuree':'renvoyé d\'office : deux courses ratées dans la même génération'};
     if(a[FIN]>=0)h.push('<p>Renvoyé à la <b>génération '+a[FIN]+'</b>'+(a[RAISON]?' ('+esc(R[a[RAISON]]||a[RAISON])+')':'')+', après '+(a[FIN]-a[NE]+1)+' génération'+(a[FIN]-a[NE]?'s':'')+' de vie.</p>');
     else h.push('<p><b>Encore en vie</b> à la génération '+D.g+(o==='temoin'?'':' ('+(D.g-a[NE]+1)+' génération'+(D.g-a[NE]?'s':'')+' de vie)')+'.</p>');
-    const S=D.sacres[i];if(S&&S.length)h.push('<p>Sacré champion à la génération '+S.join(', ')+' : il a prouvé sur des courses neuves qu\'il faisait mieux que le champion d\'alors.</p>');
+    const S=D.sacres[i],SC=D.sacresClair&&D.sacresClair[i];
+    if(S&&S.length)h.push('<p>Sacré champion à la génération '+S.join(', ')+' : il a prouvé sur des courses neuves qu\'il faisait mieux que le champion d\'alors'+(SC&&SC.length?' ('+esc(SC.join(' ; '))+')':'')+'.</p>');
     const E2=enfants[i];
     if(E2.length)h.push('<p>'+E2.length+' enfant'+(E2.length>1?'s':'')+' : '+E2.slice(0,40).map(lien).join(' ')+(E2.length>40?' …':'')+'</p>');
     else h.push('<p class="doux">Aucun enfant.</p>');
@@ -396,7 +413,7 @@ function dateFr(ms){
   const d=new Date(ms);if(isNaN(d))return '–';const p=k=>String(k).padStart(2,'0');
   return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear()+' à '+p(d.getHours())+' h '+p(d.getMinutes());}
 const LEGENDE=[
-  ['<path class="pt o0" d="M8 2l6 6-6 6-6-6z"/>','le témoin (pilote-voltige, jamais modifié)'],
+  ['<path class="pt o0" d="M8 2l6 6-6 6-6-6z"/>','le témoin (le pilote de départ, jamais modifié)'],
   ['<rect class="pt o1" x="3" y="3" width="10" height="10"/>','mutant de départ (génération 0)'],
   ['<circle class="pt o2" cx="8" cy="8" r="5"/>','mutation : une copie changée d\'un parent'],
   ['<circle class="pt o3 anneau" cx="8" cy="8" r="4.3"/>','croisement : le mélange de deux parents'],

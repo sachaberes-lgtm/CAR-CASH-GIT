@@ -1,0 +1,11 @@
+gen. 0 : S = 2.61 ; E moyen 0.91 ; sigma (gen. 0) 2.92
+  k=2 : moyenne des b des 2 premieres graines (le decalage de regles.js) -0.07 ; renvois a c = 2 : 0/19 ; plus basse borne - S 1.31
+  k=3 : moyenne des b des 3 premieres graines (le decalage de regles.js) 0.54 ; renvois a c = 2 : 0/19 ; plus basse borne - S 0.54
+  k=4 : moyenne des b des 4 premieres graines (le decalage de regles.js) 0.88 ; renvois a c = 2 : 1/19 ; plus basse borne - S -0.46
+  k=6 : moyenne des b des 6 premieres graines (le decalage de regles.js) -0.26 ; renvois a c = 2 : 0/19 ; plus basse borne - S 0.60
+gen. 1 : 6 enfants ; ordre des graines 944780 929314 913293 934531 936011 917400 ...
+  k=2 : S (meme ajustement) 2.50, E moyen des anciens 0.93 ; a_k - 4E : d361 0.59, 9627 1.09, 9ae0 4.09, 5a29 2.09, 9e65 2.09, 92bc 1.59 ; renvois 0/6
+  k=3 : S (meme ajustement) 2.80, E moyen des anciens 0.92 ; a_k - 4E : d361 2.66, 9627 2.33, 9ae0 2.99, 5a29 0.33, 9e65 0.33, 92bc 2.33 ; renvois 0/6
+  k=4 : S (meme ajustement) 2.84, E moyen des anciens 0.92 ; a_k - 4E : d361 2.51, 9627 2.01, 9ae0 2.01, 5a29 0.76, 9e65 0.26, 92bc 1.76 ; renvois 0/6
+  k=6 : S (meme ajustement) 3.16, E moyen des anciens 0.91 ; a_k - 4E : d361 2.63, 9627 2.96, 9ae0 1.46, 5a29 0.79, 9e65 -0.04 RENVOYE, 92bc 2.79 ; renvois 1/6
+renvois precoces a c = 2 (sigma 3,19, comme l'etude) : k=2 : 0/25 · k=3 : 0/25 · k=4 : 1/25 · k=6 : 1/25 ; plus petite marge -0.59 palier

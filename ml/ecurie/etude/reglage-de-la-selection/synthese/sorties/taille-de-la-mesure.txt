@@ -1,0 +1,35 @@
+COMBIEN D'ENFANTS POUR VOIR τ (moitie contre moitie, enfant − parent apparie, s = 4,33 par graine)
+controle : reference commune (s = 3,26), n = 12, τ = 1 -> r = 0.530 (effets/ § 1 attend ≈ 0,56 avec les erreurs-types reelles de chaque mutant)
+
+n graines par moitie | τ vise | r attendu | enfants m (2 erreurs-types, 8 fois sur 10) | courses en plus si on les jouait expres (m × 2n, parent deja joue) | puissance simulee a ce m (2 000 tirages)
+--- s = 3.26 : enfant juge contre une reference commune (le modele pilote + graine, ou le meme temoin pour tous)
+                   8 |    0.3 |     0.063 |   1948 |   31168 | 0.790
+                   8 |    0.5 |     0.158 |    311 |    4976 | 0.797
+                   8 |    0.7 |     0.269 |    106 |    1696 | 0.804
+                   8 |    1.0 |     0.429 |     41 |     656 | 0.820
+                  12 |    0.3 |     0.092 |    921 |   22104 | 0.785
+                  12 |    0.5 |     0.220 |    160 |    3840 | 0.800
+                  12 |    0.7 |     0.356 |     60 |    1440 | 0.824
+                  12 |    1.0 |     0.530 |     26 |     624 | 0.836
+                  24 |    0.3 |     0.169 |    273 |   13104 | 0.807
+                  24 |    0.5 |     0.361 |     58 |    2784 | 0.817
+                  24 |    0.7 |     0.525 |     27 |    1296 | 0.832
+                  24 |    1.0 |     0.693 |     14 |     672 | 0.853
+--- s = 4.33 : enfant − son propre parent
+                   8 |    0.3 |     0.037 |   5737 |   91792 | (trop grand, non simule)
+                   8 |    0.5 |     0.096 |    843 |   13488 | 0.794
+                   8 |    0.7 |     0.173 |    261 |    4176 | 0.805
+                   8 |    1.0 |     0.299 |     86 |    1376 | 0.804
+                  12 |    0.3 |     0.054 |   2644 |   63456 | (trop grand, non simule)
+                  12 |    0.5 |     0.138 |    411 |    9864 | 0.794
+                  12 |    0.7 |     0.239 |    136 |    3264 | 0.820
+                  12 |    1.0 |     0.390 |     50 |    1200 | 0.799
+                  24 |    0.3 |     0.103 |    734 |   35232 | 0.807
+                  24 |    0.5 |     0.242 |    132 |    6336 | 0.790
+                  24 |    0.7 |     0.385 |     51 |    2448 | 0.825
+                  24 |    1.0 |     0.561 |     23 |    1104 | 0.823
+
+Lecture : dans la vraie evolution (A, 12 graines), chaque enfant joue 12 graines a sa naissance et 12 neuves a la generation suivante
+(il ne peut pas etre renvoye avant) : la mesure moitie contre moitie est GRATUITE, 6 enfants par generation, jugee contre le modele
+pilote + graine (reference commune). A 8 graines (l'economie), n = 8. Sous B4, la seconde moitie d'un enfant n'a plus que 4 graines
+(il est devenu un ancien) : la mesure ralentit (non chiffre ici : moities inegales).

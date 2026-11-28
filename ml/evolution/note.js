@@ -149,7 +149,12 @@ function comparer(lignesA,lignesB,o){
   /* (2026-11-27, le correcteur ; relecture statistique : avec 1 se, ~18 % de faux sacres quand le meneur ne vaut pas mieux) le seuil du critere (a)
      vient de cfg.validation.seuilSacre (2 par defaut : ~2 a 3 % de faux sacres). Ecart a SPECIFICATION.md § 7.6, dit dans INTERFACES.md § 2.6. */
   const seuil=o.seuilSacre!=null?o.seuilSacre:(o.cfg&&o.cfg.validation&&o.cfg.validation.seuilSacre!=null?o.cfg.validation.seuilSacre:2);
-  const criteres={a:p.dF>seuil*se_dF,b:p.dP>-1*se_dPalier,c:p.dE<1*se_dE};
+  /* (28/11/2026, lot « sacre » ; l'etude sacre/ § 4, la decision D1 de la synthese) les multiples des criteres de garde (b) et (c) viennent de
+     cfg.validation.seuilB et seuilC (o.seuilB / o.seuilC les remplacent) ; 1 par defaut, le comportement d'avant. Les passer a 2 est une decision de
+     Sacha (le taux de change palier contre ressemblance) : config.json les laisse a 1. */
+  const cv=o.cfg&&o.cfg.validation||{};
+  const sB=o.seuilB!=null?o.seuilB:(cv.seuilB!=null?cv.seuilB:1),sC=o.seuilC!=null?o.seuilC:(cv.seuilC!=null?cv.seuilC:1);
+  const criteres={a:p.dF>seuil*se_dF,b:p.dP>-sB*se_dPalier,c:p.dE<sC*se_dE};
   return {graines:n,dF:p.dF,se_dF,dPalier:p.dP,se_dPalier,dE:p.dE,se_dE,criteres,sacre:criteres.a&&criteres.b&&criteres.c};}
 
 /* ===== LES COURSES DE L'ETUDE DU BRUIT (courses-0.json) -> lignes ===== */

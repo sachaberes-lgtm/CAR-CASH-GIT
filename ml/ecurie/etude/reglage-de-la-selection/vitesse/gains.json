@@ -1,0 +1,46 @@
+{
+ "base_s": 110.6,
+ "generation_min": 143.8,
+ "gains": [
+  {
+   "nom": "A1 ciel reflete remplace par des faces noires (envCielCalc)",
+   "part": 0.09277130069985695,
+   "bas": 0.05800672643486232,
+   "haut": 0.12753587496485158,
+   "cat": "a",
+   "note": "2 courses identiques au bit pres ; nouvelle epoque (fichier du simulateur)"
+  },
+  {
+   "nom": "A2 plusieurs courses par processus (ouvrir paye une fois)",
+   "part": 0.12371242393362632,
+   "bas": 0.089678104967262,
+   "haut": 0.15774674289999063,
+   "cat": "a SI prouve",
+   "note": "AUJOURD'HUI FAUX sur 2 maps sur 7 (ml/reel/README.md, 25/11) : a reparer d'abord"
+  },
+  {
+   "nom": "A3 ne pas rejouer un enfant dont seuls des genes inertes ont change",
+   "part": 0.038461538461538464,
+   "bas": 0.019230769230769232,
+   "haut": 0.038461538461538464,
+   "cat": "a (preuve gene par gene)",
+   "note": "1 cas observe sur 6 naissances ; INTERFACES.md § 9.5 l'estime a ~4 %"
+  },
+  {
+   "nom": "A4 cache de code V8 du jeu (premier niveau)",
+   "part": 0.0059752554128784325,
+   "bas": 0.0059752554128784325,
+   "haut": 0.017925766238635298,
+   "cat": "a",
+   "note": "les fonctions compilees a la demande ne sont pas mesurees (x3 au plus, suppose)"
+  },
+  {
+   "nom": "A5 lancer les courses les plus longues d'abord",
+   "part": 0.0018203883495145632,
+   "bas": 0.0018203883495145632,
+   "haut": 0.03,
+   "cat": "a (l'ordre ne change aucune course)",
+   "note": "0,2 % mesure sur le Xeon ; jusqu'a ~3 % suppose sur un PC a 12-16 travailleurs"
+  }
+ ]
+}
