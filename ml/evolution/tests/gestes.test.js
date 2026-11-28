@@ -89,7 +89,7 @@ function inerte(){const g=copie(T);let i=0;for(const b of Gn.GESTES)if(b.type===
 
 /* ===== (g1) LA TABLE ===== */
 test('(g1) 21 genes de plus, en fin de BORNES : 6 drapeaux a 0, 15 reglages, naissances dans leurs bornes ; le temoin les a a leur naissance',()=>{
-  vrai(Gn.VERSION===3,'version '+Gn.VERSION);   /* (28/11, portage) v:3 : les 14 genes du portage viennent apres les gestes (tests/portage.test.js) */
+  vrai(Gn.VERSION===4&&Gn.BORNES.length===129,'version '+Gn.VERSION+', '+Gn.BORNES.length+' genes');   /* (28/11, portage) les 14 genes du portage viennent apres les gestes ; (28/11, lot « genes v4 ») v:4, 129 genes */
   vrai(Gn.GESTES.length===21,'gestes '+Gn.GESTES.length);
   const fin=Gn.BORNES.slice(86,107).map(b=>b.cle);vrai(JSON.stringify(fin)===JSON.stringify(Gn.GESTES.map(b=>b.cle)),'les gestes ne sont pas juste apres les 86 genes v:1');
   vrai(JSON.stringify(Gn.CLES_V1)===JSON.stringify(Gn.BORNES.slice(0,86).map(b=>b.cle)),'les 86 genes v:1 ont bouge');
@@ -105,10 +105,12 @@ test('(g1) 21 genes de plus, en fin de BORNES : 6 drapeaux a 0, 15 reglages, nai
   return Gn.BORNES.length+' genes, '+Gn.CONTINUS.length+' reels ; drapeaux '+dr.map(b=>b.cle).join(', ');});
 
 /* ===== (g2) LA MIGRATION ===== */
-/* le genome.js d'avant les gestes, relu dans git (HEAD), pour ecrire de vrais genomes v:1 ; null si git ne le donne pas */
+/* le genome.js d'avant les gestes, relu dans git, pour ecrire de vrais genomes v:1 ; null si git ne le donne pas.
+   (28/11/2026, lot « genes v4 ») EPINGLE au commit e2ea8d2c9 (v:1, 86 genes) au lieu de HEAD, qui avance : la preuve ne saute plus (un SAUTE est un echec) */
+const COMMIT_V1='e2ea8d2c9';
 function genomeV1(){
-  try{const t=cp.execFileSync('git',['show','HEAD:ml/evolution/genome.js'],{cwd:D,encoding:'utf8',stdio:['ignore','pipe','ignore']});
-    if(t.indexOf("if(BORNES.length!==86")<0)return null;   /* HEAD a deja les gestes : rien a comparer */
+  try{const t=cp.execFileSync('git',['show',COMMIT_V1+':ml/evolution/genome.js'],{cwd:D,encoding:'utf8',stdio:['ignore','pipe','ignore']});
+    if(t.indexOf("if(BORNES.length!==86")<0)return null;   /* ce n'est pas le genome.js v:1 : les tests (g2) echouent */
     const dos=path.join(D,'essais','gestes');fs.mkdirSync(dos,{recursive:true});
     const f=path.join(dos,'genome-v1.js');
     C.ecrireAtomique(f,t.replace(/\r\n/g,'\n').replace("require('./commun')","require('../../commun')").replace("require('./graines')","require('../../graines')"));
@@ -134,7 +136,8 @@ test('(g2) un genome v:1 de tests/etat-exemple/ se lit : gestes a leur naissance
   vrai(JSON.stringify(g1.WV)===JSON.stringify(avant.WV)&&JSON.stringify(g1.WS)===JSON.stringify(avant.WS),'tetes changees');
   const idApres=Gn.idDe(g1),idSansToucher=Gn.idDe(copie(avant));
   vrai(idApres===idSansToucher,'id du v:1 lu sans migrer ('+idSansToucher+') et apres ('+idApres+')');
-  if(idAvant)vrai(idApres===idAvant,'identifiant change par la migration : '+idAvant+' -> '+idApres);
+  vrai(V1,'git ne donne pas le genome.js v:1 du commit '+COMMIT_V1);
+  vrai(idApres===idAvant,'identifiant change par la migration : '+idAvant+' -> '+idApres);
   const t=Gn.ecrirePilote(g1,{cfg});vrai(/lacheOn:0,.*slalomOn:0,.*coupOn:0,.*relacheOn:0,.*suitOn:0,/.test(t),'gestes allumes dans le pilote migre');
   charger('evolution.js',{source:t});
   /* un genome v:1 non conforme (une cle manque) n'est pas migre : valider dit son defaut */
@@ -142,8 +145,8 @@ test('(g2) un genome v:1 de tests/etat-exemple/ se lit : gestes a leur naissance
   /* allumer un geste change l'identifiant */
   const on=copie(g1);on.A.coupOn=1;vrai(Gn.idDe(on)!==idApres,'un geste allume garde l\'identifiant');
   return 'exemple '+ex.id+' ('+Object.keys(ex.genome.A).length+' genes) ; id '+idApres+(idAvant?' = celui du genome.js d\'avant':' (genome.js d\'avant introuvable dans git : comparaison sautee)');});
-test('(g2) 200 mutants ecrits par le genome.js d\'avant (git HEAD) : lus, memes identifiants, mutables',()=>{
-  if(!V1)return 'SAUTE : git ne donne pas le genome.js d\'avant les gestes';
+test('(g2) 200 mutants ecrits par le genome.js d\'avant (git e2ea8d2c9) : lus, memes identifiants, mutables',()=>{
+  vrai(V1,'git ne donne pas le genome.js v:1 du commit '+COMMIT_V1);
   const rng=Gr.mulberry32(4242),T1=V1.genomeTemoin(cfg);let g=T1,n=0;
   vrai(V1.idDe(T1)===Gn.idDe(T),'le temoin a change d\'identifiant : '+V1.idDe(T1)+' -> '+Gn.idDe(T));
   for(let i=0;i<200;i++){

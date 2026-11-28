@@ -81,7 +81,15 @@ const MOTS={
   largeT1:'temps avant la pose pour la première de ces figures',largeT2:'temps avant la pose pour les suivantes',
   largeAxe:'angle d\'arrivée maximal pour ces figures',largeAir:'temps de vol qui doit rester pour ces figures',largeMax:'figures au plus dans un tel vol',
   libreOn:'apport c0087 : garder la nitro plus longtemps dans les virages sans décor',nitroLibreK:'tolérance de virage de la nitro déjà allumée',
-  tenirLibre:'excès de vitesse permis à la nitro déjà allumée'};
+  tenirLibre:'excès de vitesse permis à la nitro déjà allumée',
+  /* (28/11/2026, lot « genes v4 », l'integrateur) les 8 genes v4 (notes/genes-v4.md § 1) */
+  sortieOn:'idée v4 : garder la nitro quand seul le vol plané sauve une sortie (maps à décor)',
+  sortieT:'temps avant le bord où l\'on prépare la sortie planée',sortieJauge:'jauge minimale pour préparer la sortie planée',
+  rienOn:'idée v4 : lâcher le volant en vol quand « ne rien faire » se pose plus droit',
+  rienEcart:'combien plus droit « ne rien faire » doit se poser',
+  loiFidele:'idée v4 : juger (1) ou aussi piloter (2) le vol sur la loi exacte des yeux (0, 1 ou 2)',
+  secoursOn:'idée v4 : deux trajectoires de secours quand toutes les autres meurent',
+  chancePalierMin:'palier à partir duquel la seconde chance est prise (figé : décision de Sacha)'};
 function motDe(cle){
   if(MOTS[cle])return MOTS[cle];
   let m=/^raccCartes_(.+)$/.exec(cle);if(m)return 'raccourcis permis sur la map '+m[1];

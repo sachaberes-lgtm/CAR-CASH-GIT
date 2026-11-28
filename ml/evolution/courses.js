@@ -6,8 +6,9 @@
    coupee du fichier avant toute ecriture : sinon la ligne suivante s'y collerait).
    Seul ecrivain de courses-*.jsonl et de pilotes/<shaPilote12>.js dans son dossier d'etat.
    Ligne de commande : node ml/evolution/courses.js <pilote.js> [--graines 12] [--depart 910000] [--tmax 300] [--travailleurs 4]
-                       [--etat essais/etat-courses] [--config f.json] [--chien 1200] [--epoque f.json] [--bavard]
-     --chien : le chien de garde en s (remplace cfg.chienDeGarde_s) ; --epoque : une epoque figee, lue d'un fichier (tests) ; --bavard : tout le journal */
+                       [--etat essais/etat-courses] [--config f.json] [--chien 1200] [--epoque f.json] [--bavard] [--carte grotte] [--tenue]
+     --chien : le chien de garde en s (remplace cfg.chienDeGarde_s) ; --epoque : une epoque figee, lue d'un fichier (tests) ; --bavard : tout le journal
+     --carte : la premiere map imposee (une de cfg.cartesTirage) ; --tenue : la meme carte a chaque portail (28/11/2026, lot « genes v4 ») */
 'use strict';
 const fs=require('fs'),path=require('path'),os=require('os'),{fork}=require('child_process');
 const C=require('./commun');
@@ -48,9 +49,30 @@ function epoque(cfg,o){
   return {courses,note,composants};
 }
 
+/* ===== LA MAP IMPOSEE DANS LA TACHE (28/11/2026, lot « genes v4 », notes/genes-v4.md § 5) =====
+   UNE seule mise en forme de la carte d'une tache : une chaine non vide, sinon null (absente, null et '' = pas de carte). Elle sert a la cle, a
+   l'envoi a l'enfant et a faireLigne, nulle part ailleurs. carteTenue (au-dela du contrat : la meme carte a chaque portail, enfant.js
+   tenirLaCarte) ne vaut qu'avec une carte et seulement si elle vaut exactement true. */
+function carteDe(t){return t&&typeof t.carte==='string'&&t.carte!==''?t.carte:null;}
+function tenueDe(t){return !!(t&&t.carteTenue===true&&carteDe(t));}
+/* la cle : sans carte, EXACTEMENT celle d'avant ce lot ; avec carte, le suffixe |carte:<carte> (et |tenue pour une carte tenue). Aucun code ne
+   decoupe la cle : le suffixe ne casse rien ; une course imposee et une course libre n'ont jamais la meme cle. */
 function cle(t,ep){
   const k=ep.composants;
-  return t.shaPilote+'|'+t.graine+'|'+t.tmax+'|'+k.jeu_sha+'|'+k.simulateur+'|'+k.node+'|'+ep.courses;
+  const c=carteDe(t);
+  return t.shaPilote+'|'+t.graine+'|'+t.tmax+'|'+k.jeu_sha+'|'+k.simulateur+'|'+k.node+'|'+ep.courses+(c?'|carte:'+c+(tenueDe(t)?'|tenue':''):'');
+}
+/* une course a carte dont le jeu a joue une autre premiere map (une carte qu'il ne connait pas est remplacee en silence par une carte tiree :
+   continuite.js, sfImpose ; le canyon n'existe que si CANYON_OK) n'est PAS mesuree. Carte tenue : toutes les maps traversees doivent etre elle.
+   Rend la raison, ou null. Un echec definitif : rejouer ne changerait rien (ni relance, ni second essai au lancement suivant). */
+const RAISON_CARTE=/^carte (imposee|tenue) non appliquee/;
+function raisonCarte(t,res){
+  const c=carteDe(t);
+  if(!c||!res)return null;
+  const L=Array.isArray(res.cartes)?res.cartes:[];
+  if(L[0]!==c)return 'carte imposee non appliquee (jouee sur '+(L.length?String(L[0]):'?')+')';
+  if(tenueDe(t)){const autres=L.filter(x=>x!==c);if(autres.length)return 'carte tenue non appliquee (jouee aussi sur '+[...new Set(autres.map(String))].join(', ')+')';}
+  return null;
 }
 
 function fichiersCourses(dossierEtat){
@@ -99,8 +121,10 @@ function trieur(){
   return {f:pourquoiEcarteeSecours,source:'secours'};
 }
 
+/* (28/11/2026, lot « genes v4 », notes/genes-v4.md § 4.4) les champs neufs vont A LA FIN : une ligne sans carte garde l'ordre de ses champs d'avant */
 const CHAMPS=['graine','tmax','palier','pieces','survie_s','cause','morts','vols','pannes','erreurs','derniereErreur','cerveau_ms_moy','yeuxTirages','mesures',
-  'jeu','jeu_sha','simulateur','node','fichiers_sha','empreinte','empreinteVues','empreinteTouches','ms'];
+  'jeu','jeu_sha','simulateur','node','fichiers_sha','empreinte','empreinteVues','empreinteTouches','ms',
+  'declenchements','cartes','causesMorts','chancePrise'];
 
 /* ---------- L'ORDONNANCEUR ---------- */
 function creer(o){
@@ -114,6 +138,12 @@ function creer(o){
   const doitArreter=o.doitArreter||function(){return false;},enPause=o.enPause||function(){return false;};
   const chien_ms=Math.max(1,+cfg.chienDeGarde_s||1200)*1000;
   const tri=trieur();
+  /* (28/11/2026, lot « genes v4 ») le dossier d'etat de la selection : une course a carte n'y va jamais (notes/genes-v4.md § 5 point 1) */
+  const memeDossier=(a,b)=>{const x=path.resolve(a),y=path.resolve(b);return process.platform==='win32'?x.toLowerCase()===y.toLowerCase():x===y;};
+  const dansLaSelection=!!cfg.dossierEtat&&memeDossier(dossierEtat,C.chemin(cfg,cfg.dossierEtat));
+  const cartesPermises=Array.isArray(cfg.cartesTirage)?cfg.cartesTirage.slice():[];
+  /* (tests seulement) le script de l'enfant ; par defaut enfant.js */
+  const scriptEnfant=o.enfant||ENFANT;
   const S={jouees:0,cache:0,nonMesurees:0,relancees:0,tuees:0,ms:0};
 
   /* le cache : lu UNE fois (cle -> lignes, ordre d'ecriture garde). (2026-11-27, le correcteur) seules les lignes de CETTE epoque des courses
@@ -147,6 +177,9 @@ function creer(o){
     const L=memoire.get(k)||[];
     const ok=L.filter(l=>l.mesuree===true);
     if(ok.length)return {ligne:ok[ok.length-1],fini:true};
+    /* (lot « genes v4 ») une carte que le jeu n'a pas appliquee : definitif des le premier essai */
+    const carteKo=L.filter(l=>l.mesuree===false&&RAISON_CARTE.test(String(l.raison||'')));
+    if(carteKo.length)return {ligne:carteKo[carteKo.length-1],fini:true};
     /* un echec d'environnement d'un lancement precedent ne compte pas : la cle sera rejouee */
     const ko=L.filter(l=>l.mesuree===false&&(!estEnv(l)||cetteFois.has(l)));
     if(ko.length>=2)return {ligne:ko[ko.length-1],fini:true};
@@ -166,6 +199,8 @@ function creer(o){
       essai:essai,mesuree:!raison,raison:raison||null,date:new Date().toISOString()};
     for(const c of CHAMPS)l[c]=res&&res[c]!==undefined?res[c]:null;
     l.graine=t.graine;l.tmax=t.tmax;
+    l.carte=carteDe(t);   /* (lot « genes v4 ») depuis la TACHE, comme graine et tmax ; null sans carte */
+    if(tenueDe(t))l.carteTenue=true;
     if(raison&&estEnv(l))l.env=true;
     return l;
   }
@@ -184,7 +219,7 @@ function creer(o){
     let c;
     try{
       ecrirePilote(t);
-      c=fork(ENFANT,[],{silent:true,windowsHide:true});
+      c=fork(scriptEnfant,[],{silent:true,windowsHide:true});
     }catch(e){x.fin(null);panne(e);return;}
     if(cfg.prioriteBasse){try{os.setPriority(c.pid,os.constants.priority.PRIORITY_BELOW_NORMAL);}catch(e){}}
     const v={c:c,k:x.k,tue:false,dur:false};vivants.add(v);
@@ -205,7 +240,7 @@ function creer(o){
         if(v.tue&&!(recu&&!recu.erreurFatale&&recu.palier!==undefined))raison='chien de garde';
         else if(!recu)raison='processus fini sans resultat (code '+code+(sig?', signal '+sig:'')+') '+err.replace(/\s+/g,' ').trim().slice(-300);
         else if(recu.erreurFatale)raison='chargement : '+recu.erreurFatale;
-        else{res=recu;raison=tri.f(res,ep.composants)||null;}
+        else{res=recu;raison=tri.f(res,ep.composants)||raisonCarte(t,res)||null;}
         S.jouees++;
         const l=faireLigne(t,x.k,x.essai,res,raison);
         /* les pannes de TOUS les essais de la tache (relecture statistique : « les pannes ne sont comptees que sur le dernier essai ») */
@@ -213,7 +248,7 @@ function creer(o){
         garder(l);
         if(raison)journal('course : graine '+t.graine+' NON MESUREE (essai '+x.essai+') : '+raison);
         const stop=arrete||doitArreter();
-        if(raison&&x.essai<2&&!stop){
+        if(raison&&x.essai<2&&!stop&&!RAISON_CARTE.test(raison)){
           S.relancees++;
           file.unshift({t:t,k:x.k,essai:x.essai+1,fin:x.fin,pannesAvant:l.pannesEssais});   /* la relance passe devant : la tache garde sa place */
         }else if(raison&&stop&&(x.essai<2||l.env)){
@@ -226,7 +261,7 @@ function creer(o){
     }
     c.on('exit',finir);
     c.on('error',function(e){err=(err+' '+String(e&&e.message||e)).slice(-600);setTimeout(function(){finir(null,null);},50);});
-    try{c.send({source:t.source,fichier:t.fichier||'evolution.js',graine:t.graine,tmax:t.tmax,regime:cfg.regime||'allege',complet:false});}
+    try{c.send({source:t.source,fichier:t.fichier||'evolution.js',graine:t.graine,tmax:t.tmax,regime:cfg.regime||'allege',complet:false,carte:carteDe(t),carteTenue:tenueDe(t)});}
     catch(e){err=(err+' envoi : '+String(e&&e.message||e)).slice(-600);try{c.kill('SIGKILL');}catch(x){}}
   }
 
@@ -251,6 +286,11 @@ function creer(o){
 
   function une(t){
     if(!t||typeof t.source!=='string'||!t.shaPilote||!(t.graine>=0)||!(t.tmax>0))return Promise.reject(new Error('courses : tache incomplete (source, shaPilote, graine, tmax)'));
+    /* (lot « genes v4 ») la carte : connue du tirage, et jamais dans l'etat de la selection */
+    const carte=carteDe(t);
+    if(carte!==null&&cartesPermises.indexOf(carte)<0)return Promise.reject(new Error('courses : carte inconnue « '+carte+' » (cartesTirage : '+(cartesPermises.join(', ')||'aucune')+')'));
+    if(carte!==null&&dansLaSelection)return Promise.reject(new Error('courses : une course a carte imposee ne va pas dans l etat de la selection'));
+    if(t.carteTenue===true&&carte===null)return Promise.reject(new Error('courses : carteTenue sans carte'));
     const k=cle(t,ep);
     const ca=ligneCachee(k);
     if(ca&&ca.fini){
@@ -289,7 +329,7 @@ function creer(o){
   };
 }
 
-module.exports={epoque,cle,lireCourses,creer,reparerFins,pourquoiEcarteeSecours,FICHIERS_EPOQUE,estEnv};
+module.exports={epoque,cle,lireCourses,creer,reparerFins,pourquoiEcarteeSecours,FICHIERS_EPOQUE,estEnv,CHAMPS,carteDe,raisonCarte};
 
 /* ---------- LA LIGNE DE COMMANDE ---------- */
 if(require.main===module){
@@ -314,11 +354,15 @@ if(require.main===module){
     let coupe=0;
     process.on('SIGINT',function(){coupe++;if(coupe===1){dire('Ctrl+C : plus de lancement, on attend les courses en cours (encore Ctrl+C : on les tue)');ord.arreter({dur:false});}else{ord.arreter({dur:true}).then(()=>process.exit(1));}});
     const taches=[];
-    for(let i=0;i<NG;i++)taches.push({source,fichier:path.basename(fichier),shaPilote,id:'fichier:'+path.basename(fichier),graine:G0+37*i,tmax:TMAX,usage:'essai',generation:null});
+    const CARTE=opt('carte',null),TENUE=A.includes('--tenue');
+    if(A.includes('--carte')&&(!CARTE||CARTE.startsWith('--')))throw new Error('courses : --carte sans valeur');
+    for(let i=0;i<NG;i++){const t={source,fichier:path.basename(fichier),shaPilote,id:'fichier:'+path.basename(fichier),graine:G0+37*i,tmax:TMAX,usage:'essai',generation:null};
+      if(CARTE){t.carte=CARTE;if(TENUE)t.carteTenue=true;}
+      taches.push(t);}
     /* une ligne par course, des qu'elle est finie */
     const P=taches.map(t=>ord.demander([t]).then(L=>{const l=L[0];
       if(!l){dire('graine '+t.graine+' · non lancee (arret)');return l;}
-      dire('graine '+l.graine+' · palier '+String(l.palier).padStart(2)+' · survie '+String(l.survie_s).padStart(6)+' s · '+String(l.cause).padEnd(8)+' · '+(l.mesuree?'mesuree':'NON MESUREE ('+l.raison+')')+(l._cache?' · cache':'')+' · essai '+l.essai+' · empreinte '+l.empreinte);
+      dire('graine '+l.graine+(l.carte?' · carte '+l.carte+' (jouee sur '+(l.cartes||[]).join(' > ')+')':'')+' · palier '+String(l.palier).padStart(2)+' · survie '+String(l.survie_s).padStart(6)+' s · '+String(l.cause).padEnd(8)+' · '+(l.mesuree?'mesuree':'NON MESUREE ('+l.raison+')')+(l._cache?' · cache':'')+' · essai '+l.essai+' · empreinte '+l.empreinte);
       return l;}));
     Promise.all(P).then(function(L){
       const ok=L.filter(l=>l&&l.mesuree);

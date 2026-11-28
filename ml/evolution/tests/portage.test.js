@@ -29,9 +29,11 @@ const TEM={};for(const n of NOMS)TEM[n]=Gn.genomeTemoin(cfgDe(n));
 const T=TEM.c0025;
 
 /* ===== (p1) LA TABLE ===== */
-test('(p1) 14 genes de plus en fin de BORNES (apres les gestes) : 4 drapeaux a 0, 9 reels, 1 entier ; v:3 ; le temoin c0025 les a a leur naissance',()=>{
-  vrai(Gn.VERSION===3,'version '+Gn.VERSION);vrai(Gn.BORNES.length===121&&Gn.CONTINUS.length===88,Gn.BORNES.length+' genes, '+Gn.CONTINUS.length+' reels');
-  vrai(JSON.stringify(Gn.BORNES.slice(107).map(b=>b.cle))===JSON.stringify(Gn.PORTAGE.map(b=>b.cle)),'le portage n\'est pas en fin de BORNES');
+/* (28/11/2026, lot « genes v4 ») le portage reste aux index 107 a 120 ; les 8 genes v4 viennent apres lui (v:4, 129 genes, 91 reels : tests/genes-v4.test.js) */
+test('(p1) 14 genes de plus apres les gestes (index 107 a 120) : 4 drapeaux a 0, 9 reels, 1 entier ; le temoin c0025 les a a leur naissance',()=>{
+  vrai(Gn.VERSION===4,'version '+Gn.VERSION);vrai(Gn.BORNES.length===129&&Gn.CONTINUS.length===91,Gn.BORNES.length+' genes, '+Gn.CONTINUS.length+' reels');
+  vrai(JSON.stringify(Gn.CLES_V3)===JSON.stringify(Gn.BORNES.slice(0,121).map(b=>b.cle)),'les 121 genes v:3 ont bouge');
+  vrai(JSON.stringify(Gn.BORNES.slice(107,121).map(b=>b.cle))===JSON.stringify(Gn.PORTAGE.map(b=>b.cle)),'le portage n\'est pas aux index 107 a 120');
   vrai(JSON.stringify(Gn.BORNES.slice(86,107).map(b=>b.cle))===JSON.stringify(Gn.GESTES.map(b=>b.cle)),'les gestes ont bouge');
   vrai(JSON.stringify(Gn.CLES_V2)===JSON.stringify(Gn.BORNES.slice(0,107).map(b=>b.cle)),'les 107 genes v:2 ont bouge');
   const n={reel:0,drapeau:0,entier:0};for(const b of Gn.PORTAGE)n[b.type]++;
@@ -62,7 +64,9 @@ test('(p2) les six temoins : chaque sacre allume un drapeau de plus ou change un
 /* ===== (p3) LES DECISIONS ===== */
 const EX=require(path.join(D,'..','ecurie','etude','selection-naturelle','inventaire','vue-exemple.json'));
 const D10=['tenu','rien','gauche','droite','cabre','pique','plane','planeCabre','versRoute','versRoutePlane'];
-function essai(P,vue){const e0=P.erreurs,o=P.decide(vue);return {o,erreur:P.erreurs>e0?P.derniere:null};}
+/* (28/11/2026, lot « genes v4 ») les ordres sont compares SANS le champ declic (les compteurs de declenchements : l'enfant le retire avant piloter.js) */
+function sansDeclic(o){if(!o||typeof o!=='object'||!('declic' in o))return o;const r=Object.assign({},o);delete r.declic;return r;}
+function essai(P,vue){const e0=P.erreurs,o=P.decide(vue);return {o:sansDeclic(o),erreur:P.erreurs>e0?P.derniere:null};}
 /* un vol propre (10 rayons, sans cible) ; f(v, par) retouche la vue, par = les rayons par nom */
 function vueVol(f){const v=copie(EX.vol.vue),R=v.vol.radar.rayons.filter(r=>r.m!=='viser'&&r.m!=='viserPlane'),par={};for(const r of R)par[r.m]=r;
   v.vol.radar.rayons=D10.map(n=>par[n]);v.vol.cible=null;if(f)f(v,par);return v;}
@@ -130,7 +134,7 @@ function ancien(){
     delete require.cache[f];return {G:require(f),modele:lire('modele.js')};}catch(e){return null;}}
 const V2=ancien();
 test('(p4) 200 mutants ecrits par le genome.js d\'avant le portage : lus, memes identifiants, et leur pilote decide comme avant',()=>{
-  if(!V2)return 'SAUTE : git ne donne pas le genome.js du commit '+AVANT;
+  vrai(V2,'git ne donne pas le genome.js du commit '+AVANT+' (lot « genes v4 » : un SAUTE est un echec)');
   const rng=Gr.mulberry32(2811),T2=V2.G.genomeTemoin(cfg);let g=T2,n=0,vues=0;
   vrai(V2.G.idDe(T2)===Gn.idDe(T),'le temoin a change d\'identifiant : '+V2.G.idDe(T2)+' -> '+Gn.idDe(T));
   const quelques=[SUITES[0],SUITES[1],SUITES[2]].concat(SUITES.filter((s,i)=>i%9===0));
@@ -138,7 +142,7 @@ test('(p4) 200 mutants ecrits par le genome.js d\'avant le portage : lus, memes 
     g=V2.G.muter(i%7?g:T2,rng,{phase:['A','B','C'][i%3],cfg}).genome;
     const id2=V2.G.idDe(g),h=copie(g);
     const d=Gn.valider(h,cfg);vrai(d===null,'mutant '+i+' refuse : '+d);
-    vrai(h.v===3&&Object.keys(h.A).length===121,'mutant '+i+' pas migre');
+    vrai(h.v===Gn.VERSION&&Object.keys(h.A).length===Gn.BORNES.length,'mutant '+i+' pas migre');
     vrai(Gn.idDe(h)===id2,'mutant '+i+' : identifiant '+id2+' -> '+Gn.idDe(h));
     const e=Gn.muter(h,rng,{phase:'C',cfg}).genome;vrai(Gn.valider(e,cfg)===null,'enfant du mutant '+i);
     if(i%20===0){
@@ -146,7 +150,7 @@ test('(p4) 200 mutants ecrits par le genome.js d\'avant le portage : lus, memes 
       const a=decisions(Pa,quelques),b=decisions(Pn,quelques);
       for(let k=0;k<quelques.length;k++)for(let j=0;j<a[k].length;j++){vues++;vrai(JSON.stringify(a[k][j])===JSON.stringify(b[k][j]),'mutant '+i+' / '+quelques[k].nom+' vue '+j);}}
     n++;}
-  return n+' mutants v:2 : valides, migres en v:3, memes identifiants ; '+vues+' decisions comparees (ancien genome.js + ancien modele.js contre le nouveau)';});
+  return n+' mutants v:2 : valides, migres en v:'+Gn.VERSION+', memes identifiants ; '+vues+' decisions comparees (ancien genome.js + ancien modele.js contre le nouveau)';});
 
 /* ===== (p5) LES APPORTS SEULS, LES GESTES SUR c0101, L'INERTIE ===== */
 const DRAPEAUX_GESTES=['lacheOn','slalomOn','coupOn','relacheOn','suitOn'];
@@ -178,7 +182,7 @@ test('(p5) identifiants : un genome c0025 migre garde le sien ; allumer un appor
   /* un v:2 (107 genes) : les gestes allumes, le portage absent -> migre a sa naissance, meme sha que le v:2 entier */
   const v2={v:2,A:{},WV:T.WV.slice(),WS:T.WS.slice()};for(const k of Gn.CLES_V2)v2.A[k]=T.A[k];v2.A.coupOn=1;
   const sha2=C.sha1(JSON.stringify({v:2,A:v2.A,WV:v2.WV,WS:v2.WS})),h=copie(v2);
-  vrai(Gn.valider(h,cfg)===null&&h.v===3,'v:2 non migre');vrai(Gn.shaGenome(h)===sha2&&Gn.shaGenome(v2)===sha2,'sha d\'un v:2 a geste allume change par la migration');
+  vrai(Gn.valider(h,cfg)===null&&h.v===Gn.VERSION,'v:2 non migre');vrai(Gn.shaGenome(h)===sha2&&Gn.shaGenome(v2)===sha2,'sha d\'un v:2 a geste allume change par la migration');
   /* un v:2 abime (une cle manque) n'est pas migre */
   const b=copie(v2);delete b.A.marge;vrai(Gn.valider(b,cfg)!==null&&b.v===2,'un v:2 abime est passe');
   return 'c0025 '+Gn.idDe(T)+', c0101 '+Gn.idDe(TEM.c0101);});
@@ -211,7 +215,7 @@ test('(p6) un etat ne de c0025 garde son temoin quand config.json en demande un 
   try{
     vrai(c.temoin==='c0025'&&c._temoinDemande==='c0101','cfg.temoin '+c.temoin+' (demande '+c._temoinDemande+')');
     vrai(dit.some(t=>/la config demande c0101, la population est nee de c0025 : elle le garde/.test(t)&&/--repartir-de c0101/.test(t)),'pas dit : '+dit.join(' | '));
-    vrai(ctx.pop.vivants[0].genome.v===3,'le vivant v:2 n\'est pas migre au chargement');
+    vrai(ctx.pop.vivants[0].genome.v===Gn.VERSION,'le vivant v:2 n\'est pas migre au chargement');
     vrai(Gn.idDe(ctx.pop.vivants[0].genome)===id,'identifiant change par la migration');
   }finally{if(ctx&&ctx.ord)ctx.ord.arreter({dur:true}).catch(()=>{});}
   const avant=fs.readdirSync(d).sort();

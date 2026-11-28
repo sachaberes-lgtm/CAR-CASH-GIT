@@ -1,0 +1,12 @@
+{ "format": "banc-vague-1",
+  "numero": 0,
+  "nom": "v000-essai",
+  "question": "Essai du banc : la vague tourne-t-elle de bout en bout (12 courses, les cinq fichiers, l'arret par STOP et la reprise) ?",
+  "temoin": "c0025",
+  "tmax": 60,
+  "carte": "grotte",
+  "fixes": {},
+  "plan": { "premier": 2, "pas": 2, "plafond": 4, "alpha": 0.05, "futilite": 0.5, "fMin": 0 },
+  "bras": [
+    { "nom": "sortie",  "critere": { "type": "causes", "famille": ["roche", "paroi", "pic", "glace"], "sens": "bas" } },
+    { "nom": "secours", "critere": { "type": "causes", "famille": ["air", "vide"], "sens": "bas" } } ] }

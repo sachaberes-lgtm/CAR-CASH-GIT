@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* ===== LES TESTS DE L'ETAPE 1 : enfant.js, courses.js, le cache (2026-11-27, SPECIFICATION.md § 10 etape 1, INTERFACES.md § 2.1-2.2) =====
-   usage : node ml/evolution/tests/courses.test.js [a] [b] [c] [d] [e]     (sans argument : tous, dans l'ordre)
+   usage : node ml/evolution/tests/courses.test.js [a] [b] [c] [d] [e] [f] [g] [h] [i]     (sans argument : tous, dans l'ordre)
      a  deux fois la meme (pilote, graine) dans deux processus neufs : meme resultat (hors ms, date, cerveau_ms_moy)
      b  6 courses de ml/ecurie/pilote-voltige.js depuis 910000 a tmax 300, 4 a la fois : palier et duree egaux a ceux de mes-pN2.json (N.courses)
      c  le maitre (la ligne de commande) tue net au milieu, puis relance : seules les courses manquantes tournent ; une ligne tronquee est ignoree
@@ -8,6 +8,9 @@
         mesuree (erreurs > 0), comme dans noter.js (une erreur du cerveau se repete a l'identique)
      e  le cache ne rejoue jamais une cle connue (mesuree, ou deux fois non mesuree) ; une cle demandee deux fois ne se joue qu'une fois ;
         une cle deja ratee une fois est rejouee une seule fois (essai 2)
+     i  (28/11/2026, lot « genes v4 ») la map imposee et les « declic », en vraies courses, une a la fois : c0025 a la grotte (20 s) et le meme pilote
+        qui ajoute un « declic » a chaque ordre : memes trois empreintes (l'enveloppe retire le champ), declenchements comptes, cartes[0] grotte ;
+        puis 3963000 a 120 s, carte imposee seule (grotte puis jade) et carte tenue (grotte, grotte)
    Au plus 4 courses a la fois ; tout l'etat va dans ml/evolution/essais/tests-courses/ (efface au debut de chaque test). Code 0 si tout passe. */
 'use strict';
 const fs=require('fs'),path=require('path'),{fork}=require('child_process');
@@ -53,7 +56,9 @@ async function testB(){
   const ref=require(path.join(__dirname,'donnees','reference-voltige-6-courses.json'));
   const N=ref.N||ref;
   const p=lirePilote(VOLTIGE);
-  const memePilote=N.sha_cerveau===p.shaPilote,memeJeu=N.jeu_sha===EP.composants.jeu_sha&&N.jeu===EP.composants.version&&N.simulateur===EP.composants.simulateur;
+  /* (28/11/2026, lot « genes v4 », l'integrateur) le sha de reference est celui du texte en fins de ligne Unix : une copie de travail Windows
+     (core.autocrlf) a le meme pilote en fins de ligne Windows, d'un autre sha ; on compare donc aussi le texte ramene a \n */
+  const memePilote=N.sha_cerveau===p.shaPilote||N.sha_cerveau===C.sha1(p.source.replace(/\r\n/g,'\n')),memeJeu=N.jeu_sha===EP.composants.jeu_sha&&N.jeu===EP.composants.version&&N.simulateur===EP.composants.simulateur;
   dire(`b : reference ${N.cerveau} ${String(N.sha_cerveau).slice(0,12)} (${memePilote?'meme pilote':'AUTRE PILOTE'}), jeu ${N.jeu} ${N.jeu_sha} (${memeJeu?'meme jeu':'AUTRE JEU'}), tmax ${N.tmax}, regime ${N.regime}`);
   const d=etatNeuf('b');
   const ord=K.creer({cfg,epoque:EP,dossierEtat:d,travailleurs:4,journal:t=>{if(/lancee|NON MESUREE/.test(t))dire('   '+t);}});
@@ -234,9 +239,30 @@ async function testH(){
   verdict('h : les pannes de tous les essais',ok,'pannesEssais '+l.pannesEssais+' = somme des deux essais');
 }
 
+/* ---------- i (28/11/2026, lot « genes v4 », notes/genes-v4.md § 4.5 point 3 et § 5) ----------
+   Mesure (28/11, ce code) : les deux courses de 20 s ont les empreintes e2304c441f6d, 5976023aaa41, 5f46d81d87a1 et 200 decisions comptees ;
+   3963000 a 120 s : imposee ['grotte','jade'], tenue ['grotte','grotte']. */
+async function testI(){
+  const d=etatNeuf('i');
+  const p=lirePilote(VOLTIGE);
+  const s1=p.source+"\n;(function(){const _d=module.exports.decide;module.exports.decide=function(v,m){const o=_d(v,m);if(o&&typeof o==='object')o.declic=['essai','essai','autre'];return o;};})();\n";
+  const pD={source:s1,shaPilote:C.sha1(s1),fichier:'voltige-declic.js'};
+  const o=K.creer({cfg,epoque:EP,dossierEtat:d,travailleurs:1});
+  const [a]=await o.demander([Object.assign(tache(p,3963000,20),{carte:'grotte'})]);
+  const [b]=await o.demander([Object.assign(tache(pD,3963000,20),{carte:'grotte'})]);
+  const [c]=await o.demander([Object.assign(tache(p,3963000,120),{carte:'grotte'})]);
+  const [t]=await o.demander([Object.assign(tache(p,3963000,120),{carte:'grotte',carteTenue:true})]);
+  const memes=a.empreinte===b.empreinte&&a.empreinteVues===b.empreinteVues&&a.empreinteTouches===b.empreinteTouches;
+  dire(`   grotte 20 s : ${a.empreinte} ${a.empreinteVues} ${a.empreinteTouches} / avec declic ${b.empreinte} ${b.empreinteVues} ${b.empreinteTouches} ${JSON.stringify(b.declenchements)} ; `+
+    `120 s imposee ${JSON.stringify(c.cartes)}, tenue ${JSON.stringify(t.cartes)} (${t.raison||'mesuree'})`);
+  const ok=a.mesuree&&b.mesuree&&c.mesuree&&t.mesuree&&memes&&JSON.stringify(a.declenchements)==='{}'&&b.declenchements&&b.declenchements.essai>0&&b.declenchements.essai===b.declenchements.autre&&
+    a.carte==='grotte'&&a.cartes[0]==='grotte'&&a.cle.endsWith('|carte:grotte')&&c.cartes.length>1&&t.cartes.length>1&&t.cartes.every(x=>x==='grotte')&&t.carteTenue===true&&c.cartes.some(x=>x!=='grotte');
+  verdict('i : la map imposee, la carte tenue, les declic retires',ok,'memes empreintes avec et sans declic, declenchements comptes, premiere map imposee, carte tenue a chaque portail');
+}
+
 (async function(){
-  const voulus=process.argv.slice(2).filter(x=>/^[a-h]$/.test(x));
-  const T={a:testA,b:testB,c:testC,d:testD,e:testE,f:testF,g:testG,h:testH},liste=voulus.length?voulus:Object.keys(T);
+  const voulus=process.argv.slice(2).filter(x=>/^[a-i]$/.test(x));
+  const T={a:testA,b:testB,c:testC,d:testD,e:testE,f:testF,g:testG,h:testH,i:testI},liste=voulus.length?voulus:Object.keys(T);
   dire(`epoque figee ${EP.courses} (jeu ${EP.composants.version} ${EP.composants.jeu_sha}, ${EP.composants.simulateur}, node ${EP.composants.node}) ; tests ${liste.join(' ')}`);
   for(const k of liste){
     try{await T[k]();}catch(e){verdict(k+' (exception)',false,String(e&&e.stack||e));}
