@@ -1,25 +1,25 @@
 # Le récit de la sélection naturelle des bots
 
-*Écrit par la sélection elle-même (`ml/evolution/histoire.js`), à partir de ses journaux, à la fin de chaque génération. Rien n'y est ajouté à la main ; les identifiants entre guillemets inversés (`77ab12cd`) sont les huit premiers caractères du nom d'un pilote, comme dans l'arbre généalogique (`arbre.html`). Dernière mise à jour : 28/11/2026 à 15 h 00.*
+*Écrit par la sélection elle-même (`ml/evolution/histoire.js`), à partir de ses journaux, à la fin de chaque génération. Rien n'y est ajouté à la main ; les identifiants entre guillemets inversés (`77ab12cd`) sont les huit premiers caractères du nom d'un pilote, comme dans l'arbre généalogique (`arbre.html`). Dernière mise à jour : 28/11/2026 à 16 h 00.*
 
 Les mots : le **palier** dit jusqu'où un pilote va dans une course ; l'**écart aux joueurs** dit à quel point il conduit autrement que les vrais joueurs (0 = comme eux) ; la **note F** = palier − 4 × écart décide qui reste. Le **témoin** est le pilote de départ, écrit à la main, jamais modifié. Le **champion** est le meilleur pilote prouvé sur des courses neuves ; au début, c'est le témoin. Le **coffre** : 40 courses qui ne servent jamais à l'entraînement, le seul vrai juge. Le **meneur** est le mieux noté des autres ; il tente parfois un **sacre** (rejouer contre le champion sur des courses neuves). Un **immigré** est une copie très changée du champion, ajoutée pour garder de la variété. Une **nouvelle époque** commence quand le jeu ou le bot change : les notes repartent de zéro et le champion doit se **revalider** face au témoin.
 
 ## Où on en est
 
-1. **18 générations finies** depuis le 28/11/2026 à 00 h 46 (13 h 52) ; phase A, 2e époque ; la génération 18 est en cours.
-2. 128 pilotes sont nés (dont 20 au départ), 102 ont été renvoyés, 26 vivent.
+1. **19 générations finies** depuis le 28/11/2026 à 00 h 46 (14 h 35) ; phase A, 2e époque ; la génération 19 est en cours.
+2. 134 pilotes sont nés (dont 20 au départ), 108 ont été renvoyés, 26 vivent.
 3. Le champion est encore **le témoin** : aucun pilote n'a encore prouvé, sur des courses neuves, qu'il faisait mieux.
 4. Pas encore de meneur (il faut 48 courses pour être candidat).
-5. Le témoin, pilote-voltige (c0025), jamais modifié : palier 6,77, écart aux joueurs 0,78, note F 3,7, 24 courses.
+5. Le témoin, pilote-voltige (c0025), jamais modifié : palier 6,54, écart aux joueurs 0,77, note F 3,5, 36 courses.
 6. 3 tentatives de sacre, 0 réussie. En moyenne, l'avance du meneur fondait de 1,58 point de note sur les courses neuves : c'est la part de chance qu'il avait eue à l'entraînement.
 7. Dernière mesure du coffre (génération 16) : le champion est encore le témoin ; palier moyen 6,15 sur les 40 courses du coffre.
 8. **La sélection apprend-elle vraiment ?** On ne le sait pas encore : tant que le champion est le témoin, le coffre n'a rien à comparer.
-9. Diversité : la distance moyenne entre les pilotes vivants est passée de 0,023 (génération 0) à 0,049 (génération 17) (0 = tous pareils).
-10. La machine : 5 768 courses jouées, 0,0 % non mesurées.
+9. Diversité : la distance moyenne entre les pilotes vivants est passée de 0,023 (génération 0) à 0,049 (génération 18) (0 = tous pareils).
+10. La machine : 6 080 courses jouées, 0,0 % non mesurées.
 
 ## Les mutations comptent-elles ?
 
-La sélection garde les enfants qui ont eu les meilleures courses ; ça ne sert que si un enfant « bon » l'est vraiment, et pas seulement chanceux. La mesure le vérifie sans jouer une course de plus : chaque enfant joue les routes de sa génération de naissance, puis celles de la suivante ; si les mutations comptent, un enfant bon sur les premières l'est aussi sur les secondes. **Aujourd'hui : trop tôt pour le dire (117 enfants mesurés sur 191).** La mesure ne conclut pas avant 191 enfants mesurés, même si les chiffres ont l'air nets. Corrélation entre les deux moitiés : 0,16 [entre −0,14 et 0,32] ; écart vrai entre enfants τ ≈ 0,43 palier [entre 0,00 et 0,73]. Courses jouées pour rien (un enfant qui rejoue exactement la course de son parent sur la même route) : 1249 sur 5094 (25 %), 16,0 % du temps d'entraînement.
+La sélection garde les enfants qui ont eu les meilleures courses ; ça ne sert que si un enfant « bon » l'est vraiment, et pas seulement chanceux. La mesure le vérifie sans jouer une course de plus : chaque enfant joue les routes de sa génération de naissance, puis celles de la suivante ; si les mutations comptent, un enfant bon sur les premières l'est aussi sur les secondes. **Aujourd'hui : trop tôt pour le dire (126 enfants mesurés sur 191).** La mesure ne conclut pas avant 191 enfants mesurés, même si les chiffres ont l'air nets. Corrélation entre les deux moitiés : 0,17 [entre −0,14 et 0,31] ; écart vrai entre enfants τ ≈ 0,43 palier [entre 0,00 et 0,72]. Courses jouées pour rien (un enfant qui rejoue exactement la course de son parent sur la même route) : 1298 sur 5407 (24 %), 15,4 % du temps d'entraînement.
 
 ## Génération par génération
 
@@ -105,7 +105,11 @@ La population de départ : 20 pilotes, le témoin (pilote-voltige (c0025)) et 19
 
 - Greffe : `2e9b5cc4` est né du champion `19e3767c`, copié tel quel, avec raccCartes_ville = 0 (rien d'autre ne change).
 
-### Génération 18 — en cours
+### Génération 18 — 28/11/2026 à 15 h 21
 
-6 naissances (1 immigré, 4 mutations, 1 croisement). Les courses sont en train de se jouer.
+6 naissances (1 immigré, 4 mutations, 1 croisement). 6 renvois : les notes F les plus basses. 312 courses jouées en 43 min.
+
+### Génération 19 — en cours
+
+6 naissances (1 immigré, 2 croisements, 3 mutations). Dont 1 né par greffe (le champion du moment, recopié avec des interrupteurs forcés) : `e0131036` (bordOn = 1). Les courses sont en train de se jouer.
 

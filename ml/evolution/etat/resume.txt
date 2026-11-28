@@ -1,12 +1,12 @@
-Generation 18, phase A, epoque 3c3d44e8bd9b (depuis la gen. 16), 12 graines par generation, 26 vivants
-EN MARCHE (pid 11256, signe de vie il y a 11 s, lance le 28/11 13:11)
-Debit : 425 courses/h (gen. 17 : 312 courses dont 312 jouees, 0 du cache, en 44 min) ; 10 a la fois (banc du 28/11)
-Champion 19e3767cc346 (= le temoin) : F 3.7 +- 0.6, palier 6.8, ecart E 0.78 (24 courses)
+Generation 19, phase A, epoque 3c3d44e8bd9b (depuis la gen. 16), 12 graines par generation, 26 vivants
+EN MARCHE (pid 11256, signe de vie il y a 10 s, lance le 28/11 13:11)
+Debit : 438 courses/h (gen. 18 : 312 courses dont 312 jouees, 0 du cache, en 43 min) ; 10 a la fois (banc du 28/11)
+Champion 19e3767cc346 (= le temoin) : F 3.5 +- 0.5, palier 6.5, ecart E 0.77 (36 courses)
 Meneur   ? : pas encore note
-Temoin   19e3767cc346 (c0025) : F 3.7 +- 0.6, palier 6.8, ecart E 0.78 (24 courses)
+Temoin   19e3767cc346 (c0025) : F 3.5 +- 0.5, palier 6.5, ecart E 0.77 (36 courses)
 Coffre (28/11 13:54, gen. 16, 40 courses) : champion - temoin = palier +0.00, E +0.00, ecart classique +0.00
 Validation (gen. 15) : a8df36fb07c3 contre 19e3767cc346 : pas sacre (dF +0.03 +- 0.56 sur 24 graines)
-Gen. 17 : 0 course(s) non mesuree(s) sur 312 (0.0 %), 0 panne(s) de cerveau
+Gen. 18 : 0 course(s) non mesuree(s) sur 312 (0.0 %), 0 panne(s) de cerveau
 Alertes : aucune
 
-Mutations comptent-elles ? trop tot pour le dire (117 enfants mesures sur 191) ; r 0.16, tau 0.43 [0.00 ; 0.73]
+Mutations comptent-elles ? trop tot pour le dire (126 enfants mesures sur 191) ; r 0.17, tau 0.43 [0.00 ; 0.72]
