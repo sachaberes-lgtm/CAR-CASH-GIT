@@ -5,6 +5,11 @@ dans `portfolio/journal/2026-11-28.md` ; ici, l'état exact, ce qui tourne, et q
 
 ## L'état au 28/11/2026 au matin
 
+> **Mise à jour, 28/11 à 10 h 45 : le banc des gènes est fini** (1 250 courses sur 1 250, aucune ratée). Aucun interrupteur ne change le palier ni F
+> au seuil corrigé ; slalomOn, bordOn et gestes5 rapprochent sûrement des joueurs (E 0,882 → 0,707, 0,728, 0,665). Le résultat, ses limites et
+> la suite décidée (vague de confirmation de bordOn, slalomOn, suitOn, fuirVite et du bras bordOn + slalomOn) : `ml/ecurie/etude/banc-des-genes/LISEZ-MOI.md`,
+> « Le résultat (28/11/2026) ». Ce qui suit, écrit à 7 h 40, le disait encore en marche.
+
 **En bref.** La sélection naturelle tourne sur le Ryzen depuis le 28/11 à 0 h 29, mais n'envoie plus rien depuis 2 h. La boucle payante y est arrêtée,
 et jugée : sur les 40 graines du coffre, ses champions ne font pas mieux que le pilote de départ c0025 (+0,03 palier [−1,18 ; +1,38], commit `00fb4cfad`).
 L'étude du réglage a montré pourquoi : le hasard d'une course (3,26 paliers en écart-type) pèse environ dix fois plus que l'écart vrai entre deux

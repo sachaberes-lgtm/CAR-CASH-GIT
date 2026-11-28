@@ -1,0 +1,70 @@
+LE BANC DES GENES — chaque interrupteur allume contre le pilote de depart (c0025, tout eteint), sur les memes graines
+
+A LIRE D'ABORD : 12 bras sont compares au depart en meme temps. Meme si AUCUN interrupteur ne changeait rien, regarder 12 bras a 95 % donne au moins
+un verdict « aide » ou « nuit » par pur hasard 46 % du temps (1 - 0,95^12), soit environ une fois sur deux ; et le verdict regarde DEUX
+intervalles (palier et dF), ce qui en ajoute encore. Le seuil corrige de Bonferroni (5 % / 12 = 0.42 % par bras) retire ce risque :
+  verdicts a 95 % : 2 « aide », 1 « nuit » ; au seuil corrige : AUCUN.
+
+graines jouees : 96 (plan 3000000 + 37 j, j < 96) · communes a tous les bras : 96 · 0 course(s) non mesuree(s) · epoque 66f66d2ae1c2 · cashcar-v1627 e7e1eed4718f · v24.22.3 · tmax 900
+
+bras      | courses | palier moy | survie moy (s) | E (se)        | F (se)        | ce qui change
+depart    |      96 |       6.83 |          122.8 | 0.882 (0.028) | 3.31 (0.30)   | rien (la reference)
+lacheOn   |      96 |       6.94 |          124.9 | 0.806 (0.031) | 3.70 (0.30)   | lacheOn 0->1
+slalomOn  |      96 |       6.33 |          126.7 | 0.707 (0.031) | 3.56 (0.30)   | slalomOn 0->1
+coupOn    |      96 |       6.92 |          127.2 | 0.883 (0.028) | 3.38 (0.30)   | coupOn 0->1
+relacheOn |      96 |       6.84 |          125.0 | 0.868 (0.027) | 3.37 (0.29)   | relacheOn 0->1
+suitOn    |      96 |       7.43 |          137.8 | 0.840 (0.032) | 4.00 (0.30)   | suitOn 0->1
+gestes5   |      96 |       6.08 |          122.4 | 0.665 (0.024) | 3.51 (0.29)   | lacheOn 0->1, slalomOn 0->1, coupOn 0->1, relacheOn 0->1, suitOn 0->1
+fuirVite  |      96 |       7.20 |          132.8 | 0.863 (0.026) | 3.71 (0.29)   | fuirVite 0->1
+c0026     |      96 |       6.74 |          121.1 | 0.902 (0.032) | 3.14 (0.30)   | dessousMax 0.8->0.4, dessousPose 25->40, fuirVite 0->1
+bordOn    |      96 |       7.35 |          136.6 | 0.728 (0.034) | 4.39 (0.31)   | bordOn 0->1
+largeOn   |      96 |       6.99 |          125.2 | 0.879 (0.027) | 3.46 (0.29)   | largeOn 0->1
+libreOn   |      96 |       6.69 |          120.4 | 0.895 (0.030) | 3.13 (0.30)   | libreOn 0->1
+c0101     |      96 |       6.63 |          118.7 | 0.765 (0.034) | 3.59 (0.30)   | dessousMax 0.8->0.4, dessousPose 25->40, fuirVite 0->1, bordOn 0->1, largeOn 0->1, libreOn 0->1
+(E et F : note.noter sur les 96 graines jouees par tous ; F = â - 4 E, plus haut = mieux ; E plus bas = plus proche des joueurs)
+
+bras - depart | graines | d palier moy [IC 95 %]     | mieux/pareil/moins (p signe) | d survie moy [IC 95 %]      | dE (se)         | dF (se) [IC 95 %]               | identiques
+lacheOn       |      96 | +0.10 [-0.67 ; +0.84]      | 38/27/31 (0.47)              | +2.0 [-14.0 ; +17.9]        | -0.076 (0.030)  | +0.41 (0.41) [-0.40 ; +1.22]    | 16/96
+slalomOn      |      96 | -0.50 [-1.27 ; +0.28]      | 37/10/49 (0.235)             | +3.9 [-14.5 ; +22.7]        | -0.175 (0.033)  | +0.20 (0.45) [-0.68 ; +1.08]    | 1/96
+coupOn        |      96 | +0.08 [-0.34 ; +0.50]      | 16/66/14 (0.856)             | +4.4 [-5.3 ; +14.2]         | +0.000 (0.020)  | +0.08 (0.23) [-0.37 ; +0.53]    | 59/96
+relacheOn     |      96 | +0.01 [-0.54 ; +0.55]      | 23/52/21 (0.88)              | +2.2 [-9.4 ; +14.4]         | -0.014 (0.024)  | +0.07 (0.29) [-0.51 ; +0.64]    | 45/96
+suitOn        |      96 | +0.59 [-0.20 ; +1.38]      | 40/23/33 (0.483)             | +15.0 [-3.7 ; +34.1]        | -0.042 (0.033)  | +0.76 (0.46) [-0.13 ; +1.66]    | 9/96
+gestes5       |      96 | -0.75 [-1.42 ; -0.03]      | 29/18/49 (0.031)             | -0.4 [-15.6 ; +15.9]        | -0.218 (0.035)  | +0.12 (0.40) [-0.66 ; +0.90]    | 1/96
+fuirVite      |      96 | +0.36 [-0.01 ; +0.77]      | 15/75/6 (0.078)              | +10.0 [+0.4 ; +20.3]        | -0.020 (0.011)  | +0.44 (0.22) [+0.01 ; +0.88]    | 66/96
+c0026         |      96 | -0.09 [-0.73 ; +0.53]      | 30/42/24 (0.497)             | -1.7 [-15.3 ; +11.8]        | +0.020 (0.028)  | -0.17 (0.35) [-0.86 ; +0.51]    | 33/96
+bordOn        |      96 | +0.52 [-0.20 ; +1.28]      | 31/41/24 (0.419)             | +13.8 [-1.0 ; +29.5]        | -0.155 (0.027)  | +1.14 (0.42) [+0.31 ; +1.97]    | 34/96
+largeOn       |      96 | +0.16 [+0.00 ; +0.40]      | 2/94/0 (0.5)                 | +2.4 [+0.0 ; +5.9]          | -0.003 (0.003)  | +0.17 (0.12) [-0.06 ; +0.40]    | 93/96
+libreOn       |      96 | -0.15 [-0.45 ; +0.18]      | 3/85/8 (0.227)               | -2.4 [-8.5 ; +3.6]          | +0.013 (0.009)  | -0.20 (0.15) [-0.49 ; +0.09]    | 83/96
+c0101         |      96 | -0.21 [-1.01 ; +0.58]      | 33/26/37 (0.72)              | -4.1 [-20.2 ; +11.5]        | -0.118 (0.031)  | +0.26 (0.45) [-0.63 ; +1.15]    | 18/96
+
+LES VERDICTS (aide / nuit : l'intervalle a 95 % de d palier ou de dF exclut zero ; sinon on ne sait pas)
+lacheOn   : on ne sait pas (il faudrait environ 676 graines de plus pour voir, 8 fois sur 10, un effet de la taille observee sur dF ; 10359 sur d palier)
+slalomOn  : on ne sait pas (il faudrait environ 406 graines de plus pour voir, 8 fois sur 10, un effet de la taille observee sur d palier ; 3687 sur dF)
+coupOn    : on ne sait pas (il faudrait environ 5155 graines de plus pour voir, 8 fois sur 10, un effet de la taille observee sur d palier ; 5889 sur dF)
+relacheOn : on ne sait pas (il faudrait environ 14970 graines de plus pour voir, 8 fois sur 10, un effet de la taille observee sur dF ; 535183 sur d palier)
+suitOn    : on ne sait pas (il faudrait environ 175 graines de plus pour voir, 8 fois sur 10, un effet de la taille observee sur dF ; 261 sur d palier)
+gestes5   : nuit a 95 %, mais PAS au seuil corrige de Bonferroni : peut-etre le hasard des 12 comparaisons
+fuirVite  : aide a 95 %, mais PAS au seuil corrige de Bonferroni : peut-etre le hasard des 12 comparaisons
+c0026     : on ne sait pas (il faudrait environ 2976 graines de plus pour voir, 8 fois sur 10, un effet de la taille observee sur dF ; 8630 sur d palier)
+bordOn    : aide a 95 %, mais PAS au seuil corrige de Bonferroni : peut-etre le hasard des 12 comparaisons
+largeOn   : on ne sait pas (il faudrait environ 275 graines de plus pour voir, 8 fois sur 10, un effet de la taille observee sur dF ; 279 sur d palier)
+libreOn   : on ne sait pas (il faudrait environ 334 graines de plus pour voir, 8 fois sur 10, un effet de la taille observee sur dF ; 821 sur d palier)
+c0101     : on ne sait pas (il faudrait environ 2157 graines de plus pour voir, 8 fois sur 10, un effet de la taille observee sur dF ; 2725 sur d palier)
+
+LES CAUSES DE MORT (part des courses de chaque bras)
+bras      |      air |   canyon |      eau |    glace |     lave |    paroi |      pic |    roche |     tour |     vide
+depart    |     24 % |        - |      1 % |      1 % |        - |      6 % |      9 % |     22 % |     25 % |     12 %
+lacheOn   |     24 % |        - |      1 % |      2 % |      1 % |     13 % |      8 % |     23 % |     24 % |      4 %
+slalomOn  |     19 % |      1 % |      2 % |        - |      1 % |     16 % |      7 % |     26 % |     18 % |     10 %
+coupOn    |     30 % |        - |      2 % |      1 % |        - |      8 % |      7 % |     15 % |     23 % |     14 %
+relacheOn |     26 % |        - |        - |      1 % |        - |      8 % |      6 % |     23 % |     27 % |      8 %
+suitOn    |     27 % |      1 % |        - |      2 % |        - |     10 % |     10 % |     24 % |     16 % |      9 %
+gestes5   |     24 % |        - |      5 % |      1 % |      1 % |      7 % |      3 % |     23 % |     25 % |     10 %
+fuirVite  |     20 % |        - |      2 % |      1 % |        - |     13 % |      8 % |     19 % |     24 % |     14 %
+c0026     |     26 % |        - |      1 % |      1 % |        - |      7 % |      7 % |     22 % |     22 % |     14 %
+bordOn    |     17 % |      1 % |      1 % |      2 % |      1 % |      9 % |      4 % |     23 % |     26 % |     16 %
+largeOn   |     23 % |        - |      1 % |      1 % |        - |      6 % |      9 % |     23 % |     25 % |     12 %
+libreOn   |     25 % |        - |      1 % |      2 % |        - |      7 % |     10 % |     22 % |     22 % |     10 %
+c0101     |     26 % |        - |      1 % |      1 % |        - |     12 % |      6 % |     19 % |     21 % |     15 %
+
+LE CONTROLE (pilote-voltige.js, ecrit a la main, contre le bras depart) : graine 3000000 MEME COURSE (7c455705df80 / 7c455705df80) · graine 3000037 MEME COURSE (dd683bc1e99d / dd683bc1e99d)

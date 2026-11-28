@@ -86,7 +86,10 @@ Heures de Paris ; les messages de Sacha sont dans le relevé daté (`outils/paro
 la sélection comme dans la boucle. On cherche donc des changements de structure, écrits comme des gènes éteints à la naissance, et jugés un par un sur
 beaucoup de graines identiques (le banc). La sélection reste en marche comme juge gratuit.
 
-**Ce qui n'est pas fait au matin du 28/11** : le banc des gènes tourne encore (aucun résultat) ; la mise à jour du Ryzen (portage et réglage) attend Sacha
+**Mise à jour, 28/11 à 10 h 45 : le banc des gènes est fini** (1 250 courses sur 1 250, aucune ratée) : rien ne change le palier ni F au seuil
+corrigé ; slalomOn, bordOn et gestes5 rapprochent sûrement des joueurs. Résultat et suite : `etude/banc-des-genes/LISEZ-MOI.md`, « Le résultat (28/11/2026) ».
+
+**Ce qui n'est pas fait au matin du 28/11** (écrit à 7 h 40) : le banc des gènes tourne encore (aucun résultat ; fini depuis, voir juste au-dessus) ; la mise à jour du Ryzen (portage et réglage) attend Sacha
 (`LIVRAISON-REGLAGE.md` § 4 et § 5) ; `tests/courses.test.js` non relancé ; la sévérité des deux garde-fous du sacre (`seuilB`, `seuilC`) reste à Sacha.
 La suite, dans l'ordre : **`PASSATION.md`, partie du 28/11**.
 
