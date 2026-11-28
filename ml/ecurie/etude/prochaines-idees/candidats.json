@@ -1,0 +1,283 @@
+{
+ "date": "2026-11-28",
+ "relu": "2026-11-28, trois relecteurs (chiffres, code, mesure) ; voir LISEZ-MOI.md, section Relecture",
+ "regleGraines": "n ≈ 121/(f × d²) = 121 × f / e² (e = effet moyen sur toutes les courses) ; 121 = 7,84 × 3,92², écart-type de la différence de palier sur 418 courses changées du banc (courses-2026-48.jsonl, recompté le 28/11) ; de 70 à 180 selon le bras ; environ 1,1 palier visible à 96 graines quand tout change ; environ 180 courses par heure (jouer.log : 783 en 259 min)",
+ "epoque": "Tout gène A touche ml/evolution/modele.js, qui fait partie de l'époque (ml/evolution/commun.js l.251-252) : bras depart rejoué et sélection du Ryzen sur une époque neuve. Écrire tous les gènes A retenus en un seul lot.",
+ "vague1": {
+  "bras": ["depart (rejoué)", "sortieOn", "rienOn", "loiFidele=1", "loiFidele=2", "freinOn (si le compte préalable le justifie)"],
+  "seuil": "5 % / nombre de bras",
+  "critereAnnonce": "un critère principal par bras, écrit avant de jouer (voir chaque candidat)"
+ },
+ "candidats": [
+  {
+   "rang": 1,
+   "nom": "La sortie préparée sur les maps à décor",
+   "famille": "A",
+   "lecteurs": ["morts"],
+   "constat": "c0025 : 8 morts sur 22 moins d'1 s après une sortie par le bord (grotte 5, canyon 2, ville 1) ; grotte premier tueur (9 ou 10 sur 22) ; à la grotte 5 sorties mortelles sur 58 contre 1 sur 44 chez les joueurs (p ≈ 0,2).",
+   "sources": [
+    "ml/ecurie/agents/tmp-voltige/note-voltige4-t900.json (recompté le 28/11)",
+    "ml/ecurie/etude/selection-naturelle/PROPOSITIONS.md l.97-98",
+    "ml/evolution/modele.js l.250, l.254, l.368",
+    "ml/bot/README.md l.185 et l.280",
+    "ml/ecurie/ETAPES.md l.184-185 et l.325"
+   ],
+   "mecanisme": "Sur décor, route qui lâche dans moins de sortieT s : si rien et versRoute du bord finissent en choc et que plane se pose ou atteint la lèvre, nitro gardée jusqu'au décollage et drapeau m.planeBord lu au début de enVol (sans toucher m.sortie, donc sans rendre le vol « voulu »). Extension de bordOn aux maps à décor.",
+   "ou": ["ml/evolution/modele.js auSol et début de enVol", "ml/evolution/genome.js"],
+   "changeLesYeux": false,
+   "genes": [
+    {"cle": "sortieOn", "type": "drapeau", "min": 0, "max": 1, "naissance": 0, "dit": "interrupteur"},
+    {"cle": "sortieT", "type": "reel", "min": 0.3, "max": 1.2, "naissance": 0.7, "dit": "s avant le bord ; le seuil de jauge réutilise bordJauge"}
+   ],
+   "banc": {
+    "bras": ["sortieOn"],
+    "partTouchee": "0,2 à 0,4",
+    "graines": "145 si l'effet moyen vaut 0,5 (plafond) ; 580 s'il vaut 0,25",
+    "critere": "les sorties préparées qui meurent quand même dans la seconde"
+   },
+   "effetPalier": "inconnu ; plafond du lecteur morts un demi-palier, peut-être un",
+   "effetRessemblance": "probablement meilleure (nitroDecol, part 0,24 de E) ; un gain de ressemblance, pas une cause de mort (PROPOSITIONS.md l.98)",
+   "dejaEssaye": "nitroBord (nitro gardée au bord partout) : 161 contre 181 paliers sur 24 courses (ETAPES.md l.325, pilote de la fin de soirée du 26/11) ; c0028 [3,3,6,8,8,12] sur 6 graines",
+   "refutation": "presque tout identique, ou sorties préparées qui meurent quand même ; preuve contre partielle : README l.185 (4 sur 4 contre la roche, 26/11, rayons viser) et ETAPES.md l.184-185 (2 morts sur 24 avec les règles d'aujourd'hui) ; le rayon plane du bord n'est pas mesuré",
+   "cout": "petit",
+   "confiance": "moyenne sur le constat, faible sur l'effet",
+   "decisionSacha": false
+  },
+  {
+   "rang": 2,
+   "nom": "Laisser la bascule « pour mieux » aller vers « rien »",
+   "famille": "A",
+   "lecteurs": ["relecteur code"],
+   "constat": "Grotte, vols subis : dans 23 vols sur 75, « rien » a annoncé une pose droite (axe 0,09) ; le bot a continué de braquer et s'est posé à 0,44 (plausible : la promesse ne tient que 4 % des vues). La bascule pour mieux ne va que vers une loi de retour.",
+   "sources": [
+    "ml/ecurie/etude/selection-naturelle/PROPOSITIONS.md l.101, l.103, l.109",
+    "ml/evolution/modele.js l.404 et l.418"
+   ],
+   "mecanisme": "Si la façon tenue se pose en travers et que « rien » annonce une pose propre sur la dalle, plus droite d'au moins rienEcart, lâcher le volant (façon « rien »). Test à part de volMieux. Pas lacheOn, qui n'agit que dans les 0,35 s avant la pose.",
+   "ou": ["ml/evolution/modele.js enVol", "ml/evolution/genome.js"],
+   "changeLesYeux": false,
+   "genes": [
+    {"cle": "rienOn", "type": "drapeau", "min": 0, "max": 1, "naissance": 0, "dit": "interrupteur"},
+    {"cle": "rienEcart", "type": "reel", "min": 0.1, "max": 0.4, "naissance": 0.2, "dit": "rad d'axe gagné au moins"}
+   ],
+   "banc": {
+    "bras": ["rienOn"],
+    "partTouchee": "petite (inconnue)",
+    "graines": "96 pour vérifier qu'on ne perd rien ; le critère ciblé tranche avant le palier",
+    "critere": "glisse après la pose et sorties en chaîne à la grotte (33 % contre 14 % chez les joueurs)"
+   },
+   "effetPalier": "inconnu",
+   "effetRessemblance": "probablement meilleure (glisse, poseCentre)",
+   "dejaEssaye": "jamais ; proche : lacheOn au banc (autre moment du vol)",
+   "refutation": "plus de poses sous la dalle ou de vols qui ratent la dalle",
+   "cout": "petit",
+   "confiance": "faible (constat « plausible »)",
+   "decisionSacha": false
+  },
+  {
+   "rang": 3,
+   "nom": "La loi fidèle (LOI_PILOTE jugée, puis suivie)",
+   "famille": "A",
+   "lecteurs": ["vol-et-yeux", "relecteur code"],
+   "constat": "Le rayon versRoute du radar ignore volDemiTour, volAvance et le retard de la main ; il dit « air » pour 28 vols sur 171 qui se posent ; air/air à la première vue : 5 posés dessus, 5 dessous, 2 morts. LOI_PILOTE existe déjà (marge 28, cap 0,6, gain 1,6, portée 40, avance 0,25, retard 0,2) et les yeux la jouent quand coupOn vaut 1.",
+   "sources": [
+    "ml/evolution/modele.js l.60-62, l.272, l.290, l.379",
+    "ml/bot/yeux.js l.585-613",
+    "ml/ecurie/etude/selection-naturelle/mesures-27nov/out-pDiag-930000.txt l.62",
+    "ml/ecurie/PASSATION.md (Le biais des rayons versRoute)"
+   ],
+   "mecanisme": "Demander LOI_PILOTE aux yeux par RETOURS_DEMANDES (sans remplir R.retours, pour ne pas allumer le réacteur ni le choix du départ). Variante 1 : juger la façon tenue sur ce rayon au lieu du rayon versRoute du radar. Variante 2 : suivre cette loi en vol.",
+   "ou": ["ml/evolution/modele.js", "ml/evolution/genome.js"],
+   "changeLesYeux": false,
+   "genes": [
+    {"cle": "loiFidele", "type": "entier", "min": 0, "max": 2, "naissance": 0, "dit": "0 éteint, 1 juger, 2 suivre ; gérer l'indice b avec coupOn"}
+   ],
+   "banc": {
+    "bras": ["loiFidele=1", "loiFidele=2", "retourOn (référence : contient déjà le réacteur et le choix du départ)"],
+    "partTouchee": 1,
+    "graines": "96 ne verra pas le palier ; 480 pour ±0,5 palier",
+    "critere": "part des morts air et vide (20 sur 60 au bras depart)"
+   },
+   "effetPalier": "inconnu, probablement sous un palier",
+   "effetRessemblance": "faible sur E",
+   "dejaEssaye": "loi retour à marge 8 le 27/11, « pas franchement meilleure » (portfolio/journal/2026-11-27.md l.31) ; retourOn sur 12 courses : 77 contre 83 paliers, glisse 0,28 contre 0,35 (out-pR2*.txt, lecteur vol-et-yeux)",
+   "refutation": "hors course d'abord : l'avance de retour() suit-elle celle du pilote ? Au banc : pas moins de morts air et vide",
+   "cout": "petit (la loi existe)",
+   "confiance": "forte sur le biais, faible sur le gain",
+   "decisionSacha": false
+  },
+  {
+   "rang": 4,
+   "nom": "Freiner ou drifter au bord sur les maps à décor",
+   "famille": "A",
+   "lecteurs": ["morts", "vol-et-yeux", "defauts", "genome-et-tetes", "relecteurs chiffres et code"],
+   "constat": "Le pilote ne freine jamais. Le canyon n'est pas un point faible propre à c0025 (2 sorties sur 9 mortelles, comme les joueurs). La ville est la première cause du bras depart (tour 18 sur 60). Par km : canyon 15,6, ville 12,7, grotte 6,5 morts pour 100 km (relecteur chiffres). ↓ avec |steer| > 0,35 à bonne vitesse est un drift, et le volant est fort quand la route lâche.",
+   "sources": [
+    "ml/evolution/modele.js l.43 et l.204",
+    "ml/ecurie/etude/selection-naturelle/PROPOSITIONS.md l.93, l.97, l.111",
+    "ml/ecurie/etude/conduite.md l.58 et l.60",
+    "ml/bot/README.md § 3.4 l.490-496 et l.84",
+    "ml/ecurie/etude/banc-des-genes/etat/courses-2026-48.jsonl (recompté le 28/11)",
+    "ml/ecurie/ETAPES.md l.487, l.499, l.768 (pilote.js)"
+   ],
+   "mecanisme": "Sur grotte, ville et canyon, route qui lâche dans moins de freinAvance s et aucun rayon du bord qui sauve : ↓, le jeu décidant s'il freine (|volant| ≤ 0,35) ou s'il drifte.",
+   "ou": ["ml/evolution/modele.js auSol", "ml/evolution/genome.js"],
+   "changeLesYeux": false,
+   "genes": [
+    {"cle": "freinOn", "type": "drapeau", "min": 0, "max": 1, "naissance": 0, "dit": "interrupteur, trois maps à décor ensemble"},
+    {"cle": "freinAvance", "type": "reel", "min": 0.2, "max": 1.2, "naissance": 0.6, "dit": "s avant le bord"},
+    {"cle": "freinVmin", "type": "reel", "min": 40, "max": 125, "naissance": 83, "dit": "m/s (vue.vitesse) sous lesquels on ne freine plus"}
+   ],
+   "banc": {
+    "bras": ["freinOn"],
+    "partTouchee": 0.5,
+    "graines": "380 si l'effet moyen vaut 0,4 ; 1 500 s'il vaut 0,2 ; bien moins avec des courses à map imposée",
+    "critere": "sorties mortelles au bord sur les trois maps",
+    "avant": "compter sur les vues enregistrées les vues « route qui lâche » sur décor avec |vue.volant| < 0,35"
+   },
+   "effetPalier": "inconnu ; les plafonds du lecteur défauts (+0,4 canyon, +0,9 ville) supposaient un canyon plus mortel que chez les joueurs, ce que c0025 dément",
+   "effetRessemblance": "inconnu ; l'étalon ne garde pas ↑ ↓",
+   "dejaEssaye": "jamais sur pilote-voltige ; c0005 (pilote.js) ne se déclenchait presque pas (ETAPES.md l.768) ; « vSure gardait 300 m/s de marge » (ETAPES.md l.487, pilote.js)",
+   "refutation": "le compte préalable trouve presque aucune vue à volant faible ; ou au banc, sorties au même endroit",
+   "cout": "petit à écrire, cher à mesurer",
+   "confiance": "faible",
+   "decisionSacha": false
+  },
+  {
+   "rang": 5,
+   "nom": "Les secours en vol par les lois « retour » libres",
+   "famille": "A (le volant ±0,5 seul serait B)",
+   "lecteurs": ["morts", "relecteur code"],
+   "constat": "7 morts sur 22 de c0025 sont des vols perdus de 5 à 6 s (lecteur morts) ; air et vide : 20 des 60 morts du bras depart ; les yeux jouent jusqu'à 4 lois retour avec cabre, pique et quatre façons de tenir la nitro.",
+   "sources": [
+    "ml/bot/yeux.js l.593-596, l.610",
+    "ml/evolution/modele.js l.60-62",
+    "ml/ecurie/etude/banc-des-genes/etat/courses-2026-48.jsonl (recompté le 28/11)",
+    "ml/ecurie/etude/selection-naturelle/PROPOSITIONS.md l.108"
+   ],
+   "mecanisme": "Quand tous les rayons annoncent air, vide ou choc : demander deux lois de secours (plane puis versRoute ; versRoute cabré) par RETOURS_DEMANDES et prendre celle qui se pose.",
+   "ou": ["ml/evolution/modele.js enVol", "ml/evolution/genome.js"],
+   "changeLesYeux": false,
+   "genes": [
+    {"cle": "secoursOn", "type": "drapeau", "min": 0, "max": 1, "naissance": 0, "dit": "interrupteur ; compter les places (coupOn 2, retourOn 1, 4 au plus)"}
+   ],
+   "banc": {
+    "bras": ["secoursOn", "secoursOn + toupieOn"],
+    "partTouchee": 0.8,
+    "graines": "seulement si le rejeu hors course trouve des poses",
+    "critere": "part des morts air et vide"
+   },
+   "effetPalier": "inconnu ; rien ne prouve qu'un rayon sauveur existait",
+   "effetRessemblance": "inconnu",
+   "dejaEssaye": "la nitro en vol a tué trois fois (coups à l'aveugle, sortie du dessous, plané tenu ; ETAPES.md l.306-310)",
+   "refutation": "rejeu hors course des vues de vols perdus : aucune loi de secours ne se pose",
+   "cout": "moyen",
+   "confiance": "faible",
+   "decisionSacha": false
+  },
+  {
+   "rang": 6,
+   "nom": "Une tête « valeur » apprise hors du jeu",
+   "famille": "C",
+   "lecteurs": ["genome-et-tetes", "relecteurs code et mesure"],
+   "constat": "Chez c0025, une pose annoncée à 0,35 rad ou plus ressort 33 fois sur 100 (58 poses) ; 53 % sur 40 avec la loi retour. La tête RAYON agit dans la bascule et au choix du départ ; dix mutations ne bougent l'écart que de 8 points quand la bascule en demande 10 (lecteur génome).",
+   "sources": [
+    "ml/ecurie/etude/selection-naturelle/mesures-27nov/out-pDiag-930000.txt l.115",
+    "ml/ecurie/etude/selection-naturelle/mesures-27nov/out-pR2-930000.txt l.103",
+    "ml/evolution/modele.js l.379, l.383, l.399, l.419",
+    "ml/evolution/genome.js l.191-193"
+   ],
+   "mecanisme": "Une troisième tête, à part de WV, hors des mutations, ajustée par descente de gradient pour prédire la re-sortie ; gardée par valeurOn.",
+   "ou": ["ml/evolution/modele.js enVol", "ml/evolution/genome.js (TETES, LONGUEUR, génome v:4 et migration)", "un outil d'ajustement en node"],
+   "changeLesYeux": false,
+   "genes": [
+    {"cle": "valeurOn", "type": "drapeau", "min": 0, "max": 1, "naissance": 0, "dit": "interrupteur ; poids dans une tête à part, non mutés"}
+   ],
+   "banc": {
+    "bras": ["valeurOn, contre le bras loi fidèle ou retour"],
+    "partTouchee": null,
+    "graines": "ajuster sur les graines d'entraînement (910 000…), juger une fois sur une plage neuve",
+    "critere": "re-sorties après la pose"
+   },
+   "effetPalier": "inconnu",
+   "effetRessemblance": "probablement favorable mais petit",
+   "dejaEssaye": "jamais appris ; repondéré à la main (c0037, c0061, c0091, c0102), aucun sacre (lecteur boucle-payante)",
+   "refutation": "la tête ne prédit pas mieux que l'axe annoncé seul",
+   "cout": "gros (génome v:4, environ 100 courses enregistrées vue par vue)",
+   "confiance": "faible sur le gain",
+   "decisionSacha": false
+  },
+  {
+   "rang": 7,
+   "nom": "La pose suivie au sol",
+   "famille": "B (les yeux)",
+   "lecteurs": ["vol-et-yeux", "genome-et-tetes", "relecteur code"],
+   "constat": "Re-sorties en moins de 0,8 s : 36 % contre 29 % (pilote du 26/11) ; 33 % contre 14 % à la grotte (c0025) ; le radar lit 0,29 pour une glisse réelle de 0,36. L'axe d'arrivée et derive existent déjà ; le lacet au contact manque.",
+   "sources": [
+    "ml/ecurie/ETAPES.md l.295",
+    "ml/ecurie/etude/selection-naturelle/PROPOSITIONS.md l.101, l.139-140",
+    "ml/evolution/modele.js l.345",
+    "ml/evolution/genome.js l.33"
+   ],
+   "mecanisme": "Chaque rayon qui se pose porte le lacet au contact et se prolonge 0,8 s au sol (tient / ressort).",
+   "ou": ["ml/bot/yeux.js", "ml/evolution/genome.js", "ml/evolution/modele.js"],
+   "changeLesYeux": true,
+   "genes": [
+    {"cle": "poseSuivieOn", "type": "drapeau", "min": 0, "max": 1, "naissance": 0, "dit": "interrupteur"}
+   ],
+   "banc": {
+    "bras": ["poseSuivieOn"],
+    "partTouchee": 1,
+    "graines": "nouvelle époque des yeux (bras depart rejoué) ; 96 ne verra qu'environ 1,1 palier",
+    "critere": "re-sorties après la pose"
+   },
+   "effetPalier": "inconnu",
+   "effetRessemblance": "indirect (poseCentre)",
+   "dejaEssaye": "proposé le 27/11, jamais écrit",
+   "refutation": "sur les vols enregistrés, presque aucun autre rayon n'aurait tenu",
+   "cout": "gros",
+   "confiance": "moyenne sur le constat",
+   "decisionSacha": true
+  }
+ ],
+ "decisionsDeSacha": [
+  {
+   "nom": "La seconde chance prise plus tôt",
+   "pourquoiHorsBanc": "le palier noté est le sommet de la partie (ml/bot/mesures.js l.18) : la reprise ne peut qu'ajouter, « aide » serait automatique",
+   "cout": "un palier de moteur et tout l'encaissé de la partie ; jamais avant 20 s (code/gameplay/seconde-chance.js l.75-80, l.91)",
+   "code": "PROFIL est écrit avant la balise du génome (ml/evolution/modele.js l.48-52) : le déplacer avant d'en faire un gène",
+   "estimationsDeGain": "+2,1 à +2,5 (lecteurs morts et défauts) : non vérifiées",
+   "siOui": "la chiffrer une fois hors du banc, puis la tenir pareille dans tous les bras"
+  },
+  {
+   "nom": "Une note E qui voit le volant en vol",
+   "constat": "c0025 : |volant| moyen en vol 0,48 à 0,57 contre 0,21 à 0,27 chez les joueurs (PROPOSITIONS.md l.104) ; 4 des mesures du 26/11 déjà dans E (aller, nitroSol, dessous, poseCentre) ; pouvoirs de séparation de realisme.md l.291-292 mesurés sur pilote.js",
+   "cout": "ressemblance.js et mesures.js font partie de l'époque : toutes les notes à refaire",
+   "refutation": "borne basse d'un bootstrap par partie sous 0,7"
+  }
+ ],
+ "listeLongue": [
+  "Le réacteur reconnu (viserPlane seulement ; pas rare : 74 % des courses ont un raccourci ; confondu avec tout bras qui remplit R.retours ; c0052, c0058 confondu avec bordOn, c0028)",
+  "Le volant lâché en vol (verdict « douteux » le 27/11, PROPOSITIONS.md l.126-131 ; zone morte de la main 0,08, doigts.js l.83)",
+  "Pas de toupie (f ≈ 0,8 ; à juger avec les secours)",
+  "Le cap au sol borné sur décor (un réglage, « faible priorité », PROPOSITIONS.md l.143-146)",
+  "Le cap de rentrée borné",
+  "La loi d'arrivée selon le temps avant la pose (c0108)",
+  "Le raccourci cherché quand la route lâche (c0077)",
+  "Préférer en vol les ordres pleins (c0011, pilote.js)",
+  "Le décollage qui monte",
+  "Rouvrir la grotte aux raccourcis",
+  "Corriger le rayon du sol des yeux sur décor",
+  "Un radar de raccourcis qui propose plus de sorties",
+  "Le compte de bot crédible",
+  "La loi de vol des joueurs apprise sur l'étalon",
+  "La nitro au sol apprise par la tête SOL (ETAPES.md l.315-327)",
+  "Les figures achetées, le départ boosté, la pomme dorée"
+ ],
+ "avantDeJouer": [
+  "courses à map imposée dans le banc (noter.js accepte --carte)",
+  "un compteur de déclenchements par gène dans chaque ligne de course",
+  "un banc séquentiel comme le sacre (24 graines, puis 12 par 12)",
+  "des critères ciblés annoncés avant de jouer"
+ ]
+}
