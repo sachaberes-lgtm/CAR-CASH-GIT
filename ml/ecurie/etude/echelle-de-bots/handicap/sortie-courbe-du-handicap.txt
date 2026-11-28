@@ -1,0 +1,52 @@
+== A. LE RISQUE DE MOURIR DANS LA MINUTE (une partie = jusqu a sa fin ; une seconde chance prise ne coupe pas la partie) ==
+joueurs (14 parties) : min 1 : 3/14 (21 %) · min 2 : 2/11 (18 %) · min 3 : 4/9 (44 %) · min 4 : 2/5 (40 %) · min 5 : 1/3 (33 %) · min 6 : 0/2 (0 %) · min 7 : 1/2 (50 %) · min 8 : 0/1 (0 %) · min 9 : 0/1 (0 %) · min 10 : 1/1 (100 %)
+  dont clavier (10) : min 1 : 2/10 (20 %) · min 2 : 2/8 (25 %) · min 3 : 3/6 (50 %) · min 4 : 1/3 (33 %) · min 5 : 0/2 (0 %) · min 6 : 0/2 (0 %) · min 7 : 1/2 (50 %) · min 8 : 0/1 (0 %) · min 9 : 0/1 (0 %) · min 10 : 1/1 (100 %)
+c0025 (96 courses) : min 1 : 17/96 (18 %) · min 2 : 28/79 (35 %) · min 3 : 35/51 (69 %) · min 4 : 9/16 (56 %) · min 5 : 7/7 (100 %)
+les 1 250 du banc : min 1 : 247/1250 (20 %) · min 2 : 379/1003 (38 %) · min 3 : 376/624 (60 %) · min 4 : 152/248 (61 %) · min 5 : 65/96 (68 %) · min 6 : 20/31 (65 %) · min 7 : 9/11 (82 %) · min 8 : 2/2 (100 %)
+
+== B. MEDIANE ET « RECORD SUR 20 PARTIES » (le record sur 20 parties tombe, une fois sur deux, au quantile 96,6 % : 0,5^(1/20)) ==
+joueur au clavier, 10 parties : mediane 10.0 · record 28 · record/mediane 2.80 · moyenne 11.4 · ecart-type 8.6
+les 14 parties : mediane 11.5 · record 28
+c0025, 96 courses : mediane 7.0 · q90 11.0 · q96,6 12.8 · max 14 · moyenne 6.83 · ecart-type 2.97 · cv 0.43
+c0025, record de 20 parties tirees au sort dans les 96 (20 000 tirages) : mediane 13 · q10 11 · q90 14 · record/mediane 1.86
+
+== C. L HEURE OU TOMBE CHAQUE PALIER : les joueurs (t_palier de sortie.json) et c0025 (pente du banc, palier/sortie-debit-et-survie.txt : pieces = -128,3 + 281,1 x minutes) ==
+palier  5 ( 225 pieces) : joueurs 11 parties, de 39 a 95 s, mediane 48 s · c0025 vers 75 s · rapport 1.59
+palier 10 ( 730 pieces) : joueurs 8 parties, de 114 a 172 s, mediane 120 s · c0025 vers 183 s · rapport 1.53
+palier 15 (1430 pieces) : joueurs 5 parties, de 182 a 246 s, mediane 214 s · c0025 vers 333 s · rapport 1.55
+palier 20 (2255 pieces) : joueurs 3 parties, de 247 a 347 s, mediane 303 s · c0025 vers 509 s · rapport 1.68
+palier 25 (3240 pieces) : joueurs 1 parties, de 409 a 409 s, mediane 409 s · c0025 vers 719 s · rapport 1.76
+
+== D. CE QUE LES GENES A INTERRUPTEUR DEJA JOUES DEPLACENT (banc des genes, 96 courses par bras) ==
+ecart de palier moyen a c0025 (6.83) : gestes5 -0.75 · slalomOn -0.50 · c0101 -0.21 · libreOn -0.15 · c0026 -0.09 · relacheOn +0.01 · coupOn +0.08 · lacheOn +0.10 · largeOn +0.16 · fuirVite +0.36 · bordOn +0.52 · suitOn +0.59
+le plus grand ecart : 0.75 palier.
+
+== E. CALCUL : LE RISQUE PAR MINUTE QU IL FAUT POUR « NE PERD JAMAIS » (risque constant r par minute pendant les T minutes jusqu au palier 30) ==
+pilote parfait, 100 % des pieces     T =  4.0 min : arriver 95 fois sur 100 -> r <= 1.27 % par minute · 99 fois sur 100 -> r <= 0.25 %
+debit des joueurs (436/min)          T = 10.1 min : arriver 95 fois sur 100 -> r <= 0.51 % par minute · 99 fois sur 100 -> r <= 0.10 %
+debit marginal de c0025 (281/min)    T = 16.1 min : arriver 95 fois sur 100 -> r <= 0.32 % par minute · 99 fois sur 100 -> r <= 0.06 %
+debit moyen de c0025 (226,6/min)     T = 19.4 min : arriver 95 fois sur 100 -> r <= 0.26 % par minute · 99 fois sur 100 -> r <= 0.05 %
+a comparer au risque compte en A : minutes 1 a 4, c0025 18 a 69 %, joueurs 18 a 44 %.
+courses SANS UNE MORT a aligner pour affirmer (a 95 %) un taux de reussite >= 95 % : 59 · >= 99 % : 299 · >= 99,9 % : 2995
+
+== F. CALCUL : LE HANDICAP COMME UN RISQUE AJOUTE (c0025 + h fautes mortelles par minute, a toute heure ; pieces gagnees en ligne droite dans chaque course ; seconde chance ignoree ; 500 tirages par course) ==
+h/min | palier median | q10-q90 | moyen | record sur 20 (q96,6) | survie mediane (s)
+    0 |    7 | 3-11 | 6.80 | 13 | 123
+  0.1 |    6 | 3-10 | 6.20 | 11 | 100
+  0.2 |    5 | 2-10 | 5.69 | 11 | 86
+ 0.35 |    5 | 2-9 | 5.07 | 11 | 72
+  0.5 |    4 | 1-8 | 4.60 | 10 | 60
+ 0.75 |    4 | 1-7 | 3.98 | 9 | 44
+    1 |    3 | 1-6 | 3.52 | 8 | 35
+  1.5 |    3 | 1-5 | 2.93 | 7 | 25
+    2 |    2 | 1-5 | 2.50 | 6 | 20
+    3 |    2 | 1-4 | 2.02 | 5 | 14
+    5 |    1 | 1-3 | 1.57 | 3 | 8
+lecture : la reponse ATTENDUE d un bouton qui n ajouterait que des morts sans changer la conduite ; un vrai bouton (reaction, erreurs, nitro) changera aussi le debit : a mesurer.
+
+== G. CALCUL : la precision d une mediane mesuree (ecart-type = 0,5 x palier, erreur de la mediane = 1,25 x ecart-type / racine(n), a 95 %) ==
+n  12 : palier 3 : +/- 1.06 · palier 7 : +/- 2.48 · palier 12 : +/- 4.24
+n  24 : palier 3 : +/- 0.75 · palier 7 : +/- 1.75 · palier 12 : +/- 3.00
+n  48 : palier 3 : +/- 0.53 · palier 7 : +/- 1.24 · palier 12 : +/- 2.12
+n  96 : palier 3 : +/- 0.38 · palier 7 : +/- 0.88 · palier 12 : +/- 1.50
+n 192 : palier 3 : +/- 0.27 · palier 7 : +/- 0.62 · palier 12 : +/- 1.06

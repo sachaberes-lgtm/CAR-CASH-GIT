@@ -1,0 +1,122 @@
+cerveaux | c0002 | reference | 2026-11-25 | etape=1 | tmax=300 | max | 20@910000 | n=20 | med=10 | rec=20 | E= | surv=142.6
+cerveaux | c0003 | pilote | 2026-11-25 | etape=K-haiku | tmax=900 | allege | 20@910000 | n=20 | med=11 | rec=20 | E= | surv=215.3
+cerveaux | c0004 | pilote | 2026-11-25 | etape=K-haiku | tmax=600 | allege | 6@910000 | n=6 | med=11.5 | rec=18 | E= | surv=222.5
+cerveaux | c0005 | pilote | 2026-11-25 | etape=K-haiku | tmax=900 | allege | 20@910000 | n=20 | med=11 | rec=20 | E= | surv=215.3
+cerveaux | c0006 | pilote-ligne-nitro | 2026-11-25 | etape=K-haiku | tmax=600 | allege | 6@910000 | n=6 | med=10 | rec=14 | E= | surv=172
+cerveaux | c0007 | pilote-fil | 2026-11-25 | etape=K-haiku | tmax=600 | allege | 6@910000 | n=6 | med=8 | rec=14 | E= | surv=149
+cerveaux | c0008 | pilote-canyon | 2026-11-25 | etape=K-haiku | tmax=600 | allege | 6@910000 | n=6 | med=11.5 | rec=18 | E= | surv=226.3
+cerveaux | c0009 | pilote-sortie | 2026-11-25 | etape=K-haiku | tmax=900 | allege | 20@910000 | n=20 | med=10.5 | rec=20 | E= | surv=194.3
+cerveaux | c0010 | pilote | 2026-11-25 | etape=K-sonnet | tmax=900 | allege | 20@910000 | n=20 | med=11 | rec=20 | E= | surv=215.3
+cerveaux | c0011 | pilote | 2026-11-25 | etape=K-sonnet | tmax=900 | allege | 20@910000 | n=20 | med=13 | rec=19 | E= | surv=229.5
+cerveaux | c0012 | pilote | 2026-11-25 | etape=K-sonnet | tmax=600 | allege | 6@910000 | n=6 | med=11.5 | rec=18 | E= | surv=232.8
+cerveaux | c0013 | pilote | 2026-11-25 | etape=K-sonnet | tmax=600 | allege | 6@910000 | n=6 | med=7.5 | rec=17 | E= | surv=105.7
+cerveaux | c0014 | pilote | 2026-11-25 | etape=K-sonnet | tmax=600 | allege | 6@910000 | n=6 | med=12 | rec=15 | E= | surv=215.4
+cerveaux | c0015 | pilote | 2026-11-25 | etape=K-sonnet | tmax=900 | allege | 20@910000 | n=20 | med=11 | rec=20 | E= | surv=207.1
+cerveaux | c0016 | pilote | 2026-11-25 | etape=K-sonnet | tmax=600 | allege | 6@910000 | n=6 | med=9.5 | rec=15 | E= | surv=161.7
+cerveaux | c0017 | pilote | 2026-11-25 | etape=K-opus | tmax=900 | allege | 20@910000 | n=20 | med=11 | rec=20 | E= | surv=215.3
+cerveaux | c0018 | pilote | 2026-11-25 | etape=K-opus | tmax=600 | allege | 6@910000 | n=6 | med=10 | rec=17 | E= | surv=150.8
+cerveaux | c0019 | pilote | 2026-11-25 | etape=K-opus | tmax=600 | allege | 6@910000 | n=6 | med=9.5 | rec=19 | E= | surv=195.7
+cerveaux | c0020 | pilote | 2026-11-25 | etape=K-opus | tmax=600 | allege | 6@910000 | n=6 | med=9.5 | rec=15 | E= | surv=177
+cerveaux | c0021 | pilote | 2026-11-25 | etape=K-opus | tmax=600 | allege | 6@910000 | n=6 | med=8.5 | rec=17 | E= | surv=138.3
+cerveaux | c0022 | pilote | 2026-11-25 | etape=K-opus | tmax=600 | allege | 6@910000 | n=6 | med=11 | rec=18 | E= | surv=219.8
+cerveaux | c0023 | pilote | 2026-11-25 | etape=K-opus | tmax=600 | allege | 6@910000 | n=6 | med=7.5 | rec=21 | E= | surv=132.9
+cerveaux | c0024 | pilote | 2026-11-25 | etape=K-fable | tmax=900 | allege | 20@910000 | n=20 | med=11 | rec=20 | E= | surv=215.3
+cerveaux | c0025 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=7.5 | rec=14 | E=1.666 | surv=137.3
+cerveaux | c0026 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=17 | E=1.581 | surv=125.3
+cerveaux | c0027 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=5.5 | rec=7 | E=1.706 | surv=84.9
+cerveaux | c0028 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=7 | rec=12 | E=1.844 | surv=105.8
+cerveaux | c0029 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8.5 | rec=14 | E=1.677 | surv=153.5
+cerveaux | c0030 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=7 | rec=10 | E=1.817 | surv=127.3
+cerveaux | c0031 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=7 | rec=13 | E=1.848 | surv=111.6
+cerveaux | c0032 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=8 | rec=10 | E=1.639 | surv=144.6
+cerveaux | c0033 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=8 | rec=11 | E=1.735 | surv=168.7
+cerveaux | c0034 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=8.5 | rec=10 | E=1.757 | surv=141.6
+cerveaux | c0035 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9 | rec=11 | E=1.748 | surv=153.2
+cerveaux | c0036 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=17 | E=1.581 | surv=125.3
+cerveaux | c0037 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=6.5 | rec=8 | E=1.779 | surv=121.3
+cerveaux | c0038 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=7.5 | rec=13 | E=1.62 | surv=121.1
+cerveaux | c0039 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=5.5 | rec=15 | E=1.667 | surv=113.8
+cerveaux | c0040 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=13 | E=1.616 | surv=123
+cerveaux | c0041 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=5 | rec=10 | E=1.572 | surv=95.8
+cerveaux | c0042 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9 | rec=11 | E=1.737 | surv=161.8
+cerveaux | c0043 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=7.5 | rec=9 | E=1.879 | surv=140.3
+cerveaux | c0044 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=6.5 | rec=8 | E=1.908 | surv=121.3
+cerveaux | c0045 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=8 | rec=12 | E=1.836 | surv=162.2
+cerveaux | c0046 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=8 | rec=13 | E=1.827 | surv=149.9
+cerveaux | c0047 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=17 | E=1.581 | surv=125.3
+cerveaux | c0048 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=17 | E=1.581 | surv=125.3
+cerveaux | c0049 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=8.5 | rec=11 | E=1.683 | surv=140.3
+cerveaux | c0050 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=7 | rec=18 | E=1.723 | surv=121.3
+cerveaux | c0051 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=6.5 | rec=16 | E=1.769 | surv=143.2
+cerveaux | c0052 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9 | rec=16 | E=1.772 | surv=183
+cerveaux | c0053 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=8 | rec=11 | E=1.687 | surv=153.7
+cerveaux | c0054 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9 | rec=11 | E=1.744 | surv=161.8
+cerveaux | c0055 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=6.5 | rec=8 | E=1.849 | surv=118.8
+cerveaux | c0056 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=7.5 | rec=15 | E=1.671 | surv=135.1
+cerveaux | c0057 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=7 | rec=14 | E=1.711 | surv=125.7
+cerveaux | c0058 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9 | rec=13 | E=1.743 | surv=156.3
+cerveaux | c0059 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=17 | E=1.581 | surv=125.3
+cerveaux | c0060 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9 | rec=12 | E=1.74 | surv=161.8
+cerveaux | c0061 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=6.5 | rec=12 | E=1.679 | surv=121.3
+cerveaux | c0062 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=16 | E=1.589 | surv=125.3
+cerveaux | c0063 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=7.5 | rec=12 | E=1.747 | surv=134.9
+cerveaux | c0064 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=14 | E=1.577 | surv=123.8
+cerveaux | c0065 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=8.5 | rec=11 | E=1.793 | surv=171.6
+cerveaux | c0066 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=7.5 | rec=10 | E=1.837 | surv=139.3
+cerveaux | c0067 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=8 | rec=10 | E=1.61 | surv=149.1
+cerveaux | c0068 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=10 | rec=13 | E=1.73 | surv=194.4
+cerveaux | c0069 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9 | rec=14 | E=1.659 | surv=159.3
+cerveaux | c0070 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=14 | E=1.577 | surv=123.8
+cerveaux | c0071 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9 | rec=12 | E=1.697 | surv=183.8
+cerveaux | c0072 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=19 | E=1.57 | surv=123.8
+cerveaux | c0073 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9.5 | rec=11 | E=1.59 | surv=190
+cerveaux | c0074 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=8.5 | rec=13 | E=1.561 | surv=160.3
+cerveaux | c0075 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=7.5 | rec=11 | E=1.593 | surv=118.3
+cerveaux | c0076 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=19 | E=1.57 | surv=123.8
+cerveaux | c0077 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=19 | E=1.588 | surv=123.8
+cerveaux | c0078 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=10 | rec=14 | E=1.627 | surv=201.6
+cerveaux | c0079 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9 | rec=11 | E=1.711 | surv=164.8
+cerveaux | c0080 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=6.5 | rec=8 | E=2.001 | surv=112.3
+cerveaux | c0081 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9 | rec=14 | E=1.659 | surv=159.3
+cerveaux | c0082 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9 | rec=12 | E=1.699 | surv=170.8
+cerveaux | c0083 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=7.5 | rec=14 | E=1.545 | surv=110.9
+cerveaux | c0084 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=19 | E=1.57 | surv=123.8
+cerveaux | c0085 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=6 | rec=8 | E=1.871 | surv=110
+cerveaux | c0086 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=8.5 | rec=13 | E=1.561 | surv=160.3
+cerveaux | c0087 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=14 | E=1.531 | surv=125.9
+cerveaux | c0088 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9 | rec=14 | E=1.543 | surv=155.4
+cerveaux | c0089 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=17 | E=1.549 | surv=135.5
+cerveaux | c0090 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=10 | rec=14 | E=1.627 | surv=201.6
+cerveaux | c0091 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=7.5 | rec=10 | E=1.709 | surv=155.3
+cerveaux | c0092 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9 | rec=11 | E=1.708 | surv=152.6
+cerveaux | c0093 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=5 | rec=7 | E=1.499 | surv=66.9
+cerveaux | c0094 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9.5 | rec=15 | E=1.66 | surv=167.6
+cerveaux | c0095 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=14 | E=1.531 | surv=125.9
+cerveaux | c0096 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9 | rec=13 | E=1.735 | surv=161.9
+cerveaux | c0097 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=6.5 | rec=10 | E=1.702 | surv=102.8
+cerveaux | c0098 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=14 | E=1.511 | surv=123.8
+cerveaux | c0099 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=8 | rec=10 | E=1.682 | surv=148.1
+cerveaux | c0100 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9 | rec=12 | E=1.697 | surv=183.8
+cerveaux | c0101 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=14 | E=1.525 | surv=125.9
+cerveaux | c0102 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=7.5 | rec=14 | E=1.725 | surv=140.1
+cerveaux | c0103 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=13 | E=1.491 | surv=125.8
+cerveaux | c0104 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9 | rec=14 | E=1.659 | surv=159.3
+cerveaux | c0105 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9.5 | rec=14 | E=1.61 | surv=167.6
+cerveaux | c0106 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=10 | rec=14 | E=1.627 | surv=201.6
+cerveaux | c0107 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=10 | rec=14 | E=1.627 | surv=201.6
+cerveaux | c0108 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8.5 | rec=14 | E=1.636 | surv=153.2
+cerveaux | c0109 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=7 | rec=8 | E=1.736 | surv=112.3
+cerveaux | c0110 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9 | rec=12 | E=1.708 | surv=154.1
+cerveaux | c0111 | pilote | 2026-11-27 | etape=C2 | tmax=600 | allege | 6@910000 | n=6 | med=9 | rec=12 | E=1.698 | surv=179.2
+cerveaux | c0112 | pilote | 2026-11-27 | etape=C2 | tmax=900 | allege | 20@910000 | n=20 | med=8 | rec=14 | E=1.525 | surv=125.9
+validation | c0010 |  | 2026-11-25 | etape= | tmax=900 | allege | 20@950000 | n=20 | med=11 | rec=18 | E= | surv=214.1
+validation | c0011 |  | 2026-11-25 | etape= | tmax=900 | allege | 20@950000 | n=20 | med=10.5 | rec=18 | E= | surv=204.7
+validation | c0025 |  | 2026-11-27 | etape= | tmax=900 | allege | 20@950000 | n=20 | med=4 | rec=9 | E= | surv=69.2
+validation | c0026 |  | 2026-11-27 | etape= | tmax=900 | allege | 20@950000 | n=20 | med=4 | rec=14 | E= | surv=80.8
+validation | c0064 |  | 2026-11-27 | etape= | tmax=900 | allege | 20@950000 | n=20 | med=6 | rec=16 | E= | surv=102.5
+validation | c0072 |  | 2026-11-27 | etape= | tmax=900 | allege | 20@950000 | n=20 | med=6 | rec=16 | E= | surv=102.5
+validation | c0087 |  | 2026-11-27 | etape= | tmax=900 | allege | 20@950000 | n=20 | med=6 | rec=16 | E= | surv=102.5
+validation | c0098 |  | 2026-11-27 | etape= | tmax=900 | allege | 20@950000 | n=20 | med=6 | rec=16 | E= | surv=102.5
+validation | c0101 |  | 2026-11-27 | etape= | tmax=900 | allege | 20@950000 | n=20 | med=6 | rec=16 | E= | surv=102.5
+validation | c0103 |  | 2026-11-27 | etape= | tmax=900 | allege | 20@950000 | n=20 | med=5.5 | rec=16 | E= | surv=95.9
+sans palier : c0001

@@ -1,0 +1,144 @@
+{
+ "nom": "c0025 (bras depart)",
+ "n": 96,
+ "coupees_temps": 0,
+ "morts_moy": 1.06,
+ "palier": {
+  "moy": 6.83,
+  "q10": 3,
+  "med": 7,
+  "q90": 11,
+  "max": 14
+ },
+ "hist_palier": {
+  "1": 2,
+  "2": 2,
+  "3": 10,
+  "4": 9,
+  "5": 11,
+  "6": 13,
+  "7": 13,
+  "8": 7,
+  "9": 9,
+  "10": 9,
+  "11": 4,
+  "12": 3,
+  "13": 3,
+  "14": 1
+ },
+ "survie_s": {
+  "moy": 122.8,
+  "q10": 37.6,
+  "med": 123,
+  "q90": 219.8,
+  "max": 286.1
+ },
+ "pieces": {
+  "moy": 464,
+  "med": 413,
+  "max": 1377
+ },
+ "pieces_min": {
+  "rapport_des_sommes": 226.6,
+  "med_par_course": 222.8,
+  "q10": 165,
+  "q90": 280.2
+ },
+ "vols_par_min": 5.08,
+ "causes": {
+  "tour": 24,
+  "roche": 21,
+  "vide": 11,
+  "pic": 9,
+  "air": 23,
+  "paroi": 6,
+  "glace": 1,
+  "eau": 1
+ }
+}
+{
+ "nom": "les 1 250",
+ "n": 1250,
+ "coupees_temps": 0,
+ "morts_moy": 1.07,
+ "palier": {
+  "moy": 6.84,
+  "q10": 3,
+  "med": 6,
+  "q90": 11,
+  "max": 19
+ },
+ "hist_palier": {
+  "1": 22,
+  "2": 42,
+  "3": 149,
+  "4": 125,
+  "5": 139,
+  "6": 161,
+  "7": 142,
+  "8": 109,
+  "9": 110,
+  "10": 90,
+  "11": 53,
+  "12": 24,
+  "13": 38,
+  "14": 17,
+  "15": 13,
+  "16": 6,
+  "17": 3,
+  "18": 2,
+  "19": 5
+ },
+ "survie_s": {
+  "moy": 126.1,
+  "q10": 34,
+  "med": 120,
+  "q90": 227,
+  "max": 444.5
+ },
+ "pieces": {
+  "moy": 473,
+  "med": 391,
+  "max": 2231
+ },
+ "pieces_min": {
+  "rapport_des_sommes": 225,
+  "med_par_course": 214.4,
+  "q10": 140.2,
+  "q90": 278.4
+ },
+ "vols_par_min": 5.49,
+ "causes": {
+  "tour": 286,
+  "roche": 272,
+  "paroi": 118,
+  "vide": 141,
+  "air": 298,
+  "lave": 4,
+  "pic": 94,
+  "canyon": 3,
+  "glace": 16,
+  "eau": 18
+ }
+}
+c0025 >300 s : 0 pieces/min null
+voltige    2 pal moy 2.5 med 4 max 4 survie med 50 max 50 p/min 202.5
+depart     96 pal moy 6.83 med 7 max 14 survie med 123 max 286.1 p/min 226.6
+lacheOn    96 pal moy 6.94 med 6 max 19 survie med 111.4 max 329.8 p/min 238
+relacheOn  96 pal moy 6.84 med 6 max 18 survie med 119.9 max 438.2 p/min 228.9
+coupOn     96 pal moy 6.92 med 7 max 16 survie med 125.5 max 364 p/min 225.7
+suitOn     96 pal moy 7.43 med 7 max 19 survie med 128.7 max 393.7 p/min 237.6
+fuirVite   96 pal moy 7.2 med 7 max 15 survie med 135.4 max 390.9 p/min 229.2
+c0026      96 pal moy 6.74 med 6 max 19 survie med 109.8 max 405.6 p/min 229.5
+bordOn     96 pal moy 7.35 med 7 max 16 survie med 125.2 max 374.3 p/min 235
+slalomOn   96 pal moy 6.33 med 6 max 17 survie med 119.3 max 444.5 p/min 196.8
+largeOn    96 pal moy 6.99 med 7 max 18 survie med 123 max 362.9 p/min 232.3
+libreOn    96 pal moy 6.69 med 6 max 14 survie med 114.9 max 286.1 p/min 223.3
+c0101      96 pal moy 6.63 med 6 max 19 survie med 111.7 max 342.4 p/min 232
+gestes5    96 pal moy 6.08 med 6 max 13 survie med 127.7 max 329.8 p/min 187.6
+c0025 survie > 1 min : 82.3 %
+c0025 survie > 2 min : 53.1 %
+c0025 survie > 3 min : 16.7 %
+c0025 survie > 5 min : 0.0 %
+c0025 survie > 10 min : 0.0 %
+c0025 survie > 15 min : 0.0 %

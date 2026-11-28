@@ -1,0 +1,22 @@
+== ml/ecurie/etude/banc-des-genes/etat/courses-2026-48.jsonl
+lignes 1250, mesurees 1250, usages {"controle":2,"banc":1248}, tmax {"900":1250}
+champs non nuls (sur les mesurees) : cle 1250, pilote 1250, id 1250, usage 1250, epoque 1250, essai 1250, mesuree 1250, date 1250, graine 1250, tmax 1250, palier 1250, pieces 1250, survie_s 1250, cause 1250, morts 1250, vols 1250, pannes 1250, erreurs 1250, cerveau_ms_moy 1250, yeuxTirages 1250, jeu 1250, jeu_sha 1250, simulateur 1250, node 1250, fichiers_sha 1250, empreinte 1250, empreinteVues 1250, empreinteTouches 1250, ms 1250, pannesEssais 1250, mesures 1003
+cause de fin : {"tour":286,"roche":272,"paroi":118,"vide":141,"air":298,"lave":4,"pic":94,"canyon":3,"glace":16,"eau":18}
+morts par course : {"0":17,"1":1129,"2":104}
+palier : min 1, max 19, loi {"1":22,"2":42,"3":149,"4":125,"5":139,"6":161,"7":142,"8":109,"9":110,"10":90,"11":53,"12":24,"13":38,"14":17,"15":13,"16":6,"17":3,"18":2,"19":5}
+courses allees jusqu'a tmax : 0 / 1250
+cles de mesures : nitro nitroSol nitroDecol air vols volDuree volHaut volsCourts raccourcis figures poseCentre dessous aller ondulation vitesse
+cles de causesMorts : 
+cles de declenchements : 0 ()
+chancePrise : {"undefined":1250}
+== ml/ecurie/etude/reglage-de-la-selection/sacre/donnees/courses-2026-48.jsonl
+lignes 573, mesurees 573, usages {"entrainement":533,"coffre":40}, tmax {"900":573}
+champs non nuls (sur les mesurees) : cle 573, pilote 573, id 573, usage 573, generation 573, epoque 573, essai 573, mesuree 573, date 573, graine 573, tmax 573, palier 573, pieces 573, survie_s 573, cause 573, morts 573, vols 573, pannes 573, erreurs 573, cerveau_ms_moy 573, yeuxTirages 573, jeu 573, jeu_sha 573, simulateur 573, node 573, fichiers_sha 573, empreinte 573, empreinteVues 573, empreinteTouches 573, ms 573, pannesEssais 573, mesures 444
+cause de fin : {"paroi":95,"air":143,"roche":148,"vide":69,"lave":1,"pic":32,"eau":16,"tour":65,"canyon":3,"glace":1}
+morts par course : {"0":2,"1":514,"2":57}
+palier : min 1, max 20, loi {"1":25,"2":21,"3":62,"4":40,"5":59,"6":66,"7":63,"8":52,"9":45,"10":44,"11":37,"12":15,"13":14,"14":14,"15":4,"16":7,"17":2,"18":2,"20":1}
+courses allees jusqu'a tmax : 0 / 573
+cles de mesures : nitro nitroSol nitroDecol air vols volDuree volHaut volsCourts raccourcis figures poseCentre dessous aller ondulation vitesse
+cles de causesMorts : 
+cles de declenchements : 0 ()
+chancePrise : {"undefined":573}

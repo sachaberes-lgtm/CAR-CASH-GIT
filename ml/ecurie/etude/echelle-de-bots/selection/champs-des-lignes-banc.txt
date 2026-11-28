@@ -1,0 +1,11 @@
+== ml/evolution/banc/etat/courses-2026-48.jsonl
+lignes 105, mesurees 105, usages {"banc":105}, tmax {"900":105}
+champs non nuls (sur les mesurees) : cle 105, pilote 105, id 105, usage 105, epoque 105, essai 105, mesuree 105, date 105, graine 105, tmax 105, palier 105, pieces 105, survie_s 105, cause 105, morts 105, vols 105, pannes 105, erreurs 105, cerveau_ms_moy 105, yeuxTirages 105, mesures 73, jeu 105, jeu_sha 105, simulateur 105, node 105, fichiers_sha 105, empreinte 105, empreinteVues 105, empreinteTouches 105, ms 105, declenchements 105, cartes 105, causesMorts 105, chancePrise 105, pannesEssais 105
+cause de fin : {"tour":34,"vide":22,"roche":12,"eau":1,"pic":7,"air":14,"paroi":14,"canyon":1}
+morts par course : {"0":2,"1":100,"2":3}
+palier : min 2, max 13, loi {"2":5,"3":17,"4":14,"5":16,"6":13,"7":10,"8":4,"9":4,"10":11,"11":8,"12":2,"13":1}
+courses allees jusqu'a tmax : 0 / 105
+cles de mesures : nitro nitroSol nitroDecol air vols volDuree volHaut volsCourts raccourcis figures poseCentre dessous aller ondulation vitesse
+cles de causesMorts : 0 1 ; exemple ["tour"]
+cles de declenchements : 5 (slalomOn suitOn suitOn.ensuite bordOn fuirVite)
+chancePrise : {"false":102,"true":3}

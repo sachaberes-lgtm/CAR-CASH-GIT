@@ -1,0 +1,18 @@
+pilotes (>= 12 courses) : 59
+palier moyen [0 ; 6[ : 3 pilotes, ecart-type entre graines moyen 2.44, cv 0.41
+palier moyen [6 ; 7[ : 30 pilotes, ecart-type entre graines moyen 3.32, cv 0.50
+palier moyen [7 ; 8[ : 19 pilotes, ecart-type entre graines moyen 3.77, cv 0.50
+palier moyen [8 ; 99[ : 7 pilotes, ecart-type entre graines moyen 4.07, cv 0.50
+
+sigma 3,0 : n courses | se du palier moyen | ecart reconnaissable entre deux pilotes (2 x racine(2) x se) | niveaux tenables sur 1-30 | pilotes notes par jour a 420 courses/h
+12 | 0.87 | 2.45 | 12 | 840
+24 | 0.61 | 1.73 | 17 | 420
+48 | 0.43 | 1.22 | 24 | 210
+96 | 0.31 | 0.87 | 34 | 105
+192 | 0.22 | 0.61 | 48 | 52
+
+cv 0,5 : n courses | rapport reconnaissable entre deux niveaux | niveaux tenables sur 1-30 (echelle geometrique)
+12 | 1.50 | 9
+24 | 1.33 | 12
+48 | 1.23 | 17
+96 | 1.16 | 24

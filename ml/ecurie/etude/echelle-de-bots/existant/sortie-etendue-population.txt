@@ -1,0 +1,39 @@
+gen 0 epoque 29ae5fffc2b9 vivants notes 20 | palier moyen min/med/max 6.57 7.03 8.19 | E min/max 0.71 1.03 | n 12
+gen 1 epoque 29ae5fffc2b9 vivants notes 20 | palier moyen min/med/max 6.58 7.46 9.04 | E min/max 0.76 1.04 | n 24/12
+gen 2 epoque 29ae5fffc2b9 vivants notes 20 | palier moyen min/med/max 6.21 7.50 8.25 | E min/max 0.82 1.15 | n 36/24/12
+gen 3 epoque 29ae5fffc2b9 vivants notes 20 | palier moyen min/med/max 6.65 7.60 8.78 | E min/max 0.76 0.97 | n 48/36/24/12
+gen 4 epoque 29ae5fffc2b9 vivants notes 20 | palier moyen min/med/max 6.80 7.39 8.78 | E min/max 0.63 0.85 | n 60/48/36/24/12
+gen 5 epoque 29ae5fffc2b9 vivants notes 20 | palier moyen min/med/max 6.74 7.55 8.54 | E min/max 0.69 1.04 | n 72/60/48/36/24/12
+gen 6 epoque 29ae5fffc2b9 vivants notes 20 | palier moyen min/med/max 6.72 7.57 8.20 | E min/max 0.74 1.26 | n 84/72/60/48/36/24/12
+gen 7 epoque 29ae5fffc2b9 vivants notes 20 | palier moyen min/med/max 6.70 7.46 7.93 | E min/max 0.75 1.30 | n 96/84/72/60/48/36/24/12
+gen 8 epoque 29ae5fffc2b9 vivants notes 20 | palier moyen min/med/max 5.80 7.36 7.93 | E min/max 0.76 4.00 | n 108/96/84/72/60/48/36/24/12
+gen 9 epoque 29ae5fffc2b9 vivants notes 20 | palier moyen min/med/max 6.21 7.43 8.12 | E min/max 0.70 0.92 | n 120/96/84/72/60/48/36/24/12
+gen 10 epoque 29ae5fffc2b9 vivants notes 20 | palier moyen min/med/max 6.72 7.58 8.39 | E min/max 0.68 0.96 | n 132/108/96/84/72/60/48/36/24/12
+gen 11 epoque 29ae5fffc2b9 vivants notes 20 | palier moyen min/med/max 6.76 7.59 8.83 | E min/max 0.71 1.03 | n 144/120/108/96/84/72/48/36/24/12
+gen 12 epoque 29ae5fffc2b9 vivants notes 20 | palier moyen min/med/max 6.49 7.53 8.30 | E min/max 0.68 0.97 | n 156/132/120/108/96/84/60/48/36/24/12
+gen 13 epoque 29ae5fffc2b9 vivants notes 20 | palier moyen min/med/max 6.95 7.77 8.50 | E min/max 0.74 0.91 | n 168/144/132/120/96/72/48/36/24/12
+gen 14 epoque 29ae5fffc2b9 vivants notes 20 | palier moyen min/med/max 6.52 7.68 8.22 | E min/max 0.73 1.18 | n 180/156/144/132/108/60/36/24/12
+gen 15 epoque 29ae5fffc2b9 vivants notes 20 | palier moyen min/med/max 6.90 7.86 8.04 | E min/max 0.75 0.93 | n 192/168/156/120/72/48/36/24/12
+gen 16 epoque 3c3d44e8bd9b vivants notes 20 | palier moyen min/med/max 6.40 6.78 7.36 | E min/max 0.73 0.95 | n 12
+gen 17 epoque 3c3d44e8bd9b vivants notes 20 | palier moyen min/med/max 6.39 6.96 8.16 | E min/max 0.64 0.89 | n 24/12
+derniere gen 17
+  957e77f79364 ne 17 n 12 ahat 6.3917 E 0.6442 F 3.8147
+  21c13c147294 ne 15 n 24 ahat 6.4083 E 0.7373 F 3.4591
+  fc5cd7491f43 ne 14 n 24 ahat 6.4361 E 0.7765 F 3.33
+  e7aa11aafde7 ne 15 n 24 ahat 6.6861 E 0.7527 F 3.6753
+  79d33c5172b3 ne 16 n 24 ahat 6.7139 E 0.7958 F 3.5308
+  f3b53597b6c8 ne 17 n 12 ahat 6.7667 E 0.6631 F 4.1144
+  f2eca54ee99c ne 17 n 12 ahat 6.7667 E 0.8604 F 3.3251
+  19e3767cc346 ne 0 n 24 ahat 6.7694 E 0.7796 F 3.651
+  f1121e961540 ne 17 n 12 ahat 6.8083 E 0.7508 F 3.8053
+  52ecc6eb53b0 ne 16 n 24 ahat 6.825 E 0.7712 F 3.7404
+  6c228b083ca5 ne 16 n 24 ahat 6.9639 E 0.7846 F 3.8254
+  2a7b005855be ne 17 n 12 ahat 7.1417 E 0.7946 F 3.9632
+  3ee64f888116 ne 16 n 24 ahat 7.1861 E 0.7831 F 4.0538
+  c7dadd65d9c1 ne 10 n 24 ahat 7.4917 E 0.8442 F 4.1147
+  177573e8fbd6 ne 14 n 24 ahat 7.4917 E 0.7515 F 4.4855
+  167b7301b257 ne 13 n 24 ahat 7.5472 E 0.8812 F 4.0226
+  22b93a033c1a ne 13 n 24 ahat 7.575 E 0.7992 F 4.3781
+  2e9b5cc4c924 ne 17 n 12 ahat 7.6 E 0.75 F 4.6
+  d52d353bbecc ne 2 n 24 ahat 7.7139 E 0.8162 F 4.4493
+  c6ce371c42b0 ne 12 n 24 ahat 8.1583 E 0.8892 F 4.6014

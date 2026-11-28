@@ -1,0 +1,38 @@
+== JOUEURS (14 parties) ==
+paliers tries : 1 1 4 5 5 8 11 12 14 15 16 21 22 28 ; moyenne 11.64 ; mediane 11.5
+Sacha : n 10 sd 8.59 mediane 10 max 28
+Leo : n 4 sd 8.54 mediane 13.5 max 21
+parties avec seconde chance : P28 (545.1 s), P22 (396.1 s)
+sans les 2 parties a seconde chance : mediane 9.5 max 21
+minute 1 : 3/14
+minute 2 : 2/11
+minute 3 : 4/9
+minute 4 : 2/5
+minute 5 : 1/3
+morts (fins + secondes chances) 16 en 40.8 min = 0.392/min
+120-180 s : 4 parties ; somme/somme 394 ; moyenne des rythmes 392 ; champ pieces_min moyen 392 ; mediane pieces 1003
+240-400 s : 2 parties ; somme/somme 481 ; moyenne des rythmes 501 ; champ pieces_min moyen 520 ; mediane pieces 2637
+instant du palier 10 (survivants) : n 8 mediane 120 [ 114 ; 172 ]
+pic par joueur/map : Sacha/jade/P5, Sacha/jade/P5, Sacha/jade/P4
+versions : 60aa15e,ccdca9b ; doigt 4/14
+
+== BANC (1250 lignes) ==
+c0025 (bras depart) : n 96 moyenne 6.83 sd 2.97 cv 0.43 mediane 7 max 14
+c0025 marches 1->5 73/96 5->10 20/73 10->15 0/20
+banc   marches 5->10 251/912 10->15 29/251 15->20 0/29
+c0025 paliers 1-3 : 14 dont cause tour 6
+banc paliers 4-8 : 676 dont pic 48
+banc palier <=2 : 5.1 % ; c0025 4.2 %
+banc <66 s 22.2 % ; >240 s 7.7 % ; cause air|vide 35.1 %
+causes du banc : {"tour":286,"roche":272,"paroi":118,"vide":141,"air":298,"lave":4,"pic":94,"canyon":3,"glace":16,"eau":18}
+morts>1 : 104 ; champ morts moyen 1.07
+c0025 : 96 fins en 197 min = 0.488/min ; morts (champ morts) 0.519/min
+bras >=48 courses : 13 ; moyennes 6.08-7.43 ; ecart vrai 0.16
+cases course par course (banc) : [1;2[ 22 · [2;3[ 42 · [3;4.5[ 274 · [4.5;6.5[ 300 · [6.5;9.5[ 361 · [9.5;14[ 205 · [14;20[ 46 · [20;31[ 0
+n 12 : rapport 1.50 ; niveaux 1-30 9.3
+n 24 : rapport 1.33 ; niveaux 1-30 12.8
+n 48 : rapport 1.23 ; niveaux 1-30 17.7
+n 96 : rapport 1.16 ; niveaux 1-30 24.6
+0/59 -> borne 0.0495 ; 0/60 0.0487 ; 0/300 0.0099
+15 min a 95 % : 0.341 %/min ; 20 min a 99 % : 0.050 %/min
+heures de jeu par heure de Ryzen (420/h x survie moyenne banc) : 14.7 ; 60x1800 s -> 2.0 h ; 59x1200 -> 1.3 h ; 300x1200 -> 6.8 h

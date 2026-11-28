@@ -1,0 +1,42 @@
+-- c0025 : pieces selon la survie (tranches de 60 s)
+0-60 s : n 17, survie moy 33 s, pieces moy 118, pieces/min 218
+60-120 s : n 28, survie moy 85 s, pieces moy 282, pieces/min 199
+120-180 s : n 35, survie moy 147 s, pieces moy 553, pieces/min 226
+180-240 s : n 9, survie moy 209 s, pieces moy 826, pieces/min 237
+240-300 s : n 7, survie moy 261 s, pieces moy 1116, pieces/min 256
+-- les 1 250 : pieces selon la survie (tranches de 60 s)
+0-60 s : n 247, survie moy 34 s, pieces moy 116, pieces/min 202
+60-120 s : n 378, survie moy 90 s, pieces moy 289, pieces/min 193
+120-180 s : n 375, survie moy 148 s, pieces moy 542, pieces/min 220
+180-240 s : n 154, survie moy 207 s, pieces moy 816, pieces/min 236
+240-300 s : n 65, survie moy 264 s, pieces moy 1162, pieces/min 264
+300-360 s : n 20, survie moy 329 s, pieces moy 1518, pieces/min 277
+360-420 s : n 9, survie moy 378 s, pieces moy 1682, pieces/min 267
+420-480 s : n 2, survie moy 441 s, pieces moy 1788, pieces/min 243
+pente c0025 (>60 s) { n: 79, b: 281.1, a: -128.3 }
+pente 1 250 (>60 s) { n: 1003, b: 289.4, a: -156.5 }
+pente 1 250 (>180 s) { n: 248, b: 314.3, a: -255.3 }
+-- c0025 risque par minute
+min 1 : 96 vivants, 18 % meurent
+min 2 : 79 vivants, 35 % meurent
+min 3 : 51 vivants, 69 % meurent
+min 4 : 16 vivants, 56 % meurent
+min 5 : 7 vivants, 100 % meurent
+-- les 1 250 risque par minute
+min 1 : 1250 vivants, 20 % meurent
+min 2 : 1003 vivants, 38 % meurent
+min 3 : 625 vivants, 60 % meurent
+min 4 : 250 vivants, 62 % meurent
+min 5 : 96 vivants, 68 % meurent
+min 6 : 31 vivants, 65 % meurent
+min 7 : 11 vivants, 82 % meurent
+min 8 : 2 vivants, 100 % meurent
+palier 10 seuil 730 -> 5 min : 146/min · 10 min : 73/min · 15 min : 49/min · 30 min : 24/min
+palier 20 seuil 2255 -> 5 min : 451/min · 10 min : 226/min · 15 min : 150/min · 30 min : 75/min
+palier 30 seuil 4385 -> 5 min : 877/min · 10 min : 439/min · 15 min : 292/min · 30 min : 146/min
+a 226,6/min : P10 3.2 min · P15 6.3 min · P20 10.0 min · P25 14.3 min · P30 19.4 min
+a 436/min (joueurs) : P10 1.7 min · P15 3.3 min · P20 5.2 min · P25 7.4 min · P30 10.1 min
+c0025 palier >= 10 : 20 / 96
+c0025 palier >= 12 : 7 / 96
+c0025 palier >= 14 : 1 / 96
+seconde chance (morts>1) c0025 : 7 · 1 250 : 104

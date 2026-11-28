@@ -1,0 +1,183 @@
+===== 1. LA COURBE S(p) : part des parties qui ATTEIGNENT le palier p (intervalle de Wilson 95 %) =====
+joueurs (14 parties)
+  S(3) : 12/14 = 86 % [60 % ; 96 %]
+  S(5) : 11/14 = 79 % [52 % ; 92 %]
+  S(8) : 9/14 = 64 % [39 % ; 84 %]
+  S(10) : 8/14 = 57 % [33 % ; 79 %]
+  S(12) : 7/14 = 50 % [27 % ; 73 %]
+  S(15) : 5/14 = 36 % [16 % ; 61 %]
+  S(20) : 3/14 = 21 % [8 % ; 48 %]
+  S(25) : 1/14 = 7 % [1 % ; 31 %]
+  S(30) : 0/14 = 0 % [0 % ; 22 %]
+c0025 (bras depart, 96 courses)
+  S(3) : 92/96 = 96 % [90 % ; 98 %]
+  S(5) : 73/96 = 76 % [67 % ; 83 %]
+  S(8) : 36/96 = 38 % [28 % ; 47 %]
+  S(10) : 20/96 = 21 % [14 % ; 30 %]
+  S(12) : 7/96 = 7 % [4 % ; 14 %]
+  S(15) : 0/96 = 0 % [0 % ; 4 %]
+  S(20) : 0/96 = 0 % [0 % ; 4 %]
+  S(25) : 0/96 = 0 % [0 % ; 4 %]
+  S(30) : 0/96 = 0 % [0 % ; 4 %]
+les 1 250 du banc
+  S(3) : 1186/1250 = 95 % [94 % ; 96 %]
+  S(5) : 912/1250 = 73 % [70 % ; 75 %]
+  S(8) : 470/1250 = 38 % [35 % ; 40 %]
+  S(10) : 251/1250 = 20 % [18 % ; 22 %]
+  S(12) : 108/1250 = 9 % [7 % ; 10 %]
+  S(15) : 29/1250 = 2 % [2 % ; 3 %]
+  S(20) : 0/1250 = 0 % [0 % ; 0 %]
+  S(25) : 0/1250 = 0 % [0 % ; 0 %]
+  S(30) : 0/1250 = 0 % [0 % ; 0 %]
+
+===== 2. LA MARCHE : parmi les parties arrivees au palier p, la part qui atteint p+5 =====
+joueurs (14 parties)
+  1 -> 6 : 9/14 = 64 % [39 % ; 84 %]
+  5 -> 10 : 8/11 = 73 % [43 % ; 90 %]
+  10 -> 15 : 5/8 = 63 % [31 % ; 86 %]
+  15 -> 20 : 3/5 = 60 % [23 % ; 88 %]
+  20 -> 25 : 1/3 = 33 % [6 % ; 79 %]
+  25 -> 30 : 0/1 = 0 % [0 % ; 79 %]
+c0025 (bras depart, 96 courses)
+  1 -> 6 : 62/96 = 65 % [55 % ; 73 %]
+  5 -> 10 : 20/73 = 27 % [18 % ; 39 %]
+  10 -> 15 : 0/20 = 0 % [0 % ; 16 %]
+  15 -> 20 : 0/0 = 0 % [0 % ; 100 %]
+  20 -> 25 : 0/0 = 0 % [0 % ; 100 %]
+  25 -> 30 : 0/0 = 0 % [0 % ; 100 %]
+les 1 250 du banc
+  1 -> 6 : 773/1250 = 62 % [59 % ; 64 %]
+  5 -> 10 : 251/912 = 28 % [25 % ; 31 %]
+  10 -> 15 : 29/251 = 12 % [8 % ; 16 %]
+  15 -> 20 : 0/29 = 0 % [0 % ; 12 %]
+  20 -> 25 : 0/0 = 0 % [0 % ; 100 %]
+  25 -> 30 : 0/0 = 0 % [0 % ; 100 %]
+
+===== 3. LE RISQUE DE FINIR LA PARTIE DANS LA MINUTE (parmi les vivants au debut de la minute) =====
+joueurs (14 parties)
+  minute 1 : 3/14 = 21 % [8 % ; 48 %]
+  minute 2 : 2/11 = 18 % [5 % ; 48 %]
+  minute 3 : 4/9 = 44 % [19 % ; 73 %]
+  minute 4 : 2/5 = 40 % [12 % ; 77 %]
+  minute 5 : 1/3 = 33 % [6 % ; 79 %]
+  minute 6 : 0/2 = 0 % [0 % ; 66 %]
+  minute 7 : 1/2 = 50 % [9 % ; 91 %]
+  minute 8 : 0/1 = 0 % [0 % ; 79 %]
+c0025 (bras depart, 96 courses)
+  minute 1 : 17/96 = 18 % [11 % ; 27 %]
+  minute 2 : 28/79 = 35 % [26 % ; 46 %]
+  minute 3 : 35/51 = 69 % [55 % ; 80 %]
+  minute 4 : 9/16 = 56 % [33 % ; 77 %]
+  minute 5 : 7/7 = 100 % [65 % ; 100 %]
+les 1 250 du banc
+  minute 1 : 247/1250 = 20 % [18 % ; 22 %]
+  minute 2 : 378/1003 = 38 % [35 % ; 41 %]
+  minute 3 : 375/625 = 60 % [56 % ; 64 %]
+  minute 4 : 154/250 = 62 % [55 % ; 67 %]
+  minute 5 : 65/96 = 68 % [58 % ; 76 %]
+  minute 6 : 20/31 = 65 % [47 % ; 79 %]
+  minute 7 : 9/11 = 82 % [52 % ; 95 %]
+  minute 8 : 2/2 = 100 % [34 % ; 100 %]
+
+===== 4. LES PIECES A DUREE EGALE (tranches de la duree de la partie) =====
+joueurs (14 parties)
+  0-30 s : n 2, duree mediane 13 s, pieces medianes 16 (min 14, max 17), palier median 1.0
+  30-75 s : n 3, duree mediane 63 s, pieces medianes 275 (min 198, max 289), palier median 5.0
+  120-180 s : n 4, duree mediane 155 s, pieces medianes 1003 (min 612, max 1390), palier median 11.5
+  180-270 s : n 3, duree mediane 237 s, pieces medianes 1671 (min 1529, max 2597), palier median 16.0
+  270-420 s : n 1, duree mediane 396 s, pieces medianes 2677 (min 2677, max 2677), palier median 22.0
+  420-900 s : n 1, duree mediane 545 s, pieces medianes 4044 (min 4044, max 4044), palier median 28.0
+c0025 (bras depart, 96 courses)
+  0-30 s : n 7, duree mediane 22 s, pieces medianes 57 (min 18, max 104), palier median 2.0
+  30-75 s : n 20, duree mediane 56 s, pieces medianes 189 (min 90, max 345), palier median 4.0
+  75-120 s : n 18, duree mediane 94 s, pieces medianes 318 (min 169, max 424), palier median 6.0
+  120-180 s : n 35, duree mediane 145 s, pieces medianes 527 (min 265, max 940), palier median 8.0
+  180-270 s : n 14, duree mediane 223 s, pieces medianes 887 (min 670, max 1224), palier median 11.0
+  270-420 s : n 2, duree mediane 285 s, pieces medianes 1265 (min 1152, max 1377), palier median 13.5
+les 1 250 du banc
+  0-30 s : n 91, duree mediane 22 s, pieces medianes 63 (min 4, max 121), palier median 2.0
+  30-75 s : n 254, duree mediane 50 s, pieces medianes 154 (min 56, max 345), palier median 4.0
+  75-120 s : n 280, duree mediane 96 s, pieces medianes 316 (min 89, max 674), palier median 6.0
+  120-180 s : n 375, duree mediane 145 s, pieces medianes 530 (min 231, max 961), palier median 8.0
+  180-270 s : n 196, duree mediane 215 s, pieces medianes 862 (min 465, max 1773), palier median 11.0
+  270-420 s : n 52, duree mediane 313 s, pieces medianes 1377 (min 946, max 2231), palier median 14.0
+  420-900 s : n 2, duree mediane 441 s, pieces medianes 1788 (min 1690, max 1886), palier median 16.5
+
+===== 5. LA BANQUE : combien de courses FINISSENT a chaque palier, et combien de temps elles durent =====
+(la duree d une partie de joueur finie a ce palier, pour comparer : colonne « joueurs »)
+palier | c0025 n | 1 250 n | duree des 1 250 : q10 / mediane / q90 (s) | joueurs : durees (s)
+   1 |   2 |   22 | 13 / 13 / 25 | 14, 12
+   2 |   2 |   42 | 15 / 16 / 38 | -
+   3 |  10 |  149 | 22 / 38 / 63 | -
+   4 |   9 |  125 | 46 / 66 / 90 | 52
+   5 |  11 |  139 | 72 / 93 / 125 | 63, 65
+   6 |  13 |  161 | 79 / 104 / 137 | -
+   7 |  13 |  142 | 101 / 135 / 162 | -
+   8 |   7 |  109 | 123 / 145 / 180 | 153
+   9 |   9 |  110 | 141 / 166 / 193 | -
+  10 |   9 |   90 | 155 / 190 / 222 | -
+  11 |   4 |   53 | 159 / 212 / 245 | 130
+  12 |   3 |   24 | 222 / 236 / 276 | 157
+  13 |   3 |   38 | 220 / 261 / 308 | -
+  14 |   1 |   17 | 241 / 274 / 325 | 170
+  15 |   0 |   13 | 273 / 323 / 362 | 194
+  16 |   0 |    6 | 332 / 354 / 406 | 237
+  17 |   0 |    3 | 258 / 287 / 413 | -
+  18 |   0 |    2 | 329 / 344 / 359 | -
+  19 |   0 |    5 | 318 / 342 / 401 | -
+  20 |   0 |    0 | - | -
+  21 |   0 |    0 | - | 262
+  22 |   0 |    0 | - | 396
+
+===== 6. L HEURE DU PALIER : a quelle duree un bot a-t-il les pieces du palier p, contre l instant ou il tombe chez les joueurs =====
+pente c0025 : pieces = -128 + 281 x minutes (n 79) ; les 1 250 : -156 + 289 x minutes (n 1003)
+palier | seuil | c0025 y est vers (s) | joueurs : instants mesures (s), n parties
+  5 | 225 | 75 | 39 a 95 (mediane 48), n 11
+  10 | 730 | 183 | 114 a 172 (mediane 120), n 8
+  15 | 1430 | 333 | 182 a 246 (mediane 214), n 5
+  20 | 2255 | 509 | 247 a 347 (mediane 303), n 3
+  25 | 3240 | 719 | 409 a 409 (mediane 409), n 1
+(au-dela de 5 min, la pente de c0025 est une extrapolation : aucune de ses 96 courses ne depasse 286 s)
+
+===== 7. DE QUOI FINIT LA PARTIE, par tranche de palier final (la cause qui a fini la course) =====
+joueurs (14 parties)
+  paliers 1-3 (n 2) : vide 50 %, air 50 %
+  paliers 4-8 (n 4) : pic 75 %, air 25 %
+  paliers 9-14 (n 3) : roche 67 %, paroi 33 %
+  paliers 15-30 (n 5) : glace 20 %, paroi 20 %, roche 20 %, air 20 %, tour 20 %
+c0025 (bras depart, 96 courses)
+  paliers 1-3 (n 14) : tour 43 %, air 43 %, glace 7 %, pic 7 %
+  paliers 4-8 (n 53) : roche 28 %, tour 23 %, air 19 %, vide 13 %, pic 8 %, paroi 8 %, eau 2 %
+  paliers 9-14 (n 29) : air 24 %, roche 21 %, tour 21 %, vide 14 %, pic 14 %, paroi 7 %
+  paliers 15-30 : aucune
+les 1 250 du banc
+  paliers 1-3 (n 213) : tour 39 %, air 36 %, pic 7 %, roche 6 %, glace 6 %, vide 6 %, paroi 0 %
+  paliers 4-8 (n 676) : roche 25 %, tour 22 %, air 21 %, vide 11 %, paroi 10 %, pic 7 %, eau 2 %, lave 0 %, canyon 0 %, glace 0 %
+  paliers 9-14 (n 332) : roche 25 %, air 22 %, tour 15 %, vide 14 %, paroi 13 %, pic 9 %, lave 1 %, eau 1 %, glace 1 %, canyon 0 %
+  paliers 15-30 (n 29) : air 24 %, roche 21 %, vide 21 %, paroi 17 %, tour 14 %, pic 3 %
+seconde chance prise : joueurs 2/14 = 14 % [4 % ; 40 %] ; c0025 7/96 = 7 % [4 % ; 14 %] ; 1 250 104/1250 = 8 % [7 % ; 10 %]
+paliers 4-8 : 3 parties de joueurs sur 4 finissent sur un pic ; si les joueurs mouraient comme les 1 250 (pic 7.1 %), 3 sur 4 ou plus arriverait avec p = 0.0014 (binomiale ; 3 de ces 4 parties sont du meme joueur, sur la jade)
+palier moyen des 14 parties de joueurs : 11.64
+
+(temps de jeu : une course du banc dure 126 s en moyenne ; a 420 courses a l heure (lecteur de la selection), le Ryzen joue environ 14.7 heures de jeu par heure ; 300 courses de 1 200 s = 100 heures de jeu = 6.8 h ; 144 courses de 300 s au plus = 0.8 h au plus — proportionnalite supposee, non mesuree)
+
+===== 8. L EXPERT : le risque par minute qu il faudrait =====
+Pour finir vivante une course de T minutes avec la probabilite P, a risque constant h par minute : (1-h)^T = P.
+  T 10 min, P 0.99 : h = 0.100 % par minute
+  T 15 min, P 0.99 : h = 0.067 % par minute
+  T 20 min, P 0.99 : h = 0.050 % par minute
+  T 20 min, P 0.999 : h = 0.005 % par minute
+  joueurs (14 parties) : 16 morts (fins + secondes chances) en 40.8 min = 0.39 mort par minute
+  c0025 (bras depart, 96 courses) : 103 morts (fins + secondes chances) en 196.5 min = 0.52 mort par minute
+  les 1 250 du banc : 1354 morts (fins + secondes chances) en 2627.7 min = 0.52 mort par minute
+« Zero mort sur N courses » borne le risque par course a 3/N (95 %) : N 100 -> 3 %, N 300 -> 1 %, N 1 000 -> 0,3 %.
+
+===== 9. CE QUE COUTE UNE BANQUE (calcul, pas une mesure) =====
+Pour avoir 40 courses finies dans une tranche que le pilote atteint avec la frequence f, il faut 40/f courses.
+  paliers 1-2 : pilotes du banc f = 5.1 % -> 782 courses ; un pilote qui aurait la repartition des 14 parties de joueurs f = 14 % -> 280
+  paliers 3-4 : pilotes du banc f = 21.9 % -> 183 courses ; un pilote qui aurait la repartition des 14 parties de joueurs f = 7 % -> 560
+  paliers 5-6 : pilotes du banc f = 24.0 % -> 167 courses ; un pilote qui aurait la repartition des 14 parties de joueurs f = 14 % -> 280
+  paliers 7-9 : pilotes du banc f = 28.9 % -> 139 courses ; un pilote qui aurait la repartition des 14 parties de joueurs f = 7 % -> 560
+  paliers 10-14 : pilotes du banc f = 17.8 % -> 226 courses ; un pilote qui aurait la repartition des 14 parties de joueurs f = 21 % -> 187
+  paliers 15-19 : pilotes du banc f = 2.3 % -> 1725 courses ; un pilote qui aurait la repartition des 14 parties de joueurs f = 14 % -> 280
+  paliers 20 et plus : pilotes du banc f = 0.0 % -> jamais courses ; un pilote qui aurait la repartition des 14 parties de joueurs f = 21 % -> 187

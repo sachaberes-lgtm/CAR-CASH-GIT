@@ -1,0 +1,7 @@
+R 99 marge bandeDecor nitroDecor margeCouloir avance glisse glisseUrgence ligneLoin piecesLoin capLigne avanceCap capAvance braqueDoux braqueFort braqueNitro margeAllumer margeTenir jaugeAllume jaugeCoupe capMax bascule tenirFacon derive raccVirage raccGain raccAxe raccTmin raccChute raccTmax raccAir raccBord raccAttente raccRepos figPlongeon figTemps figJauge figEcart dessousMax dessousPose departMin departMax volAvance figDepuis figHaut dessousAveugle dessousDecor dessousNitro dessousFuir portailVol volDemiTour figMax retMarge retCap retGain retAvance retourPrime volMieux lacheOn lacheAvant slalomOn slalomCap slalomDemi slalomH coupOn coupDepuis coupEcart coupDuree coupPoseMin coupAxe coupAir coupJauge coupPerte coupDecor relacheOn relacheT suitOn suitDerive suitMarge fuirVite bordOn bordNitro bordJauge largeOn largeHaut largeT1 largeT2 largeAxe largeAir largeMax libreOn nitroLibreK tenirLibre sortieOn sortieT sortieJauge rienOn rienEcart loiFidele secoursOn
+volRetour 2 volRetour volRetourOn
+raccCartes 6 raccCartes_nuages raccCartes_ville raccCartes_jade raccCartes_espace raccCartes_grotte raccCartes_canyon
+raccJumeau 6 raccJumeau_nuages raccJumeau_ville raccJumeau_jade raccJumeau_espace raccJumeau_grotte raccJumeau_canyon
+retours 1 retourOn
+G 14 axePoids vTemps vPortail vLevre vLibreBase vLibrePente vCourt rAxe rTemps rPlane rLourde bVersRoute bVersRoutePlane bRien
+profil 1 chancePalierMin

@@ -1,0 +1,68 @@
+fichiers 4 · morceaux lus 21 · doublons 3 · ecartees 2 · recollees 2 · parties 14 · minutes 40.8
+  Sacha : 10 parties, 30.1 min, paliers 1 4 5 5 8 12 14 15 22 28, mediane 10
+  Leo : 4 parties, 10.7 min, paliers 1 11 16 21, mediane 13.5
+tous : paliers 1 1 4 5 5 8 11 12 14 15 16 21 22 28 · mediane 11.5 · record 28
+
+joueur | debut | ver | voiture | duree s | palier | pieces max | ramassees/min | cause | map de la mort | mode a la mort | km/h moy (tout) | km/h sol | vmax | nitro% | air% | chances | t P5/P10/P15/P20/P25
+Sacha | 11-23T19:29 | 60aa15e | LA HONTE | 193.6 | 15 | 1529 | 473.9 | glace | grotte | fall | 687 | 565 | 1536 | 56 | 34.9 | 0 | 87/116/182/-/-
+Sacha | 11-23T19:32 | 60aa15e | LA HONTE | 63.4 | 5 | 275 | 260.1 | pic | jade | fall | 448 | 411 | 882 | 64 | 24.3 | 0 | 47/-/-/-/-
+Sacha | 11-23T19:33 | 60aa15e | LA HONTE | 545.1 | 28 | 4044 | 471.9 | paroi | canyon | drive | 1112 | 842 | 3624 | 52.7 | 41.5 | 1 | 69/160/231/303/409
+Sacha | 11-23T19:43 | 60aa15e | LA HONTE | 65.1 | 5 | 289 | 266.4 | pic | jade | fall | 497 | 438 | 1009 | 74.7 | 34.2 | 0 | 48/-/-/-/-
+Sacha | 11-23T19:44 | 60aa15e | LA HONTE | 170.4 | 14 | 1390 | 489.6 | paroi | canyon | fall | 610 | 539 | 1369 | 62.7 | 28.2 | 0 | 46/121/-/-/-
+Sacha | 11-23T20:15 | 60aa15e | LA HONTE | 153 | 8 | 612 | 240.1 | air | nuages | fall | 526 | 439 | 1635 | 64.9 | 31.4 | 0 | 86/-/-/-/-
+Sacha | 11-23T20:18 | 60aa15e | LA HONTE | 51.8 | 4 | 198 | 229.5 | pic | jade | fall | 444 | 405 | 906 | 71.9 | 22.4 | 0 | -/-/-/-/-
+Sacha | 11-23T20:19 | 60aa15e | LA HONTE | 156.8 | 12 | 1086 | 415.4 | roche | grotte | fall | 538 | 494 | 1602 | 70.4 | 22 | 0 | 55/119/-/-/-
+Leo | 11-24T10:46 | ccdca9b | LA HONTE | 130.4 | 11 | 920 | 423.2 | roche | grotte | fall | 477 | 466 | 870 | 71.2 | 6.8 | 0 | 43/114/-/-/-
+Leo | 11-24T10:48 | ccdca9b | LA HONTE | 237 | 16 | 1671 | 423.1 | roche | grotte | fall | 521 | 474 | 1111 | 58.9 | 25.4 | 0 | 44/116/211/-/-
+Leo | 11-24T11:00 | ccdca9b | LA HONTE | 13.7 | 1 | 17 | 74.4 | vide | nuages | fall | 246 | 198 | 247 | 0 | 43.5 | 0 | -/-/-/-/-
+Leo | 11-24T11:00 | ccdca9b | LA HONTE | 261.6 | 21 | 2597 | 595.7 | air | espace | fall | 574 | 539 | 1521 | 62.8 | 13.7 | 0 | 39/132/214/247/-
+Sacha | 11-24T12:05 | ccdca9b | LA HONTE | 11.8 | 1 | 14 | 71.4 | air | ville | fall | 267 | 183 | 239 | 0 | 50.5 | 0 | -/-/-/-/-
+Sacha | 11-24T12:06 | ccdca9b | LA HONTE | 396.1 | 22 | 2677 | 444.1 | tour | ville | fall | 759 | 645 | 2247 | 63.8 | 30.5 | 1 | 95/172/246/347/-
+
+log(pieces ramassees) = log(duree) + log(pieces/min) : part de la duree / du rythme dans la variance : toutes (14) 63 % / 37 % ; 60 s et plus (11) 72 % / 28 %
+spearman(palier, duree) 0.99 · spearman(palier, pieces/min) 0.86 · (60 s+) 0.72
+spearman(palier, km/h sol) 0.96 · (60 s+) 0.91
+
+les 15 mesures de E sur les 11 parties de plus de 60 s ; rho = spearman avec le palier (tous, puis Sacha seul) et avec la duree
+  nitro       n 11 · rho(palier) -0.75 · rho Sacha -0.80 · par palier croissant P5:0.64 P5:0.747 P8:0.649 P11L:0.712 P12:0.704 P14:0.627 P15:0.56 P16L:0.589 P21L:0.628 P22:0.638 P28:0.527
+  nitroSol    n 11 · rho(palier) -0.61 · rho Sacha -0.67 · par palier croissant P5:0.755 P5:0.913 P8:0.808 P11L:0.716 P12:0.824 P14:0.738 P15:0.718 P16L:0.685 P21L:0.665 P22:0.777 P28:0.702
+  nitroDecol  n 11 · rho(palier) -0.03 · rho Sacha -0.01 · par palier croissant P5:0.625 P5:0.778 P8:0.5 P11L:0.833 P12:0.438 P14:0.571 P15:0.731 P16L:0.595 P21L:0.63 P22:0.741 P28:0.62
+  air         n 11 · rho(palier)  0.20 · rho Sacha  0.43 · par palier croissant P5:0.243 P5:0.342 P8:0.314 P11L:0.068 P12:0.22 P14:0.282 P15:0.349 P16L:0.254 P21L:0.137 P22:0.305 P28:0.415
+  vols        n 11 · rho(palier)  0.36 · rho Sacha  0.37 · par palier croissant P5:7.567 P5:8.296 P8:6.276 P11L:2.76 P12:6.12 P14:7.396 P15:8.058 P16L:9.369 P21L:6.193 P22:8.18 P28:11.008
+  volDuree    n 11 · rho(palier) -0.05 · rho Sacha  0.26 · par palier croissant P5:2.025 P5:1.83 P8:2.6 P11L:1.395 P12:1.64 P14:2.21 P15:2.74 P16L:1.4 P21L:1.08 P22:2.35 P28:2.02
+  volHaut     n 11 · rho(palier) -0.04 · rho Sacha  0.08 · par palier croissant P5:6 P5:52.5 P8:45 P11L:11 P12:25 P14:45.5 P15:69 P16L:6.5 P21L:8.5 P22:38 P28:38
+  volsCourts  n 11 · rho(palier)  0.03 · rho Sacha -0.08 · par palier croissant P5:0.25 P5:0.111 P8:0 P11L:0.167 P12:0.188 P14:0.19 P15:0.077 P16L:0.108 P21L:0.333 P22:0.13 P28:0.16
+  raccourcis  n 11 · rho(palier)  0.15 · rho Sacha  0.49 · par palier croissant P5:2.838 P5:3.687 P8:1.961 P11L:0.46 P12:1.53 P14:3.17 P15:4.959 P16L:1.266 P21L:0.917 P22:3.181 P28:4.403
+  figures     n 11 · rho(palier) -0.39 · rho Sacha -0.40 · par palier croissant P5:1.892 P5:6.453 P8:3.923 P11L:0 P12:3.06 P14:0.352 P15:7.438 P16L:1.266 P21L:0 P22:1.06 P28:1.871
+  poseCentre  n 11 · rho(palier) -0.10 · rho Sacha -0.16 · par palier croissant P5:0.143 P5:0.5 P8:0.533 P11L:0.2 P12:0.4 P14:0.55 P15:0.44 P16L:0.333 P21L:0.269 P22:0.346 P28:0.364
+  dessous     n 11 · rho(palier)  0.55 · rho Sacha  0.36 · par palier croissant P5:0.05 P5:0 P8:0.017 P11L:0 P12:0.004 P14:0.009 P15:0.002 P16L:0.33 P21L:0.093 P22:0.042 P28:0.052
+  aller       n 11 · rho(palier) -0.02 · rho Sacha -0.19 · par palier croissant P5:0.57 P5:0.64 P8:0.55 P11L:0.68 P12:0.55 P14:0.55 P15:0.65 P16L:0.65 P21L:0.67 P22:0.55 P28:0.55
+  ondulation  n 11 · rho(palier)  0.39 · rho Sacha  0.44 · par palier croissant P5:0.177 P5:0.18 P8:0.182 P11L:0.137 P12:0.176 P14:0.184 P15:0.162 P16L:0.238 P21L:0.177 P22:0.182 P28:0.2
+  vitesse     n 11 · rho(palier)  0.24 · rho Sacha  0.44 · par palier croissant P5:411.139 P5:437.98 P8:416.653 P11L:463.02 P12:469.481 P14:483.535 P15:480.3 P16L:429.941 P21L:422.817 P22:433.039 P28:464.308
+
+Sacha, parties de 60 s et plus : faibles P5,P5,P8,P12 contre fortes P14,P15,P22,P28 (medianes)
+  duree_s     faibles 109.05 · fortes 294.85
+  pieces_min  faibles 263.25 · fortes 472.9
+  kmh_sol     faibles 438.5 · fortes 605
+  kmh_moyen   faibles 511.5 · fortes 723
+  nitro_pct   faibles 67.65 · fortes 59.35
+  air_pct     faibles 27.85 · fortes 32.7
+  vols_min    faibles 6.925000000000001 · fortes 8.120000000000001
+  E.nitro       faibles 0.676 · fortes 0.594
+  E.nitroSol    faibles 0.816 · fortes 0.728
+  E.nitroDecol  faibles 0.563 · fortes 0.675
+  E.air         faibles 0.278 · fortes 0.327
+  E.vols        faibles 6.922 · fortes 8.119
+  E.volDuree    faibles 1.927 · fortes 2.28
+  E.volHaut     faibles 35 · fortes 41.75
+  E.volsCourts  faibles 0.149 · fortes 0.145
+  E.raccourcis  faibles 2.4 · fortes 3.792
+  E.figures     faibles 3.491 · fortes 1.466
+  E.poseCentre  faibles 0.45 · fortes 0.402
+  E.dessous     faibles 0.01 · fortes 0.026
+  E.aller       faibles 0.56 · fortes 0.55
+  E.ondulation  faibles 0.178 · fortes 0.183
+  E.vitesse     faibles 427.316 · fortes 472.304
+Leo, parties de 60 s et plus : P11 130.4 s 423.2/min sol 466 km/h nitro 71.2% ; P16 237 s 423.1/min sol 474 km/h nitro 58.9% ; P21 261.6 s 595.7/min sol 539 km/h nitro 62.8%
+
+seuils (pieces) des paliers : P1:0 P2:40 P3:85 P4:150 P5:225 P6:305 P7:400 P8:505 P9:615 P10:730 P11:860 P12:995 P13:1130 P14:1280 P15:1430 P16:1585 P17:1745 P18:1910 P19:2080 P20:2255 P21:2440 P22:2630 P23:2825 P24:3030 P25:3240 P26:3455 P27:3680 P28:3910 P29:4145 P30:4385

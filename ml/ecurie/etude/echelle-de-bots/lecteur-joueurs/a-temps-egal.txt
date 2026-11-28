@@ -1,0 +1,18 @@
+joueur | debut | palier | duree | ecran (w x h, tel, app) | pour chaque fenetre de 60 s : pieces ramassees · km/h moyen au sol · nitro % (- = partie finie avant)
+Sacha | 11-23T19:29 | P15 | 193.6 | 844x486 tel=true app=false | 149 · 411 · 67 | 614 · 562 · 63 | 637 · 755 · 43 | -
+Sacha | 11-23T19:32 | P5 | 63.4 | 844x486 tel=true app=false | 271 · 409 · 67 | - | - | -
+Sacha | 11-23T19:33 | P28 | 545.1 | 844x486 tel=true app=false | 198 · 421 · 81 | 369 · 511 · 68 | 448 · 605 · 58 | 465 · 831 · 57
+Sacha | 11-23T19:43 | P5 | 65.1 | 844x486 tel=true app=false | 272 · 431 · 74 | - | - | -
+Sacha | 11-23T19:44 | P14 | 170.4 | 844x486 tel=true app=false | 402 · 415 · 69 | 322 · 584 · 64 | - | -
+Sacha | 11-23T20:15 | P8 | 153 | 844x486 tel=true app=false | 98 · 374 · 66 | 318 · 465 · 68 | - | -
+Sacha | 11-23T20:18 | P4 | 51.8 | 844x486 tel=true app=false | - | - | - | -
+Sacha | 11-23T20:19 | P12 | 156.8 | 844x486 tel=true app=false | 259 · 421 · 82 | 485 · 527 · 74 | - | -
+Leo | 11-24T10:46 | P11 | 130.4 | 393x654 tel=true app=false | 338 · 421 · 76 | 493 · 511 · 67 | - | -
+Leo | 11-24T10:48 | P16 | 237 | 393x654 tel=true app=false | 327 · 397 · 80 | 422 · 471 · 55 | 453 · 501 · 58 | -
+Leo | 11-24T11:00 | P1 | 13.7 | 393x654 tel=true app=false | - | - | - | -
+Leo | 11-24T11:00 | P21 | 261.6 | 393x654 tel=true app=false | 324 · 393 · 78 | 282 · 456 · 76 | 576 · 598 · 47 | 902 · 642 · 53
+Sacha | 11-24T12:05 | P1 | 11.8 | 782x844 tel=true app=false | - | - | - | -
+Sacha | 11-24T12:06 | P22 | 396.1 | 782x844 tel=true app=false | 135 · 413 · 76 | 253 · 457 · 69 | 391 · 554 · 59 | 612 · 700 · 69
+
+morts (cause @ map de la derniere route) : pic @ jade 3 · roche @ grotte 3 · paroi @ canyon 2 · glace @ grotte 1 · air @ nuages 1 · vide @ nuages 1 · air @ espace 1 · air @ ville 1 · tour @ ville 1
+minutes par map : espace 11.4 · jade 8.2 · nuages 6.5 · grotte 6.4 · ville 4.8 · canyon 3.4

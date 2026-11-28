@@ -1,0 +1,4 @@
+seuils (palier : pieces, a la granularite du balayage) : 1:0 2:40 3:85 4:150 5:225 6:305 7:400 8:505 9:615 10:730 11:860 12:995 13:1130 14:1280 15:1430 16:1590 17:1750 18:1910 19:2080 20:2260 21:2440 22:2630 23:2830 24:3030 25:3240 26:3460 27:3680 28:3910 29:4150 30:4390
+courses de plus de 60 s : 1907 ; pieces par seconde (fin de course) p10 2.6 p50 3.7 p90 4.8 max 7.8
+a ce rythme pendant 900 s : p50 3320 pieces (palier 25), p90 4316 (palier 29)
+survie (s) : p50 139.5, p90 245.3, max 461.7
