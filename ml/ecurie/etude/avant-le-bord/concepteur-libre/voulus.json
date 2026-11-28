@@ -1,0 +1,7969 @@
+{
+ "source": "ml/ecurie/etude/sortie-preparee/sorties",
+ "tableau": {
+  "autre decor / dessous": {
+   "n": 29,
+   "morts": 1
+  },
+  "sans decor / raccourci": {
+   "n": 10,
+   "morts": 0
+  },
+  "sans decor / dessous": {
+   "n": 5,
+   "morts": 0
+  },
+  "ville / raccourci": {
+   "n": 17,
+   "morts": 2
+  },
+  "ville / dessous": {
+   "n": 5,
+   "morts": 3
+  }
+ },
+ "vols": [
+  {
+   "course": "canyon-tenue-3970400",
+   "carte": "canyon",
+   "t0": 59.3,
+   "tDecol": 60.3,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.88,
+   "vitesse": 136.4,
+   "jauge": 0.515,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 2.5,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.9,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.8,
+     "facon": "choc:paroi",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.88,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.92,
+     "facon": "choc:paroi",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.88,
+     "facon": "choc:paroi",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.78,
+     "facon": "choc:canyon",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.7,
+     "facon": "choc:canyon",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.6,
+     "facon": "choc:canyon",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.47,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.28,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.15,
+     "facon": "libre",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.03,
+     "facon": "air",
+     "jumeau": null
+    }
+   ],
+   "D2": "refusee (jamais deux vues de suite avant le decollage reel)",
+   "D3": "renonce (+0.2 s, bord a 0.88 s)",
+   "P": null
+  },
+  {
+   "course": "canyon-tenue-3970585",
+   "carte": "canyon",
+   "t0": 67.7,
+   "tDecol": 68.9,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 1.02,
+   "vitesse": 108.2,
+   "jauge": 0.8,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 3.9,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.98,
+     "facon": "choc:paroi",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "C",
+     "bordT": 1,
+     "facon": "choc:paroi",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.02,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.13,
+     "facon": "choc:paroi",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.12,
+     "facon": "choc:paroi",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.05,
+     "facon": "choc:paroi",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "C",
+     "bordT": 1,
+     "facon": "choc:canyon",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.93,
+     "facon": "choc:canyon",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.85,
+     "facon": "choc:paroi",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.77,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.65,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.38,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.2,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.08,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard plus long (+0.8 s)",
+   "D3": "renonce (+0.2 s, bord a 1.12 s)",
+   "P": null
+  },
+  {
+   "course": "grotte-tenue-3970437",
+   "carte": "grotte",
+   "t0": 94.3,
+   "tDecol": 94.9,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.62,
+   "vitesse": 118.5,
+   "jauge": 0.587,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 2.3,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.62,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.65,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.53,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.38,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.2,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.07,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard 0,1 s",
+   "D3": "non",
+   "P": null
+  },
+  {
+   "course": "grotte-tenue-3970548",
+   "carte": "grotte",
+   "t0": 103.7,
+   "tDecol": 104.4,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.73,
+   "vitesse": 104.2,
+   "jauge": 1.346,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 3.2,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.73,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.05,
+     "facon": "choc:roche",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "C",
+     "bordT": 1,
+     "facon": "choc:roche",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.87,
+     "facon": "choc:roche",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.52,
+     "facon": "choc:roche",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.23,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.12,
+     "facon": "choc:roche",
+     "jumeau": null
+    }
+   ],
+   "D2": "refusee (jamais deux vues de suite avant le decollage reel)",
+   "D3": "renonce (+0.2 s, bord a 1 s)",
+   "P": null
+  },
+  {
+   "course": "grotte-tenue-3970548",
+   "carte": "grotte",
+   "t0": 107.8,
+   "tDecol": 108.9,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 1.28,
+   "vitesse": 83.9,
+   "jauge": 1.452,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 2.7,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.28,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.17,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.13,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.02,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.9,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.8,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.67,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.5,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.33,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.2,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.08,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard 0,1 s",
+   "D3": "renonce (+0.6 s, bord a 0.67 s)",
+   "P": null
+  },
+  {
+   "course": "grotte-tenue-3970622",
+   "carte": "grotte",
+   "t0": 75.6,
+   "tDecol": 77.4,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 1.87,
+   "vitesse": 97.3,
+   "jauge": 0.741,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 7.3,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": 3,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": 3,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.87,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.78,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.7,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.65,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.6,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.55,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.5,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.45,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.38,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.32,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.23,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.13,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.2,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.02,
+     "facon": "choc:lave",
+     "jumeau": null
+    },
+    {
+     "dt": 1.3,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.88,
+     "facon": "choc:lave",
+     "jumeau": null
+    },
+    {
+     "dt": 1.4,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.75,
+     "facon": "choc:roche",
+     "jumeau": null
+    },
+    {
+     "dt": 1.5,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.28,
+     "facon": "libre",
+     "jumeau": null
+    },
+    {
+     "dt": 1.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.12,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.7,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.02,
+     "facon": "choc:roche",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard 0,1 s",
+   "D3": "renonce (+1.3 s, bord a 0.88 s)",
+   "P": null
+  },
+  {
+   "course": "grotte-tenue-3970622",
+   "carte": "grotte",
+   "t0": 85.7,
+   "tDecol": 86.7,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.92,
+   "vitesse": 87,
+   "jauge": 0.523,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 4.9,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.3,
+     "facon": "choc:roche",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.23,
+     "facon": "choc:roche",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.92,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "C",
+     "bordT": 1,
+     "facon": "choc:roche",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.05,
+     "facon": "choc:roche",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.07,
+     "facon": "choc:roche",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.98,
+     "facon": "choc:roche",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.85,
+     "facon": "choc:roche",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.63,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.4,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.23,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.12,
+     "facon": "air",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard plus long (+0.7 s)",
+   "D3": "renonce (+0.2 s, bord a 1.05 s)",
+   "P": null
+  },
+  {
+   "course": "jade-tenue-3970400",
+   "carte": "jade",
+   "t0": 116.6,
+   "tDecol": 117.5,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.97,
+   "vitesse": 84.5,
+   "jauge": 1.622,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 1.9,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "A",
+     "bordT": 1,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.97,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.07,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.05,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.93,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.82,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.6,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.38,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.2,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.08,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard plus long (+0.4 s)",
+   "D3": "renonce (+0.2 s, bord a 1.05 s)",
+   "P": null
+  },
+  {
+   "course": "jade-tenue-3970400",
+   "carte": "jade",
+   "t0": 126.5,
+   "tDecol": 127.2,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.73,
+   "vitesse": 114.5,
+   "jauge": 1.663,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 3.3,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.73,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.73,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.65,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.5,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.33,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.18,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.07,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard 0,1 s",
+   "D3": "non",
+   "P": null
+  },
+  {
+   "course": "jade-tenue-3970400",
+   "carte": "jade",
+   "t0": 148.3,
+   "tDecol": 150.3,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 1.82,
+   "vitesse": 69.8,
+   "jauge": 0.827,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 4.8,
+   "suite": [
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.82,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.85,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.92,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.8,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.68,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.58,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.48,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.42,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.35,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.27,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.17,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.07,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.97,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.83,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.68,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.53,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.38,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.25,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.8,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.13,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.03,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard 0,1 s",
+   "D3": "non",
+   "P": null
+  },
+  {
+   "course": "jade-tenue-3970437",
+   "carte": "jade",
+   "t0": 39.2,
+   "tDecol": 40,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.8,
+   "vitesse": 99.7,
+   "jauge": 0.377,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 3.4,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.8,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.7,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.68,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.58,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.45,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.3,
+     "facon": "libre",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.18,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.07,
+     "facon": "air",
+     "jumeau": null
+    }
+   ],
+   "D2": "refusee (jamais deux vues de suite avant le decollage reel)",
+   "D3": "renonce (+0.2 s, bord a 0.68 s)",
+   "P": null
+  },
+  {
+   "course": "jade-tenue-3970437",
+   "carte": "jade",
+   "t0": 175,
+   "tDecol": 175.6,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.62,
+   "vitesse": 149.8,
+   "jauge": 0.203,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 4.3,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.62,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.55,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.67,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.48,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.27,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.1,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard 0,1 s",
+   "D3": "non",
+   "P": null
+  },
+  {
+   "course": "jade-tenue-3970474",
+   "carte": "jade",
+   "t0": 145.1,
+   "tDecol": 145.9,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.77,
+   "vitesse": 84,
+   "jauge": 0.568,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 3.1,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.77,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.63,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.65,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.57,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.43,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.28,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.17,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.05,
+     "facon": "air",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard plus long (+0.3 s)",
+   "D3": "non",
+   "P": null
+  },
+  {
+   "course": "jade-tenue-3970474",
+   "carte": "jade",
+   "t0": 152.1,
+   "tDecol": 152.8,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.77,
+   "vitesse": 110,
+   "jauge": 0.414,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 4.5,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.77,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.88,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.83,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.6,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.33,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.18,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.07,
+     "facon": "air",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard plus long (+0.4 s)",
+   "D3": "renonce (+0.2 s, bord a 0.83 s)",
+   "P": null
+  },
+  {
+   "course": "jade-tenue-3970474",
+   "carte": "jade",
+   "t0": 168.1,
+   "tDecol": 169.1,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 1.32,
+   "vitesse": 106.5,
+   "jauge": 0.915,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 2.1,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.32,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.02,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.95,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.95,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.8,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.65,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.53,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.4,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.25,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.12,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard 0,1 s",
+   "D3": "non",
+   "P": null
+  },
+  {
+   "course": "jade-tenue-3970474",
+   "carte": "jade",
+   "t0": 171.4,
+   "tDecol": 172.8,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 1.23,
+   "vitesse": 86.3,
+   "jauge": 0.91,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 3.1,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.23,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.18,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.3,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.3,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.18,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.07,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.97,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.87,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.75,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.6,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.42,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.23,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.12,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.02,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard 0,1 s",
+   "D3": "non",
+   "P": null
+  },
+  {
+   "course": "jade-tenue-3970548",
+   "carte": "jade",
+   "t0": 37,
+   "tDecol": 38.8,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 1.42,
+   "vitesse": 80.4,
+   "jauge": 0.675,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 3,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.42,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.47,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.53,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.68,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.55,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.47,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.4,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.33,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.27,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.2,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.13,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.07,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.98,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.87,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.67,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.35,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.18,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.07,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard 0,1 s",
+   "D3": "non",
+   "P": null
+  },
+  {
+   "course": "jade-tenue-3970548",
+   "carte": "jade",
+   "t0": 42,
+   "tDecol": 43.3,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 1.22,
+   "vitesse": 65.3,
+   "jauge": 1.941,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 4.3,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.22,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.18,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.15,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.08,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.97,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.82,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.7,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.57,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.45,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.33,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.22,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.12,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.02,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard 0,1 s",
+   "D3": "non",
+   "P": null
+  },
+  {
+   "course": "jade-tenue-3970548",
+   "carte": "jade",
+   "t0": 47.8,
+   "tDecol": 49.8,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 1.87,
+   "vitesse": 70.4,
+   "jauge": 1.648,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 5.4,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.87,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.98,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.88,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.78,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.67,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.53,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.43,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.35,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.27,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.18,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.08,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.9,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.8,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.68,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.53,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.4,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.27,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.15,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.03,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard 0,1 s",
+   "D3": "non",
+   "P": null
+  },
+  {
+   "course": "jade-tenue-3970548",
+   "carte": "jade",
+   "t0": 55.6,
+   "tDecol": 56.6,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 1.07,
+   "vitesse": 71.4,
+   "jauge": 1.797,
+   "mort": true,
+   "cause": "pic",
+   "dtIssue": 4.45,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.05,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.07,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.18,
+     "facon": "choc:pic",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.08,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.98,
+     "facon": "choc:pic",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.87,
+     "facon": "choc:pic",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.72,
+     "facon": "choc:pic",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.53,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.35,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.2,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.08,
+     "facon": "air",
+     "jumeau": null
+    }
+   ],
+   "D2": "refusee (jamais deux vues de suite avant le decollage reel)",
+   "D3": "renonce (+0.4 s, bord a 0.87 s)",
+   "P": null
+  },
+  {
+   "course": "jade-tenue-3970622",
+   "carte": "jade",
+   "t0": 97.5,
+   "tDecol": 99,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 1.38,
+   "vitesse": 113.7,
+   "jauge": 1.553,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 3.4,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.38,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.3,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.3,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.22,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.13,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.05,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.97,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.87,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.78,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.67,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.57,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.45,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.33,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.22,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.1,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard 0,1 s",
+   "D3": "non",
+   "P": null
+  },
+  {
+   "course": "jade-tenue-3970622",
+   "carte": "jade",
+   "t0": 102.7,
+   "tDecol": 103.7,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.87,
+   "vitesse": 107.5,
+   "jauge": 1.38,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 3,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.92,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.85,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.87,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.02,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.07,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.02,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.92,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.83,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.7,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.33,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.17,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.05,
+     "facon": "air",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard plus long (+0.6 s)",
+   "D3": "renonce (+0.2 s, bord a 1.07 s)",
+   "P": null
+  },
+  {
+   "course": "jade-tenue-3970622",
+   "carte": "jade",
+   "t0": 109.8,
+   "tDecol": 111,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.9,
+   "vitesse": 107.3,
+   "jauge": 0.274,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 4.7,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.02,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.9,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.15,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.12,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.03,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.97,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.88,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.8,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.68,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.52,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.32,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.18,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.1,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.08,
+     "facon": "air",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard plus long (+0.8 s)",
+   "D3": "renonce (+0.2 s, bord a 1.12 s)",
+   "P": null
+  },
+  {
+   "course": "jade-tenue-3970659",
+   "carte": "jade",
+   "t0": 94.3,
+   "tDecol": 95.4,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 1.13,
+   "vitesse": 160.9,
+   "jauge": 0.572,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 1.4,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.17,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.08,
+     "facon": "choc:pic",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.13,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.08,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.08,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.98,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.88,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.78,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.65,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.55,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.4,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.23,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.1,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard 0,1 s",
+   "D3": "non",
+   "P": null
+  },
+  {
+   "course": "jade-tenue-3970659",
+   "carte": "jade",
+   "t0": 105.6,
+   "tDecol": 107.3,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 1.15,
+   "vitesse": 109.4,
+   "jauge": 0.254,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 4.9,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.15,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.73,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.88,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.05,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.23,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.18,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.08,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.98,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.9,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.82,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.73,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.63,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.52,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.3,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.38,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.25,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.12,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.6,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.02,
+     "facon": "air",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard plus long (+0.8 s)",
+   "D3": "renonce (+0.4 s, bord a 1.23 s)",
+   "P": null
+  },
+  {
+   "course": "libre-3970437",
+   "carte": "espace",
+   "t0": 80.8,
+   "tDecol": 81.6,
+   "dessous": false,
+   "facon": "versRoute",
+   "attente": 0.88,
+   "vitesse": 143.6,
+   "jauge": 0.826,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 3.1,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.9,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.88,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.85,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.75,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.63,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.55,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.38,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.2,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.08,
+     "facon": "portail",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "libre-3970437",
+   "carte": "nuages",
+   "t0": 94,
+   "tDecol": 94.9,
+   "dessous": false,
+   "facon": "rien",
+   "attente": 0.9,
+   "vitesse": 115.7,
+   "jauge": 0.517,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 2.1,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.9,
+     "facon": "libre",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.9,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.9,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.02,
+     "facon": "libre",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.93,
+     "facon": "libre",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.83,
+     "facon": "libre",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.72,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.52,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.25,
+     "facon": "libre",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.12,
+     "facon": "libre",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.02,
+     "facon": "libre",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "libre-3970437",
+   "carte": "nuages",
+   "t0": 101.2,
+   "tDecol": 102.2,
+   "dessous": false,
+   "facon": "versRoute",
+   "attente": 0.85,
+   "vitesse": 129.2,
+   "jauge": 0.781,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 2.4,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.83,
+     "facon": "libre",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.83,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.85,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.9,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.87,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.78,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.72,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.62,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.47,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.27,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.12,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.02,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "libre-3970437",
+   "carte": "nuages",
+   "t0": 109.9,
+   "tDecol": 111.3,
+   "dessous": false,
+   "facon": "viserPlane",
+   "attente": 1.53,
+   "vitesse": 71.4,
+   "jauge": 0.771,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 1.5,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.67,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.55,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.53,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.43,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.33,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.23,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.15,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.05,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.93,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.82,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.8,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.7,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.9,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.58,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.45,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 1.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.33,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 1.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.22,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 1.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.1,
+     "facon": "pose",
+     "jumeau": "pose"
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "libre-3970437",
+   "carte": "nuages",
+   "t0": 115.7,
+   "tDecol": 116.8,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.8040150564617314,
+   "vitesse": 73.2,
+   "jauge": 0.302,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 3.1,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.98,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.03,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.93,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.83,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.73,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.63,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.48,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.33,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.2,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.08,
+     "facon": "air",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "libre-3970437",
+   "carte": "nuages",
+   "t0": 129.3,
+   "tDecol": 130.2,
+   "dessous": false,
+   "facon": "versRoute",
+   "attente": 0.9,
+   "vitesse": 148.7,
+   "jauge": 0.814,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 1.8,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "A",
+     "bordT": 0.75,
+     "facon": "fond",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.77,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.9,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.75,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.77,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.68,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.53,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.42,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.27,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.13,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.02,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "libre-3970437",
+   "carte": "jade",
+   "t0": 148.8,
+   "tDecol": 150.1,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 1.65,
+   "vitesse": 66.8,
+   "jauge": 1.681,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 3.7,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.72,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.67,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.65,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.72,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.63,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.55,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.43,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.33,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.22,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.03,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.83,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.6,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.35,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1.1,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.18,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1.2,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.07,
+     "facon": "air",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard 0,1 s",
+   "D3": "renonce (+0.7 s, bord a 1.03 s)",
+   "P": null
+  },
+  {
+   "course": "libre-3970437",
+   "carte": "jade",
+   "t0": 159.9,
+   "tDecol": 161,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 1.12,
+   "vitesse": 85.3,
+   "jauge": 1.242,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 8.8,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.12,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.18,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.12,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.15,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.1,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.02,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.92,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.82,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.63,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.45,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.28,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.17,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.05,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard plus long (+0.3 s)",
+   "D3": "renonce (+0.6 s, bord a 0.63 s)",
+   "P": null
+  },
+  {
+   "course": "libre-3970437",
+   "carte": "jade",
+   "t0": 177.5,
+   "tDecol": 178.6,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.85,
+   "vitesse": 87,
+   "jauge": 0.222,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 1.3,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.1,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.1,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.85,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.02,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.03,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.97,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.85,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.77,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.65,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.47,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.27,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.13,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.03,
+     "facon": "air",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard plus long (+0.3 s)",
+   "D3": "renonce (+0.6 s, bord a 0.65 s)",
+   "P": null
+  },
+  {
+   "course": "libre-3970474",
+   "carte": "espace",
+   "t0": 54.4,
+   "tDecol": 55.5,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.8226700251889167,
+   "vitesse": 91.2,
+   "jauge": 1.375,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 3.3,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.12,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.1,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.08,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.98,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.9,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.78,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.63,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.42,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.22,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.1,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "libre-3970474",
+   "carte": "espace",
+   "t0": 67.1,
+   "tDecol": 68.2,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.48953771289537706,
+   "vitesse": 84.6,
+   "jauge": 0.268,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 3.1,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.05,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.07,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.95,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.85,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.77,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.67,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.5,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.3,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.15,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.05,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "libre-3970474",
+   "carte": "espace",
+   "t0": 85,
+   "tDecol": 85.7,
+   "dessous": false,
+   "facon": "versRoute",
+   "attente": 0.82,
+   "vitesse": 128.4,
+   "jauge": 0.77,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 2.4,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.75,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.82,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.6,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.63,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.8,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.57,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.23,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.08,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "libre-3970511",
+   "carte": "espace",
+   "t0": 67.8,
+   "tDecol": 68.6,
+   "dessous": false,
+   "facon": "versRoute",
+   "attente": 0.82,
+   "vitesse": 157,
+   "jauge": 1.504,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 2.7,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.87,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.82,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.67,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.68,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.58,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.45,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.3,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.15,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.05,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "libre-3970511",
+   "carte": "nuages",
+   "t0": 79.3,
+   "tDecol": 80.5,
+   "dessous": false,
+   "facon": "viserPlane",
+   "attente": 1.35,
+   "vitesse": 87.3,
+   "jauge": 1.332,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 4.8,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.4,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.37,
+     "facon": "pose",
+     "jumeau": "libre"
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.35,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.07,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.05,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.03,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.05,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.92,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.78,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.67,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.8,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.52,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.9,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.35,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.2,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 1.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.08,
+     "facon": "pose",
+     "jumeau": "pose"
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "libre-3970548",
+   "carte": "nuages",
+   "t0": 85.6,
+   "tDecol": 86.6,
+   "dessous": false,
+   "facon": "versRoute",
+   "attente": 1.2,
+   "vitesse": 82.9,
+   "jauge": 0.715,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 2.7,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.17,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.18,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.2,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.98,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.98,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.92,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.78,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.65,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.52,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.37,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.2,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.08,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "libre-3970548",
+   "carte": "nuages",
+   "t0": 110.8,
+   "tDecol": 111.4,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.35799721835883164,
+   "vitesse": 161.7,
+   "jauge": 0.987,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 5.9,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.85,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.73,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.62,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.33,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.1,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "libre-3970548",
+   "carte": "nuages",
+   "t0": 126.1,
+   "tDecol": 128.2,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.20374999999999988,
+   "vitesse": 50.1,
+   "jauge": 0.904,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 2.3,
+   "suite": [
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": 3,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "A",
+     "bordT": 2.92,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "A",
+     "bordT": 2.68,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "A",
+     "bordT": 2.52,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "A",
+     "bordT": 2.37,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "A",
+     "bordT": 2.23,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "A",
+     "bordT": 2.08,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.93,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.8,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.7,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1.1,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.5,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1.2,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.32,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1.3,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.13,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1.4,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.97,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1.5,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.8,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1.6,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.63,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.47,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.32,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.18,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 2,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.07,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "libre-3970548",
+   "carte": "nuages",
+   "t0": 133.6,
+   "tDecol": 134.7,
+   "dessous": false,
+   "facon": "versRoute",
+   "attente": 1.03,
+   "vitesse": 97.2,
+   "jauge": 0.954,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 1.9,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "A",
+     "bordT": 0.97,
+     "facon": "fond",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.05,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.03,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.17,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.22,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.12,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 1,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.9,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.78,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.65,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.3,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.13,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.02,
+     "facon": "portail",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "libre-3970548",
+   "carte": "jade",
+   "t0": 164.9,
+   "tDecol": 165.9,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.83,
+   "vitesse": 103.7,
+   "jauge": 1.144,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 3.3,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.83,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.92,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.98,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.87,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.77,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.65,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.47,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.27,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.13,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.02,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard plus long (+0.3 s)",
+   "D3": "non",
+   "P": null
+  },
+  {
+   "course": "ville-tenue-3970437",
+   "carte": "ville",
+   "t0": 21.9,
+   "tDecol": 22.9,
+   "dessous": false,
+   "facon": "viser",
+   "attente": 0.92,
+   "vitesse": 122.8,
+   "jauge": 0.265,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 2.4,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.05,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.98,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.92,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.93,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.88,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.87,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.78,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.68,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.48,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.25,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.12,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.02,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "ville-tenue-3970437",
+   "carte": "ville",
+   "t0": 62.6,
+   "tDecol": 63.5,
+   "dessous": false,
+   "facon": "viser",
+   "attente": 0.82,
+   "vitesse": 147.1,
+   "jauge": 0.534,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 4.1,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "C",
+     "bordT": 1,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.9,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.82,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.83,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.75,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.67,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.57,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.47,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.35,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.22,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.1,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "ville-tenue-3970437",
+   "carte": "ville",
+   "t0": 91,
+   "tDecol": 92,
+   "dessous": false,
+   "facon": "versRoute",
+   "attente": 0.87,
+   "vitesse": 164.5,
+   "jauge": 0.61,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 2.7,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "C",
+     "bordT": 0.9,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.82,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.87,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.9,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.93,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.87,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.8,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.7,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.53,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.28,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.13,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 0,
+     "e": "C",
+     "bordT": 0.03,
+     "facon": "choc:tour",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "ville-tenue-3970474",
+   "carte": "ville",
+   "t0": 10.8,
+   "tDecol": 11.8,
+   "dessous": false,
+   "facon": "viserPlane",
+   "attente": 0.93,
+   "vitesse": 122.8,
+   "jauge": 0.248,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 2.3,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "C",
+     "bordT": 0.82,
+     "facon": "choc:tour",
+     "jumeau": "choc"
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.77,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.93,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.72,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.72,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.75,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.77,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.7,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.52,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.25,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.8,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.12,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.9,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.02,
+     "facon": "pose",
+     "jumeau": "pose"
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": "jumeau viser se pose"
+  },
+  {
+   "course": "ville-tenue-3970474",
+   "carte": "ville",
+   "t0": 18.3,
+   "tDecol": 19.5,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 1.25,
+   "vitesse": 66.3,
+   "jauge": 0.292,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 3.8,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.2,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.25,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.25,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.13,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.13,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.07,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.98,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.85,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.7,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.53,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.38,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.25,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.12,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.02,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard 0,1 s",
+   "D3": "renonce (+0.3 s, bord a 1.07 s)",
+   "P": null
+  },
+  {
+   "course": "ville-tenue-3970474",
+   "carte": "ville",
+   "t0": 59.8,
+   "tDecol": 60.2,
+   "dessous": false,
+   "facon": "versRoute",
+   "attente": 0.47,
+   "vitesse": 132,
+   "jauge": 0.444,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 1.4,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.68,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.57,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.47,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.45,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.22,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.08,
+     "facon": "portail",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "ville-tenue-3970474",
+   "carte": "ville",
+   "t0": 120.6,
+   "tDecol": 121.1,
+   "dessous": false,
+   "facon": "versRoute",
+   "attente": 0.6,
+   "vitesse": 162.7,
+   "jauge": 0.871,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 7,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "C",
+     "bordT": 0.73,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.58,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.6,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.7,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.63,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.28,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.12,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "ville-tenue-3970474",
+   "carte": "ville",
+   "t0": 135.2,
+   "tDecol": 136.1,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.85,
+   "vitesse": 134.8,
+   "jauge": 0.706,
+   "mort": true,
+   "cause": "tour",
+   "dtIssue": 5.05,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "A",
+     "bordT": 1,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.02,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.85,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.82,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.8,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.7,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.58,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.47,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.35,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.22,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.12,
+     "facon": "choc:tour",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard 0,1 s",
+   "D3": "renonce (+0.4 s, bord a 0.58 s)",
+   "P": null
+  },
+  {
+   "course": "ville-tenue-3970511",
+   "carte": "ville",
+   "t0": 36.4,
+   "tDecol": 37.4,
+   "dessous": false,
+   "facon": "viser",
+   "attente": 0.9,
+   "vitesse": 106.4,
+   "jauge": 0.778,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 3,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.72,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.78,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.9,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.4,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.43,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.25,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.02,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.85,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.67,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.32,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.13,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 0,
+     "e": "C",
+     "bordT": 0.03,
+     "facon": "choc:tour",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "ville-tenue-3970511",
+   "carte": "ville",
+   "t0": 42.1,
+   "tDecol": 43.4,
+   "dessous": false,
+   "facon": "versRoute",
+   "attente": 1.35,
+   "vitesse": 83.1,
+   "jauge": 0.651,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 3,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "C",
+     "bordT": 1.33,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.37,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.35,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.1,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.25,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.37,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.23,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.13,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.03,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.93,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.82,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.68,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.5,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.25,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.1,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "ville-tenue-3970548",
+   "carte": "ville",
+   "t0": 27.5,
+   "tDecol": 28.4,
+   "dessous": false,
+   "facon": "viser",
+   "attente": 0.98,
+   "vitesse": 97.6,
+   "jauge": 0.259,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 1.3,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.08,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.07,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.98,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.85,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.85,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.83,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.72,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.57,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.37,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.17,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.05,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "ville-tenue-3970548",
+   "carte": "ville",
+   "t0": 35.6,
+   "tDecol": 36.4,
+   "dessous": false,
+   "facon": "viser",
+   "attente": 0.95,
+   "vitesse": 109.1,
+   "jauge": 1.27,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 3.5,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.97,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.97,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.95,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.83,
+     "facon": "portail",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.72,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.62,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.52,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.37,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.22,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.08,
+     "facon": "portail",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "ville-tenue-3970548",
+   "carte": "ville",
+   "t0": 57.8,
+   "tDecol": 58.8,
+   "dessous": false,
+   "facon": "viserPlane",
+   "attente": 0.97,
+   "vitesse": 140.2,
+   "jauge": 1.186,
+   "mort": true,
+   "cause": "tour",
+   "dtIssue": 0.75,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.95,
+     "facon": "choc:tour",
+     "jumeau": "choc"
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.07,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.97,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.93,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.9,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.82,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.72,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.62,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.47,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.32,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.8,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.17,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.9,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.05,
+     "facon": "pose",
+     "jumeau": "pose"
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": "jumeau viser se pose"
+  },
+  {
+   "course": "ville-tenue-3970585",
+   "carte": "ville",
+   "t0": 47.2,
+   "tDecol": 48.1,
+   "dessous": false,
+   "facon": "viserPlane",
+   "attente": 0.78,
+   "vitesse": 122.9,
+   "jauge": 1.172,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 4.2,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.7,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.83,
+     "facon": "portail",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.78,
+     "facon": "portail",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.6,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.73,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.75,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.63,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.52,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.4,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.25,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.1,
+     "facon": null,
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": "jumeau viser se pose"
+  },
+  {
+   "course": "ville-tenue-3970585",
+   "carte": "ville",
+   "t0": 56.9,
+   "tDecol": 59,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 1.28,
+   "vitesse": 79.8,
+   "jauge": 0.243,
+   "mort": true,
+   "cause": "tour",
+   "dtIssue": 0.75,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.25,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.27,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.28,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.43,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.57,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.67,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.57,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.48,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.4,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.32,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.25,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.22,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.17,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1.1,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.12,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1.2,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.07,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1.3,
+     "de": 1,
+     "e": "C",
+     "bordT": 1,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1.4,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.93,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1.5,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.85,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1.6,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.7,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 1.7,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.5,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.33,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.2,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 2,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.08,
+     "facon": "air",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard 0,1 s",
+   "D3": "renonce (+0.3 s, bord a 1.67 s)",
+   "P": null
+  },
+  {
+   "course": "ville-tenue-3970622",
+   "carte": "ville",
+   "t0": 11.2,
+   "tDecol": 12.3,
+   "dessous": false,
+   "facon": "versRoute",
+   "attente": 0.95,
+   "vitesse": 120.8,
+   "jauge": 0.347,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 2.1,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "C",
+     "bordT": 1,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 1,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.95,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.1,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.17,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.1,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.07,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 1.05,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 1,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.9,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.6,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.23,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.12,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "ville-tenue-3970622",
+   "carte": "ville",
+   "t0": 14.6,
+   "tDecol": 15.3,
+   "dessous": false,
+   "facon": "viserPlane",
+   "attente": 0.93,
+   "vitesse": 77.2,
+   "jauge": 0.869,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 1.2,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.87,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.93,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.53,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.55,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.6,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.53,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.17,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.03,
+     "facon": "pose",
+     "jumeau": "pose"
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": "jumeau viser se pose"
+  },
+  {
+   "course": "ville-tenue-3970622",
+   "carte": "ville",
+   "t0": 19.3,
+   "tDecol": 20.2,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 0.95,
+   "vitesse": 63,
+   "jauge": 0.771,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 4.4,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.95,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.27,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "A",
+     "bordT": 1.07,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.83,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.6,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.38,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.23,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "A",
+     "bordT": 0.13,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.03,
+     "facon": "choc:tour",
+     "jumeau": null
+    }
+   ],
+   "D2": "refusee (jamais deux vues de suite avant le decollage reel)",
+   "D3": "renonce (+0.2 s, bord a 1.07 s)",
+   "P": null
+  },
+  {
+   "course": "ville-tenue-3970622",
+   "carte": "ville",
+   "t0": 40,
+   "tDecol": 40.5,
+   "dessous": false,
+   "facon": "viser",
+   "attente": 0.45,
+   "vitesse": 90.2,
+   "jauge": 1.336,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 1.4,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "-",
+     "bordT": null,
+     "facon": null,
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.43,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.45,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.77,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.85,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.7,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.05,
+     "facon": "pose",
+     "jumeau": null
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": null
+  },
+  {
+   "course": "ville-tenue-3970622",
+   "carte": "ville",
+   "t0": 51.4,
+   "tDecol": 52.3,
+   "dessous": false,
+   "facon": "viserPlane",
+   "attente": 0.9,
+   "vitesse": 124.8,
+   "jauge": 0.663,
+   "mort": true,
+   "cause": "tour",
+   "dtIssue": 0.25,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "C",
+     "bordT": 0.77,
+     "facon": "choc:tour",
+     "jumeau": "choc"
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.83,
+     "facon": "portail",
+     "jumeau": "fond"
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.9,
+     "facon": "portail",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.83,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.83,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.73,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.62,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.47,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.28,
+     "facon": "pose",
+     "jumeau": "portail"
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.12,
+     "facon": "pose",
+     "jumeau": "portail"
+    },
+    {
+     "dt": 0.8,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.02,
+     "facon": "pose",
+     "jumeau": "portail"
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": "jumeau viser se pose"
+  },
+  {
+   "course": "ville-tenue-3970659",
+   "carte": "ville",
+   "t0": 19.9,
+   "tDecol": 20.9,
+   "dessous": false,
+   "facon": "viserPlane",
+   "attente": 0.93,
+   "vitesse": 99.6,
+   "jauge": 0.231,
+   "mort": false,
+   "cause": null,
+   "dtIssue": 5,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.95,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": -0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.93,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.93,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.1,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.92,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.2,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.88,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.3,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.78,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.4,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.68,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.5,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.57,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.6,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.42,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.7,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.25,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.8,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.13,
+     "facon": "pose",
+     "jumeau": "pose"
+    },
+    {
+     "dt": 0.9,
+     "de": 0,
+     "e": "S",
+     "bordT": 0.03,
+     "facon": "pose",
+     "jumeau": "pose"
+    }
+   ],
+   "D2": null,
+   "D3": null,
+   "P": "jumeau viser se pose"
+  },
+  {
+   "course": "ville-tenue-3970659",
+   "carte": "ville",
+   "t0": 27.8,
+   "tDecol": 29.2,
+   "dessous": true,
+   "facon": "versRoute",
+   "attente": 1.35,
+   "vitesse": 90.4,
+   "jauge": 0.997,
+   "mort": true,
+   "cause": "tour",
+   "dtIssue": 0.45,
+   "suite": [
+    {
+     "dt": -0.2,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.32,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": -0.1,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.28,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0,
+     "de": 1,
+     "e": "S",
+     "bordT": 1.35,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.1,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.42,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.2,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.38,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.3,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.22,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.4,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.13,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.5,
+     "de": 1,
+     "e": "C",
+     "bordT": 1.07,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.6,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.98,
+     "facon": "choc:tour",
+     "jumeau": null
+    },
+    {
+     "dt": 0.7,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.88,
+     "facon": "air",
+     "jumeau": null
+    },
+    {
+     "dt": 0.8,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.67,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 0.9,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.52,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.38,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.1,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.25,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.2,
+     "de": 1,
+     "e": "S",
+     "bordT": 0.13,
+     "facon": "pose",
+     "jumeau": null
+    },
+    {
+     "dt": 1.3,
+     "de": 1,
+     "e": "C",
+     "bordT": 0.03,
+     "facon": "choc:tour",
+     "jumeau": null
+    }
+   ],
+   "D2": "retard plus long (+0.9 s)",
+   "D3": "renonce (+0.2 s, bord a 1.38 s)",
+   "P": null
+  }
+ ]
+}

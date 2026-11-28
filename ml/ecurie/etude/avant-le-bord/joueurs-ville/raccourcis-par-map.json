@@ -1,0 +1,102 @@
+{
+ "joueurs": {
+  "canyon": {
+   "minutes": 3.4,
+   "vols": 10,
+   "raccourcis": 4,
+   "raccourcis_par_min": 1.19,
+   "gain_med": 1005,
+   "vols_morts": 2
+  },
+  "espace": {
+   "minutes": 11.4,
+   "vols": 78,
+   "raccourcis": 14,
+   "raccourcis_par_min": 1.23,
+   "gain_med": 130,
+   "vols_morts": 1
+  },
+  "grotte": {
+   "minutes": 6.4,
+   "vols": 54,
+   "raccourcis": 29,
+   "raccourcis_par_min": 4.53,
+   "gain_med": 803,
+   "vols_morts": 4
+  },
+  "jade": {
+   "minutes": 8.2,
+   "vols": 88,
+   "raccourcis": 31,
+   "raccourcis_par_min": 3.77,
+   "gain_med": 153,
+   "vols_morts": 3
+  },
+  "nuages": {
+   "minutes": 6.5,
+   "vols": 56,
+   "raccourcis": 22,
+   "raccourcis_par_min": 3.38,
+   "gain_med": 767,
+   "vols_morts": 3
+  },
+  "ville": {
+   "minutes": 4.8,
+   "vols": 41,
+   "raccourcis": 14,
+   "raccourcis_par_min": 2.9,
+   "gain_med": 1263,
+   "vols_morts": 2
+  }
+ },
+ "c0025": {
+  "canyon": {
+   "minutes": 2.8,
+   "vols": 9,
+   "raccourcis": 0,
+   "raccourcis_par_min": 0,
+   "gain_med": null,
+   "vols_morts": 3
+  },
+  "espace": {
+   "minutes": 11,
+   "vols": 62,
+   "raccourcis": 3,
+   "raccourcis_par_min": 0.27,
+   "gain_med": 160,
+   "vols_morts": 3
+  },
+  "grotte": {
+   "minutes": 10.9,
+   "vols": 59,
+   "raccourcis": 6,
+   "raccourcis_par_min": 0.55,
+   "gain_med": 810,
+   "vols_morts": 9
+  },
+  "jade": {
+   "minutes": 9.1,
+   "vols": 42,
+   "raccourcis": 4,
+   "raccourcis_par_min": 0.44,
+   "gain_med": 179,
+   "vols_morts": 0
+  },
+  "nuages": {
+   "minutes": 9,
+   "vols": 65,
+   "raccourcis": 22,
+   "raccourcis_par_min": 2.44,
+   "gain_med": 685,
+   "vols_morts": 4
+  },
+  "ville": {
+   "minutes": 4.3,
+   "vols": 34,
+   "raccourcis": 9,
+   "raccourcis_par_min": 2.08,
+   "gain_med": 1253,
+   "vols_morts": 3
+  }
+ }
+}

@@ -1,0 +1,1 @@
+vues au sol sur decor 29156, au-dessus de 143 m/s 4937 (17 %) ; par carte {"canyon":{"vues":6561,"rapides":1022},"grotte":{"vues":9128,"rapides":1012},"jade":{"vues":9276,"rapides":2410},"ville":{"vues":4191,"rapides":493}}

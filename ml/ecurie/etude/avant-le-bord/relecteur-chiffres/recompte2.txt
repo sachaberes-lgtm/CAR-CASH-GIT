@@ -1,0 +1,18 @@
+== (a) decollages subis par minute de sol (vues a 0,1 s), selon la vitesse de la derniere vue au sol ==
+  canyon <=143 : 9.2 min de sol, 18 decollages (1.95 /min), 2 morts (11 %)
+  canyon >143 : 1.7 min de sol, 9 decollages (5.28 /min), 6 morts (67 %)
+  grotte <=143 : 13.5 min de sol, 26 decollages (1.92 /min), 4 morts (15 %)
+  grotte >143 : 1.7 min de sol, 12 decollages (7.11 /min), 4 morts (33 %)
+  jade <=143 : 11.4 min de sol, 39 decollages (3.41 /min), 1 morts (3 %)
+  jade >143 : 4.0 min de sol, 35 decollages (8.71 /min), 3 morts (9 %)
+  ville <=143 : 6.2 min de sol, 17 decollages (2.76 /min), 1 morts (6 %)
+  ville >143 : 0.8 min de sol, 5 decollages (6.09 /min), 2 morts (40 %)
+
+== (b) au-dessus de 130 m/s, sol sur decor, nitro stable sur [t-0,2 ; t+0,8] : variation de vitesse sur 1 s ==
+  nitro tenue : mediane 0.1 m/s (4821 mesures) ; coupee : -10.7 m/s (765 mesures)
+
+== (c) contre de gardeOn, gardeT 0.5 : 4195 vues sur 29156 (14.4 %) ==
+  contre tenu >= 0,4 s jusqu'au decollage : morts 10/22, poses 82/136
+
+== (c) contre de gardeOn, gardeT 0.7 : 6074 vues sur 29156 (20.8 %) ==
+  contre tenu >= 0,4 s jusqu'au decollage : morts 16/22, poses 93/136

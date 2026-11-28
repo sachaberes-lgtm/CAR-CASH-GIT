@@ -1,0 +1,2863 @@
+{
+ "tableau": {
+  "ailleurs / dessous": {
+   "n": 35,
+   "morts": 1,
+   "causes": {
+    "pic": 1
+   },
+   "dt": [
+    4.45
+   ]
+  },
+  "ailleurs / raccourci": {
+   "n": 10,
+   "morts": 0,
+   "causes": {},
+   "dt": []
+  },
+  "ville / raccourci": {
+   "n": 17,
+   "morts": 2,
+   "causes": {
+    "tour": 2
+   },
+   "dt": [
+    0.75,
+    0.25
+   ]
+  },
+  "ville / dessous": {
+   "n": 5,
+   "morts": 3,
+   "causes": {
+    "tour": 3
+   },
+   "dt": [
+    5.05,
+    0.75,
+    0.45
+   ]
+  }
+ },
+ "facons_ville": {
+  "viser": {
+   "n": 6,
+   "morts": 0
+  },
+  "versRoute": {
+   "n": 5,
+   "morts": 0
+  },
+  "viserPlane": {
+   "n": 6,
+   "morts": 2
+  }
+ },
+ "vols": [
+  {
+   "course": "canyon-tenue-3970400",
+   "carte": "canyon",
+   "t_decol": 60.3,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 0.88,
+   "vitesse_ms": 136.4,
+   "jauge": 0.515,
+   "engagement": {
+    "t": 59.3,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@3.5 g-7 a-0.02",
+    "jumeau": null,
+    "tous": [
+     "rien:choc@2.12 (paroi)",
+     "plane:choc@1.32 (paroi)",
+     "versRoute:pose@3.5 g-7 a-0.02"
+    ],
+    "avant": "versRoute:choc@3.35 (paroi)"
+   },
+   "derniere_vue_sol": {
+    "t": 60.2,
+    "choisi": "versRoute:air@6",
+    "tous": [
+     "rien:choc@1.8 (paroi)",
+     "plane:choc@1.37 (paroi)",
+     "versRoute:air@6"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "A",
+   "bascules": 1,
+   "issue": {
+    "k": "pose",
+    "dt": 2.5,
+    "cap": -0.999,
+    "lat": 3.11,
+    "iPose": 628
+   }
+  },
+  {
+   "course": "canyon-tenue-3970585",
+   "carte": "canyon",
+   "t_decol": 68.9,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 1.02,
+   "vitesse_ms": 108.2,
+   "jauge": 0.8,
+   "engagement": {
+    "t": 67.7,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@3.17 g6 a0.1",
+    "jumeau": null,
+    "tous": [
+     "rien:choc@0.35 (paroi)",
+     "plane:choc@0.35 (paroi)",
+     "versRoute:pose@3.17 g6 a0.1"
+    ],
+    "avant": "versRoute:choc@0.2 (paroi)"
+   },
+   "derniere_vue_sol": {
+    "t": 68.8,
+    "choisi": "versRoute:pose@3.75 g5 a0.12",
+    "tous": [
+     "rien:choc@0.5 (paroi)",
+     "plane:choc@0.43 (paroi)",
+     "versRoute:pose@3.75 g5 a0.12"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "C",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 3.9,
+    "cap": 1.082,
+    "lat": -8.52,
+    "iPose": 728
+   }
+  },
+  {
+   "course": "grotte-tenue-3970437",
+   "carte": "grotte",
+   "t_decol": 94.9,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 0.62,
+   "vitesse_ms": 118.5,
+   "jauge": 0.587,
+   "engagement": {
+    "t": 94.3,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@2.62 g3 a-0.03",
+    "jumeau": null,
+    "tous": [
+     "rien:choc@1.2 (roche)",
+     "plane:choc@1.02 (roche)",
+     "versRoute:pose@2.62 g3 a-0.03"
+    ],
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 94.8,
+    "choisi": "versRoute:pose@2.58 g4 a-0.06",
+    "tous": [
+     "rien:choc@1.63 (roche)",
+     "plane:choc@1.13 (roche)",
+     "versRoute:pose@2.58 g4 a-0.06"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 2.3,
+    "cap": 0.088,
+    "lat": 13.93,
+    "iPose": 972
+   }
+  },
+  {
+   "course": "grotte-tenue-3970548",
+   "carte": "grotte",
+   "t_decol": 104.4,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 0.73,
+   "vitesse_ms": 104.2,
+   "jauge": 1.346,
+   "engagement": {
+    "t": 103.7,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@2.87 g-20 a-0.45",
+    "jumeau": null,
+    "tous": [
+     "rien:choc@2.08 (roche)",
+     "plane:choc@1.47 (roche)",
+     "versRoute:pose@2.87 g-20 a-0.45"
+    ],
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 104.3,
+    "choisi": "versRoute:choc@2.25 (roche)",
+    "tous": [
+     "rien:choc@2.33 (roche)",
+     "plane:choc@1.87 (roche)",
+     "versRoute:choc@2.25 (roche)"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "C",
+   "bascules": 2,
+   "issue": {
+    "k": "pose",
+    "dt": 3.2,
+    "cap": -0.301,
+    "lat": 7.31,
+    "iPose": 1076
+   }
+  },
+  {
+   "course": "grotte-tenue-3970548",
+   "carte": "grotte",
+   "t_decol": 108.9,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 1.28,
+   "vitesse_ms": 83.9,
+   "jauge": 1.452,
+   "engagement": {
+    "t": 107.8,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@5.85 g43 a0.08",
+    "jumeau": null,
+    "tous": [
+     "rien:choc@2.3 (roche)",
+     "plane:choc@1.65 (roche)",
+     "versRoute:pose@5.85 g43 a0.08"
+    ],
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 108.8,
+    "choisi": "versRoute:pose@4.23 g25 a0.11",
+    "tous": [
+     "rien:libre@3",
+     "plane:choc@2.03 (roche)",
+     "versRoute:pose@4.23 g25 a0.11"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 1,
+   "issue": {
+    "k": "pose",
+    "dt": 2.7,
+    "cap": 0.353,
+    "lat": -6.94,
+    "iPose": 1116
+   }
+  },
+  {
+   "course": "grotte-tenue-3970622",
+   "carte": "grotte",
+   "t_decol": 77.4,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 1.87,
+   "vitesse_ms": 97.3,
+   "jauge": 0.741,
+   "engagement": {
+    "t": 75.6,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@1.52 g-3 a0.32",
+    "jumeau": null,
+    "tous": [
+     "rien:choc@1.48 (roche)",
+     "plane:choc@1.33 (roche)",
+     "versRoute:pose@1.52 g-3 a0.32"
+    ],
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 77.3,
+    "choisi": "versRoute:choc@5.7 (roche)",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:choc@5.7 (roche)"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "p",
+   "bascules": 4,
+   "issue": {
+    "k": "pose",
+    "dt": 7.3,
+    "cap": -0.585,
+    "lat": 3.73,
+    "iPose": 847
+   }
+  },
+  {
+   "course": "grotte-tenue-3970622",
+   "carte": "grotte",
+   "t_decol": 86.7,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 0.92,
+   "vitesse_ms": 87,
+   "jauge": 0.523,
+   "engagement": {
+    "t": 85.7,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@5.43 g8 a-0.01",
+    "jumeau": null,
+    "tous": [
+     "rien:choc@2.07 (roche)",
+     "plane:choc@1.75 (roche)",
+     "versRoute:pose@5.43 g8 a-0.01"
+    ],
+    "avant": "versRoute:choc@2.53 (roche)"
+   },
+   "derniere_vue_sol": {
+    "t": 86.6,
+    "choisi": "versRoute:air@6",
+    "tous": [
+     "rien:choc@2.65 (roche)",
+     "plane:choc@1.83 (roche)",
+     "versRoute:air@6"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "C",
+   "bascules": 1,
+   "issue": {
+    "k": "pose",
+    "dt": 4.9,
+    "cap": -0.013,
+    "lat": -0.05,
+    "iPose": 916
+   }
+  },
+  {
+   "course": "jade-tenue-3970400",
+   "carte": "jade",
+   "t_decol": 117.5,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 0.97,
+   "vitesse_ms": 84.5,
+   "jauge": 1.622,
+   "engagement": {
+    "t": 116.6,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@5.47 g105 a0.04",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@5.47 g105 a0.04"
+    ],
+    "avant": "versRoute:air@6"
+   },
+   "derniere_vue_sol": {
+    "t": 117.4,
+    "choisi": "versRoute:pose@5.85 g144 a-0.01",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@5.85 g144 a-0.01"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 1,
+   "issue": {
+    "k": "pose",
+    "dt": 1.9,
+    "cap": 0.219,
+    "lat": 9.49,
+    "iPose": 1194
+   }
+  },
+  {
+   "course": "jade-tenue-3970400",
+   "carte": "jade",
+   "t_decol": 127.2,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 0.73,
+   "vitesse_ms": 114.5,
+   "jauge": 1.663,
+   "engagement": {
+    "t": 126.5,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@2.92 g26 a0",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@2.92 g26 a0"
+    ],
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 127.1,
+    "choisi": "versRoute:pose@3.13 g26 a0.02",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@3.13 g26 a0.02"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "A",
+   "bascules": 1,
+   "issue": {
+    "k": "pose",
+    "dt": 3.3,
+    "cap": -0.289,
+    "lat": -3.8,
+    "iPose": 1305
+   }
+  },
+  {
+   "course": "jade-tenue-3970400",
+   "carte": "jade",
+   "t_decol": 150.3,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 1.82,
+   "vitesse_ms": 69.8,
+   "jauge": 0.827,
+   "engagement": {
+    "t": 148.3,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@4.9 g-3 a0.06",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@4.9 g-3 a0.06"
+    ],
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 150.2,
+    "choisi": "versRoute:pose@4.68 g-2 a0.01",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@4.68 g-2 a0.01"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "A",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 4.8,
+    "cap": -0.109,
+    "lat": -2,
+    "iPose": 1551
+   }
+  },
+  {
+   "course": "jade-tenue-3970437",
+   "carte": "jade",
+   "t_decol": 40,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 0.8,
+   "vitesse_ms": 99.7,
+   "jauge": 0.377,
+   "engagement": {
+    "t": 39.2,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@4.53 g-6 a0.03",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@4.53 g-6 a0.03"
+    ],
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 39.9,
+    "choisi": "versRoute:air@6.02",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:air@6.02"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "A",
+   "bascules": 3,
+   "issue": {
+    "k": "pose",
+    "dt": 3.4,
+    "cap": -0.092,
+    "lat": 23.17,
+    "iPose": 434
+   }
+  },
+  {
+   "course": "jade-tenue-3970437",
+   "carte": "jade",
+   "t_decol": 175.6,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 0.62,
+   "vitesse_ms": 149.8,
+   "jauge": 0.203,
+   "engagement": {
+    "t": 175,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@4.18 g5 a0.2",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@4.18 g5 a0.2"
+    ],
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 175.5,
+    "choisi": "versRoute:pose@4.37 g13 a0.01",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@4.37 g13 a0.01"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 4.3,
+    "cap": 0.36,
+    "lat": 4.75,
+    "iPose": 1799
+   }
+  },
+  {
+   "course": "jade-tenue-3970474",
+   "carte": "jade",
+   "t_decol": 145.9,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 0.77,
+   "vitesse_ms": 84,
+   "jauge": 0.568,
+   "engagement": {
+    "t": 145.1,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@4.83 g59 a0",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@4.83 g59 a0"
+    ],
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 145.8,
+    "choisi": "versRoute:air@6.02",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:air@6.02"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "A",
+   "bascules": 1,
+   "issue": {
+    "k": "pose",
+    "dt": 3.1,
+    "cap": -0.533,
+    "lat": -11.4,
+    "iPose": 1490
+   }
+  },
+  {
+   "course": "jade-tenue-3970474",
+   "carte": "jade",
+   "t_decol": 152.8,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 0.77,
+   "vitesse_ms": 110,
+   "jauge": 0.414,
+   "engagement": {
+    "t": 152.1,
+    "dessous_vue": 1,
+    "choisi": "versRoute:portail@4.85",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:portail@4.85"
+    ],
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 152.7,
+    "choisi": "versRoute:air@6.02",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:air@6.02"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "A",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 4.5,
+    "cap": -0.391,
+    "lat": 4.02,
+    "iPose": 1573
+   }
+  },
+  {
+   "course": "jade-tenue-3970474",
+   "carte": "jade",
+   "t_decol": 169.1,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 1.32,
+   "vitesse_ms": 106.5,
+   "jauge": 0.915,
+   "engagement": {
+    "t": 168.1,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@4.9 g27 a-0.05",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@4.9 g27 a-0.05"
+    ],
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 169,
+    "choisi": "versRoute:pose@1.87 g-1 a-0.06",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@1.87 g-1 a-0.06"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "p",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 2.1,
+    "cap": 0.831,
+    "lat": -21.11,
+    "iPose": 1712
+   }
+  },
+  {
+   "course": "jade-tenue-3970474",
+   "carte": "jade",
+   "t_decol": 172.8,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 1.23,
+   "vitesse_ms": 86.3,
+   "jauge": 0.91,
+   "engagement": {
+    "t": 171.4,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@4.77 g11 a0.04",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@4.77 g11 a0.04"
+    ],
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 172.7,
+    "choisi": "versRoute:pose@1.92 g6 a-0.54",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@1.92 g6 a-0.54"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "p",
+   "bascules": 1,
+   "issue": {
+    "k": "pose",
+    "dt": 3.1,
+    "cap": 0.222,
+    "lat": -6.35,
+    "iPose": 1759
+   }
+  },
+  {
+   "course": "jade-tenue-3970548",
+   "carte": "jade",
+   "t_decol": 38.8,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 1.42,
+   "vitesse_ms": 80.4,
+   "jauge": 0.675,
+   "engagement": {
+    "t": 37,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@1.95 g49 a-0.74",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@1.95 g49 a-0.74"
+    ],
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 38.7,
+    "choisi": "versRoute:pose@3.23 g57 a0.14",
+    "tous": [
+     "rien:choc@1.13 (pic)",
+     "plane:choc@0.85 (pic)",
+     "versRoute:pose@3.23 g57 a0.14"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "p",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 3,
+    "cap": -0.25,
+    "lat": 20.95,
+    "iPose": 418
+   }
+  },
+  {
+   "course": "jade-tenue-3970548",
+   "carte": "jade",
+   "t_decol": 43.3,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 1.22,
+   "vitesse_ms": 65.3,
+   "jauge": 1.941,
+   "engagement": {
+    "t": 42,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@3.1 g-686 a0.74",
+    "jumeau": null,
+    "tous": [
+     "rien:pose@2.95 g-677 a1.21",
+     "plane:libre@3",
+     "versRoute:pose@3.1 g-686 a0.74"
+    ],
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 43.2,
+    "choisi": "versRoute:pose@3.45 g-743 a0.05",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@3.45 g-743 a0.05"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "p",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 4.3,
+    "cap": -0.249,
+    "lat": 9.29,
+    "iPose": 476
+   }
+  },
+  {
+   "course": "jade-tenue-3970548",
+   "carte": "jade",
+   "t_decol": 49.8,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 1.87,
+   "vitesse_ms": 70.4,
+   "jauge": 1.648,
+   "engagement": {
+    "t": 47.8,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@5.48 g130 a0.14",
+    "jumeau": null,
+    "tous": [
+     "rien:choc@1.45 (pic)",
+     "plane:choc@1.05 (pic)",
+     "versRoute:pose@5.48 g130 a0.14"
+    ],
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 49.7,
+    "choisi": "versRoute:pose@2.07 g34 a0.69",
+    "tous": [
+     "rien:choc@1.33 (pic)",
+     "plane:choc@1.02 (pic)",
+     "versRoute:pose@2.07 g34 a0.69"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 5.4,
+    "cap": -0.069,
+    "lat": 11.7,
+    "iPose": 552
+   }
+  },
+  {
+   "course": "jade-tenue-3970548",
+   "carte": "jade",
+   "t_decol": 56.6,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 1.07,
+   "vitesse_ms": 71.4,
+   "jauge": 1.797,
+   "engagement": {
+    "t": 55.6,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@5.13 g2 a0",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@5.13 g2 a0"
+    ],
+    "avant": "versRoute:air@6.02"
+   },
+   "derniere_vue_sol": {
+    "t": 56.5,
+    "choisi": "versRoute:air@6.02",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:air@6.02"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "C",
+   "bascules": 5,
+   "issue": {
+    "k": "mort",
+    "dt": 4.45,
+    "cause": "pic"
+   }
+  },
+  {
+   "course": "jade-tenue-3970622",
+   "carte": "jade",
+   "t_decol": 99,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 1.38,
+   "vitesse_ms": 113.7,
+   "jauge": 1.553,
+   "engagement": {
+    "t": 97.5,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@4.57 g15 a0.06",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@4.57 g15 a0.06"
+    ],
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 98.9,
+    "choisi": "versRoute:pose@3.62 g10 a0.02",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@3.62 g10 a0.02"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 3,
+   "issue": {
+    "k": "pose",
+    "dt": 3.4,
+    "cap": -0.291,
+    "lat": 14.91,
+    "iPose": 1024
+   }
+  },
+  {
+   "course": "jade-tenue-3970622",
+   "carte": "jade",
+   "t_decol": 103.7,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 0.87,
+   "vitesse_ms": 107.5,
+   "jauge": 1.38,
+   "engagement": {
+    "t": 102.7,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@5.92 g38 a0.02",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@5.92 g38 a0.02"
+    ],
+    "avant": "versRoute:air@6"
+   },
+   "derniere_vue_sol": {
+    "t": 103.6,
+    "choisi": "versRoute:air@6",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:air@6"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "A",
+   "bascules": 1,
+   "issue": {
+    "k": "pose",
+    "dt": 3,
+    "cap": -0.656,
+    "lat": -12.71,
+    "iPose": 1067
+   }
+  },
+  {
+   "course": "jade-tenue-3970622",
+   "carte": "jade",
+   "t_decol": 111,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 0.9,
+   "vitesse_ms": 107.3,
+   "jauge": 0.274,
+   "engagement": {
+    "t": 109.8,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@3.17 g-3 a-0.01",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@3.17 g-3 a-0.01"
+    ],
+    "avant": "versRoute:air@6"
+   },
+   "derniere_vue_sol": {
+    "t": 110.9,
+    "choisi": "versRoute:air@6",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:air@6"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "A",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 4.7,
+    "cap": 0,
+    "lat": 4.94,
+    "iPose": 1157
+   }
+  },
+  {
+   "course": "jade-tenue-3970659",
+   "carte": "jade",
+   "t_decol": 95.4,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 1.13,
+   "vitesse_ms": 160.9,
+   "jauge": 0.572,
+   "engagement": {
+    "t": 94.3,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@3.23 g47 a-0.05",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@3.23 g47 a-0.05"
+    ],
+    "avant": "versRoute:choc@2.53 (pic)"
+   },
+   "derniere_vue_sol": {
+    "t": 95.3,
+    "choisi": "versRoute:pose@2.2 g39 a0.17",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@2.2 g39 a0.17"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 1.4,
+    "cap": 0.833,
+    "lat": 8.71,
+    "iPose": 968
+   }
+  },
+  {
+   "course": "jade-tenue-3970659",
+   "carte": "jade",
+   "t_decol": 107.3,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 1.15,
+   "vitesse_ms": 109.4,
+   "jauge": 0.254,
+   "engagement": {
+    "t": 105.6,
+    "dessous_vue": 1,
+    "choisi": "versRoute:air@6",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:pose@2.52 g-1432 a-1.39",
+     "versRoute:air@6"
+    ],
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 107.2,
+    "choisi": "versRoute:air@6",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:air@6"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 4.9,
+    "cap": 0.083,
+    "lat": 2.42,
+    "iPose": 1122
+   }
+  },
+  {
+   "course": "libre-3970437",
+   "carte": "espace",
+   "t_decol": 81.6,
+   "dessous": false,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 0.88,
+   "vitesse_ms": 143.6,
+   "jauge": 0.826,
+   "engagement": {
+    "t": 80.8,
+    "dessous_vue": 0,
+    "choisi": "versRoute:portail@3.22",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:portail@3.22"
+    ],
+    "avant": "versRoute:portail@3.27"
+   },
+   "derniere_vue_sol": {
+    "t": 81.5,
+    "choisi": "versRoute:portail@2.88",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:portail@2.88"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "T",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 3.1,
+    "cap": 0,
+    "lat": 0,
+    "iPose": 847
+   }
+  },
+  {
+   "course": "libre-3970437",
+   "carte": "nuages",
+   "t_decol": 94.9,
+   "dessous": false,
+   "facon": "rien",
+   "cote": "droite",
+   "attente": 0.9,
+   "vitesse_ms": 115.7,
+   "jauge": 0.517,
+   "engagement": {
+    "t": 94,
+    "dessous_vue": 0,
+    "choisi": "rien:pose@2.77 g194 a0.3",
+    "jumeau": null,
+    "tous": [
+     "rien:pose@2.77 g194 a0.3",
+     "plane:libre@3",
+     "versRoute:air@6",
+     "viser:pose@1.43 g33 a0.48",
+     "viserPlane:pose@1.28 g33 a0.57"
+    ],
+    "avant": "rien:pose@2.87 g202 a0.36"
+   },
+   "derniere_vue_sol": {
+    "t": 94.8,
+    "choisi": "rien:libre@3",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:air@6",
+     "viser:pose@2.1 g53 a0.6",
+     "viserPlane:pose@1.63 g62 a0.78"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "A",
+   "bascules": 1,
+   "issue": {
+    "k": "pose",
+    "dt": 2.1,
+    "cap": 0.155,
+    "lat": 11.02,
+    "iPose": 970
+   }
+  },
+  {
+   "course": "libre-3970437",
+   "carte": "nuages",
+   "t_decol": 102.2,
+   "dessous": false,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 0.85,
+   "vitesse_ms": 129.2,
+   "jauge": 0.781,
+   "engagement": {
+    "t": 101.2,
+    "dessous_vue": 0,
+    "choisi": "versRoute:pose@2.58 g934 a-0.39",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@2.58 g934 a-0.39",
+     "viser:pose@2.37 g917 a-0.52",
+     "viserPlane:pose@1.95 g913 a-0.58",
+     "viser:pose@2.33 g914 a-0.56",
+     "viserPlane:pose@1.95 g912 a-0.58"
+    ],
+    "avant": "versRoute:pose@2.82 g928 a-0.27"
+   },
+   "derniere_vue_sol": {
+    "t": 102.1,
+    "choisi": "versRoute:pose@2.45 g931 a-0.43",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@2.45 g931 a-0.43",
+     "viser:pose@2.22 g908 a-0.56",
+     "viserPlane:pose@1.82 g903 a-0.61"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 2.4,
+    "cap": -1.233,
+    "lat": 7.13,
+    "iPose": 1046
+   }
+  },
+  {
+   "course": "libre-3970437",
+   "carte": "nuages",
+   "t_decol": 111.3,
+   "dessous": false,
+   "facon": "viserPlane",
+   "cote": "gauche",
+   "attente": 1.53,
+   "vitesse_ms": 71.4,
+   "jauge": 0.771,
+   "engagement": {
+    "t": 109.9,
+    "dessous_vue": 0,
+    "choisi": "viserPlane:pose@2.03 g780 a-0.08",
+    "jumeau": "viser:pose@2.3 g770 a-0.2",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@2.58 g777 a-0.2",
+     "viser:pose@2.3 g770 a-0.2",
+     "viserPlane:pose@2.03 g780 a-0.08",
+     "viser:pose@2.3 g770 a-0.19",
+     "viserPlane:pose@2.03 g780 a-0.07"
+    ],
+    "avant": "viserPlane:pose@2 g778 a-0.03"
+   },
+   "derniere_vue_sol": {
+    "t": 111.2,
+    "choisi": "viserPlane:pose@1.57 g788 a-0.23",
+    "tous": [
+     "rien:libre@3",
+     "plane:pose@1.88 g310 a-2.08",
+     "versRoute:pose@2.08 g785 a-0.47",
+     "viser:pose@2 g779 a-0.18",
+     "viserPlane:pose@1.57 g788 a-0.23",
+     "viser:pose@2 g779 a-0.16",
+     "viserPlane:pose@1.57 g788 a-0.23"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 1.5,
+    "cap": -0.91,
+    "lat": 9.91,
+    "iPose": 1128
+   }
+  },
+  {
+   "course": "libre-3970437",
+   "carte": "nuages",
+   "t_decol": 116.8,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 0.8040150564617314,
+   "vitesse_ms": 73.2,
+   "jauge": 0.302,
+   "engagement": {
+    "t": 115.7,
+    "dessous_vue": 1,
+    "choisi": "-",
+    "jumeau": null,
+    "tous": null,
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 116.7,
+    "choisi": "versRoute:air@6",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:air@6"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "A",
+   "bascules": 2,
+   "issue": {
+    "k": "pose",
+    "dt": 3.1,
+    "cap": 0.33,
+    "lat": 4.38,
+    "iPose": 1199
+   }
+  },
+  {
+   "course": "libre-3970437",
+   "carte": "nuages",
+   "t_decol": 130.2,
+   "dessous": false,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 0.9,
+   "vitesse_ms": 148.7,
+   "jauge": 0.814,
+   "engagement": {
+    "t": 129.3,
+    "dessous_vue": 0,
+    "choisi": "versRoute:portail@2.38",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:portail@2.38"
+    ],
+    "avant": "versRoute:portail@2.98"
+   },
+   "derniere_vue_sol": {
+    "t": 130.1,
+    "choisi": "versRoute:pose@1.12 g19 a0.71",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@1.12 g19 a0.71"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "A",
+   "bascules": 1,
+   "issue": {
+    "k": "pose",
+    "dt": 1.8,
+    "cap": 0,
+    "lat": 0,
+    "iPose": 1320
+   }
+  },
+  {
+   "course": "libre-3970437",
+   "carte": "jade",
+   "t_decol": 150.1,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 1.65,
+   "vitesse_ms": 66.8,
+   "jauge": 1.681,
+   "engagement": {
+    "t": 148.8,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@5.23 g-3 a-0.01",
+    "jumeau": null,
+    "tous": [
+     "rien:choc@1.85 (pic)",
+     "plane:choc@1.1 (pic)",
+     "versRoute:pose@5.23 g-3 a-0.01"
+    ],
+    "avant": "versRoute:air@6.02"
+   },
+   "derniere_vue_sol": {
+    "t": 150,
+    "choisi": "versRoute:air@6.02",
+    "tous": [
+     "rien:choc@1.48 (pic)",
+     "plane:choc@0.95 (pic)",
+     "versRoute:air@6.02"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "A",
+   "bascules": 3,
+   "issue": {
+    "k": "pose",
+    "dt": 3.7,
+    "cap": -1.397,
+    "lat": -22.19,
+    "iPose": 1538
+   }
+  },
+  {
+   "course": "libre-3970437",
+   "carte": "jade",
+   "t_decol": 161,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 1.12,
+   "vitesse_ms": 85.3,
+   "jauge": 1.242,
+   "engagement": {
+    "t": 159.9,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@5.95 g-1489 a0",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@5.95 g-1489 a0"
+    ],
+    "avant": "versRoute:air@6.02"
+   },
+   "derniere_vue_sol": {
+    "t": 160.9,
+    "choisi": "versRoute:pose@5.35 g-1505 a0.04",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@5.35 g-1505 a0.04"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "A",
+   "bascules": 9,
+   "issue": {
+    "k": "pose",
+    "dt": 8.8,
+    "cap": 1.352,
+    "lat": -12.94,
+    "iPose": 1698
+   }
+  },
+  {
+   "course": "libre-3970437",
+   "carte": "jade",
+   "t_decol": 178.6,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 0.85,
+   "vitesse_ms": 87,
+   "jauge": 0.222,
+   "engagement": {
+    "t": 177.5,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@5.35 g115 a0.02",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@5.35 g115 a0.02"
+    ],
+    "avant": "versRoute:air@6.02"
+   },
+   "derniere_vue_sol": {
+    "t": 178.5,
+    "choisi": "versRoute:air@6.02",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:air@6.02"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 1,
+   "issue": {
+    "k": "fin",
+    "dt": 1.3
+   }
+  },
+  {
+   "course": "libre-3970474",
+   "carte": "espace",
+   "t_decol": 55.5,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 0.8226700251889167,
+   "vitesse_ms": 91.2,
+   "jauge": 1.375,
+   "engagement": {
+    "t": 54.4,
+    "dessous_vue": 1,
+    "choisi": "-",
+    "jumeau": null,
+    "tous": null,
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 55.4,
+    "choisi": "versRoute:pose@3.05 g25 a0.14",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@3.05 g25 a0.14"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 3.3,
+    "cap": -1.301,
+    "lat": -24.04,
+    "iPose": 588
+   }
+  },
+  {
+   "course": "libre-3970474",
+   "carte": "espace",
+   "t_decol": 68.2,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 0.48953771289537706,
+   "vitesse_ms": 84.6,
+   "jauge": 0.268,
+   "engagement": {
+    "t": 67.1,
+    "dessous_vue": 1,
+    "choisi": "-",
+    "jumeau": null,
+    "tous": null,
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 68.1,
+    "choisi": "versRoute:pose@3.8 g9 a-0.22",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@3.8 g9 a-0.22"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 1,
+   "issue": {
+    "k": "pose",
+    "dt": 3.1,
+    "cap": 0.511,
+    "lat": 13.55,
+    "iPose": 713
+   }
+  },
+  {
+   "course": "libre-3970474",
+   "carte": "espace",
+   "t_decol": 85.7,
+   "dessous": false,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 0.82,
+   "vitesse_ms": 128.4,
+   "jauge": 0.77,
+   "engagement": {
+    "t": 85,
+    "dessous_vue": 0,
+    "choisi": "versRoute:portail@2.15",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:portail@2.15"
+    ],
+    "avant": "versRoute:portail@2.28"
+   },
+   "derniere_vue_sol": {
+    "t": 85.6,
+    "choisi": "versRoute:pose@1.48 g23 a0.55",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@1.48 g23 a0.55"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 2.4,
+    "cap": 0.035,
+    "lat": -10.56,
+    "iPose": 881
+   }
+  },
+  {
+   "course": "libre-3970511",
+   "carte": "espace",
+   "t_decol": 68.6,
+   "dessous": false,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 0.82,
+   "vitesse_ms": 157,
+   "jauge": 1.504,
+   "engagement": {
+    "t": 67.8,
+    "dessous_vue": 0,
+    "choisi": "versRoute:portail@3.27",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:portail@3.27"
+    ],
+    "avant": "versRoute:portail@3.13"
+   },
+   "derniere_vue_sol": {
+    "t": 68.5,
+    "choisi": "versRoute:pose@2.2 g-10 a0.45",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@2.2 g-10 a0.45"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "T",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 2.7,
+    "cap": 0,
+    "lat": 0,
+    "iPose": 713
+   }
+  },
+  {
+   "course": "libre-3970511",
+   "carte": "nuages",
+   "t_decol": 80.5,
+   "dessous": false,
+   "facon": "viserPlane",
+   "cote": "droite",
+   "attente": 1.35,
+   "vitesse_ms": 87.3,
+   "jauge": 1.332,
+   "engagement": {
+    "t": 79.3,
+    "dessous_vue": 0,
+    "choisi": "viserPlane:pose@2.92 g883 a-0.55",
+    "jumeau": "viser:pose@4.3 g868 a-0.58",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:air@6",
+     "viser:pose@4.3 g868 a-0.58",
+     "viserPlane:pose@2.92 g883 a-0.55"
+    ],
+    "avant": "viserPlane:pose@3.05 g888 a-0.48"
+   },
+   "derniere_vue_sol": {
+    "t": 80.4,
+    "choisi": "viserPlane:pose@2.82 g886 a0.09",
+    "tous": [
+     "rien:pose@2.83 g464 a3.08",
+     "plane:libre@3",
+     "versRoute:air@6",
+     "viser:pose@2.72 g881 a-0.04",
+     "viserPlane:pose@2.82 g886 a0.09"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 1,
+   "issue": {
+    "k": "pose",
+    "dt": 4.8,
+    "cap": -0.848,
+    "lat": 23.08,
+    "iPose": 853
+   }
+  },
+  {
+   "course": "libre-3970548",
+   "carte": "nuages",
+   "t_decol": 86.6,
+   "dessous": false,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 1.2,
+   "vitesse_ms": 82.9,
+   "jauge": 0.715,
+   "engagement": {
+    "t": 85.6,
+    "dessous_vue": 0,
+    "choisi": "versRoute:pose@2.87 g899 a-0.21",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@2.87 g899 a-0.21",
+     "viser:pose@2.53 g877 a-0.56",
+     "viserPlane:pose@1.93 g871 a-0.57",
+     "viser:pose@2.53 g877 a-0.56",
+     "viserPlane:pose@1.93 g871 a-0.57"
+    ],
+    "avant": "versRoute:pose@2.95 g904 a-0.56"
+   },
+   "derniere_vue_sol": {
+    "t": 86.5,
+    "choisi": "versRoute:pose@2.88 g922 a-0.03",
+    "tous": [
+     "rien:pose@2.42 g763 a-2.25",
+     "plane:libre@3",
+     "versRoute:pose@2.88 g922 a-0.03",
+     "viser:pose@2.43 g910 a-0.55",
+     "viserPlane:pose@1.63 g906 a-0.56",
+     "viser:pose@2.43 g910 a-0.55",
+     "viserPlane:pose@1.63 g906 a-0.56"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 2.7,
+    "cap": -0.784,
+    "lat": -11.08,
+    "iPose": 893
+   }
+  },
+  {
+   "course": "libre-3970548",
+   "carte": "nuages",
+   "t_decol": 111.4,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 0.35799721835883164,
+   "vitesse_ms": 161.7,
+   "jauge": 0.987,
+   "engagement": {
+    "t": 110.8,
+    "dessous_vue": 1,
+    "choisi": "-",
+    "jumeau": null,
+    "tous": null,
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 111.3,
+    "choisi": "versRoute:pose@4.63 g12 a0.05",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@4.63 g12 a0.05"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 4,
+   "issue": {
+    "k": "pose",
+    "dt": 5.9,
+    "cap": 0.441,
+    "lat": -0.3,
+    "iPose": 1173
+   }
+  },
+  {
+   "course": "libre-3970548",
+   "carte": "nuages",
+   "t_decol": 128.2,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 0.20374999999999988,
+   "vitesse_ms": 50.1,
+   "jauge": 0.904,
+   "engagement": {
+    "t": 126.1,
+    "dessous_vue": 1,
+    "choisi": "-",
+    "jumeau": null,
+    "tous": null,
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 128.1,
+    "choisi": "versRoute:pose@5.18 g3 a-0.07",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@5.18 g3 a-0.07"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 1,
+   "issue": {
+    "k": "pose",
+    "dt": 2.3,
+    "cap": 0.349,
+    "lat": 9.09,
+    "iPose": 1305
+   }
+  },
+  {
+   "course": "libre-3970548",
+   "carte": "nuages",
+   "t_decol": 134.7,
+   "dessous": false,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 1.03,
+   "vitesse_ms": 97.2,
+   "jauge": 0.954,
+   "engagement": {
+    "t": 133.6,
+    "dessous_vue": 0,
+    "choisi": "versRoute:portail@1.95",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:portail@1.95"
+    ],
+    "avant": "versRoute:portail@2.12"
+   },
+   "derniere_vue_sol": {
+    "t": 134.6,
+    "choisi": "versRoute:portail@2.05",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:portail@2.05"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "A",
+   "bascules": 2,
+   "issue": {
+    "k": "pose",
+    "dt": 1.9,
+    "cap": 0,
+    "lat": 0,
+    "iPose": 1366
+   }
+  },
+  {
+   "course": "libre-3970548",
+   "carte": "jade",
+   "t_decol": 165.9,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 0.83,
+   "vitesse_ms": 103.7,
+   "jauge": 1.144,
+   "engagement": {
+    "t": 164.9,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@4.92 g17 a0.01",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@4.92 g17 a0.01"
+    ],
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 165.8,
+    "choisi": "versRoute:pose@5.93 g25 a0.03",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@5.93 g25 a0.03"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "A",
+   "bascules": 1,
+   "issue": {
+    "k": "pose",
+    "dt": 3.3,
+    "cap": 0.228,
+    "lat": 5.92,
+    "iPose": 1692
+   }
+  },
+  {
+   "course": "libre-3970585",
+   "carte": "canyon",
+   "t_decol": 68.9,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 1.02,
+   "vitesse_ms": 108.2,
+   "jauge": 0.8,
+   "engagement": {
+    "t": 67.7,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@3.17 g6 a0.1",
+    "jumeau": null,
+    "tous": [
+     "rien:choc@0.35 (paroi)",
+     "plane:choc@0.35 (paroi)",
+     "versRoute:pose@3.17 g6 a0.1"
+    ],
+    "avant": "versRoute:choc@0.2 (paroi)"
+   },
+   "derniere_vue_sol": {
+    "t": 68.8,
+    "choisi": "versRoute:pose@3.75 g5 a0.12",
+    "tous": [
+     "rien:choc@0.5 (paroi)",
+     "plane:choc@0.43 (paroi)",
+     "versRoute:pose@3.75 g5 a0.12"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "C",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 3.9,
+    "cap": 1.082,
+    "lat": -8.52,
+    "iPose": 728
+   }
+  },
+  {
+   "course": "ville-tenue-3970437",
+   "carte": "ville",
+   "t_decol": 22.9,
+   "dessous": false,
+   "facon": "viser",
+   "cote": "droite",
+   "attente": 0.92,
+   "vitesse_ms": 122.8,
+   "jauge": 0.265,
+   "engagement": {
+    "t": 21.9,
+    "dessous_vue": 0,
+    "choisi": "viser:pose@2.07 g1179 a-0.34",
+    "jumeau": "viserPlane:pose@1.52 g1155 a-0.8",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:air@6",
+     "viser:pose@2.07 g1179 a-0.34",
+     "viserPlane:pose@1.52 g1155 a-0.8"
+    ],
+    "avant": "viser:pose@2.07 g1178 a-0.38"
+   },
+   "derniere_vue_sol": {
+    "t": 22.8,
+    "choisi": "viser:pose@2.92 g-10 a0.06",
+    "tous": [
+     "rien:choc@1.8 (tour)",
+     "plane:choc@1.38 (tour)",
+     "versRoute:choc@1.8 (tour)",
+     "viser:pose@2.92 g-10 a0.06",
+     "viserPlane:pose@2.72 g-10 a-0.1"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 2.4,
+    "cap": -0.906,
+    "lat": -10.06,
+    "iPose": 253
+   }
+  },
+  {
+   "course": "ville-tenue-3970437",
+   "carte": "ville",
+   "t_decol": 63.5,
+   "dessous": false,
+   "facon": "viser",
+   "cote": "gauche",
+   "attente": 0.82,
+   "vitesse_ms": 147.1,
+   "jauge": 0.534,
+   "engagement": {
+    "t": 62.6,
+    "dessous_vue": 0,
+    "choisi": "viser:pose@1.83 g1422 a0.68",
+    "jumeau": "viserPlane:pose@1.4 g1407 a0.69",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@3.05 g-5 a-0.19",
+     "viser:pose@1.83 g1422 a0.68",
+     "viserPlane:pose@1.4 g1407 a0.69"
+    ],
+    "avant": "viser:pose@2.07 g1407 a0.65"
+   },
+   "derniere_vue_sol": {
+    "t": 63.4,
+    "choisi": "viser:pose@1.7 g1427 a0.6",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@2.93 g-7 a-0.03",
+     "viser:pose@1.7 g1427 a0.6",
+     "viserPlane:pose@1.27 g1420 a0.76"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 3,
+   "issue": {
+    "k": "pose",
+    "dt": 4.1,
+    "cap": -0.541,
+    "lat": 25.95,
+    "iPose": 676
+   }
+  },
+  {
+   "course": "ville-tenue-3970437",
+   "carte": "ville",
+   "t_decol": 92,
+   "dessous": false,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 0.87,
+   "vitesse_ms": 164.5,
+   "jauge": 0.61,
+   "engagement": {
+    "t": 91,
+    "dessous_vue": 0,
+    "choisi": "versRoute:portail@2.43",
+    "jumeau": null,
+    "tous": [
+     "rien:choc@1.43 (tour)",
+     "plane:choc@1.13 (tour)",
+     "versRoute:portail@2.43"
+    ],
+    "avant": "versRoute:portail@2.67"
+   },
+   "derniere_vue_sol": {
+    "t": 91.9,
+    "choisi": "versRoute:choc@1.23 (tour)",
+    "tous": [
+     "rien:choc@0.62 (tour)",
+     "plane:choc@0.55 (tour)",
+     "versRoute:choc@1.23 (tour)"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "F",
+   "bascules": 4,
+   "issue": {
+    "k": "pose",
+    "dt": 2.7,
+    "cap": 0.014,
+    "lat": 0.08,
+    "iPose": 947
+   }
+  },
+  {
+   "course": "ville-tenue-3970474",
+   "carte": "ville",
+   "t_decol": 11.8,
+   "dessous": false,
+   "facon": "viserPlane",
+   "cote": "droite",
+   "attente": 0.93,
+   "vitesse_ms": 122.8,
+   "jauge": 0.248,
+   "engagement": {
+    "t": 10.8,
+    "dessous_vue": 0,
+    "choisi": "viserPlane:pose@2.9 g1272 a0.49",
+    "jumeau": "viser:pose@3.17 g1275 a0.52",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:air@6",
+     "viser:pose@3.17 g1275 a0.52",
+     "viserPlane:pose@2.9 g1272 a0.49"
+    ],
+    "avant": "viserPlane:pose@2.78 g1279 a0.61"
+   },
+   "derniere_vue_sol": {
+    "t": 11.7,
+    "choisi": "viserPlane:pose@2.77 g1271 a0.01",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@2.08 g20 a0.4",
+     "viser:pose@2.12 g23 a0.46",
+     "viserPlane:pose@2.77 g1271 a0.01"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 2.3,
+    "cap": 0.027,
+    "lat": -19.05,
+    "iPose": 141
+   }
+  },
+  {
+   "course": "ville-tenue-3970474",
+   "carte": "ville",
+   "t_decol": 19.5,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 1.25,
+   "vitesse_ms": 66.3,
+   "jauge": 0.292,
+   "engagement": {
+    "t": 18.3,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@5.03 g-3 a-0.02",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@5.03 g-3 a-0.02"
+    ],
+    "avant": "versRoute:air@6"
+   },
+   "derniere_vue_sol": {
+    "t": 19.4,
+    "choisi": "versRoute:pose@5.43 g7 a-0.03",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@5.43 g7 a-0.03"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "A",
+   "bascules": 1,
+   "issue": {
+    "k": "pose",
+    "dt": 3.8,
+    "cap": -0.303,
+    "lat": -20.57,
+    "iPose": 233
+   }
+  },
+  {
+   "course": "ville-tenue-3970474",
+   "carte": "ville",
+   "t_decol": 60.2,
+   "dessous": false,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 0.47,
+   "vitesse_ms": 132,
+   "jauge": 0.444,
+   "engagement": {
+    "t": 59.8,
+    "dessous_vue": 0,
+    "choisi": "versRoute:portail@2.55",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:portail@2.55"
+    ],
+    "avant": "versRoute:pose@2.4 g35 a-0.24"
+   },
+   "derniere_vue_sol": {
+    "t": 60.1,
+    "choisi": "versRoute:portail@2.08",
+    "tous": [
+     "rien:libre@3",
+     "plane:choc@0.72 (tour)",
+     "versRoute:portail@2.08"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "C",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 1.4,
+    "cap": -0.677,
+    "lat": 27.95,
+    "iPose": 616
+   }
+  },
+  {
+   "course": "ville-tenue-3970474",
+   "carte": "ville",
+   "t_decol": 121.1,
+   "dessous": false,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 0.6,
+   "vitesse_ms": 162.7,
+   "jauge": 0.871,
+   "engagement": {
+    "t": 120.6,
+    "dessous_vue": 0,
+    "choisi": "versRoute:pose@2.48 g119 a0.09",
+    "jumeau": null,
+    "tous": [
+     "rien:choc@0.8 (tour)",
+     "plane:choc@0.75 (tour)",
+     "versRoute:pose@2.48 g119 a0.09",
+     "viser:choc@0.8 (tour)",
+     "viserPlane:choc@0.75 (tour)",
+     "viser:pose@1.85 g79 a-0.85",
+     "viserPlane:pose@1.6 g92 a-0.9"
+    ],
+    "avant": "versRoute:choc@1.45 (tour)"
+   },
+   "derniere_vue_sol": {
+    "t": 121,
+    "choisi": "versRoute:pose@2.18 g-11 a-1.87",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@2.18 g-11 a-1.87",
+     "viser:choc@0.8 (tour)",
+     "viserPlane:choc@0.77 (tour)",
+     "viser:pose@2.37 g113 a-0.34",
+     "viserPlane:choc@1.17 (tour)"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "A",
+   "bascules": 14,
+   "issue": {
+    "k": "pose",
+    "dt": 7,
+    "cap": -0.002,
+    "lat": -28,
+    "iPose": 1281
+   }
+  },
+  {
+   "course": "ville-tenue-3970474",
+   "carte": "ville",
+   "t_decol": 136.1,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 0.85,
+   "vitesse_ms": 134.8,
+   "jauge": 0.706,
+   "engagement": {
+    "t": 135.2,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@4.78 g-1 a0.1",
+    "jumeau": null,
+    "tous": [
+     "rien:choc@0.42 (tour)",
+     "plane:choc@0.37 (tour)",
+     "versRoute:pose@4.78 g-1 a0.1"
+    ],
+    "avant": "versRoute:choc@0.43 (tour)"
+   },
+   "derniere_vue_sol": {
+    "t": 136,
+    "choisi": "versRoute:choc@0.5 (tour)",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:choc@0.5 (tour)"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 8,
+   "issue": {
+    "k": "mort",
+    "dt": 5.05,
+    "cause": "tour"
+   }
+  },
+  {
+   "course": "ville-tenue-3970511",
+   "carte": "ville",
+   "t_decol": 37.4,
+   "dessous": false,
+   "facon": "viser",
+   "cote": "droite",
+   "attente": 0.9,
+   "vitesse_ms": 106.4,
+   "jauge": 0.778,
+   "engagement": {
+    "t": 36.4,
+    "dessous_vue": 0,
+    "choisi": "viser:pose@2.65 g1248 a0.57",
+    "jumeau": "viserPlane:pose@2.02 g1251 a0.82",
+    "tous": [
+     "rien:choc@0.78 (tour)",
+     "plane:choc@0.65 (tour)",
+     "versRoute:fond@5.83",
+     "viser:pose@2.65 g1248 a0.57",
+     "viserPlane:pose@2.02 g1251 a0.82"
+    ],
+    "avant": "viser:pose@2.65 g1253 a0.68"
+   },
+   "derniere_vue_sol": {
+    "t": 37.3,
+    "choisi": "viser:choc@0.82 (tour)",
+    "tous": [
+     "rien:choc@0.8 (tour)",
+     "plane:choc@0.67 (tour)",
+     "versRoute:choc@0.82 (tour)",
+     "viser:choc@0.82 (tour)",
+     "viserPlane:choc@0.67 (tour)"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "C",
+   "bascules": 4,
+   "issue": {
+    "k": "pose",
+    "dt": 3,
+    "cap": 0.334,
+    "lat": -21.86,
+    "iPose": 404
+   }
+  },
+  {
+   "course": "ville-tenue-3970511",
+   "carte": "ville",
+   "t_decol": 43.4,
+   "dessous": false,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 1.35,
+   "vitesse_ms": 83.1,
+   "jauge": 0.651,
+   "engagement": {
+    "t": 42.1,
+    "dessous_vue": 0,
+    "choisi": "versRoute:portail@2.63",
+    "jumeau": null,
+    "tous": [
+     "rien:choc@0.57 (tour)",
+     "plane:choc@0.52 (tour)",
+     "versRoute:portail@2.63"
+    ],
+    "avant": "versRoute:portail@2.63"
+   },
+   "derniere_vue_sol": {
+    "t": 43.3,
+    "choisi": "versRoute:pose@2.67 g17 a0.05",
+    "tous": [
+     "rien:portail@2",
+     "plane:portail@1.7",
+     "versRoute:pose@2.67 g17 a0.05"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 3,
+    "cap": 0.435,
+    "lat": -22.4,
+    "iPose": 464
+   }
+  },
+  {
+   "course": "ville-tenue-3970548",
+   "carte": "ville",
+   "t_decol": 28.4,
+   "dessous": false,
+   "facon": "viser",
+   "cote": "gauche",
+   "attente": 0.98,
+   "vitesse_ms": 97.6,
+   "jauge": 0.259,
+   "engagement": {
+    "t": 27.5,
+    "dessous_vue": 0,
+    "choisi": "viser:pose@2.6 g1309 a-0.6",
+    "jumeau": "viserPlane:pose@2.22 g1312 a-0.77",
+    "tous": [
+     "rien:choc@0.82 (tour)",
+     "plane:choc@0.68 (tour)",
+     "versRoute:choc@4.87 (tour)",
+     "viser:pose@2.6 g1309 a-0.6",
+     "viserPlane:pose@2.22 g1312 a-0.77"
+    ],
+    "avant": "viser:pose@2.63 g1309 a-0.63"
+   },
+   "derniere_vue_sol": {
+    "t": 28.3,
+    "choisi": "viser:pose@2.45 g1305 a-0.56",
+    "tous": [
+     "rien:choc@2.45 (tour)",
+     "plane:choc@1.83 (tour)",
+     "versRoute:fond@5.87",
+     "viser:pose@2.45 g1305 a-0.56",
+     "viserPlane:pose@1.93 g1306 a-0.64"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 1,
+   "issue": {
+    "k": "pose",
+    "dt": 1.3,
+    "cap": -1.382,
+    "lat": 17.04,
+    "iPose": 297
+   }
+  },
+  {
+   "course": "ville-tenue-3970548",
+   "carte": "ville",
+   "t_decol": 36.4,
+   "dessous": false,
+   "facon": "viser",
+   "cote": "gauche",
+   "attente": 0.95,
+   "vitesse_ms": 109.1,
+   "jauge": 1.27,
+   "engagement": {
+    "t": 35.6,
+    "dessous_vue": 0,
+    "choisi": "viser:portail@2.67",
+    "jumeau": "viserPlane:portail@2.27",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@6.03 g1400 a0.16",
+     "viser:portail@2.67",
+     "viserPlane:portail@2.27"
+    ],
+    "avant": "viser:portail@2.38"
+   },
+   "derniere_vue_sol": {
+    "t": 36.3,
+    "choisi": "viser:portail@2.83",
+    "tous": [
+     "rien:choc@2.13 (tour)",
+     "plane:choc@1.58 (tour)",
+     "versRoute:libre@6.05",
+     "viser:portail@2.83",
+     "viserPlane:choc@1.18 (tour)"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "T",
+   "bascules": 3,
+   "issue": {
+    "k": "pose",
+    "dt": 3.5,
+    "cap": 0.61,
+    "lat": -10.53,
+    "iPose": 399
+   }
+  },
+  {
+   "course": "ville-tenue-3970548",
+   "carte": "ville",
+   "t_decol": 58.8,
+   "dessous": false,
+   "facon": "viserPlane",
+   "cote": "gauche",
+   "attente": 0.97,
+   "vitesse_ms": 140.2,
+   "jauge": 1.186,
+   "engagement": {
+    "t": 57.8,
+    "dessous_vue": 0,
+    "choisi": "viserPlane:pose@1.7 g1145 a0.7",
+    "jumeau": "viser:pose@2.15 g1150 a0.68",
+    "tous": [
+     "rien:choc@2.55 (tour)",
+     "plane:choc@1.87 (tour)",
+     "versRoute:pose@1.88 g1 a-0.18",
+     "viser:pose@2.15 g1150 a0.68",
+     "viserPlane:pose@1.7 g1145 a0.7"
+    ],
+    "avant": "viserPlane:pose@1.83 g1146 a0.67"
+   },
+   "derniere_vue_sol": {
+    "t": 58.7,
+    "choisi": "viserPlane:pose@1.67 g1150 a0.8",
+    "tous": [
+     "rien:choc@1.58 (tour)",
+     "plane:choc@1.77 (tour)",
+     "versRoute:pose@1.63 g1 a-0.18",
+     "viser:pose@1.98 g1147 a0.57",
+     "viserPlane:pose@1.67 g1150 a0.8"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "C",
+   "bascules": 1,
+   "issue": {
+    "k": "mort",
+    "dt": 0.75,
+    "cause": "tour"
+   }
+  },
+  {
+   "course": "ville-tenue-3970585",
+   "carte": "ville",
+   "t_decol": 48.1,
+   "dessous": false,
+   "facon": "viserPlane",
+   "cote": "gauche",
+   "attente": 0.78,
+   "vitesse_ms": 122.9,
+   "jauge": 1.172,
+   "engagement": {
+    "t": 47.2,
+    "dessous_vue": 0,
+    "choisi": "viserPlane:portail@2.68",
+    "jumeau": "viser:pose@2.03 g50 a-0.75",
+    "tous": [
+     "rien:choc@0.82 (tour)",
+     "plane:choc@0.77 (tour)",
+     "versRoute:pose@1.82 g47 a-0.8",
+     "viser:pose@2.03 g50 a-0.75",
+     "viserPlane:portail@2.68"
+    ],
+    "avant": "viserPlane:portail@2.62"
+   },
+   "derniere_vue_sol": {
+    "t": 48,
+    "choisi": "-",
+    "tous": [
+     "rien:portail@2.77",
+     "plane:portail@2.17",
+     "versRoute:pose@0.97 g15 a-0.72"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "-",
+   "bascules": 5,
+   "issue": {
+    "k": "pose",
+    "dt": 4.2,
+    "cap": 0.305,
+    "lat": 1.97,
+    "iPose": 523
+   }
+  },
+  {
+   "course": "ville-tenue-3970585",
+   "carte": "ville",
+   "t_decol": 59,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "droite",
+   "attente": 1.28,
+   "vitesse_ms": 79.8,
+   "jauge": 0.243,
+   "engagement": {
+    "t": 56.9,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@1.98 g17 a0.59",
+    "jumeau": null,
+    "tous": [
+     "rien:choc@0.53 (tour)",
+     "plane:choc@0.53 (tour)",
+     "versRoute:pose@1.98 g17 a0.59"
+    ],
+    "avant": "versRoute:choc@0.63 (tour)"
+   },
+   "derniere_vue_sol": {
+    "t": 58.9,
+    "choisi": "versRoute:air@6.02",
+    "tous": [
+     "rien:choc@0.83 (tour)",
+     "plane:choc@0.63 (tour)",
+     "versRoute:air@6.02"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "F",
+   "bascules": 1,
+   "issue": {
+    "k": "mort",
+    "dt": 0.75,
+    "cause": "tour"
+   }
+  },
+  {
+   "course": "ville-tenue-3970622",
+   "carte": "ville",
+   "t_decol": 12.3,
+   "dessous": false,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 0.95,
+   "vitesse_ms": 120.8,
+   "jauge": 0.347,
+   "engagement": {
+    "t": 11.2,
+    "dessous_vue": 0,
+    "choisi": "versRoute:pose@2.62 g1265 a0.06",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@2.62 g1265 a0.06",
+     "viser:pose@2.38 g1273 a-0.66",
+     "viserPlane:pose@2.02 g1276 a-0.76",
+     "viser:pose@2.38 g1273 a-0.66",
+     "viserPlane:pose@2.02 g1276 a-0.76"
+    ],
+    "avant": "versRoute:pose@2.6 g1264 a-0.04"
+   },
+   "derniere_vue_sol": {
+    "t": 12.2,
+    "choisi": "versRoute:pose@2.82 g1257 a0.05",
+    "tous": [
+     "rien:choc@1.23 (tour)",
+     "plane:libre@3",
+     "versRoute:pose@2.82 g1257 a0.05",
+     "viser:pose@2.85 g1270 a-0.54",
+     "viserPlane:pose@2.4 g1270 a-0.56",
+     "viser:pose@2.85 g1270 a-0.53",
+     "viserPlane:pose@2.4 g1270 a-0.55"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "C",
+   "bascules": 1,
+   "issue": {
+    "k": "pose",
+    "dt": 2.1,
+    "cap": -0.066,
+    "lat": 27.09,
+    "iPose": 144
+   }
+  },
+  {
+   "course": "ville-tenue-3970622",
+   "carte": "ville",
+   "t_decol": 15.3,
+   "dessous": false,
+   "facon": "viserPlane",
+   "cote": "gauche",
+   "attente": 0.93,
+   "vitesse_ms": 77.2,
+   "jauge": 0.869,
+   "engagement": {
+    "t": 14.6,
+    "dessous_vue": 0,
+    "choisi": "viserPlane:pose@1.67 g1228 a0.02",
+    "jumeau": "viser:pose@1.72 g1225 a0.11",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@1.98 g1227 a0.08",
+     "viser:pose@1.72 g1225 a0.11",
+     "viserPlane:pose@1.67 g1228 a0.02"
+    ],
+    "avant": "viserPlane:pose@1.7 g1236 a0.05"
+   },
+   "derniere_vue_sol": {
+    "t": 15.2,
+    "choisi": "viserPlane:pose@1.62 g1241 a0.11",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:choc@5.4 (tour)",
+     "viser:pose@1.85 g1240 a0.06",
+     "viserPlane:pose@1.62 g1241 a0.11"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 1.2,
+    "cap": -0.593,
+    "lat": 1.26,
+    "iPose": 165
+   }
+  },
+  {
+   "course": "ville-tenue-3970622",
+   "carte": "ville",
+   "t_decol": 20.2,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 0.95,
+   "vitesse_ms": 63,
+   "jauge": 0.771,
+   "engagement": {
+    "t": 19.3,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@4.88 g-9 a0",
+    "jumeau": null,
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@4.88 g-9 a0"
+    ],
+    "avant": "-"
+   },
+   "derniere_vue_sol": {
+    "t": 20.1,
+    "choisi": "versRoute:choc@5.5 (tour)",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:choc@5.5 (tour)"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "C",
+   "bascules": 3,
+   "issue": {
+    "k": "pose",
+    "dt": 4.4,
+    "cap": -0.397,
+    "lat": 5.02,
+    "iPose": 246
+   }
+  },
+  {
+   "course": "ville-tenue-3970622",
+   "carte": "ville",
+   "t_decol": 40.5,
+   "dessous": false,
+   "facon": "viser",
+   "cote": "gauche",
+   "attente": 0.45,
+   "vitesse_ms": 90.2,
+   "jauge": 1.336,
+   "engagement": {
+    "t": 40,
+    "dessous_vue": 0,
+    "choisi": "viser:pose@2.72 g1175 a0.55",
+    "jumeau": "viserPlane:pose@1.78 g1160 a0.75",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@4.52 g1192 a-0.54",
+     "viser:pose@2.72 g1175 a0.55",
+     "viserPlane:pose@1.78 g1160 a0.75"
+    ],
+    "avant": "viser:pose@2.87 g1179 a0.57"
+   },
+   "derniere_vue_sol": {
+    "t": 40.4,
+    "choisi": "viser:pose@2.93 g1172 a0.55",
+    "tous": [
+     "rien:libre@3",
+     "plane:libre@3",
+     "versRoute:pose@4.63 g1194 a-0.65",
+     "viser:pose@2.93 g1172 a0.55",
+     "viserPlane:pose@2 g1152 a0.58"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "p",
+   "bascules": 0,
+   "issue": {
+    "k": "pose",
+    "dt": 1.4,
+    "cap": -0.963,
+    "lat": 27.95,
+    "iPose": 419
+   }
+  },
+  {
+   "course": "ville-tenue-3970622",
+   "carte": "ville",
+   "t_decol": 52.3,
+   "dessous": false,
+   "facon": "viserPlane",
+   "cote": "gauche",
+   "attente": 0.9,
+   "vitesse_ms": 124.8,
+   "jauge": 0.663,
+   "engagement": {
+    "t": 51.4,
+    "dessous_vue": 0,
+    "choisi": "viserPlane:portail@3.07",
+    "jumeau": "viser:pose@1.4 g14 a-0.51",
+    "tous": [
+     "rien:choc@0.35 (tour)",
+     "plane:choc@0.33 (tour)",
+     "versRoute:fond@4.4",
+     "viser:pose@1.4 g14 a-0.51",
+     "viserPlane:portail@3.07"
+    ],
+    "avant": "viserPlane:portail@3.13"
+   },
+   "derniere_vue_sol": {
+    "t": 52.2,
+    "choisi": "viserPlane:pose@1.7 g11 a-0.01",
+    "tous": [
+     "rien:choc@0.38 (tour)",
+     "plane:choc@0.33 (tour)",
+     "versRoute:fond@4.28",
+     "viser:portail@4.03",
+     "viserPlane:pose@1.7 g11 a-0.01"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "C",
+   "bascules": 0,
+   "issue": {
+    "k": "mort",
+    "dt": 0.25,
+    "cause": "tour"
+   }
+  },
+  {
+   "course": "ville-tenue-3970659",
+   "carte": "ville",
+   "t_decol": 20.9,
+   "dessous": false,
+   "facon": "viserPlane",
+   "cote": "gauche",
+   "attente": 0.93,
+   "vitesse_ms": 99.6,
+   "jauge": 0.231,
+   "engagement": {
+    "t": 19.9,
+    "dessous_vue": 0,
+    "choisi": "viserPlane:pose@1.73 g1246 a-0.03",
+    "jumeau": "viser:pose@2.05 g1249 a-0.04",
+    "tous": [
+     "rien:libre@3",
+     "plane:pose@2.65 g633 a-2.54",
+     "versRoute:pose@2.07 g1250 a-0.04",
+     "viser:pose@2.05 g1249 a-0.04",
+     "viserPlane:pose@1.73 g1246 a-0.03"
+    ],
+    "avant": "viserPlane:pose@1.68 g1244 a-0.04"
+   },
+   "derniere_vue_sol": {
+    "t": 20.8,
+    "choisi": "viserPlane:pose@1.83 g1253 a0.02",
+    "tous": [
+     "rien:choc@1.82 (tour)",
+     "plane:choc@1.37 (tour)",
+     "versRoute:pose@2.13 g1250 a-0.04",
+     "viser:pose@1.98 g1246 a-0.05",
+     "viserPlane:pose@1.83 g1253 a0.02"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "P",
+   "bascules": 5,
+   "issue": {
+    "k": "pose",
+    "dt": 5,
+    "cap": 0.664,
+    "lat": -19.15,
+    "iPose": 259
+   }
+  },
+  {
+   "course": "ville-tenue-3970659",
+   "carte": "ville",
+   "t_decol": 29.2,
+   "dessous": true,
+   "facon": "versRoute",
+   "cote": "gauche",
+   "attente": 1.35,
+   "vitesse_ms": 90.4,
+   "jauge": 0.997,
+   "engagement": {
+    "t": 27.8,
+    "dessous_vue": 1,
+    "choisi": "versRoute:pose@5.92 g12 a-0.04",
+    "jumeau": null,
+    "tous": [
+     "rien:choc@0.77 (tour)",
+     "plane:choc@0.68 (tour)",
+     "versRoute:pose@5.92 g12 a-0.04"
+    ],
+    "avant": "versRoute:choc@0.77 (tour)"
+   },
+   "derniere_vue_sol": {
+    "t": 29.1,
+    "choisi": "versRoute:choc@0.67 (tour)",
+    "tous": [
+     "rien:choc@0.65 (tour)",
+     "plane:choc@0.52 (tour)",
+     "versRoute:choc@0.67 (tour)"
+    ]
+   },
+   "radar_premiere_vue_en_vol": "F",
+   "bascules": 1,
+   "issue": {
+    "k": "mort",
+    "dt": 0.45,
+    "cause": "tour"
+   }
+  }
+ ]
+}

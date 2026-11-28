@@ -1,0 +1,23 @@
+part des vues au sol passees sous la dalle, par map : canyon 2.0 % (131 sur 6561) ; espace 1.9 % (40 sur 2122) ; grotte 1.1 % (100 sur 9128) ; jade 5.2 % (479 sur 9276) ; nuages 9.6 % (62 sur 645) ; ville 3.3 % (139 sur 4191)
+episodes sous la dalle : 57
+  autre decor | decollage subi -> mort : 1 (duree sous la dalle, mediane 0.3 s, max 0.3 s)
+  autre decor | decollage subi -> pose dessous : 9 (duree sous la dalle, mediane 0.4 s, max 0.8 s)
+  autre decor | decollage subi -> pose dessus : 5 (duree sous la dalle, mediane 0.1 s, max 1.6 s)
+  autre decor | decollage voulu -> fin de course en vol : 1 (duree sous la dalle, mediane 2.6 s, max 2.6 s)
+  autre decor | decollage voulu -> mort : 1 (duree sous la dalle, mediane 1.4 s, max 1.4 s)
+  autre decor | decollage voulu -> pose dessous : 9 (duree sous la dalle, mediane 2.2 s, max 3.9 s)
+  autre decor | decollage voulu -> pose dessus : 18 (duree sous la dalle, mediane 1.6 s, max 7.9 s)
+  sans decor | decollage subi -> pose dessous : 1 (duree sous la dalle, mediane 0.5 s, max 0.5 s)
+  sans decor | decollage voulu -> pose dessus : 5 (duree sous la dalle, mediane 2 s, max 2.2 s)
+  ville | decollage subi -> pose dessous : 1 (duree sous la dalle, mediane 0.3 s, max 0.3 s)
+  ville | decollage subi -> pose dessus : 1 (duree sous la dalle, mediane 0.2 s, max 0.2 s)
+  ville | decollage voulu -> mort : 3 (duree sous la dalle, mediane 3.3 s, max 3.3 s)
+  ville | decollage voulu -> pose dessus : 2 (duree sous la dalle, mediane 1.8 s, max 2.3 s)
+chaque episode de ville :
+  ville-3970474 | t 17.2 a 19.4 | duree 2.3 | vMax 84.1 | decollage voulu | pose dessus | vol 3.9 s
+  ville-3970474 | t 132.8 a 136 | duree 3.3 | vMax 163.4 | decollage voulu | mort | vol 5.18 s
+  ville-3970511 | t 15.5 a 15.6 | duree 0.2 | vMax 145 | decollage subi | pose dessus | vol 2.5 s
+  ville-3970585 | t 52.3 a 52.5 | duree 0.3 | vMax 195.4 | decollage subi | pose dessous | vol 3.8 s
+  ville-3970585 | t 56.3 a 58.9 | duree 2.7 | vMax 146.1 | decollage voulu | mort | vol 0.85 s
+  ville-3970622 | t 18.4 a 20.1 | duree 1.8 | vMax 79.3 | decollage voulu | pose dessus | vol 4.5 s
+  ville-3970659 | t 25.9 a 29.1 | duree 3.3 | vMax 90.8 | decollage voulu | mort | vol 0.57 s

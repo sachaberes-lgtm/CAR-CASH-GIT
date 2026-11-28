@@ -1,0 +1,61 @@
+courses 40 ; decollages (evenements) 255 ; doublons 9
+subis distincts 179 ; mortels 24
+subis sur decor 161 : morts 23, poses 137, tmax 1
+genres des decollages (tous) : {"bord":255}
+grandeurs essayees ici : 35 (7 x 5 reculs)
+
+== meilleurs J observes (sur decor, morts contre poses) ==
+  v@1.5 J=0.435 seuil > 142.3 (morts 17, poses 94)
+  marge@0.8 J=0.386 seuil > 35.83 (morts 18, poses 97)
+  v@2 J=0.380 seuil > 133.5 (morts 17, poses 88)
+  v@1 J=0.378 seuil > 138.5 (morts 18, poses 95)
+  v@0.8 J=0.355 seuil > 136.7 (morts 18, poses 97)
+  nitro@1 J=0.321 seuil <= 0 (morts 18, poses 95)
+  marge@0.6 J=0.314 seuil > 34.01 (morts 18, poses 102)
+  v@0.6 J=0.310 seuil > 138.4 (morts 18, poses 102)
+  pal@2 J=0.265 seuil > 4 (morts 17, poses 88)
+  pal@1.5 J=0.243 seuil > 4 (morts 17, poses 94)
+
+== hasard (etiquettes melangees 500 fois, toutes cartes) : max J sur 35 grandeurs : mediane 0.366, 95 % 0.482 ; p du meilleur observe 0.156
+== hasard a carte egale : max J : mediane 0.349, 95 % 0.454 ; p du meilleur observe 0.068
+  rang moyen a carte egale v@2 = 0.787 (p bilateral 0.0005, morts lisibles 17)
+  rang moyen a carte egale v@1.5 = 0.783 (p bilateral 0.0005, morts lisibles 17)
+  rang moyen a carte egale v@1 = 0.759 (p bilateral 0.0000, morts lisibles 18)
+  rang moyen a carte egale v@0.6 = 0.718 (p bilateral 0.0050, morts lisibles 18)
+  rang moyen a carte egale pal@1.5 = 0.732 (p bilateral 0.0035, morts lisibles 17)
+  rang moyen a carte egale nitro@1 = 0.337 (p bilateral 0.0075, morts lisibles 18)
+  rang moyen a carte egale marge@0.6 = 0.643 (p bilateral 0.0635, morts lisibles 18)
+  v@1.5 moins la mediane des poses du meme palier : rang moyen 0.641 p 0.0725
+
+== v@1.5 > 143, par carte (morts dessus/dessous ; poses dessus/dessous) ==
+  canyon : 6/0 ; 4/13
+  grotte : 4/3 ; 4/20
+  jade : 1/0 ; 21/22
+  ville : 2/1 ; 2/8
+
+vues au sol sur decor (sans les 3 libres doublons) : 29156, dont > 143 : 4937 (16.9 %)
+
+== seuil de v@1.5 choisi sur 7 graines, compte sur la 8e ==
+  graine 3970400 : seuil > 142.3 (>) ; test morts 0/2 poses 1/6
+  graine 3970437 : seuil > 142.3 (>) ; test morts 3/0 poses 9/8
+  graine 3970474 : seuil > 145.1 (>) ; test morts 1/1 poses 5/11
+  graine 3970511 : seuil > 142.3 (>) ; test morts 2/0 poses 2/4
+  graine 3970548 : seuil > 142.3 (>) ; test morts 2/0 poses 2/8
+  graine 3970585 : seuil > 142.3 (>) ; test morts 1/1 poses 1/9
+  graine 3970622 : seuil > 142.3 (>) ; test morts 2/1 poses 3/10
+  graine 3970659 : seuil > 142.3 (>) ; test morts 1/0 poses 8/7
+  total test : morts dessus/dessous 12/5 ; poses 31/63 ; part de morts dessus 27.9 %, dessous 7.4 %
+
+== sorties voulues (distinctes), cote borde a la vue d'engagement ==
+  autre|dessous|sans rayons : 5 vols, 0 morts
+  autre|raccourci|ouvert : 10 vols, 0 morts
+  canyon|dessous|borde : 2 vols, 0 morts
+  grotte|dessous|borde : 5 vols, 0 morts
+  jade|dessous|borde : 2 vols, 0 morts
+  jade|dessous|ouvert : 20 vols, 1 morts
+  ville|dessous|borde : 3 vols, 3 morts
+  ville|dessous|ouvert : 2 vols, 0 morts
+  ville|raccourci|borde : 8 vols, 2 morts
+  ville|raccourci|ouvert : 9 vols, 0 morts
+  ville|sans so : 1 vols, 0 morts
+  (sorties voulues distinctes : 67, morts 6)

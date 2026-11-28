@@ -1,0 +1,174 @@
+{
+ "joueurs": {
+  "kmh_sol_par_minute": {
+   "0": {
+    "kmh_moy": 405,
+    "n": 5687
+   },
+   "1": {
+    "kmh_moy": 503,
+    "n": 3743
+   },
+   "2": {
+    "kmh_moy": 598,
+    "n": 2708
+   },
+   "3": {
+    "kmh_moy": 699,
+    "n": 1568
+   },
+   "4": {
+    "kmh_moy": 876,
+    "n": 741
+   },
+   "5": {
+    "kmh_moy": 940,
+    "n": 516
+   },
+   "6": {
+    "kmh_moy": 1238,
+    "n": 351
+   },
+   "7": {
+    "kmh_moy": 1517,
+    "n": 220
+   },
+   "8": {
+    "kmh_moy": 1386,
+    "n": 268
+   }
+  },
+  "maps": {
+   "canyon": {
+    "km": 34.7,
+    "morts": 3,
+    "morts_100km": 8.7
+   },
+   "espace": {
+    "km": 115.9,
+    "morts": 1,
+    "morts_100km": 0.9
+   },
+   "grotte": {
+    "km": 70.9,
+    "morts": 4,
+    "morts_100km": 5.6
+   },
+   "jade": {
+    "km": 105.5,
+    "morts": 3,
+    "morts_100km": 2.8
+   },
+   "nuages": {
+    "km": 80.8,
+    "morts": 3,
+    "morts_100km": 3.7
+   },
+   "ville": {
+    "km": 48.1,
+    "morts": 2,
+    "morts_100km": 4.2
+   }
+  },
+  "kmh_decol_decor_par_minute": {
+   "0": {
+    "kmh_med": 432,
+    "n": 33
+   },
+   "1": {
+    "kmh_med": 542,
+    "n": 24
+   },
+   "2": {
+    "kmh_med": 574,
+    "n": 41
+   },
+   "3": {
+    "kmh_med": 683,
+    "n": 23
+   },
+   "4": {
+    "kmh_med": 1154,
+    "n": 59
+   }
+  }
+ },
+ "c0025": {
+  "kmh_sol_par_minute": {
+   "0": {
+    "kmh_moy": 374,
+    "n": 8950
+   },
+   "1": {
+    "kmh_moy": 455,
+    "n": 7679
+   },
+   "2": {
+    "kmh_moy": 497,
+    "n": 2660
+   },
+   "3": {
+    "kmh_moy": 539,
+    "n": 868
+   },
+   "4": {
+    "kmh_moy": 584,
+    "n": 395
+   }
+  },
+  "maps": {
+   "canyon": {
+    "km": 20.9,
+    "morts": 3,
+    "morts_100km": 14.3
+   },
+   "espace": {
+    "km": 79.9,
+    "morts": 3,
+    "morts_100km": 3.8
+   },
+   "grotte": {
+    "km": 73,
+    "morts": 9,
+    "morts_100km": 12.3
+   },
+   "jade": {
+    "km": 66.5,
+    "morts": 0,
+    "morts_100km": 0
+   },
+   "nuages": {
+    "km": 62.9,
+    "morts": 4,
+    "morts_100km": 6.4
+   },
+   "ville": {
+    "km": 26.4,
+    "morts": 3,
+    "morts_100km": 11.3
+   }
+  },
+  "kmh_decol_decor_par_minute": {
+   "0": {
+    "kmh_med": 397,
+    "n": 35
+   },
+   "1": {
+    "kmh_med": 454.5,
+    "n": 48
+   },
+   "2": {
+    "kmh_med": 497,
+    "n": 27
+   },
+   "3": {
+    "kmh_med": 651.5,
+    "n": 18
+   },
+   "4": {
+    "kmh_med": 673,
+    "n": 15
+   }
+  }
+ }
+}

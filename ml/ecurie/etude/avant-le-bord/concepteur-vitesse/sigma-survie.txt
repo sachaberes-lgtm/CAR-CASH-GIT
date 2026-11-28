@@ -1,0 +1,12 @@
+depart : 96 courses ; survie moyenne/ecart-type 122.83 / 66.47 s ; palier 6.83 / 2.97 ; morts par course 1.06 / 0.28 ; finies a tmax 0
+7eeea02a : changees 80/96 ; ecart de survie (moy / e.-t.) 2.45 / 88.01 s ; ecart de palier 0.13 / 4.17
+c9a6bbe1 : changees 51/96 ; ecart de survie (moy / e.-t.) 4.1 / 84.31 s ; ecart de palier 0.02 / 3.75
+f25b13bb : changees 37/96 ; ecart de survie (moy / e.-t.) 11.33 / 77.24 s ; ecart de palier 0.22 / 3.5
+5e4a733e : changees 87/96 ; ecart de survie (moy / e.-t.) 16.51 / 99.69 s ; ecart de palier 0.66 / 4.2
+fba2e28a : changees 30/96 ; ecart de survie (moy / e.-t.) 32.01 / 86.76 s ; ecart de palier 1.17 / 3.41
+b3c11e91 : changees 63/96 ; ecart de survie (moy / e.-t.) -2.66 / 86.04 s ; ecart de palier -0.14 / 3.87
+4393f42d : changees 62/96 ; ecart de survie (moy / e.-t.) 21.32 / 95.25 s ; ecart de palier 0.81 / 4.68
+4abf4523 : changees 95/96 ; ecart de survie (moy / e.-t.) 3.91 / 93.22 s ; ecart de palier -0.51 / 4.02
+eb7493e8 : changees 78/96 ; ecart de survie (moy / e.-t.) -5.09 / 91.01 s ; ecart de palier -0.26 / 4.39
+726b296e : changees 95/96 ; ecart de survie (moy / e.-t.) -0.43 / 79.05 s ; ecart de palier -0.76 / 3.55
+ecart-type apparie median, courses changees : survie 88.01 s ; palier 4.02

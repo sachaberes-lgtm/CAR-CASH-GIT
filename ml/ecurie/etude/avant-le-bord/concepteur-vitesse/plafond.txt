@@ -1,0 +1,101 @@
+LE PLAFOND DE VITESSE SUR DECOR — relu sans course (40 traces, 2026-11-28)
+vues au sol sans doublon : 31733 ; sur decor : 28966 ; nitro demandee sur decor : 71.6 % ; toutes maps : 71.9 %
+
+== 1. La vitesse au sol sur decor selon le palier (m/s) : nitro demandee depuis >= 1 s | coupee depuis >= 1 s (ni glisse ni rebond ni dessous) ==
+  palier  1 : nitro  3019 vues, q10/50/90 47.1 / 86.2 / 120.4   |  coupee   160 vues, q10/50/90 82.78 / 91.75 / 101.51
+  palier  2 : nitro  1987 vues, q10/50/90 100.46 / 118.6 / 129.7   |  coupee   280 vues, q10/50/90 87.59 / 94.95 / 107.31
+  palier  3 : nitro  2609 vues, q10/50/90 111.9 / 125.9 / 137.9   |  coupee   612 vues, q10/50/90 97.4 / 106.65 / 119.37
+  palier  4 : nitro  2055 vues, q10/50/90 109.54 / 132.3 / 149.2   |  coupee   589 vues, q10/50/90 100.76 / 110.9 / 122.94
+  palier  5 : nitro  1398 vues, q10/50/90 122.9 / 138.7 / 154.83   |  coupee   314 vues, q10/50/90 110.96 / 121.1 / 130.07
+  palier  6 : nitro  1186 vues, q10/50/90 125.05 / 148.4 / 162.4   |  coupee   313 vues, q10/50/90 118.64 / 128.8 / 145.82
+  palier  7 : nitro   818 vues, q10/50/90 110.94 / 150.1 / 169.36   |  coupee   267 vues, q10/50/90 115.78 / 127.7 / 139
+  palier  8 : nitro   441 vues, q10/50/90 129.6 / 153.3 / 171.1   |  coupee   156 vues, q10/50/90 119.6 / 136.95 / 146.1
+  palier  9 : nitro    69 vues, q10/50/90 147.7 / 159.1 / 180.12   |  coupee    43 vues, q10/50/90 140.48 / 148.2 / 155.24
+  palier 10 : nitro    20 vues, q10/50/90 176.44 / 186.4 / 192.74   |  coupee     0 vues, q10/50/90  /  / 
+  toutes vues au sol sur decor, part au-dessus de 143 m/s par palier : 1: 0 % (4367) ; 2: 0.5 % (3752) ; 3: 3.5 % (5579) ; 4: 12.6 % (5075) ; 5: 18.6 % (3243) ; 6: 47.4 % (2749) ; 7: 45.4 % (2432) ; 8: 53.7 % (1423) ; 9: 90 % (289) ; 10: 98.2 % (57)
+
+== 2. Le perimetre (controle : doit recouper les lecteurs) ==
+  decollages subis distincts 180 (morts 24) ; sur decor 160 : morts 22, poses 137, tmax 1
+
+== 3. A 1,5 s avant le decollage : la vitesse (m/s), et la vitesse divisee par la mediane « nitro coupee » du meme palier (§ 1) ==
+  rang moyen des morts dans leur carte (0,5 = hasard), permutation dans la carte :
+    vitesse a 1,5 s            : {"n":112,"morts":17,"rang":0.724,"p":0.0005}
+    vitesse / mediane du palier : {"n":111,"morts":17,"rang":0.606,"p":0.1072}
+    palier a 1,5 s             : {"n":112,"morts":17,"rang":0.68,"p":0.0045}
+  medianes morts | poses : vitesse 148 | 131.9 ; vitesse/palier 1.18 | 1.14 ; palier 6 | 5
+
+== 4. Le seuil de vitesse a 1,5 s choisi SANS la graine jugee (Youden sur 7 graines, compte sur la 8e) ==
+  seuils trouves (un par graine ecartee) : 142.9, 142.7, 145.4, 142.9, 142.9, 142.9, 142.9, 142.9
+  hors echantillon : morts au-dessus 12 / en dessous 5 ; poses au-dessus 31 / en dessous 64  → part de morts au-dessus 27.9 %, en dessous 7.2 %
+  (dans l'echantillon, seuil 142.9 : J 0.44)
+
+== 5. La regle « sur decor, au-dessus de S m/s, la nitro demandee est coupee » : ou elle aurait agi ==
+   agit = vue au sol sur decor, nitro demandee par le pilote, vitesse > S, aucun raccourci engage. Fenetre d'un decollage : le sol contigu de 0,6 a 5 s avant.
+   « >= 1 s » : au moins 10 vues ou elle agit dans la fenetre (a −12 m/s par seconde contre la nitro tenue, lecteur du code § 4 : assez pour perdre une dizaine de m/s).
+  S 120 : agit sur 11203 vues = 38.7 % du sol sur decor, 54 % de sa nitro, 35.3 % de tout le sol (49.1 % de toute la nitro au sol)
+         decollages touches : morts 15/18, poses 84/103 ; >= 1 s : morts 14/18, poses 66/103 ; plafond optimiste (taux des non touches, par carte) : 14 morts touchees → 8.0 attendues
+         >= 1 s par carte : {"canyon":"6/7 morts, 14/18 poses","grotte":"5/7 morts, 14/26 poses","ville":"2/3 morts, 7/13 poses","jade":"1/1 morts, 31/46 poses"}
+  S 130 : agit sur 7513 vues = 25.9 % du sol sur decor, 36.2 % de sa nitro, 23.7 % de tout le sol (32.9 % de toute la nitro au sol)
+         decollages touches : morts 15/18, poses 70/103 ; >= 1 s : morts 14/18, poses 49/103 ; plafond optimiste (taux des non touches, par carte) : 14 morts touchees → 3.4 attendues
+         >= 1 s par carte : {"canyon":"6/7 morts, 8/18 poses","grotte":"5/7 morts, 8/26 poses","ville":"2/3 morts, 5/13 poses","jade":"1/1 morts, 28/46 poses"}
+  S 135 : agit sur 5796 vues = 20 % du sol sur decor, 28 % de sa nitro, 18.3 % de tout le sol (25.4 % de toute la nitro au sol)
+         decollages touches : morts 15/18, poses 62/103 ; >= 1 s : morts 12/18, poses 41/103 ; plafond optimiste (taux des non touches, par carte) : 12 morts touchees → 3.0 attendues
+         >= 1 s par carte : {"canyon":"6/7 morts, 6/18 poses","grotte":"3/7 morts, 6/26 poses","ville":"2/3 morts, 4/13 poses","jade":"1/1 morts, 25/46 poses"}
+  S 140 : agit sur 4456 vues = 15.4 % du sol sur decor, 21.5 % de sa nitro, 14 % de tout le sol (19.5 % de toute la nitro au sol)
+         decollages touches : morts 13/18, poses 52/103 ; >= 1 s : morts 12/18, poses 36/103 ; plafond optimiste (taux des non touches, par carte) : 12 morts touchees → 2.5 attendues
+         >= 1 s par carte : {"canyon":"6/7 morts, 5/18 poses","grotte":"3/7 morts, 5/26 poses","ville":"2/3 morts, 3/13 poses","jade":"1/1 morts, 23/46 poses"}
+  S 143 : agit sur 3721 vues = 12.8 % du sol sur decor, 17.9 % de sa nitro, 11.7 % de tout le sol (16.3 % de toute la nitro au sol)
+         decollages touches : morts 13/18, poses 47/103 ; >= 1 s : morts 11/18, poses 32/103 ; plafond optimiste (taux des non touches, par carte) : 11 morts touchees → 3.1 attendues
+         >= 1 s par carte : {"canyon":"5/7 morts, 5/18 poses","grotte":"3/7 morts, 5/26 poses","ville":"2/3 morts, 3/13 poses","jade":"1/1 morts, 19/46 poses"}
+  S 150 : agit sur 2252 vues = 7.8 % du sol sur decor, 10.9 % de sa nitro, 7.1 % de tout le sol (9.9 % de toute la nitro au sol)
+         decollages touches : morts 11/18, poses 41/103 ; >= 1 s : morts 7/18, poses 27/103 ; plafond optimiste (taux des non touches, par carte) : 7 morts touchees → 3.8 attendues
+         >= 1 s par carte : {"canyon":"3/7 morts, 5/18 poses","grotte":"3/7 morts, 3/26 poses","ville":"1/3 morts, 2/13 poses","jade":"0/1 morts, 17/46 poses"}
+  S 160 : agit sur 886 vues = 3.1 % du sol sur decor, 4.3 % de sa nitro, 2.8 % de tout le sol (3.9 % de toute la nitro au sol)
+         decollages touches : morts 8/18, poses 32/103 ; >= 1 s : morts 5/18, poses 12/103 ; plafond optimiste (taux des non touches, par carte) : 5 morts touchees → 1.5 attendues
+         >= 1 s par carte : {"canyon":"2/7 morts, 0/18 poses","grotte":"2/7 morts, 0/26 poses","ville":"1/3 morts, 2/13 poses","jade":"0/1 morts, 10/46 poses"}
+  S 170 : agit sur 344 vues = 1.2 % du sol sur decor, 1.7 % de sa nitro, 1.1 % de tout le sol (1.5 % de toute la nitro au sol)
+         decollages touches : morts 6/18, poses 15/103 ; >= 1 s : morts 3/18, poses 6/103 ; plafond optimiste (taux des non touches, par carte) : 3 morts touchees → 0.8 attendues
+         >= 1 s par carte : {"canyon":"1/7 morts, 0/18 poses","grotte":"1/7 morts, 0/26 poses","ville":"1/3 morts, 1/13 poses","jade":"0/1 morts, 5/46 poses"}
+
+== 6. Le seuil qui suit le palier : S = k x la mediane « nitro coupee » du palier (§ 1) — ce que la vue offrirait par palier.vmax, que les traces n'ont pas ==
+  k 1 : agit sur 53.5 % du sol sur decor (74.7 % de sa nitro) ; >= 1 s : morts 17/18, poses 75/103
+  k 1.05 : agit sur 48.2 % du sol sur decor (67.3 % de sa nitro) ; >= 1 s : morts 17/18, poses 71/103
+  k 1.1 : agit sur 40.7 % du sol sur decor (56.9 % de sa nitro) ; >= 1 s : morts 14/18, poses 55/103
+  k 1.15 : agit sur 31.5 % du sol sur decor (44 % de sa nitro) ; >= 1 s : morts 10/18, poses 50/103
+
+== 7. Pourquoi le pilote coupe la nitro avant un decollage subi sur decor (refait : lache = tenue.tient faux ; pose = |lat| < demi − 6, |cap| < 0,35, ni glisse ni rebond ; jauge) ==
+   « virage » = rien de tout cela : c'est le test « sur » (marge de vitesse du virage ou volant demande), que les traces ne gardent pas.
+  a 2 s : morts {"nitro":15,"virage":1,"de travers/bord":1} ; poses {"nitro":74,"de travers/bord":10,"jauge":5,"virage":2}
+  a 1.5 s : morts {"nitro":12,"virage":2,"lache":1,"de travers/bord":2} ; poses {"nitro":74,"de travers/bord":12,"virage":5,"jauge":3,"lache":1}
+  a 1 s : morts {"virage":4,"nitro":9,"lache":2,"de travers/bord":2,"jauge":1} ; poses {"nitro":79,"de travers/bord":5,"virage":8,"jauge":3,"lache":1}
+  a 0.8 s : morts {"virage":5,"nitro":9,"lache":1,"de travers/bord":3} ; poses {"nitro":75,"jauge":7,"de travers/bord":10,"virage":6,"lache":2}
+  a 0.6 s : morts {"virage":6,"lache":3,"nitro":7,"jauge":2} ; poses {"nitro":56,"jauge":8,"de travers/bord":19,"lache":16,"virage":4}
+  a 0.3 s : morts {"lache":15,"virage":1,"de travers/bord":4,"nitro":2} ; poses {"lache":78,"nitro":13,"de travers/bord":25,"virage":2,"jauge":2}
+
+== 8. Par tranche de vitesse (sol sur decor) : minutes de sol, decollages subis dont la vue a 1,5 s est dans la tranche, morts ==
+    0–110 m/s :  14.0 min de sol ; decollages  11 (0.8 par min) ; morts 1 (0.07 par min ; 9.1 % des decollages)
+  110–125 m/s :  13.3 min de sol ; decollages  27 (2.0 par min) ; morts 2 (0.15 par min ; 7.4 % des decollages)
+  125–143 m/s :  12.7 min de sol ; decollages  30 (2.4 par min) ; morts 1 (0.08 par min ; 3.3 % des decollages)
+  143–160 m/s :   6.3 min de sol ; decollages  32 (5.1 par min) ; morts 9 (1.44 par min ; 28.1 % des decollages)
+  160–999 m/s :   2.0 min de sol ; decollages  13 (6.4 par min) ; morts 4 (1.98 par min ; 30.8 % des decollages)
+  canyon  sous 143 : 9.2 min, 13 decollages (1.4/min), 0 morts ; au-dessus : 1.7 min, 10 decollages (5.9/min), 6 morts
+  grotte  sous 143 : 13.2 min, 23 decollages (1.7/min), 3 morts ; au-dessus : 1.7 min, 8 decollages (4.7/min), 4 morts
+  ville   sous 143 : 6.2 min, 9 decollages (1.5/min), 1 morts ; au-dessus : 0.8 min, 5 decollages (6.0/min), 2 morts
+  jade    sous 143 : 11.4 min, 23 decollages (2.0/min), 0 morts ; au-dessus : 4.0 min, 22 decollages (5.5/min), 1 morts
+
+== 9. L'energie au bord : jauge (nitro + reserve) et nitro a la derniere vue au sol, morts | poses ==
+  jauge, q25/50/75 : morts 0.56 / 0.92 / 1.35 ; poses 0.57 / 0.93 / 1.23 ; rang dans la carte {"n":159,"morts":22,"rang":0.498,"p":0.9775}
+  nitro demandee a la derniere vue au sol : morts 0/22 ; poses 0/137
+  jauge sous 0,25 a la derniere vue : morts 3 ; poses 13
+
+== 10. La variation de vitesse sur 1 s au sol sur decor, au-dessus de 130 m/s (ordre de nitro stable de t a t + 1 s, ni glisse ni rebond ni dessous) ==
+  nitro tenue : 4649 mesures, q10/50/90 -8.5 / -0.1 / 14.3 m/s ; nitro coupee : 841 mesures, q10/50/90 -17.1 / -11.2 / 0.5 m/s
+
+== 11. La regle sans la jade (canyon, grotte, ville seulement) ==
+  S 135 : agit sur 3412 vues = 17.3 % du sol de ces 3 maps (24.3 % de leur nitro ; 11.8 % de tout le sol sur decor) ; touches : morts 14/17, poses 31/57 ; >= 1 s : morts 11/17, poses 16/57
+  S 140 : agit sur 2439 vues = 12.4 % du sol de ces 3 maps (17.3 % de leur nitro ; 8.4 % de tout le sol sur decor) ; touches : morts 12/17, poses 24/57 ; >= 1 s : morts 11/17, poses 13/57
+  S 143 : agit sur 1906 vues = 9.7 % du sol de ces 3 maps (13.6 % de leur nitro ; 6.6 % de tout le sol sur decor) ; touches : morts 12/17, poses 20/57 ; >= 1 s : morts 10/17, poses 13/57
+  S 145 : agit sur 1633 vues = 8.3 % du sol de ces 3 maps (11.6 % de leur nitro ; 5.6 % de tout le sol sur decor) ; touches : morts 11/17, poses 19/57 ; >= 1 s : morts 10/17, poses 13/57
+  S 150 : agit sur 950 vues = 4.8 % du sol de ces 3 maps (6.8 % de leur nitro ; 3.3 % de tout le sol sur decor) ; touches : morts 11/17, poses 16/57 ; >= 1 s : morts 7/17, poses 10/57
+  les morts sur decor que la regle (S 143) ne touche pas du tout : canyon 3970400 t 63.18 (pas de sol a 0,6 s, paroi) ; canyon 3970659 t 62.1 (v a 1,5 s null, paroi) ; grotte 3970474 t 83.7 (v a 1,5 s 146.6, roche) ; grotte 3970585 t 92.43 (v a 1,5 s 134.1, roche) ; jade 3970511 t 43.25 (pas de sol a 0,6 s, vide) ; jade 3970585 t 66.85 (pas de sol a 0,6 s, air) ; jade 3970474 t 128.12 (pas de sol a 0,6 s, vide) ; grotte 3970622 t 29.48 (v a 1,5 s 112.2, roche) ; ville 3970400 t 11.55 (v a 1,5 s 109.2, tour)
+  paliers des vues ou elle agit (S 143, 3 maps) : {"2":3,"3":133,"4":347,"5":352,"6":527,"7":381,"8":163}

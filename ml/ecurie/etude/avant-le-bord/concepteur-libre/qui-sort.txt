@@ -1,0 +1,47 @@
+decollages subis distincts sur decor : 160 ; morts 22, vrais vols poses (>= 0,5 s) 108, bosses (< 0,5 s) 29, autres 1
+
+recul | groupe | n | cap DEMANDE vers le bord de sortie (med, 25 %, 75 %) | cap REEL vers ce bord (med) | part des vues ou le pilote demande de S'ELOIGNER du bord (< -0,05) | part ou il demande a fond (<= -0,39) | part ou il demande VERS le bord (> 0,05)
+2 s | mort | 17 | 0.02 (-0.05 ; 0.05) | -0.09 | 24 % | 0 % | 29 %
+2 s | vol pose | 64 | -0.02 (-0.07 ; 0.07) | -0.1 | 38 % | 0 % | 30 %
+2 s | bosse | 27 | 0.02 (-0.02 ; 0.13) | -0.11 | 22 % | 0 % | 41 %
+1.5 s | mort | 17 | 0.02 (-0.02 ; 0.07) | -0.11 | 24 % | 0 % | 29 %
+1.5 s | vol pose | 68 | 0.03 (-0.02 ; 0.1) | -0.14 | 19 % | 0 % | 44 %
+1.5 s | bosse | 27 | 0.04 (0 ; 0.12) | -0.09 | 15 % | 0 % | 44 %
+1 s | mort | 18 | 0.06 (0 ; 0.12) | -0.03 | 17 % | 0 % | 61 %
+1 s | vol pose | 69 | 0.03 (-0.12 ; 0.1) | -0.04 | 36 % | 0 % | 43 %
+1 s | bosse | 27 | 0.04 (-0.02 ; 0.07) | -0.02 | 22 % | 0 % | 41 %
+0.8 s | mort | 17 | 0.06 (0.01 ; 0.14) | 0.09 | 24 % | 0 % | 53 %
+0.8 s | vol pose | 69 | 0.05 (-0.08 ; 0.09) | 0.06 | 32 % | 0 % | 48 %
+0.8 s | bosse | 28 | 0.03 (-0.03 ; 0.08) | 0.12 | 18 % | 0 % | 43 %
+0.6 s | mort | 17 | 0.06 (-0.01 ; 0.12) | 0.19 | 24 % | 0 % | 59 %
+0.6 s | vol pose | 72 | -0.01 (-0.08 ; 0.07) | 0.23 | 35 % | 0 % | 29 %
+0.6 s | bosse | 28 | 0.02 (-0.07 ; 0.06) | 0.25 | 29 % | 0 % | 29 %
+0.3 s | mort | 22 | -0.04 (-0.11 ; 0.02) | 0.5 | 41 % | 0 % | 18 %
+0.3 s | vol pose | 91 | -0.11 (-0.2 ; -0.06) | 0.49 | 76 % | 0 % | 8 %
+0.3 s | bosse | 29 | -0.1 (-0.14 ; -0.05) | 0.36 | 69 % | 0 % | 10 %
+
+chaque decollage mortel : recul : vitesse, lat vers le bord (28 = le bord), cap reel, cap demande, tenue
+  canyon-3970400 t63.18 paroi +0.2 s (chaine) :: 2:- | 1.5:- | 1:- | 0.8:- | 0.6:- | 0.3: v100 lat6 cap1.04 dem-0.15 LACHE
+  canyon-3970437 t92.02 paroi +0.15 s :: 2: v173 lat-12 cap-0.14 dem0.12 N | 1.5: v167 lat-13 cap0.10 dem0.30 N | 1: v163 lat-7 cap-0.12 dem-0.26 | 0.8: v159 lat-10 cap-0.11 dem-0.24 | 0.6: v156 lat-11 cap0.06 dem-0.22 | 0.3: v170 lat5 cap0.52 dem0.02 LACHE
+  canyon-3970474 t64.33 paroi +0.27 s :: 2: v143 lat4 cap-0.20 dem0.04 N | 1.5: v144 lat-4 cap-0.03 dem0.35 N | 1: v142 lat-0 cap0.04 dem-0.11 | 0.8: v139 lat3 cap0.13 dem-0.25 | 0.6: v155 lat7 cap0.11 dem-0.31 | 0.3: v152 lat13 cap0.23 dem-0.00 LACHE
+  canyon-3970511 t103.78 paroi +0.75 s :: 2: v156 lat7 cap0.10 dem0.30 | 1.5: v148 lat6 cap-0.11 dem0.05 | 1: v142 lat-4 cap-0.02 dem0.15 | 0.8: v140 lat-2 cap0.10 dem0.14 | 0.6: v161 lat3 cap0.19 dem0.12 | 0.3: v155 lat16 cap0.31 dem0.02
+  canyon-3970548 t101.55 paroi +0.12 s :: 2: v147 lat8 cap-0.09 dem0.02 N | 1.5: v148 lat5 cap-0.07 dem-0.06 N | 1: v152 lat-7 cap-0.20 dem0.00 N | 0.8: v153 lat-9 cap-0.09 dem0.07 N | 0.6: v155 lat-7 cap0.20 dem0.12 | 0.3: v155 lat8 cap0.40 dem0.12
+  canyon-3970585 t102.35 canyon +1.22 s :: 2: v148 lat14 cap-0.29 dem-0.05 N | 1.5: v151 lat0 cap-0.16 dem-0.19 N | 1: v145 lat-9 cap0.00 dem0.14 | 0.8: v145 lat-8 cap0.04 dem0.19 | 0.6: v143 lat-6 cap0.07 dem0.30 | 0.3: v154 lat5 cap0.45 dem0.28
+  canyon-3970622 t97.4 paroi +0.63 s :: 2: v167 lat13 cap-0.28 dem-0.02 N | 1.5: v160 lat2 cap0.12 dem0.27 N | 1: v160 lat12 cap0.04 dem-0.08 N | 0.8: v160 lat13 cap-0.01 dem-0.32 N | 0.6: v189 lat10 cap-0.20 dem-0.29 | 0.3: v182 lat6 cap0.24 dem-0.06 LACHE
+  canyon-3970659 t62.1 paroi +0.17 s :: 2:- | 1.5:- | 1: v74 lat-20 cap1.21 dem0.09 LACHE | 0.8: v53 lat-9 cap1.40 dem-0.05 LACHE | 0.6: v52 lat1 cap1.34 dem-0.21 LACHE | 0.3: v52 lat16 cap1.07 dem-0.29 LACHE
+  grotte-3970400 t76.65 roche +1.07 s :: 2: v118 lat-15 cap-0.18 dem0.07 N | 1.5: v119 lat-15 cap0.19 dem0.40 N | 1: v226 lat-5 cap-0.15 dem0.08 N | 0.8: v237 lat-14 cap-0.19 dem0.14 N | 0.6: v240 lat-15 cap0.12 dem0.18 N | 0.3: v243 lat8 cap0.29 dem0.16 N
+  grotte-3970437 t100.92 roche +0.13 s :: 2: v160 lat-3 cap0.13 dem0.04 N | 1.5: v206 lat5 cap-0.03 dem-0.02 N | 1: v235 lat-5 cap-0.14 dem0.03 N | 0.8: v241 lat-13 cap-0.17 dem0.06 N | 0.6: v250 lat-20 cap-0.05 dem0.07 N | 0.3: v263 lat4 cap0.49 dem-0.04
+  grotte-3970474 t83.7 roche +0.52 s :: 2: v134 lat18 cap-0.20 dem-0.15 N | 1.5: v147 lat-9 cap-0.35 dem0.03 | 1: v139 lat-22 cap-0.02 dem0.05 | 0.8: v137 lat-20 cap0.17 dem0.05 | 0.6: v135 lat-12 cap0.47 dem-0.00 LACHE | 0.3: v136 lat10 cap0.60 dem-0.20 LACHE
+  grotte-3970548 t144.02 roche +0.26 s :: 2: v181 lat11 cap-0.00 dem-0.01 N | 1.5: v181 lat-1 cap-0.34 dem0.02 LACHE | 1: v174 lat-27 cap-0.16 dem0.14 LACHE | 0.8: v171 lat-27 cap0.14 dem0.23 | 0.6: v168 lat-19 cap0.29 dem0.13 N | 0.3: v169 lat4 cap0.56 dem-0.08 LACHE
+  grotte-3970585 t92.43 roche +0.24 s :: 2: v135 lat3 cap0.04 dem0.05 N | 1.5: v134 lat-6 cap-0.37 dem0.01 | 1: v134 lat-26 cap-0.03 dem0.05 | 0.8: v132 lat-23 cap0.22 dem0.05 | 0.6: v130 lat-14 cap0.46 dem-0.01 LACHE | 0.3: v125 lat8 cap0.65 dem-0.20 LACHE
+  grotte-3970659 t132.48 roche +0.64 s :: 2: v153 lat10 cap0.11 dem-0.08 N | 1.5: v151 lat3 cap-0.34 dem0.01 N | 1: v156 lat-17 cap-0.11 dem0.13 N | 0.8: v158 lat-19 cap0.04 dem0.13 N | 0.6: v158 lat-12 cap0.35 dem0.09 | 0.3: v160 lat10 cap0.50 dem-0.10 LACHE
+  jade-3970511 t43.25 vide +6.02 s (chaine) :: 2:- | 1.5:- | 1:- | 0.8:- | 0.6:- | 0.3: v116 lat12 cap0.77 dem-0.05 LACHE
+  jade-3970585 t66.85 air +6 s (chaine) :: 2:- | 1.5:- | 1:- | 0.8:- | 0.6:- | 0.3: v386 lat0 cap0.00 dem-0.18 N
+  jade-3970622 t135.43 pic +2.84 s :: 2: v143 lat10 cap-0.01 dem0.03 N | 1.5: v146 lat-8 cap-0.34 dem0.07 N | 1: v147 lat-22 cap-0.02 dem0.16 N | 0.8: v148 lat-21 cap0.09 dem0.15 N | 0.6: v148 lat-17 cap0.16 dem0.12 N | 0.3: v149 lat-2 cap0.53 dem0.01
+  libre-3970474 t128.12 vide +6.01 s (chaine) :: 2:- | 1.5:- | 1:- | 0.8:- | 0.6:- | 0.3: v155 lat-16 cap0.99 dem-0.05 LACHE
+  libre-3970622 t29.48 roche +0.2 s :: 2: v113 lat20 cap0.03 dem-0.14 N | 1.5: v112 lat9 cap-0.39 dem0.01 | 1: v111 lat-9 cap-0.10 dem0.11 N | 0.8: v112 lat-8 cap0.14 dem0.11 N | 0.6: v112 lat-4 cap0.27 dem0.06 | 0.3: v108 lat11 cap0.62 dem-0.12 LACHE
+  ville-3970400 t11.55 tour +1.97 s :: 2: v108 lat-6 cap-0.19 dem0.10 N | 1.5: v109 lat-12 cap-0.11 dem-0.18 N | 1: v108 lat-13 cap0.28 dem0.11 | 0.8: v124 lat-4 cap0.43 dem0.01 | 0.6: v120 lat5 cap0.32 dem? N | 0.3: v118 lat14 cap0.37 dem0.05 LACHE
+  ville-3970437 t107.95 tour +0.38 s :: 2: v149 lat-7 cap-0.22 dem-0.11 N | 1.5: v149 lat-18 cap-0.02 dem0.02 N | 1: v164 lat-11 cap0.14 dem-0.01 N | 0.8: v166 lat-8 cap0.15 dem? N | 0.6: v168 lat-1 cap0.21 dem-0.01 N | 0.3: v170 lat13 cap0.40 dem0.04 LACHE
+  ville-3970511 t58.12 air +6.01 s :: 2: v217 lat-2 cap0.45 dem0.02 | 1.5: v235 lat20 cap-0.04 dem-0.09 N | 1: v242 lat7 cap-0.17 dem-0.03 N | 0.8: v244 lat-2 cap-0.20 dem0.01 N | 0.6: v246 lat-12 cap-0.22 dem0.05 N | 0.3: v249 lat-5 cap0.47 dem-0.01 LACHE
+
+vitesse laterale reelle vers le bord entre 1 s et 0,6 s avant (m/s), mediane : morts 12.9, vrais vols poses 10.85, bosses 15.8

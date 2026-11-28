@@ -1,0 +1,92 @@
+== les vols voulus (courses distinctes : 37) ==
+  autre decor / dessous : 29 vols, 1 morts
+  sans decor / dessous : 5 vols, 0 morts
+  sans decor / raccourci : 10 vols, 0 morts
+  ville / dessous : 5 vols, 3 morts
+  ville / raccourci : 17 vols, 2 morts
+== la ville tenue : 8 courses, survie 13.5 29.7 52.5 59.6 59.8 64.1 108.3 141.2 s ; causes tour tour tour air tour tour tour tour ==
+  courses de ville finies sur un vol VOULU : 5 sur 8 (ville-tenue-3970474, ville-tenue-3970548, ville-tenue-3970585, ville-tenue-3970622, ville-tenue-3970659)
+  pour comparer, canyon tenue : survie 62.3 63.4 64.6 92.2 98 101.7 103.6 104.5 s
+  pour comparer, grotte tenue : survie 67.4 77.7 84.2 92.7 101 133.1 144.3 180 s
+  pour comparer, jade tenue : survie 49.3 61.1 72.8 138.3 180 180 180 180 s
+== morts par cause et par origine du vol (decollages.json, courses distinctes ; analyser.js rattache 1 mort de grotte au mauvais vol, relecture § 8.2) ==
+  air | subi : 3
+  canyon | subi : 1
+  paroi | subi : 7
+  pic | subi : 1
+  pic | voulu : 1
+  roche | subi : 8
+  tour | subi : 2
+  tour | voulu : 5
+  vide | subi : 2
+== D2, dessous sur decor, deux vues de suite (34 vols, 4 morts) ==
+  refusee (jamais deux vues de suite avant le decollage reel) : 5 vols, dont 1 morts
+  retard 0,1 s : 17 vols, dont 2 morts
+  retard plus long : 12 vols, dont 1 morts
+== D2, en ville seulement (5 vols, 3 morts) ==
+  refusee (jamais deux vues de suite avant le decollage reel) : 1 vols, dont 0 morts
+  retard 0,1 s : 3 vols, dont 2 morts
+  retard plus long : 1 vols, dont 1 morts
+== D3, dessous sur decor, renoncer (34 vols, 4 morts) ==
+  non : 13 vols, dont 0 morts
+  renonce : 21 vols, dont 4 morts
+== D3, en ville seulement (5 vols, 3 morts) ==
+  renonce : 5 vols, dont 3 morts
+== P, viserPlane sur decor (6 vols, 2 morts) ==
+  jumeau viser se pose : 6 vols, dont 2 morts
+== raccourcis sur decor par facon ==
+  ville versRoute : 5 vols, 0 morts
+  ville viser : 6 vols, 0 morts
+  ville viserPlane : 6 vols, 2 morts
+== chaque sortie du dessous sur decor et chaque raccourci de ville : la suite des vues (dt depuis l'engagement : etat du cote, d = dessous) ==
+  canyon-3970400 t0 59.3 DESSOUS versRoute v136.4 pose +2.5 | D2 refusee (jamais deux vues de suite avant le decollage reel) | D3 renonce (+0.2 s, bord a 0.88 s) | P null | -0.2:Cd -0.1:Cd 0:Sd 0.1:Cd 0.2:Cd 0.3:Cd 0.4:Cd 0.5:Cd 0.6:Sd 0.7:Ad 0.8:Cd 0.9:Cd
+  canyon-3970585 t0 67.7 DESSOUS versRoute v108.2 pose +3.9 | D2 retard plus long (+0.8 s) | D3 renonce (+0.2 s, bord a 1.12 s) | P null | -0.2:Cd -0.1:Cd 0:Sd 0.1:Cd 0.2:Cd 0.3:Cd 0.4:Cd 0.5:Cd 0.6:Cd 0.7:Sd 0.8:Sd 0.9:Sd 1:Sd 1.1:Sd
+  grotte-3970437 t0 94.3 DESSOUS versRoute v118.5 pose +2.3 | D2 retard 0,1 s | D3 non | P null | -0.2:-d -0.1:-d 0:Sd 0.1:Sd 0.2:Sd 0.3:Sd 0.4:Sd 0.5:Sd
+  grotte-3970548 t0 103.7 DESSOUS versRoute v104.2 pose +3.2 | D2 refusee (jamais deux vues de suite avant le decollage reel) | D3 renonce (+0.2 s, bord a 1 s) | P null | -0.2:-d -0.1:-d 0:Sd 0.1:Cd 0.2:Cd 0.3:Cd 0.4:Cd 0.5:Sd 0.6:Cd
+  grotte-3970548 t0 107.8 DESSOUS versRoute v83.9 pose +2.7 | D2 retard 0,1 s | D3 renonce (+0.6 s, bord a 0.67 s) | P null | -0.2:-d -0.1:-d 0:Sd 0.1:Sd 0.2:Sd 0.3:Sd 0.4:Sd 0.5:Cd 0.6:Cd 0.7:Sd 0.8:Sd 0.9:Sd 1:Sd
+  grotte-3970622 t0 75.6 DESSOUS versRoute v97.3 pose +7.3 | D2 retard 0,1 s | D3 renonce (+1.3 s, bord a 0.88 s) | P null | -0.2:-d -0.1:-d 0:Sd 0.1:Sd 0.2:Sd 0.3:Sd 0.4:Sd 0.5:Sd 0.6:Sd 0.7:Sd 0.8:Sd 0.9:Sd 1:Sd 1.1:Sd 1.2:Cd 1.3:Cd 1.4:Cd 1.5:Cd 1.6:Sd 1.7:Cd
+  grotte-3970622 t0 85.7 DESSOUS versRoute v87 pose +4.9 | D2 retard plus long (+0.7 s) | D3 renonce (+0.2 s, bord a 1.05 s) | P null | -0.2:Cd -0.1:Cd 0:Sd 0.1:Cd 0.2:Cd 0.3:Cd 0.4:Cd 0.5:Cd 0.6:Sd 0.7:Sd 0.8:Sd 0.9:Cd
+  jade-3970400 t0 116.6 DESSOUS versRoute v84.5 pose +1.9 | D2 retard plus long (+0.4 s) | D3 renonce (+0.2 s, bord a 1.05 s) | P null | -0.2:-d -0.1:Ad 0:Sd 0.1:Ad 0.2:Ad 0.3:Sd 0.4:Sd 0.5:Ad 0.6:Ad 0.7:Ad 0.8:Sd
+  jade-3970400 t0 126.5 DESSOUS versRoute v114.5 pose +3.3 | D2 retard 0,1 s | D3 non | P null | -0.2:-d -0.1:-d 0:Sd 0.1:Sd 0.2:Sd 0.3:Sd 0.4:Sd 0.5:Sd 0.6:Sd
+  jade-3970400 t0 148.3 DESSOUS versRoute v69.8 pose +4.8 | D2 retard 0,1 s | D3 non | P null | -0.1:-d 0:Sd 0.1:Sd 0.2:Sd 0.3:Sd 0.4:Sd 0.5:Sd 0.6:Sd 0.7:Sd 0.8:Sd 0.9:Sd 1:Sd 1.1:Sd 1.2:Sd 1.3:Sd 1.4:Sd 1.5:Sd 1.6:Sd 1.7:Sd 1.8:Ad 1.9:Sd
+  jade-3970437 t0 39.2 DESSOUS versRoute v99.7 pose +3.4 | D2 refusee (jamais deux vues de suite avant le decollage reel) | D3 renonce (+0.2 s, bord a 0.68 s) | P null | -0.2:-d -0.1:-d 0:Sd 0.1:Ad 0.2:Ad 0.3:Ad 0.4:Sd 0.5:Ad 0.6:Sd 0.7:Ad
+  jade-3970437 t0 175 DESSOUS versRoute v149.8 pose +4.3 | D2 retard 0,1 s | D3 non | P null | -0.2:-d -0.1:-d 0:Sd 0.1:Sd 0.2:Sd 0.3:Sd 0.4:Sd 0.5:Sd
+  jade-3970474 t0 145.1 DESSOUS versRoute v84 pose +3.1 | D2 retard plus long (+0.3 s) | D3 non | P null | -0.2:-d -0.1:-d 0:Sd 0.1:Cd 0.2:Sd 0.3:Sd 0.4:Sd 0.5:Sd 0.6:Sd 0.7:Ad
+  jade-3970474 t0 152.1 DESSOUS versRoute v110 pose +4.5 | D2 retard plus long (+0.4 s) | D3 renonce (+0.2 s, bord a 0.83 s) | P null | -0.2:-d -0.1:-d 0:Sd 0.1:Ad 0.2:Ad 0.3:Sd 0.4:Sd 0.5:Sd 0.6:Ad
+  jade-3970474 t0 168.1 DESSOUS versRoute v106.5 pose +2.1 | D2 retard 0,1 s | D3 non | P null | -0.2:-d -0.1:-d 0:Sd 0.1:Sd 0.2:Sd 0.3:Sd 0.4:Sd 0.5:Sd 0.6:Sd 0.7:Sd 0.8:Sd 0.9:Sd
+  jade-3970474 t0 171.4 DESSOUS versRoute v86.3 pose +3.1 | D2 retard 0,1 s | D3 non | P null | -0.2:-d -0.1:-d 0:Sd 0.1:Sd 0.2:Sd 0.3:Sd 0.4:Sd 0.5:Sd 0.6:Sd 0.7:Sd 0.8:Sd 0.9:Sd 1:Sd 1.1:Sd 1.2:Sd 1.3:Sd
+  jade-3970548 t0 37 DESSOUS versRoute v80.4 pose +3 | D2 retard 0,1 s | D3 non | P null | -0.2:-d -0.1:-d 0:Sd 0.1:Sd 0.2:Sd 0.3:Sd 0.4:Sd 0.5:Sd 0.6:Sd 0.7:Sd 0.8:Sd 0.9:Sd 1:Sd 1.1:Sd 1.2:Sd 1.3:Sd 1.4:Sd 1.5:Sd 1.6:Sd 1.7:Sd
+  jade-3970548 t0 42 DESSOUS versRoute v65.3 pose +4.3 | D2 retard 0,1 s | D3 non | P null | -0.2:-d -0.1:-d 0:Sd 0.1:Sd 0.2:Sd 0.3:Sd 0.4:Sd 0.5:Sd 0.6:Sd 0.7:Sd 0.8:Sd 0.9:Sd 1:Sd 1.1:Sd 1.2:Sd
+  jade-3970548 t0 47.8 DESSOUS versRoute v70.4 pose +5.4 | D2 retard 0,1 s | D3 non | P null | -0.2:-d -0.1:-d 0:Sd 0.1:Sd 0.2:Sd 0.3:Sd 0.4:Sd 0.5:Sd 0.6:Sd 0.7:Sd 0.8:Sd 0.9:Sd 1:Sd 1.1:Sd 1.2:Sd 1.3:Sd 1.4:Sd 1.5:Sd 1.6:Sd 1.7:Sd 1.8:Sd 1.9:Sd
+  jade-3970548 t0 55.6 DESSOUS versRoute v71.4 MORT pic +4.45 | D2 refusee (jamais deux vues de suite avant le decollage reel) | D3 renonce (+0.4 s, bord a 0.87 s) | P null | -0.2:-d -0.1:Ad 0:Sd 0.1:Cd 0.2:Sd 0.3:Cd 0.4:Cd 0.5:Cd 0.6:Ad 0.7:Ad 0.8:Ad 0.9:Ad
+  jade-3970622 t0 97.5 DESSOUS versRoute v113.7 pose +3.4 | D2 retard 0,1 s | D3 non | P null | -0.2:-d -0.1:-d 0:Sd 0.1:Sd 0.2:Sd 0.3:Sd 0.4:Sd 0.5:Sd 0.6:Sd 0.7:Sd 0.8:Sd 0.9:Sd 1:Sd 1.1:Sd 1.2:Sd 1.3:Sd 1.4:Sd
+  jade-3970622 t0 102.7 DESSOUS versRoute v107.5 pose +3 | D2 retard plus long (+0.6 s) | D3 renonce (+0.2 s, bord a 1.07 s) | P null | -0.2:Ad -0.1:Ad 0:Sd 0.1:Ad 0.2:Ad 0.3:Ad 0.4:Ad 0.5:Sd 0.6:Sd 0.7:Sd 0.8:Ad 0.9:Ad
+  jade-3970622 t0 109.8 DESSOUS versRoute v107.3 pose +4.7 | D2 retard plus long (+0.8 s) | D3 renonce (+0.2 s, bord a 1.12 s) | P null | -0.2:-d -0.1:Cd 0:Sd 0.1:Cd 0.2:Cd 0.3:Cd 0.4:Ad 0.5:Cd 0.6:Ad 0.7:Sd 0.8:Sd 0.9:Sd 1:Sd 1.1:Ad
+  jade-3970659 t0 94.3 DESSOUS versRoute v160.9 pose +1.4 | D2 retard 0,1 s | D3 non | P null | -0.2:Ad -0.1:Cd 0:Sd 0.1:Sd 0.2:Sd 0.3:Sd 0.4:Sd 0.5:Sd 0.6:Sd 0.7:Sd 0.8:Sd 0.9:Sd 1:Sd
+  jade-3970659 t0 105.6 DESSOUS versRoute v109.4 pose +4.9 | D2 retard plus long (+0.8 s) | D3 renonce (+0.4 s, bord a 1.23 s) | P null | -0.2:-d -0.1:-d 0:Sd 0.1:Ad 0.2:Sd 0.3:Ad 0.4:Ad 0.5:Sd 0.6:Ad 0.7:Sd 0.8:Sd 0.9:Sd 1:Sd 1.1:Sd 1.2:Sd 1.3:Ad 1.4:Sd 1.5:Sd 1.6:Ad
+  libre-3970437 t0 148.8 DESSOUS versRoute v66.8 pose +3.7 | D2 retard 0,1 s | D3 renonce (+0.7 s, bord a 1.03 s) | P null | -0.2:Cd -0.1:Cd 0:Sd 0.1:Sd 0.2:Sd 0.3:Sd 0.4:Sd 0.5:Sd 0.6:Cd 0.7:Cd 0.8:Ad 0.9:Ad 1:Ad 1.1:Ad 1.2:Cd
+  libre-3970437 t0 159.9 DESSOUS versRoute v85.3 pose +8.8 | D2 retard plus long (+0.3 s) | D3 renonce (+0.6 s, bord a 0.63 s) | P null | -0.2:Ad -0.1:Ad 0:Sd 0.1:Ad 0.2:Sd 0.3:Sd 0.4:Sd 0.5:Ad 0.6:Ad 0.7:Sd 0.8:Ad 0.9:Ad 1:Sd
+  libre-3970437 t0 177.5 DESSOUS versRoute v87 pose +1.3 | D2 retard plus long (+0.3 s) | D3 renonce (+0.6 s, bord a 0.65 s) | P null | -0.2:Ad -0.1:Ad 0:Sd 0.1:Ad 0.2:Sd 0.3:Sd 0.4:Sd 0.5:Ad 0.6:Ad 0.7:Sd 0.8:Ad 0.9:Sd 1:Ad
+  libre-3970548 t0 164.9 DESSOUS versRoute v103.7 pose +3.3 | D2 retard plus long (+0.3 s) | D3 non | P null | -0.2:-d -0.1:-d 0:Sd 0.1:Ad 0.2:Sd 0.3:Sd 0.4:Sd 0.5:Ad 0.6:Sd 0.7:Sd 0.8:Sd 0.9:Sd
+  ville-3970437 t0 21.9 racc viser v122.8 pose +2.4 | D2 null | D3 null | P null | -0.2:S -0.1:S 0:S 0.1:S 0.2:S 0.3:S 0.4:S 0.5:S 0.6:S 0.7:S 0.8:S 0.9:S
+  ville-3970437 t0 62.6 racc viser v147.1 pose +4.1 | D2 null | D3 null | P null | -0.2:C -0.1:S 0:S 0.1:S 0.2:S 0.3:S 0.4:S 0.5:S 0.6:S 0.7:S 0.8:S
+  ville-3970437 t0 91 racc versRoute v164.5 pose +2.7 | D2 null | D3 null | P null | -0.2:C -0.1:S 0:S 0.1:S 0.2:S 0.3:S 0.4:S 0.5:S 0.6:S 0.7:S 0.8:S 0.9:C
+  ville-3970474 t0 10.8 racc viserPlane v122.8 pose +2.3 | D2 null | D3 null | P jumeau viser se pose | -0.2:C -0.1:S 0:S 0.1:S 0.2:S 0.3:S 0.4:S 0.5:S 0.6:S 0.7:S 0.8:S 0.9:S
+  ville-3970474 t0 18.3 DESSOUS versRoute v66.3 pose +3.8 | D2 retard 0,1 s | D3 renonce (+0.3 s, bord a 1.07 s) | P null | -0.2:Ad -0.1:Ad 0:Sd 0.1:Sd 0.2:Ad 0.3:Ad 0.4:Ad 0.5:Sd 0.6:Ad 0.7:Ad 0.8:Sd 0.9:Sd 1:Sd 1.1:Sd
+  ville-3970474 t0 59.8 racc versRoute v132 pose +1.4 | D2 null | D3 null | P null | -0.2:S -0.1:S 0:S 0.1:S 0.2:S 0.3:S
+  ville-3970474 t0 120.6 racc versRoute v162.7 pose +7 | D2 null | D3 null | P null | -0.2:C -0.1:S 0:S 0.1:S 0.2:S 0.3:S 0.4:S
+  ville-3970474 t0 135.2 DESSOUS versRoute v134.8 MORT tour +5.05 | D2 retard 0,1 s | D3 renonce (+0.4 s, bord a 0.58 s) | P null | -0.2:Ad -0.1:Cd 0:Sd 0.1:Sd 0.2:Sd 0.3:Cd 0.4:Cd 0.5:Cd 0.6:Cd 0.7:Cd 0.8:Cd
+  ville-3970511 t0 36.4 racc viser v106.4 pose +3 | D2 null | D3 null | P null | -0.2:S -0.1:S 0:S 0.1:S 0.2:S 0.3:S 0.4:S 0.5:S 0.6:S 0.7:S 0.8:S 0.9:C
+  ville-3970511 t0 42.1 racc versRoute v83.1 pose +3 | D2 null | D3 null | P null | -0.2:C -0.1:S 0:S 0.1:S 0.2:S 0.3:S 0.4:S 0.5:S 0.6:S 0.7:S 0.8:S 0.9:S 1:S 1.1:S 1.2:S
+  ville-3970548 t0 27.5 racc viser v97.6 pose +1.3 | D2 null | D3 null | P null | -0.2:S -0.1:S 0:S 0.1:S 0.2:S 0.3:S 0.4:S 0.5:S 0.6:S 0.7:S 0.8:S
+  ville-3970548 t0 35.6 racc viser v109.1 pose +3.5 | D2 null | D3 null | P null | -0.2:S -0.1:S 0:S 0.1:S 0.2:S 0.3:S 0.4:S 0.5:S 0.6:S 0.7:S
+  ville-3970548 t0 57.8 racc viserPlane v140.2 MORT tour +0.75 | D2 null | D3 null | P jumeau viser se pose | -0.2:S -0.1:S 0:S 0.1:S 0.2:S 0.3:S 0.4:S 0.5:S 0.6:S 0.7:S 0.8:S 0.9:S
+  ville-3970585 t0 47.2 racc viserPlane v122.9 pose +4.2 | D2 null | D3 null | P jumeau viser se pose | -0.2:S -0.1:S 0:S 0.1:S 0.2:S 0.3:S 0.4:S 0.5:S 0.6:S 0.7:S 0.8:S
+  ville-3970585 t0 56.9 DESSOUS versRoute v79.8 MORT tour +0.75 | D2 retard 0,1 s | D3 renonce (+0.3 s, bord a 1.67 s) | P null | -0.2:Cd -0.1:Cd 0:Sd 0.1:Sd 0.2:Cd 0.3:Cd 0.4:Cd 0.5:Cd 0.6:Cd 0.7:Cd 0.8:Cd 0.9:Cd 1:Cd 1.1:Cd 1.2:Cd 1.3:Cd 1.4:Cd 1.5:Cd 1.6:Cd 1.7:Sd 1.8:Sd 1.9:Sd 2:Cd
+  ville-3970622 t0 11.2 racc versRoute v120.8 pose +2.1 | D2 null | D3 null | P null | -0.2:C -0.1:S 0:S 0.1:S 0.2:S 0.3:S 0.4:S 0.5:S 0.6:S 0.7:S 0.8:S 0.9:S 1:S
+  ville-3970622 t0 14.6 racc viserPlane v77.2 pose +1.2 | D2 null | D3 null | P jumeau viser se pose | -0.2:- -0.1:S 0:S 0.1:S 0.2:S 0.3:S 0.4:S 0.5:S 0.6:S
+  ville-3970622 t0 19.3 DESSOUS versRoute v63 pose +4.4 | D2 refusee (jamais deux vues de suite avant le decollage reel) | D3 renonce (+0.2 s, bord a 1.07 s) | P null | -0.2:-d -0.1:-d 0:Sd 0.1:Ad 0.2:Ad 0.3:Ad 0.4:Sd 0.5:Ad 0.6:Ad 0.7:Ad 0.8:Cd
+  ville-3970622 t0 40 racc viser v90.2 pose +1.4 | D2 null | D3 null | P null | -0.2:- -0.1:S 0:S 0.1:S 0.2:S 0.3:S 0.4:S
+  ville-3970622 t0 51.4 racc viserPlane v124.8 MORT tour +0.25 | D2 null | D3 null | P jumeau viser se pose | -0.2:C -0.1:S 0:S 0.1:S 0.2:S 0.3:S 0.4:S 0.5:S 0.6:S 0.7:S 0.8:S
+  ville-3970659 t0 19.9 racc viserPlane v99.6 pose +5 | D2 null | D3 null | P jumeau viser se pose | -0.2:S -0.1:S 0:S 0.1:S 0.2:S 0.3:S 0.4:S 0.5:S 0.6:S 0.7:S 0.8:S 0.9:S
+  ville-3970659 t0 27.8 DESSOUS versRoute v90.4 MORT tour +0.45 | D2 retard plus long (+0.9 s) | D3 renonce (+0.2 s, bord a 1.38 s) | P null | -0.2:Cd -0.1:Cd 0:Sd 0.1:Cd 0.2:Cd 0.3:Cd 0.4:Cd 0.5:Cd 0.6:Cd 0.7:Cd 0.8:Sd 0.9:Sd 1:Sd 1.1:Sd 1.2:Sd 1.3:Cd

@@ -1,0 +1,81 @@
+LA GARDE AU BORD rejouee sur les traces (40 courses, 159 decollages subis sur decor : 22 morts, 137 poses) — 2026-11-28
+
+== 0. Le cap DEMANDE par le pilote (vers la sortie = +), fenetre de 0,25 a 1 s avant le decollage ==
+  morts (fenetre lisible : 18 sur 22) : cap demande max, mediane 0.11 (q25 0.05, q75 0.15) ; moyen, mediane 0.04 ; demande >= +0,15 vers la sortie a une vue au moins : 4 ; >= +0,25 : 2 ; jamais au-dessus de +0,05 : 3 ; metres pousses vers la sortie par la demande (somme de v.sin(cap demande).0,1 s), mediane 5.63
+     canyon-tenue-3970437   td   92.02 paroi   cap demande max 0.11 moyen -0.12 cap reel max 0.52 pousse 2 m
+     canyon-tenue-3970474   td   64.33 paroi   cap demande max -0.00 moyen -0.24 cap reel max 0.23 pousse 0 m
+     canyon-tenue-3970511   td  103.78 paroi   cap demande max 0.15 moyen 0.11 cap reel max 0.31 pousse 12 m
+     canyon-tenue-3970548   td  101.55 paroi   cap demande max 0.15 moyen 0.09 cap reel max 0.41 pousse 11 m
+     canyon-tenue-3970585   td  102.35 canyon  cap demande max 0.35 moyen 0.25 cap reel max 0.54 pousse 30 m
+     canyon-tenue-3970622   td    97.4 paroi   cap demande max -0.06 moyen -0.18 cap reel max 0.24 pousse 0 m
+     canyon-tenue-3970659   td    62.1 paroi   cap demande max 0.09 moyen -0.14 cap reel max 1.40 pousse 1 m
+     grotte-tenue-3970400   td   76.65 roche   cap demande max 0.19 moyen 0.15 cap reel max 0.34 pousse 28 m
+     grotte-tenue-3970437   td  100.92 roche   cap demande max 0.07 moyen 0.03 cap reel max 0.49 pousse 7 m
+     grotte-tenue-3970474   td    83.7 roche   cap demande max 0.05 moyen -0.04 cap reel max 0.62 pousse 2 m
+     grotte-tenue-3970548   td  144.02 roche   cap demande max 0.26 moyen 0.11 cap reel max 0.56 pousse 15 m
+     grotte-tenue-3970585   td   92.43 roche   cap demande max 0.05 moyen -0.04 cap reel max 0.65 pousse 2 m
+     grotte-tenue-3970659   td  132.48 roche   cap demande max 0.13 moyen 0.07 cap reel max 0.53 pousse 10 m
+     jade-tenue-3970622     td  135.43 pic     cap demande max 0.15 moyen 0.10 cap reel max 0.53 pousse 11 m
+     libre-3970622          td   29.48 roche   cap demande max 0.12 moyen 0.05 cap reel max 0.62 pousse 6 m
+     ville-tenue-3970400    td   11.55 tour    cap demande max 0.11 moyen 0.04 cap reel max 0.43 pousse 3 m
+     ville-tenue-3970437    td  107.95 tour    cap demande max 0.04 moyen 0.02 cap reel max 0.40 pousse 2 m
+     ville-tenue-3970511    td   58.12 air     cap demande max 0.07 moyen 0.03 cap reel max 0.47 pousse 5 m
+  poses (fenetre lisible : 109 sur 137) : cap demande max, mediane 0.07 (q25 0.01, q75 0.14) ; moyen, mediane -0.02 ; demande >= +0,15 vers la sortie a une vue au moins : 26 ; >= +0,25 : 8 ; jamais au-dessus de +0,05 : 40 ; metres pousses vers la sortie par la demande (somme de v.sin(cap demande).0,1 s), mediane 2.37
+
+== gardeT 0.5 s, gardeM 4 m ==
+  vues comptees (sol, decor, hors dessous/glisse/rebond/raccourci) : 30270 ; (a) BORNE vraie : 212 (0.7 %) ; (b) CONTRE vraie : 4450 (14.7 %) ; l'une ou l'autre : 15.1 %
+  episodes de (b) (series separees de 0,25 s) : 966 ; suivis d'un decollage dans 1,5 s : 171 (18 %) ; 795 ou la caisse est restee sur la route sans la regle
+  morts : 22 (avec du sol lisible 21) ; (b) vraie sans interruption jusqu'au decollage : 21 ; depuis >= 0,3 s : 20 ; >= 0,4 s : 11 ; >= 0,5 s : 4 ; avant l'annonce des yeux : 11 ; debut median 0.42 s ; (a) vraie du cote de la sortie a >= 0,3 s : 4
+  poses : 137 (avec du sol lisible 121) ; (b) vraie sans interruption jusqu'au decollage : 120 ; depuis >= 0,3 s : 105 ; >= 0,4 s : 83 ; >= 0,5 s : 41 ; avant l'annonce des yeux : 83 ; debut median 0.45 s ; (a) vraie du cote de la sortie a >= 0,3 s : 11
+  par carte, (b) depuis >= 0,4 s : {"canyon":{"morts04":4,"morts":8,"poses04":16,"poses":19},"grotte":{"morts04":6,"morts":7,"poses04":23,"poses":29},"ville":{"morts04":0,"morts":3,"poses04":8,"poses":20},"jade":{"morts04":1,"morts":4,"poses04":36,"poses":69}}
+
+== gardeT 0.7 s, gardeM 4 m ==
+  vues comptees (sol, decor, hors dessous/glisse/rebond/raccourci) : 30270 ; (a) BORNE vraie : 835 (2.8 %) ; (b) CONTRE vraie : 6457 (21.3 %) ; l'une ou l'autre : 23.2 %
+  episodes de (b) (series separees de 0,25 s) : 1324 ; suivis d'un decollage dans 1,5 s : 186 (14 %) ; 1138 ou la caisse est restee sur la route sans la regle
+  morts : 22 (avec du sol lisible 21) ; (b) vraie sans interruption jusqu'au decollage : 21 ; depuis >= 0,3 s : 20 ; >= 0,4 s : 17 ; >= 0,5 s : 7 ; avant l'annonce des yeux : 13 ; debut median 0.45 s ; (a) vraie du cote de la sortie a >= 0,3 s : 8
+  poses : 137 (avec du sol lisible 121) ; (b) vraie sans interruption jusqu'au decollage : 120 ; depuis >= 0,3 s : 105 ; >= 0,4 s : 94 ; >= 0,5 s : 65 ; avant l'annonce des yeux : 87 ; debut median 0.5 s ; (a) vraie du cote de la sortie a >= 0,3 s : 22
+  par carte, (b) depuis >= 0,4 s : {"canyon":{"morts04":6,"morts":8,"poses04":18,"poses":19},"grotte":{"morts04":7,"morts":7,"poses04":24,"poses":29},"ville":{"morts04":2,"morts":3,"poses04":10,"poses":20},"jade":{"morts04":2,"morts":4,"poses04":42,"poses":69}}
+
+== gardeT 0.9 s, gardeM 4 m ==
+  vues comptees (sol, decor, hors dessous/glisse/rebond/raccourci) : 30270 ; (a) BORNE vraie : 1714 (5.7 %) ; (b) CONTRE vraie : 8603 (28.4 %) ; l'une ou l'autre : 31.9 %
+  episodes de (b) (series separees de 0,25 s) : 1669 ; suivis d'un decollage dans 1,5 s : 195 (12 %) ; 1474 ou la caisse est restee sur la route sans la regle
+  morts : 22 (avec du sol lisible 21) ; (b) vraie sans interruption jusqu'au decollage : 21 ; depuis >= 0,3 s : 20 ; >= 0,4 s : 18 ; >= 0,5 s : 11 ; avant l'annonce des yeux : 14 ; debut median 0.52 s ; (a) vraie du cote de la sortie a >= 0,3 s : 9
+  poses : 137 (avec du sol lisible 121) ; (b) vraie sans interruption jusqu'au decollage : 120 ; depuis >= 0,3 s : 105 ; >= 0,4 s : 98 ; >= 0,5 s : 76 ; avant l'annonce des yeux : 93 ; debut median 0.55 s ; (a) vraie du cote de la sortie a >= 0,3 s : 38
+  par carte, (b) depuis >= 0,4 s : {"canyon":{"morts04":6,"morts":8,"poses04":18,"poses":19},"grotte":{"morts04":7,"morts":7,"poses04":25,"poses":29},"ville":{"morts04":3,"morts":3,"poses04":12,"poses":20},"jade":{"morts04":2,"morts":4,"poses04":43,"poses":69}}
+
+== gardeT 1.2 s, gardeM 4 m ==
+  vues comptees (sol, decor, hors dessous/glisse/rebond/raccourci) : 30270 ; (a) BORNE vraie : 2939 (9.7 %) ; (b) CONTRE vraie : 11562 (38.2 %) ; l'une ou l'autre : 43.2 %
+  episodes de (b) (series separees de 0,25 s) : 2019 ; suivis d'un decollage dans 1,5 s : 191 (9 %) ; 1828 ou la caisse est restee sur la route sans la regle
+  morts : 22 (avec du sol lisible 21) ; (b) vraie sans interruption jusqu'au decollage : 21 ; depuis >= 0,3 s : 20 ; >= 0,4 s : 18 ; >= 0,5 s : 14 ; avant l'annonce des yeux : 16 ; debut median 0.55 s ; (a) vraie du cote de la sortie a >= 0,3 s : 11
+  poses : 137 (avec du sol lisible 121) ; (b) vraie sans interruption jusqu'au decollage : 120 ; depuis >= 0,3 s : 106 ; >= 0,4 s : 99 ; >= 0,5 s : 84 ; avant l'annonce des yeux : 96 ; debut median 0.58 s ; (a) vraie du cote de la sortie a >= 0,3 s : 45
+  par carte, (b) depuis >= 0,4 s : {"canyon":{"morts04":6,"morts":8,"poses04":18,"poses":19},"grotte":{"morts04":7,"morts":7,"poses04":25,"poses":29},"ville":{"morts04":3,"morts":3,"poses04":12,"poses":20},"jade":{"morts04":2,"morts":4,"poses04":44,"poses":69}}
+
+== detail des morts, gardeT 0,9 : debut de (b) avant le decollage (s) | annonce des yeux (s) ==
+  canyon-tenue-3970400   canyon paroi   sol  4 vues ; (b) depuis  0.38 ; (a) au plus tot   -   ; annonce 0.38
+  canyon-tenue-3970437   canyon paroi   sol 31 vues ; (b) depuis  0.52 ; (a) au plus tot  1.72 ; annonce 0.52
+  canyon-tenue-3970474   canyon paroi   sol 31 vues ; (b) depuis  0.43 ; (a) au plus tot  1.73 ; annonce 0.33
+  canyon-tenue-3970511   canyon paroi   sol 30 vues ; (b) depuis  0.58 ; (a) au plus tot  2.48 ; annonce 0.18
+  canyon-tenue-3970548   canyon paroi   sol 31 vues ; (b) depuis  0.55 ; (a) au plus tot  0.35 ; annonce 0.25
+  canyon-tenue-3970585   canyon canyon  sol 31 vues ; (b) depuis  0.45 ; (a) au plus tot  0.75 ; annonce 0.25
+  canyon-tenue-3970622   canyon paroi   sol 30 vues ; (b) depuis   0.3 ; (a) au plus tot     3 ; annonce 0.3
+  canyon-tenue-3970659   canyon paroi   sol 10 vues ; (b) depuis     1 ; (a) au plus tot   -   ; annonce 1
+  grotte-tenue-3970400   grotte roche   sol 30 vues ; (b) depuis  0.45 ; (a) au plus tot  2.75 ; annonce 0.15
+  grotte-tenue-3970437   grotte roche   sol 31 vues ; (b) depuis  0.52 ; (a) au plus tot   -   ; annonce 0.12
+  grotte-tenue-3970474   grotte roche   sol 30 vues ; (b) depuis   0.6 ; (a) au plus tot   -   ; annonce 0.6
+  grotte-tenue-3970548   grotte roche   sol 31 vues ; (b) depuis  0.62 ; (a) au plus tot  2.52 ; annonce 0.32
+  grotte-tenue-3970585   grotte roche   sol 31 vues ; (b) depuis  0.63 ; (a) au plus tot   -   ; annonce 0.63
+  grotte-tenue-3970659   grotte roche   sol 30 vues ; (b) depuis  0.58 ; (a) au plus tot   -   ; annonce 0.28
+  jade-tenue-3970511     jade   vide    sol  0 vues ; (b) depuis   -   ; (a) au plus tot   -   ; annonce 0.25
+  jade-tenue-3970585     jade   air     sol  3 vues ; (b) depuis  0.15 ; (a) au plus tot   -   ; annonce 0.15
+  jade-tenue-3970622     jade   pic     sol 31 vues ; (b) depuis  0.43 ; (a) au plus tot  2.23 ; annonce 0.23
+  libre-3970474          jade   vide    sol  5 vues ; (b) depuis  0.42 ; (a) au plus tot   -   ; annonce 0.32
+  libre-3970622          grotte roche   sol 30 vues ; (b) depuis  0.48 ; (a) au plus tot   -   ; annonce 0.28
+  ville-tenue-3970400    ville  tour    sol 28 vues ; (b) depuis  0.85 ; (a) au plus tot   -   ; annonce 0.25
+  ville-tenue-3970437    ville  tour    sol 28 vues ; (b) depuis  0.55 ; (a) au plus tot   -   ; annonce 0.35
+  ville-tenue-3970511    ville  air     sol 31 vues ; (b) depuis  0.42 ; (a) au plus tot   -   ; annonce 0.32
+
+== 2. La BORNE (a) du cote de la sortie, de 0,25 a 1 s avant le decollage (elle rabote le cap demande) ==
+  gardeT 0.5 : morts 3 sur 18 lisibles ; poses 7 sur 102 ; metres de traversee rabotes (mediane, ceux qu'elle touche) : morts 0.5, poses 0.44 ; episodes de (a) sur toutes les vues : 104, dont suivis d'un decollage dans 1,5 s : 25
+  gardeT 0.7 : morts 3 sur 18 lisibles ; poses 10 sur 102 ; metres de traversee rabotes (mediane, ceux qu'elle touche) : morts 2.04, poses 1.45 ; episodes de (a) sur toutes les vues : 320, dont suivis d'un decollage dans 1,5 s : 44
+  gardeT 0.9 : morts 3 sur 18 lisibles ; poses 13 sur 102 ; metres de traversee rabotes (mediane, ceux qu'elle touche) : morts 4.35, poses 2.45 ; episodes de (a) sur toutes les vues : 562, dont suivis d'un decollage dans 1,5 s : 66
+  gardeT 1.2 : morts 5 sur 18 lisibles ; poses 16 sur 102 ; metres de traversee rabotes (mediane, ceux qu'elle touche) : morts 2.1, poses 3.25 ; episodes de (a) sur toutes les vues : 814, dont suivis d'un decollage dans 1,5 s : 96

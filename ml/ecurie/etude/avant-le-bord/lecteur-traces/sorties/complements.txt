@@ -1,0 +1,41 @@
+== 1. La nitro demandee au sol, morts contre poses ==
+  0.3  s : morts nitro 2 / sans 20 ; poses nitro 13 / sans 107  (sans nitro : morts 91 %, poses 89 %)  p(Fisher bilat.) 1.000
+  0.6  s : morts nitro 7 / sans 11 ; poses nitro 56 / sans 47  (sans nitro : morts 61 %, poses 46 %)  p(Fisher bilat.) 0.307
+  0.8  s : morts nitro 9 / sans 9 ; poses nitro 75 / sans 25  (sans nitro : morts 50 %, poses 25 %)  p(Fisher bilat.) 0.046
+  1    s : morts nitro 9 / sans 9 ; poses nitro 79 / sans 17  (sans nitro : morts 50 %, poses 18 %)  p(Fisher bilat.) 0.005
+  1.5  s : morts nitro 12 / sans 5 ; poses nitro 74 / sans 21  (sans nitro : morts 29 %, poses 22 %)  p(Fisher bilat.) 0.538
+  2    s : morts nitro 15 / sans 2 ; poses nitro 74 / sans 17  (sans nitro : morts 12 %, poses 19 %)  p(Fisher bilat.) 0.732
+
+== 2. A carte egale (la carte retiree) : les morts sont-ils plus rapides, plus souvent sans nitro ? ==
+  vitesse a 0.6 s                    morts vus 18 sur 121 ; rang moyen des morts dans leur carte (0,5 = au hasard) 0.675 ; p (permutation dans la carte, bilat., 4000 tirages) 0.0018
+  vitesse a 1 s                      morts vus 18 sur 114 ; rang moyen des morts dans leur carte (0,5 = au hasard) 0.694 ; p (permutation dans la carte, bilat., 4000 tirages) 0.0010
+  vitesse a 1.5 s                    morts vus 17 sur 112 ; rang moyen des morts dans leur carte (0,5 = au hasard) 0.714 ; p (permutation dans la carte, bilat., 4000 tirages) 0.0005
+  vitesse a 2 s                      morts vus 17 sur 108 ; rang moyen des morts dans leur carte (0,5 = au hasard) 0.704 ; p (permutation dans la carte, bilat., 4000 tirages) 0.0003
+  vitesse au decollage (evenement)   morts vus 22 sur 159 ; rang moyen des morts dans leur carte (0,5 = au hasard) 0.627 ; p (permutation dans la carte, bilat., 4000 tirages) 0.0253
+  nitro demandee a 0.6 s (1/0)       morts vus 18 sur 121 ; rang moyen des morts dans leur carte (0,5 = au hasard) 0.460 ; p (permutation dans la carte, bilat., 4000 tirages) 0.5820
+  nitro demandee a 1 s (1/0)         morts vus 18 sur 114 ; rang moyen des morts dans leur carte (0,5 = au hasard) 0.377 ; p (permutation dans la carte, bilat., 4000 tirages) 0.0120
+  nitro demandee a 1.5 s (1/0)       morts vus 17 sur 112 ; rang moyen des morts dans leur carte (0,5 = au hasard) 0.482 ; p (permutation dans la carte, bilat., 4000 tirages) 0.7485
+  palier (derniere vue)              morts vus 22 sur 159 ; rang moyen des morts dans leur carte (0,5 = au hasard) 0.583 ; p (permutation dans la carte, bilat., 4000 tirages) 0.1320
+  marge a 0,6 s                      morts vus 18 sur 121 ; rang moyen des morts dans leur carte (0,5 = au hasard) 0.625 ; p (permutation dans la carte, bilat., 4000 tirages) 0.0415
+
+== 3. Le zigzag : le cap sur [0,6 ; 3] s avant le decollage (oriente vers la sortie) ==
+  ampl       mediane (q25..q75) morts 0.61 (0.512..0.739) ; poses 0.528 (0.432..0.671)  n 17/95
+    a carte egale : ampl             morts vus 17 sur 112 ; rang moyen des morts dans leur carte (0,5 = au hasard) 0.568 ; p (permutation dans la carte, bilat., 4000 tirages) 0.2850
+  chg        mediane (q25..q75) morts 2 (2..3) ; poses 2 (2..3)  n 17/95
+    a carte egale : chg              morts vus 17 sur 112 ; rang moyen des morts dans leur carte (0,5 = au hasard) 0.516 ; p (permutation dans la carte, bilat., 4000 tirages) 0.7688
+  capAbsMoy  mediane (q25..q75) morts 0.169 (0.132..0.189) ; poses 0.138 (0.111..0.21)  n 17/95
+    a carte egale : capAbsMoy        morts vus 17 sur 112 ; rang moyen des morts dans leur carte (0,5 = au hasard) 0.546 ; p (permutation dans la carte, bilat., 4000 tirages) 0.4667
+  latAmpl    mediane (q25..q75) morts 29.67 (21.43..31.77) ; poses 23.19 (17.405..32.2)  n 17/95
+    a carte egale : latAmpl          morts vus 17 sur 112 ; rang moyen des morts dans leur carte (0,5 = au hasard) 0.622 ; p (permutation dans la carte, bilat., 4000 tirages) 0.0578
+
+== 4. La vitesse a 1 s rapportee a celle des poses de la meme carte et du meme palier ==
+  v / mediane des poses (meme carte, meme palier, au moins 3 poses) : morts n 6 mediane 1.092 (q25..q75 1.022..1.404) ; poses n 80 mediane 1 (0.933..1.037)
+    seuil > 1.05 : morts 4 au-dessus / 2 en dessous ; poses 19 / 61  p(Fisher bilat.) 0.0415
+    seuil > 1.1 : morts 3 au-dessus / 3 en dessous ; poses 10 / 70  p(Fisher bilat.) 0.0420
+    seuil > 1.15 : morts 2 au-dessus / 4 en dessous ; poses 4 / 76  p(Fisher bilat.) 0.0541
+
+== 5. Vitesse a 1,5 s > 143 m/s, carte par carte (morts au-dessus/en dessous ; poses au-dessus/en dessous) ==
+  canyon  morts 6/0 ; poses 4/13  (part mortelle au-dessus 60 %, en dessous 0 %)
+  grotte  morts 4/3 ; poses 4/20  (part mortelle au-dessus 50 %, en dessous 13 %)
+  ville   morts 2/1 ; poses 3/8  (part mortelle au-dessus 40 %, en dessous 11 %)
+  jade    morts 1/0 ; poses 20/23  (part mortelle au-dessus 5 %, en dessous 0 %)

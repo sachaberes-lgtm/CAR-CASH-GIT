@@ -1,0 +1,62 @@
+sorties voulues distinctes lues : 66 (morts 6)
+== le cote choisi A L'ENGAGEMENT, par lieu ==
+  autre decor / dessous | borde : 9 vols, 0 morts
+  autre decor / dessous | ouvert : 20 vols, 1 morts
+  sans decor / dessous | null : 5 vols, 0 morts
+  sans decor / raccourci | ouvert : 10 vols, 0 morts
+  ville / dessous | borde : 3 vols, 3 morts
+  ville / dessous | ouvert : 2 vols, 0 morts
+  ville / raccourci | borde : 8 vols, 2 morts
+  ville / raccourci | ouvert : 9 vols, 0 morts
+== MAPS A DECOR, toutes sorties voulues : le cote choisi a l'engagement ==
+  borde : 20 vols, 5 morts
+  ouvert : 31 vols, 1 morts
+== VILLE, toutes sorties voulues : le cote choisi a l'engagement ==
+  borde : 11 vols, 5 morts
+  ouvert : 11 vols, 0 morts
+== VILLE : borde a l'engagement OU a la vue d'avant ==
+  borde (une des deux vues) : 13 vols, 5 morts
+  pas borde : 9 vols, 0 morts
+== MAPS A DECOR : borde a l'engagement OU a la vue d'avant ==
+  borde (une des deux vues) : 22 vols, 5 morts
+  pas borde : 29 vols, 1 morts
+== VILLE : le decor que touchent rien / plane a l'engagement ==
+  null : 11 vols, 0 morts
+  tour : 11 vols, 5 morts
+== AUTRE DECOR : le decor que touchent rien / plane a l'engagement ==
+  canyon paroi : 2 vols, 0 morts
+  grotte roche : 5 vols, 0 morts
+  jade null : 20 vols, 1 morts
+  jade pic : 2 vols, 0 morts
+== VILLE, raccourcis : facon et cote ==
+  versRoute | borde : 3 vols, 0 morts
+  versRoute | ouvert : 2 vols, 0 morts
+  viser | borde : 2 vols, 0 morts
+  viser | ouvert : 4 vols, 0 morts
+  viserPlane | borde : 3 vols, 2 morts
+  viserPlane | ouvert : 3 vols, 0 morts
+== chaque sortie voulue de ville (et les mortelles d'ailleurs) : engagement, vue d'avant, puis la suite jusqu'au decollage ==
+  jade-3970548 t0 55.6 DESSOUS versRoute v71.4 MORT pic +4.45 s | avant ouvert | ENGAGEMENT ouvert | suite mmmoooooo
+  ville-3970437 t0 21.9 racc viser v122.8 pose | avant ouvert | ENGAGEMENT ouvert | suite boooobmob
+  ville-3970437 t0 62.6 racc viser v147.1 pose | avant ouvert | ENGAGEMENT ouvert | suite oobooooo
+  ville-3970437 t0 91 racc versRoute v164.5 pose | avant ouvert | ENGAGEMENT borde (tour) | suite bbbbooobb
+  ville-3970474 t0 10.8 racc viserPlane v122.8 pose | avant ouvert | ENGAGEMENT ouvert | suite oobboomoo
+  ville-3970474 t0 18.3 DESSOUS versRoute v66.3 pose | avant ouvert | ENGAGEMENT ouvert | suite ooooooooooo
+  ville-3970474 t0 59.8 racc versRoute v132 pose | avant borde | ENGAGEMENT ouvert | suite oom
+  ville-3970474 t0 120.6 racc versRoute v162.7 pose | avant mi-borde | ENGAGEMENT borde (tour) | suite bbbo
+  ville-3970474 t0 135.2 DESSOUS versRoute v134.8 MORT tour +5.05 s | avant borde | ENGAGEMENT borde (tour) | suite booooooo
+  ville-3970511 t0 36.4 racc viser v106.4 pose | avant borde | ENGAGEMENT borde (tour) | suite bbbbbmobb
+  ville-3970511 t0 42.1 racc versRoute v83.1 pose | avant borde | ENGAGEMENT borde (tour) | suite bbbbbbbboooo
+  ville-3970548 t0 27.5 racc viser v97.6 pose | avant borde | ENGAGEMENT borde (tour) | suite bbbbbbbb
+  ville-3970548 t0 35.6 racc viser v109.1 pose | avant ouvert | ENGAGEMENT ouvert | suite mmbbmob
+  ville-3970548 t0 57.8 racc viserPlane v140.2 MORT tour +0.75 s | avant borde | ENGAGEMENT borde (tour) | suite bbbbobbbb
+  ville-3970585 t0 47.2 racc viserPlane v122.9 pose | avant borde | ENGAGEMENT borde (tour) | suite oooooooo
+  ville-3970585 t0 56.9 DESSOUS versRoute v79.8 MORT tour +0.75 s | avant borde | ENGAGEMENT borde (tour) | suite bbbbbbbbbbbbbbbbbbbb
+  ville-3970622 t0 11.2 racc versRoute v120.8 pose | avant borde | ENGAGEMENT ouvert | suite bbbbboooom
+  ville-3970622 t0 14.6 racc viserPlane v77.2 pose | avant ouvert | ENGAGEMENT ouvert | suite oooooo
+  ville-3970622 t0 19.3 DESSOUS versRoute v63 pose | avant null | ENGAGEMENT ouvert | suite oooooooo
+  ville-3970622 t0 40 racc viser v90.2 pose | avant ouvert | ENGAGEMENT ouvert | suite oooo
+  ville-3970622 t0 51.4 racc viserPlane v124.8 MORT tour +0.25 s | avant borde | ENGAGEMENT borde (tour) | suite bbbbbbbb
+  ville-3970659 t0 19.9 racc viserPlane v99.6 pose | avant ouvert | ENGAGEMENT ouvert | suite bbbbbbbbb
+  ville-3970659 t0 27.8 DESSOUS versRoute v90.4 MORT tour +0.45 s | avant ouvert | ENGAGEMENT borde (tour) | suite bbbbbbbooooob
+(suite : b = borde, m = mi-borde, o = ouvert, - = pas de rayons ; une lettre par vue de 0,1 s)

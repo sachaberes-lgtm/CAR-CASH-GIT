@@ -1,0 +1,4 @@
+canyon   n 8 survie 62.3 63.4 64.6 92.2 98 101.7 103.6 104.5 | moyenne 86 ecart-type 19 | causes paroi,paroi,paroi,paroi,paroi,canyon,paroi,paroi | paliers 5,6,5,6,7,6,6,4 | tmax 180
+grotte   n 9 survie 67.4 77.7 77.7 84.2 92.7 101 133.1 144.3 180 | moyenne 106 ecart-type 38 | causes roche,roche,roche,roche,roche,roche,roche,temps,roche | paliers 4,4,7,5,4,8,5,8,8 | tmax 180
+jade     n 9 survie 49.3 61.1 72.8 138.3 180 180 180 180 180 | moyenne 136 ecart-type 58 | causes temps,temps,temps,temps,vide,pic,air,pic,temps | paliers 9,10,10,9,3,3,4,7,8 | tmax 180
+ville    n 8 survie 13.5 29.7 52.5 59.6 59.8 64.1 108.3 141.2 | moyenne 66 ecart-type 41 | causes tour,tour,tour,air,tour,tour,tour,tour | paliers 1,8,8,3,4,3,3,3 | tmax 180

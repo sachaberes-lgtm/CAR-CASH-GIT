@@ -1,0 +1,23 @@
+sorties du dessous distinctes : 39
+promesse du rayon versRoute du cote choisi, a l'engagement : [vols, morts]
+  autre decor | air : 1 vols, 0 morts
+  autre decor | portail : 1 vols, 0 morts
+  autre decor | pose dessous : 4 vols, 0 morts
+  autre decor | pose dessus : 23 vols, 1 morts
+  sans decor | pas de rayon : 5 vols, 0 morts
+  ville | pose dessous : 1 vols, 1 morts
+  ville | pose dessus : 4 vols, 2 morts
+par vitesse au decollage :
+  autre decor | vitesse < 100 m/s : 15 vols, 1 morts
+  autre decor | vitesse >= 100 m/s : 14 vols, 0 morts
+  sans decor | vitesse < 100 m/s : 4 vols, 0 morts
+  sans decor | vitesse >= 100 m/s : 1 vols, 0 morts
+  ville | vitesse < 100 m/s : 4 vols, 2 morts
+  ville | vitesse >= 100 m/s : 1 vols, 1 morts
+les sorties du dessous de ville, et les mortelles :
+  jade-tenue-3970548 t0 55.6 v 71.4 cote choisi : rien:libre ; plane:libre ; versRoute:pose-dessus axe 0 dans 5.13 s | autre cote : rien:libre ; plane:libre ; versRoute:pose-dessus axe -0.03 dans 4.93 s | mort pic
+  ville-tenue-3970474 t0 18.3 v 66.3 cote choisi : rien:libre ; plane:libre ; versRoute:pose-dessus axe -0.02 dans 5.03 s | autre cote : rien:choc (tour) ; plane:choc (tour) ; versRoute:choc (tour) | pose 
+  ville-tenue-3970474 t0 135.2 v 134.8 cote choisi : rien:choc (tour) ; plane:choc (tour) ; versRoute:pose-dessus axe 0.1 dans 4.78 s | autre cote : rien:choc (tour) ; plane:choc (tour) ; versRoute:pose-DESSOUS axe 0.28 dans 2.17 s | mort tour
+  ville-tenue-3970585 t0 56.9 v 79.8 cote choisi : rien:choc (tour) ; plane:choc (tour) ; versRoute:pose-DESSOUS axe 0.59 dans 1.98 s | autre cote : rien:libre ; plane:libre ; versRoute:air | mort tour
+  ville-tenue-3970622 t0 19.3 v 63 cote choisi : rien:libre ; plane:libre ; versRoute:pose-dessus axe 0 dans 4.88 s | autre cote : rien:libre ; plane:libre ; versRoute:pose-dessus axe -0.02 dans 4.95 s | pose 
+  ville-tenue-3970659 t0 27.8 v 90.4 cote choisi : rien:choc (tour) ; plane:choc (tour) ; versRoute:pose-dessus axe -0.04 dans 5.92 s | autre cote : rien:choc (tour) ; plane:choc (tour) ; versRoute:choc (tour) | mort tour

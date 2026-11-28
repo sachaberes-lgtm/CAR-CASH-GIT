@@ -1,0 +1,597 @@
+
+canyon-tenue-3970400 canyon td 63.18 mort paroi vol 0.2 s ; pose precedente 0.45 s avant ; annonce des yeux 0.38 s avant
+    2.48 v v    136 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    2.38 v v    136 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    2.28 v v    136 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    2.18 v v    136 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    2.08 v v    136 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.98 v v    168 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.88 v v    168 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.78 v v    143 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.68 v v    143 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.58 v v    143 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.48 v v    143 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.38 v v    173 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.28 v v    177 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.18 v v    181 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.08 v v    185 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.98 v v    189 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.88 v v    192 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.78 v v    192 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.68 v v    193 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.58 v v    193 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.48 v v    193 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.38 s v    114 latS   -3.1 capS   1.00 cmdS  -0.01 vLat   -    N 0 ti 0 t0.42 cote1
+    0.28 s v    100 latS    5.8 capS   1.04 cmdS  -0.15 vLat     89 N 0 ti 0 t0.28 cote1
+    0.18 s v     97 latS   14.2 capS   1.04 cmdS  -0.23 vLat     84 N 0 ti 0 t0.18 cote1
+    0.08 s v     95 latS   22.3 capS   0.98 cmdS  -0.25 vLat     81 N 0 ti 0 t0.08 cote1
+
+canyon-tenue-3970437 canyon td 92.02 mort paroi vol 0.15 s ; pose precedente 101.02 s avant ; annonce des yeux 0.52 s avant
+    2.42 s v    177 latS    3.1 capS  -0.21 cmdS  -0.14 vLat   -    N 1 ti 1
+    2.32 s v    176 latS   -1.3 capS  -0.27 cmdS  -0.09 vLat    -43 N 1 ti 1
+    2.22 s v    175 latS   -5.7 capS  -0.23 cmdS  -0.03 vLat    -44 N 1 ti 1
+    2.12 s v    174 latS   -9.2 capS  -0.18 cmdS  -0.02 vLat    -34 N 1 ti 1
+    2.02 s v    173 latS  -11.9 capS  -0.14 cmdS   0.12 vLat    -27 N 1 ti 1
+    1.92 s v    171 latS  -13.8 capS  -0.07 cmdS   0.18 vLat    -19 N 1 ti 1
+    1.82 s v    169 latS  -14.6 capS  -0.02 cmdS   0.20 vLat     -9 N 1 ti 1
+    1.72 s v    168 latS  -14.7 capS   0.02 cmdS   0.30 vLat     -1 N 1 ti 1
+    1.62 s v    168 latS  -14.0 capS   0.07 cmdS   0.33 vLat      7 N 1 ti 1
+    1.52 s v    167 latS  -12.5 capS   0.10 cmdS   0.30 vLat     15 N 1 ti 1
+    1.42 s v    167 latS  -10.7 capS   0.13 cmdS   0.28 vLat     19 N 0 ti 1
+    1.32 s v    167 latS   -8.3 capS   0.14 cmdS   0.22 vLat     23 N 0 ti 1
+    1.22 s v    166 latS   -6.3 capS   0.09 cmdS  -0.04 vLat     21 N 0 ti 1
+    1.12 s v    165 latS   -5.7 capS  -0.05 cmdS  -0.27 vLat      6 N 0 ti 1
+    1.02 s v    163 latS   -7.0 capS  -0.12 cmdS  -0.26 vLat    -13 N 0 ti 1
+    0.92 s v    161 latS   -8.6 capS  -0.12 cmdS  -0.25 vLat    -17 N 0 ti 1
+    0.82 s v    159 latS  -10.1 capS  -0.11 cmdS  -0.24 vLat    -15 N 0 ti 1
+    0.72 s v    157 latS  -11.4 capS  -0.07 cmdS  -0.23 vLat    -13 N 0 ti 1
+    0.62 s v    156 latS  -11.5 capS   0.06 cmdS  -0.22 vLat     -0 N 0 ti 1
+    0.52 s v    176 latS   -9.0 capS   0.26 cmdS   0.11 vLat     25 N 0 ti 0 t0.6 cote1
+    0.42 s v    173 latS   -3.1 capS   0.44 cmdS   0.00 vLat     59 N 0 ti 0 t0.4 cote1
+    0.32 s v    170 latS    4.7 capS   0.52 cmdS   0.02 vLat     78 N 0 ti 0 t0.32 cote1
+    0.22 s v    168 latS   12.8 capS   0.51 cmdS   0.11 vLat     80 N 0 ti 0 t0.22 cote1
+    0.12 s v    166 latS   20.3 capS   0.48 cmdS  -0.05 vLat     76 N 0 ti 0 t0.12 cote1
+    0.02 s v    164 latS   27.2 capS   0.44 cmdS  -0.05 vLat     69 N 0 ti 0 t0.02 cote1
+
+canyon-tenue-3970474 canyon td 64.33 mort paroi vol 0.27 s ; pose precedente 20.28 s avant ; annonce des yeux 0.33 s avant
+    2.43 s v    143 latS    9.6 capS   0.11 cmdS  -0.06 vLat   -    N 1 ti 1
+    2.33 s v    144 latS   10.1 capS  -0.03 cmdS  -0.05 vLat      5 N 1 ti 1
+    2.23 s v    144 latS    8.7 capS  -0.13 cmdS  -0.03 vLat    -14 N 1 ti 1
+    2.13 s v    144 latS    6.4 capS  -0.18 cmdS   0.00 vLat    -23 N 1 ti 1
+    2.03 s v    143 latS    3.6 capS  -0.20 cmdS   0.04 vLat    -27 N 1 ti 1
+    1.93 s v    142 latS    0.8 capS  -0.20 cmdS   0.10 vLat    -28 N 1 ti 1
+    1.83 s v    143 latS   -1.6 capS  -0.14 cmdS   0.17 vLat    -24 N 1 ti 1
+    1.73 s v    143 latS   -3.0 capS  -0.07 cmdS   0.23 vLat    -14 N 1 ti 1
+    1.63 s v    143 latS   -3.8 capS  -0.05 cmdS   0.28 vLat     -8 N 1 ti 1
+    1.53 s v    144 latS   -4.3 capS  -0.03 cmdS   0.35 vLat     -5 N 1 ti 1
+    1.43 s v    144 latS   -4.1 capS   0.04 cmdS   0.35 vLat      2 N 0 ti 1
+    1.33 s v    144 latS   -3.0 capS   0.09 cmdS   0.34 vLat     11 N 0 ti 1
+    1.23 s v    144 latS   -1.8 capS   0.06 cmdS   0.04 vLat     13 N 0 ti 1
+    1.13 s v    143 latS   -1.0 capS   0.02 cmdS  -0.02 vLat      8 N 0 ti 1
+    1.03 s v    142 latS   -0.3 capS   0.04 cmdS  -0.11 vLat      7 N 0 ti 1
+    0.93 s v    140 latS    0.9 capS   0.08 cmdS  -0.23 vLat     12 N 0 ti 1
+    0.83 s v    139 latS    2.7 capS   0.13 cmdS  -0.25 vLat     18 N 0 ti 1
+    0.73 s v    157 latS    5.2 capS   0.15 cmdS  -0.28 vLat     25 N 0 ti 1
+    0.63 s v    155 latS    7.3 capS   0.11 cmdS  -0.31 vLat     21 N 0 ti 1
+    0.53 s v    152 latS    8.9 capS   0.09 cmdS  -0.34 vLat     16 N 0 ti 1
+    0.43 s v    155 latS   10.4 capS   0.13 cmdS  -0.27 vLat     16 N 0 ti 1
+    0.33 s v    152 latS   12.9 capS   0.23 cmdS  -0.00 vLat     24 N 0 ti 0 t0.37 cote1
+    0.23 s v    150 latS   17.1 capS   0.34 cmdS  -0.07 vLat     42 N 0 ti 0 t0.23 cote1
+    0.13 s v    149 latS   22.1 capS   0.37 cmdS  -0.05 vLat     51 N 0 ti 0 t0.13 cote1
+    0.03 s v    147 latS   27.0 capS   0.34 cmdS  -0.05 vLat     49 N 0 ti 0 t0.03 cote1
+
+canyon-tenue-3970511 canyon td 103.78 mort paroi vol 0.75 s ; pose precedente 14.2 s avant ; annonce des yeux 0.18 s avant
+    2.48 s v    167 latS    2.3 capS   0.05 cmdS   0.18 vLat   -    N 0 ti 1
+    2.38 s v    164 latS    3.1 capS   0.05 cmdS   0.29 vLat      8 N 0 ti 1
+    2.28 s v    162 latS    4.0 capS   0.06 cmdS   0.32 vLat      9 N 0 ti 1
+    2.18 s v    160 latS    4.9 capS   0.06 cmdS   0.31 vLat      9 N 0 ti 1
+    2.08 s v    158 latS    5.8 capS   0.06 cmdS   0.31 vLat      9 N 0 ti 1
+    1.98 s v    156 latS    7.1 capS   0.10 cmdS   0.30 vLat     14 N 0 ti 1
+    1.88 s v    154 latS    8.7 capS   0.04 cmdS   0.01 vLat     16 N 0 ti 1
+    1.78 s v    152 latS    8.8 capS  -0.06 cmdS   0.03 vLat      1 N 0 ti 1
+    1.68 s v    151 latS    7.9 capS  -0.09 cmdS   0.03 vLat     -9 N 0 ti 1
+    1.58 s v    149 latS    7.0 capS  -0.08 cmdS   0.04 vLat     -9 N 0 ti 1
+    1.48 s v    148 latS    5.9 capS  -0.11 cmdS   0.05 vLat    -11 N 0 ti 1
+    1.38 s v    147 latS    3.9 capS  -0.19 cmdS   0.07 vLat    -20 N 0 ti 1
+    1.28 s v    146 latS    1.1 capS  -0.21 cmdS   0.10 vLat    -27 N 0 ti 1
+    1.18 s v    144 latS   -1.3 capS  -0.17 cmdS   0.12 vLat    -25 N 0 ti 1
+    1.08 s v    143 latS   -3.0 capS  -0.10 cmdS   0.14 vLat    -17 N 0 ti 1
+    0.98 s v    142 latS   -3.6 capS  -0.02 cmdS   0.15 vLat     -6 N 0 ti 1
+    0.88 s v    141 latS   -3.0 capS   0.07 cmdS   0.15 vLat      6 N 0 ti 1
+    0.78 s v    140 latS   -1.6 capS   0.10 cmdS   0.14 vLat     14 N 0 ti 1
+    0.68 s v    140 latS    0.1 capS   0.12 cmdS   0.12 vLat     16 N 0 ti 1
+    0.58 s v    161 latS    2.5 capS   0.19 cmdS   0.12 vLat     25 N 0 ti 1
+    0.48 s v    159 latS    6.5 capS   0.28 cmdS   0.09 vLat     40 N 0 ti 1
+    0.38 s v    157 latS   11.3 capS   0.31 cmdS   0.06 vLat     48 N 0 ti 1
+    0.28 s v    155 latS   16.1 capS   0.31 cmdS   0.02 vLat     48 N 0 ti 1
+    0.18 s v    160 latS   20.8 capS   0.29 cmdS  -0.05 vLat     46 N 0 ti 0 t0.2 cote1
+    0.08 s v    158 latS   25.3 capS   0.28 cmdS  -0.12 vLat     45 N 0 ti 0 t0.08 cote1
+
+canyon-tenue-3970548 canyon td 101.55 mort paroi vol 0.12 s ; pose precedente 16.88 s avant ; annonce des yeux 0.25 s avant
+    2.45 s v    140 latS   14.0 capS  -0.07 cmdS  -0.01 vLat   -    N 1 ti 1
+    2.35 s v    141 latS   13.1 capS  -0.08 cmdS  -0.02 vLat     -8 N 1 ti 1
+    2.25 s v    143 latS   12.1 capS  -0.09 cmdS  -0.01 vLat    -11 N 1 ti 1
+    2.15 s v    144 latS   11.1 capS  -0.09 cmdS  -0.00 vLat    -10 N 1 ti 1
+    2.05 s v    146 latS    9.7 capS  -0.12 cmdS   0.01 vLat    -13 N 1 ti 1
+    1.95 s v    147 latS    8.4 capS  -0.09 cmdS   0.02 vLat    -14 N 1 ti 1
+    1.85 s v    149 latS    7.6 capS  -0.05 cmdS   0.03 vLat     -8 N 1 ti 1
+    1.75 s v    150 latS    7.0 capS  -0.06 cmdS   0.04 vLat     -6 N 1 ti 1
+    1.65 s v    149 latS    6.2 capS  -0.07 cmdS   0.01 vLat     -8 N 1 ti 1
+    1.55 s v    149 latS    5.4 capS  -0.07 cmdS  -0.03 vLat     -9 N 1 ti 1
+    1.45 s v    148 latS    4.6 capS  -0.07 cmdS  -0.06 vLat     -7 N 1 ti 1
+    1.35 s v    147 latS    3.4 capS  -0.13 cmdS  -0.10 vLat    -13 N 1 ti 1
+    1.25 s v    148 latS    1.2 capS  -0.18 cmdS  -0.14 vLat    -22 N 1 ti 1
+    1.15 s v    149 latS   -1.4 capS  -0.19 cmdS  -0.15 vLat    -25 N 1 ti 1
+    1.05 s v    150 latS   -4.2 capS  -0.23 cmdS  -0.13 vLat    -29 N 1 ti 1
+    0.95 s v    152 latS   -7.4 capS  -0.20 cmdS   0.00 vLat    -31 N 1 ti 1
+    0.85 s v    153 latS   -9.4 capS  -0.09 cmdS   0.07 vLat    -20 N 1 ti 1
+    0.75 s v    154 latS   -9.4 capS   0.07 cmdS   0.11 vLat      0 N 1 ti 1
+    0.65 s v    155 latS   -7.1 capS   0.20 cmdS   0.12 vLat     23 N 0 ti 1
+    0.55 s v    156 latS   -3.1 capS   0.31 cmdS   0.09 vLat     40 N 0 ti 1
+    0.45 s v    155 latS    2.2 capS   0.37 cmdS   0.07 vLat     53 N 0 ti 1
+    0.35 s v    155 latS    8.1 capS   0.40 cmdS   0.12 vLat     59 N 0 ti 1
+    0.25 s v    162 latS   14.3 capS   0.41 cmdS   0.15 vLat     62 N 0 ti 0 t0.27 cote1
+    0.15 s v    160 latS   20.4 capS   0.38 cmdS  -0.05 vLat     62 N 0 ti 0 t0.17 cote1
+    0.05 s v    159 latS   25.9 capS   0.33 cmdS  -0.05 vLat     54 N 0 ti 0 t0.05 cote1
+
+canyon-tenue-3970585 canyon td 102.35 mort canyon vol 1.22 s ; pose precedente 29.62 s avant ; annonce des yeux 0.25 s avant
+    2.45 s v    146 latS   20.7 capS   0.06 cmdS  -0.07 vLat   -    N 1 ti 1
+    2.35 s v    146 latS   20.9 capS  -0.04 cmdS  -0.08 vLat      3 N 1 ti 1
+    2.25 s v    147 latS   19.8 capS  -0.13 cmdS  -0.06 vLat    -11 N 1 ti 1
+    2.15 s v    148 latS   17.4 capS  -0.22 cmdS  -0.04 vLat    -25 N 1 ti 1
+    2.05 s v    148 latS   13.7 capS  -0.29 cmdS  -0.05 vLat    -37 N 1 ti 1
+    1.95 s v    149 latS    9.8 capS  -0.27 cmdS  -0.07 vLat    -39 N 1 ti 1
+    1.85 s v    149 latS    6.4 capS  -0.22 cmdS  -0.09 vLat    -34 N 1 ti 1
+    1.75 s v    150 latS    3.9 capS  -0.15 cmdS  -0.13 vLat    -25 N 1 ti 1
+    1.65 s v    150 latS    2.3 capS  -0.12 cmdS  -0.17 vLat    -16 N 1 ti 1
+    1.55 s v    151 latS    0.5 capS  -0.16 cmdS  -0.19 vLat    -18 N 1 ti 1
+    1.45 s v    151 latS   -2.3 capS  -0.19 cmdS   0.02 vLat    -27 N 1 ti 1
+    1.35 s v    151 latS   -4.8 capS  -0.16 cmdS   0.03 vLat    -25 N 0 ti 1
+    1.25 s v    150 latS   -7.0 capS  -0.14 cmdS   0.08 vLat    -22 N 0 ti 1
+    1.15 s v    148 latS   -8.4 capS  -0.06 cmdS   0.12 vLat    -15 N 0 ti 1
+    1.05 s v    145 latS   -8.7 capS   0.00 cmdS   0.14 vLat     -3 N 0 ti 1
+    0.95 s v    143 latS   -8.5 capS   0.03 cmdS   0.15 vLat      3 N 0 ti 1
+    0.85 s v    145 latS   -7.9 capS   0.04 cmdS   0.19 vLat      6 N 0 ti 1
+    0.75 s v    144 latS   -7.2 capS   0.05 cmdS   0.25 vLat      7 N 0 ti 1
+    0.65 s v    143 latS   -6.3 capS   0.07 cmdS   0.30 vLat      8 N 0 ti 1
+    0.55 s v    158 latS   -4.7 capS   0.15 cmdS   0.35 vLat     16 N 0 ti 1
+    0.45 s v    156 latS   -1.2 capS   0.29 cmdS   0.32 vLat     35 N 0 ti 1
+    0.35 s v    154 latS    4.6 capS   0.45 cmdS   0.28 vLat     57 N 0 ti 1
+    0.25 s v    152 latS   12.1 capS   0.54 cmdS   0.19 vLat     75 N 0 ti 0 t0.27 cote1
+    0.15 s v    151 latS   20.0 capS   0.49 cmdS  -0.14 vLat     79 N 0 ti 0 t0.15 cote1
+    0.05 s v    149 latS   26.1 capS   0.33 cmdS  -0.16 vLat     61 N 0 ti 0 t0.05 cote1
+
+canyon-tenue-3970622 canyon td 97.4 mort paroi vol 0.63 s ; pose precedente 16.42 s avant ; annonce des yeux 0.3 s avant
+    2.50 s v    172 latS   26.3 capS   0.07 cmdS  -0.22 vLat   -    N 0 ti 1
+    2.40 s v    170 latS   25.9 capS  -0.10 cmdS  -0.31 vLat     -4 N 0 ti 1
+    2.30 s v    167 latS   23.7 capS  -0.17 cmdS  -0.33 vLat    -22 N 0 ti 1
+    2.20 s v    165 latS   20.9 capS  -0.21 cmdS  -0.30 vLat    -28 N 1 ti 1
+    2.10 s v    163 latS   17.1 capS  -0.27 cmdS  -0.12 vLat    -38 N 1 ti 1
+    2.00 s v    167 latS   12.7 capS  -0.28 cmdS  -0.02 vLat    -44 N 1 ti 1
+    1.90 s v    166 latS    7.9 capS  -0.29 cmdS   0.10 vLat    -47 N 1 ti 1
+    1.80 s v    164 latS    3.5 capS  -0.24 cmdS   0.20 vLat    -44 N 1 ti 1
+    1.70 s v    162 latS    0.7 capS  -0.12 cmdS   0.27 vLat    -28 N 1 ti 1
+    1.60 s v    160 latS    0.3 capS   0.04 cmdS   0.28 vLat     -4 N 1 ti 1
+    1.50 s v    160 latS    1.8 capS   0.12 cmdS   0.27 vLat     15 N 1 ti 1
+    1.40 s v    160 latS    4.0 capS   0.14 cmdS   0.20 vLat     22 N 1 ti 1
+    1.30 s v    160 latS    6.2 capS   0.14 cmdS   0.11 vLat     23 N 1 ti 1
+    1.20 s v    160 latS    8.5 capS   0.12 cmdS   0.03 vLat     23 N 1 ti 1
+    1.10 s v    160 latS   10.4 capS   0.08 cmdS  -0.02 vLat     19 N 1 ti 1
+    1.00 s v    160 latS   11.5 capS   0.04 cmdS  -0.08 vLat     11 N 1 ti 1
+    0.90 s v    160 latS   12.4 capS   0.04 cmdS  -0.21 vLat      9 N 1 ti 1
+    0.80 s v    160 latS   12.9 capS  -0.01 cmdS  -0.32 vLat      5 N 1 ti 1
+    0.70 s v    160 latS   12.3 capS  -0.09 cmdS  -0.33 vLat     -6 N 1 ti 1
+    0.60 s v    189 latS   10.0 capS  -0.20 cmdS  -0.29 vLat    -23 N 0 ti 1
+    0.50 s v    187 latS    6.0 capS  -0.19 cmdS  -0.08 vLat    -40 N 1 ti 1
+    0.40 s v    183 latS    3.9 capS  -0.04 cmdS  -0.08 vLat    -21 N 1 ti 1
+    0.30 s v    182 latS    5.8 capS   0.24 cmdS  -0.06 vLat     19 N 0 ti 0 t0.35 cote1
+    0.20 s v    180 latS   12.1 capS   0.45 cmdS  -0.14 vLat     63 N 0 ti 0 t0.18 cote1
+    0.10 s v    177 latS   20.6 capS   0.53 cmdS  -0.21 vLat     86 N 0 ti 0 t0.1 cote1
+    0.00 v v    174 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+
+canyon-tenue-3970659 canyon td 62.1 mort paroi vol 0.17 s ; pose precedente 1.02 s avant ; annonce des yeux 1 s avant
+    2.50 v v    157 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    2.40 v v    156 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    2.30 v v    155 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    2.20 v v    153 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    2.10 v v    152 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    2.00 v v    151 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    1.90 v v    150 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    1.80 v v    150 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    1.70 v v    149 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    1.60 v v    149 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    1.50 v v    149 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    1.40 v v    148 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    1.30 v v    148 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    1.20 v v    148 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    1.10 v v    148 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    1.00 s v     74 latS  -20.3 capS   1.21 cmdS   0.09 vLat   -    N 0 ti 0 t1.13 cote1
+    0.90 s v     58 latS  -14.2 capS   1.40 cmdS   0.03 vLat     61 N 0 ti 0 t0.93 cote1
+    0.80 s v     53 latS   -8.8 capS   1.40 cmdS  -0.05 vLat     54 N 0 ti 0 t0.8 cote1
+    0.70 s v     52 latS   -3.6 capS   1.39 cmdS  -0.13 vLat     52 N 0 ti 0 t0.7 cote1
+    0.60 s v     52 latS    1.4 capS   1.34 cmdS  -0.21 vLat     51 N 0 ti 0 t0.6 cote1
+    0.50 s v     52 latS    6.4 capS   1.25 cmdS  -0.28 vLat     50 N 0 ti 0 t0.5 cote1
+    0.40 s v     52 latS   11.3 capS   1.16 cmdS  -0.28 vLat     48 N 0 ti 0 t0.4 cote1
+    0.30 s v     52 latS   15.9 capS   1.07 cmdS  -0.29 vLat     46 N 0 ti 0 t0.3 cote1
+    0.20 s v     52 latS   20.2 capS   0.97 cmdS  -0.29 vLat     44 N 0 ti 0 t0.2 cote1
+    0.10 s v     52 latS   24.3 capS   0.87 cmdS  -0.29 vLat     41 N 0 ti 0 t0.1 cote1
+    0.00 v v     51 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+
+grotte-tenue-3970400 grotte td 76.65 mort roche vol 1.07 s ; pose precedente 85.65 s avant ; annonce des yeux 0.15 s avant
+    2.45 s v    116 latS    0.9 capS  -0.25 cmdS   0.14 vLat   -    N 1 ti 1
+    2.35 s v    117 latS   -2.4 capS  -0.33 cmdS   0.10 vLat    -33 N 1 ti 1
+    2.25 s v    117 latS   -6.2 capS  -0.35 cmdS   0.14 vLat    -38 N 1 ti 1
+    2.15 s v    117 latS   -9.8 capS  -0.30 cmdS   0.15 vLat    -36 N 1 ti 1
+    2.05 s v    118 latS  -12.8 capS  -0.25 cmdS   0.10 vLat    -30 N 1 ti 1
+    1.95 s v    118 latS  -15.1 capS  -0.18 cmdS   0.07 vLat    -23 N 1 ti 1
+    1.85 s v    118 latS  -16.6 capS  -0.12 cmdS   0.01 vLat    -15 N 1 ti 1
+    1.75 s v    118 latS  -17.4 capS  -0.06 cmdS   0.16 vLat     -8 N 1 ti 1
+    1.65 s v    119 latS  -17.3 capS   0.02 cmdS   0.18 vLat      1 N 1 ti 1
+    1.55 s v    119 latS  -16.4 capS   0.12 cmdS   0.40 vLat      9 N 1 ti 1
+    1.45 s v    119 latS  -14.5 capS   0.19 cmdS   0.40 vLat     19 N 1 ti 1
+    1.35 s v    119 latS  -11.9 capS   0.25 cmdS   0.40 vLat     27 N 1 ti 1
+    1.25 s v    139 latS   -8.7 capS   0.23 cmdS   0.14 vLat     32 N 1 ti 1
+    1.15 s v    187 latS   -5.3 capS   0.14 cmdS   0.05 vLat     34 N 1 ti 1
+    1.05 s v    211 latS   -3.6 capS   0.00 cmdS   0.07 vLat     17 N 1 ti 1
+    0.95 s v    226 latS   -5.0 capS  -0.15 cmdS   0.08 vLat    -14 N 1 ti 1
+    0.85 s v    234 latS   -9.7 capS  -0.26 cmdS   0.12 vLat    -47 N 1 ti 1
+    0.75 s v    237 latS  -14.3 capS  -0.19 cmdS   0.14 vLat    -47 N 1 ti 1
+    0.65 s v    238 latS  -16.3 capS  -0.04 cmdS   0.16 vLat    -19 N 1 ti 1
+    0.55 s v    240 latS  -14.5 capS   0.12 cmdS   0.18 vLat     18 N 1 ti 1
+    0.45 s v    241 latS   -8.6 capS   0.30 cmdS   0.19 vLat     59 N 1 ti 1
+    0.35 s v    242 latS   -0.2 capS   0.34 cmdS   0.17 vLat     85 N 1 ti 1
+    0.25 s v    243 latS    7.6 capS   0.29 cmdS   0.16 vLat     78 N 1 ti 1
+    0.15 s v    243 latS   15.4 capS   0.33 cmdS   0.11 vLat     78 N 0 ti 0 t0.18 cote1
+    0.05 s v    244 latS   23.8 capS   0.36 cmdS  -0.05 vLat     83 N 0 ti 0 t0.05 cote1
+
+grotte-tenue-3970437 grotte td 100.92 mort roche vol 0.13 s ; pose precedente 3.74 s avant ; annonce des yeux 0.12 s avant
+    2.42 s v    152 latS   -3.3 capS  -0.33 cmdS   0.03 vLat   -    N 1 ti 1
+    2.32 s v    152 latS   -6.6 capS  -0.14 cmdS   0.06 vLat    -34 N 1 ti 1
+    2.22 s v    152 latS   -6.8 capS   0.06 cmdS   0.06 vLat     -2 N 1 ti 1
+    2.12 s v    155 latS   -5.3 capS   0.12 cmdS   0.05 vLat     15 N 1 ti 1
+    2.02 s v    160 latS   -3.3 capS   0.13 cmdS   0.04 vLat     20 N 1 ti 1
+    1.92 s v    164 latS   -1.2 capS   0.13 cmdS   0.02 vLat     21 N 1 ti 1
+    1.82 s v    168 latS    1.0 capS   0.13 cmdS   0.00 vLat     22 N 1 ti 1
+    1.72 s v    173 latS    3.1 capS   0.12 cmdS  -0.01 vLat     21 N 1 ti 1
+    1.62 s v    177 latS    5.0 capS   0.09 cmdS  -0.03 vLat     19 N 1 ti 1
+    1.52 s v    206 latS    5.3 capS  -0.03 cmdS  -0.02 vLat      3 N 1 ti 1
+    1.42 s v    212 latS    4.0 capS  -0.07 cmdS  -0.01 vLat    -12 N 1 ti 1
+    1.32 s v    218 latS    2.2 capS  -0.09 cmdS   0.00 vLat    -18 N 1 ti 1
+    1.22 s v    224 latS    0.0 capS  -0.11 cmdS   0.01 vLat    -22 N 1 ti 1
+    1.12 s v    230 latS   -2.5 capS  -0.12 cmdS   0.02 vLat    -26 N 1 ti 1
+    1.02 s v    235 latS   -5.5 capS  -0.14 cmdS   0.03 vLat    -29 N 1 ti 1
+    0.92 s v    240 latS   -8.9 capS  -0.15 cmdS   0.04 vLat    -34 N 1 ti 1
+    0.82 s v    241 latS  -12.8 capS  -0.17 cmdS   0.06 vLat    -39 N 1 ti 1
+    0.72 s v    245 latS  -17.1 capS  -0.19 cmdS   0.06 vLat    -43 N 1 ti 1
+    0.62 s v    250 latS  -20.1 capS  -0.05 cmdS   0.07 vLat    -30 N 1 ti 1
+    0.52 s v    254 latS  -17.5 capS   0.22 cmdS   0.04 vLat     26 N 1 ti 1
+    0.42 s v    259 latS   -8.1 capS   0.46 cmdS   0.00 vLat     94 N 0 ti 0 t0.45 cote1
+    0.32 s v    263 latS    4.5 capS   0.49 cmdS  -0.04 vLat    125 N 0 ti 1
+    0.22 s v    265 latS   14.7 capS   0.33 cmdS  -0.07 vLat    102 N 1 ti 1
+    0.12 s v    265 latS   21.9 capS   0.25 cmdS  -0.13 vLat     72 N 0 ti 0 t0.12 cote1
+    0.02 s v    265 latS   27.9 capS   0.21 cmdS  -0.15 vLat     60 N 0 ti 0 t0.02 cote1
+
+grotte-tenue-3970474 grotte td 83.7 mort roche vol 0.52 s ; pose precedente 59.27 s avant ; annonce des yeux 0.6 s avant
+    2.50 s v    134 latS   15.5 capS   0.21 cmdS  -0.13 vLat   -    N 1 ti 1
+    2.40 s v    135 latS   17.6 capS   0.14 cmdS  -0.15 vLat     22 N 1 ti 1
+    2.30 s v    136 latS   19.1 capS   0.10 cmdS  -0.16 vLat     15 N 1 ti 1
+    2.20 s v    136 latS   20.2 capS   0.06 cmdS  -0.17 vLat     11 N 1 ti 1
+    2.10 s v    136 latS   20.2 capS  -0.05 cmdS  -0.17 vLat     -0 N 1 ti 1
+    2.00 s v    134 latS   18.4 capS  -0.20 cmdS  -0.15 vLat    -18 N 1 ti 1
+    1.90 s v    132 latS   14.6 capS  -0.35 cmdS  -0.12 vLat    -38 N 1 ti 1
+    1.80 s v    132 latS    9.3 capS  -0.45 cmdS  -0.08 vLat    -53 N 0 ti 1
+    1.70 s v    133 latS    3.3 capS  -0.48 cmdS  -0.03 vLat    -60 N 0 ti 1
+    1.60 s v    148 latS   -3.1 capS  -0.45 cmdS   0.01 vLat    -64 N 0 ti 1
+    1.50 s v    147 latS   -8.7 capS  -0.35 cmdS   0.03 vLat    -56 N 0 ti 1
+    1.40 s v    145 latS  -13.1 capS  -0.29 cmdS   0.02 vLat    -44 N 0 ti 1
+    1.30 s v    143 latS  -16.9 capS  -0.24 cmdS  -0.01 vLat    -37 N 0 ti 1
+    1.20 s v    142 latS  -19.7 capS  -0.18 cmdS   0.05 vLat    -28 N 0 ti 1
+    1.10 s v    140 latS  -21.7 capS  -0.11 cmdS   0.05 vLat    -20 N 0 ti 1
+    1.00 s v    139 latS  -22.4 capS  -0.02 cmdS   0.05 vLat     -7 N 0 ti 1
+    0.90 s v    138 latS  -22.1 capS   0.06 cmdS   0.05 vLat      4 N 0 ti 1
+    0.80 s v    137 latS  -20.5 capS   0.17 cmdS   0.05 vLat     16 N 0 ti 1
+    0.70 s v    136 latS  -17.4 capS   0.29 cmdS  -0.06 vLat     31 N 0 ti 1
+    0.60 s v    135 latS  -12.4 capS   0.47 cmdS  -0.00 vLat     50 N 0 ti 0 t0.75 cote1
+    0.50 s v    138 latS   -5.6 capS   0.57 cmdS  -0.08 vLat     68 N 0 ti 0 t0.52 cote1
+    0.40 s v    137 latS    2.1 capS   0.62 cmdS  -0.15 vLat     76 N 0 ti 0 t0.4 cote1
+    0.30 s v    136 latS    9.7 capS   0.60 cmdS  -0.20 vLat     76 N 0 ti 0 t0.3 cote1
+    0.20 s v    134 latS   16.7 capS   0.54 cmdS  -0.26 vLat     71 N 0 ti 0 t0.2 cote1
+    0.10 s v    133 latS   23.0 capS   0.47 cmdS  -0.31 vLat     62 N 0 ti 0 t0.1 cote1
+    0.00 v v    132 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+
+grotte-tenue-3970548 grotte td 144.02 mort roche vol 0.26 s ; pose precedente 32.49 s avant ; annonce des yeux 0.32 s avant
+    2.42 s v    166 latS    6.5 capS   0.07 cmdS   0.25 vLat   -    N 1 ti 1
+    2.32 s v    165 latS    7.7 capS   0.09 cmdS   0.26 vLat     13 N 1 ti 1
+    2.22 s v    165 latS    9.1 capS   0.08 cmdS   0.25 vLat     13 N 1 ti 1
+    2.12 s v    181 latS   10.2 capS   0.04 cmdS   0.22 vLat     11 N 1 ti 1
+    2.02 s v    181 latS   10.8 capS  -0.00 cmdS  -0.01 vLat      6 N 1 ti 1
+    1.92 s v    181 latS   10.6 capS  -0.05 cmdS  -0.00 vLat     -2 N 1 ti 1
+    1.82 s v    181 latS    9.5 capS  -0.10 cmdS   0.01 vLat    -11 N 1 ti 1
+    1.72 s v    181 latS    7.6 capS  -0.15 cmdS   0.02 vLat    -19 N 1 ti 1
+    1.62 s v    181 latS    4.4 capS  -0.23 cmdS   0.04 vLat    -32 N 1 ti 1
+    1.52 s v    181 latS   -0.5 capS  -0.34 cmdS   0.02 vLat    -49 N 0 ti 0 t0.55 cote-1
+    1.42 s v    181 latS   -6.8 capS  -0.39 cmdS  -0.03 vLat    -63 N 0 ti 0 t0.45 cote-1
+    1.32 s v    180 latS  -13.3 capS  -0.37 cmdS  -0.07 vLat    -65 N 0 ti 0 t0.37 cote-1
+    1.22 s v    178 latS  -18.9 capS  -0.32 cmdS   0.05 vLat    -56 N 0 ti 0 t0.28 cote-1
+    1.12 s v    176 latS  -23.4 capS  -0.25 cmdS   0.05 vLat    -45 N 0 ti 0 t0.18 cote-1
+    1.02 s v    174 latS  -26.7 capS  -0.16 cmdS   0.14 vLat    -33 N 0 ti 0 t0.1 cote-1
+    0.92 s v    172 latS  -28.0 capS  -0.01 cmdS   0.26 vLat    -13 N 0 ti 1
+    0.82 s v    171 latS  -26.6 capS   0.14 cmdS   0.23 vLat     14 N 0 ti 1
+    0.72 s v    169 latS  -23.3 capS   0.22 cmdS   0.17 vLat     32 N 0 ti 1
+    0.62 s v    168 latS  -19.0 capS   0.29 cmdS   0.13 vLat     43 N 1 ti 1
+    0.52 s v    166 latS  -13.0 capS   0.43 cmdS   0.08 vLat     60 N 0 ti 1
+    0.42 s v    165 latS   -5.0 capS   0.55 cmdS   0.01 vLat     81 N 0 ti 1
+    0.32 s v    169 latS    3.9 capS   0.56 cmdS  -0.08 vLat     89 N 0 ti 0 t0.42 cote1
+    0.22 s v    168 latS   12.7 capS   0.54 cmdS  -0.14 vLat     88 N 0 ti 0 t0.25 cote1
+    0.12 s v    167 latS   20.6 capS   0.46 cmdS  -0.19 vLat     79 N 0 ti 0 t0.12 cote1
+    0.02 s v    165 latS   27.2 capS   0.36 cmdS  -0.26 vLat     66 N 0 ti 0 t0.02 cote1
+
+grotte-tenue-3970585 grotte td 92.43 mort roche vol 0.24 s ; pose precedente 23.15 s avant ; annonce des yeux 0.63 s avant
+    2.43 s v    138 latS    1.6 capS   0.03 cmdS   0.05 vLat   -    N 1 ti 1
+    2.33 s v    138 latS    1.8 capS   0.02 cmdS   0.09 vLat      2 N 1 ti 1
+    2.23 s v    137 latS    2.1 capS   0.05 cmdS   0.11 vLat      3 N 1 ti 1
+    2.13 s v    137 latS    2.6 capS   0.04 cmdS   0.15 vLat      5 N 1 ti 1
+    2.03 s v    135 latS    3.0 capS   0.04 cmdS   0.05 vLat      4 N 1 ti 1
+    1.93 s v    134 latS    3.5 capS   0.04 cmdS   0.04 vLat      5 N 1 ti 1
+    1.83 s v    134 latS    3.4 capS  -0.04 cmdS   0.01 vLat     -0 N 0 ti 1
+    1.73 s v    134 latS    1.9 capS  -0.18 cmdS  -0.07 vLat    -15 N 0 ti 1
+    1.63 s v    134 latS   -1.6 capS  -0.31 cmdS  -0.01 vLat    -35 N 0 ti 1
+    1.53 s v    134 latS   -6.2 capS  -0.37 cmdS   0.01 vLat    -46 N 0 ti 1
+    1.43 s v    134 latS  -11.2 capS  -0.40 cmdS   0.03 vLat    -51 N 0 ti 1
+    1.33 s v    137 latS  -16.5 capS  -0.39 cmdS   0.03 vLat    -53 N 0 ti 1
+    1.23 s v    136 latS  -21.2 capS  -0.32 cmdS   0.05 vLat    -47 N 0 ti 1
+    1.13 s v    135 latS  -24.5 capS  -0.19 cmdS   0.05 vLat    -33 N 0 ti 1
+    1.03 s v    134 latS  -25.8 capS  -0.03 cmdS   0.05 vLat    -13 N 0 ti 1
+    0.93 s v    133 latS  -25.0 capS   0.12 cmdS   0.05 vLat      8 N 0 ti 1
+    0.83 s v    132 latS  -22.5 capS   0.22 cmdS   0.05 vLat     25 N 0 ti 1
+    0.73 s v    131 latS  -18.7 capS   0.35 cmdS   0.05 vLat     38 N 0 ti 1
+    0.63 s v    130 latS  -13.7 capS   0.46 cmdS  -0.01 vLat     51 N 0 ti 0 t0.83 cote1
+    0.53 s v    128 latS   -7.3 capS   0.58 cmdS  -0.10 vLat     64 N 0 ti 0 t0.52 cote1
+    0.43 s v    127 latS    0.0 capS   0.65 cmdS  -0.10 vLat     73 N 0 ti 0 t0.42 cote1
+    0.33 s v    125 latS    7.6 capS   0.65 cmdS  -0.20 vLat     75 N 0 ti 0 t0.32 cote1
+    0.23 s v    123 latS   14.7 capS   0.60 cmdS  -0.26 vLat     71 N 0 ti 0 t0.23 cote1
+    0.13 s v    122 latS   21.1 capS   0.55 cmdS  -0.31 vLat     65 N 0 ti 0 t0.13 cote1
+    0.03 s v    120 latS   26.9 capS   0.48 cmdS  -0.33 vLat     57 N 0 ti 0 t0.03 cote1
+
+grotte-tenue-3970659 grotte td 132.48 mort roche vol 0.64 s ; pose precedente 7.56 s avant ; annonce des yeux 0.28 s avant
+    2.48 s v    152 latS   -2.6 capS   0.26 cmdS   0.01 vLat   -    N 1 ti 1
+    2.38 s v    152 latS    1.0 capS   0.21 cmdS  -0.02 vLat     35 N 1 ti 1
+    2.28 s v    152 latS    3.6 capS   0.16 cmdS  -0.03 vLat     27 N 1 ti 1
+    2.18 s v    153 latS    6.0 capS   0.15 cmdS  -0.03 vLat     23 N 1 ti 1
+    2.08 s v    153 latS    8.2 capS   0.15 cmdS  -0.06 vLat     23 N 1 ti 1
+    1.98 s v    153 latS   10.2 capS   0.11 cmdS  -0.08 vLat     20 N 1 ti 1
+    1.88 s v    154 latS   11.3 capS   0.06 cmdS  -0.07 vLat     12 N 1 ti 1
+    1.78 s v    154 latS   11.8 capS   0.01 cmdS  -0.06 vLat      5 N 1 ti 1
+    1.68 s v    154 latS   10.9 capS  -0.11 cmdS  -0.04 vLat     -9 N 1 ti 1
+    1.58 s v    153 latS    8.0 capS  -0.25 cmdS  -0.01 vLat    -30 N 1 ti 1
+    1.48 s v    151 latS    3.3 capS  -0.34 cmdS   0.01 vLat    -47 N 1 ti 1
+    1.38 s v    155 latS   -2.1 capS  -0.35 cmdS   0.04 vLat    -54 N 0 ti 1
+    1.28 s v    157 latS   -7.1 capS  -0.31 cmdS   0.06 vLat    -50 N 1 ti 1
+    1.18 s v    156 latS  -11.7 capS  -0.28 cmdS   0.09 vLat    -45 N 1 ti 1
+    1.08 s v    155 latS  -15.1 capS  -0.18 cmdS   0.11 vLat    -35 N 1 ti 1
+    0.98 s v    156 latS  -17.2 capS  -0.11 cmdS   0.13 vLat    -21 N 1 ti 1
+    0.88 s v    157 latS  -18.5 capS  -0.06 cmdS   0.13 vLat    -13 N 1 ti 1
+    0.78 s v    158 latS  -18.6 capS   0.04 cmdS   0.13 vLat     -2 N 1 ti 1
+    0.68 s v    158 latS  -16.8 capS   0.18 cmdS   0.12 vLat     19 N 1 ti 1
+    0.58 s v    158 latS  -12.5 capS   0.35 cmdS   0.09 vLat     43 N 0 ti 1
+    0.48 s v    157 latS   -5.7 capS   0.50 cmdS   0.05 vLat     67 N 0 ti 1
+    0.38 s v    159 latS    2.3 capS   0.53 cmdS  -0.01 vLat     80 N 0 ti 1
+    0.28 s v    160 latS   10.1 capS   0.50 cmdS  -0.10 vLat     79 N 0 ti 0 t0.37 cote1
+    0.18 s v    160 latS   17.6 capS   0.47 cmdS  -0.19 vLat     75 N 0 ti 0 t0.18 cote1
+    0.08 s v    159 latS   24.3 capS   0.38 cmdS  -0.25 vLat     67 N 0 ti 0 t0.08 cote1
+
+jade-tenue-3970511 jade td 43.25 mort vide vol 6.02 s ; pose precedente 0.28 s avant ; annonce des yeux 0.25 s avant
+    2.45 v v    249 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    2.35 v v    251 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    2.25 v v    254 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    2.15 v v    257 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    2.05 v v    260 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.95 v v    259 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.85 s v    126 latS   23.1 capS   0.63 cmdS  -0.22 vLat   -    N 0 ti 0 t0.1 cote1
+    1.75 v v     92 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    1.65 v v     95 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    1.55 v v     98 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    1.45 v v     99 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    1.35 v v     99 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.25 v v     99 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.15 v v    100 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.05 v v     99 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.95 v v    125 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.85 v v    126 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.75 v v    125 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.65 v v    125 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.55 v v    124 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.45 v v    123 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.35 v v    123 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.25 s v    116 latS   12.0 capS   0.77 cmdS  -0.05 vLat   -    N 0 ti 0 t0.22 cote1 REBOND DESSOUS
+    0.15 s v    100 latS   19.8 capS   0.78 cmdS  -0.17 vLat     78 N 0 ti 0 t0.17 cote1 DESSOUS
+    0.05 s v     82 latS   25.9 capS   0.70 cmdS  -0.31 vLat     61 N 0 ti 0 t0.05 cote1 DESSOUS
+
+jade-tenue-3970585 jade td 66.85 mort air vol 6 s ; pose precedente 0.28 s avant ; annonce des yeux 0.15 s avant
+    2.45 v v    302 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    2.35 v v    306 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    2.25 v v    310 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    2.15 v v    314 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    2.05 v v    318 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.95 v v    322 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.85 v v    326 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.75 v v    329 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.65 v v    333 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.55 v v    337 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.45 v v    341 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.35 v v    345 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.25 v v    349 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.15 v v    353 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    1.05 v v    357 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.95 v v    361 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.85 v v    365 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.75 v v    369 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.65 v v    373 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.55 v v    377 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.45 v v    381 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.35 v v    385 latS   -    capS   -    cmdS   -    vLat   -    N 1 ti -
+    0.25 s v    386 latS    0.0 capS   0.00 cmdS  -0.18 vLat   -    N 1 ti 1
+    0.15 s v    378 latS    4.6 capS   0.25 cmdS  -0.28 vLat     46 N 0 ti 0 t0.17 cote1
+    0.05 s v    370 latS   19.9 capS   0.52 cmdS  -0.34 vLat    153 N 0 ti 0 t0.05 cote1
+
+jade-tenue-3970622 jade td 135.43 mort pic vol 2.84 s ; pose precedente 9.11 s avant ; annonce des yeux 0.23 s avant
+    2.43 s v    143 latS    1.7 capS   0.19 cmdS   0.14 vLat   -    N 1 ti 1
+    2.33 s v    143 latS    4.5 capS   0.22 cmdS   0.15 vLat     28 N 1 ti 1
+    2.23 s v    143 latS    7.3 capS   0.20 cmdS   0.17 vLat     28 N 1 ti 1
+    2.13 s v    143 latS    9.5 capS   0.11 cmdS  -0.01 vLat     22 N 1 ti 1
+    2.03 s v    143 latS    9.9 capS  -0.01 cmdS   0.03 vLat      4 N 1 ti 1
+    1.93 s v    144 latS    9.0 capS  -0.09 cmdS  -0.04 vLat     -9 N 1 ti 1
+    1.83 s v    144 latS    6.7 capS  -0.23 cmdS  -0.10 vLat    -23 N 1 ti 1
+    1.73 s v    144 latS    2.5 capS  -0.35 cmdS  -0.00 vLat    -42 N 1 ti 1
+    1.63 s v    147 latS   -2.9 capS  -0.39 cmdS   0.04 vLat    -54 N 0 ti 1
+    1.53 s v    146 latS   -8.1 capS  -0.34 cmdS   0.07 vLat    -52 N 1 ti 1
+    1.43 s v    145 latS  -12.5 capS  -0.30 cmdS   0.11 vLat    -44 N 1 ti 1
+    1.33 s v    144 latS  -16.4 capS  -0.25 cmdS   0.14 vLat    -39 N 1 ti 1
+    1.23 s v    144 latS  -19.2 capS  -0.17 cmdS   0.14 vLat    -28 N 1 ti 1
+    1.13 s v    145 latS  -21.1 capS  -0.10 cmdS   0.16 vLat    -19 N 1 ti 1
+    1.03 s v    147 latS  -21.8 capS  -0.02 cmdS   0.16 vLat     -7 N 1 ti 1
+    0.93 s v    147 latS  -21.7 capS   0.02 cmdS   0.15 vLat      1 N 1 ti 1
+    0.83 s v    148 latS  -20.8 capS   0.09 cmdS   0.15 vLat      9 N 1 ti 1
+    0.73 s v    148 latS  -19.1 capS   0.13 cmdS   0.13 vLat     18 N 1 ti 1
+    0.63 s v    148 latS  -17.0 capS   0.16 cmdS   0.12 vLat     21 N 1 ti 1
+    0.53 s v    148 latS  -13.8 capS   0.25 cmdS   0.10 vLat     31 N 1 ti 1
+    0.43 s v    149 latS   -9.0 capS   0.38 cmdS   0.05 vLat     48 N 0 ti 1
+    0.33 s v    149 latS   -2.3 capS   0.53 cmdS   0.01 vLat     67 N 0 ti 1
+    0.23 s v    149 latS    6.4 capS   0.68 cmdS  -0.07 vLat     86 N 0 ti 0 t0.25 cote1
+    0.13 s v    149 latS   16.3 capS   0.74 cmdS  -0.18 vLat     99 N 0 ti 0 t0.13 cote1
+    0.03 s v    152 latS   26.3 capS   0.69 cmdS  -0.25 vLat    101 N 0 ti 0 t0.03 cote1
+
+libre-3970474 jade td 128.12 mort vide vol 6.01 s ; pose precedente 0.42 s avant ; annonce des yeux 0.32 s avant
+    2.42 s v    155 latS   -2.9 capS  -0.09 cmdS   0.16 vLat   -    N 1 ti 1
+    2.32 s v    156 latS   -4.5 capS  -0.08 cmdS   0.27 vLat    -16 N 1 ti 1
+    2.22 s v    157 latS   -5.6 capS  -0.03 cmdS   0.29 vLat    -11 N 1 ti 1
+    2.12 s v    157 latS   -5.9 capS  -0.00 cmdS   0.31 vLat     -3 N 1 ti 1
+    2.02 s v    158 latS   -6.2 capS  -0.02 cmdS   0.32 vLat     -3 N 1 ti 1
+    1.92 s v    157 latS   -7.4 capS  -0.10 cmdS   0.34 vLat    -12 N 1 ti 1
+    1.82 s v    156 latS   -9.5 capS  -0.19 cmdS   0.02 vLat    -21 N 0 ti 1
+    1.72 s v    161 latS  -13.3 capS  -0.28 cmdS   0.16 vLat    -38 N 1 ti 1
+    1.62 s v    162 latS  -17.9 capS  -0.32 cmdS   0.20 vLat    -46 N 0 ti 0 t0.25 cote-1
+    1.52 s v    162 latS  -22.6 capS  -0.29 cmdS   0.24 vLat    -47 N 0 ti 0 t0.15 cote-1
+    1.42 s v    162 latS  -26.5 capS  -0.23 cmdS   0.23 vLat    -39 N 0 ti 0 t0.05 cote-1
+    1.32 v v    164 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    1.22 v v    168 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    1.12 v v    168 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    1.02 v v    168 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    0.92 v v    168 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    0.82 v v    168 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    0.72 v v    168 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    0.62 v v    168 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    0.52 v v    169 latS   -    capS   -    cmdS   -    vLat   -    N 0 ti -
+    0.42 s v    157 latS  -27.9 capS   0.68 cmdS   0.05 vLat   -    N 0 ti 0 t0.48 cote1
+    0.32 s v    155 latS  -16.2 capS   0.99 cmdS  -0.05 vLat    117 N 0 ti 0 t0.33 cote1
+    0.22 s v    154 latS   -2.4 capS   1.20 cmdS  -0.19 vLat    138 N 0 ti 0 t0.22 cote1
+    0.12 s v    152 latS   12.0 capS   1.24 cmdS  -0.31 vLat    144 N 0 ti 0 t0.12 cote1
+    0.02 s v    150 latS   26.1 capS   1.18 cmdS  -0.40 vLat    141 N 0 ti 0 t0.02 cote1
+
+libre-3970622 grotte td 29.48 mort roche vol 0.2 s ; pose precedente 38.48 s avant ; annonce des yeux 0.28 s avant
+    2.48 s v    119 latS    4.2 capS   0.47 cmdS  -0.05 vLat   -    N 0 ti 1
+    2.38 s v    120 latS    9.4 capS   0.43 cmdS  -0.09 vLat     52 N 0 ti 1
+    2.28 s v    119 latS   14.0 capS   0.37 cmdS  -0.12 vLat     46 N 0 ti 1
+    2.18 s v    116 latS   17.6 capS   0.26 cmdS  -0.14 vLat     36 N 1 ti 1
+    2.08 s v    114 latS   19.6 capS   0.13 cmdS  -0.14 vLat     21 N 1 ti 1
+    1.98 s v    113 latS   20.4 capS   0.03 cmdS  -0.14 vLat      7 N 1 ti 1
+    1.88 s v    113 latS   20.3 capS  -0.04 cmdS  -0.11 vLat     -1 N 1 ti 1
+    1.78 s v    113 latS   19.1 capS  -0.16 cmdS  -0.10 vLat    -12 N 1 ti 1
+    1.68 s v    113 latS   16.5 capS  -0.28 cmdS  -0.06 vLat    -26 N 1 ti 1
+    1.58 s v    113 latS   12.8 capS  -0.36 cmdS  -0.02 vLat    -37 N 0 ti 1
+    1.48 s v    112 latS    8.7 capS  -0.39 cmdS   0.01 vLat    -41 N 0 ti 1
+    1.38 s v    115 latS    4.3 capS  -0.40 cmdS   0.03 vLat    -44 N 0 ti 1
+    1.28 s v    114 latS   -0.2 capS  -0.40 cmdS   0.06 vLat    -45 N 0 ti 1
+    1.18 s v    113 latS   -4.3 capS  -0.34 cmdS   0.09 vLat    -41 N 1 ti 1
+    1.08 s v    112 latS   -7.4 capS  -0.23 cmdS   0.10 vLat    -31 N 1 ti 1
+    0.98 s v    111 latS   -9.2 capS  -0.10 cmdS   0.11 vLat    -17 N 1 ti 1
+    0.88 s v    111 latS   -9.4 capS   0.04 cmdS   0.12 vLat     -2 N 1 ti 1
+    0.78 s v    112 latS   -8.2 capS   0.14 cmdS   0.11 vLat     12 N 1 ti 1
+    0.68 s v    112 latS   -6.3 capS   0.19 cmdS   0.09 vLat     19 N 0 ti 1
+    0.58 s v    112 latS   -3.7 capS   0.27 cmdS   0.06 vLat     26 N 0 ti 1
+    0.48 s v    111 latS   -0.1 capS   0.38 cmdS   0.03 vLat     36 N 0 ti 1
+    0.38 s v    110 latS    4.8 capS   0.51 cmdS  -0.02 vLat     49 N 0 ti 1
+    0.28 s v    108 latS   10.8 capS   0.62 cmdS  -0.12 vLat     60 N 0 ti 0 t0.3 cote1
+    0.18 s v    111 latS   17.4 capS   0.66 cmdS  -0.22 vLat     66 N 0 ti 0 t0.18 cote1
+    0.08 s v    110 latS   23.8 capS   0.59 cmdS  -0.30 vLat     64 N 0 ti 0 t0.08 cote1
+
+ville-tenue-3970400 ville td 11.55 mort tour vol 1.97 s ; pose precedente 20.55 s avant ; annonce des yeux 0.25 s avant
+    2.45 s v    106 latS    1.8 capS  -0.01 cmdS  -0.10 vLat   -    N 1 ti 1
+    2.35 s v    106 latS    1.3 capS  -0.09 cmdS  -0.01 vLat     -5 N 1 ti 1
+    2.25 s v    107 latS    0.1 capS  -0.15 cmdS   0.00 vLat    -12 N 1 ti 1
+    2.15 s v    107 latS   -1.7 capS  -0.21 cmdS   0.03 vLat    -18 N 1 ti 1
+    2.05 s v    107 latS   -4.0 capS  -0.23 cmdS   0.05 vLat    -23 N 1 ti 1
+    1.95 s v    108 latS   -6.2 capS  -0.19 cmdS   0.10 vLat    -21 N 1 ti 1
+    1.85 s v    108 latS   -7.8 capS  -0.16 cmdS   0.07 vLat    -17 N 1 ti 1
+    1.75 s v    108 latS   -9.2 capS  -0.12 cmdS   0.03 vLat    -13 N 1 ti 1
+    1.65 s v    109 latS  -10.3 capS  -0.10 cmdS  -0.10 vLat    -11 N 1 ti 1
+    1.55 s v    109 latS  -11.1 capS  -0.08 cmdS  -0.16 vLat     -8 N 1 ti 1
+    1.45 s v    109 latS  -12.0 capS  -0.11 cmdS  -0.18 vLat     -9 N 1 ti 1
+    1.35 s v    110 latS  -13.4 capS  -0.14 cmdS  -0.12 vLat    -14 N 1 ti 1
+    1.25 s v    110 latS  -14.6 capS  -0.09 cmdS  -0.12 vLat    -12 N 0 ti 1
+    1.15 s v    110 latS  -15.4 capS  -0.03 cmdS   0.17 vLat     -8 N 0 ti 1
+    1.05 s v    109 latS  -14.9 capS   0.12 cmdS   0.15 vLat      5 N 0 ti 1
+    0.95 s v    108 latS  -12.7 capS   0.28 cmdS   0.11 vLat     22 N 0 ti 1
+    0.85 s v    122 latS   -9.0 capS   0.40 cmdS   0.04 vLat     37 N 0 ti 1
+    0.75 s v    124 latS   -4.0 capS   0.43 cmdS   0.01 vLat     50 N 0 ti 1
+    0.65 s v    122 latS    0.8 capS   0.39 cmdS   -    vLat     48 N 0 ti 1 RACCOURCI
+    0.55 s v    120 latS    4.8 capS   0.32 cmdS   -    vLat     40 N 1 ti 1 RACCOURCI
+    0.45 s v    118 latS    7.8 capS   0.23 cmdS  -0.01 vLat     30 N 1 ti 1
+    0.35 s v    118 latS   10.3 capS   0.24 cmdS   0.04 vLat     25 N 1 ti 1
+    0.25 s v    118 latS   13.8 capS   0.37 cmdS   0.05 vLat     34 N 0 ti 0 t0.3 cote1
+    0.15 s v    117 latS   18.9 capS   0.54 cmdS  -0.05 vLat     52 N 0 ti 0 t0.15 cote1
+    0.05 s v    117 latS   25.4 capS   0.60 cmdS  -0.06 vLat     64 N 0 ti 0 t0.05 cote1
+
+ville-tenue-3970437 ville td 107.95 mort tour vol 0.38 s ; pose precedente 11.05 s avant ; annonce des yeux 0.35 s avant
+    2.45 s v    140 latS   10.3 capS  -0.13 cmdS  -0.11 vLat   -    N 1 ti 1
+    2.35 s v    140 latS    7.5 capS  -0.23 cmdS  -0.10 vLat    -28 N 1 ti 1
+    2.25 s v    142 latS    3.9 capS  -0.27 cmdS  -0.11 vLat    -36 N 1 ti 1
+    2.15 s v    143 latS    0.1 capS  -0.26 cmdS  -0.10 vLat    -38 N 1 ti 1
+    2.05 s v    147 latS   -3.6 capS  -0.24 cmdS  -0.10 vLat    -37 N 1 ti 1
+    1.95 s v    149 latS   -7.0 capS  -0.22 cmdS  -0.11 vLat    -34 N 1 ti 1
+    1.85 s v    150 latS  -10.1 capS  -0.19 cmdS  -0.12 vLat    -31 N 1 ti 1
+    1.75 s v    150 latS  -12.8 capS  -0.17 cmdS  -0.13 vLat    -27 N 1 ti 1
+    1.65 s v    150 latS  -15.1 capS  -0.14 cmdS  -0.10 vLat    -23 N 1 ti 1
+    1.55 s v    149 latS  -16.9 capS  -0.08 cmdS  -0.01 vLat    -18 N 1 ti 1
+    1.45 s v    149 latS  -17.7 capS  -0.02 cmdS   0.02 vLat     -8 N 1 ti 1
+    1.35 s v    149 latS  -17.5 capS   0.06 cmdS   0.02 vLat      2 N 1 ti 1
+    1.25 s v    150 latS  -16.3 capS   0.10 cmdS   0.01 vLat     12 N 1 ti 1
+    1.15 s v    150 latS  -15.1 capS   0.10 cmdS  -0.01 vLat     13 N 1 ti 1
+    1.05 s v    163 latS  -13.4 capS   0.14 cmdS  -0.01 vLat     16 N 1 ti 1
+    0.95 s v    164 latS  -11.4 capS   0.14 cmdS  -0.01 vLat     20 N 1 ti 1
+    0.85 s v    165 latS   -9.7 capS   0.12 cmdS   -    vLat     17 N 1 ti 1 RACCOURCI
+    0.75 s v    166 latS   -7.8 capS   0.15 cmdS   -    vLat     19 N 1 ti 1 RACCOURCI
+    0.65 s v    167 latS   -4.9 capS   0.21 cmdS   -    vLat     29 N 1 ti 1 RACCOURCI
+    0.55 s v    168 latS   -1.5 capS   0.21 cmdS  -0.01 vLat     34 N 1 ti 1
+    0.45 s v    168 latS    1.8 capS   0.23 cmdS   0.03 vLat     32 N 1 ti 1
+    0.35 s v    169 latS    6.4 capS   0.35 cmdS   0.03 vLat     47 N 0 ti 0 t0.42 cote1
+    0.25 s v    170 latS   12.6 capS   0.40 cmdS   0.04 vLat     62 N 0 ti 0 t0.28 cote1
+    0.15 s v    169 latS   19.1 capS   0.42 cmdS  -0.05 vLat     65 N 0 ti 0 t0.15 cote1
+    0.05 s v    167 latS   25.5 capS   0.39 cmdS  -0.05 vLat     64 N 0 ti 0 t0.05 cote1
+
+ville-tenue-3970511 ville td 58.12 mort air vol 6.01 s ; pose precedente 11.75 s avant ; annonce des yeux 0.32 s avant
+    2.42 s v    218 latS  -16.2 capS  -0.27 cmdS   0.09 vLat   -    N 1 ti 1
+    2.32 s v    219 latS  -19.7 capS  -0.07 cmdS   0.10 vLat    -34 N 0 ti 1
+    2.22 s v    220 latS  -18.0 capS   0.18 cmdS   0.10 vLat     17 N 0 ti 1
+    2.12 s v    219 latS  -10.9 capS   0.40 cmdS   0.07 vLat     70 N 0 ti 1
+    2.02 s v    217 latS   -1.7 capS   0.45 cmdS   0.02 vLat     92 N 0 ti 1
+    1.92 s v    239 latS    7.6 capS   0.44 cmdS  -0.05 vLat     93 N 0 ti 0 t0.28 cote1
+    1.82 s v    238 latS   16.3 capS   0.29 cmdS  -0.09 vLat     87 N 1 ti 1
+    1.72 s v    236 latS   20.0 capS   0.08 cmdS  -0.10 vLat     37 N 1 ti 1
+    1.62 s v    234 latS   20.7 capS  -0.01 cmdS  -0.09 vLat      7 N 1 ti 1
+    1.52 s v    235 latS   20.1 capS  -0.04 cmdS  -0.09 vLat     -6 N 1 ti 1
+    1.42 s v    237 latS   18.7 capS  -0.07 cmdS  -0.09 vLat    -14 N 1 ti 1
+    1.32 s v    238 latS   16.7 capS  -0.10 cmdS  -0.08 vLat    -20 N 1 ti 1
+    1.22 s v    240 latS   14.0 capS  -0.13 cmdS  -0.06 vLat    -27 N 1 ti 1
+    1.12 s v    241 latS   10.8 capS  -0.15 cmdS  -0.05 vLat    -32 N 1 ti 1
+    1.02 s v    242 latS    7.0 capS  -0.17 cmdS  -0.03 vLat    -38 N 1 ti 1
+    0.92 s v    243 latS    2.8 capS  -0.19 cmdS  -0.01 vLat    -42 N 1 ti 1
+    0.82 s v    244 latS   -1.9 capS  -0.20 cmdS   0.01 vLat    -47 N 1 ti 1
+    0.72 s v    246 latS   -6.9 capS  -0.21 cmdS   0.03 vLat    -50 N 1 ti 1
+    0.62 s v    246 latS  -12.2 capS  -0.22 cmdS   0.05 vLat    -53 N 1 ti 1
+    0.52 s v    247 latS  -15.8 capS  -0.07 cmdS   0.07 vLat    -36 N 1 ti 1
+    0.42 s v    248 latS  -13.6 capS   0.21 cmdS   0.06 vLat     22 N 1 ti 1
+    0.32 s v    249 latS   -4.6 capS   0.47 cmdS  -0.01 vLat     90 N 0 ti 0 t0.37 cote1
+    0.22 s v    250 latS    7.9 capS   0.55 cmdS  -0.07 vLat    125 N 0 ti 0 t0.18 cote1
+    0.12 s v    248 latS   20.0 capS   0.45 cmdS  -0.13 vLat    121 N 0 ti 0 t0.12 cote1
+    0.02 s v    246 latS   27.3 capS   0.20 cmdS  -0.16 vLat     73 N 0 ti 0 t0.02 cote1
