@@ -1,10 +1,10 @@
-Generation 0, phase A, epoque 29ae5fffc2b9 (depuis la gen. 0), 12 graines par generation, 20 vivants
-EN MARCHE (pid 8004, signe de vie il y a 7 s, lance le 28/11 00:29)
-Debit : pas encore de generation finie ; 10 a la fois (banc du 28/11)
-Champion 19e3767cc346 (= le temoin) : pas encore note
+Generation 1, phase A, epoque 29ae5fffc2b9 (depuis la gen. 0), 12 graines par generation, 26 vivants
+EN MARCHE (pid 8004, signe de vie il y a 8 s, lance le 28/11 00:29)
+Debit : 418 courses/h (gen. 0 : 280 courses dont 280 jouees, 0 du cache, en 40 min) ; 10 a la fois (banc du 28/11)
+Champion 19e3767cc346 (= le temoin) : F 3.6 +- 0.8, palier 6.9, ecart E 0.82 (12 courses)
 Meneur   ? : pas encore note
-Temoin   19e3767cc346 : pas encore note
-Coffre : pas encore mesure
+Temoin   19e3767cc346 : F 3.6 +- 0.8, palier 6.9, ecart E 0.82 (12 courses)
+Coffre (28/11 01:26, gen. 0, 40 courses) : champion - temoin = palier +0.00, E +0.00, ecart classique +0.00
 Validation : aucune encore
-Courses : rien encore
+Gen. 0 : 0 course(s) non mesuree(s) sur 280 (0.0 %), 0 panne(s) de cerveau
 Alertes : aucune
