@@ -1,9 +1,101 @@
-# Passation — l'écurie, le 28/11/2026 vers 15 h (mise à jour ; l'état du 28/11 au matin, celui du 27/11 au soir et celui du 26/11 suivent, en partie périmés)
+# Passation — l'écurie, le 28/11/2026 vers 17 h 50 (mise à jour ; l'état du 28/11 vers 15 h, celui du matin, celui du 27/11 au soir et celui du 26/11 suivent, en partie périmés)
 
-À lire en premier par la session qui reprend. Le détail de chaque étape est dans `ETAPES.md` (« L'après-midi du 28/11 », puis « La nuit du 27 au 28/11 ») ;
-le récit pour le portfolio dans `portfolio/journal/2026-11-28.md` et `2026-11-28_suite.md` ; ici, l'état exact, ce qui tourne, et quoi faire. Heures de Paris.
+À lire en premier par la session qui reprend. Le détail de chaque étape est dans `ETAPES.md` (« La soirée du 28/11 », puis « L'après-midi du 28/11 »,
+puis « La nuit du 27 au 28/11 ») ; le récit pour le portfolio dans `portfolio/journal/2026-11-28.md`, `2026-11-28_suite.md` et `2026-11-28_soir.md` ;
+ici, l'état exact, ce qui tourne, et quoi faire. Heures de Paris.
+
+## L'état au 28/11/2026 vers 17 h 50
+
+**En bref.** Le cap a changé de forme : Sacha ne veut pas un champion mais **deux familles**, une **échelle** de bots de chaque niveau (du palier 1 au
+palier 30) qui conduisent et meurent comme des joueurs, pour le matchmaking, et des **experts** qui ne perdent jamais au palier moteur 30 (sa phrase,
+citée telle quelle : `etude/avant-le-bord/LISEZ-MOI.md` § 9.6, `etude/echelle-de-bots/LISEZ-MOI.md` § 1). Quatre études du soir, toutes commitées et
+poussées : trois règles « avant le bord » abandonnées avant d'être codées ; l'échelle étudiée sans course ; d'où viennent les pièces (**les joueurs en
+ramassent 437 par minute, c0025 248**) ; le test du tri déclaré **nul**. Le critère de débit du banc est
+prêt sur une branche à part. La vague 1 tourne. Le Ryzen n'a **pas** reçu la mise à jour n° 2.
+
+### Ce qui tourne
+
+| | État au 28/11 vers 17 h 50 |
+|---|---|
+| **La vague 1 du banc v2, sur le Xeon** | **en marche** (`ml/evolution/banc/vagues/v001-confirmation-gestes/`). `resume.txt` (écrit à 17 h 53) : point 3 sur 8 fait, 72 graines, 384 courses, 0 non mesurée ; `bord-slalom` et `fuir-vite` arrêtés au 2e point, `suit` au 3e, « rien de net (arrêt tôt) » ; `bord` et `slalom` jouent encore. **Aucun chiffre d'écart à lire ni à écrire avant la fin** |
+| **La sélection, sur le Ryzen** | **en marche**, code de la mise à jour n° 1 (relance du 28/11 à 13 h 11). Envoi de 17 h (`6fa83427d`) : génération 21 en cours, 413 courses à l'heure, époque `3c3d44e8bd9b` (depuis la génération 16), **26 génomes sur 26 en v:3**, champion = témoin c0025, 0 sacre, alertes : aucune ; « mutations comptent-elles ? » trop tôt (133 enfants sur 191). L'envoi de 18 h (`374703071`) : génération 22 en cours, même époque, toujours 26 génomes en v:3. Le cycle de greffes y est encore celui à cinq essais |
+| **Les tests longs sur l'arbre fusionné** | **passés**, d'après la session principale : identité 9/9, `evoluer.test` en entier, `courses.test` 11/11 (fichiers des dossiers d'essai modifiés entre 15 h 08 et 16 h 11 ; leur sortie n'est pas gardée dans git) |
+
+**Ce qui ne doit pas bouger pendant la vague** : `ml/evolution/modele.js`, `enfant.js`, le jeu, les yeux, la version de Node (sinon code 4, vague à
+refaire sous un autre numéro). Pas d'autre course lourde sur le Xeon que celles qui laissent deux cœurs à la vague.
+
+### Ce qui est poussé, ce qui ne l'est pas
+
+- **`origin/bots-ecurie` = `bots-ecurie` = `9cc87f48e`** (17 h 48, vérifié par `git fetch`) : le lot v4 (`77083d123`), la vague 1 (`15c7f1cb3`) et les quatre
+  études du soir sont sur GitHub. Le prochain `git merge` du Ryzen apportera donc le lot v4 : la mise à jour n° 2 (plus bas) n'est plus une question de push.
+- **Pas fusionnée** : la branche `banc-debit` (`b0fed8858`, 17 h 05 ; `b1326cf98`, 17 h 13 ; dans la copie `CASH-CAR-genes-v4`). **Prête, à fusionner
+  après la vague 1** : elle touche `ml/evolution/banc/`, et la vague doit finir avec le code qui l'a commencée.
+- **Non commités** (laissés au relecteur) : le chapitre `portfolio/journal/2026-11-28_soir.md`, les mises à jour du journal (`LISEZ-MOI.md`, `LEXIQUE.md`),
+  `ETAPES.md` et cette passation. Non suivis, laissés tels quels : `ml/bot/results/note-essai-main-allege-t120-parties.json`, `ml/evolution/banc/vagues/INDEX.md`
+  et les fichiers de la vague 1 (`journal.md`, `regards.json`, `resume.txt`), que le banc écrit lui-même.
+
+### Ce qui a été fait ce soir (le détail : `ETAPES.md`, « La soirée du 28/11 »)
+
+- **Avant le bord** (`6a95e0693`, `4c266e0f6`) : `gardeOn`, `ouvertOn` et `plafOn` abandonnés **avant d'être codés** (la prédiction de la ville, écrite avant,
+  réfutée : 8 morts sur 34 sorties bordées, 5 sur 23 ouvertes ; la vitesse sûre presque jamais dépassée : 39 vues sur 24 952). c0025 ne meurt pas plus par
+  minute qu'un joueur sur décor, il va moins vite.
+- **L'échelle de bots** (`fb7c0da18`) : trois conceptions (niches, handicap, banque de courses) ; aucune ne fabrique l'expert (50 à 200 fois trop de morts par
+  minute) ; décision au § 11.
+- **D'où viennent les pièces** (`cae540270`) : 437 contre 248 par minute (×1,76 [1,46 ; 2,06]) ; aucune règle nouvelle ; critère de débit au banc ; vague 2
+  annoncée ; 4 ensembles de greffes de plus dans `ml/evolution/config.json` (14, cycle de 15 générations ; pas sur le Ryzen).
+- **Le test du tri** (`9cc87f48e`) : AUC 0,904 à temps égal, mais le même juge sépare Sacha de Léo à 0,93 : **nul** ; l'erreur est dans la prédiction
+  (seuil non calibré humain contre humain). Le tri ne change pas le pilote (0,513).
+- **Le critère de débit** (branche `banc-debit`) : écrit et relu ; garde de survie à 10 s dans l'exemple de la vague 2 ; `slalomOn` y perd environ 28 pièces
+  par minute (z −4,5) ; `banc.test` 66/66.
+
+### Ce qui attend, dans l'ordre
+
+1. **Laisser la vague 1 aller au bout**, puis lire son `resume.txt` et son `resultat.json` avec leurs limites (`banc/README.md` ; un « net » n'est qu'un
+   candidat ; la garde de 0,75 palier du bras `slalom` se juge à la main) et l'écrire dans le journal, `ETAPES.md` et ici.
+2. **Fusionner `banc-debit`** dans `bots-ecurie`, après la vague 1 seulement.
+3. **Écrire la vague 2 sur le débit, avec ses critères, avant de la jouer** : cinq bras (`nitro-sol`, `vise-large`, `racc-fermes`, `fig3`, `nitro-decor`),
+   critère `debit`, garde de survie (10 s dans l'exemple du README, à décider avant de jouer), numéro 2 ; `vise-large` jugé aussi sur les sorties par le côté
+   (`marge` règle la ligne des virages). L'exemple de `banc/README.md` (branche `banc-debit`) n'est **pas** une vague écrite.
+4. **L'essai du handicap** (`etude/echelle-de-bots/LISEZ-MOI.md` § 6.2 et § 11.4 : cinq copies de `pilote-voltige.js`, 48 graines chacune, prédiction de
+   survie corrigée à 41-62 s, critères écrits avant), dans un dossier d'étude, quand le Xeon a des cœurs libres.
+5. **Les deux mesures bon marché des experts** (§ 11.6) : lire ce que pose vraiment un départ à palier imposé (`TEST_PAL`), puis lâcher c0025 aux paliers
+   10 à 30 comme filtre négatif.
+6. **La mise à jour n° 2 du Ryzen** (le lot v4) : donnée à Sacha, pas faite à 17 h 50. Gestes : `ml/evolution/notes/LIVRAISON-GENES-V4.md` § 4, et d'abord le
+   **geste 1 bis** (arrêter, copier `etat\` et `champions\` hors du dépôt : la migration v:4 est à sens unique). Par Sacha, avec l'assistant de Sacha sur le
+   Ryzen ; aucune session du Xeon ne la fait. Se vérifie à distance : l'époque change et `population.json` passe en `"v":4`.
+7. **Les questions à Sacha** (sans réponse à 17 h 50 ; le travail continue sans elles sur le tri et le handicap) :
+   - le sens de « ne pas perdre du tout » (le palier 30 sans aucune mort, une seconde chance comptant comme une défaite ?) ;
+   - des **fantômes** (des courses enregistrées, rejouées) ou des **bots en direct** ;
+   - faire enregistrer des parties à **d'autres joueurs**, débutants compris (l'enregistreur `?jeurec=1` existe déjà, ne sort rien de l'appareil) : c'est ce
+     qui donnerait au juge un témoin humain contre humain ;
+   - et les anciennes : la seconde chance (`chancePalierMin`, 12), la décision D1 (`seuilB`, `seuilC`), l'emploi des crédits d'API restants (environ 141 €
+     au matin, `b1ff8af89`), le nom de l'école dans deux fichiers du dépôt public, `LA-VOIX-DE-SACHA.md`, D2 à D5.
+
+### Ce qu'il ne faut PAS faire
+
+- **Toucher à la note ou au génome de la sélection du Ryzen** (ni `cfg.note`, ni `evoluer.js`, ni le format de `population.json`) : un renvoi ne se défait
+  pas. Tout essai d'échelle se fait dans un dossier d'étude, ou un état neuf (`dossierEtat` **et** `dossierChampions` neufs).
+- **Conclure d'une lecture en cours de la vague 1**, ni écrire un chiffre d'écart de `regards.json` avant sa fin.
+- Fusionner `banc-debit` ou changer un fichier d'époque pendant la vague.
+- Écrire un gène v5 « avant le bord » (`gardeOn`, `ouvertOn`, `plafOn` sont abandonnés), ou la règle `fileOn` (elle ne corrige pas le défaut visé).
+- Se servir du discerneur comme arbitre de « ressemble à un joueur » sans témoin humain contre humain : il sépare Sacha de Léo à 0,93.
+- Promettre l'expert du palier 30.
+- Lancer `chaine.js` ou `boucle.js` sur le Xeon ; toucher à `code/` ou à `VERSION PRINCIPALE/`.
+
+### Le texte à coller dans la session qui reprend (28/11/2026, soir)
+
+> Dans `C:\Users\sacha\code\CASH-CAR-bots-ecurie` (branche `bots-ecurie`), lis `ml/ecurie/PASSATION.md` (la partie du 28/11 vers 17 h 50), puis
+> `ml/ecurie/etude/echelle-de-bots/LISEZ-MOI.md` § 11 et `pieces/LISEZ-MOI.md` (« Ce que l'on en fait »). Le cap : une échelle de bots de chaque niveau
+> et des experts. La vague 1 du banc v2 tourne : ne touche ni à `modele.js` ni à `enfant.js`, ne fusionne pas `banc-debit` et ne conclus rien avant sa fin.
+> Ne touche pas à la note ni au génome de la sélection du Ryzen. Suis « Ce qui attend ». Ne lance jamais `chaine.js` ni `boucle.js` sur le Xeon, ne touche
+> ni à `code/` ni à `VERSION PRINCIPALE/`, et garde des traces de chaque décision pour le portfolio.
+
+---
 
 ## L'état au 28/11/2026 vers 15 h
+
+> **Périmé en partie** (voir plus haut, vers 17 h 50) : les tests longs sont passés ; `bots-ecurie` est poussé avec le lot v4 ; la « piste notée » du
+> point 5 a été étudiée et ses trois règles abandonnées (`etude/avant-le-bord/`).
 
 **En bref.** Le Ryzen n'avait pas arrêté : seul son envoi horaire a échoué de 2 h à 13 h (sa connexion à Internet a coupé). Il a reçu la mise à jour
 n° 1 à 13 h 11 (portage, réglage et greffes) et tourne. Sur le Xeon, le lot « gènes v4 » est écrit, relu et fusionné dans `bots-ecurie` (`77083d123`) ;

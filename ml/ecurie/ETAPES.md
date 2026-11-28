@@ -13,14 +13,68 @@ Le plan d'ensemble est dans `PLAN.md`, l'étude dans `etude/`.
 | B | Les fondations : défauts corrigés, yeux v2, doigts v2 | **faite** (25/11/2026) : défauts corrigés, yeux v2 et doigts v2 écrits, relus par des agents, corrigés, puis contrôlés une dernière fois (`verifier.js` TOUT PASSE en régime max et en régime allégé, 5 rejeux exacts sur 5, la boucle à blanc va au bout avec un cerveau à profil) ; **finitions du 25/11 au soir** : le radar sonde le canyon à chaque image (exact, +0,2 % de coût), la justesse refaite avec la main réglée, les fins de ligne du labo. Ce qui reste faux ou non mesuré est écrit plus bas : ce sont des limites connues, pas des oublis |
 | C | Le pilote d'élite, amélioré par tours (le réglage à la main s'arrête le 27/11/2026 : le dernier pilote réglé, `pilote-voltige.js`, devient le témoin et le point de départ de la sélection) | **commencée (25/11/2026) : le premier pilote existe** (`ml/ecurie/pilote.js`, main `clavier`). Au tri (12 graines, 600 s, allégé) : **palier médian 12,5, meilleur 20**, contre 6 et 17 pour le bot de référence sur les mêmes graines. **Contrôlé le 25/11 au soir** (aucune erreur ; sur 8 graines de 600 s : médian 11,5 et meilleur 18, contre 7 et 16). **Pas encore fait** (le travail de la chaîne) : la note de 20 graines de 900 s, l'inscription au labo, les tours payés de la boucle |
 | C bis | La boucle automatique sur le crédit API (les 200 €), avec un plafond de dépense | **prête, essayée à blanc** : un tour complet le 24/11 puis de nouveau le 25/11 avec un cerveau à profil (0 €) ; la clé d'API est acceptée par les quatre modèles (`essai-api.js` du 24/11 : Opus 5.5, Sonnet 5.5 et Fable 5.2 avec repli, Haiku 5.5 sans) ; `boucle.js` a un plafond général de 200 € lu au journal des dépenses (`--plafond`, commit `71f3c7bea`). **Calibrée le 25/11** : un tour de 6 variantes par modèle sur le même pilote (4,63 €) ; aucun palier gagné validé, écart entre modèles dans le bruit ; **choix : Sonnet 5.5, départ `pilote.js`** (`agents/choix.json`, détails dans la partie C bis). **Abandonnée comme voie le 27/11/2026** (décision de Sacha : la sélection naturelle, étape S) ; lancée par Sacha sur le Ryzen le 27/11, **arrêtée le 28/11 à 0 h 12** (`b1ff8af89`). **Jugée le 28/11** sur les 40 graines du coffre : ses champions ne font pas mieux que le pilote de départ (+0,03 palier [−1,18 ; +1,38], `00fb4cfad`) ; à ne pas relancer telle quelle (voir « La nuit du 27 au 28/11 », ci-dessous) |
-| S | **La sélection naturelle** (`ml/evolution/`, décidée par Sacha le 27/11/2026) : remplace l'amélioration à la main et la boucle payante | **construite le 27/11/2026** (`e2ea8d2c9`, `7c5204afa`) ; **tourne sur le Ryzen depuis le 28/11 à 0 h 29** (code `e93ff5cb5`, 418 courses à l'heure) ; envoi coupé de 2 h à 13 h (sa connexion à Internet), la sélection n'a pas arrêté ; **mise à jour n° 1 le 28/11 à 13 h 11** (portage, réglage, greffes : `98db666ae`, époque `3c3d44e8bd9b`) ; à 14 h, génération 17, 495 courses à l'heure, champion = témoin, première greffe née. Le lot « gènes v4 » (`77083d123`) n'est **pas encore installé sur le Ryzen** (mise à jour n° 2) ; la vague 1 du banc v2 tourne sur le Xeon (voir « L'après-midi du 28/11 », ci-dessous) |
-| D | Le facteur humain et les 30 niveaux | à faire |
-| E | Le juge, niveau par niveau | à faire |
+| S | **La sélection naturelle** (`ml/evolution/`, décidée par Sacha le 27/11/2026) : remplace l'amélioration à la main et la boucle payante | **construite le 27/11/2026** (`e2ea8d2c9`, `7c5204afa`) ; **tourne sur le Ryzen depuis le 28/11 à 0 h 29** (code `e93ff5cb5`, 418 courses à l'heure) ; envoi coupé de 2 h à 13 h (sa connexion à Internet), la sélection n'a pas arrêté ; **mise à jour n° 1 le 28/11 à 13 h 11** (portage, réglage, greffes : `98db666ae`, époque `3c3d44e8bd9b`) ; à 14 h, génération 17, 495 courses à l'heure, champion = témoin, première greffe née. Le lot « gènes v4 » (`77083d123`, poussé) n'est **pas encore installé sur le Ryzen** (mise à jour n° 2, donnée à Sacha ; à 17 h, génération 21, génomes en v:3) ; la vague 1 du banc v2 tourne sur le Xeon. **Le 28/11 au soir, le cap change de forme** : une échelle de bots de chaque niveau et des experts (voir « La soirée du 28/11 », ci-dessous) ; la note et le génome de la sélection du Ryzen ne bougent pas |
+| D | Le facteur humain et les 30 niveaux | à faire ; **étudiée sans course le 28/11 au soir** (`etude/echelle-de-bots/`) : trois conceptions, le bas de l'échelle par le tri puis le handicap, les niches non construites, rien de promis pour les experts |
+| E | Le juge, niveau par niveau | à faire ; le 28/11 au soir, le juge (`discerner.js`) sépare aussi Sacha de Léo (0,93) : il lui faut d'abord un témoin humain contre humain, donc d'autres joueurs (question à Sacha) |
 | F | Le paquet du matchmaking et le dossier du portfolio | à faire |
 
 ---
 
-## OÙ ON EN EST — à lire en premier (mis à jour le 28/11/2026 vers 15 h ; le titre d'origine, du 25/11, disait « la chaîne tourne » : périmé)
+## OÙ ON EN EST — à lire en premier (mis à jour le 28/11/2026 vers 17 h 50 ; le titre d'origine, du 25/11, disait « la chaîne tourne » : périmé)
+
+### La soirée du 28/11/2026 : trois règles tuées avant d'être codées, le cap redit par Sacha, l'échelle de bots, les pièces, le tri nul, le débit
+
+Le récit pour le portfolio : `portfolio/journal/2026-11-28_soir.md`. Heures de Paris.
+
+**Le cap (Sacha, le 28/11 au soir, cité tel quel).** « bah oui il doit mourir comme un joueur mais il faut aussi des pilote expert qui ne peuvent pas
+perdre du tout au palier moteur 30 il faut differnt niveau de bot qui permetent un match makin adapté au niveau de chaque joueur ». Deux familles :
+**(1) une échelle** de bots du palier 1 au palier 30 qui conduisent et meurent comme un joueur de leur niveau ; **(2) des experts** qui ne perdent jamais
+au palier moteur 30.
+
+**Ce qui a été fait.**
+- **Les tests longs sur l'arbre fusionné** : passés d'après la session principale (identité 9/9, `evoluer.test` en entier, `courses.test` 11/11 ; sortie non
+  gardée dans git). `bots-ecurie` poussé avec le lot v4 (`origin/bots-ecurie` = `9cc87f48e`). La mise à jour n° 2 du Ryzen est donnée à Sacha, **pas faite**
+  à 17 h 50 (envoi de 17 h, `6fa83427d` : époque `3c3d44e8bd9b`, 26 génomes en v:3).
+- **Avant le bord** (`etude/avant-le-bord/LISEZ-MOI.md` ; `6a95e0693`, 15 h 52, 9 rapports relus, le commit compte 10 agents dont 3 sur Fable ; `4c266e0f6`,
+  16 h 42, 2 agents Opus, 60 courses de 180 s au plus en 30,3 min) : toutes les sorties se font par le côté ; environ 17 morts sur 22 « évitables » au sens
+  des yeux ; la vitesse sépare les morts mais ne se sépare pas du palier (p 0,07, puis 0,09 et 0,06 selon la strate) ; les joueurs vont 8 à 30 % plus
+  vite et ne meurent pas plus par minute sur décor (5,3 contre 5,5 morts pour 10 min ; 12 morts de joueurs). Trois règles **abandonnées avant d'être
+  codées** : `gardeOn` (condition allumée avant 17 morts sur 22 et 94 posés sur 137, environ 600 graines nécessaires) ; `ouvertOn` (prédiction écrite
+  avant, réfutée sur 16 courses de ville neuves : 8 morts sur 34 sorties bordées, 5 sur 23 ouvertes) ; `plafOn` (vitesse sûre dépassée dans 39 vues sur
+  24 952, 1 mort sur 23 ; ralentir éloigne des joueurs). En ville, 13 des 15 morts des courses neuves suivent une sortie voulue.
+- **L'échelle de bots** (`etude/echelle-de-bots/LISEZ-MOI.md` ; `fb7c0da18`, 16 h 19 ; 10 rapports, le commit compte 11 agents dont 3 concepteurs sur Fable ;
+  aucune course) : 2 joueurs, 14 parties, aucun débutant ; une partie faible est une partie qui meurt tôt ; le palier de c0025 est borné par la mort (0 course
+  coupée sur 1 250) et il ramasse moitié moins par minute (227 contre 416) ; la sélection ne fabrique pas de niveaux (écart vrai 0,00 à 0,16 palier) ;
+  trois conceptions (niches, handicap, banque de courses) ; aucune ne fabrique l'expert (50 à 200 fois trop de morts par minute). Décision au § 11.
+- **D'où viennent les pièces** (`etude/echelle-de-bots/pieces/LISEZ-MOI.md` ; `cae540270`, 16 h 49 ; 4 agents, 1 sur Fable) : 437 contre 248 par minute
+  (×1,76 [1,46 ; 2,06]), ×1,58 à 180 s, ×1,36 à palier égal ; même recette (80 / 10 / 10) ; par km de sol 56 contre 41 (×1,37 [1,20 ; 1,60]) ; raccourcis
+  environ 15 % de l'écart. Aucune règle nouvelle ; 4 ensembles de greffes de plus (14, cycle de 15 générations, `greffes.test` 71/71 ; dans
+  `ml/evolution/config.json` de `bots-ecurie`, pas sur le Ryzen).
+- **Le test du tri** (`etude/echelle-de-bots/tri/LISEZ-MOI.md` ; `9cc87f48e`, 17 h 48 ; 2 agents Opus ; 40 courses rejouées une à la fois, identiques 40 sur
+  40) : prédiction écrite avant (AUC ≤ 0,75 : le tri vaut ; ≥ 0,90 : morte) ; AUC 0,904 à temps égal, mais Sacha contre Léo 0,93 : **test nul**, l'erreur
+  est dans la prédiction (seuil non calibré humain contre humain). Le tri ne change pas le pilote (0,513). Le mesureur n'a rendu aucun rapport : tous les
+  chiffres sont ceux du relecteur.
+- **Le critère de débit du banc** (branche `banc-debit`, copie `CASH-CAR-genes-v4` : `b0fed8858`, 17 h 05 ; relecture `b1326cf98`, 17 h 13) : débit = pièces de
+  la fin ÷ survie × 60, apparié, non lu sous 20 s ; gardes par bras ; cinq bras de l'étude des pièces au catalogue ; `banc.test` 66/66 ; la v001 rejouée
+  sur le faux ordonnanceur rend les mêmes fichiers. Le relecteur : garde de survie à 10 s (et non 15) pour un bras jugé sur le débit ; `slalomOn` perd
+  environ 28 pièces par minute (−28,5 ; z −4,5 ; 92 graines lues). **Prêt, pas fusionné.**
+
+**Ce qui tourne vers 18 h.** La vague 1 sur le Xeon : point 3 sur 8, 72 graines, 384 courses ; `bord-slalom` et `fuir-vite` arrêtés au 2e point, `suit` au
+3e, « rien de net (arrêt tôt) » ; `bord` et `slalom` jouent encore (`resume.txt` de 17 h 53 ; aucun chiffre d'écart). La sélection sur le Ryzen (génération 21,
+413 courses à l'heure, champion = témoin).
+
+**Ce qui est écarté.** `gardeOn`, `ouvertOn`, `plafOn` (jamais codés) ; le frein, le pouvoir VITESSE et le balancement (non poursuivis) ; la règle `fileOn` ;
+les niches (non construites) ; le verdict du tri (nul) ; la note F_H et sa mesure M de la mort (pas avec 14 parties).
+
+**Ce qui attend, dans l'ordre.** (1) La fin de la vague 1, puis sa lecture. (2) Fusionner `banc-debit`, après la vague 1. (3) Écrire la vague 2 sur le débit
+(cinq bras : `nitro-sol`, `vise-large`, `racc-fermes`, `fig3`, `nitro-decor`), critères et gardes écrits **avant** de jouer. (4) L'essai du handicap (cinq
+copies du pilote, 48 graines, dans un dossier d'étude). (5) Les deux mesures bon marché des experts (`TEST_PAL`, puis c0025 lâché aux paliers 10 à 30).
+(6) La mise à jour n° 2 du Ryzen (geste 1 bis d'abord). (7) Les questions à Sacha : le sens de « ne pas perdre du tout », fantômes ou bots en direct,
+d'autres joueurs enregistrés ; et la seconde chance, D1, les crédits d'API.
+
+**Ce qu'il ne faut pas faire.** Toucher à la note ou au génome de la sélection du Ryzen ; conclure d'une lecture en cours de la vague ; fusionner
+`banc-debit` ou changer un fichier d'époque pendant la vague ; se servir du discerneur sans témoin humain contre humain ; promettre l'expert du palier 30.
+Le détail : **`PASSATION.md`, partie du 28/11 vers 17 h 50**.
 
 ### L'après-midi du 28/11/2026 : les greffes, le Ryzen mis à jour, le lot « gènes v4 », l'impasse de la sortie préparée, la vague 1
 

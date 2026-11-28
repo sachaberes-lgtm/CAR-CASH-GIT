@@ -1,36 +1,43 @@
 # Les orchestrations du 27 et du 28 novembre 2026
 
-Ce dossier garde la trace de seize travaux faits par des équipes d'agents : quatre le 27/11/2026, quatre dans la nuit du 27 au 28/11, et huit le 28/11, entre 7 h 20 et 14 h 47. Il montre comment le travail a été réparti, ce que les agents ont rendu, ce que leurs relecteurs ont trouvé, et ce qui a encore dû être corrigé après eux.
+Ce dossier garde la trace de vingt-deux travaux faits par des équipes d'agents : quatre le 27/11/2026, quatre dans la nuit du 27 au 28/11, et quatorze le 28/11 : huit entre 7 h 20 et 14 h 47, puis six entre 15 h 02 et 17 h 47. Il montre comment le travail a été réparti, ce que les agents ont rendu, ce que leurs relecteurs ont trouvé, et ce qui a encore dû être corrigé après eux.
 
 Pour chaque travail, un sous-dossier contient deux fichiers :
 
 - `script.js` : le script qui a lancé l'équipe, tel qu'il a tourné. On y lit la consigne exacte donnée à chaque agent.
 - `comptes-rendus.md` : le compte rendu de chaque agent, dans l'ordre où ils ont été lancés, avec son rôle. Ce sont les mots des agents, remis en texte lisible, sans réécriture.
 
-| dossier | le travail | agents | durée | jetons | appels d'outils |
-|---|---|---|---|---|---|
-| `construction/` | construire `ml/evolution`, la sélection naturelle des bots | 10 | 2 h 41 | 2 399 211 | 542 |
-| `journal/` | écrire le journal de bord du portfolio | 16 | 25 min | 2 444 100 | 523 |
-| `images/` | tirer cinq images des données et rendre le journal lisible | 20 | 26 min | 2 463 737 | 547 |
-| `finitions/` | finir `ml/evolution` avant de l'installer sur le Ryzen | 7 | 3 h 18 | 1 993 694 | 568 |
-| *sous-total du 27/11* | | *53* | | *9 300 742* | *2 180* |
-| `traces-du-soir/` | ranger le soir du 27/11 dans le journal, la passation et ce dossier | 4 | 16 min | 782 967 | 260 |
-| `reglage/` | étudier le réglage de la sélection, sans jouer de course | 11 | 2 h 11 | 2 604 327 | 619 |
-| `portage/` | faire des idées de la boucle payante des gènes, fixer Node, mesurer le coffre | 9 | 1 h 26 | 1 819 083 | 542 |
-| `changements-surs/` | faire entrer les changements sûrs de l'étude dans la sélection | 7 | 5 h 03 | 1 986 602 | 597 |
-| *sous-total de la nuit* | | *31* | | *7 192 979* | *2 018* |
-| `prochaines-idees/` | relever les idées qui restent à essayer sur le banc des gènes | 11 | 32 min | 2 432 325 | 451 |
-| `traces-du-28/` | ranger la nuit du 27 au 28/11 dans le journal, la passation et ce dossier | 4 | 17 min | 761 477 | 178 |
-| `contrat-v4/` | écrire le contrat des gènes v4, sans coder | 5 | 42 min | 1 349 564 | 244 |
-| `code-v4/` | coder les gènes v4 et le banc des gènes v2 | 8 | 3 h 38 | 2 490 163 | 681 |
-| `lecture-du-banc/` | lire le banc des gènes fini | 3 | 15 min | 481 454 | 53 |
-| `greffes/` | faire essayer des interrupteurs par la sélection elle-même | 2 | 1 h 59 | 427 841 | 142 |
-| `sortie-mesure/` | mesurer les décollages au bord des maps à décor | 2 | 43 min | 503 584 | 101 |
-| `sortie-reecrite/` | réécrire sortieOn après cette mesure | 2 | 1 h 44 | 495 749 | 165 |
-| *sous-total du 28/11* | | *37* | | *8 942 157* | *2 015* |
-| **total** | | **121** | | **25 435 878** | **6 213** |
+| dossier | le travail | agents | modèle des agents | durée | jetons | appels d'outils |
+|---|---|---|---|---|---|---|
+| `construction/` | construire `ml/evolution`, la sélection naturelle des bots | 10 | Opus | 2 h 41 | 2 399 211 | 542 |
+| `journal/` | écrire le journal de bord du portfolio | 16 | Opus | 25 min | 2 444 100 | 523 |
+| `images/` | tirer cinq images des données et rendre le journal lisible | 20 | Opus | 26 min | 2 463 737 | 547 |
+| `finitions/` | finir `ml/evolution` avant de l'installer sur le Ryzen | 7 | Opus | 3 h 18 | 1 993 694 | 568 |
+| *sous-total du 27/11* | | *53* | | | *9 300 742* | *2 180* |
+| `traces-du-soir/` | ranger le soir du 27/11 dans le journal, la passation et ce dossier | 4 | Opus | 16 min | 782 967 | 260 |
+| `reglage/` | étudier le réglage de la sélection, sans jouer de course | 11 | Opus | 2 h 11 | 2 604 327 | 619 |
+| `portage/` | faire des idées de la boucle payante des gènes, fixer Node, mesurer le coffre | 9 | Opus | 1 h 26 | 1 819 083 | 542 |
+| `changements-surs/` | faire entrer les changements sûrs de l'étude dans la sélection | 7 | Opus | 5 h 03 | 1 986 602 | 597 |
+| *sous-total de la nuit* | | *31* | | | *7 192 979* | *2 018* |
+| `prochaines-idees/` | relever les idées qui restent à essayer sur le banc des gènes | 11 | Opus | 32 min | 2 432 325 | 451 |
+| `traces-du-28/` | ranger la nuit du 27 au 28/11 dans le journal, la passation et ce dossier | 4 | Opus | 17 min | 761 477 | 178 |
+| `contrat-v4/` | écrire le contrat des gènes v4, sans coder | 5 | Opus | 42 min | 1 349 564 | 244 |
+| `code-v4/` | coder les gènes v4 et le banc des gènes v2 | 8 | Opus | 3 h 38 | 2 490 163 | 681 |
+| `lecture-du-banc/` | lire le banc des gènes fini | 3 | Opus | 15 min | 481 454 | 53 |
+| `greffes/` | faire essayer des interrupteurs par la sélection elle-même | 2 | Opus | 1 h 59 | 427 841 | 142 |
+| `sortie-mesure/` | mesurer les décollages au bord des maps à décor | 2 | Opus | 43 min | 503 584 | 101 |
+| `sortie-reecrite/` | réécrire sortieOn après cette mesure | 2 | Opus | 1 h 44 | 495 749 | 165 |
+| *sous-total du 28/11, matin et début d'après-midi* | | *37* | | | *8 942 157* | *2 015* |
+| `traces-apres-midi/` | ranger les huit travaux du matin dans le journal, la passation et ce dossier | 3 | Opus | 20 min | 728 027 | 198 |
+| `avant-le-bord/` | chercher, sans jouer de course, ce que le pilote pourrait faire au sol avant de quitter la route | 10 | 7 Opus, 3 Fable (les concepteurs) | 27 min | 1 744 957 | 213 |
+| `avant-le-bord-mesures/` | mesurer en vraies courses ce que l'étude précédente laissait ouvert | 2 | Opus | 48 min | 549 424 | 121 |
+| `echelle-de-bots/` | étudier, sans jouer de course, des bots de chaque niveau et des experts | 11 | 8 Opus, 3 Fable (les concepteurs) | 19 min | 1 544 657 | 193 |
+| `pieces/` | dire d'où viennent les pièces des joueurs, face au pilote c0025 | 4 | 3 Opus, 1 Fable (le concepteur) | 28 min | 854 686 | 154 |
+| `tri-et-debit/` | tester le tri des courses ; écrire un critère de débit pour le banc | 4 | Opus | 57 min | 762 939 | 229 |
+| *sous-total du 28/11, fin d'après-midi et soir* | | *34* | | | *6 184 690* | *1 108* |
+| **total** | | **155** | | | **31 620 568** | **7 321** |
 
-Les chiffres viennent du bilan que Claude Code écrit à la fin de chaque orchestration (`workflows/<identifiant>.json` : `agentCount`, `durationMs`, `totalTokens`, `totalToolCalls`), relus le 28/11 au matin. Ils redonnent les nombres que la session principale avait en mémoire pour la nuit : 0,78, 2,60, 1,82 et 1,99 million de jetons. Le journal et les images ont tourné pendant que la construction tournait encore ; la nuit, les traces du soir et l'étude du réglage ont démarré à moins de trois minutes d'écart, et l'étude tournait encore quand le portage a commencé. Deux autres orchestrations du 27/11, plus tôt dans l'après-midi (la conception de la sélection naturelle et les enquêtes sur ce qui distingue le bot d'un joueur), ne sont pas rangées ici. Deux autres encore ont démarré le 28/11 au matin et n'étaient pas finies quand ce dossier a été complété (les « prochaines idées », et celle qui a rangé les quatre travaux de la nuit) : elles sont rangées depuis, avec les six travaux suivants du 28/11 (`prochaines-idees/` et `traces-du-28/`). Les huit bilans du 28/11 ont été relus le 28/11 après-midi. Ces huit équipes se chevauchent : les prochaines idées et les traces du 28/11 ont démarré à 4 minutes d'écart ; le code des gènes v4 a tourné de 8 h 39 à 12 h 17, pendant que la lecture du banc, les greffes et la mesure de la sortie démarraient ; les greffes et la mesure de la sortie finissaient quand la réécriture de sortieOn a commencé. L'orchestration qui a rangé ces huit travaux n'a pas encore de bilan : elle n'est pas rangée ici.
+Les chiffres viennent du bilan que Claude Code écrit à la fin de chaque orchestration (`workflows/<identifiant>.json` : `agentCount`, `durationMs`, `totalTokens`, `totalToolCalls`), relus le 28/11 au matin. Ils redonnent les nombres que la session principale avait en mémoire pour la nuit : 0,78, 2,60, 1,82 et 1,99 million de jetons. Le journal et les images ont tourné pendant que la construction tournait encore ; la nuit, les traces du soir et l'étude du réglage ont démarré à moins de trois minutes d'écart, et l'étude tournait encore quand le portage a commencé. Deux autres orchestrations du 27/11, plus tôt dans l'après-midi (la conception de la sélection naturelle et les enquêtes sur ce qui distingue le bot d'un joueur), ne sont pas rangées ici. Deux autres encore ont démarré le 28/11 au matin et n'étaient pas finies quand ce dossier a été complété (les « prochaines idées », et celle qui a rangé les quatre travaux de la nuit) : elles sont rangées depuis, avec les six travaux suivants du 28/11 (`prochaines-idees/` et `traces-du-28/`). Les huit bilans du 28/11 ont été relus le 28/11 après-midi. Ces huit équipes se chevauchent : les prochaines idées et les traces du 28/11 ont démarré à 4 minutes d'écart ; le code des gènes v4 a tourné de 8 h 39 à 12 h 17, pendant que la lecture du banc, les greffes et la mesure de la sortie démarraient ; les greffes et la mesure de la sortie finissaient quand la réécriture de sortieOn a commencé. L'orchestration qui a rangé ces huit travaux est rangée depuis : c'est `traces-apres-midi/`. Les six bilans de la fin d'après-midi et du soir ont été relus le 28/11 vers 17 h 50. Ces six équipes se chevauchent aussi : les mesures A et C (15 h 53 – 16 h 41) ont tourné pendant toute l'étude de l'échelle de bots (16 h 00 – 16 h 18) et une partie de celle des pièces (16 h 20 – 16 h 47) ; le tri et le débit ont démarré à 16 h 51. Le modèle de chaque agent est écrit dans le bilan (champ `model` de chaque agent) : pour ces six travaux, 7 agents sur 34 ont tourné sur Claude Fable, tous des concepteurs ; ils ont consommé 1 378 487 jetons sur 6 184 690 (22 %). L'orchestration qui range ces six travaux n'a pas encore de bilan : elle n'est pas rangée ici.
 
 ---
 
@@ -44,7 +51,7 @@ Sur ce chantier, Sacha dirige et ne code pas. Le code et les textes sont écrits
 
 **L'orchestration.** C'est le petit programme (le `script.js` de chaque sous-dossier) que la session principale écrit pour lancer une équipe d'agents. Il dit qui travaille en même temps, qui attend qui, et ce que chacun reçoit des autres. Les quatre scripts du 27/11 suivent tous la même idée : un agent écrit, un autre agent relit. Le relecteur reçoit le compte rendu de celui qu'il relit, avec une consigne du genre « ne le crois pas » : il doit rouvrir les fichiers, refaire les mesures, chercher ce qui casse. Selon les travaux, le relecteur corrige lui-même, ou il relève les défauts et un troisième agent les corrige. Un dernier agent, l'intégrateur, assemble souvent le tout et relance tous les tests.
 
-**Pourquoi travailler ainsi.** Le 27/11, Sacha écrit à la session principale : « gère mieux l'abonnement, tu utilises trop Fable par rapport à Opus » (à 14 h 25, heure universelle, dans le relevé daté de ses messages, tenu hors git). D'après les notes de travail de Claude, l'abonnement a un quota par semaine, plus serré pour Fable que pour les autres modèles. Depuis, la session principale garde pour elle la conception et les décisions, et confie les longues tâches à des agents Opus. Une équipe permet aussi de travailler en parallèle : quatre modules écrits en même temps, sept chapitres en même temps. Et la relecture par un agent qui n'a pas écrit le travail trouve des erreurs que l'auteur ne voit plus.
+**Pourquoi travailler ainsi.** Le 27/11, Sacha écrit à la session principale : « gère mieux l'abonnement, tu utilises trop Fable par rapport à Opus » (à 14 h 25, heure universelle, dans le relevé daté de ses messages, tenu hors git). D'après les notes de travail de Claude, l'abonnement a un quota par semaine, plus serré pour Fable que pour les autres modèles. Depuis, la session principale garde pour elle la conception et les décisions, et confie les longues tâches à des agents Opus. Le 28/11 à 13 h 07 (heure de Paris), Sacha écrit qu'elle peut utiliser plus de Fable, seulement là où Fable fait vraiment mieux (sa phrase est citée plus bas, dans « Le 28/11 : ce qui se passe autour des huit équipes »). À partir de l'étude « avant le bord » (15 h 24), les agents **concepteurs**, ceux qui inventent une règle ou une façon de faire, tournent sur Fable ; les lecteurs, les compteurs, les mesureurs, les relecteurs et les rédacteurs restent sur Opus. Les bilans le montrent agent par agent (sections 18, 20 et 21). Une équipe permet aussi de travailler en parallèle : quatre modules écrits en même temps, sept chapitres en même temps. Et la relecture par un agent qui n'a pas écrit le travail trouve des erreurs que l'auteur ne voit plus.
 
 **Le coût.** Il se compte en jetons. Un jeton est un petit morceau de texte, souvent une partie de mot : un modèle lit et écrit en jetons. Le compteur additionne tout ce que les agents ont lu et écrit, y compris les fichiers qu'ils relisent à chaque étape. Ces jetons sont pris sur le quota de l'abonnement de Sacha. Le compteur ne dit pas ce que la session principale a consommé de son côté.
 
@@ -379,6 +386,106 @@ L'intégrateur a retiré un nom de PC du contrat, corrigé un test qui échouait
 
 ---
 
+## La fin d'après-midi et le soir du 28/11 : ce qui se passe autour des six équipes
+
+Les six travaux suivants ne codent rien dans le pilote. Quatre sont des études : on lit d'abord ce qui est déjà enregistré, on propose, on attaque, et on ne joue des courses que pour trancher une question écrite avant. Les faits, d'après git et les fichiers cités :
+
+- **Les tests longs et l'envoi.** D'après la session principale, les trois tests longs sont passés sur l'arbre fusionné (`identite.test` 9/9, `evoluer.test` en entier, `courses.test` 11/11). Leur sortie n'est gardée dans aucun fichier du dépôt ; la passation du soir les donne passés, sur la même parole. Ce qui se vérifie : la branche `bots-ecurie` est sur GitHub au même commit que la copie de travail (`9cc87f48e`, 17 h 48), lot v4 compris.
+- **Le Ryzen n'a pas reçu le lot v4.** La mise à jour n° 2 a été donnée à Sacha ; elle n'est pas faite. Le `resume.txt` envoyé à 17 h 00 (commit `6fa83427d` de la branche `evolution-ryzen`, lu à 17 h 50) dit : génération 21, toujours l'époque `3c3d44e8bd9b` depuis la génération 16, « lance le 28/11 13:11 », 413 courses à l'heure, champion = le témoin, aucun sacre.
+- **La vague 1 du banc tourne sur le Xeon.** Son `resume.txt` (écrit à 17 h 53, relu vers 18 h) dit : point 3 sur 8 fait, 72 graines jouées ; trois bras se sont arrêtés, « rien de net » (bord + slalom et fuir vite au 2e point, suit au 3e) ; deux jouent encore (bord, slalom). Il ne donne volontairement aucun chiffre tant qu'un bras joue, et ce dossier n'en donne pas non plus.
+- **Le moment important de la journée : Sacha redit le but.** L'étude « avant le bord » lui laisse une question : sur les maps à décor, un bot doit-il mourir comme un joueur, ou moins ? Il répond, tel quel : « bah oui il doit mourir comme un joueur mais il faut aussi des pilote expert qui ne peuvent pas perdre du tout au palier moteur 30 il faut differnt niveau de bot qui permetent un match makin adapté au niveau de chaque joueur » (`ml/ecurie/etude/avant-le-bord/LISEZ-MOI.md` § 9.6 ; le script de l'échelle de bots, lancé à 16 h 00, la cite déjà). Il n'y a donc pas un champion à trouver, mais deux familles : une échelle de bots de chaque niveau, qui conduisent et meurent comme des joueurs, pour un matchmaking ; et des experts qui ne perdent pas au palier moteur 30. Les sections 19 à 22 partent de là.
+- **Les questions laissées à Sacha le soir.** Trois nouvelles, posées par l'étude de l'échelle (§ 9) et le test du tri : ce que veut dire « ne pas perdre du tout » ; des fantômes (des courses enregistrées, rejouées) ou des bots qui conduisent en direct ; faire enregistrer des parties à d'autres joueurs, débutants compris, avec l'enregistreur qui existe déjà dans le jeu. Les trois d'avant restent : la seconde chance, la décision D1, les crédits d'API.
+
+---
+
+## 17. Les traces de l'après-midi du 28/11 (15 h 02 – 15 h 22)
+
+**Le but.** Ranger les huit travaux du matin : les sections 9 à 16 de ce dossier, un chapitre de plus au journal de bord (`2026-11-28_suite.md`) et la passation.
+
+**L'équipe : 3 agents, tous sur Opus.** Deux **rédacteurs** en même temps (ce dossier ; le journal et la passation), puis un **relecteur** qui cherche les erreurs et les détails privés, corrige et fait le commit.
+
+**Ce que le relecteur a trouvé.** Sept défauts. Le plus grave touche la vie privée : l'outil gardait l'empreinte SHA-256 du nom de l'assistant de Sacha sur le Ryzen, et un prénom se retrouve en quelques secondes à partir de son empreinte. Il l'a retirée ; l'outil lit maintenant ce nom dans un fichier local que git ignore (voir « Comment ce dossier est fait »). Il a aussi corrigé une interprétation : le texte lisait « 34 % contre 22 » comme l'usage de l'abonnement par modèle, ce que Sacha ne dit pas ; la phrase est maintenant citée entière. Et une erreur de fond dans le journal : une greffe n'allume pas toujours un seul interrupteur (la première éteint les raccourcis de la ville).
+
+**Ce que la session principale a fait après.** Le relecteur a fait lui-même le commit `332a12a67` (15 h 22). Aucune correction de la session principale n'est signalée.
+
+---
+
+## 18. L'étude « avant le bord » (15 h 24 – 15 h 51)
+
+**Le but.** La mesure de la section 15 avait montré qu'au bord, il est trop tard. Chercher, dans les 40 courses déjà enregistrées, ce que le pilote pourrait faire **au sol, avant le bord**, sans jouer de course. Le résultat est `ml/ecurie/etude/avant-le-bord/LISEZ-MOI.md`.
+
+**L'équipe : 10 agents, dont 3 sur Fable.** Trois **lecteurs** sur Opus (les traces, le code, les joueurs et la ville) ; trois **concepteurs** sur Fable, chacun propose une règle (vitesse, ligne, libre) ; trois **relecteurs** sur Opus (les chiffres, le code, le banc) ; un **rédacteur** sur Opus.
+
+**Ce que disent les lectures.** Toutes les sorties de route se font par le côté, aucune par un trou. Environ 17 morts sur 22 étaient évitables au sens des yeux : la route tenait encore entre 0,6 et 3 s avant. Les joueurs vont plus vite que le pilote, partent nitro allumée environ 5 fois plus souvent, et ne meurent pas plus par minute sur décor (§ 4 de l'étude ; 12 morts de joueurs seulement).
+
+**Les trois règles proposées.** `plafOn` : couper la nitro au-dessus d'une vitesse. `gardeOn` : une garde au bord. `ouvertOn` : en ville, ne sortir exprès de la route que du côté ouvert.
+
+**Ce que les relecteurs ont fait tomber** (§ 6 de l'étude). « Le palier ne compte pas » est faux. Aucun signe trouvé en fouillant ne bat le hasard ; seule la vitesse, nommée d'avance, tient, et on ne sait pas la séparer du palier (p = 0,07). Le p = 0,018 de `ouvertOn` vaut plutôt 0,2, parce qu'au moins six découpages avaient été regardés. La condition de `gardeOn` s'allume presque aussi souvent avant un décollage qui se pose qu'avant une mort. Les trois relecteurs disent la même chose : aucun code avant d'avoir mesuré.
+
+**Ce que la session principale a fait après** (§ 9 de l'étude, commit `6a95e0693` à 15 h 52). Aucun gène écrit. `gardeOn` est abandonné. Deux mesures sont lancées tout de suite (section 19). La question de la mort sur décor est posée à Sacha : c'est elle qui a amené sa réponse.
+
+---
+
+## 19. Les mesures A et C (15 h 53 – 16 h 41)
+
+**Le but.** Trancher en vraies courses ce que l'étude laissait ouvert. Mesure A : rejouer les 40 courses en gardant cette fois le volant, le virage et la vitesse du jeu. Mesure C : 16 courses de ville sur des graines neuves, avec la prédiction écrite **avant** de jouer : « au moins trois fois plus de morts du côté bordé ». Le résultat est le § 11 de la même étude.
+
+**L'équipe : 2 agents, sur Opus.** Un **mesureur** joue 60 courses (les 40 rejouées, 4 courses de preuve sans diagnostic, 16 neuves). Un **relecteur** refait tous les comptes avec son propre code, sans celui du mesureur, puis écrit.
+
+**Ce que le relecteur a trouvé.** La preuve tient, plus fort que le mesureur ne le disait : les 40 courses rejouées sont identiques à celles d'avant, 40 014 vues une par une. Mais une phrase du mesureur tombe : « le signal de vitesse vient du palier » n'est pas montré ; à temps de course égal, c'est le palier qui ne sépare plus. Une formule d'accélération était fausse (sans effet sur la conclusion), et une vitesse citée pour une course aussi. Deux pistes trouvées en fouillant (le pouvoir VITESSE, le balancement de la caisse) ne sont pas prouvées : le hasard en fait autant 4 à 6 fois sur 100.
+
+**Le résultat.** La prédiction de la ville est **réfutée** : 8 morts sur 34 sorties bordées, 5 sur 23 ouvertes. La caisse ne dépasse presque jamais la vitesse sûre du virage (39 vues sur 24 952 ; 1 mort sur 23). Ni le volant, ni le frein possible ne séparent les morts des décollages posés. Le palier monte avec les pièces ramassées, pas avec le temps (lu dans le code du jeu).
+
+**Ce que la session principale a fait après** (§ 9.7, commit `4c266e0f6` à 16 h 42). `ouvertOn` et `plafOn` sont abandonnés à leur tour. **Les trois règles de l'étude sont mortes avant d'avoir été codées**, pour environ une heure de calcul. C'est l'inverse de la sortie préparée (sections 11 à 15), écrite, relue, codée, puis trouvée muette : mesurer d'abord a coûté moins cher.
+
+---
+
+## 20. L'échelle de bots (16 h 00 – 16 h 18)
+
+**Le but.** Répondre au but redit par Sacha : comment fabriquer des bots de chaque niveau, et des experts ? Sans jouer de course. Le résultat est `ml/ecurie/etude/echelle-de-bots/LISEZ-MOI.md`.
+
+**L'équipe : 11 agents, dont 3 sur Fable.** Quatre **lecteurs** sur Opus (les parties des joueurs, le palier, la sélection, ce qui existe déjà) ; trois **concepteurs** sur Fable, un par voie : des niches (une étagère de cases de niveau), un handicap (un bon pilote, ralenti par une molette), une banque de courses triées par palier d'arrivée ; trois **relecteurs** sur Opus (les chiffres, le code, le but) ; un **rédacteur** sur Opus.
+
+**Ce que disent les lectures.** On n'a que 14 parties de 2 joueurs habitués, aucun débutant. Chez eux, une partie faible est une partie qui meurt tôt : à la même minute, tout le monde roule pareil. Le palier du pilote c0025 est borné par la mort, pas par le temps de course. Et il ramasse moitié moins de pièces par minute que les joueurs (227 contre 416).
+
+**Ce que les relecteurs ont fait tomber** (§ 7 de l'étude). Tout niveau au-dessus du palier 21 repose sur deux parties rattrapées par une seconde chance. Un réglage du jeu que le concepteur des niches disait « figé » ne l'est pas. La voie des niches « se réfute elle-même » : elle ne livre rien avant qu'un bouton « niveau » existe, et ce bouton, c'est le handicap. La prédiction du handicap était fausse et a été corrigée avant de jouer (41 à 62 s de survie, au lieu de 60 à 72). Surtout : **aucune des trois voies ne fabrique l'expert du palier 30**, et les trois le disent. Il faudrait 50 à 200 fois moins de morts par minute qu'aujourd'hui, et on ne sait pas si le jeu le permet.
+
+**Ce que la session principale a fait après** (§ 11, commit `fb7c0da18` à 16 h 19). Ne pas toucher à la sélection du Ryzen. Mesurer d'abord d'où viennent les pièces des joueurs (section 21). Faire le bas de l'échelle par le tri des courses (section 22), essayer le handicap ensuite, ne pas construire les niches. Pour les experts, rien n'est promis. Trois questions sont posées à Sacha.
+
+---
+
+## 21. D'où viennent les pièces des joueurs (16 h 20 – 16 h 47)
+
+**Le but.** Le pilote meurt à peu près aussi tôt que les joueurs, mais ramasse moitié moins. Or le palier, ce sont les pièces. Dire d'où vient l'écart, sans jouer de course. Le résultat est `ml/ecurie/etude/echelle-de-bots/pieces/LISEZ-MOI.md`.
+
+**L'équipe : 4 agents, dont 1 sur Fable.** Deux **compteurs** sur Opus (les 14 parties des joueurs ; 20 parties du pilote c0025), découpés par la même fonction ; un **concepteur des leviers** sur Fable ; un **relecteur** sur Opus, qui refait les comptes et écrit.
+
+**Le résultat.** 437 contre 248 pièces par minute, soit 1,76 fois plus chez les joueurs (intervalle de 1,46 à 2,06). L'écart tient à durée égale et à palier égal, et il grandit sans les secondes chances. La recette est la même (environ 80 % de pièces sur la route, 10 % en l'air, 10 % de figures) : le manque est dans le volume.
+
+**Ce que le relecteur a fait tomber.** « Le pilote ramasse comme un joueur par kilomètre » : faux, les kilomètres en vol étaient comptés, et rien ne se ramasse au sol en vol. Par kilomètre roulé au sol, les joueurs prennent 56 pièces, le pilote 41. Le concepteur donnait environ 30 % de l'écart aux raccourcis ; le relecteur le ramène à environ 15 %.
+
+**Ce que la session principale a fait après** (commit `cae540270` à 16 h 49). Aucune règle nouvelle : les gènes qui servent existent déjà. Le banc des gènes recevra un critère de débit (les pièces par minute de survie). La vague 2, après la vague 1, mesurera cinq réglages. Le cycle des greffes reçoit quatre ensembles de plus : 14 ensembles, un cycle de 15 générations, `greffes.test` 71/71.
+
+---
+
+## 22. Le tri des courses et le critère de débit (16 h 51 – 17 h 47)
+
+**Le but.** Deux travaux en parallèle, sur Opus tous les quatre. **Le tri** : une course du pilote qui meurt tôt passe-t-elle pour une partie de joueur ? Si oui, des courses déjà jouées, rangées par palier d'arrivée, feraient le bas de l'échelle sans fabriquer d'autre pilote. La règle est écrite avant de jouer : si le juge (un programme qui apprend à distinguer joueurs et bot) les distingue à 0,75 ou moins, le tri vaut ; à 0,90 ou plus, l'idée est morte. Le résultat est `ml/ecurie/etude/echelle-de-bots/tri/LISEZ-MOI.md`. **Le débit** : écrire dans le banc des gènes le critère demandé par la section 21.
+
+**L'équipe : 4 agents.** Pour le tri, un **mesureur** puis un **relecteur**. Pour le débit, un **auteur** puis un **relecteur**.
+
+**Un agent n'a rien rendu.** Le mesureur du tri a écrit la prédiction, les outils et joué les 40 courses, mais son compte rendu tient en une phrase : « I'm waiting for the courses to finish ». Il n'a donc rien affirmé sur les résultats. **Tous les chiffres du tri sont ceux du relecteur**, refaits avec ses propres scripts.
+
+**Ce que le relecteur du tri a trouvé.** La prédiction a bien été écrite avant (seule la date du disque le montre : le fichier n'a été commité qu'après les résultats, avec l'étude). Les 40 courses rejouées sont identiques à celles du banc, 40 sur 40. Le juge rend 0,904 à temps égal : à la lettre, « l'idée est morte ». Mais **le même juge sépare les deux joueurs entre eux à 0,93** (Sacha au clavier contre Léo au doigt). Selon la règle, un vrai joueur serait « mort » lui aussi. Et le verdict change de case quand on change un peu la fenêtre ou la tranche de paliers. Deux affirmations du mesureur tombent aussi : un fichier de vérification qu'il citait n'existe pas, et deux lots qu'il disait joués sur deux versions du jeu le sont sur la même.
+
+**C'est une impasse de méthode, dite telle quelle.** La session principale déclare le test **nul** : l'instrument ne passe pas son témoin. L'erreur est dans la prédiction, pas dans les courses : son seuil n'avait pas été calibré sur un humain contre un autre humain. C'est à faire désormais avant tout test de ce genre. Ce qui reste établi : le tri ne change pas le pilote (courses mortes tôt contre courses ordinaires : 0,513, le hasard). La ressemblance se gagne donc sur le pilote. Ce qui le trahit à temps égal : il ondule plus, vole moins haut et moins souvent, tient moins la nitro. Pour un vrai juge, il faut d'autres joueurs : c'est demandé à Sacha.
+
+**Ce que le relecteur du débit a trouvé.** Aucun défaut de code, trois dans la notice : la garde de survie à 15 s laissait passer un bras qui ramasse moins en tout (il propose 10 s, chiffré) ; une deuxième empreinte, celle de la note, change aussi ; un écart-type de survie arrondi (« 80 à 95 s » au lieu de 79 à 95). Il a mesuré ce que le critère voit sur les 1 250 courses du banc d'étude : le slalom, qui rapprochait des joueurs sur la note E, coûte environ 28 pièces par minute (z −4,5, 92 graines lues sur 96).
+
+**Ce que la session principale a fait après** (commit `9cc87f48e` à 17 h 48, pour le tri). Le critère de débit est écrit sur une branche à part, `banc-debit`, dans une autre copie du dépôt (commits `b0fed8858` à 17 h 05, puis `b1326cf98` à 17 h 13). Il est **prêt, à fusionner après la vague 1**, comme la décision de la section 21 le prévoyait (« écrit sur une branche à part pendant que la vague 1 tourne, et fusionné après elle »). À l'heure où ces lignes sont écrites, il n'est pas fusionné.
+
+---
+
 ## Ce que cette méthode ne garantit pas
 
 Un compte rendu d'agent n'est pas une preuve. C'est ce que l'agent dit avoir fait. Les exemples de ce dossier :
@@ -411,6 +518,14 @@ Ajouté le 28/11 après-midi, avec les huit travaux du 28/11 :
 - **La langue n'est toujours pas fixée.** Trois des 37 comptes rendus du 28/11 sont en anglais, au moins en partie, tous dans l'équipe du code des gènes v4.
 - **Des tests tournaient encore.** Sur l'arbre fusionné, `identite.test`, `evoluer.test` et `courses.test` n'avaient pas fini quand ce dossier a été complété, et le lot v4 n'a pas encore tourné sur le Ryzen.
 
+Ajouté le 28/11 au soir, avec les six travaux de la fin d'après-midi et du soir :
+
+- **Un agent peut ne rien rendre.** Le mesureur du tri a fait son travail (la prédiction, les outils, les 40 courses), mais son compte rendu se réduit à « I'm waiting for the courses to finish ». Rien ne l'a relancé. Ce qu'il pensait de ses résultats n'est écrit nulle part ; seul le relecteur, venu après, les a lus et chiffrés. Sans relecteur, ce travail n'aurait laissé aucun résultat contrôlé. C'est le même défaut que l'agent de la mesure du coffre, la nuit : un agent ne sait pas attendre une longue mesure.
+- **Une règle écrite avant de jouer peut être fausse elle-même.** Écrire la prédiction avant les courses empêche de choisir le critère après avoir vu les résultats. Cela ne garantit pas que le seuil a un sens. Celui du tri (0,90) n'avait pas été essayé sur deux humains ; quand le relecteur l'a fait, un vrai joueur tombait du mauvais côté. Le test est déclaré nul.
+- **Mesurer avant de coder a ses limites aussi.** Trois règles sont mortes avant d'être codées (section 19), pour environ une heure de calcul. Mais elles ont été jugées sur 16 à 40 courses, et deux pistes trouvées en fouillant (le pouvoir VITESSE, le balancement) ne sont pas prouvées, et ne sont pas poursuivies : on ne sait pas si elles comptent.
+- **Un modèle plus fort ne remplace pas le relecteur.** Les concepteurs des trois études tournaient sur Fable. Leurs relecteurs, sur Opus, ont quand même fait tomber des chiffres : la fourchette de `plafOn` ne valait pas carte par carte, le p de `ouvertOn` était environ dix fois trop beau, un réglage dit « figé » ne l'était pas, la part des raccourcis était deux fois trop grande. Le bilan ne permet pas de dire si Fable s'est trompé moins souvent qu'Opus ne l'aurait fait : personne n'a fait la même conception sur les deux.
+- **Le but du chantier ne vient pas des agents.** Aucune des trois conceptions de l'échelle de bots ne fabrique l'expert du palier 30 que Sacha demande. Les agents le disent, et la session principale ne promet rien ; mais la question reste entière.
+
 ---
 
 ## Comment ce dossier est fait
@@ -427,4 +542,6 @@ Le 28/11 au matin, l'outil a reçu les quatre travaux de la nuit et il a été r
 
 Le 28/11 après-midi, l'outil a reçu les huit travaux du 28/11 et il a été relancé sur les seize. Les fichiers des huit travaux déjà rangés sortent à l'identique (`git diff` vide sur leurs dossiers). Sur les huit nouveaux, il a fait 14 remplacements : 8 chemins vers le dossier temporaire de Claude Code (dans `prochaines-idees/`, `traces-du-28/`, `lecture-du-banc/` et `greffes/`) ; 2 noms de PC dans `traces-du-28/`, qui sont des noms d'exemple cités par un compte rendu, pas le vrai nom ; 3 adresses e-mail, dans `code-v4/` et `sortie-reecrite/`, qui sont l'adresse générique « noreply » d'Anthropic des lignes de signature des commits ; et 1 nom propre, celui de l'assistant de Sacha sur le Ryzen, écrit par le vérificateur des traces du 28/11 dans la liste de ce qu'il avait cherché. Pour ce dernier, l'outil a reçu une règle de plus. Le nom n'est écrit nulle part dans le dépôt : l'outil le lit dans un petit fichier local que git ignore, et refuse d'écrire si ce fichier manque. (La première version gardait dans l'outil l'empreinte SHA-256 du nom ; la relecture l'a retirée, parce qu'un prénom se retrouve en quelques secondes à partir de son empreinte, en essayant une liste de prénoms. Relancé ainsi, l'outil redonne les seize dossiers à l'identique.) Une recherche à la main sur les nouveaux dossiers ne trouve ni clé, ni jeton, ni nom de PC réel, ni le nom de l'assistant.
 
-Ce LISEZ-MOI a été écrit par un agent Opus le 27/11 au soir, à partir de ces comptes rendus, des bilans des orchestrations, des messages de commit et des journaux de l'évolution en cours. Les sections sur la nuit du 27 au 28/11 (de « La nuit du 27 au 28/11 » à « La leçon de méthode de la nuit ») ont été ajoutées par un autre agent Opus le 28/11 au matin, à partir des mêmes sources : les huit bilans, les quatre scripts et les 31 comptes rendus de la nuit, les messages des commits `b1ff8af89` à `2a3bea3c1`, le `resume.txt` de la branche `evolution-ryzen`, et les LISEZ-MOI des études citées. Les sections sur le 28/11 (de « Le 28/11 : ce qui se passe autour des huit équipes » à la section 16) ont été ajoutées par un troisième agent Opus le 28/11 après-midi : à partir des huit bilans, des huit scripts et des 37 comptes rendus, des messages des commits `44d048fc4` à `15c7f1cb3`, du `resume.txt`, de `population.json` et de `histoire.md` envoyés par le Ryzen à 14 h, des notes `greffes.md` et `LIVRAISON-GENES-V4.md` et de l'étude de la sortie préparée. Ce que la session principale lui a donné sans source dans le dépôt est marqué « d'après la session principale ».
+Le 28/11 au soir, l'outil a reçu les six travaux de la fin d'après-midi et du soir, et il a été relancé sur les vingt-deux. Les fichiers des seize travaux déjà rangés sortent à l'identique (`git diff` vide sur leurs dossiers). Deux changements de l'outil ne valent que là où ils servent. Les agents de ces six travaux ont rendu un texte libre, avec ses propres titres : l'outil descend ces titres sous celui de l'agent, et l'en-tête du fichier le dit. Quand une équipe mêle deux modèles, l'en-tête donne le nombre d'agents de chacun, et chaque agent a son modèle écrit à côté de son rôle. Sur les six nouveaux dossiers, l'outil a fait 14 remplacements : 5 chemins vers le dossier temporaire de Claude Code (tous dans `tri-et-debit/`) ; 3 adresses e-mail (2 dans `traces-apres-midi/`, 1 dans `tri-et-debit/`), l'adresse générique « noreply » d'Anthropic des lignes de signature des commits ; 2 noms de PC dans `traces-apres-midi/`, les deux noms d'exemple déjà masqués à la section précédente, recités par un compte rendu ; et 2 fois le nom de l'assistant de Sacha sur le Ryzen, dans `traces-apres-midi/` (la consigne du relecteur lui demandait de chercher ce nom, et son compte rendu dit qu'il ne l'a pas trouvé). Rien dans les quatre études. Une recherche à la main sur les six dossiers ne trouve ni le vrai nom du PC, ni le nom de l'assistant, ni clé, ni jeton. Un joueur y est nommé par son prénom, Léo, comme ailleurs dans le portfolio.
+
+Ce LISEZ-MOI a été écrit par un agent Opus le 27/11 au soir, à partir de ces comptes rendus, des bilans des orchestrations, des messages de commit et des journaux de l'évolution en cours. Les sections sur la nuit du 27 au 28/11 (de « La nuit du 27 au 28/11 » à « La leçon de méthode de la nuit ») ont été ajoutées par un autre agent Opus le 28/11 au matin, à partir des mêmes sources : les huit bilans, les quatre scripts et les 31 comptes rendus de la nuit, les messages des commits `b1ff8af89` à `2a3bea3c1`, le `resume.txt` de la branche `evolution-ryzen`, et les LISEZ-MOI des études citées. Les sections sur le 28/11 (de « Le 28/11 : ce qui se passe autour des huit équipes » à la section 16) ont été ajoutées par un troisième agent Opus le 28/11 après-midi : à partir des huit bilans, des huit scripts et des 37 comptes rendus, des messages des commits `44d048fc4` à `15c7f1cb3`, du `resume.txt`, de `population.json` et de `histoire.md` envoyés par le Ryzen à 14 h, des notes `greffes.md` et `LIVRAISON-GENES-V4.md` et de l'étude de la sortie préparée. Ce que la session principale lui a donné sans source dans le dépôt est marqué « d'après la session principale ». Les sections sur la fin d'après-midi et le soir du 28/11 (de « La fin d'après-midi et le soir du 28/11 » à la section 22) ont été ajoutées par un quatrième agent Opus le 28/11 vers 18 h : à partir des six bilans, des six scripts et des 34 comptes rendus, des messages des commits `332a12a67` à `9cc87f48e` (et `b0fed8858`, `b1326cf98` de la branche `banc-debit`), du `resume.txt` envoyé par le Ryzen à 17 h 00, du `resume.txt` de la vague 1, et des LISEZ-MOI des quatre études. Les trois tests longs passés sur l'arbre fusionné sont marqués « d'après la session principale » : aucun fichier du dépôt ne le dit encore.

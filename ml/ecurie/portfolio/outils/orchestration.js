@@ -133,6 +133,42 @@ const TRAVAUX = [
     roles: [
       [/^auteur$/, 'auteur : réécrit sortieOn dans le pilote, le contrat, les tests, les notes et l\'étude'],
       [/^relecteur-integrateur$/, 'relecteur et intégrateur : vérifie l\'identité, joue de vraies courses, relance les tests lents, fait le commit'] ] },
+  /* ===== LES SIX TRAVAUX DE L'APRÈS-MIDI ET DU SOIR DU 28/11 (28/11/2026, Sacha : « il faut qu'on garde des traces de tous les process, pour un portfolio ») =====
+     Ajoutés après coup, dans l'ordre où ils ont démarré : les seize travaux ci-dessus sortent à l'identique. Leurs agents rendent un texte
+     libre (souvent avec ses propres titres « # … ») : « titresDecales » fait descendre ces titres sous celui de l'agent, pour eux seulement. */
+  { dossier: 'traces-apres-midi', wf: 'wf_87e4cc26-065', titre: 'Les traces de l\'après-midi du 28/11 (les huit orchestrations du jour, le journal, la passation)', nouveau: true, titresDecales: true,
+    roles: [
+      [/^ranger les 8 orchestrations$/, 'rédacteur des traces des orchestrations : range les huit travaux du 28/11 avec l\'outil orchestration.js'],
+      [/^journal, passation, impasses$/, 'rédacteur du journal : écrit la suite du 28/11, la passation et le registre des impasses'],
+      [/^relecture adverse et commit$/, 'relecteur : cherche les erreurs et les détails privés des deux autres, corrige, fait le commit'] ] },
+  { dossier: 'avant-le-bord', wf: 'wf_9b9e2844-682', titre: 'L\'étude « avant le bord » (ce que le pilote pourrait faire au sol avant de sortir de la route)', nouveau: true, titresDecales: true,
+    roles: [
+      [/^lire:(.*)$/, 'lecteur « $1 » : relit les courses, le code ou les parties des joueurs déjà enregistrées, sans jouer de course'],
+      [/^concevoir:(.*)$/, 'concepteur « $1 » : propose une règle de pilote chiffrée, à partir des trois lectures'],
+      [/^attaquer:(.*)$/, 'relecteur « $1 » : attaque les trois propositions sous cet angle'],
+      [/^rediger$/, 'rédacteur : écrit le LISEZ-MOI de l\'étude à partir de tout ce qui précède'] ] },
+  { dossier: 'avant-le-bord-mesures', wf: 'wf_a240473e-422', titre: 'Les mesures A et C de l\'étude « avant le bord »', nouveau: true, titresDecales: true,
+    roles: [
+      [/^mesurer A et C$/, 'mesureur : rejoue les 40 courses en gardant le volant, le virage et la vitesse, et joue 16 courses de ville neuves'],
+      [/^relire et ecrire$/, 'relecteur et rédacteur : refait les comptes avec son propre code et écrit le résultat dans l\'étude'] ] },
+  { dossier: 'echelle-de-bots', wf: 'wf_f5328ebe-c85', titre: 'L\'étude « l\'échelle de bots » (des bots de chaque niveau, et des experts)', nouveau: true, titresDecales: true,
+    roles: [
+      [/^lire:(.*)$/, 'lecteur « $1 » : lit ce qui est déjà enregistré sur ce sujet, sans jouer de course'],
+      [/^concevoir:(.*)$/, 'concepteur de la voie « $1 » : propose une façon de fabriquer l\'échelle et les experts'],
+      [/^attaquer:(.*)$/, 'relecteur « $1 » : attaque les trois conceptions sous cet angle'],
+      [/^rediger$/, 'rédacteur : écrit le LISEZ-MOI de l\'étude à partir de tout ce qui précède'] ] },
+  { dossier: 'pieces', wf: 'wf_ea0019dc-1c9', titre: 'D\'où viennent les pièces des joueurs', nouveau: true, titresDecales: true,
+    roles: [
+      [/^compter:joueurs$/, 'compteur des joueurs : décompose les pièces des 14 parties de joueurs enregistrées'],
+      [/^compter:bot$/, 'compteur du bot : décompose de la même façon les pièces de 20 parties du pilote c0025'],
+      [/^concevoir:leviers$/, 'concepteur des leviers : dit d\'où vient l\'écart et par quels réglages le combler'],
+      [/^relire et ecrire$/, 'relecteur et rédacteur : refait les comptes, attaque les conclusions et écrit l\'étude'] ] },
+  { dossier: 'tri-et-debit', wf: 'wf_8298801f-de5', titre: 'Le test du tri des courses, et le critère de débit du banc', nouveau: true, titresDecales: true,
+    roles: [
+      [/^testB:mesurer$/, 'mesureur du test du tri : rejoue 40 courses du banc et demande à un juge s\'il les distingue de parties de joueurs'],
+      [/^testB:relire$/, 'relecteur du test du tri : refait la mesure par un autre chemin et attaque le verdict'],
+      [/^debit:ecrire$/, 'auteur du critère de débit : les pièces par minute de survie, comme nouveau critère du banc des gènes'],
+      [/^debit:relire$/, 'relecteur du critère de débit : cherche à le réfuter et corrige ce qu\'il trouve'] ] },
 ];
 
 /* ----- Le nettoyage : chaque règle compte ses remplacements ----- */
@@ -264,11 +300,17 @@ for (const T of TRAVAUX) {
   md.push('# ' + T.titre + ' : les comptes rendus des agents');
   md.push('');
   md.push('Ce fichier est sorti de `ml/ecurie/portfolio/outils/orchestration.js`, à partir des traces que Claude Code garde hors du dépôt. ' +
-    'Chaque agent a rendu son compte rendu sous forme de données (JSON) ; l\'outil les remet en texte, sans rien réécrire. ' +
+    (T.titresDecales ? 'Chaque agent a rendu son compte rendu en texte libre ; l\'outil le recopie sans rien réécrire, en descendant seulement ses titres sous celui de l\'agent. '
+      : 'Chaque agent a rendu son compte rendu sous forme de données (JSON) ; l\'outil les remet en texte, sans rien réécrire. ') +
     'Ce sont les mots des agents : ce qu\'ils affirment n\'a pas été recontrôlé ici.');
   md.push('');
   md.push('- Orchestration : `' + run.workflowName + '` (' + run.runId + '), lancée par la session principale (Claude Fable).');
-  md.push('- Agents : ' + run.agentCount + ', tous du modèle ' + Array.from(new Set(agents.map(function (a) { return a.model; }).filter(Boolean))).join(', ') + '.');
+  /* (28/11, soir) quand une équipe mêle deux modèles (les concepteurs sur Fable, les autres sur Opus), le nombre d'agents de chacun ;
+     les seize premiers travaux n'ont qu'un modèle et sortent à l'identique */
+  const parModele = {};
+  for (const a of agents) if (a.model) parModele[a.model] = (parModele[a.model] || 0) + 1;
+  if (Object.keys(parModele).length > 1) md.push('- Agents : ' + run.agentCount + ', ' + Object.keys(parModele).map(function (m) { return parModele[m] + ' du modèle ' + m; }).join(', ') + ' (le modèle de chaque agent est écrit à son rôle, plus bas).');
+  else md.push('- Agents : ' + run.agentCount + ', tous du modèle ' + Array.from(new Set(agents.map(function (a) { return a.model; }).filter(Boolean))).join(', ') + '.');
   md.push('- Durée : ' + duree(run.durationMs) + ' ; jetons consommés par les agents : ' + run.totalTokens.toLocaleString('fr-FR') + ' (' + millions(run.totalTokens) + ') ; appels d\'outils : ' + run.totalToolCalls + '.');
   if (run.logs && run.logs.length) md.push('- Message de fin du script : « ' + run.logs.join(' ; ') + ' ».');
   md.push('- Le script lui-même est à côté : `script.js`.');
@@ -288,11 +330,13 @@ for (const T of TRAVAUX) {
     if (NOUVEAU) role = accents(role);
     md.push('## ' + a.index + '. ' + a.label);
     md.push('');
-    md.push('*Rôle : ' + role + '. Phase : ' + a.phaseTitle + '.*');
+    md.push('*Rôle : ' + role + '. Phase : ' + a.phaseTitle + '.' + (Object.keys(parModele).length > 1 ? ' Modèle : ' + a.model + '.' : '') + '*');
     md.push('');
     let r = resultats[a.agentId];
     if (r === undefined) { md.push('(aucun compte rendu dans le journal)'); md.push(''); continue; }
     if (typeof r === 'string') { try { r = JSON.parse(r); } catch (e) { /* un texte libre reste un texte */ } }
+    /* (28/11, soir) un texte libre garde ses titres, descendus de trois crans (« # » devient « #### ») pour rester sous celui de l'agent */
+    if (T.titresDecales && typeof r === 'string') r = r.replace(/^(#{1,3}) /gm, function (m, d) { return '###' + d + ' '; });
     if (r && typeof r === 'object' && !Array.isArray(r)) {
       for (const k of Object.keys(r)) {
         md.push('### ' + nomChamp(k));

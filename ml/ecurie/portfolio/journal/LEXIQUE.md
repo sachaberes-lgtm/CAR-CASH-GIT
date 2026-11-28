@@ -2,7 +2,7 @@
 
 Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du chantier quand il aide. Les mots en *italique* ont leur propre entrée.
 
-*Vérifié le 27/11 contre `ml/bot/README.md`, `ml/labo/README.md`, `ml/ecurie/PLAN.md`, `ml/ecurie/etude/selection-naturelle/SPECIFICATION.md` et les chapitres du journal ; complété le 27/11 au soir d'après `ml/evolution/INTERFACES.md` § 9, `ml/evolution/notes/` et `ml/evolution/note.js`. Quand un mot a changé de sens en cours de route (« génération », « champion »…), les deux sens sont donnés. Complété le 28/11 au matin d'après le chapitre `2026-11-28.md`, `ml/ecurie/etude/banc-des-genes/LISEZ-MOI.md`, `ml/ecurie/etude/boucle-payante-ryzen/coffre/sorties/resume.txt`, `ml/ecurie/etude/reglage-de-la-selection/LISEZ-MOI.md` et `ml/evolution/notes/LIVRAISON-REGLAGE.md`.*
+*Vérifié le 27/11 contre `ml/bot/README.md`, `ml/labo/README.md`, `ml/ecurie/PLAN.md`, `ml/ecurie/etude/selection-naturelle/SPECIFICATION.md` et les chapitres du journal ; complété le 27/11 au soir d'après `ml/evolution/INTERFACES.md` § 9, `ml/evolution/notes/` et `ml/evolution/note.js`. Quand un mot a changé de sens en cours de route (« génération », « champion »…), les deux sens sont donnés. Complété le 28/11 au matin d'après le chapitre `2026-11-28.md`, `ml/ecurie/etude/banc-des-genes/LISEZ-MOI.md`, `ml/ecurie/etude/boucle-payante-ryzen/coffre/sorties/resume.txt`, `ml/ecurie/etude/reglage-de-la-selection/LISEZ-MOI.md` et `ml/evolution/notes/LIVRAISON-REGLAGE.md`. Complété le 28/11 au soir d'après le chapitre `2026-11-28_soir.md`, `ml/ecurie/etude/avant-le-bord/LISEZ-MOI.md`, `ml/ecurie/etude/echelle-de-bots/` (le `LISEZ-MOI.md`, `pieces/`, `tri/`) et `ml/evolution/banc/README.md` de la branche `banc-debit`.*
 
 ---
 
@@ -29,6 +29,8 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 **Banc des gènes.** La mesure lancée le 28/11 à 3 h 28 sur le Xeon (`ml/ecurie/etude/banc-des-genes/`) pour juger les *gènes éteints* un par un, sans passer par la sélection : 13 pilotes (le pilote de départ c0025, et des copies qui allument chacune un interrupteur, ou quelques mélanges) jouent les mêmes 96 *graines*, prises dans une plage que la sélection n'utilise jamais, et chaque copie est comparée au départ graine par graine (*comparaison appariée*). Il ne voit qu'un effet d'environ un palier ou plus. Rien à voir avec le *banc* d'une machine.
 
 **Banc des gènes v2, vague, bras.** Le banc rangé dans la sélection le 28/11 après-midi (`ml/evolution/banc/`). Une vague est une mesure : elle compare 1 à 5 bras au *témoin* sur les mêmes *graines*. Un bras est une copie du pilote de départ qui allume une idée (un ou quelques *gènes éteints*). Avant de jouer, la vague écrit sa question et, pour chaque bras, ce qu'elle va regarder ; ensuite le banc refuse une vague modifiée. La vague 1, sur 5 bras, a été enregistrée dans git avant d'être jouée (`15c7f1cb3`).
+
+**Banque de courses.** Une des trois façons étudiées le 28/11 au soir pour faire une *échelle* : élever un seul pilote, puis ranger ses courses déjà jouées selon le palier où elles ont fini ; la course morte au palier 4 sert d'adversaire au joueur de niveau 4. C'est la moins chère, mais le *test du tri* n'a pas pu dire si une telle course passe pour une partie de joueur (test nul) ; il a montré qu'elle ressemble à un joueur exactement autant que le pilote lui-même.
 
 **Boucle (payante).** Le cycle où Claude écrit des *variantes* du *pilote*, où le vrai jeu les note, et où l'on garde la meilleure avant de recommencer ; elle est payée sur le *crédit d'API*. Elle a tourné pour le *calibrage* du 25/11, puis Sacha l'a lancée sur son second PC le 27/11 : 88 versions, cinq *champions*, 21,61 €. Arrêtée le 28/11 à 0 h 12 ; jugés sur le *coffre*, ses champions ne vont pas plus loin que le pilote de départ.
 
@@ -76,11 +78,17 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 
 **Dalle.** La route elle-même, suspendue dans le ciel. Le 26/11, le pilote roulait parfois sous la dalle, à l'abri, ce qu'un joueur ne fait presque jamais.
 
+**Débit (de pièces).** Les pièces ramassées par minute de course. C'est ce qui manque le plus au pilote : 248 pièces par minute contre 437 chez les joueurs (28/11), alors que le *palier* se gagne en pièces. Le 28/11 au soir, le *banc des gènes v2* reçoit un critère « débit » (les pièces de la fin de la course divisées par sa survie, comparées graine par graine au témoin), avec une garde sur la survie, pour qu'un *bras* ne gagne pas en débit en mourant plus tôt. Écrit sur une branche à part, à fusionner après la vague 1.
+
+**Discerneur.** Le nom du programme du *juge* « humain ou bot » (`ml/bot/discerner.js`).
+
 **Écart aux joueurs.** La note de ressemblance inventée le 26/11 : la distance moyenne entre un lot de courses du bot et les parties des joueurs au clavier, sur quinze mesures (nitro, vols, raccourcis, figures, poses, slalom, vitesse…). 0 veut dire « au milieu des joueurs » ; une seule partie de joueur comparée aux autres est à 0,9 ; le pilote est passé de 3,05 (le premier pilote) à 1,67 (27/11).
 
 **Écart E (dans la foule).** La mesure de ressemblance de la *sélection naturelle* (`ml/evolution/note.js`) : comme l'*écart aux joueurs*, mais un écart n'y compte qu'au-delà de la dispersion des joueurs eux-mêmes. Elle ne se compare donc pas à l'écart aux joueurs des chapitres précédents (1,67 dans la nuit du 27/11, sur 20 courses de 900 s) : à la génération 0 de la première vraie sélection, le témoin vaut 0,90 en écart E, sur 12 autres courses.
 
 **Écart-type.** L'écart habituel autour de la moyenne. Exemple : d'une course à l'autre, le palier d'un même pilote s'écarte d'habitude de 3,2 de sa moyenne.
+
+**Échelle (de bots).** Le but redit par Sacha le 28/11 au soir : des bots de chaque niveau, du palier 1 au palier 30, qui conduisent et meurent comme un joueur de ce niveau, pour que le *matchmaking* donne à chaque joueur des adversaires à sa mesure. Avec seulement 2 joueurs enregistrés (14 parties), tout niveau au-dessus du palier 21 ou sous le palier 4 est « extrapolé ». À distinguer des *experts*.
 
 **Empreinte.** Un court code calculé sur tout le déroulé d'une ou plusieurs courses : le moindre écart le change. Tant que l'empreinte du contrôle `verifier.js` reste `a7b3171768ca`, le jeu rejoue exactement pareil. Le 27/11 au soir, une empreinte du nom de l'ordinateur remplace ce nom dans ce qui part sur le dépôt public : elle le désigne sans permettre de le retrouver.
 
@@ -91,6 +99,8 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 **Essai à blanc.** Un essai où tout tourne sauf l'appel payant, pour vérifier la machinerie sans rien dépenser. Exemple : la boucle réécrite le 26/11, essayée à blanc pour 0 €.
 
 **Étalon.** Les parties enregistrées de vrais joueurs qui servent de barre de comparaison : 14 parties au 24/11, 10 de Sacha au clavier et 4 de Léo au doigt sur téléphone.
+
+**Expert.** La seconde famille de bots demandée par Sacha le 28/11 au soir : des pilotes « qui ne peuvent pas perdre du tout au palier moteur 30 ». Le sens exact de « ne pas perdre » lui est demandé (le palier 30 sans aucune mort ?). Rien n'est promis : il faudrait 50 à 200 fois moins de morts par minute qu'aujourd'hui, et on ne sait pas si le jeu le permet ; aucun joueur observé n'y arrive.
 
 **Fable, Opus, Sonnet, Haiku.** Des modèles de Claude. Lors du *calibrage* du 25/11, ils ont coûté, dans cet ordre, 1,91 €, 1,89 €, 0,77 € et 0,06 €. Fable et Opus servent aussi sur l'*abonnement* de Sacha.
 
@@ -110,6 +120,8 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 
 **Greffé, muet.** Un *réseau de neurones* ajouté à un *pilote* déjà écrit, réglé pour ne rien changer à la conduite à la naissance, puis libre d'évoluer. C'est la forme choisie le 27/11, parce qu'un réseau parti de zéro n'avait pas appris à voler.
 
+**Handicap.** Une des trois façons étudiées le 28/11 au soir pour faire une *échelle* : un seul bon pilote, ralenti par une « molette » (une main plus lente, des fautes, la nitro mal placée) jusqu'à tomber au niveau voulu. La seule voie qui donne des bots conduisant en direct ; son risque : un débutant fait ainsi serait « un expert saboté », qui conduit comme le bon pilote. Pas encore essayé.
+
 **Immigré.** Dans la *sélection naturelle*, un enfant qui n'est pas une petite *mutation* mais une copie très changée du *champion*, ajoutée de temps en temps pour garder de la variété dans la population. Le 27/11, la génération 1 de la première vraie sélection en compte un sur six naissances.
 
 **Intégrateur.** L'*agent* qui reçoit les morceaux écrits par les autres, les assemble et vérifie qu'ils marchent ensemble.
@@ -118,8 +130,7 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 
 **Jeton.** L'unité de texte, un morceau de mot, qui mesure la longueur d'une réponse d'un modèle de Claude et son prix. Le 25/11, la seule réponse de Fable a été coupée à 32 000 jetons.
 
-**Juge « humain ou bot » (AUC).** Un programme (`discerner.js`) entraîné à reconnaître si une partie a été jouée par une personne ou par un bot. Sa note, l'AUC, vaut 0,5 s'il répond au hasard et 1 s'il ne se trompe jamais : il est resté entre 0,97 et 0,99 selon les jours : le bot est presque toujours reconnu.
-
+**Juge « humain ou bot » (AUC).** Un programme (`discerner.js`) entraîné à reconnaître si une partie a été jouée par une personne ou par un bot. Sa note, l'AUC, vaut 0,5 s'il répond au hasard et 1 s'il ne se trompe jamais : il est resté entre 0,97 et 0,99 selon les jours : le bot est presque toujours reconnu. Le 28/11 au soir, on a vu sa limite : appris sur 2 joueurs seulement, il sépare aussi Sacha de Léo (0,93). Il reconnaît « Sacha au clavier » plus qu'« un humain » ; voir *témoin humain contre humain*.
 **Labo (la boîte noire).** Le registre où chaque *cerveau* entre avec son code, la raison de son changement, sa note, chacune de ses courses et son coût (`ml/labo`). Rien n'y entre sans raison écrite.
 
 **Lot, grande note.** Un lot est une série de courses jouées par le même bot (souvent 12 ou 24 courses de 5 minutes) ; une grande note, 20 courses de 15 minutes au plus.
@@ -127,6 +138,8 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 **Main (profil).** La partie du bot qui imite les doigts d'un joueur : temps de réaction, coups de volant de durée variable, erreurs, hasard à graine. Elle est fixée : une variante qui la change est refusée, pour que le bot ne gagne pas en trichant sur les réflexes.
 
 **Map, portail.** Une map est un des décors de route du jeu (canyon, grotte, ville, jade…) ; le portail est le passage qui fait changer de map au cours d'une course.
+
+**Matchmaking.** Le choix, par le jeu, des adversaires d'un joueur ; ici, des bots de son niveau. C'est le but de Sacha depuis le 24/11. Aucun bot de `ml/` n'est encore branché dans le jeu.
 
 **Médiane, palier médian.** La médiane est la valeur du milieu quand on range les résultats du plus petit au plus grand ; le palier médian, celui de la course du milieu. Elle bouge moins qu'une moyenne à cause d'une course exceptionnelle.
 
@@ -157,6 +170,8 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 **Pas.** Un instant de calcul de la simulation : le jeu avance pas à pas. Exemple : le 08/09, l'écart entre la physique du joueur et celle des bots était exactement zéro sur 3 000 pas.
 
 **Pilote.** Un *cerveau* de bot écrit en clair par Claude, qui décide quand braquer, voler ou mettre la nitro. Le premier, `pilote.js`, date du 25/11 ; celui qui vole, `pilote-voltige.js`, du 26/11 ; c'est de lui que part la sélection du 27/11.
+
+**Prédiction écrite avant.** Écrire, avant de jouer une seule course, ce qu'on attend et la règle qui dira « oui », « non » ou « indécis », pour qu'aucun chiffre vu ensuite ne puisse la faire bouger. Le 28/11 au soir, celle de la ville (« au moins trois fois plus de morts du côté bordé ») a été réfutée sur 16 courses neuves, proprement ; celle du *test du tri* n'a rien pu dire, parce que son seuil n'avait pas été calibré (*témoin humain contre humain*). La vague 1 du banc applique la même règle.
 
 **Processus neuf.** Un programme relancé de zéro, qui ne garde rien des courses précédentes. Une course par processus neuf : c'est ce qui garantit qu'une même graine redonne la même course.
 
@@ -201,6 +216,10 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 **Taux de pose.** La part des décollages qui finissent par un atterrissage réussi sur la route. Le 08/09 : 9 % (19 sur 217).
 
 **Témoin.** Un pilote gardé tel quel, jamais modifié ni renvoyé (dans la sélection du 27/11, le génome de `pilote-voltige.js`), qui sert de repère. Le *champion* se compare à lui sur le *coffre de graines* ; et si la note du témoin bouge seule, c'est le simulateur qui dérive. Ce pilote porte aussi le nom c0025, celui que la *boucle payante* lui avait donné. Depuis le 28/11, le témoin se choisit dans `config.json` (c0025 par défaut) ; après le verdict du coffre, il reste c0025.
+
+**Témoin humain contre humain.** Avant de croire un *juge* qui dit « ce n'est pas un humain », lui faire comparer deux vrais joueurs entre eux : s'il les sépare aussi, son seuil ne sépare pas « humain » de « bot ». Le 28/11 au soir, ce témoin manquait au *test du tri* : le juge séparait Sacha de Léo à 0,93, au-dessus du seuil de 0,90 qui devait condamner le bot. Le test a été déclaré nul. Pour un vrai témoin, il faut des parties d'autres joueurs.
+
+**Test du tri.** Voir *Banque de courses* et *Témoin humain contre humain*.
 
 **Validation (courses de).** Des courses gardées à part pour vérifier qu'un gain n'était pas de la chance. Elles ne valent que si elles sont neuves : dans la *boucle payante*, les mêmes 20 courses de validation ont servi à chaque sacre, et ont fini par favoriser les gagnants chanceux (*chance du gagnant*).
 
