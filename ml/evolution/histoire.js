@@ -82,6 +82,21 @@ function phraseValidation(v,cfg){
   const neuves=fini(V.graines)?V.graines+' courses neuves':'des courses neuves';
   if(v.usage==='revalidation')
     return 'Revalidation (le champion '+court(v.meneur)+' contre le témoin, sur '+neuves+') : avance de note '+frs(V.dF)+' ± '+fr(V.se_dF)+' ; '+(v.sacre?'il garde son titre.':'il perd son titre.');
+  /* (28/11/2026, lot « sacre ») la validation sequentielle : a quel regard elle a fini, sur combien de graines */
+  const R=Array.isArray(v.regards)&&v.regards.length&&!(v.plan&&v.plan.nom==='fixe')?v.regards:null;
+  if(R){
+    const P=v.plan||{},der=R[R.length-1],R1=R[0],crit=v.criteres||{},manque=[];
+    const clair=ET.regardsClair(v,{accents:true});
+    if(v.arret==='plafond'||der.decision==='plafond'){
+      if(crit.a===false)manque.push('avance de note pas assez nette (il fallait plus de '+fr(der.borne,2)+' fois l\'incertitude)');
+      if(crit.b===false)manque.push('il va moins loin');
+      if(crit.c===false)manque.push('il ressemble moins aux joueurs');}
+    let s='Validation'+(v.forcee?' (demandée à la main)':'')+' : le meneur '+court(v.meneur)+' rejoue contre le champion '+court(v.champion)+' sur des courses neuves, '+
+      (fini(P.premier)?P.premier:'?')+' d\'abord, puis '+(fini(P.pas)?P.pas:'?')+' de plus tant qu\'il semble devant, jusqu\'à '+(fini(P.plafond)?P.plafond:'?')+'. '+
+      'Son avance de note '+(R.length>1?'à la fin ':'')+'est de '+frs(V.dF)+' ± '+fr(V.se_dF)+
+      (R.length>1&&fini(R1.dF)?' (sur les '+R1.n+' premières : '+frs(R1.dF)+')':'')+(fini(T.dF)?' ; elle était de '+frs(T.dF)+' à l\'entraînement':'')+'. ';
+    s+=v.sacre?'**Il est '+clair+'.**':'Il n\'est pas sacré : '+clair.replace(/^pas sacré /,'')+(manque.length?' ; '+manque.join(' ; '):'')+'.';
+    return s;}
   const crit=v.criteres||{},manque=[];
   if(crit.a===false)manque.push('avance de note pas assez nette (il faut plus de '+seuil+' fois l\'incertitude)');
   if(crit.b===false)manque.push('il va moins loin');
@@ -212,6 +227,13 @@ function texte(cfg,o){
   L.forEach((l,i)=>out.push((i+1)+'. '+l));
   out.push('');
 
+  /* ===== LES MUTATIONS COMPTENT-ELLES ? (28/11/2026, l'integrateur : « un paragraphe dans histoire.md » ; mesure-tau.js, notes/tau.md) =====
+     Dans un try : une mesure qui casse ne fait jamais echouer le recit ; « trop tot » par defaut. */
+  out.push('## Les mutations comptent-elles ?');
+  out.push('');
+  out.push(paragrapheTau(cfg,o));
+  out.push('');
+
   /* ---------- GENERATION PAR GENERATION ---------- */
   out.push('## Génération par génération');
   out.push('');
@@ -226,6 +248,25 @@ function texte(cfg,o){
     out.push((nesP.length?pluriel(nesP.length,'naissance')+' ('+compter(nesP,'origine',ORIG)+')':'Aucune naissance')+'. Les courses sont en train de se jouer.');
     out.push('');}
   return out.join('\n')+'\n';}
+
+/* le paragraphe de la mesure de tau : ce que dit la mesure, en mots simples, et les chiffres qui la portent. Ne leve jamais. */
+function paragrapheTau(cfg,o){
+  const base='La sélection garde les enfants qui ont eu les meilleures courses ; ça ne sert que si un enfant « bon » l\'est vraiment, et pas seulement chanceux. '+
+    'La mesure le vérifie sans jouer une course de plus : chaque enfant joue les routes de sa génération de naissance, puis celles de la suivante ; '+
+    'si les mutations comptent, un enfant bon sur les premières l\'est aussi sur les secondes. ';
+  try{
+    const x=ET.mesureTau(cfg,o),e=x.enfants||{},c=x.clones;
+    let s=base+'**Aujourd\'hui : '+String(x.phrase||'trop tôt pour le dire')+'.**';
+    if(x.verdict==='trop-tot'&&fini(e.requis))s+=' La mesure ne conclut pas avant '+e.requis+' enfants mesurés, même si les chiffres ont l\'air nets.';
+    if(fini(x.r))s+=' Corrélation entre les deux moitiés : '+fr(x.r)+(Array.isArray(x.icR)?' [entre '+fr(x.icR[0])+' et '+fr(x.icR[1])+']':'')+
+      ' ; écart vrai entre enfants τ ≈ '+fr(x.tau)+' palier'+(Array.isArray(x.icTau)?' [entre '+fr(x.icTau[0])+' et '+fr(x.icTau[1])+']':'')+'.';
+    if(x.verdict==='comptent')s+=' La sélection trie donc de vrais écarts : les réglages fins de la sélection (C1 à C5 de l\'étude du réglage) valent la peine d\'être essayés.';
+    if(x.verdict==='ne-comptent-pas')s+=' La sélection trie donc surtout du hasard : il faudra changer quelque chose de plus profond (mutations plus fortes, autre témoin).';
+    if(x.verdict!=='trop-tot')s+=' (Ce verdict est recalculé à chaque génération : c\'est le premier sorti de « trop tôt » qui compte ; les suivants l\'affinent.)';
+    if(c&&c.comparees>0)s+=' Courses jouées pour rien (un enfant qui rejoue exactement la course de son parent sur la même route) : '+c.identiques+' sur '+c.comparees+
+      ' ('+fr(100*c.part,0)+' %)'+(fini(c.partTempsEntrainement)?', '+fr(100*c.partTempsEntrainement,1)+' % du temps d\'entraînement':'')+'.';
+    return s;
+  }catch(err){return base+'**Aujourd\'hui : trop tôt pour le dire.**';}}
 
 /* le temps sans travail avant la generation g (en s) : son debut moins la fin de la precedente */
 function trou(a,g){const fa=Date.parse(a&&a.date),dg=Date.parse(g&&g.date)-((g&&g.duree_s)||0)*1000;return isFinite(fa)&&isFinite(dg)?(dg-fa)/1000:0;}

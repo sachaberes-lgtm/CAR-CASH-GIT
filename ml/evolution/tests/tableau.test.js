@@ -62,7 +62,18 @@ essai('exemple complet',()=>{
   ok('la phase B est marquee',/phase B à la génération 25/.test(html));
   const res=fs.readFileSync(r.resume,'utf8');
   const L=ET.resume(cfg);
-  ok('resume.txt = les lignes de etat.resume',res===L.join('\n')+'\n',res);
+  /* (28/11/2026, l'integrateur) resume.txt = les 10 lignes, une ligne vide, puis la ligne de la mesure de tau (« Mutations comptent-elles ? ») */
+  const RL=res.replace(/\n$/,'').split('\n');
+  ok('resume.txt = les lignes de etat.resume, puis la ligne de la mesure de tau',res.indexOf(L.join('\n')+'\n\n')===0&&RL.length===L.length+2&&
+    /^Mutations comptent-elles \? /.test(RL[RL.length-1])&&/^[\x20-\x7e]*$/.test(RL[RL.length-1])&&RL[RL.length-1].length<=118,res);
+  ok('tableau.html porte la section de la mesure de tau',/1 bis\. Les mutations comptent-elles \?/.test(html)&&/trop tôt pour le dire/i.test(html));
+  ok('histoire.md porte le paragraphe de la mesure de tau',/## Les mutations comptent-elles \?\n\n.*trop tôt pour le dire/i.test(fs.readFileSync(path.join(d,'histoire.md'),'utf8')));
+  {const MT=require(path.join(EV,'mesure-tau.js')),av=MT.mesurer;MT.mesurer=()=>{throw new Error('panne expres');};
+    let err=null;try{T.ecrire(cfg);}catch(e){err=e;}MT.mesurer=av;
+    const r2=fs.readFileSync(r.resume,'utf8');
+    ok('une mesure de tau qui leve ne fait echouer ni le tableau, ni resume.txt, ni le recit',!err&&/Mutations comptent-elles \? trop tot/.test(r2)&&
+      /1 bis\. Les mutations/.test(fs.readFileSync(r.html,'utf8'))&&/trop tôt pour le dire/.test(fs.readFileSync(path.join(d,'histoire.md'),'utf8')),err&&err.stack);
+    T.ecrire(cfg);}
   ok('resume : au plus 10 lignes ('+L.length+')',L.length<=10&&L.length>=8);
   ok('resume : lignes de 120 caracteres au plus',L.every(l=>l.length<=120),L.filter(l=>l.length>120).join('\n'));
   ok('resume : sans accents (console Windows)',L.every(l=>/^[\x20-\x7e]*$/.test(l)),L.filter(l=>!/^[\x20-\x7e]*$/.test(l)).join('\n'));

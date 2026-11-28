@@ -7,6 +7,7 @@
    2. arbre.js : un parent mort au genome v:1 (morts.jsonl d'avant les gestes) et son enfant v:2 : un seul gene change, pas 21 « undefined -> naissance ».
    3. tableau.js : l'en-tete ne dit plus « Rien n'est publie » et nomme sauver-traces.cmd.
    4. config.json : alarmeDistance 0.012 (la moitie de la distance d'une vraie population a la naissance), et ce nombre n'entre dans aucune epoque.
+      (28/11, lot « regles ») 0.011 sur 121 genes.
    5. tests/evoluer.test.js : --travailleurs N passe a tous ses lancements (plus de 4 en dur) ; la copie temporaire du relecteur est partie.
    6. README.md : les commandes d'installation et de mise a jour (git fetch, worktree add -b evolution-, merge --no-edit) et le reste demande.
    node ml/evolution/tests/integration.test.js -> code 0 si tout passe. */
@@ -106,7 +107,8 @@ fs.rmSync(BAC,{recursive:true,force:true});fs.mkdirSync(BAC,{recursive:true});
 {
   const C=require('../commun'),K=require('../courses');
   const cfg=C.lireConfig();
-  ok('config : alarmeDistance 0.012 (la moitie de la distance de naissance mesuree, 0.0225)',cfg.alarmeDistance===0.012);
+  /* (28/11, lot « regles ») 0.011 : la moitie de la distance de naissance remesuree sur 121 genes (0.0221, tests/mesure-distance.js) */
+  ok('config : alarmeDistance 0.011 (la moitie de la distance de naissance mesuree sur 121 genes, 0.0221)',cfg.alarmeDistance===0.011);
   const a=K.epoque(cfg),b=K.epoque(Object.assign({},cfg,{alarmeDistance:0.05}));
   ok('config : alarmeDistance n\'entre ni dans l\'epoque des courses ni dans celle des notes',a.courses===b.courses&&a.note===b.note);
 }

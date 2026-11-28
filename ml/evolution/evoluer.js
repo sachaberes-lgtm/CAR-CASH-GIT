@@ -254,6 +254,7 @@ function lireJournal(f){
 function charger(cfg,o){
   o=o||{};
   const P=chemins(cfg);
+  planValidation(cfg);   /* (28/11, lot « sacre ») un plan de validation mal ecrit dans la config : refus tout de suite, pas a la premiere validation */
   fs.mkdirSync(P.dossier,{recursive:true});
   const dire0=o.dire||direDefaut;
   for(const f of [P.generations,P.validations,P.morts,P.coffre]){
@@ -314,10 +315,43 @@ function tache(ctx,v,graine,usage,G){
 }
 function vivantDe(ctx,id){return ctx.pop.vivants.find(v=>v.id===id)||null;}
 
-/* les courses : une demande par tache (pour voir tot un YEUX CHANGES et le dire course par course) */
-async function courir(ctx,taches){
+/* ===== LES COURSES LONGUES D'ABORD (28/11/2026, lot « regles » ; la synthese ml/ecurie/etude/reglage-de-la-selection/LISEZ-MOI.md § 2 A6 :
+   « demander les courses par duree attendue decroissante ») =====
+   L'ordonnanceur joue les demandes dans leur ordre d'arrivee. Une course longue demandee en dernier laisse les autres coeurs a vide en fin de
+   generation. Les courses d'une generation sont donc DEMANDEES de la plus longue attendue a la plus courte ; les resultats sont ranges a leur place
+   d'origine : memes courses, memes cles, memes notes, memes journaux (tests/generation.test.js, A6 : une generation jouee dans les deux ordres).
+   La duree attendue d'un pilote : la moyenne de ses survies deja connues (lignes d'entrainement mesurees de l'epoque) ; un enfant sans course :
+   celle de son premier parent ; sans rien : la moyenne de tous (au milieu). Egalite : l'ordre d'origine. cfg.ordreCourses "origine" : l'ordre d'avant.
+   Gain attendu modeste (0,2 % mesure sur le Xeon, peut-etre 1 a 2 % ailleurs) ; « le temps inoccupe en fin de generation » le dira (sortie.log). */
+function ordreLongues(ctx,taches){
+  const I=taches.map((t,i)=>i);
+  if(ctx.cfg.ordreCourses==='origine')return I;
+  const S=new Map();let s0=0,n0=0;
+  for(const l of ctx.lignes.values())if(fini(l.survie_s)){const x=S.get(l.id)||{s:0,n:0};x.s+=l.survie_s;x.n++;S.set(l.id,x);s0+=l.survie_s;n0++;}
+  const moyenne=id=>{const x=S.get(id);return x&&x.n?x.s/x.n:null;};
+  const tous=n0?s0/n0:0,memo=new Map();
+  const attendue=id=>{
+    if(memo.has(id))return memo.get(id);
+    let d=moyenne(id);
+    if(d==null){const v=ctx.pop&&vivantDe(ctx,id),p=v&&v.parents&&v.parents[0];d=p!=null?moyenne(p):null;}
+    if(d==null)d=tous;
+    memo.set(id,d);return d;};
+  return I.sort((a,b)=>(attendue(taches[b].id)-attendue(taches[a].id))||(a-b));
+}
+/* les courses : une demande par tache (pour voir tot un YEUX CHANGES et le dire course par course) ; o.ordre : l'ordre des DEMANDES (une permutation
+   des indices, ordreLongues) ; le tableau rendu suit toujours l'ordre de taches */
+async function courir(ctx,taches,o){
   ctx.taches+=taches.length;
-  const L=await Promise.all(taches.map(t=>ctx.ord.demander([t]).then(function(r){
+  const ordre=o&&o.ordre?o.ordre:taches.map((t,i)=>i);
+  if(ordre.length!==taches.length||new Set(ordre).size!==taches.length)throw new Error('evoluer : ordre des courses invalide');
+  const P=new Array(taches.length);
+  for(const i of ordre)P[i]=demanderUne(ctx,taches[i]);
+  const L=await Promise.all(P);
+  if(ctx.fatal)throw new Error('evoluer : '+ctx.fatal);
+  return L;
+}
+function demanderUne(ctx,t){
+  return ctx.ord.demander([t]).then(function(r){
     const l=r[0];
     if(!l)return null;
     if(l.derniereErreur&&String(l.derniereErreur).indexOf('YEUX CHANGES')>=0&&!ctx.fatal){
@@ -326,14 +360,20 @@ async function courir(ctx,taches){
       ctx.dire('ERREUR : '+ctx.fatal+' — tout s\'arrete');}
     if(l.mesuree===true&&l.usage==='entrainement'&&l.epoque===ctx.epoque.courses)ctx.lignes.set(l.cle,l);
     if(!l._cache)ctx.dire('course '+l.usage+' graine '+l.graine+' '+court(l.id)+' : '+(l.mesuree?'palier '+l.palier+', '+l.survie_s+' s, '+l.cause:'NON MESUREE ('+l.raison+')'));
-    return l;})));
-  if(ctx.fatal)throw new Error('evoluer : '+ctx.fatal);
-  return L;
+    return l;});
 }
 
 /* ---------- LA NOTE ---------- */
+/* (28/11/2026, lot « regles », avec A6) LES LIGNES DANS UN ORDRE FIXE : note.noter depend de l'ordre de ses lignes (les sommes du modele pilote + graine
+   au dernier bit, et surtout le bootstrap de E, qui tire des POSITIONS dans les parties d'un pilote). Cet ordre etait celui ou les courses FINISSAIENT
+   (et, apres une reprise, celui du fichier) : demander les courses longues d'abord l'aurait change, une reprise aussi. Les lignes sont donc rangees
+   par generation, graine, pilote, puis cle : la note ne depend plus que des courses jouees. */
+function ordreLignes(a,b){
+  const ga=fini(a.generation)?a.generation:-1,gb=fini(b.generation)?b.generation:-1;
+  return (ga-gb)||(a.graine-b.graine)||(a.id<b.id?-1:a.id>b.id?1:0)||(a.cle<b.cle?-1:a.cle>b.cle?1:0);
+}
 function noterTous(ctx){
-  return N.noter([...ctx.lignes.values()],{REF:ctx.REF,cfg:ctx.cfg,exclure:new Set(ctx.pop.grainesRetirees||[]),ids:ctx.pop.vivants.map(v=>v.id)});
+  return N.noter([...ctx.lignes.values()].sort(ordreLignes),{REF:ctx.REF,cfg:ctx.cfg,exclure:new Set(ctx.pop.grainesRetirees||[]),ids:ctx.pop.vivants.map(v=>v.id)});
 }
 function resumeNote(x){
   if(!x)return null;
@@ -349,9 +389,22 @@ function diffGenomes(g,ref){
   for(const t of ['WV','WS'])if(g[t].some((x,i)=>x!==ref[t][i]))m.push({cle:t,avant:null,apres:null});
   return m;
 }
-function tournoi(ctx,notes,rng,exclure){
+/* ===== LA PROTECTION PAR L'AGE (28/11/2026, lot « regles » ; la synthese ml/ecurie/etude/reglage-de-la-selection/LISEZ-MOI.md § 2 A4 : « proteger
+   les enfants par leur age et non par 24 courses ») =====
+   Avant : un vivant n'etait parent, ni renvoyable, qu'avec protectionCourses (24) courses mesurees dans l'epoque. A 12 graines, c'est un enfant
+   ne en G protege pendant G (12 courses), renvoyable en G+1 et parent des naissances de G+2 (24). Mais a 8 graines (l'economie), il fallait trois
+   generations pour 24 courses : protege DEUX generations au lieu d'une, parent une generation plus tard. (Et une graine retiree, une course non
+   mesuree, une nouvelle epoque — ou tout le monde repart de 0 course — decalaient aussi la protection.)
+   Maintenant, par l'age seul (v.ne, la generation de naissance ; absent = 0, comme le temoin) :
+     - parent des naissances de G : ne <= G - 1 - protectionGenerations (1 : ne <= G-2) ;
+     - renvoyable a la generation G : ne <= G - protectionGenerations (1 : ne < G), le temoin et le champion toujours exclus.
+   A 12 graines c'est exactement la regle d'avant ; a 8, un enfant est protege une generation. Moins de 3 parents possibles (les premieres
+   generations) : comme avant, les vivants qui ont le plus de courses. */
+const neDe=v=>fini(v&&v.ne)?v.ne:0;
+const protectionAge=cfg=>{const p=cfg.protectionGenerations;return Number.isInteger(p)&&p>=0?p:1;};
+function tournoi(ctx,notes,rng,exclure,G){
   const cfg=ctx.cfg,V=ctx.pop.vivants;
-  let pool=V.filter(v=>nDe(notes,v.id)>=cfg.protectionCourses);
+  let pool=V.filter(v=>neDe(v)<=G-1-protectionAge(cfg));
   const taille=cfg.tournoi||3;
   if(pool.length<taille){
     let nmax=0;for(const v of V)nmax=Math.max(nmax,nDe(notes,v.id));
@@ -364,7 +417,13 @@ function tournoi(ctx,notes,rng,exclure){
   return pris[0];
 }
 function naissances(ctx,G){
-  const cfg=ctx.cfg,pop=ctx.pop,rng=Gr.mulberry32(pop.rng>>>0);
+  const cfg=ctx.cfg,pop=ctx.pop;
+  /* (28/11, lot « regles », M6) plus assez de graines d'entrainement neuves : arret AVANT toute naissance (rien n'est change ni ecrit ; l'etat reste a la
+     fin de la generation d'avant), avec le message de graines.js, plutot que de rejouer des graines en silence */
+  {const reste=Gr.grainesRestantes(pop.graines,cfg);
+    if(reste<pop.nGraines)throw new Error('evoluer : generation '+G+' non commencee : les graines d\'entrainement sont epuisees ('+reste+' neuves restent, '+pop.nGraines+
+      ' demandees ; aucune ne sera rejouee). Allonger cfg.graines.entrainement.suite.fin (sans toucher aux plages reservees : notes/regles.md) puis relancer.');}
+  const rng=Gr.mulberry32(pop.rng>>>0);
   const notes=noterTous(ctx),vus=new Set(pop.dejaVus),phase=pop.phase;
   const champion=vivantDe(ctx,pop.champion.id)||vivantDe(ctx,pop.temoin);
   const nes=[],abandons=[];
@@ -373,9 +432,9 @@ function naissances(ctx,G){
     if(k<(cfg.immigres||0)){
       g=Gn.muter(champion.genome,rng,{phase:phase,cfg:cfg,genes:cfg.immigreGenes,sigma:cfg.immigreSigma}).genome;parents=[champion.id];origine='immigre';
     }else{
-      const p1=tournoi(ctx,notes,rng,null),u=rng.suivant();
+      const p1=tournoi(ctx,notes,rng,null,G),u=rng.suivant();
       if(u<cfg.pCroisement){
-        const p2=tournoi(ctx,notes,rng,p1.id);
+        const p2=tournoi(ctx,notes,rng,p1.id,G);
         g=Gn.muter(Gn.croiser(p1.genome,p2.genome,rng),rng,{phase:phase,cfg:cfg}).genome;parents=[p1.id,p2.id];origine='croisement';
       }else{g=Gn.muter(p1.genome,rng,{phase:phase,cfg:cfg}).genome;parents=[p1.id];origine='mutation';}
     }
@@ -390,6 +449,8 @@ function naissances(ctx,G){
   for(const v of nes){pop.vivants.push(v);texteDe(ctx,v);}
   const r=Gr.grainesEntrainement(pop.graines,rng,pop.nGraines,cfg);
   pop.graines=r.eg;pop.grainesGeneration=r.graines;
+  {const reste=Gr.grainesRestantes(r.eg,cfg);
+    if(reste<20*pop.nGraines)evenement(ctx,'graines d\'entrainement : il n\'en reste que '+reste+' neuves (moins de 20 generations) : allonger cfg.graines.entrainement.suite.fin');}
   pop.rng=rng.etat();pop.generation=G;pop.etape='courses';pop.dejaVus=[...vus];
   pop.naissancesGeneration=nes.map(v=>({id:v.id,parents:v.parents,origine:v.origine,mutes:v.mutes.map(m=>m.cle)}));
   pop.abandonsGeneration=abandons;
@@ -532,21 +593,106 @@ function ecrireChampion(ctx,v,G,o){
 }
 
 /* ---------- LA VALIDATION (§ 6.4, 6.5) ---------- */
-async function validation(ctx,G,A,B,usage,notes,forcee){
+/* ===== LA VALIDATION SEQUENTIELLE (28/11/2026, lot « sacre » ; la synthese ml/ecurie/etude/reglage-de-la-selection/LISEZ-MOI.md § 2 A5, l'etude
+   sacre/ et sa relecture : « un vrai +1 palier n'est reconnu que 15 fois sur 100 ») =====
+   cfg.validation.plan :
+   - "fixe" (ou absent : le comportement d'avant) : un seul lot de cfg.validation.graines graines, sacre si le critere (a) passe a seuilSacre ;
+   - "sequentiel" : un premier lot de cfg.validation.graines (24) graines neuves, puis des paquets de cfg.validation.pas (12) jusqu'a
+     cfg.validation.plafond (96). A chaque « regard » (apres chaque lot), note.comparer sur TOUTES les graines jouees jusque-la, le critere (a)
+     a la borne O'Brien-Fleming borneOBF x racine(plafond / n) (n = graines mesurees chez les deux ; 4,4 a 24, 3,1 a 48, 2,2 a 96) :
+       sacre si (a), (b) et (c) passent ; sinon arret sans sacre si z = dF / se_dF < cfg.validation.futilite (0,5) ; sinon arret au plafond ;
+       sinon un paquet de plus. Plus de graines de validation : arret sans sacre (« epuisees »).
+   Le plan ne depend que des courses (le bootstrap de note.comparer a son propre generateur rngDe('comparer|'+n)) : une validation interrompue
+   (STOP, coupure, kill) rend {interrompue:true} sans rien ecrire ; la reprise retire les MEMES graines (population.json n'a pas ete reecrit),
+   le cache rend les courses deja jouees, et les decisions sont les memes (tests/validation-sequentielle.test.js, V5).
+   Mesure de CE code sur les tirages de l'etude (tests/mesure-sacre.js) : voir notes/sacre.md.
+   La revalidation d'apres une nouvelle epoque garde son lot fixe de cfg.validation.graines et sa regle (revalidationPerte). */
+function planValidation(cfg){
+  const V=(cfg&&cfg.validation)||{},nom=V.plan==null?'fixe':V.plan;
+  const entier=(k,min)=>{const x=V[k];if(!(typeof x==='number'&&x===Math.floor(x)&&x>=min))throw new Error('evoluer : cfg.validation.'+k+' doit etre un entier >= '+min+' (lu : '+JSON.stringify(x)+')');return x;};
+  const reel=(k,pos)=>{const x=V[k];if(!fini(x)||(pos&&!(x>0)))throw new Error('evoluer : cfg.validation.'+k+' doit etre un nombre'+(pos?' > 0':'')+' (lu : '+JSON.stringify(x)+')');return x;};
+  const seuils={seuilB:V.seuilB==null?1:reel('seuilB'),seuilC:V.seuilC==null?1:reel('seuilC')};
+  if(nom==='fixe'){const n=entier('graines',1);return Object.assign({nom:'fixe',premier:n,pas:0,plafond:n,seuilSacre:V.seuilSacre==null?2:reel('seuilSacre')},seuils);}
+  if(nom!=='sequentiel')throw new Error('evoluer : cfg.validation.plan inconnu « '+nom+' » (fixe ou sequentiel)');
+  const premier=entier('graines',1),pas=entier('pas',1),plafond=entier('plafond',premier);
+  return Object.assign({nom:'sequentiel',premier:premier,pas:pas,plafond:plafond,borneOBF:reel('borneOBF',true),futilite:reel('futilite')},seuils);
+}
+/* le z d'un regard : dF / se_dF ; se_dF nul : +inf si dF > 0, -inf sinon (comme l'etude, plans.js) ; aucune graine commune : null */
+function zDe(cmp){
+  if(!cmp||!fini(cmp.dF))return null;
+  return cmp.se_dF>0?cmp.dF/cmp.se_dF:(cmp.dF>0?Infinity:-Infinity);
+}
+/* la borne du critere (a) au regard de n graines jouees : fixe -> seuilSacre ; sequentiel -> borneOBF x racine(plafond / m), m = les graines
+   mesurees chez les deux (au plus n) : une graine ratee ne compte pas comme de l'information (plus prudent que n quand des courses manquent) */
+function borneRegard(plan,n,mesurees){
+  if(plan.nom==='fixe')return plan.seuilSacre;
+  const m=mesurees>0?Math.min(mesurees,n):n;
+  return plan.borneOBF*Math.sqrt(plan.plafond/m);
+}
+/* LA DECISION D'UN REGARD (pure, exportee : tests/mesure-sacre.js la mesure sur les tirages de l'etude, les tests la verifient)
+   cmp : le rendu de note.comparer a la borne ; n : graines jouees jusque-la -> 'sacre' | 'futilite' | 'plafond' | 'continuer' */
+function decisionRegard(plan,cmp,n){
+  if(cmp&&cmp.sacre)return 'sacre';
+  if(plan.nom==='fixe')return 'plafond';
+  const z=zDe(cmp);
+  if(z==null||z<plan.futilite)return 'futilite';
+  if(n>=plan.plafond)return 'plafond';
+  return 'continuer';
+}
+/* un regard complet sur les lignes deja jouees (pure) : note.comparer a la borne du regard, puis la decision. o : {REF, cfg} ; lignes de A et de B */
+function regarder(plan,LA,LB,n,o){
+  const cfgSeuil=s=>N.comparer(LA,LB,{REF:o.REF,cfg:o.cfg,seuilSacre:s});
+  /* la borne depend des graines mesurees chez les deux, que seul comparer compte : un premier appel les donne quand il en manque */
+  let cmp=cfgSeuil(borneRegard(plan,n,n));
+  if(plan.nom!=='fixe'&&cmp.graines>0&&cmp.graines<n)cmp=cfgSeuil(borneRegard(plan,n,cmp.graines));
+  const borne=borneRegard(plan,n,cmp.graines);
+  return {cmp:cmp,borne:borne,z:zDe(cmp),decision:decisionRegard(plan,cmp,n)};
+}
+/* les graines d'un lot, retirees de pop.graines (en memoire : population.json n'est reecrit qu'a la fin de la generation) et jouees par A et B */
+async function jouerLot(ctx,G,A,B,usage,n){
   const cfg=ctx.cfg,pop=ctx.pop;
-  const r=Gr.grainesValidation(pop.graines,cfg.validation.graines,cfg);
+  const r=Gr.grainesValidation(pop.graines,n,cfg);
   if(r.alerte)evenement(ctx,r.alerte);
   pop.graines=r.eg;
-  if(!r.graines.length)return null;
-  ctx.dire((usage==='revalidation'?'revalidation : ':'validation : ')+court(A.id)+' contre '+court(B.id)+' sur '+r.graines.length+' graines neuves ('+r.graines[0]+'…)');
+  if(!r.graines.length)return {vide:true,graines:[]};
   const taches=[];for(const g of r.graines){taches.push(tache(ctx,A,g,usage,G));taches.push(tache(ctx,B,g,usage,G));}
   const L=await courir(ctx,taches);
   if(L.some(l=>l===null))return {interrompue:true};
-  const LA=L.filter(l=>l.id===A.id),LB=L.filter(l=>l.id===B.id);
-  const cmp=N.comparer(LA,LB,{REF:ctx.REF,cfg:cfg});
+  return {graines:r.graines,LA:L.filter(l=>l.id===A.id),LB:L.filter(l=>l.id===B.id)};
+}
+const resumeCmp=cmp=>({graines:cmp.graines,dF:r4(cmp.dF),se_dF:r4(cmp.se_dF),dPalier:r4(cmp.dPalier),se_dPalier:r4(cmp.se_dPalier),dE:r4(cmp.dE),se_dE:r4(cmp.se_dE)});
+async function validation(ctx,G,A,B,usage,notes,forcee){
+  const cfg=ctx.cfg;
+  /* la revalidation garde son lot fixe (§ 6.5) ; la validation suit cfg.validation.plan */
+  const plan=usage==='validation'?planValidation(cfg):{nom:'fixe',premier:cfg.validation.graines,pas:0,plafond:cfg.validation.graines,seuilSacre:null};
+  const graines=[],LA=[],LB=[],regards=[];
+  let n=0,dernier=null,premier=null,arret=null;
+  for(;;){
+    const taille=n===0?plan.premier:Math.min(plan.pas,plan.plafond-n);
+    const lot=await jouerLot(ctx,G,A,B,usage,taille);
+    if(lot.interrompue)return {interrompue:true};
+    if(lot.vide){
+      if(n===0)return null;
+      arret='epuisees';regards[regards.length-1].decision='epuisees';
+      ctx.dire('validation : plus de graines de validation apres '+n+' graines : arret sans sacre');break;}
+    if(n===0)ctx.dire((usage==='revalidation'?'revalidation : ':'validation : ')+court(A.id)+' contre '+court(B.id)+' sur '+lot.graines.length+' graines neuves ('+lot.graines[0]+'…)'+
+      (plan.nom==='sequentiel'?', puis '+plan.pas+' par '+plan.pas+' jusqu\'a '+plan.plafond+' si le meneur semble devant':''));
+    graines.push(...lot.graines);LA.push(...lot.LA);LB.push(...lot.LB);n+=lot.graines.length;
+    if(usage!=='validation'){dernier={cmp:N.comparer(LA,LB,{REF:ctx.REF,cfg:cfg})};premier=dernier;break;}
+    const x=regarder(plan,LA,LB,n,{REF:ctx.REF,cfg:cfg});
+    dernier=x;if(!premier)premier=x;
+    regards.push(Object.assign({n:n,mesurees:x.cmp.graines,borne:r4(x.borne),z:fini(x.z)?r4(x.z):(x.z==null?null:(x.z>0?'+inf':'-inf'))},resumeCmp(x.cmp),{criteres:x.cmp.criteres,decision:x.decision}));
+    delete regards[regards.length-1].graines;
+    if(plan.nom==='sequentiel')ctx.dire('validation : regard '+regards.length+' sur '+n+' graines : z '+(fini(x.z)?x.z.toFixed(2):String(x.z))+' (borne '+x.borne.toFixed(2)+', arret sous '+plan.futilite+') -> '+x.decision);
+    if(x.decision!=='continuer'){arret=x.decision;break;}
+  }
+  const cmp=dernier.cmp;
   const nA=notes.par[A.id]||{},nB=notes.par[B.id]||{};
   const dFe=fini(nA.F)&&fini(nB.F)?nA.F-nB.F:null,se=Math.sqrt(Math.pow(nA.se_F||0,2)+Math.pow(nB.se_F||0,2));
-  const malediction=dFe!=null&&cmp.dF!=null?dFe-cmp.dF:null;
+  /* (lot « sacre », correction de la relecture de l'etude : le dF du dernier regard d'un plan qui s'arrete selon ce qu'il voit est biaise) la
+     malediction se mesure sur le PREMIER regard, de taille fixe (cfg.validation.graines) */
+  const dF1=premier.cmp.dF;
+  const malediction=dFe!=null&&dF1!=null?dFe-dF1:null;
   let moyenne=null;
   if(usage==='validation'&&!forcee&&fini(malediction)){
     const M=ctx.maledictions.concat([malediction]).slice(-(cfg.validation.maledictionFenetre||10));
@@ -554,10 +700,31 @@ async function validation(ctx,G,A,B,usage,notes,forcee){
   }
   const V0={generation:G,date:new Date().toISOString(),usage:usage};
   if(forcee)V0.forcee=true;
-  return Object.assign(V0,{meneur:A.id,champion:B.id,graines:r.graines,
+  const sacre=usage==='validation'?arret==='sacre':cmp.sacre;
+  const R=Object.assign(V0,{meneur:A.id,champion:B.id,graines:graines,
     entrainement:{dF:r4(dFe),se_dF:r4(se)},
-    validation:{graines:cmp.graines,dF:r4(cmp.dF),se_dF:r4(cmp.se_dF),dPalier:r4(cmp.dPalier),se_dPalier:r4(cmp.se_dPalier),dE:r4(cmp.dE),se_dE:r4(cmp.se_dE)},
-    criteres:cmp.criteres,sacre:cmp.sacre,malediction:r4(malediction),maledictionMoyenne:r4(moyenne),fichier:null,_cmp:cmp,_nA:nA});
+    validation:resumeCmp(cmp),
+    criteres:cmp.criteres,sacre:sacre,malediction:r4(malediction),maledictionMoyenne:r4(moyenne),fichier:null,_cmp:cmp,_nA:nA});
+  if(usage==='validation'){
+    const P={nom:plan.nom,premier:plan.premier};
+    if(plan.nom==='sequentiel')Object.assign(P,{pas:plan.pas,plafond:plan.plafond,borneOBF:plan.borneOBF,futilite:plan.futilite});
+    else P.seuilSacre=plan.seuilSacre;
+    Object.assign(P,{seuilB:plan.seuilB,seuilC:plan.seuilC});
+    Object.assign(R,{plan:P,regards:regards,arret:arret,courses:2*n});
+  }
+  return R;
+}
+/* ===== L'ALARME « MALEDICTION DU GAGNANT » (28/11/2026, lot « sacre » ; la synthese § 2 A1 : « l'alarme sonnerait par construction ») =====
+   La malediction (dF d'entrainement - dF des graines neuves) reste mesuree et ecrite dans validations.jsonl. L'alarme (regle6 -> regle6Haute quand la
+   moyenne des maledictionFenetre dernieres depasse maledictionSeuil) ne sonne que si maledictionSeuil est un nombre : null ou absent = pas d'alarme
+   (config.json : null). -> la moyenne si l'alarme sonne, sinon null. */
+function alarmeMalediction(M,cfgV,regle6){
+  const seuil=cfgV&&cfgV.maledictionSeuil,fen=(cfgV&&cfgV.maledictionFenetre)||10;
+  if(!fini(seuil))return null;
+  const D=M.slice(-fen);
+  if(D.length<fen)return null;
+  const m=D.reduce((s,x)=>s+x,0)/D.length;
+  return m>seuil&&regle6!==cfgV.regle6Haute?m:null;
 }
 function ecrireValidation(ctx,V){
   const l=Object.assign({},V);delete l._cmp;delete l._nA;delete l.interrompue;
@@ -627,7 +794,7 @@ async function generation(ctx){
   ctx.dire('generation '+G+' : '+taches.length+' courses ('+pop.vivants.length+' pilotes x '+pop.grainesGeneration.length+' graines, '+cfg.tmax+' s au plus, '+cfg.travailleurs+' a la fois)');
   /* la duree des seules courses d'entrainement, sans la PAUSE (l'economie de graines se decide dessus) */
   const tE0=Date.now(),pE0=pauseMs(ctx),jE0=ctx.ord.stats().jouees;
-  const L=await courir(ctx,taches);
+  const L=await courir(ctx,taches,{ordre:ordreLongues(ctx,taches)});   /* (28/11, lot « regles », A6) les plus longues demandees d'abord */
   if(L.some(l=>l===null))return {interrompue:true,generation:G};
   enPause(ctx);
   const dureeEnt_s=Math.max(0,Math.round(((Date.now()-tE0)-(pauseMs(ctx)-pE0))/1000)),joueesEnt=ctx.ord.stats().jouees-jE0;
@@ -677,7 +844,8 @@ async function generation(ctx){
   notes=noterTous(ctx);
 
   /* 6. LE RENVOI */
-  const elig=pop.vivants.filter(v=>v.id!==pop.temoin&&v.id!==pop.champion.id&&nDe(notes,v.id)>=cfg.protectionCourses);
+  /* (28/11, lot « regles », A4) renvoyable par l'age : ne <= G - protectionGenerations (1 : ne avant cette generation) */
+  const elig=pop.vivants.filter(v=>v.id!==pop.temoin&&v.id!==pop.champion.id&&neDe(v)<=G-protectionAge(cfg));
   const nVirer=Math.max(0,Math.min(elig.length,pop.vivants.length-cfg.mu));
   const surv=id=>{const x=notes.par[id];return x&&fini(x.survie)?x.survie:-Infinity;};
   elig.sort((a,b)=>(fDe(notes,a.id)-fDe(notes,b.id))||(surv(a.id)-surv(b.id))||(a.id<b.id?-1:a.id>b.id?1:0));
@@ -716,11 +884,12 @@ async function generation(ctx){
       if(R){
         pop.derniereValidation=G;
         if(R.sacre){sacrer(ctx,meneur,G,R);sacre=true;}
-        else ctx.dire('validation : '+court(meneur.id)+' pas sacre (dF '+R.validation.dF+' +- '+R.validation.se_dF+')');
+        else ctx.dire('validation : '+court(meneur.id)+' pas sacre (dF '+R.validation.dF+' +- '+R.validation.se_dF+' sur '+R.validation.graines+' graines'+(R.arret?', arret : '+R.arret:'')+')');
         V=ecrireValidation(ctx,R);
-        const M=ctx.maledictions.slice(-(cfg.validation.maledictionFenetre||10));
-        if(M.length>=(cfg.validation.maledictionFenetre||10)&&M.reduce((s,x)=>s+x,0)/M.length>cfg.validation.maledictionSeuil&&pop.regle6!==cfg.validation.regle6Haute){
-          evenement(ctx,'regle 6 : '+pop.regle6+' -> '+cfg.validation.regle6Haute+' (malediction du gagnant moyenne '+(M.reduce((s,x)=>s+x,0)/M.length).toFixed(2)+')');
+        /* (28/11, lot « sacre ») l'alarme ne sonne que si cfg.validation.maledictionSeuil est un nombre (config.json : null) */
+        const mAlarme=alarmeMalediction(ctx.maledictions,cfg.validation,pop.regle6);
+        if(mAlarme!=null){
+          evenement(ctx,'regle 6 : '+pop.regle6+' -> '+cfg.validation.regle6Haute+' (malediction du gagnant moyenne '+mAlarme.toFixed(2)+')');
           pop.regle6=cfg.validation.regle6Haute;}
       }
     }
@@ -770,7 +939,8 @@ async function generation(ctx){
     meneur:meneurN,temoin:resumeNote(notes.par[pop.temoin]),champion:resumeNote(notes.par[pop.champion.id]),
     population:pop.vivants.map(v=>{const x=notes.par[v.id]||{};return {id:v.id,ne:v.ne,n:x.n||0,ahat:r4(x.ahat),E:r4(x.E),F:r4(x.F),se_F:r4(x.se_F)};}),
     distance:div.distance,distanceW2:div.distanceW2,sigmaRes:r4(notes.sigmaRes),
-    validation:V?{usage:V.usage,meneur:V.meneur,champion:V.champion,sacre:V.sacre,dF:V.validation.dF,se_dF:V.validation.se_dF}:null,
+    validation:V?Object.assign({usage:V.usage,meneur:V.meneur,champion:V.champion,sacre:V.sacre,dF:V.validation.dF,se_dF:V.validation.se_dF},
+      V.regards?{graines:V.graines.length,regards:V.regards.length,arret:V.arret}:{}):null,   /* (28/11, lot « sacre ») + graines jouees, regards, arret */
     coffre:K0?{raison:K0.raison,diff:K0.diff}:null,
     evenements:ctx.evenements.splice(0)};
   for(const l of mortsJ)ecrireMort(ctx,l);
@@ -1162,6 +1332,8 @@ async function principal(argv){
 
 module.exports={generation,charger,verrouiller,refusDePartir,ecrireChampion,validerMaintenant,preparer,banc,chemins,lireOptions,USAGE,planBanc,processusNode,
   repartir,archiverEtat,refusNode,
+  planValidation,decisionRegard,borneRegard,regarder,zDe,alarmeMalediction,   /* (28/11, lot « sacre ») la validation sequentielle et l'alarme, pour les tests et la mesure */
+  ordreLongues,ordreLignes,   /* (28/11, lot « regles ») l'ordre des demandes (A6) et l'ordre fixe des lignes de la note, pour les tests */
   principal};   /* (28/11, le relecteur) pour le test p7 de portage.test.js (--repartir-de et un STOP), lance dans un processus a part */
 
 if(require.main===module){

@@ -4,7 +4,8 @@
    les deux derniers fichiers courses-AAAA-SS.jsonl. N'ecrit rien. Ne plante jamais sur un etat vide, absent ou tronque : ce qu'il ne peut pas
    lire devient une alerte (ligne 10).
    API (INTERFACES.md § 2.9) : require('./etat').resume(cfg) -> string[] (au plus 10 lignes).
-   En plus (pour tableau.js) : lire(cfg) -> les donnees lues, lireConfig(fichier?), args(argv).
+   En plus (pour tableau.js) : lire(cfg) -> les donnees lues, lireConfig(fichier?), args(argv) ; (28/11, l'integrateur, INTERFACES § 11.7)
+   mesureTau(cfg, o?), tauLigne(x), resumeComplet(cfg, o?) = les 10 lignes, une vide, la ligne « Mutations comptent-elles ? » (resume.txt).
    Ligne de commande : node ml/evolution/etat.js [--config f.json]
    Les lignes sont sans accents : elles s'impriment dans une console Windows (page de code 850) et dans resume.txt. */
 const fs=require('fs'),path=require('path');
@@ -174,7 +175,15 @@ function resume(cfg,o){
   /* 8. derniere validation */
   const Vl=D.validations.length?D.validations[D.validations.length-1]:null;
   if(Vl){const v=Vl.validation||{};
-    L.push((Vl.usage==='revalidation'?'Revalidation':'Validation')+' (gen. '+Vl.generation+') : '+court(Vl.meneur)+' contre '+court(Vl.champion)+' : '+
+    /* (28/11, lot « sacre ») une validation sequentielle dit a quel regard elle a fini : « SACRE au 3e regard, sur 48 graines » (ids sur 8 caracteres
+       pour tenir dans les 118 colonnes) ; une ligne d'avant (sans regards) garde la phrase d'avant */
+    /* (28/11/2026, le relecteur) l'arret au 1er regard, le cas le plus frequent, faisait 124 caracteres avec son z et son dF : couper() le tronquait
+       en « (dF +0.25 +... ». Le dF (deja dit par le z) n'est ajoute que s'il tient dans la ligne. */
+    if(Vl.usage!=='revalidation'&&Array.isArray(Vl.regards)&&Vl.regards.length){
+      const t0='Validation (gen. '+Vl.generation+') : '+String(Vl.meneur||'?').slice(0,8)+' contre '+String(Vl.champion||'?').slice(0,8)+' : '+regardsClair(Vl),
+        tdF=' (dF '+sg(v.dF,2)+' +- '+nb(v.se_dF,2)+')';
+      L.push(t0.length+tdF.length<=LARGEUR?t0+tdF:t0);}
+    else L.push((Vl.usage==='revalidation'?'Revalidation':'Validation')+' (gen. '+Vl.generation+') : '+court(Vl.meneur)+' contre '+court(Vl.champion)+' : '+
       (Vl.usage==='revalidation'?(Vl.sacre?'GARDE SON TITRE':'PERD SON TITRE'):(Vl.sacre?'SACRE':'pas sacre'))+
       ' (dF '+sg(v.dF,2)+' +- '+nb(v.se_dF,2)+' sur '+(v.graines!=null?v.graines:'?')+' graines)');}
   else L.push('Validation : aucune encore');
@@ -213,7 +222,68 @@ function temoinClair(pop){
   if(n==='c0101')return 'c0101, le dernier champion de la boucle payante';
   return n+', un champion de la boucle payante';}
 
-module.exports={resume,lire,lireConfig,chemin,args,lireJsonlTolerant,fichiersCourses,temoinNom,temoinClair};
+/* ===== LA VALIDATION SEQUENTIELLE EN CLAIR (28/11/2026, lot « sacre » : « sacre au 3e regard, sur 48 graines », « arrete au 1er regard ») =====
+   v : une ligne de validations.jsonl (usage 'validation'). Une ligne d'avant le lot (sans regards) ou du plan « fixe » : un seul lot.
+   o.accents : les mots des pages (histoire.md, tableau.html, arbre.html) ; sans : le resume, sans accents (console en page de code 850).
+   -> texte sans point final ; null pour une revalidation (elle garde ses mots a elle). Ne leve jamais. */
+function regardsClair(v,o){
+  o=o||{};const a=!!o.accents;
+  if(!v||typeof v!=='object'||v.usage==='revalidation')return null;
+  const R=Array.isArray(v.regards)?v.regards.filter(x=>x&&typeof x==='object'):[];
+  const V=v.validation||{},plan=v.plan||{};
+  const graines=n=>(typeof n==='number'?n:'?')+' graines';
+  const nTout=R.length&&typeof R[R.length-1].n==='number'?R[R.length-1].n:(Array.isArray(v.graines)&&v.graines.length?v.graines.length:V.graines);
+  const S=a?'sacré':'SACRE',PS=a?'pas sacré':'pas sacre',AR=a?'arrêté':'arrete';
+  if(!R.length||plan.nom==='fixe')return (v.sacre?S:PS)+' sur '+graines(nTout)+' (un seul lot)';
+  const k=R.length,ord=k===1?'1er':k+'e',der=R[k-1],arret=v.arret||der.decision;
+  const num=x=>typeof x==='number'&&isFinite(x)?(a?x.toFixed(2).replace('.',','):x.toFixed(2)):(x==null?'?':String(x));
+  if(v.sacre)return S+' au '+ord+' regard, sur '+graines(der.n);
+  if(arret==='futilite')return AR+' au '+ord+' regard, sur '+graines(der.n)+' (z '+num(der.z)+' sous '+num(plan.futilite)+')';
+  if(arret==='plafond')return PS+' au plafond ('+ord+' regard, '+graines(der.n)+')';
+  if(arret==='epuisees')return AR+' au '+ord+' regard, sur '+graines(der.n)+(a?' : plus de graines de validation':' : plus de graines');   /* (28/11, le relecteur) court : tient dans les 118 colonnes */
+  return PS+' ('+ord+' regard, '+graines(der.n)+')';}
+
+/* ===== LA MESURE DE TAU POUR LES PAGES (28/11/2026, l'integrateur : « branche la mesure de tau : une ligne dans resume.txt, une section dans
+   tableau.html, un paragraphe dans histoire.md, sans jamais faire echouer ces pages ») =====
+   mesure-tau.js (notes/tau.md) relit tous les courses-*.jsonl d'un etat : ici, une fois par appel, et jamais plus de TAU_MAX_OCTETS de journaux
+   (le tableau est refait DANS le processus de la selection a chaque generation : un etat de plusieurs mois ne doit pas lui couter la memoire ;
+   au-dela, la phrase dit de lancer la mesure a part). Ne leve jamais : toute erreur rend « trop tot » (verdict 'trop-tot').
+   o.tau : une mesure deja faite (tableau.ecrire la fait une fois pour la page, resume.txt et le recit). -> l'objet de mesure-tau.mesurer. */
+const TAU_MAX_OCTETS=100*1024*1024;
+function tauDefaut(phrase,defaut){
+  return {format:'evolution-mesure-tau-1',verdict:'trop-tot',phrase:phrase||'trop tôt pour le dire',enfants:{mesures:0,requis:null},
+    r:null,tau:null,icTau:null,clones:null,defauts:defaut?[defaut]:[]};}
+function mesureTau(cfg,o){
+  o=o||{};
+  if(o.tau&&typeof o.tau==='object'&&typeof o.tau.phrase==='string')return o.tau;
+  try{
+    const MT=require('./mesure-tau');
+    const dossier=chemin(cfg,cfg.dossierEtat||'etat');
+    let octets=0;for(const f of fichiersCourses(dossier)){try{octets+=fs.statSync(f).size;}catch(e){}}
+    if(octets>TAU_MAX_OCTETS){const x=tauDefaut('pas mesuré ici : les journaux de courses dépassent '+Math.round(TAU_MAX_OCTETS/1048576)+
+      ' Mo (lancer à part : node ml/evolution/mesure-tau.js)');x.lourd=true;return x;}
+    const x=MT.mesurer(dossier,MT.optionsDe(cfg,{tirages:o.tiragesTau||400}));
+    return x&&typeof x==='object'&&typeof x.phrase==='string'?x:tauDefaut(null,'mesure illisible');
+  }catch(e){return tauDefaut(null,'mesure impossible : '+String(e&&e.message||e).slice(0,120));}}
+/* la ligne de resume.txt, sans accents (page de code 850) et dans les 118 colonnes */
+function asciiCourt(s){return String(s).replace(/τ/g,'tau').replace(/[−–]/g,'-').normalize('NFD').replace(/[^ -~]/g,'');}
+function tauLigne(x){
+  try{
+    x=x||tauDefaut();
+    const n=v=>typeof v==='number'&&isFinite(v)?v.toFixed(2):'?';
+    let s='Mutations comptent-elles ? '+asciiCourt(x.phrase);
+    if(typeof x.r==='number'&&isFinite(x.r))s+=' ; r '+n(x.r)+', tau '+n(x.tau)+(Array.isArray(x.icTau)?' ['+n(x.icTau[0])+' ; '+n(x.icTau[1])+']':'');
+    if(x.clones&&x.clones.comparees>0&&typeof x.clones.part==='number'){const t=' ; courses pour rien '+Math.round(100*x.clones.part)+' %';if(s.length+t.length<=LARGEUR)s+=t;}
+    return couper(s);
+  }catch(e){return 'Mutations comptent-elles ? trop tot pour le dire';}}
+/* les 10 lignes du resume, puis une ligne vide et la ligne de la mesure de tau : ce qu'ecrit resume.txt (la ligne de commande garde ses 10 lignes) */
+function resumeComplet(cfg,o){
+  const L=resume(cfg,o);
+  let t;try{t=tauLigne(mesureTau(cfg,o));}catch(e){t='Mutations comptent-elles ? trop tot pour le dire';}
+  return L.concat(['',t]);}
+
+module.exports={resume,resumeComplet,lire,lireConfig,chemin,args,lireJsonlTolerant,fichiersCourses,temoinNom,temoinClair,regardsClair,
+  mesureTau,tauLigne,TAU_MAX_OCTETS};
 
 if(require.main===module){
   try{

@@ -142,6 +142,33 @@ const BLOCS={
   largeOn:{avec:['f.proche.haut>R.largeHaut','(parentOk||large)','const poseNette='],sans:[],cles:['largeHaut','largeT1','largeT2','largeAxe','largeAir','largeMax']},
   libreOn:{avec:['(m.nitro?R.nitroLibreK:1)','R.margeTenir-R.tenirLibre'],sans:[],cles:['nitroLibreK','tenirLibre']}};
 
+/* ===== QUEL DRAPEAU GARDE QUEL REEL (28/11/2026, lot « regles » ; la synthese ml/ecurie/etude/reglage-de-la-selection/LISEZ-MOI.md § 2 C2 :
+   « ne tirer les reels que parmi ceux que le pilote lit ») =====
+   LA SEULE TABLE : drapeau -> les reels que le pilote fabrique (modele.js, et bloc() plus bas) ne lit JAMAIS quand ce drapeau vaut 0. Relue dans le code,
+   pas dans les noms :
+     volRetourOn : bloc() ecrit « volRetour:0 » quand il est eteint (la portee de « vers la route » reste 40 m) ;
+     retourOn    : bloc() n'ecrit « retours:[] » que s'il est allume ; retMarge, retCap, retGain, retAvance n'y vont que la ; retourPrime n'est lu que par
+                   prime() d'une facon retour<i>, i < R.retours.length (le choix du depart et la bascule en sautent les autres, coup compris) ;
+     les gestes  : chaque reglage n'est lu que sous « R.<drapeau>>0 » (lacheOn, slalomOn par zActif, coupOn, relacheOn, suitOn) ;
+     le portage  : bordOn (bordNitro, bordJauge) ; largeOn (largeHaut, largeAxe, largeAir sous R.largeOn>0 ; largeT1, largeT2 dans tSeuil, qui ne
+                   compte que si large est vrai, donc si largeOn) ; libreOn (nitroLibreK, tenirLibre par « libre »).
+   Hors de la table (pas des reels de l'urne) : coupDecor (un drapeau garde par coupOn) et largeMax (un entier garde par largeOn : son tirage est celui
+   des entiers, pFigMax, il ne change pas). tests/genes-muets.test.js prouve la table sur les vues de l'inventaire et de tests/portage.test.js : drapeau
+   eteint, un reel garde pousse a ses bornes ne change aucune decision ; drapeau allume, il en change. */
+const GARDES=Object.freeze({
+  volRetourOn:Object.freeze(['volRetour']),
+  retourOn:Object.freeze(['retMarge','retCap','retGain','retAvance','retourPrime']),
+  lacheOn:Object.freeze(['lacheAvant']),
+  slalomOn:Object.freeze(['slalomCap','slalomDemi','slalomH']),
+  coupOn:Object.freeze(['coupDepuis','coupEcart','coupDuree','coupPoseMin','coupAxe','coupAir','coupJauge','coupPerte']),
+  relacheOn:Object.freeze(['relacheT']),
+  suitOn:Object.freeze(['suitDerive','suitMarge']),
+  bordOn:Object.freeze(['bordNitro','bordJauge']),
+  largeOn:Object.freeze(['largeHaut','largeT1','largeT2','largeAxe','largeAir']),
+  libreOn:Object.freeze(['nitroLibreK','tenirLibre'])});
+/* reel -> son drapeau de garde (construit depuis GARDES, controle plus bas avec BORNES) */
+const GARDE_DE=Object.freeze(Object.keys(GARDES).reduce((o,d)=>{for(const r of GARDES[d])o[r]=d;return o;},{}));
+
 /* ===== LES TEMOINS POSSIBLES (28/11/2026, tache « portage ») =====
    config.json "temoin" : le pilote ecrit a la main dont part une population neuve (c0025 par defaut). Chacun a son fichier, auquel le controle
    d'identite compare le pilote fabrique par son genome. Les sacres intermediaires sont la aussi : ils prouvent que chaque apport se decoupe seul. */
@@ -168,6 +195,9 @@ if(BORNES.length!==121||CONTINUS.length!==88)throw new Error('genome : BORNES ma
 const CLES_V1=Object.freeze(BORNES.slice(0,N_V1).map(b=>b.cle));
 const CLES_V2=Object.freeze(BORNES.slice(0,N_V2).map(b=>b.cle));
 for(const b of BORNES)if(!(b.naissance>=b.min&&b.naissance<=b.max))throw new Error('genome : naissance hors borne pour « '+b.cle+' »');
+for(const d in GARDES){if(!PAR_CLE[d]||PAR_CLE[d].type!=='drapeau')throw new Error('genome : GARDES : « '+d+' » n\'est pas un drapeau de BORNES');
+  for(const r of GARDES[d])if(!PAR_CLE[r]||PAR_CLE[r].type!=='reel')throw new Error('genome : GARDES : « '+r+' » n\'est pas un reel de BORNES');}
+if(Object.keys(GARDE_DE).length!==30)throw new Error('genome : GARDES doit garder 30 reels ('+Object.keys(GARDE_DE).length+')');
 
 /* L'ORDRE DES CLES DE REGLAGES dans pilote-voltige.js (le bloc ecrit suit cet ordre, comme l'exemple du § 5.1 ; les cles de la loi « retour » ensuite) */
 const ORDRE_VOLTIGE=['marge','bandeDecor','nitroDecor','margeCouloir','avance','glisse','glisseUrgence','ligneLoin','piecesLoin','capLigne','avanceCap',
@@ -328,16 +358,24 @@ function genomeTemoin(cfg){
   for(const b of BORNES)if(Math.abs(net.A[b.cle]-A[b.cle])>TOL)throw new Error('genome : la valeur du temoin de « '+b.cle+' » ne survit pas a reparer ('+A[b.cle]+' -> '+net.A[b.cle]+')');
   return net;}
 
+/* LES REELS QUE LE PILOTE DE CE GENOME LIT (28/11, lot « regles ») : CONTINUS, dans son ordre, moins ceux dont le drapeau de garde vaut 0 (GARDES) */
+function reelsLus(genome){return CONTINUS.filter(c=>{const d=GARDE_DE[c];return !d||genome.A[d]!==0;});}
+
 /* ===== MUTER (§ 6.2) ===== */
 function muter(genome,rng,o){
   o=o||{};const cfg=cfgDe(o.cfg),phase=o.phase||'A';
   if(phase!=='A'&&phase!=='B'&&phase!=='C')throw new Error('genome : phase inconnue « '+phase+' »');
   const avant=copier(genome),g=copier(genome),A=g.A;
   const sigma=o.sigma!=null?+o.sigma:+cfg.sigmaMutation;
+  /* (28/11/2026, lot « regles » ; synthese § 2 C2) L'URNE = LES REELS QUE LE PILOTE DU PARENT LIT (reelsLus : CONTINUS moins ceux dont le drapeau de
+     garde vaut 0 chez le parent, table GARDES). Avant, un tirage sur trois du temoin c0025 (34 % en v:3, 27 % en v:2) tombait sur un reglage que le
+     pilote ne lit pas : une mutation perdue. Le nombre m ne change pas (borne a la taille de l'urne, 58 reels au moins), ni les tirages des drapeaux,
+     du choix, des entiers et des tetes ; l'ordre des cles de l'urne reste celui de CONTINUS. Un drapeau allume dans CETTE naissance garde les reglages
+     du parent (ou de leur naissance) : c'est l'enfant suivant qui les fera muter. o.urneComplete (les mesures et les tests seulement) : l'ancienne urne. */
+  const urne=o.urneComplete?CONTINUS.slice():reelsLus(g);
   let m=o.genes!=null?Math.round(+o.genes):1+rng.poisson(+cfg.poissonMutations);
-  m=Math.max(0,Math.min(CONTINUS.length,m));
-  /* les reels : m distincts tires dans CONTINUS ; x + N(0,1)·sigma·etendue, reflexion aux bornes puis bornage */
-  const urne=CONTINUS.slice();
+  m=Math.max(0,Math.min(urne.length,m));
+  /* les reels : m distincts tires dans l'urne ; x + N(0,1)·sigma·etendue, reflexion aux bornes puis bornage */
   for(let n=0;n<m;n++){
     const cle=urne.splice(rng.entier(urne.length),1)[0],b=PAR_CLE[cle],e=b.max-b.min;
     let x=(+A[cle])+rng.normal()*sigma*e;
@@ -438,7 +476,9 @@ module.exports={BORNES,CONTINUS,TETES,genomeTemoin,tirerReseaux,muter,croiser,re
   /* le temoin (28/11, tache « portage ») : son nom (config "temoin"), son fichier ecrit a la main, la table des temoins possibles */
   nomTemoin,sourceTemoin,TEMOINS,TEMOIN_DEFAUT,
   /* outillage pour les tests */
-  CARTES,ORDRE_VOLTIGE,EXTRAITS,MODELE,VOLTIGE,GESTES,CLES_V1,PORTAGE,CLES_V2,BLOCS};
+  CARTES,ORDRE_VOLTIGE,EXTRAITS,MODELE,VOLTIGE,GESTES,CLES_V1,PORTAGE,CLES_V2,BLOCS,
+  /* (28/11, lot « regles ») la table des gardes et l'urne des mutations d'un genome */
+  GARDES,GARDE_DE,reelsLus};
 
 /* ===== LA LIGNE DE COMMANDE ===== */
 function essaiReparer(n){

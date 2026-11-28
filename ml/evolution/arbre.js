@@ -135,6 +135,11 @@ function modele(cfg,o){
   /* les sacres : validations.jsonl, et les evenements « SACRE : <id> » (une ligne de validation perdue ne fait pas oublier un champion) */
   const sacres=new Map(),ajSacre=(id,g)=>{if(!id)return;const L=sacres.get(id)||[];if(L.indexOf(g)<0)L.push(g);sacres.set(id,L);};
   for(const v of (D.validations||[]))if(v&&v.usage==='validation'&&v.sacre===true)ajSacre(v.meneur,v.generation);
+  /* (28/11/2026, lot « sacre ») comment chaque sacre a ete gagne, en clair : « sacré au 3e regard, sur 48 graines » (validation sequentielle) */
+  const sacresClair=new Map();
+  for(const v of (D.validations||[]))if(v&&v.usage==='validation'&&v.sacre===true&&v.meneur){
+    const t=ET.regardsClair(v,{accents:true});if(!t)continue;
+    const Lc=sacresClair.get(v.meneur)||[];Lc.push('génération '+v.generation+' : '+t);sacresClair.set(v.meneur,Lc);}
   for(const g of G)for(const e of (g.evenements||[])){const m=/^SACRE : ([0-9a-f]{6,40})/i.exec(String(e));if(m)ajSacre(m[1],g.generation);}
   /* l'ordre : par naissance, le temoin en tete, puis l'ordre ou les journaux les citent */
   const L=[...P.values()].sort((a,b)=>(a.ne-b.ne)||((a.id===temoin?0:1)-(b.id===temoin?0:1))||(a.seq-b.seq));
@@ -153,7 +158,7 @@ function modele(cfg,o){
     for(let v=0;v<finVoie.length;v++)if(finVoie[v]<x.ne&&(choix<0||Math.abs(v-pref)<Math.abs(choix-pref)))choix=v;
     if(choix<0){choix=finVoie.length;finVoie.push(0);}
     finVoie[choix]=Math.max(fin,x.ne);voies.set(x.id,choix);}
-  return {individus:L,index:idx,temoin,champion,meneur,sacres,lignee,aEnfants,voies,nVoies:finVoie.length,generation:gCour,
+  return {individus:L,index:idx,temoin,champion,meneur,sacres,sacresClair,lignee,aEnfants,voies,nVoies:finVoie.length,generation:gCour,
     generations:G,pop,donnees:D,temoinDit:ET.temoinClair(pop)};}
 
 /* ===== CE QUI A CHANGE PAR RAPPORT AU PARENT (27/11/2026) =====
@@ -198,6 +203,7 @@ function donneesPage(M,o){
       M.voies.get(x.id),dr,r4(n.F),r4(fini(n.ahat)?n.ahat:n.a),r4(n.E),fini(n.n)?n.n:null,r4(n.se_F),x.raison||null,difference(x,M,GENES,posGene),
       fini(x.noteG)?x.noteG:null,x.parents.filter(p=>!M.index.has(p))];});
   const sacres={};for(const [id,L] of M.sacres)if(M.index.has(id))sacres[M.index.get(id)]=L.slice().sort((a,b)=>a-b);
+  const sacresClair={};if(M.sacresClair)for(const [id,L] of M.sacresClair)if(M.index.has(id))sacresClair[M.index.get(id)]=L.slice();   /* (28/11, lot « sacre ») */
   /* les reperes de l'axe : nouvelle epoque, nouvelle phase */
   const reperes=[];let ep=null,ph=null;
   for(const g of M.generations){
@@ -208,7 +214,7 @@ function donneesPage(M,o){
   for(let i=reperes.length-1;i>0;i--)if(reperes[i][0]===reperes[i-1][0]){reperes[i-1][1]+=' · '+reperes[i][1];reperes.splice(i,1);}
   const nes=M.individus.length,morts=M.individus.filter(x=>!x.vivant).length,vivants=nes-morts;
   return {g:M.generation,detail:o.detail||60,voies:M.nVoies,genes:GENES,types:TYPES,mots:GENES.map(motDe),tetes:TETES,
-    noeuds,sacres,reperes,chiffres:{generations:M.generations.length,nes,morts,vivants,sacres:[...M.sacres.values()].reduce((s,L)=>s+L.length,0)},
+    noeuds,sacres,sacresClair,reperes,chiffres:{generations:M.generations.length,nes,morts,vivants,sacres:[...M.sacres.values()].reduce((s,L)=>s+L.length,0)},
     champion:M.index.has(M.champion)?M.index.get(M.champion):-1,temoin:M.index.has(M.temoin)?M.index.get(M.temoin):-1,
     meneur:M.meneur&&M.index.has(M.meneur)?M.index.get(M.meneur):-1,temoinDit:M.temoinDit||'pilote-voltige (c0025)'};}
 
@@ -289,7 +295,8 @@ function programme(){
     const R={renvoi:'sa note F était parmi les plus basses',pannes:'renvoyé d\'office : pannes de cerveau','non-mesuree':'renvoyé d\'office : deux courses ratées dans la même génération'};
     if(a[FIN]>=0)h.push('<p>Renvoyé à la <b>génération '+a[FIN]+'</b>'+(a[RAISON]?' ('+esc(R[a[RAISON]]||a[RAISON])+')':'')+', après '+(a[FIN]-a[NE]+1)+' génération'+(a[FIN]-a[NE]?'s':'')+' de vie.</p>');
     else h.push('<p><b>Encore en vie</b> à la génération '+D.g+(o==='temoin'?'':' ('+(D.g-a[NE]+1)+' génération'+(D.g-a[NE]?'s':'')+' de vie)')+'.</p>');
-    const S=D.sacres[i];if(S&&S.length)h.push('<p>Sacré champion à la génération '+S.join(', ')+' : il a prouvé sur des courses neuves qu\'il faisait mieux que le champion d\'alors.</p>');
+    const S=D.sacres[i],SC=D.sacresClair&&D.sacresClair[i];
+    if(S&&S.length)h.push('<p>Sacré champion à la génération '+S.join(', ')+' : il a prouvé sur des courses neuves qu\'il faisait mieux que le champion d\'alors'+(SC&&SC.length?' ('+esc(SC.join(' ; '))+')':'')+'.</p>');
     const E2=enfants[i];
     if(E2.length)h.push('<p>'+E2.length+' enfant'+(E2.length>1?'s':'')+' : '+E2.slice(0,40).map(lien).join(' ')+(E2.length>40?' …':'')+'</p>');
     else h.push('<p class="doux">Aucun enfant.</p>');

@@ -67,6 +67,22 @@ Ce que ça fait :
 - L'histoire déjà écrite (l'arbre, le récit, les champions) n'est jamais effacée.
 - Depuis le 28/11, `lancer.cmd` prend toujours le même Node (celui de `etat/node.txt`, qu'il trouve tout seul la première fois). Tape donc les commandes de la sélection **par `lancer.cmd`**, pas par `node …` : sur le Ryzen, le `node` tout court n'est pas le bon. Les options passent : `ml\evolution\lancer.cmd --une-generation`.
 - La mise à jour de la fin novembre (le « portage », voir plus bas) et ses gestes pas à pas sont dans `notes/LIVRAISON-C0101.md`.
+- La mise à jour du réglage de la sélection (28/11, voir « Le réglage de la sélection » plus bas) : ses gestes, et ce qui change, sont dans `notes/LIVRAISON-REGLAGE.md`. Elle reprend ceux de `LIVRAISON-C0101.md`.
+
+---
+
+## Le réglage de la sélection (depuis le 28/11)
+
+Cinq études ont regardé comment la sélection est réglée (`ml/ecurie/etude/reglage-de-la-selection`). Ce qui en est sorti, et ce que ça change pour toi :
+
+- **Le sacre est plus juste.** Avant, le meilleur pilote rejouait 24 courses neuves contre le champion, et un pilote vraiment meilleur d'un palier n'était reconnu qu'une fois sur 7. Maintenant, s'il semble devant après 24 courses, il en rejoue 12 de plus, puis encore 12, jusqu'à 96. S'il est clairement derrière, on arrête tout de suite. Résultat mesuré : un vrai +1 palier reconnu une fois sur 3, et moins de faux champions qu'avant (environ 2 sur 100 validations au lieu de 3). Le récit et le résumé disent « SACRE au 3e regard, sur 48 graines » ou « arrete au 1er regard ».
+- **L'alarme « malédiction du gagnant » est coupée.** Elle aurait rendu les sacres plus rares au bout de 10 validations, alors qu'elle sonnait par construction. La mesure reste écrite dans le journal.
+- **Les bébés pilotes sont protégés par leur âge** : un enfant ne peut pas être renvoyé pendant sa génération de naissance, et il ne devient parent que deux générations après.
+- **Les courses longues partent en premier** dans chaque génération, pour que tous les cœurs travaillent jusqu'au bout. Les résultats ne changent pas.
+- **Les graines ne s'épuisent plus.** Il y avait 1 081 routes d'entraînement : au bout d'environ 90 générations, la sélection se mettait à rejouer en silence des routes déjà jouées. Il y en a maintenant 27 millions de plus. Au tout bout (dans des siècles), elle s'arrête avec un message clair.
+- **Les mutations ne tombent plus dans le vide** : une naissance ne change plus un réglage que le pilote ne lit pas (avant, environ un réglage changé sur quatre ne servait à rien).
+- **Une question nouvelle sur les pages : « Les mutations comptent-elles ? »** C'est la question dont tout dépend : un enfant « bon » l'est-il vraiment, ou seulement chanceux ? La sélection la mesure elle-même, sans jouer une course de plus. La réponse est « trop tôt pour le dire » pendant environ 30 générations (il faut 191 enfants mesurés). Ensuite, elle dira « les mutations comptent » (la sélection trie de vrais écarts) ou « ne semblent pas compter » (il faudra changer quelque chose de plus profond). C'est le **premier** verdict sorti de « trop tôt » qui compte. Elle est dans le tableau (section « 1 bis »), dans le récit, et en dernière ligne de `etat/resume.txt`.
+- **Une décision reste à toi** : les deux garde-fous du sacre (« il ne va pas moins loin », « il ne ressemble pas moins aux joueurs ») restent à leur sévérité d'avant. Les assouplir (`validation.seuilB` et `seuilC` à 2 dans `config.json`) ferait reconnaître un peu plus de vrais progrès, mais laisserait passer plus souvent un pilote qui ressemble un peu moins aux joueurs.
 
 ---
 
@@ -141,7 +157,7 @@ Dans une fenêtre de commande, à la racine du dossier :
 node ml\evolution\etat.js
 ```
 
-Ces 10 lignes sont aussi dans `etat/resume.txt`. Elles disent, dans l'ordre :
+Ces 10 lignes sont aussi dans `etat/resume.txt`, suivies d'une ligne vide et d'une onzième : « Mutations comptent-elles ? … » (la mesure expliquée dans « Le réglage de la sélection »). Les 10 lignes disent, dans l'ordre :
 
 1. la génération, la phase (A, B ou C) et l'époque ;
 2. **EN MARCHE** ou **ARRETE** ;
@@ -150,7 +166,7 @@ Ces 10 lignes sont aussi dans `etat/resume.txt`. Elles disent, dans l'ordre :
 5. le meneur (le mieux noté après le champion) ;
 6. le témoin (le pilote de départ tel qu'il est, jamais modifié : c0025 = pilote-voltige, ou c0101 ; son nom est entre parenthèses) ;
 7. la dernière mesure du coffre : de combien le champion fait mieux que le témoin ;
-8. la dernière validation (le meneur a-t-il été sacré ?) ;
+8. la dernière validation (le meneur a-t-il été sacré ? à quel « regard », sur combien de graines) ;
 9. les courses ratées et les pannes de la dernière génération ;
 10. les alertes. « Alertes : aucune » veut dire que tout va bien.
 
@@ -165,6 +181,7 @@ Ce qu'il faut regarder, dans l'ordre :
 1. **Est-ce que ça apprend ? (le coffre).** C'est le seul vrai juge. Le champion et le témoin jouent les mêmes 40 courses, qui ne servent jamais à l'entraînement.
    Si la ligne verte (le champion) passe et reste au-dessus de la grise (le témoin), la sélection a vraiment trouvé mieux.
    Les premiers jours, elles se confondent : c'est normal.
+   **1 bis. Les mutations comptent-elles ?** « Trop tôt pour le dire » pendant une trentaine de générations ; la barre montre combien d'enfants sont déjà mesurés.
 2. **Génération par génération.** La note F du meneur, du champion et du témoin. Le témoin doit rester à peu près stable. S'il dérive beaucoup, quelque chose cloche dans les courses.
 3. **Le champion conduit-il comme un joueur ?** Les barres vertes sont « comme un joueur », les rouges sont très loin.
 4. **La population.** Tous les pilotes vivants, du mieux au moins bien noté.
@@ -256,6 +273,7 @@ Pour l'inscrire au labo ou le mettre dans le jeu, donne le fichier à Claude. Le
 | Alerte « population trop semblable » | Les pilotes se ressemblent trop. | Pas urgent. Le signaler à Claude. |
 | Alerte « aucune generation finie depuis ... » | Il tourne mais n'avance plus. | Regarder la fin de `etat/sortie.log`. Arrêter puis relancer. |
 | Les relances automatiques ne repartent pas | La tâche n'est pas posée, ou `arreter.cmd` a été utilisé. | Double-clic sur `lancer.cmd`. |
+| `sortie.log` dit « les graines d'entrainement sont epuisees » (et la fenêtre « Arrêté sur une erreur ») | La sélection a joué toutes ses routes d'entraînement (27 millions : cela ne devrait jamais arriver). Elle s'est arrêtée avant de faire naître qui que ce soit ; rien n'est perdu. Les générations d'avant le disaient (« moins de 20 générations »). | Ne pas relancer en boucle : donner la fin de `etat/sortie.log` à Claude (il faut allonger `graines.entrainement.suite` dans `config.json`). |
 | `etat/traces.log` dit « envoi rate » à chaque heure | GitHub refuse ou n'est pas joignable. Tout reste gardé sur le PC. | Double-clic sur `sauver-traces.cmd` et connecte-toi à GitHub si on te le demande. |
 | `sauver-traces.cmd` dit « refuse : la branche courante est … » | Il a été lancé hors du dossier de la sélection. | Le lancer depuis `CASH-CAR-evolution\ml\evolution`. |
 | La fenêtre se ferme tout de suite, avec « … était inattendu » | Plus depuis le 27/11 : `lancer.cmd` marche aussi dans un dossier dont le nom a des parenthèses, comme `CASH CAR (2)`. | Si ça revient : renommer le dossier sans parenthèses. |
@@ -291,7 +309,8 @@ Le journal complet est `etat/sortie.log`. La fin du fichier est le plus récent.
 | `etat/tableau.html` | Le tableau à ouvrir. |
 | `etat/arbre.html` | L'arbre généalogique des pilotes. |
 | `etat/histoire.md` | Le récit, génération par génération. |
-| `etat/resume.txt` | Les 10 lignes, dans un fichier. |
+| `etat/resume.txt` | Les 10 lignes, dans un fichier, et la ligne « Mutations comptent-elles ? ». |
+| `mesure-tau.js` | La mesure « Les mutations comptent-elles ? » (le tableau, le récit et resume.txt l'appellent ; `node ml\evolution\mesure-tau.js` pour le détail). |
 | `etat/machine.json` | Ce que la mesure a trouvé pour ce PC (combien de courses à la fois). |
 | `etat/sortie.log` | Tout ce qui s'est passé. |
 | `etat/traces.log` | Le détail de la mise à l'abri. |
@@ -305,4 +324,5 @@ Le journal complet est `etat/sortie.log`. La fin du fichier est le plus récent.
 | `config.json` | Tous les réglages de la sélection. |
 | `notes/LIVRAISON.md` | Ce qui est prêt, et les commandes à taper sur le PC de nuit. |
 | `notes/LIVRAISON-C0101.md` | La mise à jour du 28/11 (témoin c0101, Node fixe, tâches sans limite) : le verdict de la mesure et les gestes sur le Ryzen. |
+| `notes/LIVRAISON-REGLAGE.md` | La mise à jour du réglage de la sélection (28/11) : ce qui est prêt, ce qu'elle fera sur le Ryzen, les gestes. |
 | `INTERFACES.md` | Pour les développeurs : comment les morceaux s'emboîtent. |
