@@ -1,0 +1,12 @@
+== 1. les 40 courses rejouees contre la mesure d'avant ==
+  resultat compact identique (tous champs communs, ev compris) : 40 sur 40 ; champs presents d'un seul cote (ignores) : aucun
+  vues identiques une par une (TOUS les champs que la vue d'avant garde : t, vitesse, lat, cap, nitro, tenue, rayons du bord et des cotes, radar, ordre, diag du pilote...) : 40 courses sur 40 ; 0 vues differentes sur 40014
+
+== 2. --diag 0 contre --diag 1 ==
+  canyon-tenue-3970511 : IDENTIQUE sur 29 champs ; empreinte 3ac95c08d4cf / 3ac95c08d4cf ; textes du pilote 6d76492d / 3c12b7c0
+  grotte-tenue-3970548 : IDENTIQUE sur 29 champs ; empreinte 4bb841c37281 / 4bb841c37281 ; textes du pilote 6d76492d / 3c12b7c0
+  ville-tenue-3970585 : IDENTIQUE sur 29 champs ; empreinte 3bbbc11f9915 / 3bbbc11f9915 ; textes du pilote 6d76492d / 3c12b7c0
+  jade-tenue-3970622 : IDENTIQUE sur 29 champs ; empreinte 470cc5e54d96 / 470cc5e54d96 ; textes du pilote 6d76492d / 3c12b7c0
+
+== 3. chaque .json contre l'en-tete de son .jsonl.gz ==
+  56 sur 56 identiques

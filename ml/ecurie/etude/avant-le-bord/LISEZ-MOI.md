@@ -18,7 +18,9 @@ Neuf agents : trois lecteurs (les traces, le code, les joueurs et la ville), tro
    Un bot qui ralentit pour moins mourir s'éloigne donc des joueurs.
 7. **Trois propositions** (§ 5) : couper la nitro au-dessus d'une vitesse (`plafOn`), une garde au bord (`gardeOn`), ne sortir exprès que du côté ouvert en ville (`ouvertOn`).
    **Les relecteurs n'en laissent écrire aucune tout de suite** : `gardeOn` est à ne pas faire ; les deux autres sont à mesurer d'abord (§ 6, § 7).
-8. **La dépense la plus utile n'est pas un gène** : rejouer les 40 courses en gardant le volant, le virage et la vitesse du jeu, environ 13 à 25 min (§ 8).
+8. **Les mesures A et C ont tourné** (§ 11 ; 60 courses, environ 30 min) : la preuve tient (les 40 courses rejouées, 40 014 vues identiques une par une).
+   La caisse ne dépasse presque jamais la vitesse sûre du virage ; ni le volant ni le frein ne séparent les morts des posés ; vitesse et palier restent
+   **non séparés**. La prédiction de la ville, écrite avant, est **réfutée** sur 16 courses neuves : 8 morts sur 34 sorties bordées, 5 sur 23 ouvertes.
 9. **Une question n'est pas technique et revient à Sacha** : un bot doit-il mourir sur décor comme un joueur (ce que E ne mesure pas), ou moins (ce que F récompense) ?
 
 ## 1. La question
@@ -354,7 +356,28 @@ mesurent avec un gène qui existe déjà, `nitroDecor`, sans nouvelle époque.
 **5. La question qui revient à Sacha** (elle ne bloque aucune de ces mesures) : sur les maps à décor, un bot doit-il mourir comme un joueur, ou moins ?
 Aujourd'hui la note F récompense le palier et la ressemblance, et la ressemblance ne regarde pas les morts.
 
-*La suite (les mesures A et C, puis ce qu'on en retient) sera ajoutée ici, à la suite.*
+**6. La réponse de Sacha (28/11/2026, le soir même)** : « bah oui il doit mourir comme un joueur mais il faut aussi des pilote expert qui ne peuvent pas
+perdre du tout au palier moteur 30 il faut differnt niveau de bot qui permetent un match makin adapté au niveau de chaque joueur ». Il y a donc deux
+familles et non un champion : une échelle de bots qui conduisent et meurent comme des joueurs, niveau par niveau ; et des experts. Pour l'échelle, on ne
+« corrige » donc pas les morts de c0025 sur décor (il meurt déjà comme les joueurs, par minute) : ce qui lui manque, c'est la vitesse et la nitro des
+joueurs. Pour les experts, moins mourir reste le but. L'étude de cette échelle : `../echelle-de-bots/`.
+
+**7. Ce que l'on retient des mesures A et C** (§ 11 ; décision de la session principale, le 28/11 au soir).
+- **`ouvertOn` est abandonné.** La prédiction écrite avant de jouer (« au moins trois fois plus de morts côté bordé ») est réfutée sur les 16 courses
+  neuves : 8 morts sur 34 sorties bordées, 5 sur 23 ouvertes. L'écart des 8 premières courses était du hasard.
+- **`plafOn` est abandonné.** La caisse ne dépasse presque jamais la vitesse sûre du virage (39 vues sur 24 952, 1 mort sur 23), la vitesse ne se sépare
+  pas du palier, et ralentir éloigne des joueurs. Le frein n'est pas poursuivi non plus : rien ne le désigne (le volant et le frein possible sont les mêmes
+  chez les morts et chez les posés).
+- **Trois règles sont donc mortes avant d'avoir été codées** (`gardeOn`, `ouvertOn`, `plafOn`), pour environ une heure de calcul. C'est le contraire de la
+  sortie préparée, écrite puis trouvée muette : la mesure d'abord coûte moins cher.
+- **Ce que la mesure laisse** : les morts sur décor de c0025 ne viennent pas d'une faute lisible au sol (ni la ligne, ni le volant, ni un virage pris trop
+  vite). Dans la moitié des cas, la caisse est emportée volant à fond vers l'intérieur. Et en ville, 13 des 15 morts des courses neuves suivent une sortie
+  voulue (13 sur 64 sorties voulues) : c'est la greffe `raccCartes_ville = 0`, déjà dans la sélection, qui dira si y renoncer paie.
+- **Le pouvoir VITESSE et le balancement**, trouvés en fouillant, ne sont pas poursuivis : le hasard en donne autant 4 à 6 fois sur 100.
+- **La vague `nitroDecor`** ne garde que la question utile aux deux familles, « aller plus vite sur décor tue-t-il plus ? » (le bras à 1,5, et 0,5 comme
+  point de comparaison). Elle passe après la mesure des pièces (`../echelle-de-bots/`, § 11.2), qui dira quoi mettre d'autre dans la même vague.
+- Depuis la réponse de Sacha (point 6), « mourir moins sur décor » n'est plus un but pour l'échelle humaine. Il le reste pour les experts, où rien de ce
+  dossier ne donne encore de prise.
 
 ## 10. Les fichiers
 
@@ -385,3 +408,181 @@ Refaire : `node <script>` depuis la racine du dépôt (chemins relatifs, jamais 
 
 `sigma-survie.txt`, `sorties/survies.txt` et `sorties/vues-avant.txt` ont été écrits par le rédacteur, en relançant ces trois scripts (lecture seule) pour que leurs chiffres aient un fichier.
 Aucun fichier n'a été supprimé : tous servent à une source citée ici.
+
+**Les mesures A et C (§ 11)**, dans `mesures/`. Seuls `course-diag.js` et `mesurer.js` jouent des courses (2 à la fois au plus) ; les autres relisent `mesures/sorties/lignes/`.
+
+| fichier | rôle |
+|---|---|
+| `mesures/course-diag.js`, `mesures/pilote-diag.js` | les copies étendues du diagnostic : une course, avec le volant, le virage des yeux, `vitMult`, le palier complet à chaque vue au sol |
+| `mesures/mesurer.js` → `sorties/lignes/` (60 courses), `sorties/preuve.json`, `sorties/mesure-*.log` | les trois lots (anciennes, preuve, ville) et la preuve du mesureur |
+| `mesures/prediction-ville.md` | la prédiction de la ville et sa règle, écrites avant les 16 courses |
+| `mesures/puissance-ville.js` → `sorties/puissance-ville.txt` | la puissance des 16 courses, calculée avant |
+| `mesures/analyser.js` → `sorties/analyse.txt`, `analyse.json` | a (vitesse ou palier), b (volant), c (frein), d (virage), f (le reste) |
+| `mesures/complements.js` → `sorties/complements.txt` | la vitesse sans le pouvoir VITESSE ; l'entrée de virage |
+| `mesures/ville.js` → `sorties/ville.txt`, `ville.json` | e : côté bordé contre côté ouvert, jugé par la règle écrite avant |
+| `mesures/relecteur/preuve.js` → `relecteur/sorties/preuve-relue.txt` | la preuve relue avec un code à part : tous les champs, les vues une par une |
+| `mesures/relecteur/recompte.js` → `relecteur/sorties/recompte.txt`, `recompte.json` | le recompte de a, b, c, e et f sans le code du mesureur ; le dernier vol ; le temps de course ; le hasard de la famille |
+
+## 11. Les mesures A et C (28/11/2026)
+
+*Un mesureur a joué les courses. Un relecteur adverse a tout recompté avec ses propres scripts (`mesures/relecteur/`), sans le code du mesureur.
+Quand les deux diffèrent, c'est dit, et la version retenue est celle du relecteur. Aucune course n'a touché `ml/evolution`, `ml/bot`, `ml/reel` ni le jeu.
+Ce paragraphe ne décide rien.*
+
+### 11.1 Ce qui a tourné
+
+- **60 courses** de 180 s au plus, 2 à la fois (`mesures/sorties/mesure-*.log`) :
+  - les 40 courses d'avant, rejouées avec un diagnostic étendu : 23,0 min ;
+  - 4 courses sans diagnostic, pour la preuve (une par map à décor) : 2,2 min ;
+  - 16 courses de ville tenue sur des graines neuves (3 977 800 à 3 978 355) : 5,1 min.
+- **L'outil** est une copie de `../sortie-preparee/course-diag.js` et `pilote-diag.js`. À chaque vue au sol, il garde en plus le volant appliqué,
+  le virage des yeux (`vSure`, `marge`, rayon), `lacetRoute`, `lacetMax`, `vitMult` et le palier complet. Il ne demande plus les trois lois « retour » de l'étude d'avant.
+- **Le volant demandé n'existe pas dans la vue.** Le pilote ne donne qu'une ligne à tenir : 740 vues au sol sur 31 923 portent un volant chiffré (`analyse.txt`).
+  Il est recalculé avec la formule de la main (`ml/bot/doigts.js` l.31-32), sur la vue de la décision. C'est une approximation : la main le refait à chaque image (l.401).
+
+### 11.2 La preuve tient
+
+- **Le mesureur** (`mesures/sorties/preuve.json`) : avec et sans diagnostic, **4 courses sur 4 identiques**. Les 40 rejouées sont identiques à la mesure d'avant,
+  **40 sur 40**, sur 7 champs (empreintes de la course, des vues, des touches, palier, durée, cause, pièces).
+- **Le relecteur, avec un code à part** (`relecteur/sorties/preuve-relue.txt`) :
+  - les 40 résultats identiques sur **tous** leurs champs (29, le journal des événements compris) ;
+  - **les 40 014 vues identiques une par une**, sur tous les champs que l'ancien diagnostic gardait (hors les rayons « retour » qu'il demandait en plus) ;
+  - les 4 courses sans diagnostic identiques sur les 29 champs ; les 56 fichiers `.json` collent à l'en-tête de leur trace.
+- Le texte du pilote a changé depuis (`modele.js`, commit d30db9519) : la conduite, non.
+- **La prédiction de la ville a bien été écrite avant.** `prediction-ville.md` est créé et modifié pour la dernière fois à 16 h 00 min 41 s ; le premier résultat
+  d'une course de ville neuve date de 16 h 25 min 11 s (dates des fichiers). Elle n'a pas été retouchée après. **Limite** : seule la date du disque le prouve, le fichier n'est pas commité.
+  Les 16 graines n'apparaissent nulle part ailleurs dans `ml/` (recherche du nombre).
+
+### 11.3 Comment le palier monte (lu dans le code, aucune course)
+
+Le relecteur a relu chaque ligne citée par le mesureur.
+- **Le palier, ce sont les pièces.** `addCoins` monte le palier dès que les pièces passent un seuil (`code/economie/achat-carte-moteur.js` l.236-241 ; seuils `ENGINE_TIERS`,
+  `code/gameplay/pickups-fruits.js` l.557). Une pièce ramassée donne 1 (`ramassage.js` l.174) ; une figure posée, 2 à 18 (`figures-route.js` l.64, `demi-tour.js` l.574).
+  Les autres appels à `addCoins` sont des outils de test. Seule perte : la seconde chance retire un palier (`seconde-chance.js` l.188).
+- **Donc le palier suit les pièces ramassées, donc la distance parcourue** (et l'adresse à les prendre). Ni le temps, ni l'argent.
+- **Le palier fait la vitesse** : vitesse max × `lateMul` × poussée du palier (`code/moteur/boucle-1.js` l.183) ; la nitro pousse 30 × poussée (`boucle-2-conduite.js` l.45) ;
+  `lateMul` +3,5 % par palier au-delà du 8e, plafond +50 % (`camera.js` l.317). Sur les traces : 4 à 10 m/s de plus par palier selon la carte et le recul (`analyse.txt`, a).
+- **Une correction du relecteur** : l'accélération `acc9` n'est pas multipliée par la poussée, mais par 1 + 0,6 × (poussée − 1) (l.183). La conclusion ne change pas.
+- **`vitMult` n'est pas le palier** : c'est le pouvoir VITESSE ×2, plafonné à 2,6 (`portail-passage.js` l.70). Il dépasse 1,01 dans 142 vues au sol sur décor sur 29 156 (`relecteur/sorties/recompte.txt`).
+- **Ce que cela veut dire** : couper la nitro ne retire pas de palier. Mais à durée fixe (180 s ici, 900 s pour F), un pilote plus lent ramasse moins par seconde
+  et finit plus bas, sauf s'il vit plus longtemps.
+
+### 11.4 Les effectifs
+
+- 37 courses (les 3 doublons « sans carte » retirés). **158 décollages subis sur décor : 23 morts, 135 posés.** Canyon 8 / 18, grotte 8 / 28, jade 4 / 69, ville 3 / 20.
+  Un vol coupé par la limite de temps est retiré. Le mesureur (`analyse.txt`) et le relecteur (`recompte.txt`) trouvent les mêmes nombres.
+- Tous ont une vue au sol à moins de 0,15 s avant. À 1,5 s avant, il y en a une pour 18 morts et 93 posés : les 5 autres morts suivent une pose de trop près
+  (dont jade 3970585, la mort au pouvoir VITESSE à 370 m/s, absente du tableau a).
+- **Aucun doublon caché** : aucun des 15 décollages des courses « sans carte » gardées ne se retrouve (même instant, même vitesse) dans la course tenue de sa graine.
+- **Ce que le relecteur ajoute : les 23 morts sont toutes le dernier vol de leur course** (aucune seconde chance prise). Comparer une mort aux posés de **sa** course
+  est donc faussé d'avance : elle est toujours au plus haut palier de sa course. Comparer aux posés de toute la carte reste juste si le risque par décollage est le même partout.
+
+### 11.5 a. Vitesse ou palier
+
+Le rang moyen des morts parmi les posés de leur strate (0,5 = hasard) ; p par permutation à l'intérieur des strates.
+Le relecteur prend la vue « 1,5 s avant » autrement que le mesureur (la dernière vue au sol avant ce recul, et non la plus proche) ; les nombres sont les mêmes au centième.
+
+| à 1,5 s avant | rang | p | morts / posés | source |
+|---|---|---|---|---|
+| vitesse, à carte égale | 0,80 | 0,0001 | 18 / 93 | `recompte.txt` (mesureur : 0,80, p 0,0003) |
+| palier, à carte égale | 0,71 | 0,004 | 18 / 93 | idem (mesureur : p 0,003) |
+| **vitesse, à carte et palier égaux** | 0,67 | **0,09** | 18 / 37, 12 strates | idem |
+| vitesse, à carte et palier égaux, hors pouvoir VITESSE | 0,62 | 0,19 | 16 / 33 | `recompte.txt` |
+| **vitesse, à carte et tranche de 30 s de course égales** | 0,68 | **0,06** | 13 / 40, 9 strates | `recompte.txt` (nouveau) |
+| **palier, à carte et tranche de 30 s égales** | 0,52 | **0,42** | 13 / 40 | `recompte.txt` (nouveau) |
+| v / vSure du virage proche, à carte égale | 0,59 | 0,15 | 15 / 87 | `recompte.txt`, `analyse.txt` |
+| besoin de volant (\|lacetRoute\| / lacetMax) | 0,42 | 0,84 | 18 / 93 | idem |
+
+- À carte et palier égaux, aux autres reculs : p 0,12 à 2 s, 0,15 à 1 s, **0,02 à 0,6 s** (14 morts, 49 posés). À tranche de 30 s égale : p 0,10 à 0,17.
+- **Là où le relecteur diffère du mesureur.** Le mesureur écrit que « le signal de vitesse vient du palier et du pouvoir VITESSE ». **Ce n'est pas montré.**
+  - Une fois le palier fixé, l'écart de vitesse n'est plus prouvé (p ≈ 0,1 sur 18 morts).
+  - Mais une fois le temps de course fixé, c'est **le palier** qui ne sépare plus (rang 0,43 à 0,54 selon le recul), et la vitesse garde un rang de 0,61 à 0,68 (p 0,06 à 0,17).
+  - Les strates sont petites (9 à 12 strates, 13 à 18 morts). **On ne sait toujours pas séparer la vitesse du palier**, comme au § 2.2. C'est la version retenue ici.
+- **La vitesse sûre ne sépare pas, et n'est presque jamais dépassée** (c'était la grandeur nommée d'avance par l'étude) :
+  - 39 vues au-dessus de `vSure` sur 24 952 vues au sol sur décor avec un virage proche ; v / vSure vaut 0,27 en médiane, 0,72 à 99 % (`analyse.txt`) ;
+  - **un seul mort** la dépasse dans les 3 s avant : canyon 3970585, 1,05 à 0,6 s avant (`analyse.txt` ; recompté : 1 sur 23) ;
+  - le besoin de volant atteint 1 dans 16 vues sur 29 156 : même au plus serré, la caisse peut suivre la route.
+  - **Les morts ne sont pas des virages pris au-dessus de la vitesse sûre.** Tenu.
+
+### 11.6 b. Le volant
+
+Recompté à l'identique (`recompte.txt`). Morts / posés. « Vers l'intérieur » = à l'opposé du bord de sortie. Le signe a été vérifié : volant positif = flèche gauche
+= vers le côté gauche de la route (`doigts.js` l.31-32 et l.203).
+
+| volant appliqué | à fond vers l'intérieur | vers l'intérieur | droit (\|v\| ≤ 0,2) | vers le bord | sans vue |
+|---|---|---|---|---|---|
+| dernière vue au sol | 12 / 76 | 7 / 27 | 3 / 20 | 1 / 12 | 0 / 0 |
+| 0,5 s avant | 1 / 13 | 5 / 14 | 3 / 33 | 11 / 52 | 3 / 23 |
+| 1 s avant | 1 / 1 | 0 / 2 | 6 / 43 | 12 / 49 | 4 / 40 |
+
+- À la dernière vue, la moitié des morts (12 sur 23) et des posés (76 sur 135) ont le volant à fond vers l'intérieur : la caisse part quand même (p 0,88).
+- 1 s avant, le volant va vers le bord chez 12 morts sur 19 et 49 posés sur 95 : même profil.
+- Le volant demandé (approché) est à fond vers l'intérieur à la dernière vue pour 16 morts et 98 posés. La flèche tenue (18 / 98 vers l'intérieur) est du mesureur seul, non recomptée.
+- **Le volant ne sépare pas.** Tenu.
+
+### 11.7 c. Le frein
+
+Recompté à l'identique (`recompte.txt`, `analyse.txt`). « Frein possible » = volant appliqué sous 0,35 et pas de drift (au-delà, ↓ devient un drift).
+- Dans les 2 s avant : 180 vues sur 384 chez les morts (47 %), 888 sur 2 031 chez les posés (44 %).
+- Au moins 0,5 s continues de frein possible entre 2 s et 0,6 s avant : **6 morts sur 19, 33 posés sur 104**. Au-dessus de 120 m/s : 5 morts, 29 posés.
+- Le pilote ne demande jamais le frein : 0 vue au sol avec un manche.
+- **Les fenêtres de frein existent, mais aussi souvent avant un posé qu'avant une mort.** Tenu comme constat. **Ce qu'on ne sait pas** : ce que ferait un vrai freinage, jamais joué.
+
+### 11.8 d. Le virage (mesureur seul, non recompté)
+
+- Entrée de virage (courbure ×1,5 entre 1,5 s avant et la dernière demi-seconde) : 7 morts sur 18, 24 posés sur 93 ; Fisher p 0,20 (`complements.txt`).
+- Côté de la sortie : extérieur 7 / 36, intérieur 3 / 19, route droite 8 / 38 (morts / posés, `analyse.txt`). Pas de séparation.
+
+### 11.9 e. La ville, jugée par la règle écrite avant
+
+Recodé par le relecteur à partir du seul texte de `prediction-ville.md` : mêmes nombres que le mesureur (`ville.txt`, `recompte.txt`).
+
+| 16 courses neuves | bordé (morts / sorties) | ouvert | mi-bordé | jugement |
+|---|---|---|---|---|
+| **toutes les sorties voulues** | **8 / 34** | **5 / 23** | 0 / 7 | **RÉFUTÉE** (rapport 1,08 ; p 0,57) |
+| vrais raccourcis | 6 / 28 | 4 / 17 | 0 / 6 | réfutée (rapport 0,91) |
+| sorties du dessous | 2 / 6 | 1 / 6 | 0 / 1 | indécise (trop peu) |
+
+- Les 8 courses d'avant, rejouées : on retrouve exactement l'ancien compte, 5 / 11 contre 0 / 11.
+- L'ensemble des 24 courses (qui ne juge rien) : 13 / 45 contre 5 / 34, p 0,11.
+- La puissance calculée avant (`puissance-ville.txt`) : s'il n'y a aucun écart, la règle réfute environ 7 fois sur 10. Le résultat ressemble à « aucun écart ».
+- **En ville, presque toutes les morts sont choisies** : les 16 courses neuves font 15 morts, dont 13 sur une sortie voulue ; 13 sorties voulues sur 64 tuent (20 %), quel que soit le côté.
+
+### 11.10 Ce que personne n'avait demandé, et le hasard
+
+- **Combien de découpages ont été regardés** : environ 80 dans les fichiers du mesureur (32 rangs en a, 12 comptes en a bis, 11 tableaux du volant, 2 du frein,
+  2 du virage, 5 en f, 17 dans `complements.txt`, 9 jugements de ville). Sur 80 regards, plusieurs p sous 0,05 arrivent par hasard.
+- **Le balancement** (la caisse parcourt la route d'un bord à l'autre entre 3 s et 0,6 s avant) : rang 0,78, p 0,008 à carte et palier égaux, 18 morts et 37 posés (`analyse.txt`).
+  C'est le meilleur de trois façons de le mesurer (les deux autres : p 0,07 et 0,41). Le relecteur prend les 27 grandeurs scalaires du mesureur autres que la vitesse et le palier seuls,
+  et mélange les étiquettes « mort » dans chaque carte : le hasard trouve un aussi bon séparateur **4 à 6 fois sur 100** (`recompte.txt`, deux graines de tirage).
+  **Non prouvé** : une grandeur trouvée en fouillant, à confirmer sur des courses neuves. La phrase « l'oscillation grandit avec le retard de la main » (grotte 3970400) n'a aucun fichier.
+- **Le pouvoir VITESSE ×2** : au moins une vue en ×2 dans les 2 s avant pour **4 morts sur 23 et 6 posés sur 135** (p 0,04, trouvé après coup ; les mêmes à 1 s et à 3 s).
+  Les 4 : grotte 3970400, grotte 3970437, jade 3970585, ville 3970511. Sur 80 regards, cela ne prouve rien ; la piste reste mécanique et plausible.
+  **Correction du relecteur** : grotte 3970400 passe de 119 à 226 m/s entre 1,5 s et 1 s avant (244 m/s à la dernière vue), et non « 119 → 243 en 0,5 s ».
+  Le pilote vise les orbes sans regarder leur type (`ml/evolution/modele.js` l.150-154).
+
+### 11.11 Ce qui tient, ce qui tombe
+
+| ce qu'a écrit le mesureur | ce qu'en dit le relecteur |
+|---|---|
+| La preuve : 4 sur 4, 40 sur 40 | **Tient**, et plus fort : tous les champs, 40 014 vues une par une |
+| Le palier monte avec les pièces, pas avec le temps | **Tient** ; une formule corrigée (`acc9`), sans effet sur la conclusion |
+| « Le signal de vitesse vient du palier et du pouvoir VITESSE » | **Tombe dans cette forme** : à temps de course égal, c'est le palier qui ne sépare plus ; vitesse et palier restent non séparés |
+| La vitesse sûre ne sépare pas, n'est presque jamais dépassée | **Tient** (1 mort sur 23 la dépasse) |
+| Le volant ne sépare pas | **Tient** |
+| Le frein n'est pas un levier | **Tient comme constat** (6 / 19 contre 33 / 104) ; un vrai freinage n'a jamais été joué |
+| La ville : RÉFUTÉE | **Tient** (recodé à part, mêmes nombres ; prédiction écrite avant, dates des fichiers) |
+| Le pouvoir VITESSE tue | **Non prouvé** : 4 morts, p 0,04 trouvé après environ 80 regards |
+| Le balancement, p 0,008 | **Non prouvé** : le hasard fait aussi bien 4 à 6 fois sur 100 |
+| `ouvertOn` « à abandonner », `nitroDecor` 1,5 « vaut d'être joué » | Ce sont des décisions : elles reviennent à la session principale |
+
+**Ce qu'on ne sait toujours pas** : si la vitesse tue ou n'est que le palier ; ce que ferait un vrai freinage ; si le balancement est une cause ou un symptôme ;
+le volant exact que la main demande à chaque image.
+
+### Ce que la session principale doit trancher
+
+1. `ouvertOn` : la prédiction écrite avant est réfutée (8 morts sur 34 sorties bordées, 5 sur 23 ouvertes). L'abandonner, ou payer une autre mesure ?
+2. `plafOn` : rien ne le soutient (vitesse sûre presque jamais dépassée, vitesse non séparée du palier). L'abandonner tout de suite, ou attendre la vague B ?
+3. La vague B : garder les trois bras `nitroDecor` (0 ; 0,5 ; 1,5), ou seulement ceux qui rapprochent des joueurs ?
+4. Le pouvoir VITESSE et le balancement, trouvés en fouillant : les confirmer sur des courses neuves, prédiction écrite avant, ou les laisser ?
+5. Le frein, jamais joué : vaut-il une mesure qui le joue (donc un gène et une époque nouvelle), ou est-il abandonné ?

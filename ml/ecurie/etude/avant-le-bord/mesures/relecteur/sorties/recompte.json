@@ -1,0 +1,1217 @@
+{
+ "doublonsPartiels": 0,
+ "effectifs": {
+  "courses": 37,
+  "decollages": 158,
+  "morts": 23,
+  "poses": 135,
+  "parCarte": {
+   "canyon": [
+    8,
+    18
+   ],
+   "grotte": [
+    8,
+    28
+   ],
+   "jade": [
+    4,
+    69
+   ],
+   "ville": [
+    3,
+    20
+   ]
+  },
+  "fins": 1,
+  "sansSol": 0
+ },
+ "a": [
+  {
+   "recul": 2,
+   "mot": "vitesse, a carte egale",
+   "r": {
+    "rang": 0.792,
+    "p": 0.0001,
+    "morts": 18,
+    "poses": 89,
+    "strates": 4
+   }
+  },
+  {
+   "recul": 2,
+   "mot": "palier, a carte egale",
+   "r": {
+    "rang": 0.708,
+    "p": 0.004,
+    "morts": 18,
+    "poses": 89,
+    "strates": 4
+   }
+  },
+  {
+   "recul": 2,
+   "mot": "vitesse, a carte ET palier egaux",
+   "r": {
+    "rang": 0.648,
+    "p": 0.1173,
+    "morts": 18,
+    "poses": 33,
+    "strates": 12
+   }
+  },
+  {
+   "recul": 2,
+   "mot": "vitesse, a carte et palier egaux, SANS le pouvoir VITESSE (vitMult = 1)",
+   "r": {
+    "rang": 0.604,
+    "p": 0.2231,
+    "morts": 16,
+    "poses": 30,
+    "strates": 10
+   }
+  },
+  {
+   "recul": 2,
+   "mot": "vitesse, dans la MEME COURSE (BIAISE par construction : la mort est le dernier vol)",
+   "r": {
+    "rang": 0.893,
+    "p": 0.0001,
+    "morts": 14,
+    "poses": 34,
+    "strates": 14
+   }
+  },
+  {
+   "recul": 2,
+   "mot": "palier, dans la meme course (BIAISE par construction)",
+   "r": {
+    "rang": 0.912,
+    "p": 0,
+    "morts": 14,
+    "poses": 34,
+    "strates": 14
+   }
+  },
+  {
+   "recul": 2,
+   "mot": "vitesse, a carte et tranche de 30 s de course egales",
+   "r": {
+    "rang": 0.614,
+    "p": 0.1662,
+    "morts": 13,
+    "poses": 40,
+    "strates": 9
+   }
+  },
+  {
+   "recul": 2,
+   "mot": "palier, a carte et tranche de 30 s de course egales",
+   "r": {
+    "rang": 0.536,
+    "p": 0.3403,
+    "morts": 13,
+    "poses": 40,
+    "strates": 9
+   }
+  },
+  {
+   "recul": 2,
+   "mot": "v / vSure, a carte egale",
+   "r": {
+    "rang": 0.555,
+    "p": 0.267,
+    "morts": 15,
+    "poses": 83,
+    "strates": 4
+   }
+  },
+  {
+   "recul": 2,
+   "mot": "besoin de volant, a carte egale",
+   "r": {
+    "rang": 0.48,
+    "p": 0.5943,
+    "morts": 18,
+    "poses": 89,
+    "strates": 4
+   }
+  },
+  {
+   "recul": 1.5,
+   "mot": "vitesse, a carte egale",
+   "r": {
+    "rang": 0.8,
+    "p": 0.0001,
+    "morts": 18,
+    "poses": 93,
+    "strates": 4
+   }
+  },
+  {
+   "recul": 1.5,
+   "mot": "palier, a carte egale",
+   "r": {
+    "rang": 0.709,
+    "p": 0.0027,
+    "morts": 18,
+    "poses": 93,
+    "strates": 4
+   }
+  },
+  {
+   "recul": 1.5,
+   "mot": "vitesse, a carte ET palier egaux",
+   "r": {
+    "rang": 0.665,
+    "p": 0.0875,
+    "morts": 18,
+    "poses": 37,
+    "strates": 12
+   }
+  },
+  {
+   "recul": 1.5,
+   "mot": "vitesse, a carte et palier egaux, SANS le pouvoir VITESSE (vitMult = 1)",
+   "r": {
+    "rang": 0.623,
+    "p": 0.1833,
+    "morts": 16,
+    "poses": 33,
+    "strates": 10
+   }
+  },
+  {
+   "recul": 1.5,
+   "mot": "vitesse, dans la MEME COURSE (BIAISE par construction : la mort est le dernier vol)",
+   "r": {
+    "rang": 0.868,
+    "p": 0.0002,
+    "morts": 14,
+    "poses": 35,
+    "strates": 14
+   }
+  },
+  {
+   "recul": 1.5,
+   "mot": "palier, dans la meme course (BIAISE par construction)",
+   "r": {
+    "rang": 0.901,
+    "p": 0,
+    "morts": 14,
+    "poses": 35,
+    "strates": 14
+   }
+  },
+  {
+   "recul": 1.5,
+   "mot": "vitesse, a carte et tranche de 30 s de course egales",
+   "r": {
+    "rang": 0.678,
+    "p": 0.0613,
+    "morts": 13,
+    "poses": 40,
+    "strates": 9
+   }
+  },
+  {
+   "recul": 1.5,
+   "mot": "palier, a carte et tranche de 30 s de course egales",
+   "r": {
+    "rang": 0.515,
+    "p": 0.4219,
+    "morts": 13,
+    "poses": 40,
+    "strates": 9
+   }
+  },
+  {
+   "recul": 1.5,
+   "mot": "v / vSure, a carte egale",
+   "r": {
+    "rang": 0.59,
+    "p": 0.1502,
+    "morts": 15,
+    "poses": 87,
+    "strates": 4
+   }
+  },
+  {
+   "recul": 1.5,
+   "mot": "besoin de volant, a carte egale",
+   "r": {
+    "rang": 0.42,
+    "p": 0.838,
+    "morts": 18,
+    "poses": 93,
+    "strates": 4
+   }
+  },
+  {
+   "recul": 1,
+   "mot": "vitesse, a carte egale",
+   "r": {
+    "rang": 0.767,
+    "p": 0.0003,
+    "morts": 19,
+    "poses": 95,
+    "strates": 4
+   }
+  },
+  {
+   "recul": 1,
+   "mot": "palier, a carte egale",
+   "r": {
+    "rang": 0.69,
+    "p": 0.0065,
+    "morts": 19,
+    "poses": 95,
+    "strates": 4
+   }
+  },
+  {
+   "recul": 1,
+   "mot": "vitesse, a carte ET palier egaux",
+   "r": {
+    "rang": 0.632,
+    "p": 0.1434,
+    "morts": 18,
+    "poses": 43,
+    "strates": 12
+   }
+  },
+  {
+   "recul": 1,
+   "mot": "vitesse, a carte et palier egaux, SANS le pouvoir VITESSE (vitMult = 1)",
+   "r": {
+    "rang": 0.559,
+    "p": 0.3451,
+    "morts": 15,
+    "poses": 39,
+    "strates": 10
+   }
+  },
+  {
+   "recul": 1,
+   "mot": "vitesse, dans la MEME COURSE (BIAISE par construction : la mort est le dernier vol)",
+   "r": {
+    "rang": 0.788,
+    "p": 0.0025,
+    "morts": 15,
+    "poses": 39,
+    "strates": 15
+   }
+  },
+  {
+   "recul": 1,
+   "mot": "palier, dans la meme course (BIAISE par construction)",
+   "r": {
+    "rang": 0.891,
+    "p": 0,
+    "morts": 15,
+    "poses": 39,
+    "strates": 15
+   }
+  },
+  {
+   "recul": 1,
+   "mot": "vitesse, a carte et tranche de 30 s de course egales",
+   "r": {
+    "rang": 0.644,
+    "p": 0.0954,
+    "morts": 14,
+    "poses": 41,
+    "strates": 9
+   }
+  },
+  {
+   "recul": 1,
+   "mot": "palier, a carte et tranche de 30 s de course egales",
+   "r": {
+    "rang": 0.441,
+    "p": 0.7776,
+    "morts": 14,
+    "poses": 41,
+    "strates": 9
+   }
+  },
+  {
+   "recul": 1,
+   "mot": "v / vSure, a carte egale",
+   "r": {
+    "rang": 0.564,
+    "p": 0.2218,
+    "morts": 17,
+    "poses": 90,
+    "strates": 4
+   }
+  },
+  {
+   "recul": 1,
+   "mot": "besoin de volant, a carte egale",
+   "r": {
+    "rang": 0.501,
+    "p": 0.4881,
+    "morts": 19,
+    "poses": 95,
+    "strates": 4
+   }
+  },
+  {
+   "recul": 0.6,
+   "mot": "vitesse, a carte egale",
+   "r": {
+    "rang": 0.75,
+    "p": 0.0006,
+    "morts": 19,
+    "poses": 104,
+    "strates": 4
+   }
+  },
+  {
+   "recul": 0.6,
+   "mot": "palier, a carte egale",
+   "r": {
+    "rang": 0.656,
+    "p": 0.0177,
+    "morts": 19,
+    "poses": 104,
+    "strates": 4
+   }
+  },
+  {
+   "recul": 0.6,
+   "mot": "vitesse, a carte ET palier egaux",
+   "r": {
+    "rang": 0.732,
+    "p": 0.0204,
+    "morts": 14,
+    "poses": 49,
+    "strates": 11
+   }
+  },
+  {
+   "recul": 0.6,
+   "mot": "vitesse, a carte et palier egaux, SANS le pouvoir VITESSE (vitMult = 1)",
+   "r": {
+    "rang": 0.667,
+    "p": 0.112,
+    "morts": 11,
+    "poses": 42,
+    "strates": 9
+   }
+  },
+  {
+   "recul": 0.6,
+   "mot": "vitesse, dans la MEME COURSE (BIAISE par construction : la mort est le dernier vol)",
+   "r": {
+    "rang": 0.822,
+    "p": 0.0007,
+    "morts": 15,
+    "poses": 42,
+    "strates": 15
+   }
+  },
+  {
+   "recul": 0.6,
+   "mot": "palier, dans la meme course (BIAISE par construction)",
+   "r": {
+    "rang": 0.869,
+    "p": 0,
+    "morts": 15,
+    "poses": 42,
+    "strates": 15
+   }
+  },
+  {
+   "recul": 0.6,
+   "mot": "vitesse, a carte et tranche de 30 s de course egales",
+   "r": {
+    "rang": 0.639,
+    "p": 0.0991,
+    "morts": 14,
+    "poses": 44,
+    "strates": 9
+   }
+  },
+  {
+   "recul": 0.6,
+   "mot": "palier, a carte et tranche de 30 s de course egales",
+   "r": {
+    "rang": 0.429,
+    "p": 0.81,
+    "morts": 14,
+    "poses": 44,
+    "strates": 9
+   }
+  },
+  {
+   "recul": 0.6,
+   "mot": "v / vSure, a carte egale",
+   "r": {
+    "rang": 0.566,
+    "p": 0.2054,
+    "morts": 18,
+    "poses": 94,
+    "strates": 4
+   }
+  },
+  {
+   "recul": 0.6,
+   "mot": "besoin de volant, a carte egale",
+   "r": {
+    "rang": 0.509,
+    "p": 0.453,
+    "morts": 19,
+    "poses": 104,
+    "strates": 4
+   }
+  }
+ ],
+ "famille": [
+  {
+   "nom": "vitesse 2",
+   "p": 0.00014999250037498125
+  },
+  {
+   "nom": "palier 2",
+   "p": 0.00439978001099945
+  },
+  {
+   "nom": "vitesse a palier egal 2",
+   "p": 0.0855457227138643
+  },
+  {
+   "nom": "v/vmax 2",
+   "p": 0.03564821758912055
+  },
+  {
+   "nom": "residu vitesse sur palier 2",
+   "p": 0.014699265036748163
+  },
+  {
+   "nom": "v/vSure 2",
+   "p": 0.26368681565921703
+  },
+  {
+   "nom": "besoin 2",
+   "p": 0.591870406479676
+  },
+  {
+   "nom": "braquage 2",
+   "p": 0.3087345632718364
+  },
+  {
+   "nom": "vitesse 1.5",
+   "p": 0.0000999950002499875
+  },
+  {
+   "nom": "palier 1.5",
+   "p": 0.0034498275086245686
+  },
+  {
+   "nom": "vitesse a palier egal 1.5",
+   "p": 0.05564721763911804
+  },
+  {
+   "nom": "v/vmax 1.5",
+   "p": 0.035948202589870505
+  },
+  {
+   "nom": "residu vitesse sur palier 1.5",
+   "p": 0.015949202539873007
+  },
+  {
+   "nom": "v/vSure 1.5",
+   "p": 0.14304284785760712
+  },
+  {
+   "nom": "besoin 1.5",
+   "p": 0.8384080795960202
+  },
+  {
+   "nom": "braquage 1.5",
+   "p": 0.22748862556872157
+  },
+  {
+   "nom": "vitesse 1",
+   "p": 0.00024998750062496874
+  },
+  {
+   "nom": "palier 1",
+   "p": 0.006549672516374182
+  },
+  {
+   "nom": "vitesse a palier egal 1",
+   "p": 0.09364531773411329
+  },
+  {
+   "nom": "v/vmax 1",
+   "p": 0.07484625768711564
+  },
+  {
+   "nom": "residu vitesse sur palier 1",
+   "p": 0.030748462576871156
+  },
+  {
+   "nom": "v/vSure 1",
+   "p": 0.21823908804559772
+  },
+  {
+   "nom": "besoin 1",
+   "p": 0.4884755762211889
+  },
+  {
+   "nom": "braquage 1",
+   "p": 0.25393730313484325
+  },
+  {
+   "nom": "vitesse 0.6",
+   "p": 0.00034998250087495624
+  },
+  {
+   "nom": "palier 0.6",
+   "p": 0.016849157542122895
+  },
+  {
+   "nom": "vitesse a palier egal 0.6",
+   "p": 0.008199590020498975
+  },
+  {
+   "nom": "v/vmax 0.6",
+   "p": 0.00904954752262387
+  },
+  {
+   "nom": "residu vitesse sur palier 0.6",
+   "p": 0.01064946752662367
+  },
+  {
+   "nom": "v/vSure 0.6",
+   "p": 0.2030898455077246
+  },
+  {
+   "nom": "besoin 0.6",
+   "p": 0.45262736863156844
+  },
+  {
+   "nom": "braquage 0.6",
+   "p": 0.2263886805659717
+  },
+  {
+   "nom": "balancement : inversions",
+   "p": 0.41567921603919805
+  },
+  {
+   "nom": "balancement : ecart",
+   "p": 0.07804609769511524
+  },
+  {
+   "nom": "balancement : ecart a palier egal",
+   "p": 0.0036998150092495377
+  }
+ ],
+ "ville": [
+  {
+   "neuve": false,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3970437"
+  },
+  {
+   "neuve": false,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3970437"
+  },
+  {
+   "neuve": false,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3970437"
+  },
+  {
+   "neuve": false,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3970474"
+  },
+  {
+   "neuve": false,
+   "dessous": true,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3970474"
+  },
+  {
+   "neuve": false,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3970474"
+  },
+  {
+   "neuve": false,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3970474"
+  },
+  {
+   "neuve": false,
+   "dessous": true,
+   "mort": true,
+   "classe": "borde",
+   "course": "ville-tenue-3970474"
+  },
+  {
+   "neuve": false,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3970511"
+  },
+  {
+   "neuve": false,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3970511"
+  },
+  {
+   "neuve": false,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3970548"
+  },
+  {
+   "neuve": false,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3970548"
+  },
+  {
+   "neuve": false,
+   "dessous": false,
+   "mort": true,
+   "classe": "borde",
+   "course": "ville-tenue-3970548"
+  },
+  {
+   "neuve": false,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3970585"
+  },
+  {
+   "neuve": false,
+   "dessous": true,
+   "mort": true,
+   "classe": "borde",
+   "course": "ville-tenue-3970585"
+  },
+  {
+   "neuve": false,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3970622"
+  },
+  {
+   "neuve": false,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3970622"
+  },
+  {
+   "neuve": false,
+   "dessous": true,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3970622"
+  },
+  {
+   "neuve": false,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3970622"
+  },
+  {
+   "neuve": false,
+   "dessous": false,
+   "mort": true,
+   "classe": "borde",
+   "course": "ville-tenue-3970622"
+  },
+  {
+   "neuve": false,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3970659"
+  },
+  {
+   "neuve": false,
+   "dessous": true,
+   "mort": true,
+   "classe": "borde",
+   "course": "ville-tenue-3970659"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3977800"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3977800"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": true,
+   "classe": "borde",
+   "course": "ville-tenue-3977800"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3977837"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3977837"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3977837"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3977837"
+  },
+  {
+   "neuve": true,
+   "dessous": true,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3977837"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3977837"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3977837"
+  },
+  {
+   "neuve": true,
+   "dessous": true,
+   "mort": true,
+   "classe": "borde",
+   "course": "ville-tenue-3977837"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3977874"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": true,
+   "classe": "ouvert",
+   "course": "ville-tenue-3977874"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3977911"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3977911"
+  },
+  {
+   "neuve": true,
+   "dessous": true,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3977911"
+  },
+  {
+   "neuve": true,
+   "dessous": true,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3977911"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "mi-borde",
+   "course": "ville-tenue-3977911"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3977911"
+  },
+  {
+   "neuve": true,
+   "dessous": true,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3977911"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3977911"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3977948"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "mi-borde",
+   "course": "ville-tenue-3977948"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3977948"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": true,
+   "classe": "borde",
+   "course": "ville-tenue-3977948"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "mi-borde",
+   "course": "ville-tenue-3977985"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3977985"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "mi-borde",
+   "course": "ville-tenue-3977985"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3977985"
+  },
+  {
+   "neuve": true,
+   "dessous": true,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3977985"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": true,
+   "classe": "ouvert",
+   "course": "ville-tenue-3977985"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3978022"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3978022"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3978022"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3978022"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3978022"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3978059"
+  },
+  {
+   "neuve": true,
+   "dessous": true,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3978059"
+  },
+  {
+   "neuve": true,
+   "dessous": true,
+   "mort": true,
+   "classe": "ouvert",
+   "course": "ville-tenue-3978059"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": true,
+   "classe": "ouvert",
+   "course": "ville-tenue-3978096"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3978133"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": true,
+   "classe": "borde",
+   "course": "ville-tenue-3978133"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3978170"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3978170"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": true,
+   "classe": "ouvert",
+   "course": "ville-tenue-3978170"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": true,
+   "classe": "borde",
+   "course": "ville-tenue-3978207"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3978244"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "mi-borde",
+   "course": "ville-tenue-3978244"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3978244"
+  },
+  {
+   "neuve": true,
+   "dessous": true,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3978244"
+  },
+  {
+   "neuve": true,
+   "dessous": true,
+   "mort": false,
+   "classe": "mi-borde",
+   "course": "ville-tenue-3978244"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3978244"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3978244"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": true,
+   "classe": "borde",
+   "course": "ville-tenue-3978244"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3978281"
+  },
+  {
+   "neuve": true,
+   "dessous": true,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3978281"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "mi-borde",
+   "course": "ville-tenue-3978318"
+  },
+  {
+   "neuve": true,
+   "dessous": true,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3978318"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": true,
+   "classe": "borde",
+   "course": "ville-tenue-3978318"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3978355"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "ouvert",
+   "course": "ville-tenue-3978355"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3978355"
+  },
+  {
+   "neuve": true,
+   "dessous": false,
+   "mort": false,
+   "classe": "borde",
+   "course": "ville-tenue-3978355"
+  },
+  {
+   "neuve": true,
+   "dessous": true,
+   "mort": true,
+   "classe": "borde",
+   "course": "ville-tenue-3978355"
+  }
+ ]
+}

@@ -1,0 +1,1071 @@
+{
+ "cles": [
+  "empreinte",
+  "empreinteVues",
+  "empreinteTouches",
+  "palier",
+  "survie_s",
+  "cause",
+  "pieces"
+ ],
+ "diag0contreDiag1": [
+  {
+   "course": "canyon-tenue-3970511",
+   "verdict": "IDENTIQUE",
+   "sansDiag": [
+    "3ac95c08d4cf",
+    "78b587c7b38b",
+    "58957c73481e",
+    6,
+    104.5,
+    "paroi",
+    359
+   ],
+   "avecDiag": [
+    "3ac95c08d4cf",
+    "78b587c7b38b",
+    "58957c73481e",
+    6,
+    104.5,
+    "paroi",
+    359
+   ],
+   "shaSansDiag": "6d76492dc893f368c66e53324314b209f8c13d9b",
+   "shaAvecDiag": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "grotte-tenue-3970548",
+   "verdict": "IDENTIQUE",
+   "sansDiag": [
+    "4bb841c37281",
+    "ed79f21fcd53",
+    "c6724a9ad7ba",
+    8,
+    144.3,
+    "roche",
+    549
+   ],
+   "avecDiag": [
+    "4bb841c37281",
+    "ed79f21fcd53",
+    "c6724a9ad7ba",
+    8,
+    144.3,
+    "roche",
+    549
+   ],
+   "shaSansDiag": "6d76492dc893f368c66e53324314b209f8c13d9b",
+   "shaAvecDiag": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "ville-tenue-3970585",
+   "verdict": "IDENTIQUE",
+   "sansDiag": [
+    "3bbbc11f9915",
+    "4095096f295b",
+    "ac17e14f65ff",
+    3,
+    59.8,
+    "tour",
+    116
+   ],
+   "avecDiag": [
+    "3bbbc11f9915",
+    "4095096f295b",
+    "ac17e14f65ff",
+    3,
+    59.8,
+    "tour",
+    116
+   ],
+   "shaSansDiag": "6d76492dc893f368c66e53324314b209f8c13d9b",
+   "shaAvecDiag": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "jade-tenue-3970622",
+   "verdict": "IDENTIQUE",
+   "sansDiag": [
+    "470cc5e54d96",
+    "74e96ee46963",
+    "2ebb9a85813b",
+    7,
+    138.3,
+    "pic",
+    458
+   ],
+   "avecDiag": [
+    "470cc5e54d96",
+    "74e96ee46963",
+    "2ebb9a85813b",
+    7,
+    138.3,
+    "pic",
+    458
+   ],
+   "shaSansDiag": "6d76492dc893f368c66e53324314b209f8c13d9b",
+   "shaAvecDiag": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  }
+ ],
+ "contreAvant": [
+  {
+   "course": "grotte-tenue-3970400",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "c51ab14fd94f",
+    "abe50e0ec984",
+    "ef9d984e0e58",
+    4,
+    77.7,
+    "roche",
+    212
+   ],
+   "maintenant": [
+    "c51ab14fd94f",
+    "abe50e0ec984",
+    "ef9d984e0e58",
+    4,
+    77.7,
+    "roche",
+    212
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "grotte-tenue-3970437",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "197d2bcea934",
+    "aaa7ce13176a",
+    "8b470f187996",
+    7,
+    101,
+    "roche",
+    501
+   ],
+   "maintenant": [
+    "197d2bcea934",
+    "aaa7ce13176a",
+    "8b470f187996",
+    7,
+    101,
+    "roche",
+    501
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "grotte-tenue-3970474",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "c74407ad1a75",
+    "641d915d39fb",
+    "6f8b1264379c",
+    5,
+    84.2,
+    "roche",
+    271
+   ],
+   "maintenant": [
+    "c74407ad1a75",
+    "641d915d39fb",
+    "6f8b1264379c",
+    5,
+    84.2,
+    "roche",
+    271
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "grotte-tenue-3970511",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "f0f09dcab3e7",
+    "91fb8ee58bf7",
+    "90a36c3df227",
+    4,
+    67.4,
+    "roche",
+    197
+   ],
+   "maintenant": [
+    "f0f09dcab3e7",
+    "91fb8ee58bf7",
+    "90a36c3df227",
+    4,
+    67.4,
+    "roche",
+    197
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "grotte-tenue-3970548",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "4bb841c37281",
+    "ed79f21fcd53",
+    "c6724a9ad7ba",
+    8,
+    144.3,
+    "roche",
+    549
+   ],
+   "maintenant": [
+    "4bb841c37281",
+    "ed79f21fcd53",
+    "c6724a9ad7ba",
+    8,
+    144.3,
+    "roche",
+    549
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "grotte-tenue-3970585",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "b407744e2d68",
+    "9ead8cb5602e",
+    "8d3ecb1815b3",
+    5,
+    92.7,
+    "roche",
+    271
+   ],
+   "maintenant": [
+    "b407744e2d68",
+    "9ead8cb5602e",
+    "8d3ecb1815b3",
+    5,
+    92.7,
+    "roche",
+    271
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "grotte-tenue-3970622",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "14e3d659d729",
+    "0cfe9485f7d9",
+    "4396e80caa30",
+    8,
+    180,
+    "temps",
+    528
+   ],
+   "maintenant": [
+    "14e3d659d729",
+    "0cfe9485f7d9",
+    "4396e80caa30",
+    8,
+    180,
+    "temps",
+    528
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "grotte-tenue-3970659",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "a468b028dcba",
+    "796ebcbab0d0",
+    "8ba761b66538",
+    8,
+    133.1,
+    "roche",
+    554
+   ],
+   "maintenant": [
+    "a468b028dcba",
+    "796ebcbab0d0",
+    "8ba761b66538",
+    8,
+    133.1,
+    "roche",
+    554
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "ville-tenue-3970400",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "97165815bf88",
+    "90641b3224d0",
+    "31bf12096449",
+    1,
+    13.5,
+    "tour",
+    38
+   ],
+   "maintenant": [
+    "97165815bf88",
+    "90641b3224d0",
+    "31bf12096449",
+    1,
+    13.5,
+    "tour",
+    38
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "ville-tenue-3970437",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "6360bf80d6e5",
+    "750c79e6e769",
+    "30ca3d388067",
+    8,
+    108.3,
+    "tour",
+    593
+   ],
+   "maintenant": [
+    "6360bf80d6e5",
+    "750c79e6e769",
+    "30ca3d388067",
+    8,
+    108.3,
+    "tour",
+    593
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "ville-tenue-3970474",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "3049db83a4d1",
+    "d52b91a0a50e",
+    "5179bbef9243",
+    8,
+    141.2,
+    "tour",
+    544
+   ],
+   "maintenant": [
+    "3049db83a4d1",
+    "d52b91a0a50e",
+    "5179bbef9243",
+    8,
+    141.2,
+    "tour",
+    544
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "ville-tenue-3970511",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "f612dc342ad2",
+    "2c80b8e08c66",
+    "aa2ba291d2c2",
+    3,
+    64.1,
+    "air",
+    133
+   ],
+   "maintenant": [
+    "f612dc342ad2",
+    "2c80b8e08c66",
+    "aa2ba291d2c2",
+    3,
+    64.1,
+    "air",
+    133
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "ville-tenue-3970548",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "c2db6c941406",
+    "5262f88ba037",
+    "94d2699eda8e",
+    4,
+    59.6,
+    "tour",
+    157
+   ],
+   "maintenant": [
+    "c2db6c941406",
+    "5262f88ba037",
+    "94d2699eda8e",
+    4,
+    59.6,
+    "tour",
+    157
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "ville-tenue-3970585",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "3bbbc11f9915",
+    "4095096f295b",
+    "ac17e14f65ff",
+    3,
+    59.8,
+    "tour",
+    116
+   ],
+   "maintenant": [
+    "3bbbc11f9915",
+    "4095096f295b",
+    "ac17e14f65ff",
+    3,
+    59.8,
+    "tour",
+    116
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "ville-tenue-3970622",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "920e399c82d9",
+    "3a0a935790ad",
+    "3326b60e9586",
+    3,
+    52.5,
+    "tour",
+    92
+   ],
+   "maintenant": [
+    "920e399c82d9",
+    "3a0a935790ad",
+    "3326b60e9586",
+    3,
+    52.5,
+    "tour",
+    92
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "ville-tenue-3970659",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "eca42d09879e",
+    "3e71d7a0863f",
+    "983e7526c4bf",
+    3,
+    29.7,
+    "tour",
+    95
+   ],
+   "maintenant": [
+    "eca42d09879e",
+    "3e71d7a0863f",
+    "983e7526c4bf",
+    3,
+    29.7,
+    "tour",
+    95
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "jade-tenue-3970400",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "f88b065f184c",
+    "9d27b1652e1c",
+    "62e29688a5fd",
+    9,
+    180,
+    "temps",
+    626
+   ],
+   "maintenant": [
+    "f88b065f184c",
+    "9d27b1652e1c",
+    "62e29688a5fd",
+    9,
+    180,
+    "temps",
+    626
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "jade-tenue-3970437",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "d52937d0bf45",
+    "6d1560424e23",
+    "374a1581e0b0",
+    10,
+    180,
+    "temps",
+    767
+   ],
+   "maintenant": [
+    "d52937d0bf45",
+    "6d1560424e23",
+    "374a1581e0b0",
+    10,
+    180,
+    "temps",
+    767
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "jade-tenue-3970474",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "e6725bd405c5",
+    "09d6a756b16d",
+    "f243cdcf143b",
+    9,
+    180,
+    "temps",
+    637
+   ],
+   "maintenant": [
+    "e6725bd405c5",
+    "09d6a756b16d",
+    "f243cdcf143b",
+    9,
+    180,
+    "temps",
+    637
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "jade-tenue-3970511",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "79a2df0ba936",
+    "b9010b3228b8",
+    "e21739c899d2",
+    3,
+    49.3,
+    "vide",
+    105
+   ],
+   "maintenant": [
+    "79a2df0ba936",
+    "b9010b3228b8",
+    "e21739c899d2",
+    3,
+    49.3,
+    "vide",
+    105
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "jade-tenue-3970548",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "d148196c4299",
+    "16b404867236",
+    "109d32751309",
+    3,
+    61.1,
+    "pic",
+    140
+   ],
+   "maintenant": [
+    "d148196c4299",
+    "16b404867236",
+    "109d32751309",
+    3,
+    61.1,
+    "pic",
+    140
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "jade-tenue-3970585",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "8c71984285da",
+    "375d7245ddb8",
+    "5a877b45488b",
+    4,
+    72.8,
+    "air",
+    192
+   ],
+   "maintenant": [
+    "8c71984285da",
+    "375d7245ddb8",
+    "5a877b45488b",
+    4,
+    72.8,
+    "air",
+    192
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "jade-tenue-3970622",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "470cc5e54d96",
+    "74e96ee46963",
+    "2ebb9a85813b",
+    7,
+    138.3,
+    "pic",
+    458
+   ],
+   "maintenant": [
+    "470cc5e54d96",
+    "74e96ee46963",
+    "2ebb9a85813b",
+    7,
+    138.3,
+    "pic",
+    458
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "jade-tenue-3970659",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "0c53641ced89",
+    "2430815edddc",
+    "26ffa5dd0007",
+    8,
+    180,
+    "temps",
+    612
+   ],
+   "maintenant": [
+    "0c53641ced89",
+    "2430815edddc",
+    "26ffa5dd0007",
+    8,
+    180,
+    "temps",
+    612
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "canyon-tenue-3970400",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "5a698f94acab",
+    "71dbb415f18c",
+    "f67bf2a3f8a6",
+    5,
+    63.4,
+    "paroi",
+    285
+   ],
+   "maintenant": [
+    "5a698f94acab",
+    "71dbb415f18c",
+    "f67bf2a3f8a6",
+    5,
+    63.4,
+    "paroi",
+    285
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "canyon-tenue-3970437",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "152119b12c48",
+    "a8a25390734b",
+    "d614c8a21d35",
+    6,
+    92.2,
+    "paroi",
+    351
+   ],
+   "maintenant": [
+    "152119b12c48",
+    "a8a25390734b",
+    "d614c8a21d35",
+    6,
+    92.2,
+    "paroi",
+    351
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "canyon-tenue-3970474",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "b616b900546f",
+    "a2615c2a90c1",
+    "73f1d1763677",
+    5,
+    64.6,
+    "paroi",
+    233
+   ],
+   "maintenant": [
+    "b616b900546f",
+    "a2615c2a90c1",
+    "73f1d1763677",
+    5,
+    64.6,
+    "paroi",
+    233
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "canyon-tenue-3970511",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "3ac95c08d4cf",
+    "78b587c7b38b",
+    "58957c73481e",
+    6,
+    104.5,
+    "paroi",
+    359
+   ],
+   "maintenant": [
+    "3ac95c08d4cf",
+    "78b587c7b38b",
+    "58957c73481e",
+    6,
+    104.5,
+    "paroi",
+    359
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "canyon-tenue-3970548",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "56acd88bde5b",
+    "8620c37562fc",
+    "4c2cb0e9c5ec",
+    7,
+    101.7,
+    "paroi",
+    474
+   ],
+   "maintenant": [
+    "56acd88bde5b",
+    "8620c37562fc",
+    "4c2cb0e9c5ec",
+    7,
+    101.7,
+    "paroi",
+    474
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "canyon-tenue-3970585",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "b204285e15e4",
+    "1078a167697c",
+    "1bbc51a95e74",
+    6,
+    103.6,
+    "canyon",
+    354
+   ],
+   "maintenant": [
+    "b204285e15e4",
+    "1078a167697c",
+    "1bbc51a95e74",
+    6,
+    103.6,
+    "canyon",
+    354
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "canyon-tenue-3970622",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "3ff8d5caebfb",
+    "44768831370e",
+    "cbfddf610db4",
+    6,
+    98,
+    "paroi",
+    384
+   ],
+   "maintenant": [
+    "3ff8d5caebfb",
+    "44768831370e",
+    "cbfddf610db4",
+    6,
+    98,
+    "paroi",
+    384
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "canyon-tenue-3970659",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "aeed1c44d743",
+    "00181a022f48",
+    "b38938b6c4d6",
+    4,
+    62.3,
+    "paroi",
+    212
+   ],
+   "maintenant": [
+    "aeed1c44d743",
+    "00181a022f48",
+    "b38938b6c4d6",
+    4,
+    62.3,
+    "paroi",
+    212
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "libre-3970400",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "c51ab14fd94f",
+    "5c5ef14f41e8",
+    "ef9d984e0e58",
+    4,
+    77.7,
+    "roche",
+    212
+   ],
+   "maintenant": [
+    "c51ab14fd94f",
+    "5c5ef14f41e8",
+    "ef9d984e0e58",
+    4,
+    77.7,
+    "roche",
+    212
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "libre-3970437",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "0bccfa14d82d",
+    "2b3b40b5c096",
+    "d8b7b99ce382",
+    7,
+    180,
+    "temps",
+    471
+   ],
+   "maintenant": [
+    "0bccfa14d82d",
+    "2b3b40b5c096",
+    "d8b7b99ce382",
+    7,
+    180,
+    "temps",
+    471
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "libre-3970474",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "4843f6420b46",
+    "5d1fa3a21837",
+    "e6c0b571a5b5",
+    7,
+    134.1,
+    "vide",
+    470
+   ],
+   "maintenant": [
+    "4843f6420b46",
+    "5d1fa3a21837",
+    "e6c0b571a5b5",
+    7,
+    134.1,
+    "vide",
+    470
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "libre-3970511",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "1d3db75acf08",
+    "52fd7407f12d",
+    "c39576ba7c7e",
+    5,
+    91.7,
+    "air",
+    279
+   ],
+   "maintenant": [
+    "1d3db75acf08",
+    "52fd7407f12d",
+    "c39576ba7c7e",
+    5,
+    91.7,
+    "air",
+    279
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "libre-3970548",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "51344cbbc9ee",
+    "df0554c52108",
+    "18cc5a975761",
+    9,
+    180,
+    "temps",
+    672
+   ],
+   "maintenant": [
+    "51344cbbc9ee",
+    "df0554c52108",
+    "18cc5a975761",
+    9,
+    180,
+    "temps",
+    672
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "libre-3970585",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "b204285e15e4",
+    "1078a167697c",
+    "1bbc51a95e74",
+    6,
+    103.6,
+    "canyon",
+    354
+   ],
+   "maintenant": [
+    "b204285e15e4",
+    "1078a167697c",
+    "1bbc51a95e74",
+    6,
+    103.6,
+    "canyon",
+    354
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "libre-3970622",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "79ba3679058e",
+    "19d2c712c8e9",
+    "b4bef9356212",
+    2,
+    29.7,
+    "roche",
+    66
+   ],
+   "maintenant": [
+    "79ba3679058e",
+    "19d2c712c8e9",
+    "b4bef9356212",
+    2,
+    29.7,
+    "roche",
+    66
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  },
+  {
+   "course": "libre-3970659",
+   "verdict": "IDENTIQUE",
+   "avant": [
+    "aeed1c44d743",
+    "8dbf106f00a4",
+    "b38938b6c4d6",
+    4,
+    62.3,
+    "paroi",
+    212
+   ],
+   "maintenant": [
+    "aeed1c44d743",
+    "8dbf106f00a4",
+    "b38938b6c4d6",
+    4,
+    62.3,
+    "paroi",
+    212
+   ],
+   "shaAvant": "59d824adea4e6f1405db9567df873628d77ab8c9",
+   "shaMaintenant": "3c12b7c0172836978e5a8cf9de3d95b34e5c8b5a"
+  }
+ ]
+}

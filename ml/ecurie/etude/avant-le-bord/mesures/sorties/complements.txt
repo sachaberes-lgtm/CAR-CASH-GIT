@@ -1,0 +1,6 @@
+decollages sans pouvoir VITESSE dans les 3 s avant : 19 morts, 129 poses
+2 s avant, sans pouvoir VITESSE : vitesse rang 0.793 p 0.0002 (15/86) ; palier rang 0.722 p 0.0035 ; vitesse a carte et palier egaux rang 0.616 p 0.2097 (15/30, 10 strates) ; v/vmax rang 0.632 p 0.059
+1.5 s avant, sans pouvoir VITESSE : vitesse rang 0.802 p 0.0002 (15/90) ; palier rang 0.727 p 0.0032 ; vitesse a carte et palier egaux rang 0.642 p 0.1605 (15/32, 10 strates) ; v/vmax rang 0.617 p 0.0876
+1 s avant, sans pouvoir VITESSE : vitesse rang 0.722 p 0.0047 (16/92) ; palier rang 0.705 p 0.0064 ; vitesse a carte et palier egaux rang 0.559 p 0.3423 (15/38, 10 strates) ; v/vmax rang 0.543 p 0.2995
+0.6 s avant, sans pouvoir VITESSE : vitesse rang 0.712 p 0.0058 (16/101) ; palier rang 0.668 p 0.0191 ; vitesse a carte et palier egaux rang 0.667 p 0.106 (11/42, 9 strates) ; v/vmax rang 0.626 p 0.0639
+entree de virage (courbure x1,5 entre 1,5 s avant et la derniere demi-seconde) : morts 7 sur 18, poses 24 sur 93 ; Fisher unilateral p 0.1967

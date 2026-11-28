@@ -1,0 +1,8 @@
+LA PUISSANCE DES 16 COURSES DE VILLE (modele grossier, 20000 tirages par hypothese ; voir l'en-tete de puissance-ville.js)
+- comme la mesure d'avant (5/11 contre 0/11, l'ouvert mis a 0,03) : sorties attendues bordees 20.0, ouvertes 20.0 ; morts attendues bordees 9.0, ouvertes 0.6 ; CONFIRMEE 94 %, REFUTEE 0 %, INDECISE 6 %
+- rapport 6 (0,30 contre 0,05) : sorties attendues bordees 23.2, ouvertes 23.2 ; morts attendues bordees 7.0, ouvertes 1.2 ; CONFIRMEE 62 %, REFUTEE 3 %, INDECISE 35 %
+- rapport 3 (0,24 contre 0,08) : sorties attendues bordees 24.1, ouvertes 24.1 ; morts attendues bordees 5.8, ouvertes 1.9 ; CONFIRMEE 30 %, REFUTEE 16 %, INDECISE 54 %
+- rapport 3, plus rare (0,15 contre 0,05) : sorties attendues bordees 28.1, ouvertes 28.1 ; morts attendues bordees 4.2, ouvertes 1.4 ; CONFIRMEE 19 %, REFUTEE 21 %, INDECISE 61 %
+- rapport 2 (0,20 contre 0,10) : sorties attendues bordees 24.7, ouvertes 24.8 ; morts attendues bordees 4.9, ouvertes 2.5 ; CONFIRMEE 14 %, REFUTEE 33 %, INDECISE 52 %
+- aucun ecart (0,15 et 0,15) : sorties attendues bordees 24.7, ouvertes 24.7 ; morts attendues bordees 3.7, ouvertes 3.7 ; CONFIRMEE 2 %, REFUTEE 70 %, INDECISE 28 %
+- aucun ecart, rare (0,08 et 0,08) : sorties attendues bordees 29.7, ouvertes 29.7 ; morts attendues bordees 2.4, ouvertes 2.4 ; CONFIRMEE 1 %, REFUTEE 67 %, INDECISE 32 %

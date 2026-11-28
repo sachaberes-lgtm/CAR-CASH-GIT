@@ -1,0 +1,99 @@
+LE RECOMPTE DU RELECTEUR (mesures A et C, « avant le bord »)
+37 courses ; doublons retires (meme empreinte qu'une course tenue) : libre-3970400, libre-3970585, libre-3970659
+morts : en-tete 30 ; trouvees ici (vols finis par un trou ou la fin) 30 ; morts au sol (sans vol) = la difference
+doublons partiels (decollage subi sur decor d'une course libre restante, meme t0 et meme vitesse dans la course tenue de la meme graine) : 0 sur 15
+decollages subis sur decor : 159 ; coupes par la fin 1 ; sans vue au sol a 0,15 s avant : 0 (0 morts) ; gardes : 158 = 23 morts + 135 poses
+par carte (morts / poses) : canyon 8 / 18 ; grotte 8 / 28 ; jade 4 / 69 ; ville 3 / 20
+causes des morts : paroi 7, canyon 1, roche 8, vide 2, air 2, pic 1, tour 2 (la premiere cause de chaque course, pour l'ordre de grandeur)
+
+== LE BIAIS DU DERNIER EVENEMENT : une mort finit presque toujours la course ==
+  morts qui sont le dernier vol de leur course : 23 sur 23 ; courses avec plus d'une mort subie sur decor : 0
+  instant du decollage (s de course), mediane morts / poses : 92.10 / 87.20 ; poses qui suivent une mort dans la meme course : 0
+  => une mort est TOUJOURS le dernier vol de sa course, donc au plus haut palier de sa course. Comparer une mort aux poses de SA course est donc biaise par construction (strates « meme course » ci-dessous : a ne pas lire comme une preuve).
+     Comparer aux poses de toute la carte reste juste si le risque par decollage est constant : la mort tombe alors a un rang de decollage tire comme celui des poses. Controle voisin : la tranche de 30 s de course.
+
+== a. VITESSE OU PALIER (ma vue a x s avant : la derniere vue au sol dans [x - 0,05 ; x + 0,15] s avant le decollage) ==
+-- 2 s avant : 18 morts, 89 poses avec une vue --
+  vitesse, a carte egale : rang 0.792, p 0.0001 (18 morts / 89 poses, 4 strates)
+  palier, a carte egale : rang 0.708, p 0.004 (18 morts / 89 poses, 4 strates)
+  vitesse, a carte ET palier egaux : rang 0.648, p 0.1173 (18 morts / 33 poses, 12 strates)
+  vitesse, a carte et palier egaux, SANS le pouvoir VITESSE (vitMult = 1) : rang 0.604, p 0.2231 (16 morts / 30 poses, 10 strates)
+  vitesse, dans la MEME COURSE (BIAISE par construction : la mort est le dernier vol) : rang 0.893, p 0.0001 (14 morts / 34 poses, 14 strates)
+  palier, dans la meme course (BIAISE par construction) : rang 0.912, p 0 (14 morts / 34 poses, 14 strates)
+  vitesse, a carte et tranche de 30 s de course egales : rang 0.614, p 0.1662 (13 morts / 40 poses, 9 strates)
+  palier, a carte et tranche de 30 s de course egales : rang 0.536, p 0.3403 (13 morts / 40 poses, 9 strates)
+  v / vSure, a carte egale : rang 0.555, p 0.267 (15 morts / 83 poses, 4 strates)
+  besoin de volant, a carte egale : rang 0.480, p 0.5943 (18 morts / 89 poses, 4 strates)
+-- 1.5 s avant : 18 morts, 93 poses avec une vue --
+  vitesse, a carte egale : rang 0.800, p 0.0001 (18 morts / 93 poses, 4 strates)
+  palier, a carte egale : rang 0.709, p 0.0027 (18 morts / 93 poses, 4 strates)
+  vitesse, a carte ET palier egaux : rang 0.665, p 0.0875 (18 morts / 37 poses, 12 strates)
+  vitesse, a carte et palier egaux, SANS le pouvoir VITESSE (vitMult = 1) : rang 0.623, p 0.1833 (16 morts / 33 poses, 10 strates)
+  vitesse, dans la MEME COURSE (BIAISE par construction : la mort est le dernier vol) : rang 0.868, p 0.0002 (14 morts / 35 poses, 14 strates)
+  palier, dans la meme course (BIAISE par construction) : rang 0.901, p 0 (14 morts / 35 poses, 14 strates)
+  vitesse, a carte et tranche de 30 s de course egales : rang 0.678, p 0.0613 (13 morts / 40 poses, 9 strates)
+  palier, a carte et tranche de 30 s de course egales : rang 0.515, p 0.4219 (13 morts / 40 poses, 9 strates)
+  v / vSure, a carte egale : rang 0.590, p 0.1502 (15 morts / 87 poses, 4 strates)
+  besoin de volant, a carte egale : rang 0.420, p 0.838 (18 morts / 93 poses, 4 strates)
+-- 1 s avant : 19 morts, 95 poses avec une vue --
+  vitesse, a carte egale : rang 0.767, p 0.0003 (19 morts / 95 poses, 4 strates)
+  palier, a carte egale : rang 0.690, p 0.0065 (19 morts / 95 poses, 4 strates)
+  vitesse, a carte ET palier egaux : rang 0.632, p 0.1434 (18 morts / 43 poses, 12 strates)
+  vitesse, a carte et palier egaux, SANS le pouvoir VITESSE (vitMult = 1) : rang 0.559, p 0.3451 (15 morts / 39 poses, 10 strates)
+  vitesse, dans la MEME COURSE (BIAISE par construction : la mort est le dernier vol) : rang 0.788, p 0.0025 (15 morts / 39 poses, 15 strates)
+  palier, dans la meme course (BIAISE par construction) : rang 0.891, p 0 (15 morts / 39 poses, 15 strates)
+  vitesse, a carte et tranche de 30 s de course egales : rang 0.644, p 0.0954 (14 morts / 41 poses, 9 strates)
+  palier, a carte et tranche de 30 s de course egales : rang 0.441, p 0.7776 (14 morts / 41 poses, 9 strates)
+  v / vSure, a carte egale : rang 0.564, p 0.2218 (17 morts / 90 poses, 4 strates)
+  besoin de volant, a carte egale : rang 0.501, p 0.4881 (19 morts / 95 poses, 4 strates)
+-- 0.6 s avant : 19 morts, 104 poses avec une vue --
+  vitesse, a carte egale : rang 0.750, p 0.0006 (19 morts / 104 poses, 4 strates)
+  palier, a carte egale : rang 0.656, p 0.0177 (19 morts / 104 poses, 4 strates)
+  vitesse, a carte ET palier egaux : rang 0.732, p 0.0204 (14 morts / 49 poses, 11 strates)
+  vitesse, a carte et palier egaux, SANS le pouvoir VITESSE (vitMult = 1) : rang 0.667, p 0.112 (11 morts / 42 poses, 9 strates)
+  vitesse, dans la MEME COURSE (BIAISE par construction : la mort est le dernier vol) : rang 0.822, p 0.0007 (15 morts / 42 poses, 15 strates)
+  palier, dans la meme course (BIAISE par construction) : rang 0.869, p 0 (15 morts / 42 poses, 15 strates)
+  vitesse, a carte et tranche de 30 s de course egales : rang 0.639, p 0.0991 (14 morts / 44 poses, 9 strates)
+  palier, a carte et tranche de 30 s de course egales : rang 0.429, p 0.81 (14 morts / 44 poses, 9 strates)
+  v / vSure, a carte egale : rang 0.566, p 0.2054 (18 morts / 94 poses, 4 strates)
+  besoin de volant, a carte egale : rang 0.509, p 0.453 (19 morts / 104 poses, 4 strates)
+-- v / vSure, vues au sol des suites d'avant decollage : 21916 vues avec un virage proche ; au-dessus de 1 : 39 ; morts avec au moins une telle vue dans les 3 s : 1 sur 23
+
+== LE HASARD : la famille des grandeurs scalaires de l'analyse du mesureur (§ a : 8 grandeurs x 4 reculs ; § f : 3 balancements) ==
+  toute la famille (35 decoupages) : le meilleur p trouve vaut 0.000 (vitesse 1.5) ; le hasard (etiquettes melangees dans chaque carte) fait au moins aussi bien 0 fois sur 100
+  les grandeurs non nommees d'avance (27 : sans vitesse ni palier seuls) : le meilleur p trouve vaut 0.004 (balancement : ecart a palier egal) ; le hasard (etiquettes melangees dans chaque carte) fait au moins aussi bien 6 fois sur 100
+  detail (p de chaque grandeur, meme loi de permutation, a carte egale ; strate carte|palier pour « a palier egal ») :
+    vitesse 2 0.000 ; palier 2 0.004 ; vitesse a palier egal 2 0.086 ; v/vmax 2 0.036 ; residu vitesse sur palier 2 0.015 ; v/vSure 2 0.264 ; besoin 2 0.592 ; braquage 2 0.309 ; vitesse 1.5 0.000 ; palier 1.5 0.003 ; vitesse a palier egal 1.5 0.056 ; v/vmax 1.5 0.036 ; residu vitesse sur palier 1.5 0.016 ; v/vSure 1.5 0.143 ; besoin 1.5 0.838 ; braquage 1.5 0.227 ; vitesse 1 0.000 ; palier 1 0.007 ; vitesse a palier egal 1 0.094 ; v/vmax 1 0.075 ; residu vitesse sur palier 1 0.031 ; v/vSure 1 0.218 ; besoin 1 0.488 ; braquage 1 0.254 ; vitesse 0.6 0.000 ; palier 0.6 0.017 ; vitesse a palier egal 0.6 0.008 ; v/vmax 0.6 0.009 ; residu vitesse sur palier 0.6 0.011 ; v/vSure 0.6 0.203 ; besoin 0.6 0.453 ; braquage 0.6 0.226 ; balancement : inversions 0.416 ; balancement : ecart 0.078 ; balancement : ecart a palier egal 0.004
+
+== b. LE VOLANT (signe : + = vers le bord de sortie ; le bord = le signe de lat a la derniere vue au sol) ==
+  applique (vo), derniere vue : a fond vers l'interieur 12/76 ; droit 3/20 ; vers l'interieur 7/27 ; vers le bord 1/12
+  applique (vo), 0.5 s avant : ? 3/23 ; a fond vers l'interieur 1/13 ; droit 3/33 ; vers l'interieur 5/14 ; vers le bord 11/52
+  applique (vo), 1 s avant : ? 4/40 ; a fond vers l'interieur 1/1 ; droit 6/43 ; vers l'interieur 0/2 ; vers le bord 12/49
+  demande (vd), derniere vue : a fond vers l'interieur 16/98 ; droit 2/3 ; vers l'interieur 5/33 ; vers le bord 0/1
+  demande (vd), 0.5 s avant : ? 3/23 ; a fond vers l'interieur 5/50 ; droit 4/13 ; vers l'interieur 10/45 ; vers le bord 1/4
+  demande (vd), 1 s avant : ? 4/40 ; a fond vers l'interieur 1/3 ; droit 4/25 ; vers l'interieur 2/8 ; vers le bord 12/59
+  a fond vers l'interieur a la derniere vue : morts 12 sur 23, poses 76 sur 135 ; Fisher bilateral approche p 0.883
+
+== c. LE FREIN POSSIBLE : |volant applique| < 0,35 et pas de drift ==
+  morts : 180 vues sur 384 dans les 2 s avant (47 %) ; au moins 0,5 s continues entre 2 et 0,6 s avant : 6 sur 19 (avec des vues) ; les memes au-dessus de 120 m/s : 5
+    plus longue suite, mort par mort (s) : 0 0.9 0.3 0.2 0.2 0.4 0.4 0 0.5 0.9 0.2 0.9 0.3 0.3 0.1 0 0 0.2 0 0.4 0.2 0.7 1.2
+  poses : 888 vues sur 2031 dans les 2 s avant (44 %) ; au moins 0,5 s continues entre 2 et 0,6 s avant : 33 sur 104 (avec des vues) ; les memes au-dessus de 120 m/s : 29
+
+== f. LE POUVOIR VITESSE : vitMult > 1 a au moins une vue de la fenetre, morts / poses (fenetres voisines de celle du mesureur, 2 s) ==
+  1 s : morts 4 sur 23, poses 6 sur 135 ; Fisher unilateral p 0.040
+  2 s : morts 4 sur 23, poses 6 sur 135 ; Fisher unilateral p 0.040
+  3 s : morts 4 sur 23, poses 6 sur 135 ; Fisher unilateral p 0.040
+  vues au sol sur decor en pouvoir VITESSE : 142 sur 29156
+
+== e. LA VILLE : la regle de prediction-ville.md, recodee (vol voulu dont la derniere vue au sol porte un raccourci ; vue d'engagement a 0,026 s de so.t0 ; cote = Sg si so.c > 0) ==
+  16 neuves, toutes : borde 8 morts/34 ; mi-borde 0 morts/7 ; ouvert 5 morts/23 -> REFUTEE (rapport 1.08, p 0.569)
+  16 neuves, vrais raccourcis : borde 6 morts/28 ; mi-borde 0 morts/6 ; ouvert 4 morts/17 -> REFUTEE (rapport 0.91, p 0.707)
+  16 neuves, dessous : borde 2 morts/6 ; mi-borde 0 morts/1 ; ouvert 1 morts/6 -> INDECISE (rapport 2.00, p 0.500)
+  8 d'avant, toutes : borde 5 morts/11 ; ouvert 0 morts/11 -> CONFIRMEE (rapport infini, p 0.018)
+  8 d'avant, vrais raccourcis : borde 2 morts/8 ; ouvert 0 morts/9 -> INDECISE (rapport infini, p 0.206)
+  8 d'avant, dessous : borde 3 morts/3 ; ouvert 0 morts/2 -> INDECISE (rapport infini, p 0.100)
+  ensemble, toutes : borde 13 morts/45 ; mi-borde 0 morts/7 ; ouvert 5 morts/34 -> INDECISE (rapport 1.96, p 0.111)
+  ensemble, vrais raccourcis : borde 8 morts/36 ; mi-borde 0 morts/6 ; ouvert 4 morts/26 -> REFUTEE (rapport 1.44, p 0.369)
+  ensemble, dessous : borde 5 morts/9 ; mi-borde 0 morts/1 ; ouvert 1 morts/8 -> INDECISE (rapport 4.44, p 0.088)
+  16 neuves : morts de l'en-tete 15 ; dont sur une sortie voulue (raccourci engage) 13 ; sorties voulues 64
+  16 neuves, TOUS les vols voulus en ville (raccourci engage ou non) : 64, dont mortels 13

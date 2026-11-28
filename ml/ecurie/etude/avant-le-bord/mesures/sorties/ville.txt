@@ -1,0 +1,46 @@
+LA VILLE (prediction-ville.md) : 16 courses neuves, 8 courses de la mesure d'avant rejouees
+courses neuves : 3977800 101.8 s tour p7 ; 3977837 178.6 s air p10 ; 3977874 75.8 s tour p5 ; 3977911 168.4 s tour p10 ; 3977948 81.7 s tour p5 ; 3977985 133.9 s tour p8 ; 3978022 180 s temps p10 ; 3978059 37.6 s tour p3 ; 3978096 18.9 s tour p2 ; 3978133 57.1 s tour p5 ; 3978170 67.6 s tour p5 ; 3978207 24.9 s tour p3 ; 3978244 148.1 s tour p9 ; 3978281 74.4 s tour p4 ; 3978318 44.1 s tour p3 ; 3978355 115.5 s tour p9
+
+== LES 16 COURSES NEUVES SEULES (elles jugent) : 64 sorties voulues, 13 morts ==
+  vrais raccourcis : borde 6 morts / 28 sorties ; mi-borde 0 morts / 6 sorties ; ouvert 4 morts / 17 sorties
+    jugement (borde contre ouvert) : REFUTEE (rapport 0.91, Fisher unilateral p 0.7069)
+  sorties du dessous : borde 2 morts / 6 sorties ; mi-borde 0 morts / 1 sorties ; ouvert 1 morts / 6 sorties
+    jugement (borde contre ouvert) : INDECISE (rapport 2.00, Fisher unilateral p 0.5)
+  toutes : borde 8 morts / 34 sorties ; mi-borde 0 morts / 7 sorties ; ouvert 5 morts / 23 sorties
+    jugement (borde contre ouvert) : REFUTEE (rapport 1.08, Fisher unilateral p 0.5692)
+
+== LES 8 COURSES D'AVANT (rejouees) : 22 sorties voulues, 5 morts ==
+  vrais raccourcis : borde 2 morts / 8 sorties ; ouvert 0 morts / 9 sorties
+    jugement (borde contre ouvert) : INDECISE (rapport infini, Fisher unilateral p 0.2059)
+  sorties du dessous : borde 3 morts / 3 sorties ; ouvert 0 morts / 2 sorties
+    jugement (borde contre ouvert) : INDECISE (rapport infini, Fisher unilateral p 0.1)
+  toutes : borde 5 morts / 11 sorties ; ouvert 0 morts / 11 sorties
+    jugement (borde contre ouvert) : CONFIRMEE (rapport infini, Fisher unilateral p 0.0175)
+
+== L'ENSEMBLE (ne juge rien) : 86 sorties voulues, 18 morts ==
+  vrais raccourcis : borde 8 morts / 36 sorties ; mi-borde 0 morts / 6 sorties ; ouvert 4 morts / 26 sorties
+    jugement (borde contre ouvert) : REFUTEE (rapport 1.44, Fisher unilateral p 0.3688)
+  sorties du dessous : borde 5 morts / 9 sorties ; mi-borde 0 morts / 1 sorties ; ouvert 1 morts / 8 sorties
+    jugement (borde contre ouvert) : INDECISE (rapport 4.44, Fisher unilateral p 0.0882)
+  toutes : borde 13 morts / 45 sorties ; mi-borde 0 morts / 7 sorties ; ouvert 5 morts / 34 sorties
+    jugement (borde contre ouvert) : INDECISE (rapport 1.96, Fisher unilateral p 0.1109)
+
+== chaque sortie voulue mortelle ==
+  avant ville-tenue-3970474 t0 135.2 dessous versRoute borde (tour) -> tour
+  avant ville-tenue-3970548 t0 57.8 raccourci viserPlane borde (tour) -> tour
+  avant ville-tenue-3970585 t0 56.9 dessous versRoute borde (tour) -> tour
+  avant ville-tenue-3970622 t0 51.4 raccourci viserPlane borde (tour) -> tour
+  avant ville-tenue-3970659 t0 27.8 dessous versRoute borde (tour) -> tour
+  NEUVE ville-tenue-3977800 t0 99.3 raccourci versRoute borde (tour) -> tour
+  NEUVE ville-tenue-3977837 t0 171.7 dessous versRoute borde (tour) -> air
+  NEUVE ville-tenue-3977874 t0 67.4 raccourci viser ouvert -> tour
+  NEUVE ville-tenue-3977948 t0 76 raccourci viser borde (tour) -> tour
+  NEUVE ville-tenue-3977985 t0 128.6 raccourci versRoute ouvert -> tour
+  NEUVE ville-tenue-3978059 t0 35.5 dessous versRoute ouvert -> tour
+  NEUVE ville-tenue-3978096 t0 14.8 raccourci viser ouvert -> tour
+  NEUVE ville-tenue-3978133 t0 52.5 raccourci viser borde (tour) -> tour
+  NEUVE ville-tenue-3978170 t0 62.1 raccourci viserPlane ouvert -> tour
+  NEUVE ville-tenue-3978207 t0 22.9 raccourci viser borde (tour) -> tour
+  NEUVE ville-tenue-3978244 t0 146.2 raccourci versRoute borde (tour) -> tour
+  NEUVE ville-tenue-3978318 t0 39.7 raccourci viserPlane borde (tour) -> tour
+  NEUVE ville-tenue-3978355 t0 113.5 dessous versRoute borde (tour) -> tour
