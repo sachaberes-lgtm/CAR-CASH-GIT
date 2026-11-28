@@ -1,10 +1,10 @@
-Generation 13, phase A, epoque 29ae5fffc2b9 (depuis la gen. 0), 12 graines par generation, 26 vivants
-EN MARCHE (pid 8004, signe de vie il y a 29 s, lance le 28/11 00:29)
-Debit : 482 courses/h (gen. 12 : 312 courses dont 312 jouees, 0 du cache, en 39 min) ; 10 a la fois (banc du 28/11)
-Champion 19e3767cc346 (= le temoin) : F 3.4 +- 0.3, palier 6.8, ecart E 0.85 (156 courses)
-Meneur   a50c97b7ac2b : F 4.4 +- 0.3, palier 7.6, ecart E 0.79 (84 courses)
-Temoin   19e3767cc346 : F 3.4 +- 0.3, palier 6.8, ecart E 0.85 (156 courses)
+Generation 14, phase A, epoque 29ae5fffc2b9 (depuis la gen. 0), 12 graines par generation, 26 vivants
+EN MARCHE (pid 8004, signe de vie il y a 28 s, lance le 28/11 00:29)
+Debit : 461 courses/h (gen. 13 : 312 courses dont 312 jouees, 0 du cache, en 41 min) ; 10 a la fois (banc du 28/11)
+Champion 19e3767cc346 (= le temoin) : F 3.6 +- 0.3, palier 7.0, ecart E 0.84 (168 courses)
+Meneur   c7dadd65d9c1 : F 5.2 +- 0.5, palier 8.5, ecart E 0.81 (48 courses)
+Temoin   19e3767cc346 : F 3.6 +- 0.3, palier 7.0, ecart E 0.84 (168 courses)
 Coffre (28/11 01:26, gen. 0, 40 courses) : champion - temoin = palier +0.00, E +0.00, ecart classique +0.00
 Validation (gen. 10) : 613314026a8c contre 19e3767cc346 : pas sacre (dF -0.54 +- 1.07 sur 24 graines)
-Gen. 12 : 0 course(s) non mesuree(s) sur 312 (0.0 %), 0 panne(s) de cerveau
+Gen. 13 : 0 course(s) non mesuree(s) sur 312 (0.0 %), 0 panne(s) de cerveau
 Alertes : aucune
