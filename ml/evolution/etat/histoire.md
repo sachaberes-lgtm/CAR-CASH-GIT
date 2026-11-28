@@ -1,21 +1,21 @@
 # Le récit de la sélection naturelle des bots
 
-*Écrit par la sélection elle-même (`ml/evolution/histoire.js`), à partir de ses journaux, à la fin de chaque génération. Rien n'y est ajouté à la main ; les identifiants entre guillemets inversés (`77ab12cd`) sont les huit premiers caractères du nom d'un pilote, comme dans l'arbre généalogique (`arbre.html`). Dernière mise à jour : 28/11/2026 à 08 h 00.*
+*Écrit par la sélection elle-même (`ml/evolution/histoire.js`), à partir de ses journaux, à la fin de chaque génération. Rien n'y est ajouté à la main ; les identifiants entre guillemets inversés (`77ab12cd`) sont les huit premiers caractères du nom d'un pilote, comme dans l'arbre généalogique (`arbre.html`). Dernière mise à jour : 28/11/2026 à 09 h 00.*
 
 Les mots : le **palier** dit jusqu'où un pilote va dans une course ; l'**écart aux joueurs** dit à quel point il conduit autrement que les vrais joueurs (0 = comme eux) ; la **note F** = palier − 4 × écart décide qui reste. Le **témoin** est le pilote de départ, écrit à la main, jamais modifié. Le **champion** est le meilleur pilote prouvé sur des courses neuves ; au début, c'est le témoin. Le **coffre** : 40 courses qui ne servent jamais à l'entraînement, le seul vrai juge. Le **meneur** est le mieux noté des autres ; il tente parfois un **sacre** (rejouer contre le champion sur des courses neuves). Un **immigré** est une copie très changée du champion, ajoutée pour garder de la variété. Une **nouvelle époque** commence quand le jeu ou le bot change : les notes repartent de zéro et le champion doit se **revalider** face au témoin.
 
 ## Où on en est
 
-1. **9 générations finies** depuis le 28/11/2026 à 00 h 46 (6 h 55) ; phase A ; la génération 9 est en cours.
-2. 74 pilotes sont nés (dont 20 au départ), 48 ont été renvoyés, 26 vivent.
+1. **10 générations finies** depuis le 28/11/2026 à 00 h 46 (7 h 40) ; phase A ; la génération 10 est en cours.
+2. 80 pilotes sont nés (dont 20 au départ), 54 ont été renvoyés, 26 vivent.
 3. Le champion est encore **le témoin** : aucun pilote n'a encore prouvé, sur des courses neuves, qu'il faisait mieux.
-4. Le meneur de la dernière génération (le mieux noté après le champion) est `92baca8c` : palier 7,91, écart aux joueurs 0,84, note F 4,5, 72 courses.
-5. Le témoin, pilote-voltige jamais modifié : palier 6,77, écart aux joueurs 0,86, note F 3,3, 108 courses.
+4. Le meneur de la dernière génération (le mieux noté après le champion) est `61331402` : palier 7,75, écart aux joueurs 0,81, note F 4,5, 60 courses.
+5. Le témoin, pilote-voltige jamais modifié : palier 6,75, écart aux joueurs 0,86, note F 3,3, 120 courses.
 6. 1 tentative de sacre, 0 réussie. En moyenne, l'avance du meneur fondait de 2,04 point de note sur les courses neuves : c'est la part de chance qu'il avait eue à l'entraînement.
 7. Dernière mesure du coffre (génération 0) : le champion est encore le témoin ; palier moyen 6,15 sur les 40 courses du coffre.
 8. **La sélection apprend-elle vraiment ?** On ne le sait pas encore : tant que le champion est le témoin, le coffre n'a rien à comparer.
-9. Diversité : la distance moyenne entre les pilotes vivants est passée de 0,023 (génération 0) à 0,049 (génération 8) (0 = tous pareils).
-10. La machine : 2 824 courses jouées, 0,0 % non mesurées.
+9. Diversité : la distance moyenne entre les pilotes vivants est passée de 0,023 (génération 0) à 0,050 (génération 9) (0 = tous pareils).
+10. La machine : 3 136 courses jouées, 0,0 % non mesurées.
 
 ## Génération par génération
 
@@ -60,7 +60,11 @@ La population de départ : 20 pilotes, le témoin (pilote-voltige, écrit à la 
 
 6 naissances (1 immigré, 5 mutations). 6 renvois : les notes F les plus basses. Le meneur est `92baca8c` : palier 7,91, écart aux joueurs 0,84, note F 4,5, 72 courses. 312 courses jouées en 50 min.
 
-### Génération 9 — en cours
+### Génération 9 — 28/11/2026 à 08 h 26
 
-6 naissances (1 immigré, 2 croisements, 3 mutations). Les courses sont en train de se jouer.
+6 naissances (1 immigré, 2 croisements, 3 mutations). 6 renvois : les notes F les plus basses. Le meneur est `61331402` : palier 7,75, écart aux joueurs 0,81, note F 4,5, 60 courses. 312 courses jouées en 45 min.
+
+### Génération 10 — en cours
+
+6 naissances (1 immigré, 5 mutations). Les courses sont en train de se jouer.
 
