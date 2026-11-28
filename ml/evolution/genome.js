@@ -142,7 +142,8 @@ const N_V3=121;  /* les genes d'un genome v:3 (avant les genes v4) : les 121 pre
 /* ===== LES GENES V4 (28/11/2026, lot « genes v4 ») =====
    Contrat : ml/evolution/notes/genes-v4.md § 2 et § 3 (il fait foi). Quatre idees nouvelles, chacune derriere un interrupteur ETEINT a la naissance
    (le pilote joue alors au bit pres comme c0025), et la seconde chance devenue un reglage FIGE (la selection n'y touche pas : fige:true, § 2.4) :
-     sortieOn (+ sortieT, sortieJauge) : la sortie preparee sur les maps a decor (garder la nitro quand seul le vol plane se pose) ;
+     sortieOn (+ sortieT, sortieJauge) : la nitro au decollage sur les maps a decor (le pendant de bordOn ; reecrit le 28/11 apres la mesure des
+                                         decollages, ml/ecurie/etude/sortie-preparee : c'etait « garder la nitro quand seul le vol plane se pose ») ;
      rienOn (+ rienEcart)              : en vol, lacher le volant quand « rien » promet une pose plus droite d'au moins rienEcart rad ;
      loiFidele (0, 1, 2)               : juger (1), puis aussi suivre (2), le vol sur la loi que les yeux jouent exactement (LOI_PILOTE de modele.js) ;
      secoursOn                         : quand toutes les facons longues meurent, essayer deux lois de secours (plane bas, cabre) ;

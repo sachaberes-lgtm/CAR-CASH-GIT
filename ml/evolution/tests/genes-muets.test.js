@@ -116,7 +116,7 @@ function suitesBlocs(){
     Object.assign(par.versRoute,{issue:'pose',t:Math.max(.2,tp-.1*i),axe:.2,propre:true,dessous:false,air:air-.5});Object.assign(par.versRoutePlane,{issue:'pose',t:Math.max(.2,tp-.1*i)+.2,axe:.22,propre:true,dessous:false,air:air-1});
     Object.assign(par.tenu,par.versRoute,{m:'tenu'});}))});
   return S;}
-/* (28/11/2026, lot « genes v4 ») et les suites des genes v4 (tests/vues-genes-v4.js) : la sortie preparee (sortieT, sortieJauge), la bascule vers
+/* (28/11/2026, lot « genes v4 ») et les suites des genes v4 (tests/vues-genes-v4.js) : la nitro au decollage sur decor, ex-sortie preparee (sortieT, sortieJauge), la bascule vers
    « rien » (rienEcart), la loi fidele et les secours (aucun reel, mais ils changent les lois demandees et la facon : m2 y verifie que retourPrime,
    garde par retourOn, n'est jamais lu pour une loi de secours) */
 const SUITES=suitesPortage().concat(suitesBlocs(),require(path.join(__dirname,'vues-genes-v4.js')).suitesV4());

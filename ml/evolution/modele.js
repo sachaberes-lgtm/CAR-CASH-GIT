@@ -17,7 +17,8 @@
        c0026), le decollage nitro allumee (R.bordOn, c0064), les figures a marge large (R.largeOn, c0072), la nitro libre dans les virages
        (R.libreOn, c0087). Drapeaux a 0 : pilote-voltige au bit pres ; tous a 1 avec les reglages de c0101 : c0101 au bit pres. Le detail :
        ml/evolution/notes/portage.md.
-     · LES GENES V4 (28/11/2026, lot « genes v4 » ; notes/genes-v4.md) : la sortie preparee sur les maps a decor (R.sortieOn), la bascule vers « rien »
+     · LES GENES V4 (28/11/2026, lot « genes v4 » ; notes/genes-v4.md) : la nitro au decollage sur les maps a decor (R.sortieOn ; reecrite le 28/11
+       apres la mesure des decollages, ml/ecurie/etude/sortie-preparee : c'etait la sortie preparee par les rayons du bord), la bascule vers « rien »
        (R.rienOn), la loi fidele jugee puis suivie (R.loiFidele 1 et 2), les secours en vol (R.secoursOn), chacun garde par son interrupteur ; et le
        palier de la seconde chance pris dans REGLAGES.chancePalierMin (PROFIL sous la balise). Tout eteint, chancePalierMin 12 : c0025 au bit pres.
    Seul fichier qu'on retouche a la main quand on ajoute un geste (une nouvelle sortie de tete : W2 a 0 pour rester muette a la naissance).
@@ -299,17 +300,17 @@ function auSol(v,m){
   /* COMPTEURS : ici (bordOn : m.nitro etait faux, a lire avant la ligne suivante) */
   if(COMPTE){try{if(R.bordOn>0&&!m.nitro&&!decor&&lache&&!v.dessous&&!v.glisse&&!v.rebond&&tn.t!=null&&tn.t<R.bordNitro&&jauge>R.bordJauge)tic('bordOn');}catch(e){}}
   if(R.bordOn>0&&!decor&&lache&&!v.dessous&&!v.glisse&&!v.rebond&&tn.t!=null&&tn.t<R.bordNitro&&jauge>R.bordJauge)m.nitro=true;
-  /* ===== GENE V4 — LA SORTIE PREPAREE SUR LES MAPS A DECOR (28/11/2026, lot « genes v4 » ; notes/genes-v4.md § 3.1) =====
-     Sur une map a decor (canyon, grotte, jade, ville), la route lache dans moins de sortieT s, la jauge depasse sortieJauge, et le rayon du bord dit :
-     « rien » au choc, « vers la route » au choc, et seul « plane » se pose (propre, dessus) ou finit a la levre : on garde la nitro jusqu'au decollage
-     et l'on note l'instant (m.planeBord) ; au decollage, le vol part en « plane ». La regle evaluee et fausse efface l'annonce : seule la derniere
-     compte. Jamais pendant un raccourci engage (!m.sortie) ; m.sortie, m.vu, m.nRacc et la ligne ne changent pas. Eteint : rien n'est lu ni ecrit. */
-  if(R.sortieOn>0){let ok=false;
+  /* ===== GENE V4 — LA NITRO AU DECOLLAGE SUR LES MAPS A DECOR (28/11/2026, reecrit apres la mesure des decollages : ml/ecurie/etude/sortie-preparee ;
+     notes/genes-v4.md, amendement du 28/11 qui remplace le § 3.1) =====
+     Le pendant exact de bordOn, sur une map a decor (canyon, grotte, jade, ville) : la route lache dans moins de sortieT s, la caisse n'est ni dessous,
+     ni en glisse, ni en rebond, la jauge depasse sortieJauge : on garde la nitro tenue jusqu'au decollage et l'on note l'instant (m.planeBord, que
+     seuls les compteurs lisent au decollage). Aucun rayon du bord n'est lu, la facon du vol ne change pas (« vers la route », comme sans le gene).
+     Pourquoi : aucun des 253 decollages mesures ne partait nitro allumee sur ces maps (les joueurs : 63 sur 100) ; l'ancienne regle (« plane » quand
+     « rien » et « vers la route » vont au choc) ne s'etait jamais declenchee, les yeux ne voyaient aucune issue aux 24 morts, et « plane » au bord
+     se serait crashe dans 57 vols poses. Jamais pendant un raccourci engage (!m.sortie) ; m.sortie, m.vu, m.nRacc et la ligne ne changent pas.
+     La regle evaluee et fausse efface l'annonce : seule la derniere compte. Eteint : rien n'est lu ni ecrit. */
+  if(R.sortieOn>0){
     if(decor&&!m.sortie&&lache&&!v.dessous&&!v.glisse&&!v.rebond&&tn.t!=null&&tn.t<R.sortieT&&jauge>R.sortieJauge){
-      const B=v.sorties&&v.sorties.bord,Y=B&&Array.isArray(B.rayons)?B.rayons:null;
-      const ri=Y&&Y.find(r=>r&&r.m==='rien'),vr=Y&&Y.find(r=>r&&r.m==='versRoute'),pl=Y&&Y.find(r=>r&&r.m==='plane');
-      ok=!!(Y&&ri&&ri.issue==='choc'&&vr&&vr.issue==='choc'&&pl&&(pl.issue==='levre'||(pl.issue==='pose'&&pl.propre!==false&&!pl.dessous)));}
-    if(ok){
       /* COMPTEURS : ici (sortieOn : m.nitro etait faux, a lire avant la ligne suivante) */
       if(COMPTE){try{if(R.sortieOn>0&&!m.nitro)tic('sortieOn');}catch(e){}}
       m.nitro=true;m.planeBord=v.t;}
@@ -443,11 +444,12 @@ function enVol(v,m){
   if(CONTROLE_RAYONS&&Y&&typeof f.radar==='object')controleRayons(f);   /* les yeux ont-ils change ? (leve « YEUX CHANGES ») */
   /* sorti expres : la facon que le radar a promise au sol ; sinon la loi « vers la route » */
   if(!m.facon){m.facon=m.sortie&&FACONS[m.sortie.facon]?m.sortie.facon:'versRoute';m.tFacon=v.t;m.voulu=!!m.sortie;m.cible=m.sortie&&m.sortie.cible!=null?m.sortie.cible:null;m.sortie=null;m.nFigVol=0;m.tGeste=null;m.choix=false;
-    /* (28/11/2026, lot « genes v4 ») la sortie preparee (§ 3.1) : annoncee au sol depuis moins de 0,35 s et sans raccourci voulu, le vol part en
-       « plane » ; le choix du depart est fait (m.choix) : il ne repart pas en plein vol. Puis la memoire de rienOn (§ 3.2) et de secoursOn (§ 3.4). */
-    if(R.sortieOn>0){if(!m.voulu&&m.planeBord!=null&&v.t-m.planeBord<.35){m.facon='plane';m.choix=true;
-        /* COMPTEURS : ici (sortieOn.vol ; et m.cSortie=v.t pour sortieOn.pose, § 4.3) */
-        if(COMPTE){try{tic('sortieOn.vol');m.cSortie=v.t;}catch(e){}}}
+    /* (28/11/2026, reecrit apres la mesure des decollages : ml/ecurie/etude/sortie-preparee) la nitro au decollage sur decor : au decollage, rien ne
+       change dans la decision (la facon reste celle d'au-dessus, le choix du depart n'est pas marque fait) ; on ne fait que compter un vol subi parti
+       moins de 0,35 s apres une annonce (sortieOn.vol), puis effacer l'annonce. Puis la memoire de rienOn (§ 3.2) et de secoursOn (§ 3.4). */
+    if(R.sortieOn>0){
+      /* COMPTEURS : ici (sortieOn.vol ; et m.cSortie=v.t pour sortieOn.pose, § 4.3) */
+      if(COMPTE){try{if(!m.voulu&&m.planeBord!=null&&v.t-m.planeBord<.35){tic('sortieOn.vol');m.cSortie=v.t;}}catch(e){}}
       m.planeBord=null;}
     if(R.rienOn>0){m.rienVu=null;m.rienFait=null;}
     if(R.secoursOn>0)m.secoursVol=false;
@@ -561,8 +563,9 @@ function enVol(v,m){
      yeux jouent (vue.vol.retours[I_FIDELE]) ; FACONS.versRoute a ete appele quand meme (il tient m.pv) ; la nitro reste la sienne ; sans commande : repli. */
   if(R.loiFidele>1&&m.facon==='versRoute'){const c=Array.isArray(f.retours)?f.retours[I_FIDELE]:null;
     if(c){
-      /* COMPTEURS : ici (loiFidele.suit : c.volant ou c.manche differe de o.volant ou o.manche, a lire avant la ligne suivante) */
-      if(COMPTE){try{if(c.volant!==o.volant||c.manche!==o.manche)tic('loiFidele.suit');}catch(e){}}
+      /* COMPTEURS : ici (loiFidele.suit : le volant suivi s'ecarte de plus de 0,01 de celui de versRoute, ou le manche differe, a lire avant la ligne
+         suivante ; 28/11/2026, apres la mesure des decollages : l'arrondi des yeux ne depasse jamais 0,005, le seuil 0,01 ne retire que lui) */
+      if(COMPTE){try{if(Math.abs(c.volant-o.volant)>.01||c.manche!==o.manche)tic('loiFidele.suit');}catch(e){}}
       o.volant=c.volant;o.manche=c.manche;}}
   /* GESTE 1 — LES MAINS LACHEES AVANT LE CONTACT (27/11/2026, tache « gestes » ; PROPOSITIONS.md, enquete 2) : la main obeit 0,11 a 0,38 s plus
      tard ; un ordre de volant donne a moins de lacheAvant s du contact agit donc au sol, dans la glisse. Les joueurs : |volant| 0,00 dans la

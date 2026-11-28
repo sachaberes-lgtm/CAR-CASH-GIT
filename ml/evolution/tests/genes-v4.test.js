@@ -181,27 +181,40 @@ test('(v3 bis) la main : profilSha de c0025, c0101 et des 200 mutants v:3 egal a
 
 /* ===== (v4) ALLUME = CHANGE, ET SEULEMENT CE QU'IL FAUT ===== */
 const P0=pilote(T);
-test('(v4) sortieOn : au bord d\'une map a decor, la nitro gardee puis un vol en « plane » ; rien sur une map sans decor, plane au choc, t > sortieT ; m.voulu reste faux',()=>{
+/* (28/11/2026, reecrit apres la mesure des decollages : ml/ecurie/etude/sortie-preparee) sortieOn = la nitro au decollage sur les maps a decor, le
+   pendant de bordOn : au sol la nitro est gardee, aucun rayon du bord n'est lu, et le vol part comme sans le gene (« vers la route ») */
+test('(v4) sortieOn : au bord d\'une map a decor, la nitro gardee au sol, quels que soient les rayons du bord ; le vol ne change pas ; rien sans decor, t > sortieT, jauge basse, dessous, glisse, rebond',()=>{
   const P=pilote(genomeDe(T,{sortieOn:1}));const L=[];
-  /* la regle vraie : nitro au sol, puis le vol part en plane (volant 0, manche 0, nitro) au lieu de versRoute */
+  /* la regle vraie : nitro au sol ; seule la nitro change ; la premiere vue de vol rend l'ordre du temoin (versRoute) */
   const s=[V.solBord(),V.volApres()],a=joue(P0,s),b=joue(P,s);
   vrai(a[0].nitro===false&&b[0].nitro===true,'sol : '+J(a[0])+' / '+J(b[0]));
   vrai(J(Object.assign({},a[0],{nitro:true}))===J(b[0]),'sol : autre chose que la nitro change');
-  vrai(b[1].volant===0&&b[1].manche===0&&b[1].nitro===true&&!(a[1].volant===0&&a[1].nitro===true),'vol : '+J(a[1])+' / '+J(b[1]));
-  L.push('grotte : sol '+J(b[0])+' ; vol '+J(b[1]));
-  /* aucun changement : carte sans decor, plane au choc, plane sale ou dessous, t au-dela de sortieT, jauge sous sortieJauge, rien ou versRoute qui se posent */
-  const pareil=[['espace',{carte:'espace'}],['nuages',{carte:'nuages'}],['plane choc',{plane:'choc'}],['plane sale',{propre:false}],['plane dessous',{dessous:true}],
-    ['t 1.3',{t:1.3}],['t .9',{t:.9}],['jauge .3',{jauge:.3}],['rien pose',{rien:'pose'}],['versRoute levre',{versRoute:'levre'}]];
+  vrai(J(a[1])===J(b[1]),'vol : la facon change\n temoin '+J(a[1])+'\n sortie '+J(b[1]));
+  L.push('grotte : sol '+J(b[0])+' ; vol (comme le temoin) '+J(b[1]));
+  /* les rayons du bord ne sont plus lus : plane au choc, sale, dessous, a la levre, rien ou versRoute qui se posent, et pas de rayons du tout */
+  const lus=[['plane choc',{plane:'choc'}],['plane sale',{propre:false}],['plane dessous',{dessous:true}],['plane levre',{plane:'levre'}],['rien pose',{rien:'pose'}],
+    ['versRoute levre',{versRoute:'levre'}]];
+  for(const [nom,o] of lus){const v=[V.solBord(o),V.volApres()],x=joue(P,v),y=joue(P0,v);vrai(x[0].nitro===true&&y[0].nitro===false&&J(x[1])===J(y[1]),'rayons du bord lus : '+nom+' '+J(x));}
+  const sansRayons=[V.vueSol(v=>{const w=V.solBord();Object.assign(v,w);v.sorties=null;}),V.volApres()];
+  vrai(joue(P,sansRayons)[0].nitro===true&&joue(P0,sansRayons)[0].nitro===false,'sans v.sorties : '+J(joue(P,sansRayons)[0]));
+  L.push('nitro gardee quels que soient les rayons : '+lus.map(x=>x[0]).join(', ')+', sans v.sorties');
+  /* aucun changement : carte sans decor, t au-dela de sortieT, jauge sous sortieJauge, dessous, glisse, rebond */
+  const pareil=[['espace',{carte:'espace'}],['nuages',{carte:'nuages'}],['t 1.3',{t:1.3}],['t .9',{t:.9}],['jauge .3',{jauge:.3}]];
   for(const [nom,o] of pareil){const v=[V.solBord(o),V.volApres({carte:o.carte})];vrai(J(joue(P0,v))===J(joue(P,v)),'change : '+nom);}
-  L.push('inchange : '+pareil.map(x=>x[0]).join(', '));
+  for(const k of ['dessous','glisse','rebond']){const v=[V.vueSol(w=>{Object.assign(w,V.solBord());w[k]=true;}),V.volApres()];vrai(J(joue(P0,v))===J(joue(P,v)),'change : '+k);}
+  L.push('inchange : '+pareil.map(x=>x[0]).join(', ')+', dessous, glisse, rebond');
   /* les quatre maps a decor */
   for(const carte of ['canyon','jade','ville'])vrai(joue(P,[V.solBord({carte})])[0].nitro===true,carte);
-  /* l'annonce contraire : la regle vraie, puis plane au choc, puis le decollage : le vol part en versRoute comme le temoin */
-  const ac=[V.solBord(),V.solBord({t0:8.15,plane:'choc'}),V.volApres({t:8.25})];vrai(J(joue(P0,ac).slice(1))===J(joue(P,ac).slice(1)),'annonce contraire');
-  /* m.voulu reste faux : apres le depart en plane, plane meurt ; viser se pose (et vaut le plus) mais n'est pas pris (pas de cible dans l'ordre) */
+  /* l'annonce contraire (la regle vraie, puis fausse : t 0,9), puis le decollage : le vol part comme le temoin */
+  const ac=[V.solBord(),V.solBord({t0:8.15,t:.9}),V.volApres({t:8.25})],ac0=joue(P0,ac),ac1=joue(P,ac);
+  vrai(ac1[0].nitro===true&&J(ac0.slice(1))===J(ac1.slice(1)),'annonce contraire : '+J(ac1));
+  /* m.voulu reste faux : viser se pose (et vaut le plus) mais n'est pas pris (pas de cible dans l'ordre) */
   const sv=V.suitesV4().find(x=>x.nom==='sortie puis viser').vues,bv=joue(P,sv);vrai(!('cible' in bv[1])&&bv[0].nitro===true,'viser pris : '+J(bv[1]));
-  /* la fenetre de 0,35 s : un decollage 0,4 s apres l'annonce part en versRoute */
-  const tard=[V.solBord(),V.volApres({t:8.5})];vrai(J(joue(P0,tard)[1])===J(joue(P,tard)[1]),'decollage 0,4 s apres : '+J(joue(P,tard)[1]));
+  vrai(J(bv[1])===J(joue(P0,sv)[1]),'sortie puis viser : le vol change');
+  /* aucune vue de vol ne change, sur toutes les suites « sortie … » (le gene n'agit qu'au sol) */
+  let nv=0;for(const st of V.suitesV4().filter(x=>/^sortie/.test(x.nom))){const x=joue(P,st.vues),y=joue(P0,st.vues);
+    st.vues.forEach((w,i)=>{if(w.mode==='vol'){nv++;vrai(J(x[i])===J(y[i]),st.nom+' vue '+i+' (vol) change');}});}
+  L.push(nv+' vues de vol des suites « sortie » : toutes comme le temoin');
   return L.join('\n');});
 test('(v4) sortieOn et un raccourci engage : la nitro de l\'ordre au sol reste celle d\'aujourd\'hui (ville, deux vues de raccourci puis le bord)',()=>{
   const P=pilote(genomeDe(T,{sortieOn:1}));
@@ -216,17 +229,24 @@ test('(v4) sortieOn et un raccourci engage : la nitro de l\'ordre au sol reste c
   /* temoin du test : la meme vue du bord sans raccourci engage allume bien la nitro */
   vrai(joue(P,[bord])[0].nitro===true&&joue(P0,[bord])[0].nitro===false,'la vue du bord seule ne declenche pas la regle : '+J(joue(P,[bord])));
   return 'engage : '+J(b[2]);});
-test('(v4) sortieOn et retourOn : apres un depart en plane et une bascule vers versRoute, le choix du depart ne part pas en plein vol',()=>{
-  const g=genomeDe(T,{sortieOn:1,retourOn:1}),P=pilote(g);
-  /* vol 1 : plane meurt, la bascule prend une autre facon (pas de retour0 a cette vue) ; vol 2 : retour0 se pose et vaudrait le plus au choix du depart */
+/* (28/11/2026, reecrit apres la mesure des decollages) le vol ne part plus en « plane » et le choix du depart n'est plus marque fait : avec retourOn,
+   le choix du depart se fait comme sans sortieOn */
+test('(v4) sortieOn et retourOn : le choix du depart se fait comme sans sortieOn (le vol n\'est plus marque « choisi » au decollage)',()=>{
+  const P=pilote(genomeDe(T,{sortieOn:1,retourOn:1})),P1=pilote(genomeDe(T,{retourOn:1}));
   const v1=V.volApres({f:(v,par)=>{Object.assign(par.plane,{issue:'choc',t:.5,cause:'roche'});}});
   const v2=V.volApres({t:8.3,f:(v,par)=>{v.vol.t=.15;v.vol.radar.rayons.push(V.pose({m:'retour0',t:.9,axe:0,gain:500}));v.vol.retours=[{volant:.77,manche:.5,nitro:true}];}});
-  const b=joue(P,[V.solBord(),v1,v2]);
-  vrai(b[0].nitro===true,'pas de sortie preparee : '+J(b[0]));
-  vrai(!(b[2].volant===.77&&b[2].manche===.5),'le choix du depart est parti en plein vol (retour0 pris) : '+J(b));
-  /* temoin du test : sans sortieOn, le meme vol (parti en versRoute) fait son choix du depart a la premiere vue qui porte un radar */
-  const P1=pilote(genomeDe(T,{retourOn:1})),c=joue(P1,[V.solBord(),v2]);vrai(c[1].volant===.77,'sans sortieOn, le choix du depart ne prend pas retour0 : '+J(c));
-  return 'vol 2 : '+J(b[2]);});
+  for(const S of [[V.solBord(),v2],[V.solBord(),v1,v2]]){const b=joue(P,S),c=joue(P1,S);
+    vrai(b[0].nitro===true&&c[0].nitro===false,'sol : '+J(b[0])+' / '+J(c[0]));
+    vrai(J(b.slice(1))===J(c.slice(1)),'vol : sortieOn change le choix du depart\n sortie '+J(b)+'\n retour '+J(c));}
+  const c=joue(P1,[V.solBord(),v2]);vrai(c[1].volant===.77,'temoin du test : le choix du depart ne prend pas retour0 : '+J(c));
+  return 'vol : '+J(c[1]);});
+/* § 3.6 apres l'amendement : avec relacheOn, la nitro gardee au sol par sortieOn compte comme demandee (m.tNitroSol) : elle reste tenue au debut du vol */
+test('(v4) sortieOn et relacheOn : la nitro gardee au bord reste tenue au debut du vol (relacheT) ; sans sortieOn, le vol part nitro coupee',()=>{
+  const P=pilote(genomeDe(T,{sortieOn:1,relacheOn:1})),P1=pilote(genomeDe(T,{relacheOn:1}));
+  const S=[V.solBord(),V.volApres()],b=joue(P,S),c=joue(P1,S);
+  vrai(b[0].nitro===true&&c[0].nitro===false,'sol : '+J(b[0])+' / '+J(c[0]));
+  vrai(b[1].nitro===true&&c[1].nitro===false&&J(Object.assign({},c[1],{nitro:true}))===J(b[1]),'vol : '+J(b[1])+' / '+J(c[1]));
+  return 'vol : '+J(b[1]);});
 test('(v4) rienOn : versRoute (axe 0,5) contre rien (axe 0,1) : le volant lache apres tenirFacon et deux vues de suite ; une fois par vol',()=>{
   const P=pilote(genomeDe(T,{rienOn:1})),S=n=>V.suitesV4().find(x=>x.nom===n).vues;const L=[];
   const a=joue(P0,S('rien simple')),b=joue(P,S('rien simple'));

@@ -240,7 +240,7 @@ La sélection écrit elle-même son histoire, à la fin de chaque génération, 
 ## Les idées v4 et le banc des gènes (depuis le 28/11, lot « gènes v4 »)
 
 - Les pilotes ont reçu **quatre idées nouvelles**, chacune derrière un interrupteur **éteint à la naissance** (éteintes, le pilote conduit exactement comme c0025, et chaque pilote garde son nom) :
-  - **la sortie préparée** (`sortieOn`) : à la grotte, au canyon, à la jade et en ville, quand la voiture va sortir par le bord et que seul le vol plané se pose, garder la nitro et partir en vol plané ;
+  - **la nitro au décollage sur les maps à décor** (`sortieOn`) : à la grotte, au canyon, à la jade et en ville, quand la voiture va sortir par le bord, garder la nitro jusqu'au décollage, comme les joueurs (63 vols sur 100 partent nitro allumée chez eux, aucun chez le pilote sur ces maps) ; c'est ce que `bordOn` fait déjà sur les maps sans décor. (Jusqu'au 28/11, cette idée s'appelait « la sortie préparée » : partir en vol plané quand seul lui se posait. Une mesure a montré que cela n'arrivait jamais et que ce serait dangereux : `ml/ecurie/etude/sortie-preparee/`.)
   - **lâcher le volant pour mieux se poser** (`rienOn`) : en vol, si « ne rien faire » promet une pose nettement plus droite, le pilote lâche le volant ;
   - **la loi fidèle** (`loiFidele`, 0, 1 ou 2) : juger son vol (1), ou aussi le piloter (2), sur la trajectoire exacte que les yeux calculent pour lui, au lieu d'une trajectoire un peu fausse ;
   - **les secours en vol** (`secoursOn`) : quand toutes les façons de rentrer annoncent une chute, essayer deux façons de plus (planer bas, se cabrer) et prendre celle qui se pose.

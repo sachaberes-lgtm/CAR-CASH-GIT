@@ -1,0 +1,128 @@
+RELECTURE (vols tires des evenements du jeu) : 40 courses, 66.7 min, 255 decollages (evenements)
+  sans vue au sol entre la pose precedente et le decollage : 2 (dont mortels 1)
+  voulus 67 (morts 6), subis 188 (morts 27)
+  morts dans les evenements : 33
+  subis en CHAINE (pose precedente a moins de 0,5 s) : 38 (morts 6)
+  subis poses courts (moins de 0,5 s ou moins de 3 m de haut) : 85 sur 160 poses
+  ecart derniere vue au sol -> decollage (s), quantiles 50/90/max : 0.05 / 0.1 / 0.1
+  tn.t a cette vue, quantiles 10/50/90 : 0.02 / 0.05 / 0.1 ; tient encore (ti vrai) a la derniere vue : 0
+  premiere annonce contigue du bord avant le decollage (s), quantiles 10/50/90 : 0.13 / 0.28 / 0.57
+
+== a. subis par carte (morts, causes, duree du vol mortel) ==
+  canyon    34  morts 10  {"paroi":8,"canyon":2}  mediane 0.235
+  espace     7  morts 0  {}  mediane null
+  grotte    39  morts 9  {"roche":9}  mediane 0.26
+  jade      74  morts 4  {"vide":2,"air":1,"pic":1}  mediane 6.005
+  nuages    11  morts 1  {"air":1}  mediane 6
+  ville     23  morts 3  {"tour":2,"air":1}  mediane 1.97
+
+== b. versRoute du bord a la derniere vue au sol (subis) contre l'issue ==
+  b1. tous les subis avec rayons
+    A : 26 vols, poses 22, morts 4
+    C : 29 vols, poses 12, morts 17
+    F : 5 vols, poses 4, morts 0, tmax 1
+    L : 10 vols, poses 10, morts 0
+    P : 93 vols, poses 88, morts 5
+    T : 2 vols, poses 2, morts 0
+    p : 20 vols, poses 20, morts 0
+  b2. sans bascule
+    C : 16 vols, poses 1, morts 15
+    F : 2 vols, poses 1, morts 0, tmax 1
+    L : 10 vols, poses 10, morts 0
+    P : 80 vols, poses 76, morts 4
+    p : 9 vols, poses 9, morts 0
+  b3. hors chaine, hors vol court
+    A : 6 vols, poses 5, morts 1
+    C : 20 vols, poses 5, morts 15
+    F : 2 vols, poses 1, morts 0, tmax 1
+    P : 50 vols, poses 45, morts 5
+    T : 1 vols, poses 1, morts 0
+    p : 5 vols, poses 5, morts 0
+  b4. vols d'au moins 0,5 s (poses ou morts)
+    A : 26 vols, poses 22, morts 4
+    C : 19 vols, poses 11, morts 8
+    F : 4 vols, poses 4, morts 0
+    L : 1 vols, poses 1, morts 0
+    P : 70 vols, poses 67, morts 3
+    T : 2 vols, poses 2, morts 0
+    p : 20 vols, poses 20, morts 0
+
+== c. subis mortels : rien / versRoute / plane du bord ==
+  CCC : mortels 16, poses 11
+  CPC : mortels 5, poses 33
+  AAA : mortels 3, poses 16
+  0 : mortels 1, poses 2
+  AAC : mortels 1, poses 2
+  ACA : mortels 1, poses 1
+  mortels ou rien ou plane du bord sauve : 0 ; ou versRoute sauve : 5
+  mortels en chaine : 6 ; mortels sans vue au sol : 1
+  mortels ou, en vol, un des dix rayons se pose propre quand la facon tenue ne sauve pas : 4 (un rayon long : 1, un secours S0-S2 : 4)
+  la meme chose dans les poses (fausses alertes possibles) : 25 / 15 / 41
+  duree des vols mortels (s), quantiles 10/50/90 : 0.162 / 0.63 / 6.004 ; moins de 0,3 s : 11
+  liste des mortels : 
+    canyon-tenue-3970400     t 63.18  vol 0.2 s  paroi  bord CCC (vr t 0.2)  tn.t 0.08  jauge 0.1  chaine 0.45  facons versRoute  garde non
+    canyon-tenue-3970437     t 92.02  vol 0.15 s  paroi  bord CCC (vr t 0.13)  tn.t 0.02  jauge 1.93  chaine non  facons versRoute  garde oui
+    canyon-tenue-3970474     t 64.33  vol 0.27 s  paroi  bord CCC (vr t 0.3)  tn.t 0.03  jauge 1.828  chaine non  facons versRoute  garde oui
+    canyon-tenue-3970511     t 103.78  vol 0.75 s  paroi  bord CCC (vr t 0.72)  tn.t 0.08  jauge 1.93  chaine non  facons versRoute  garde oui
+    canyon-tenue-3970548     t 101.55  vol 0.12 s  paroi  bord CCC (vr t 0.1)  tn.t 0.05  jauge 0.541  chaine non  facons versRoute  garde oui
+    canyon-tenue-3970585     t 102.35  vol 1.22 s  canyon  bord CCC (vr t 1.58)  tn.t 0.05  jauge 1.368  chaine non  facons versRoute  garde oui
+    canyon-tenue-3970622     t 97.4  vol 0.63 s  paroi  bord CPC (vr t 1.67)  tn.t 0.1  jauge 1.831  chaine non  facons versRoute  garde oui
+    canyon-tenue-3970659     t 62.1  vol 0.17 s  paroi  bord CCC (vr t 0.17)  tn.t 0.1  jauge 0.452  chaine non  facons versRoute  garde non
+    grotte-tenue-3970400     t 76.65  vol 1.07 s  roche  bord CCC (vr t 0.92)  tn.t 0.05  jauge 0.783  chaine non  facons versRoute  garde oui
+    grotte-tenue-3970437     t 100.92  vol 0.13 s  roche  bord CCC (vr t 0.17)  tn.t 0.02  jauge 1.301  chaine non  facons versRoute  garde oui
+    grotte-tenue-3970474     t 83.7  vol 0.52 s  roche  bord CCC (vr t 0.5)  tn.t 0.1  jauge 1.313  chaine non  facons versRoute  garde oui
+    grotte-tenue-3970511     t 67.2  vol 0.22 s  roche  bord --- (vr t null)  tn.t -  jauge -  chaine 0.07  facons versRoutePlane  garde non
+    grotte-tenue-3970548     t 144.02  vol 0.26 s  roche  bord CPC (vr t 1.27)  tn.t 0.02  jauge 0.909  chaine non  facons versRoute  garde oui
+    grotte-tenue-3970585     t 92.43  vol 0.24 s  roche  bord CCC (vr t 0.22)  tn.t 0.03  jauge 0.295  chaine non  facons versRoute  garde non
+    grotte-tenue-3970659     t 132.48  vol 0.64 s  roche  bord CPC (vr t 2.27)  tn.t 0.08  jauge 0.241  chaine non  facons versRoute  garde non
+    jade-tenue-3970511       t 43.25  vol 6.02 s  vide  bord AAC (vr t 6.02)  tn.t 0.05  jauge 0.166  chaine 0.28  facons versRoute>plane>versRoutePlane>droite>gauche  garde non
+    jade-tenue-3970585       t 66.85  vol 6 s  air  bord AAA (vr t 6)  tn.t 0.05  jauge 1.103  chaine 0.28  facons rien>versRoutePlane>versRoute  garde oui
+    jade-tenue-3970622       t 135.43  vol 2.84 s  pic  bord AAA (vr t 3.93)  tn.t 0.03  jauge 0.608  chaine non  facons versRoute>gauche>rien  garde oui
+    libre-3970400            t 76.65  vol 1.07 s  roche  bord CCC (vr t 0.92)  tn.t 0.05  jauge 0.783  chaine non  facons versRoute  garde oui
+    libre-3970474            t 128.12  vol 6.01 s  vide  bord ACA (vr t 2.3)  tn.t 0.02  jauge 1.421  chaine 0.42  facons versRoute>rien  garde oui
+    libre-3970511            t 85.7  vol 6 s  air  bord AAA (vr t 6)  tn.t 0.1  jauge 0.452  chaine 0.43  facons versRoute>plane>gauche  garde non
+    libre-3970585            t 102.35  vol 1.22 s  canyon  bord CCC (vr t 1.58)  tn.t 0.05  jauge 1.368  chaine non  facons versRoute  garde oui
+    libre-3970622            t 29.48  vol 0.2 s  roche  bord CCC (vr t 0.2)  tn.t 0.08  jauge 0.65  chaine non  facons versRoute  garde oui
+    libre-3970659            t 62.1  vol 0.17 s  paroi  bord CCC (vr t 0.17)  tn.t 0.1  jauge 0.452  chaine non  facons versRoute  garde non
+    ville-tenue-3970400      t 11.55  vol 1.97 s  tour  bord CCC (vr t 1.47)  tn.t 0.05  jauge 0.606  chaine non  facons versRoute>gauche  garde oui
+    ville-tenue-3970437      t 107.95  vol 0.38 s  tour  bord CPC (vr t 0.42)  tn.t 0.05  jauge 0.939  chaine non  facons versRoute  garde oui
+    ville-tenue-3970511      t 58.12  vol 6.01 s  air  bord CPC (vr t 2.47)  tn.t 0.02  jauge 1.077  chaine non  facons versRoute>rien  garde oui
+
+== e. regles a la derniere vue au sol (garde du contrat) ==
+  passent la garde : 121 sur 170 subis sur decor ; exclus par la jauge seule : 30
+  R1 : {"n":0,"par180":0,"mortels":0,"poses":0,"mortelsHorsChaine":0,"posesCourtes":0}
+  R2 : {"n":2,"par180":0.09,"mortels":0,"poses":2,"mortelsHorsChaine":0,"posesCourtes":1}
+  R3 : {"n":0,"par180":0,"mortels":0,"poses":0,"mortelsHorsChaine":0,"posesCourtes":0}
+  R5 : {"n":121,"par180":5.45,"mortels":19,"poses":101,"mortelsHorsChaine":17,"posesCourtes":52}
+  P1 : {"n":22,"par180":0.99,"mortels":13,"poses":9,"mortelsHorsChaine":12,"posesCourtes":5}
+  P1 : vues au sol ou elle part 74, sans decollage dans les 0,55 s : 3
+
+== attribution : morts subies d'analyser.js dont le t0 n'est PAS le decollage qui precede la mort (evenements) : 1 sur 27
+    grotte-tenue-3970511 t0 64.5 (vol vu de 2.95 s)
+   decollages mortels (evenements) absents des vols d'analyser.js : 1 : grotte-tenue-3970511 67.2 (0.22 s, chaine 0.07)
+
+== doublons : 9 decollages rejoues a l'identique (meme graine, meme evenement, meme vol) par une course sans carte ; subis distincts 180, mortels distincts 24
+  combinaisons des mortels distincts : {"CCC":13,"CPC":5,"---":1,"AAC":1,"AAA":3,"ACA":1}
+  mortels distincts dont une vue plus ancienne (1 s) annoncait rien ou plane sauf : 2 (canyon-tenue-3970548 101.55 : 0.25 s PPL, 0.15 s LLP ; grotte-tenue-3970437 100.92 : 0.42 s pPp, 0.12 s pPC)
+  sous la garde (distincts 115, mortels 17) : au bord {"pose bord vR+ plane+":18,"pose bord vR+ plane-":57,"pose bord vR- plane-":22,"mort bord vR- plane-":13,"mort bord vR+ plane-":4,"tmax bord vR- plane-":1}
+     a la premiere vue en vol : {"pose vol vR+ vRP+":74,"pose vol vR- vRP-":10,"mort vol vR- vRP-":15,"pose vol vR+ vRP-":2,"pose vol vR- vRP+":11,"tmax vol vR- vRP-":1,"mort vol vR- vRP+":1,"mort vol vR+ vRP+":1}
+  R5 (distincts) : 115 (5.17 par 180 s), mortels 17, poses 97 ; premiere vue en vol : {"pose vR+ vRP+":74,"pose vR- vRP-":10,"mort vR- vRP-":15,"pose vR+ vRP-":2,"pose vR- vRP+":11,"tmax vR- vRP-":1,"mort vR- vRP+":1,"mort vR+ vRP+":1}
+  P1 (distincts) : 19 (0.85 par 180 s), mortels 11, poses 8 ; premiere vue en vol : {"pose vR- vRP-":3,"mort vR- vRP-":10,"pose vR+ vRP+":3,"pose vR- vRP+":2,"mort vR- vRP+":1}
+
+== f. rienOn (simulation fidele : deux vues CONSECUTIVES vraies, une fois par vol ; distincts) ==
+  vues sous la garde ou « rien » se pose propre dessus et la facon tenue se pose : 635 ; ecart quantiles 5/25/50/75/95 : -0.543 / -0.17 / 0 / 0.01 / 0.3 ; rien plus droit 162, plus tordu 297, egal 176
+  rienEcart 0.05 : vues 89, la regle partirait 23 fois (1.10 par 180 s)
+  rienEcart 0.1 : vues 65, la regle partirait 17 fois (0.81 par 180 s)
+  rienEcart 0.15 : vues 45, la regle partirait 13 fois (0.62 par 180 s)
+  rienEcart 0.2 : vues 35, la regle partirait 10 fois (0.48 par 180 s)
+  rienEcart 0.3 : vues 25, la regle partirait 10 fois (0.48 par 180 s)
+  rienEcart 0.4 : vues 12, la regle partirait 3 fois (0.14 par 180 s)
+
+== g. loiFidele.suit ==
+  vues en versRoute avec la loi fidele : 3128 (plus 35 vues a geste, ecartees) ; ecart |volant| quantiles 50/75/90 : 0.08 / 0.319 / 0.578 ; manche different 3
+    seuil 0 : 1962 (63 %)
+    seuil 0.005 : 1934 (62 %)
+    seuil 0.01 : 1891 (60 %)
+    seuil 0.02 : 1839 (59 %)
+    seuil 0.05 : 1689 (54 %)
+    seuil 0.1 : 1489 (48 %)

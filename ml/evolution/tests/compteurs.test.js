@@ -244,5 +244,36 @@ test('(c5) v5, 3 000 suites tirees au hasard (graine 20261128) : naissance, c010
   L.push('les genes seuls (100 suites chacun) : tous identiques ; noms vus au hasard, tous cas : '+Object.keys(tousVus).length+' sur 25');
   return L.join('\n');});
 
+/* ===== (c7) LE SENS AJUSTE DE TROIS COMPTEURS (28/11/2026, apres la mesure des decollages : ml/ecurie/etude/sortie-preparee) =====
+   sortieOn : la nitro allumee au sol par la regle (elle etait eteinte), quels que soient les rayons du bord ; sortieOn.vol : un vol subi parti moins de
+   0,35 s apres l'annonce ; sortieOn.pose : la premiere vue au sol apres ce vol, sans trou ; loiFidele.suit : au-dela de 0,01 de volant, ou un manche autre. */
+test('(c7) sortieOn, sortieOn.vol, sortieOn.pose : la nitro au decollage sur decor ; loiFidele.suit : seuil de 0,01 sur le volant',()=>{
+  const L=[];const noms=(P,vues)=>{P.neuve();return vues.map(v=>{const o=P.decide(copie(v));return o&&o.declic?o.declic.slice().sort().join(','):'';});};
+  const P=charger('evolution.js',{source:Gn.ecrirePilote(genomeDe(T,{sortieOn:1}),{cfg})});
+  const sol=t=>V.vueSol(v=>{v.carte='grotte';v.t=t;});
+  /* les rayons du bord ne comptent plus : plane au choc, et pas de v.sorties du tout */
+  for(const [nom,b] of [['plane au choc',V.solBord({plane:'choc'})],['sans rayons',V.vueSol(v=>{Object.assign(v,V.solBord());v.sorties=null;})]]){
+    const n=noms(P,[b,V.volApres(),sol(8.3)]);vrai(J(n)===J(['sortieOn','sortieOn.vol','sortieOn.pose']),nom+' : '+J(n));}
+  /* deux vues au bord : sortieOn a chacune (comme bordOn : la route qui lache recoupe m.nitro a chaque vue, la regle la rallume), le vol une fois */
+  const n2=noms(P,[V.solBord({t0:8.0}),V.solBord(),V.volApres(),sol(8.3)]);vrai(J(n2)===J(['sortieOn','sortieOn','sortieOn.vol','sortieOn.pose']),'deux vues au bord : '+J(n2));
+  /* l'annonce effacee, le decollage tardif : ni vol ni pose */
+  const n3=noms(P,[V.solBord(),V.solBord({t0:8.15,t:.9}),V.volApres({t:8.25}),sol(8.35)]);vrai(J(n3)===J(['sortieOn','','','']),'annonce effacee : '+J(n3));
+  const n4=noms(P,[V.solBord(),V.volApres({t:8.5}),sol(8.6)]);vrai(J(n4)===J(['sortieOn','','']),'decollage tardif : '+J(n4));
+  /* une mort en vol (un trou de plus de 0,25 s avant la vue au sol) : pas de pose */
+  const n5=noms(P,[V.solBord(),V.volApres(),sol(15)]);vrai(J(n5)===J(['sortieOn','sortieOn.vol','']),'trou : '+J(n5));
+  L.push('sortieOn : '+J(n2)+' ; annonce effacee '+J(n3)+' ; trou '+J(n5));
+  /* loiFidele.suit : la commande des yeux a 0,004 du volant de versRoute ne compte pas ; a 0,02, oui ; un manche autre, oui */
+  const P1=charger('evolution.js',{source:Gn.ecrirePilote(genomeDe(T,{loiFidele:1}),{cfg})}),P2=charger('evolution.js',{source:Gn.ecrirePilote(genomeDe(T,{loiFidele:2}),{cfg})});
+  const base=V.suitesV4().find(x=>x.nom==='fidele air/pose').vues[0];P1.neuve();const o1=P1.decide(copie(base));
+  vrai(o1&&typeof o1.volant==='number'&&o1.volant===o1.volant,'loiFidele 1 : '+J(o1));
+  const avec=(dv,man)=>{const w=copie(base);w.vol.retours=[{volant:o1.volant+dv,manche:man!=null?man:o1.manche,nitro:false}];return w;};
+  /* (la meme vue fait aussi partir loiFidele.desaccord : on ne regarde que loiFidele.suit) */
+  const suit=w=>noms(P2,[w])[0].split(',').includes('loiFidele.suit');
+  for(const dv of [.004,-.009,0])vrai(!suit(avec(dv)),dv+' compte : '+J(noms(P2,[avec(dv)])));
+  for(const dv of [.02,-.05])vrai(suit(avec(dv)),dv+' ne compte pas : '+J(noms(P2,[avec(dv)])));
+  vrai(suit(avec(0,o1.manche===1?0:1)),'un manche autre ne compte pas');
+  L.push('loiFidele.suit : 0, 0,004 et -0,009 non ; 0,02, -0,05 et un manche autre oui (volant de versRoute '+o1.volant+')');
+  return L.join('\n');});
+
 console.log('\n'+passes+' passes, '+rates+' echecs');
 process.exit(rates?1:0);

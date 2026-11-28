@@ -13,6 +13,8 @@ et ce que chacun doit aux autres. Un intégrateur assemble, puis lance les tests
 
 1. On donne aux pilotes **quatre idées nouvelles**, chacune derrière un interrupteur éteint à la naissance. Éteintes, le pilote conduit comme c0025, au bit près.
 2. **La sortie préparée** : à la grotte, au canyon, à la jade et en ville, quand la caisse va sortir par le bord et que seul le vol plané se pose, garder la nitro.
+   **Remplacé le 28/11** (§ 3.1 bis) : la mesure des décollages a montré que ce cas n'arrive jamais ; l'idée devient **la nitro au décollage sur les maps
+   à décor** (garder la nitro jusqu'au décollage, comme `bordOn` sur les maps sans décor), sans regarder les rayons du bord.
 3. **Lâcher le volant pour mieux se poser** : en vol, si « ne rien faire » promet une pose bien plus droite, le pilote lâche le volant.
 4. **La loi fidèle** : juger son vol (ou le piloter) sur le rayon que les yeux jouent exactement comme le pilote, au lieu d'un rayon un peu faux.
 5. **Les secours en vol** : quand toutes les façons de rentrer annoncent une mort (les essais courts ne comptent pas), essayer deux façons de plus (planer bas, cabrer) et prendre celle qui se pose.
@@ -142,7 +144,9 @@ README l.104), `vue.sorties.bord.rayons` = rayons `rien`, `versRoute`, `plane` d
 (déjà lus l.240, l.254). Un rayon : `m`, `issue` ∈ `pose | levre | portail | choc | air | fond | libre | coupe`, `t`, `axe`, `propre`, `dessous` (README l.149-158).
 « vide » (une cause de mort) n'est pas une issue de rayon : c'est `fond`.
 
-### 3.1 `sortieOn` (+ `sortieT`, `sortieJauge`) : la sortie préparée sur les maps à décor
+### 3.1 `sortieOn` (+ `sortieT`, `sortieJauge`) : la sortie préparée sur les maps à décor — **remplacé** par le § 3.1 bis (amendement du 28/11 après la mesure des décollages)
+
+> Ce § est gardé tel qu'il a été écrit et codé au commit `7f85efb38`. Il ne décrit plus le code : voir le § 3.1 bis.
 
 **La règle.** Au sol, sur une map à décor (`DECOR[v.carte]`, l.141 : canyon, grotte, jade, ville), quand la route lâche dans moins de `sortieT` s, que la caisse
 n'est ni dessous, ni en glisse, ni en rebond, que la jauge dépasse `sortieJauge`, et que le rayon `bord` dit : `rien` → choc, `versRoute` → choc, et `plane` →
@@ -182,6 +186,63 @@ tient déjà la nitro (l.434 exige `!o.nitro`) ; la bascule en vol (l.407-421) p
 **Cas limites.** `v.sorties` nul, `bord` nul ou sans `rayons` (sortie qui n'a pas lieu : `{issue}` seul, README l.203-204) → rien. `tn.t` nul → rien.
 Pas de décollage (la route tient finalement) : la vue suivante où la règle est fausse remet `m.planeBord` à `null` ; s'il n'y en a pas, la fenêtre de 0,35 s
 l'ignore. Une mort au sol : la mémoire est jetée à la course suivante.
+
+### 3.1 bis Amendement du 28/11 après la mesure des décollages : `sortieOn` = la nitro au décollage sur les maps à décor (remplace le § 3.1)
+
+**Pourquoi.** La règle du § 3.1 ne s'est déclenchée dans aucune vraie course (0 sur 13 au lot). L'étude `ml/ecurie/etude/sortie-preparee/LISEZ-MOI.md`
+(40 courses à carte tenue, 180 décollages subis distincts, 24 morts ; relue par un second agent) dit pourquoi : la règle du contrat ne s'y déclenche
+jamais (0 fois) ; les yeux ne voient **aucune** issue aux 24 décollages mortels ; le bord n'est annoncé que 0,28 s avant le décollage (médiane), quand
+la main met 0,2 s ; « plane » au bord se serait crashé dans 57 vols qui se sont posés. Partir en « plane » est une impasse, voire nuisible. En revanche
+**aucun décollage sur 253 ne part nitro allumée** sur ces maps, alors que le banc des gènes (`ml/ecurie/etude/banc-des-genes/`, branche `bots-ecurie`)
+montre que la nitro au décollage est la seconde source d'écart aux joueurs (15 % des vols chez le pilote, 63 % chez les joueurs) et que `bordOn`, la
+même chose sur les maps sans décor, rapproche sûrement des joueurs sans perdre de palier.
+
+**La règle.** Au sol, à la même place (juste après `bordOn`, avant `m.facon=null;m.nFigVol=0;`) :
+`if(R.sortieOn>0){ if(decor&&!m.sortie&&lache&&!v.dessous&&!v.glisse&&!v.rebond&&tn.t!=null&&tn.t<R.sortieT&&jauge>R.sortieJauge){ <compteur sortieOn si m.nitro était faux> m.nitro=true; m.planeBord=v.t; } else m.planeBord=null; }`.
+**Aucune lecture des rayons du bord** (`v.sorties` n'est plus lu par cette règle). **Aucun changement de façon au décollage** : le bloc du décollage ne
+garde que les compteurs et la remise à zéro, `if(R.sortieOn>0){ <compteur sortieOn.vol : !m.voulu&&m.planeBord!=null&&v.t-m.planeBord<.35, et m.cSortie=v.t> m.planeBord=null; }` ;
+`m.facon='plane'` et `m.choix=true` sont retirés. `m.planeBord` n'est plus lu que par ce compteur (il garde son nom). Les gènes gardent leurs noms,
+bornes et naissances (`sortieOn` 0, `sortieT` 0,7 [0,3 ; 1,2], `sortieJauge` 0,5 [0,2 ; 1]) : **aucun identifiant de génome ne change** (c0025
+`19e3767cc346`, c0101 `f70ddcb5a565`) ; `genome.js` ne change que par un commentaire. Éteint, tout pilote décide exactement comme au commit
+`7f85efb38` ; le texte du pilote change (`modele.js`), donc l'époque des courses aussi.
+
+**Les compteurs** (les mêmes 25 noms de `DECLICS`, un sens ajusté) :
+- `sortieOn` : la règle a allumé la nitro au sol (elle était éteinte). La route qui lâche recoupe `m.nitro` à chaque vue : comme `bordOn`, il compte
+  **chaque vue** au sol où la règle agit, pas chaque décollage ;
+- `sortieOn.vol` : un vol subi (`!m.voulu`) décollé moins de 0,35 s après une annonce (`m.planeBord`) : il part nitro allumée par la règle ;
+- `sortieOn.pose` : la première vue au sol après un tel vol, sans trou (la forme du § 4.3, inchangée). `(vol − pose) / vol` reste la part de ces
+  décollages qui finissent mal : mesure secondaire, jamais un critère ;
+- `loiFidele.suit` (même mesure) : ne compte que si `|c.volant − o.volant| > 0,01` ou si le manche diffère. L'arrondi des yeux ne dépasse jamais 0,005 ;
+  63 % des vues en « vers la route » deviennent 60 % ; l'écart des deux lois est réel (médiane 0,08). Code de compteur seulement.
+
+**Ce qui ne change pas** : `rienOn` et `rienEcart` (« rien » est plus souvent plus tordu que plus droit ; la règle part 0,48 fois par course de 180 s :
+c'est le banc qui dira).
+
+**Avec les autres gènes** (remplace la colonne `sortieOn` du § 3.6) :
+- `bordOn` : **exclusif** (`!decor` contre `decor`) ; `libreOn` : **exclusif** (`libre` exige `!decor`) ; `largeOn` : exclusif (maps sans décor) ;
+- un **raccourci engagé** (`m.sortie`) passe avant : rien ne change, la règle ne fait que remettre `m.planeBord` à `null`. Un raccourci ne peut pas
+  s'engager à la vue même où la règle agit (il exige `!lache`, la règle `lache`) ; la sortie du dessous non plus (`!lache`, et la règle exige `!v.dessous`) ;
+- `dessousNitro` : **exclusif** (il n'agit que sous la dalle, par `tetu` ou `sortir`, donc avec `v.dessous` ; la règle exige `!v.dessous` et `!m.sortie`) ;
+- `relacheOn` : la nitro gardée au bord compte comme demandée (`m.tNitroSol`, dans `decide`) : avec les deux, la nitro **reste tenue au début du vol**
+  jusqu'à `relacheT` s (« vers la route » la coupe sinon dès la première vue). C'est l'effet voulu ; testé (`genes-v4.test`) ;
+- `coupOn` : sans lien dans la décision (le vol est « vers la route » comme sans le gène ; `m.nitroAvant` n'est écrit qu'en vol ; sur décor, il faut
+  `coupDecor` = 1). Dans le jeu, un décollage nitro allumée arme le coup, qui ne part qu'au ré-appui : un coup du pilote peut donc le trouver armé plus
+  souvent. Non mesuré ;
+- `retourOn` : le choix du départ n'est plus marqué fait : il se fait comme sans `sortieOn` (testé) ;
+- `rienOn`, `secoursOn`, `loiFidele`, `fuirVite`, `volMieux`, `lacheOn`, `suitOn` : sans lien (la règle n'agit qu'au sol ; la façon du vol ne change pas).
+
+**Tests** : `genes-v4.test` (v4 réécrits : la nitro gardée quels que soient les rayons du bord, et sans `v.sorties` ; aucune vue de vol des suites
+« sortie » ne change ; dessous, glisse, rebond, carte sans décor, `t > sortieT`, jauge basse : rien ; avec `retourOn` : le choix du départ comme sans
+le gène ; avec `relacheOn` : la nitro tenue au début du vol) ; `compteurs.test` (c7 : le sens des trois compteurs et le seuil de `loiFidele.suit`) ;
+`genes-muets.test` (`sortieT` et `sortieJauge` lus gène allumé, muets éteint) ; `tests/vues-genes-v4.js` (six suites de plus). Le bras du banc
+`sortie` dit « la nitro au décollage sur les maps à décor », `sortie-tot` « la même, gardée dès 1 s avant le bord » (mêmes gènes). Le § 8.1 (le test
+`sortieOn` en « plane ») et le § 6.3 (les « dit ») décrivent l'ancienne règle : ils sont remplacés par ce paragraphe.
+
+**Ce qu'on ne sait pas.** Aucun rayon ne joue la nitro tenue dès l'envol ; sur une map à décor, elle peut aussi **tuer plus vite** (la paroi est
+proche). Seul le banc le dira.
+
+**La piste notée pour plus tard** : le levier est au sol, avant le bord (la ligne, la marge, la vitesse sur les maps à décor) ; les raccourcis voulus
+tuent en ville (5 morts sur 22).
 
 ### 3.2 `rienOn` (+ `rienEcart`) : la bascule peut aller vers « rien »
 
@@ -324,7 +385,7 @@ Il n'a pas de compteur dans le pilote ; la ligne de course dit si la chance a é
 (l.390-421) → `rienOn` → `secoursOn` → `lacheOn` contact (l.424) → ordre (l.426) → `loiFidele` 2 → `lacheOn` (l.430) → `relacheOn` (l.434) → figures (l.452)
 → `coupOn` (l.468) → `suitOn` ensuite (l.484). Au sol : … `libreOn` (l.246-250) → `bordOn` (l.254) → `sortieOn` → raccourci (l.263-290).
 
-| | sortieOn | rienOn | loiFidele | secoursOn |
+| | sortieOn (colonne **remplacée** : § 3.1 bis) | rienOn | loiFidele | secoursOn |
 |---|---|---|---|---|
 | **lacheOn** | sans lien (`plane` n'est pas `versRoute`, l.430) | rien passe avant ; ensuite la façon `rien` a déjà volant 0 | le contact (l.424) lit le rayon fidèle ; `lacheOn` met 0 par-dessus la loi suivie | sans lien (façon `retour<k>`) |
 | **slalomOn** | sans lien (au sol, `lache` coupe le slalom l.229) | sans lien | sans lien | sans lien |
@@ -408,18 +469,18 @@ drapeaux de raccourcis nés à 0 : `raccCartes_jade`, `_grotte`, `_canyon` et `r
 | `raccCartes` | raccCartes_jade, _grotte, _canyon | `R.raccCartes[v.carte]!==0` (l.260) | l.289, l'engagement `m.sortie={…}` (pas la sortie du dessous, l.282) | un raccourci s'engage sur une carte dont le gène naît à 0. Les cartes : une constante `RACC_CARTES_0={jade:1,grotte:1,canyon:1}` de modele.js ; le test v1 la recalcule depuis `BORNES` |
 | `raccJumeau` | raccJumeau_nuages, _espace, _grotte, _canyon | `R.raccJumeau[v.carte]` vrai (l.165) | dans `raccourci()`, l.165-167 | à cet appel, sur une carte où le gène naît à 0 (`RACC_JUMEAU_0={nuages:1,espace:1,grotte:1,canyon:1}`), la jumelle a écarté un rayon dont le score (l.168, en locales) dépasse celui du rayon retenu, ou rien n'est retenu. Le `tic` est dans `raccourci`, qui ne l'appelle pas lui-même |
 | `sortieOn` | sortieOn | `R.sortieOn>0` | § 3.1, au sol | `m.nitro` était faux |
-| `sortieOn.vol` | sortieOn | `R.sortieOn>0` | § 3.1, au décollage | le vol part en `plane` à cause de `m.planeBord` |
+| `sortieOn.vol` | sortieOn | `R.sortieOn>0` | § 3.1, au décollage | le vol part en `plane` à cause de `m.planeBord` (**remplacé**, § 3.1 bis : un vol subi décollé moins de 0,35 s après l'annonce) |
 | `sortieOn.pose` | sortieOn | `R.sortieOn>0` | § 4.3 | la première vue au sol après un tel vol, sans trou (pas de mort) |
 | `rienOn` | rienOn | `R.rienOn>0` | § 3.2 | la façon passe à `rien` |
 | `loiFidele.desaccord` | loiFidele | `R.loiFidele>0` | § 3.3, après l.390 | façon tenue `versRoute`, les deux rayons présents, `sauve(fidèle)` ≠ `sauve(radar)`. **Un désaccord, pas un ordre changé** : il borne par le haut. Refaire toute la décision « sans la loi fidèle » demanderait de rejouer la bascule, le départ et les figures : trop de code neuf dans une règle qui doit rester inerte. Le vrai effet se lit par `f` (§ 6.5) |
-| `loiFidele.suit` | loiFidele | `R.loiFidele>1` | § 3.3, après l.426 | le volant ou le manche suivi diffère de celui de `versRoute` |
+| `loiFidele.suit` | loiFidele | `R.loiFidele>1` | § 3.3, après l.426 | le volant ou le manche suivi diffère de celui de `versRoute` (**remplacé**, § 3.1 bis : le volant de plus de 0,01, ou le manche) |
 | `secoursOn` | secoursOn | `R.secoursOn>0` | § 3.4 | la façon passe à un secours |
 
 **25 noms.** `DECLICS` est la liste exacte, dans cet ordre. Le banc (lot c) refuse un critère sur un nom hors de `DECLICS`.
 
 ### 4.3 La mémoire des compteurs
 
-Seul `sortieOn.pose` en a besoin : `m.cSortie` = le `v.t` de la dernière vue en vol d'un vol parti en `plane` par `m.planeBord`. Écrit au décollage (§ 3.1) et à
+Seul `sortieOn.pose` en a besoin : `m.cSortie` = le `v.t` de la dernière vue en vol d'un vol parti en `plane` par `m.planeBord` (depuis le § 3.1 bis : d'un vol subi décollé moins de 0,35 s après l'annonce). Écrit au décollage (§ 3.1) et à
 chaque vue de vol tant qu'il n'est pas nul. En tête de `auSol`, avant le bloc du départ (modele.js l.181), **la forme exacte** :
 `if(COMPTE&&R.sortieOn>0&&m.cSortie!=null){try{if(v.t-m.cSortie<=.25)tic('sortieOn.pose');}catch(e){}m.cSortie=null;}`.
 Pour c0025 (`R.sortieOn` = 0), rien n'est lu. Une mort en vol, puis la reprise : le trou de 7 à 12 s (piloter.js l.196-199) fait que la pose n'est pas comptée.
@@ -543,6 +604,8 @@ node ml/evolution/banc/banc.js --vague ml/evolution/banc/vagues/v001-maps-a-deco
 - arrêt : créer `ml/evolution/banc/etat/STOP`, ou Ctrl+C (une fois : plus de lancement ; deux fois : `arreter({dur:true})`). Reprise : la même commande.
 
 ### 6.3 Le fichier de bras (`banc/bras.json`)
+
+> (28/11) Les « dit » des bras `sortie` et `sortie-tot` ci-dessous sont **remplacés** (§ 3.1 bis) : « la nitro au décollage sur les maps à décor » et « la même, gardée dès 1 s avant le bord ».
 
 ```json
 { "format": "banc-bras-1",
@@ -801,7 +864,7 @@ donc le **nouveau** modele.js, sauf si l'on passe `o.modele` (l.467). La forme o
   chargé) est un **nombre entier égal à 12** (pas `undefined`, pas une chaîne). Pourquoi ce test : la course de 45 s d'identite.js ne voit pas la seconde
   chance (elle ne joue qu'après une mort au palier 12 ou plus ; ni `bilan.main.sha` ni la chance ne sont dans la ligne compacte, piloter.js l.302).
 - **(v4) allumé = change, et seulement ce qu'il faut** — pour chaque gène, une suite qui le déclenche et une qui ne doit rien changer :
-  - `sortieOn` : vue sol `carte:'grotte'`, `tenue:{tient:false,t:.5,cote:1}`, jauge 0,8, `sorties.bord.rayons` = `rien` choc, `versRoute` choc, `plane` pose
+  - `sortieOn` (**remplacé** par le § 3.1 bis : le vol ne part plus en `plane`) : vue sol `carte:'grotte'`, `tenue:{tient:false,t:.5,cote:1}`, jauge 0,8, `sorties.bord.rayons` = `rien` choc, `versRoute` choc, `plane` pose
     propre → `nitro:true` (au lieu de faux), puis une vue de vol 0,1 s après → l'ordre de `plane` (`nitro:true`), `declic` contient `sortieOn`, puis
     `sortieOn.vol` ; mêmes vues `carte:'espace'` → aucun changement ; `plane` choc → aucun changement ; `t:1.3` (> `sortieT`) → aucun ; `m.voulu` reste faux
     (vérifié par une vue de vol où `viser` se pose : pas de bascule vers `viser`) ; **un raccourci engagé** (`m.sortie` posé par deux vues de raccourci

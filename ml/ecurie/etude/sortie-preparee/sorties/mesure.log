@@ -1,0 +1,45 @@
+11:28:52 grotte-tenue-3970400 : palier 4, 77.7 s, roche, grotte, 63 s
+11:29:32 grotte-tenue-3970437 : palier 7, 101 s, roche, grotte>grotte, 104 s
+11:30:36 grotte-tenue-3970511 : palier 4, 67.4 s, roche, grotte, 58 s
+11:30:48 grotte-tenue-3970474 : palier 5, 84.2 s, roche, grotte>grotte, 111 s
+11:32:48 grotte-tenue-3970548 : palier 8, 144.3 s, roche, grotte>grotte, 126 s
+11:32:49 grotte-tenue-3970585 : palier 5, 92.7 s, roche, grotte>grotte, 115 s
+11:34:47 grotte-tenue-3970659 : palier 8, 133.1 s, roche, grotte>grotte, 112 s
+11:34:58 ville-tenue-3970400 : palier 1, 13.5 s, tour, ville, 6 s
+11:35:33 ville-tenue-3970437 : palier 8, 108.3 s, tour, ville>ville>ville, 29 s
+11:35:48 grotte-tenue-3970622 : palier 8, 180 s, temps, grotte>grotte>grotte, 174 s
+11:36:15 ville-tenue-3970511 : palier 3, 64.1 s, air, ville>ville, 21 s
+11:36:20 ville-tenue-3970474 : palier 8, 141.2 s, tour, ville>ville>ville, 41 s
+11:36:41 ville-tenue-3970548 : palier 4, 59.6 s, tour, ville>ville, 20 s
+11:36:42 ville-tenue-3970585 : palier 3, 59.8 s, tour, ville, 17 s
+11:36:58 ville-tenue-3970659 : palier 3, 29.7 s, tour, ville, 10 s
+11:37:01 ville-tenue-3970622 : palier 3, 52.5 s, tour, ville, 14 s
+11:38:20 jade-tenue-3970400 : palier 9, 180 s, temps, jade>jade>jade, 76 s
+11:38:22 jade-tenue-3970437 : palier 10, 180 s, temps, jade>jade>jade, 75 s
+11:38:55 jade-tenue-3970511 : palier 3, 49.3 s, vide, jade, 27 s
+11:39:34 jade-tenue-3970548 : palier 3, 61.1 s, pic, jade, 33 s
+11:39:42 jade-tenue-3970474 : palier 9, 180 s, temps, jade>jade>jade, 77 s
+11:40:22 jade-tenue-3970585 : palier 4, 72.8 s, air, jade>jade, 42 s
+11:40:49 jade-tenue-3970622 : palier 7, 138.3 s, pic, jade>jade, 61 s
+11:41:23 canyon-tenue-3970400 : palier 5, 63.4 s, paroi, canyon, 28 s
+11:41:51 jade-tenue-3970659 : palier 8, 180 s, temps, jade>jade>jade, 83 s
+11:41:59 canyon-tenue-3970437 : palier 6, 92.2 s, paroi, canyon, 30 s
+11:42:25 canyon-tenue-3970474 : palier 5, 64.6 s, paroi, canyon, 29 s
+11:42:39 canyon-tenue-3970511 : palier 6, 104.5 s, paroi, canyon, 34 s
+11:43:04 canyon-tenue-3970548 : palier 7, 101.7 s, paroi, canyon, 33 s
+11:43:25 canyon-tenue-3970585 : palier 6, 103.6 s, canyon, canyon, 40 s
+11:43:43 canyon-tenue-3970622 : palier 6, 98 s, paroi, canyon, 33 s
+11:43:57 canyon-tenue-3970659 : palier 4, 62.3 s, paroi, canyon, 27 s
+11:44:52 libre-3970400 : palier 4, 77.7 s, roche, grotte, 64 s
+11:45:19 libre-3970437 : palier 7, 180 s, temps, espace>nuages>jade, 76 s
+11:45:50 libre-3970474 : palier 7, 134.1 s, vide, espace>jade, 52 s
+11:45:54 libre-3970511 : palier 5, 91.7 s, air, espace>nuages, 29 s
+11:46:36 libre-3970585 : palier 6, 103.6 s, canyon, canyon, 37 s
+11:47:34 libre-3970622 : palier 2, 29.7 s, roche, grotte, 52 s
+11:47:54 libre-3970548 : palier 9, 180 s, temps, grotte>nuages>jade, 119 s
+11:48:06 libre-3970659 : palier 4, 62.3 s, paroi, canyon, 27 s
+11:48:58 grotte-tenue-3970400-ref : palier 4, 77.7 s, roche, grotte, 59 s
+11:49:11 libre-3970400-ref : palier 4, 77.7 s, roche, grotte, 59 s
+PREUVE grotte-tenue-3970400-ref : IDENTIQUE
+PREUVE libre-3970400-ref : IDENTIQUE
+FIN 21.5 min

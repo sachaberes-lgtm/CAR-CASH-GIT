@@ -4,15 +4,17 @@ Pour la session principale (Fable), pour Sacha, ou pour l'assistant qui l'aidera
 (a : génome et pilote ; b : enfant et ordonnanceur ; c : le banc v2), trois relecteurs (« bit près », « sémantique », « banc-courses »), puis cette
 intégration. Le détail : `notes/genes-v4-lot-a.md`, `notes/genes-v4-lot-b.md`, `notes/genes-v4-lot-c.md`, `INTERFACES.md` § 12, `banc/README.md`.
 
-**Commité sur la branche `genes-v4` (un seul commit), pas poussé, pas fusionné dans `bots-ecurie`.** Le jeu ne change pas (rien dans `code/` ni
+**Commité sur la branche `genes-v4` (deux commits : le lot `7f85efb38`, puis l'amendement de `sortieOn` du § 2 quater), pas poussé, pas fusionné dans
+`bots-ecurie`.** Le jeu ne change pas (rien dans `code/` ni
 `VERSION PRINCIPALE/`) ; `ml/bot/` et `ml/reel/` ne changent pas (les yeux et la main sont ceux d'avant). **Ce lot change UNE époque** : `modele.js` et
-`enfant.js` (époque des courses `c8999deeb421` sur ce PC).
+`enfant.js` (époque des courses `c8999deeb421` sur ce PC au commit du lot, **`bb3e37855092` après l'amendement**).
 
 ---
 
 ## 1. Ce que la mise à jour change, en mots simples
 
-1. Quatre idées nouvelles derrière des interrupteurs **éteints à la naissance** : la sortie préparée (`sortieOn`), lâcher le volant pour mieux se poser
+1. Quatre idées nouvelles derrière des interrupteurs **éteints à la naissance** : la nitro au décollage sur les maps à décor (`sortieOn`, ex-« sortie
+   préparée », réécrite le 28/11 : § 2 quater), lâcher le volant pour mieux se poser
    (`rienOn`), la loi fidèle (`loiFidele` 1 juger, 2 juger et suivre), les secours en vol (`secoursOn`). Éteintes, le pilote conduit **au bit près** comme
    avant et **chaque pilote garde son nom** (c0025 `19e3767cc346`, c0101 `f70ddcb5a565`, les 26 vivants du Ryzen).
 2. La seconde chance devient le réglage `chancePalierMin`, **figé à 12** (la sélection n'y touche pas ; le changer est une décision de Sacha).
@@ -120,12 +122,94 @@ intégration. Le détail : `notes/genes-v4-lot-a.md`, `notes/genes-v4-lot-b.md`,
   tue vite). Une vraie vague (tmax 900, courses de 2 à 4 min) ira bien plus lentement : compter environ `(1 + k) × graines × (durée moyenne + 30 s) / 2` ;
   par exemple 5 bras au plafond (1 152 courses de 150 s en moyenne) ≈ 29 h à 2 à la fois. À mesurer sur la première vraie vague.
 
+### 2 quater. L'amendement du 28/11 : `sortieOn` réécrit après la mesure des décollages (le second commit de la branche)
+
+**L'impasse.** L'étude `ml/ecurie/etude/sortie-preparee/LISEZ-MOI.md` (40 courses à carte tenue, 180 décollages subis distincts, 24 morts ; relue)
+montre que la règle du contrat ne se déclenche jamais (0 fois), que les yeux ne voient **aucune** issue aux 24 décollages mortels, que le bord n'est
+annoncé que 0,28 s avant le décollage (la main met 0,2 s) et que « plane » au bord se serait crashé dans 57 vols posés. Partir en « plane » est une
+impasse, voire nuisible. Mais aucun décollage sur 253 ne part nitro allumée sur ces maps (les joueurs : 63 %), et `bordOn`, la même chose sans décor,
+rapproche sûrement des joueurs (banc des gènes, `bots-ecurie`).
+
+**Ce qui change** (contrat § 3.1 bis, qui remplace le § 3.1) : `sortieOn` = **la nitro au décollage sur les maps à décor**, le pendant de `bordOn` :
+au sol, la même garde, **sans lire les rayons du bord** ; au décollage, **plus de changement de façon** (le vol part en « vers la route »). Mêmes noms,
+bornes, naissances : **aucun identifiant ne change** (c0025 `19e3767cc346`, c0101 `f70ddcb5a565`, le bras `sortieOn` `117f2cd8619a`). Les compteurs gardent
+leurs noms : `sortieOn` = la nitro allumée au sol par la règle (à chaque vue où elle agit), `sortieOn.vol` = un vol subi décollé moins de 0,35 s après
+l'annonce, `sortieOn.pose` = la première vue au sol ensuite ; `loiFidele.suit` ne compte plus qu'au-delà de 0,01 de volant (ou un manche autre).
+`rienOn` et `rienEcart` ne changent pas. Fichiers : `modele.js`, `genome.js` (un commentaire), `arbre.js` (MOTS), `banc/bras.json` (les « dit »),
+`tests/genes-v4.test.js`, `tests/vues-genes-v4.js`, `tests/compteurs.test.js` (c7), `tests/genes-muets.test.js` (un commentaire), `INTERFACES.md` § 12,
+`README.md`, `notes/genes-v4.md`, `notes/genes-v4-lot-a.md`, l'étude (partie 9). `modele.js` change encore : à faire **avant la fusion** (le Ryzen ne
+verra toujours qu'un seul changement d'époque).
+
+**Vérifié** (une suite à la fois) : genes-v4 **19/19**, compteurs **6/6** (dont le nouveau c7), genes-muets 6/6 (`sortieT` et `sortieJauge` lus gène
+allumé, muets éteint), portage 11/11, gestes 10/10, genome 14/14, traces 87/87, carte-et-declic 33/33, banc 49/49, `genome.js --essai-reparer 10000` :
+0 hors bornes. **Éteint = `7f85efb38`** (`essais/sortie-reecrite/preuve-eteint.js`, hors git : le pilote écrit par ce code et par le `modele.js` de
+`7f85efb38`, relu par `git show`) : 104 pilotes à `sortieOn` 0 (c0025, c0101, « tout allumé sauf sortieOn », c0101 + tout, 100 mutants), 326 suites,
+**85 176 décisions identiques** (ordres sans `declic`, erreurs). Le **texte** du pilote c0025 change (`87695d9b9cc7` → `74b588baf052`) : l'époque des
+courses change de toute façon avec ce lot (sur ce PC : `c8999deeb421` → `bb3e37855092`). Pas relancés après l'amendement par l'auteur : identite.test, evoluer.test, courses.test (lents) ; les deux premiers l'ont été à
+l'intégration (ci-dessous).
+
+**Quatre vraies courses** (c0025 + `sortieOn`, 120 s, carte tenue, `enfant.js --essai`, graines 3 963 000 + 37 i, i = 300 à 303 ; 2 à la fois ;
+le témoin rejoué sur les mêmes graines pour comparer ; 0 erreur, 0 panne, 0 YEUX CHANGES, aucune seconde chance) :
+
+| map (graine) | `sortieOn` | `.vol` | `.pose` | palier / survie (le gène) | palier / survie (témoin) | nitro au décollage (gène / témoin) |
+|---|---|---|---|---|---|---|
+| grotte (3974100) | 5 | 1 | 0 | 4 / 94,6 s, roche | 4 / 94,7 s, roche | – / – (1 vol) |
+| ville (3974137) | 20 | 5 | 5 | 7 / 120 s | 8 / 120 s | 0,45 / 0,27 |
+| jade (3974174) | 14 | 3 | 3 | 7 / 120 s | 4 / 55,4 s, air | 0,57 / – |
+| canyon (3974211) | 14 | 5 | 5 | 6 / 120 s | 3 / 32 s, paroi | 0,50 / – |
+
+Le gène agit dans les quatre (53 vues au sol, 14 vols partis nitro allumée, 13 posés ; le seul qui finit mal est le vol de la grotte, mort contre la
+roche, comme chez le témoin). **Ce sont des contrôles de fonctionnement, pas une mesure** : quatre graines ne disent rien du palier (le banc le dira).
+Traces : `ml/evolution/essais/sortie-reecrite/` (journaux des tests, `preuve-eteint.js`, les huit courses).
+
+**La relecture adverse et l'intégration de l'amendement** (un second agent, par d'autres chemins ; traces hors git dans
+`ml/evolution/essais/sortie-reecrite/relecteur/`) :
+
+- **Le code relu ligne à ligne** (`git diff`) : la règle au sol est celle de la décision, caractère pour caractère ; plus aucune lecture de
+  `v.sorties` par `sortieOn` ; plus de `m.facon='plane'` ni de `m.choix=true` ; au décollage, le compteur seul puis `m.planeBord=null`. `m.planeBord` n'est
+  lu que par ce compteur, remis à `null` à chaque vue au sol où la règle est fausse et à chaque décollage ; la seule vue au sol qui l'ignore est le départ
+  de course (le `return` anticipé de `auSol`), sans effet : le compteur exige moins de 0,35 s. Éteint, rien n'est lu ni écrit (tout est sous
+  `R.sortieOn>0`, ou sous `COMPTE` pour `m.cSortie`).
+- **Éteint = `7f85efb38`, sur des vues de vraies courses** (`relecteur/preuve-vues.js`, `preuve-vues.txt`) : les **4 050 vues** gardées par le relecteur
+  « bit près » (`essais/relecture-v4-bit/vues/`, quatre courses : c0025, c0025 tout allumé, c0101, c0101 tout allumé en grotte), jouées dans l'ordre
+  par **126 pilotes à `sortieOn` 0** (c0025, c0101, « tout allumé sauf sortieOn » sur chacun, c0101 + `loiFidele` 2, c0025 + `loiFidele` 2 + `rienOn` +
+  `secoursOn`, et **120 mutants v:4** tirés par le `muter` d'aujourd'hui, un sur deux à peu près avec `loiFidele` 2), chacun écrit avec le `modele.js`
+  de `7f85efb38` (relu par `git show`) et avec celui d'aujourd'hui : **510 300 décisions, 0 écart** d'ordre (texte JSON du bac, NaN et −0 compris) ni
+  d'erreur (18 850 erreurs, les mêmes : « YEUX CHANGES » des pilotes qui ne demandent pas les rayons `retour` de ces vues). Le champ `declic` diffère
+  **126 fois**, toujours par le seul retrait de `loiFidele.suit` (2 528 → 2 402), et une troisième copie du modèle, instrumentée, montre que **ces
+  126 fois sont exactement les vues où les deux volants diffèrent d'au plus 0,01 avec le même manche** (aucune autre vue de ce genre, aucun autre écart).
+  Les identifiants : c0025 `19e3767cc346`, c0101 `f70ddcb5a565`, le bras `sortieOn` `117f2cd8619a` (inchangés).
+- **Allumé : quatre vraies courses de plus** (c0025 + `sortieOn`, 120 s, carte tenue, graines 3 963 000 + 37 i, **i = 310 à 313**, une course à la fois ;
+  le témoin sur les mêmes graines) : 0 erreur, 0 panne, aucun « YEUX CHANGES », aucune seconde chance, dans les huit.
+
+| map (graine) | `sortieOn` | `.vol` | `.pose` | palier / survie (le gène) | palier / survie (témoin) | nitro au décollage (gène / témoin) |
+|---|---|---|---|---|---|---|
+| grotte (3974470) | 13 | 2 | 2 | 4 / 66,5 s, roche | 7 / 120 s | 0,50 / 0,00 |
+| ville (3974507) | 0 | 0 | 0 | 3 / 27,3 s, tour | 3 / 27,3 s, tour (la même course) | – / – (moins de 60 s) |
+| jade (3974544) | 31 | 6 | 6 | 6 / 120 s | 7 / 113,5 s, pic | 0,625 / 0,17 |
+| canyon (3974581) | 9 | 1 | 0 | 6 / 57,1 s, paroi | 3 / 43,7 s, paroi | – / – (moins de 60 s) |
+
+  La part de vols partis nitro allumée (la mesure `nitroDecol`, écrite seulement pour une course d'au moins 60 s) monte là où elle est mesurée
+  (grotte 0 → 0,50, jade 0,17 → 0,625 ; avec les courses de l'auteur : ville 0,27 → 0,45). Sur ces quatre graines, le gène fait mieux sur une course, moins bien sur deux :
+  **huit courses ne disent rien du palier**. Sur les 8 courses, `sortieOn.vol` 23 et `sortieOn.pose` 21 : les
+  2 vols partis nitro allumée qui finissent mal (grotte 3974100 de l'auteur, canyon 3974581 ici) précèdent chacun la seule mort de la course, contre le
+  décor (roche, paroi) : la question de « la nitro qui tue plus vite » reste entière, pour le banc.
+- **Les tests, un par un** : genes-v4 19/19, compteurs 6/6, genes-muets 6/6, portage 11/11, gestes 10/10, genome 14/14, generation 16/16, traces 87/87,
+  relecture-traces 95/95, carte-et-declic 33/33, integration 29/29, commun 16/16, graines 13/13, note 16/16, tableau 72/72, lanceurs 76/76,
+  robustesse 8/8, machine 45/45, machine-relecture 19/19, node-epoque (passe), validation-sequentielle 25/25, mesure-tau 75/75, banc 49/49 ;
+  `genome.js --essai-reparer 10000` : 0 hors bornes ; **identite.test `--travailleurs 2` : 9/9** (c0025 et c0101 IDENTIQUES sur les 3 graines,
+  326 s) ; **evoluer.test `--travailleurs 2` : 78 contrôles, TOUT PASSE (2 262 s)**. Pas relancé : courses.test. L'époque des courses sur ce PC est maintenant `bb3e37855092` (`courses.epoque`).
+- **Corrigé par le relecteur** : le § 1 du contrat disait encore « la sortie préparée » (marqué remplacé) ; l'étude dit maintenant pourquoi la décision
+  n'est pas la proposition de son relecteur (§ 8.5 : la règle R5, 115 décollages distincts, 17 des 24 mortels) ; cette livraison (l'en-tête, l'époque,
+  « ce qui n'est pas vérifié »).
+
 ### Ce qui n'est pas vérifié
 
 - **Rien de ce code n'a tourné sur le Ryzen.** Le rejeu d'une génération est prouvé sur l'état d'essai d'e93ff5cb5 (3 graines), pas sur le vrai état (ses
   courses ne sont pas dans la branche).
 - L'**effet** des gènes v4 : aucune vague réelle n'a été jouée (numéro 1 ou plus) ; c'est à la session principale de la décider.
-- `sortieOn` : jamais déclenché en vraie course (ci-dessus).
+- `sortieOn` : l'ancienne règle ne s'est jamais déclenchée en vraie course (§ 2 bis) ; la règle réécrite (§ 2 quater) agit dans 7 des 8 courses
+  d'essai (la huitième, ville, meurt contre une tour à 27 s après un seul vol, la règle n'ayant pas agi : course identique au témoin), mais **son effet** (palier, morts contre le décor) n'est pas mesuré : seul le banc le dira.
 - Les compteurs nés à 0 des **anciens** drapeaux (§ 8.5 point 3 du contrat : « chaque ancien drapeau né à 0 ») n'ont pas été rejoués un par un ici ; ils
   sont prouvés sans course (compteurs 5/5 : chacun des 25 noms se déclenche sur des suites de vues) et c0101 en émet en course (lot a2 : lacheOn 10,
   slalomOn 274, suitOn 48… sur une course de 90 s).
@@ -180,7 +264,7 @@ texte de chaque pilote ; les pages ne montrent rien de neuf tant qu'aucun gène 
 ## 5. Les décisions qui restent
 
 **À la session principale (Fable)** :
-1. **`sortieOn` est presque muet** (0 déclenchement en 13 vraies courses, dont la grotte tenue). Le garder tel quel (il ne fait rien, ne coûte rien, mais ne
+1. **Tranché le 28/11 (§ 2 quater) : réécrit avant la fusion.** Le texte d'avant : **`sortieOn` est presque muet** (0 déclenchement en 13 vraies courses, dont la grotte tenue). Le garder tel quel (il ne fait rien, ne coûte rien, mais ne
    sera jamais sélectionné), ou **réécrire sa règle avant la fusion** (par exemple : « plane » se pose et « vers la route » ne se pose pas proprement, sans
    exiger le choc de « rien » ; proposition du relecteur « sémantique »). Réécrire = toucher `modele.js` = une autre époque, donc **à faire avant que le
    Ryzen reçoive ce lot**, puis refaire identite, genes-v4, compteurs, genes-muets et ces courses.

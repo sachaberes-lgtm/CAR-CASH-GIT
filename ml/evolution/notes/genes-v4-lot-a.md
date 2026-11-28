@@ -290,3 +290,26 @@ caractère près (texte JSON du bac), erreurs aussi.
 les tests de migration. **Vu en passant** (pour l'intégrateur, déjà relevé par le relecteur « sémantique ») : dans les deux courses à gènes v4 allumés,
 `sortieOn` ne s'est pas déclenché une fois. Les tests rapides, relancés un par un : tous à 0, sauf `traces.test.js` (86/87, les `MOTS` d'`arbre.js`
 pour les 8 gènes v4, à l'intégrateur).
+
+## Amendement du 28/11 : `sortieOn` réécrit après la mesure des décollages (l'auteur de l'amendement)
+
+La décision de la session principale, appliquée telle quelle (contrat `notes/genes-v4.md` § 3.1 bis, qui remplace le § 3.1 ; l'étude :
+`ml/ecurie/etude/sortie-preparee/LISEZ-MOI.md`, parties 8 et 9).
+
+- **L'impasse** : la sortie préparée par les rayons du bord est muette par construction. La règle du § 3.1 ne s'est jamais déclenchée (0 fois en
+  40 courses à carte tenue) ; les yeux ne voient aucune issue aux 24 décollages mortels ; le bord est annoncé 0,28 s avant le décollage (médiane), la
+  main met 0,2 s ; « plane » au bord se serait crashé dans 57 vols posés.
+- **`modele.js`** : `sortieOn` devient la nitro au décollage sur les maps à décor, le pendant de `bordOn` : au sol, même garde qu'avant (décor, pas de
+  raccourci engagé, route qui lâche, ni dessous, ni glisse, ni rebond, `tn.t < sortieT`, jauge > `sortieJauge`), **sans lire les rayons du bord** ;
+  au décollage, plus de `m.facon='plane'` ni de `m.choix=true` : seulement le compteur `sortieOn.vol` et `m.planeBord=null`. Le compteur
+  `loiFidele.suit` a un seuil de 0,01 sur le volant (le manche reste exact). `genome.js` : un commentaire ; `DECLICS` inchangé (25 noms).
+- **Le tableau des compteurs plus haut** (`sortieOn.vol` « le vol parti en `plane` » ; `loiFidele.suit` « la commande fidèle diffère ») est remplacé :
+  `sortieOn` = la nitro allumée au sol par la règle, **à chaque vue** où elle agit (comme `bordOn` : la route qui lâche recoupe `m.nitro` à chaque vue) ;
+  `sortieOn.vol` = un vol subi décollé moins de 0,35 s après l'annonce ; `sortieOn.pose` = la première vue au sol après ce vol, sans trou ;
+  `loiFidele.suit` = le volant suivi à plus de 0,01 de celui de « vers la route », ou un manche autre. `(vol − pose) / vol` = la part de ces
+  décollages qui finissent mal (mesure secondaire, jamais un critère).
+- **Les interactions** (§ 3.6) : `bordOn`, `libreOn`, `largeOn` et `dessousNitro` exclusifs ; un raccourci engagé passe avant (rien ne change) ;
+  `relacheOn` tient la nitro au début du vol (l'effet voulu, testé) ; `retourOn` fait son choix du départ comme sans le gène (testé) ; `coupOn` sans
+  lien dans la décision (dans le jeu, le coup est armé par un décollage nitro allumée : non mesuré).
+- **Éteint = comme `7f85efb38`** : même décision au bit près (voir `notes/LIVRAISON-GENES-V4.md`, § 2 quater) ; le texte du pilote change (nouvelle
+  époque, de toute façon due à ce lot). `rienOn` et `rienEcart` ne changent pas.

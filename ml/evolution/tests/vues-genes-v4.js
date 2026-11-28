@@ -2,7 +2,8 @@
    Ce fichier n'est pas un test : un module partage par tests/genes-v4.test.js et tests/genes-muets.test.js.
    - vueVol, vueSol : les deux vues de l'inventaire (ml/ecurie/etude/selection-naturelle/inventaire/vue-exemple.json), retouchees ;
    - suitesPortage() : les suites de tests/portage.test.js, recopiees (un fichier de test joue ses tests en se chargeant : il ne s'importe pas) ;
-   - suitesV4() : des suites faites pour declencher chaque gene v4 (la sortie preparee, la bascule vers « rien », la loi fidele, les secours). Elles
+   - suitesV4() : des suites faites pour declencher chaque gene v4 (la nitro au decollage sur decor, ex-sortie preparee ; la bascule vers « rien » ;
+     la loi fidele ; les secours). Elles
      portent parfois des rayons retour<i> qu'un pilote sans loi demandee n'attend pas : il leve « YEUX CHANGES », la meme erreur dans le pilote d'avant
      et dans celui d'aujourd'hui (la comparaison la compte comme une decision).
    Aucune course, aucun jeu charge. */
@@ -41,7 +42,8 @@ function suitesPortage(){
 
 /* ---------- les vues des genes v4 ---------- */
 const pose=(o)=>Object.assign({issue:'pose',t:1.5,axe:.1,propre:true,dessous:false,lat:-3,gain:0,air:5},o||{});
-/* LA SORTIE PREPAREE (§ 3.1) : au sol, la route lache dans t s (cote 1), jauge donnee, le rayon du bord : rien / versRoute / plane */
+/* LA NITRO AU DECOLLAGE SUR DECOR (sortieOn ; l'amendement du 28/11 qui remplace le § 3.1) : au sol, la route lache dans t s (cote 1), jauge donnee ;
+   les rayons du bord (rien / versRoute / plane) restent dans la vue, comme les yeux les donnent : la regle reecrite ne les lit plus */
 function solBord(o){o=o||{};return vueSol(v=>{v.carte=o.carte||'grotte';v.t=o.t0!=null?o.t0:8.1;v.tenue={tient:false,cote:1,t:o.t!=null?o.t:.5,approx:true};
   const j=o.jauge!=null?o.jauge:.8;v.nitro=Math.min(1,j);v.reserve=Math.max(0,j-1);
   v.sorties={pourquoi:'bord proche',bord:{t:o.t!=null?o.t:.5,rayons:[{m:'rien',issue:o.rien||'choc',t:1.2,cause:'roche'},{m:'versRoute',issue:o.versRoute||'choc',t:1.4,cause:'roche'},
@@ -68,11 +70,18 @@ function volSecours(o){o=o||{};return vueVol((v,par)=>{v.carte=o.carte||'nuages'
   if(o.f)o.f(v,par);});}
 function suitesV4(){
   const S=[];
-  /* sortieOn : la regle vraie au sol, puis le decollage ; ses variantes (carte sans decor, plane au choc, t au-dela de sortieT, jauge, levre) */
+  /* sortieOn : la regle vraie au sol, puis le decollage ; ses variantes (carte sans decor, t au-dela de sortieT, jauge ; et les rayons du bord, que la
+     regle reecrite du 28/11 ne lit plus : plane au choc, a la levre, sale, dessous) */
   for(const carte of ['grotte','canyon','ville','jade','espace','nuages'])for(const t of [.4,.5,.9,1.3])for(const jauge of [.3,.6,.8])
     S.push({nom:'sortie '+carte+' t '+t+' jauge '+jauge,vues:[solBord({carte,t,jauge}),volApres({carte})]});
   for(const plane of ['choc','levre','sale','dessous'])S.push({nom:'sortie grotte plane '+plane,vues:[solBord({plane:plane==='sale'||plane==='dessous'?'pose':plane,propre:plane!=='sale',dessous:plane==='dessous'}),volApres()]});
   S.push({nom:'sortie annonce contraire',vues:[solBord(),solBord({t0:8.15,plane:'choc'}),volApres({t:8.25})]});
+  /* (28/11/2026, apres la mesure des decollages) la regle reecrite : l'annonce effacee par une vue fausse (t 0,9), un decollage tardif, les gardes de
+     la caisse (dessous, glisse, rebond), et une vue sans v.sorties (la regle ne lit plus les rayons du bord) */
+  S.push({nom:'sortie annonce effacee',vues:[solBord(),solBord({t0:8.15,t:.9}),volApres({t:8.25})]});
+  S.push({nom:'sortie decollage tardif',vues:[solBord(),volApres({t:8.5})]});
+  for(const k of ['dessous','glisse','rebond'])S.push({nom:'sortie '+k,vues:[vueSol(v=>{Object.assign(v,solBord());v[k]=true;}),volApres()]});
+  S.push({nom:'sortie sans rayons',vues:[vueSol(v=>{Object.assign(v,solBord());v.sorties=null;}),volApres()]});
   S.push({nom:'sortie puis viser',vues:[solBord(),copie(EX.vol.vue)].map((v,i)=>{if(i===1){v.carte='grotte';v.t=8.2;v.vol.t=.05;for(const r of v.vol.radar.rayons)if(r.m==='plane')Object.assign(r,{issue:'choc',t:.5});}return v;})});
   /* rienOn : deux vues de suite apres tenirFacon ; une seule vue ; ecart trop petit ; rien dessous ; retour de la bascule ; la figure qui suit */
   S.push({nom:'rien simple',vues:volRien(8)});

@@ -1434,7 +1434,9 @@ changent ; époque des courses `c8999deeb421` sur ce PC).
 - `RETOURS_DEMANDES` = `REGLAGES.retours`, puis `COUP_LOIS` si `coupOn`, sinon `[copie de LOI_PILOTE]` si `loiFidele>0` (indice `I_FIDELE = R.retours.length`),
   puis `[S1,S2].slice(0,N_SECOURS)` si `secoursOn` (`N_SECOURS = min(2, 4 − I_SECOURS)`). Rien d'ajouté : `REGLAGES.retours` lui-même.
   S1 = `LOI_PILOTE + {nitro:3, nitroHaut:5}` (plané bas), S2 = `LOI_PILOTE + {cabre:0}`. `REGLAGES.retours` n'est jamais touché.
-- Les quatre règles (contrat § 3) : `sortieOn` au sol (après `bordOn`, jamais pendant un raccourci engagé) et au décollage (`plane`, `m.choix=true`) ;
+- Les quatre règles (contrat § 3) : `sortieOn` au sol seulement (après `bordOn`, jamais pendant un raccourci engagé) : **la nitro au décollage sur les maps à
+  décor**, le pendant de `bordOn` (réécrite le 28/11 après la mesure des décollages, contrat § 3.1 bis : aucun rayon du bord lu, la façon du vol ne change
+  pas ; au décollage, seulement le compteur et `m.planeBord=null`) ;
   `rienOn` après la bascule (deux vues de suite **pour de vrai** : une vue où la règle n'est pas évaluée, ou sans radar, efface `m.rienVu` — correction du
   relecteur « sémantique » ; une fois par vol) ; `loiFidele` 1 (le rayon `retour<I_FIDELE>` remplace le rayon `versRoute` partout où le pilote juge) et 2
   (en plus, volant et manche de `vue.vol.retours[I_FIDELE]`) ; `secoursOn` après `rienOn` (façons longues seules ; un long `libre` bloque ; pas de `prime`).
@@ -1448,6 +1450,9 @@ changent ; époque des courses `c8999deeb421` sur ce PC).
 - Les 25 noms : `volRetourOn, retourOn, retourOn.reacteur, volMieux, dessousNitro, lacheOn, slalomOn, coupOn, coupDecor, relacheOn, suitOn, suitOn.ensuite,
   fuirVite, bordOn, largeOn, libreOn, raccCartes, raccJumeau, sortieOn, sortieOn.vol, sortieOn.pose, rienOn, loiFidele.desaccord, loiFidele.suit, secoursOn`.
   `loiFidele.desaccord` compte un désaccord entre deux rayons, pas un ordre changé. Les drapeaux nés à 1 n'ont pas de compteur.
+  (28/11, contrat § 3.1 bis) `sortieOn` = la nitro allumée au sol par la règle (à chaque vue où elle agit) ; `sortieOn.vol` = un vol subi décollé moins de
+  0,35 s après l'annonce ; `sortieOn.pose` = la première vue au sol après ce vol ; `loiFidele.suit` = le volant suivi à plus de 0,01 de celui de
+  « vers la route », ou un manche autre.
 - ⚠ Changer un compteur = une nouvelle époque (`modele.js`), sans qu'aucune décision change.
 - `enfant.js` **enveloppe** `C.decide` : il compte chaque nom une fois par décision et **retire** le champ ; piloter.js ne le voit jamais.
 
