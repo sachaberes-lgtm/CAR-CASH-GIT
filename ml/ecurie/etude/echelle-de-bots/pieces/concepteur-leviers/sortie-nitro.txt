@@ -1,0 +1,44 @@
+# Pourquoi c0025 roule moins vite au meme palier
+
+## (a1) La nitro au sol selon ce que la route demande (lacet = courbure sur 60 m x vitesse, rad/s)
+| lacet demande | part du temps de sol J / B | nitro allumee % J / B |
+|---|---|---|
+| 0 a 0.15 | 31 % / 33 % | 71 / 65 |
+| 0.15 a 0.4 | 31 % / 29 % | 74 / 63 |
+| 0.4 a 0.8 | 27 % / 26 % | 75 / 63 |
+| 0.8 a plus | 11 % / 12 % | 72 / 45 |
+Sur les maps a decor (canyon, grotte, jade, ville) : nitro au sol 72 % / 60 % ; hors decor : 76 % / 65 %.
+
+## (a2) La vitesse au sol palier par palier (hors pouvoir VITESSE : vm > 1,05 ecarte)
+Part du temps de sol sous le pouvoir VITESSE : joueurs 1.4 %, c0025 0.5 %.
+| palier | min de sol J / B | km/h au sol J / B | rapport | nitro % J / B |
+|---|---|---|---|---|
+| 1 | 2.7 / 3.5 | 298 / 280 | 1.07 | 79 / 76 |
+| 2 | 2.3 / 3.3 | 432 / 394 | 1.10 | 86 / 68 |
+| 3 | 2.4 / 6.2 | 446 / 389 | 1.15 | 84 / 58 |
+| 4 | 2.5 / 5.6 | 440 / 438 | 1.00 | 73 / 60 |
+| 5 | 2.0 / 5.0 | 481 / 440 | 1.09 | 78 / 60 |
+| 6 | 1.5 / 4.2 | 501 / 472 | 1.06 | 78 / 59 |
+| 7 | 1.8 / 2.9 | 512 / 488 | 1.05 | 83 / 59 |
+| 8 | 1.6 / 1.9 | 502 / 485 | 1.04 | 68 / 58 |
+| 9 | 1.3 / 1.2 | 584 / 494 | 1.18 | 75 / 62 |
+| 10 | 1.7 / 1.1 | 626 / 512 | 1.22 | 64 / 62 |
+| 11 | 1.2 / 0.4 | 585 / 543 | 1.08 | 60 / 61 |
+| 13 | 1.1 / 0.5 | 685 / 565 | 1.21 | 52 / 53 |
+| 14 | 1.0 / 0.4 | 694 / 544 | 1.28 | 64 / 65 |
+Rapport moyen J/B a palier EXACTEMENT egal (moyenne geometrique, poids = temps de c0025 ; paliers ou chacun a 20 s de sol au moins) : x1.08.
+
+## (a3) Au sol, selon le temps depuis la derniere pose
+| depuis la pose | part du temps de sol J / B | nitro % J / B |
+|---|---|---|
+| 0 a 1 s | 18 % / 12 % | 79 / 35 |
+| 1 a 3 s | 22 % / 17 % | 71 / 67 |
+| 3 a 8 s | 29 % / 27 % | 69 / 64 |
+| 8 a plus s | 31 % / 44 % | 71 / 61 |
+
+## (b) Les 40 courses vue par vue de c0025 : au sol (apres 6 s), l'ordre de nitro
+| | min de sol | nitro demandee | coupee : JAUGE basse (sous jaugeAllume 0,45 apres etre passee sous jaugeCoupe 0,25) | coupee : REGLE du virage (seuil de volant, marge) alors que la jauge le permet | coupee : route qui lache | coupee : travers, glisse, rebond, pres du bord | raccourci engage sans reacteur | jauge moyenne |
+|---|---|---|---|---|---|---|---|---|
+| tout | 53.0 | 70 % | 10 % | 6 % (dont jauge a 0,9 ou plus : 4 %) | 2 % | 10 % | 1 % | 0.91 |
+| decor | 48.7 | 70 % | 10 % | 7 % (dont jauge a 0,9 ou plus : 4 %) | 2 % | 10 % | 1 % | 0.92 |
+| sans decor | 4.3 | 73 % | 12 % | 0 % (dont jauge a 0,9 ou plus : 0 %) | 3 % | 9 % | 3 % | 0.81 |

@@ -1,0 +1,109 @@
+# Le tableau de l'ecart — chaque partie coupee a 180 s (joueurs : 14 parties, 28.6 min ; c0025 : 20 parties, 43.4 min)
+
+## 1. Par source (pieces par minute)
+| source | joueurs | c0025 | ecart | part de l'ecart |
+|---|---|---|---|---|
+| route, au sol | 315 | 206 | 109 | 81 % |
+| route, en l'air | 17 | 9 | 9 | 6 % |
+| figures (poses payees) | 31 | 14 | 17 | 13 % |
+| TOTAL | 363 | 229 | 134 | 100 % |
+
+## 2. La route au sol = part du temps au sol x km de sol par minute de sol x pieces par km de sol
+| facteur | joueurs | c0025 | rapport J/B | part de l'ecart « route au sol » (logarithme) | en pieces/min |
+|---|---|---|---|---|---|
+| part du temps au sol | 78 % | 79 % | 0.98 | -4 % | -4 |
+| km de sol par minute de sol | 7.77 | 6.84 | 1.14 | 30 % | 33 |
+| pieces de route par km de sol | 52.21 | 38.22 | 1.37 | 74 % | 80 |
+| produit | 315 | 206 | 1.53 | 100 % | 109 |
+(km en tout par minute, raccourcis compris : 8.48 / 6.80 ; dont km avances EN VOL : 2.44 / 1.40 ; nitro au sol : 75 % / 62 %)
+
+## 3. La vitesse au sol, par groupe de palier
+| paliers | min de sol J / B | km de sol par min de sol J / B | rapport | nitro au sol % J / B | km/h nitro allumee J / B | km/h nitro coupee J / B | km/h de c0025 s'il avait la part de nitro des joueurs |
+|---|---|---|---|---|---|---|---|
+| 1-3 | 7.5 / 13.1 | 6.35 / 5.87 | 1.08 | 83 / 66 | 402 / 367 | 318 / 351 | 364 (au lieu de 361 ; joueurs 388) |
+| 4-6 | 6.2 / 14.8 | 7.67 / 7.25 | 1.06 | 76 / 60 | 482 / 462 | 422 / 427 | 454 (au lieu de 448 ; joueurs 467) |
+| 7-9 | 4.8 / 6.0 | 8.53 / 7.82 | 1.09 | 76 / 59 | 541 / 509 | 484 / 457 | 496 (au lieu de 488 ; joueurs 527) |
+| 10-12 | 3.0 / 0.4 | 9.68 / 8.38 | 1.16 | 62 / 67 | 621 / 548 | 571 / 522 | 538 (au lieu de 539 ; joueurs 602) |
+| 13-30 | 0.7 / 0.0 | 10.28 / - | - | 48 / - | 731 / - | 640 / - | - (au lieu de - ; joueurs 684) |
+
+La vitesse au sol des joueurs AU MELANGE DE PALIERS DE c0025 : 7.34 km/min (c0025 : 6.84 ; joueurs tels quels : 7.77).
+- a palier egal : x1.07 ; par le melange des paliers (les joueurs passent plus de temps aux paliers hauts) : x1.06.
+
+## 4. Les pieces de route par km de sol, par zone (portails franchis)
+| zone | km de sol J / B | pieces par km de sol J / B | rapport | la formule de economie.md (offertes par km) |
+|---|---|---|---|---|
+| 0 | 70 / 138 | 35.3 / 32.4 | 1.09 | 55 |
+| 1 | 53 / 69 | 54.0 / 45.1 | 1.20 | 97 |
+| 2 | 32 / 28 | 69.1 / 50.6 | 1.37 | 141 |
+| 3 et plus | 17 / 0 | 84.1 / 15.1 | 5.56 | 188 |
+
+La densite ramassee des joueurs AU MELANGE DE ZONES DE c0025 : 44.9 par km (c0025 : 38.2 ; joueurs tels quels : 52.2).
+- a zone egale : x1.17 ; par le melange des zones (les joueurs roulent plus loin dans les zones riches) : x1.16.
+
+## 5. Le tableau final (pieces par minute ; la somme fait l'ecart total)
+| cause | pieces/min | part |
+|---|---|---|
+| vitesse au sol, A PALIER EGAL (nitro, elan) | +18 | 14 % |
+| vitesse au sol, par le melange des paliers (consequence : la boucle, et les 2 parties longues) | +14 | 11 % |
+| pieces par km de sol, A ZONE EGALE (le vise) | +41 | 31 % |
+| pieces par km de sol, par le melange des zones (portails passes plus tot) | +39 | 29 % |
+| part du temps au sol (les joueurs volent plus : cela leur COUTE) | -4 | -3 % |
+| pieces de route prises en l'air | +9 | 6 % |
+| figures (poses payees) | +17 | 13 % |
+| TOTAL | 134 (ecart mesure 134) | 100 % |
+
+## 6. Les intervalles a 95 % (tirage des parties avec remise, 3000 fois)
+- rapport total : [1.32 ; 1.85]
+- rapport vitesse au sol : [1.08 ; 1.19]
+- rapport vitesse au sol a palier egal : [1.04 ; 1.10]
+- rapport pieces par km de sol : [1.17 ; 1.57]
+- rapport pieces par km de sol a zone egale : [1.02 ; 1.32]
+- rapport part du temps au sol : [0.91 ; 1.06]
+- part de l'ecart : vitesse au sol (%) : [18.81 ; 32.04]
+- part : vitesse a palier egal (%) : [7.46 ; 23.44]
+- part : pieces par km de sol (%) : [45.36 ; 71.84]
+- part : a zone egale (%) : [5.21 ; 48.55]
+- part : figures (%) : [5.47 ; 24.91]
+- part : en l'air (%) : [0.02 ; 13.10]
+
+## 7. Minute par minute
+| minute | min J / B | route au sol par min J / B | part au sol % J / B | km de sol par min de sol J / B | pieces par km de sol J / B | nitro au sol % J / B |
+|---|---|---|---|---|---|---|
+| 1 | 12.3 / 19.1 | 228 / 176 | 84 / 86 | 6.68 / 6.11 | 40.5 / 33.7 | 79 / 64 |
+| 2 | 9.1 / 16.2 | 318 / 225 | 75 / 80 | 8.12 / 7.33 | 52.2 / 38.5 | 77 / 59 |
+| 3 | 7.2 / 8.0 | 459 / 241 | 70 / 62 | 9.55 / 7.95 | 69.2 / 49.1 | 65 / 62 |
+| 4 et plus | 0.0 / 0.0 | 0 / - | 0 / - | - / - | - / - | - / - |
+
+## 8. Les raccourcis (poses a 60 m gagnes ou plus, volsDe de ml/bot/voltige.js), par carte
+| carte | min J / B | raccourcis J / B | par minute J / B | m gagnes par minute J / B | gene de c0025 (raccCartes) |
+|---|---|---|---|---|---|
+| canyon | 2.0 / 2.8 | 2 / 0 | 1.01 / 0.00 | 904 / 0 | FERME |
+| espace | 8.9 / 10.6 | 7 / 3 | 0.78 / 0.28 | 156 / 41 | ouvert |
+| grotte | 4.6 / 9.5 | 17 / 5 | 3.67 / 0.53 | 2489 / 324 | FERME |
+| jade | 4.8 / 8.0 | 13 / 3 | 2.73 / 0.37 | 1614 / 43 | FERME |
+| nuages | 4.3 / 8.2 | 12 / 21 | 2.77 / 2.57 | 2288 / 1410 | ouvert |
+| ville | 4.0 / 4.3 | 11 / 9 | 2.78 / 2.08 | 2574 / 2427 | ouvert |
+Metres gagnes par minute, toutes cartes : joueurs 1486, c0025 596. Dont sur les cartes FERMEES a c0025 (jade, grotte, canyon) : joueurs 735 par minute de partie (49 % de leurs metres), c0025 78.
+
+## 9. Le temps passe sur une zone finie (du depart ou d'un portail au portail suivant)
+| zone | zones finies J / B | duree mediane s J / B | longueur moyenne m J / B | m sautes par raccourci, part de la longueur J / B | vitesse moyenne de traversee (L / duree) km/min J / B |
+|---|---|---|---|---|---|
+| 0 | 11 / 16 | 62 / 83 | 8532 / 8497 | 16 % / 6 % | 8.30 / 6.69 |
+| 1 | 9 / 10 | 61 / 48 | 8607 / 7789 | 11 % / 13 % | 9.90 / 8.46 |
+| 2 et plus | 8 / 1 | 44 / 83 | 8309 / 9854 | 19 % / 0 % | 13.02 / 7.16 |
+
+## 10. Les poses payees : avec ou sans figure de la main
+| | joueurs | c0025 |
+|---|---|---|
+| vols par minute | 5.98 | 5.11 |
+| poses SANS figure de la main, par minute | 4.58 | 4.35 |
+| … dont payees (part) | 56 % | 42 % |
+| … pieces par pose payee | 7.2 | 6.2 |
+| … pieces par minute | 18.5 | 11.3 |
+| poses AVEC figure de la main, par minute | 1.08 | 0.39 |
+| … dont payees (part) | 97 % | 100 % |
+| … pieces par pose payee | 8.3 | 6.9 |
+| … pieces par minute | 8.7 | 2.7 |
+| duree mediane d'un vol pose sans figure / avec (s) | 2.07 / 2.33 | 1.98 / 3.50 |
+| paiements hors d'une pose (figures de route), par minute | 0.56 | 0.00 |
+| … pieces par minute | 3.6 | 0.0 |

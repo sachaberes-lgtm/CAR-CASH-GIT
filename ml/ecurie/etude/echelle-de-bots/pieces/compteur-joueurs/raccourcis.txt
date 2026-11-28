@@ -1,0 +1,4 @@
+joueurs : 14 parties, 40.8 min | raccourcis/min 2.79 | m gagnes/min 1748.6 | distance m/min 11167 | part de la distance gagnee par raccourci 15.7 % | nitro 60.7 % | vols/min 8.01 | air 29.1 % | figures payees/min 5.02 | lancees/min 2.18
+   pieces par figure payee (199) : 3-4 : 24 % · 5-9 : 49 % · 10-17 : 21 % · 18+ : 7 %
+c0025 : 20 parties, 47.3 min | raccourcis/min 0.93 | m gagnes/min 606.5 | distance m/min 6973 | part de la distance gagnee par raccourci 8.7 % | nitro 52.6 % | vols/min 5.73 | air 22.4 % | figures payees/min 2.43 | lancees/min 0.66
+   pieces par figure payee (113) : 3-4 : 35 % · 5-9 : 51 % · 10-17 : 9 % · 18+ : 4 %

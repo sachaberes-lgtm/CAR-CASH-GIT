@@ -1,0 +1,45 @@
+# Les genes des leviers (genome v4, 129 entrees dans BORNES)
+| gene | existe | type | bornes | naissance | fige | greffable (drapeau, choix, entier) |
+|---|---|---|---|---|---|---|
+| marge | oui | reel | 3 – 20 | 10 | non | non |
+| margeCouloir | oui | reel | 5 – 25 | 15 | non | non |
+| piecesLoin | oui | reel | 60 – 350 | 180 | non | non |
+| avance | oui | reel | 0.1 – 0.8 | 0.3 | non | non |
+| glisse | oui | reel | 0.04 – 0.3 | 0.12 | non | non |
+| braqueDoux | oui | reel | 0 – 0.5 | 0.15 | non | non |
+| braqueFort | oui | reel | 0.2 – 1 | 0.5 | non | non |
+| ligneLoin | oui | reel | 100 – 500 | 320 | non | non |
+| bandeDecor | oui | reel | 10 – 99 | 99 | non | non |
+| capMax | oui | reel | 0.1 – 0.8 | 0.35 | non | non |
+| jaugeAllume | oui | reel | 0.2 – 1.2 | 0.45 | non | non |
+| jaugeCoupe | oui | reel | 0 – 0.8 | 0.25 | non | non |
+| braqueNitro | oui | reel | 0.2 – 1.2 | 0.7 | non | non |
+| nitroDecor | oui | reel | 0 – 1.5 | 1 | non | non |
+| figMax | oui | entier | 0 – 5 | 2 | non | oui |
+| figHaut | oui | reel | 0 – 60 | 15 | non | non |
+| figTemps | oui | reel | 1.4 – 3 | 1.5 | non | non |
+| figJauge | oui | reel | 0.35 – 1 | 0.4 | non | non |
+| figEcart | oui | reel | 0.5 – 2 | 0.55 | non | non |
+| figDepuis | oui | reel | 0.1 – 1.2 | 0.4 | non | non |
+| raccCartes_grotte | oui | drapeau | 0 – 1 | 0 | non | oui |
+| raccJumeau_grotte | oui | drapeau | 0 – 1 | 0 | non | oui |
+| raccCartes_canyon | oui | drapeau | 0 – 1 | 0 | non | oui |
+| raccJumeau_canyon | oui | drapeau | 0 – 1 | 0 | non | oui |
+| raccCartes_jade | oui | drapeau | 0 – 1 | 0 | non | oui |
+| raccJumeau_jade | oui | drapeau | 0 – 1 | 1 | non | oui |
+| raccCartes_ville | oui | drapeau | 0 – 1 | 1 | non | oui |
+| fileOn | **NON** | - | - | - | - | - |
+| fileVue | **NON** | - | - | - | - | - |
+
+# Les greffes proposees, passees a lireGreffes
+- {"raccCartes_grotte":1,"raccJumeau_grotte":1} -> ACCEPTEE
+- {"raccCartes_canyon":1,"raccJumeau_canyon":1} -> ACCEPTEE
+- {"raccCartes_jade":1} -> ACCEPTEE
+- {"figMax":3} -> ACCEPTEE
+- {"marge":5} -> REFUSEE : evoluer : config "greffes", ensemble n° 1 : « marge » est un reel : seuls les drapeaux, les choix et les entiers se greffent
+- {"capMax":0.6} -> REFUSEE : evoluer : config "greffes", ensemble n° 1 : « capMax » est un reel : seuls les drapeaux, les choix et les entiers se greffent
+
+# Les bras proposes, poses sur le temoin puis repares (genome.js reparer, valider)
+- vise-large {"marge":5} -> survit a reparer ; valide
+- nitro-pose {"capMax":0.6,"jaugeAllume":0.25,"jaugeCoupe":0.1} -> survit a reparer ; valide
+- racc-fermes {"raccCartes_grotte":1,"raccJumeau_grotte":1,"raccCartes_canyon":1,"raccJumeau_canyon":1,"raccCartes_jade":1} -> survit a reparer ; valide

@@ -1,0 +1,97 @@
+# Le recomptage du relecteur (joueurs : 14 parties ; c0025 : 20 parties)
+
+## 1. Les controles, partie par partie
+| lot | partie | duree s | palier (sommet) | somme des gains | fin.pieces | ecart | seconde chance (pieces reprises) | sources route/air/figure | apres le dernier echantillon | figures payees sans piece | images de figure > 18 pieces par figure |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| J | 0 | 193.6 | 15 | 1529 | 1529 | 0 | non | 1304/85/140 (somme 1529) | 0 | 2 | 0 |
+| J | 1 | 63.4 | 5 | 275 | 275 | 0 | non | 222/41/12 (somme 275) | 0 | 0 | 0 |
+| J | 2 | 545.1 | 28 | 4287 | 3923 | 364 | oui (364) | 3568/373/346 (somme 4287) | 0 | 1 | 0 |
+| J | 3 | 65.1 | 5 | 289 | 289 | 0 | non | 258/6/25 (somme 289) | 0 | 0 | 0 |
+| J | 4 | 170.4 | 14 | 1390 | 1390 | 0 | non | 1205/22/163 (somme 1390) | 0 | 0 | 1 |
+| J | 5 | 153.0 | 8 | 612 | 612 | 0 | non | 446/15/151 (somme 612) | 0 | 0 | 0 |
+| J | 6 | 51.8 | 4 | 198 | 198 | 0 | non | 167/4/27 (somme 198) | 0 | 0 | 0 |
+| J | 7 | 156.8 | 12 | 1086 | 1086 | 0 | non | 951/61/74 (somme 1086) | 0 | 0 | 0 |
+| J | 8 | 130.4 | 11 | 920 | 920 | 0 | non | 793/87/40 (somme 920) | 0 | 0 | 0 |
+| J | 9 | 237.0 | 16 | 1671 | 1671 | 0 | non | 1316/149/206 (somme 1671) | 0 | 0 | 0 |
+| J | 10 | 13.7 | 1 | 17 | 17 | 0 | non | 17/0/0 (somme 17) | 0 | 0 | 0 |
+| J | 11 | 261.6 | 21 | 2597 | 2597 | 0 | non | 2248/250/99 (somme 2597) | 0 | 0 | 0 |
+| J | 12 | 11.8 | 1 | 14 | 14 | 0 | non | 14/0/0 (somme 14) | 0 | 0 | 0 |
+| J | 13 | 396.1 | 22 | 2932 | 2677 | 255 | oui (255) | 2548/155/229 (somme 2932) | 0 | 3 | 0 |
+| B | 0 | 147.8 | 7 | 445 | 445 | 0 | non | 412/13/20 (somme 445) | 0 | 1 | 0 |
+| B | 1 | 179.3 | 10 | 780 | 780 | 0 | non | 726/16/38 (somme 780) | 0 | 0 | 0 |
+| B | 2 | 142.4 | 7 | 481 | 481 | 0 | non | 436/24/21 (somme 481) | 0 | 1 | 0 |
+| B | 3 | 112.3 | 8 | 524 | 524 | 0 | non | 512/1/11 (somme 524) | 0 | 0 | 0 |
+| B | 4 | 110.9 | 6 | 312 | 312 | 0 | non | 289/6/17 (somme 312) | 0 | 0 | 0 |
+| B | 5 | 20.1 | 3 | 93 | 93 | 0 | non | 78/15/0 (somme 93) | 0 | 0 | 0 |
+| B | 6 | 106.5 | 8 | 544 | 544 | 0 | non | 523/2/19 (somme 544) | 0 | 0 | 0 |
+| B | 7 | 97.2 | 6 | 325 | 325 | 0 | non | 311/8/6 (somme 325) | 0 | 0 | 0 |
+| B | 8 | 208.2 | 11 | 948 | 948 | 0 | non | 794/47/107 (somme 948) | 0 | 0 | 2 |
+| B | 9 | 95.6 | 5 | 294 | 294 | 0 | non | 281/0/13 (somme 294) | 0 | 0 | 0 |
+| B | 10 | 266.1 | 14 | 1564 | 1313 | 251 | oui (251) | 1412/89/63 (somme 1564) | 0 | 0 | 0 |
+| B | 11 | 278.7 | 13 | 1457 | 1221 | 236 | oui (236) | 1243/96/118 (somme 1457) | 0 | 0 | 0 |
+| B | 12 | 154.5 | 9 | 656 | 656 | 0 | non | 496/101/59 (somme 656) | 0 | 0 | 0 |
+| B | 13 | 47.4 | 2 | 71 | 71 | 0 | non | 68/0/3 (somme 71) | 0 | 0 | 0 |
+| B | 14 | 132.1 | 7 | 443 | 443 | 0 | non | 406/7/30 (somme 443) | 0 | 0 | 0 |
+| B | 15 | 103.8 | 5 | 257 | 257 | 0 | non | 196/12/49 (somme 257) | 0 | 0 | 0 |
+| B | 16 | 167.4 | 9 | 650 | 650 | 0 | non | 591/21/38 (somme 650) | 0 | 0 | 0 |
+| B | 17 | 108.9 | 6 | 327 | 327 | 0 | non | 289/14/24 (somme 327) | 0 | 0 | 0 |
+| B | 18 | 198.4 | 10 | 858 | 858 | 0 | non | 757/48/53 (somme 858) | 0 | 0 | 0 |
+| B | 19 | 159.2 | 9 | 710 | 710 | 0 | non | 623/51/36 (somme 710) | 0 | 0 | 0 |
+
+## 2. L'ecart, par source, sous plusieurs filtres (pieces par minute vecue dans le filtre)
+| filtre | parties J / B | minutes J / B | pieces/min J / B | rapport | ecart | dont route au sol | dont en l'air | dont figures | km de sol par min de sol J / B | route par km de sol J / B | % du temps au sol J / B | nitro au sol % J / B |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| tout | 14 / 20 | 40.8 / 47.3 | 437 / 248 | 1.76 | 188 | 148 (79 %) | 19 (10 %) | 22 (12 %) | 9.28 / 6.95 | 56.1 / 41.0 | 71 / 78 | 73 / 62 |
+| sans les parties a seconde chance (2 J, 2 B) | 12 / 18 | 25.1 / 38.2 | 422 / 228 | 1.85 | 193 | 152 (78 %) | 19 (10 %) | 23 (12 %) | 7.98 / 6.82 | 58.8 / 37.8 | 76 / 79 | 73 / 61 |
+| sans les seules 2 parties J a seconde chance | 12 / 20 | 25.1 / 47.3 | 422 / 248 | 1.70 | 173 | 135 (78 %) | 17 (10 %) | 22 (13 %) | 7.98 / 6.95 | 58.8 / 41.0 | 76 / 78 | 73 / 62 |
+| chaque partie coupee a 60 s (toutes) | 14 / 20 | 12.3 / 19.1 | 245 / 188 | 1.30 | 57 | 52 (91 %) | 2 (3 %) | 3 (6 %) | 6.68 / 6.11 | 40.4 / 33.6 | 84 / 86 | 79 / 64 |
+| chaque partie coupee a 120 s (toutes) | 14 / 20 | 21.4 / 35.4 | 307 / 216 | 1.42 | 91 | 68 (75 %) | 9 (10 %) | 14 (16 %) | 7.25 / 6.65 | 45.6 / 35.9 | 80 / 83 | 78 / 62 |
+| chaque partie coupee a 180 s (toutes) | 14 / 20 | 28.6 / 43.4 | 363 / 229 | 1.58 | 134 | 108 (81 %) | 9 (7 %) | 17 (13 %) | 7.77 / 6.84 | 52.0 / 38.0 | 78 / 79 | 75 / 62 |
+| fenetre 0-60 s | 14 / 20 | 12.3 / 19.1 | 245 / 188 | 1.30 | 57 | 52 (91 %) | 2 (3 %) | 3 (6 %) | 6.68 / 6.11 | 40.4 / 33.6 | 84 / 86 | 79 / 64 |
+| fenetre 60-120 s | 11 / 18 | 9.1 / 16.2 | 391 / 249 | 1.57 | 142 | 94 (66 %) | 19 (13 %) | 29 (21 %) | 8.11 / 7.33 | 52.1 / 38.4 | 75 / 80 | 77 / 59 |
+| fenetre 120-180 s | 9 / 11 | 7.2 / 8.0 | 529 / 286 | 1.85 | 243 | 218 (90 %) | 5 (2 %) | 20 (8 %) | 9.55 / 7.95 | 68.7 / 48.6 | 70 / 62 | 65 / 62 |
+| fenetre 180-fin s | 5 / 4 | 12.2 / 3.9 | 609 / 466 | 1.31 | 143 | 103 (72 %) | 18 (13 %) | 22 (15 %) | 14.26 / 8.52 | 63.5 / 75.2 | 55 / 62 | 66 / 58 |
+| parties de plus de 120 s, coupees a 120 s | 9 / 11 | 18.0 / 22.0 | 322 / 222 | 1.45 | 99 | 77 (77 %) | 8 (8 %) | 15 (15 %) | 7.39 / 6.67 | 45.8 / 36.6 | 82 / 83 | 79 / 61 |
+| parties de plus de 180 s, coupees a 180 s | 5 / 4 | 15.0 / 12.0 | 372 / 252 | 1.47 | 120 | 103 (86 %) | 9 (8 %) | 7 (6 %) | 7.93 / 6.95 | 51.6 / 44.3 | 80 / 73 | 74 / 64 |
+| palier courant 1-4 | 14 / 20 | 12.3 / 22.0 | 218 / 190 | 1.15 | 29 | 18 (65 %) | 1 (3 %) | 9 (32 %) | 6.55 / 6.25 | 36.5 / 33.4 | 82 / 85 | 81 / 64 |
+| palier courant 5-8 | 11 / 18 | 9.4 / 18.4 | 383 / 262 | 1.46 | 121 | 92 (76 %) | 11 (9 %) | 18 (15 %) | 8.14 / 7.46 | 53.1 / 40.9 | 75 / 76 | 77 / 59 |
+| palier courant 9-12 | 8 / 8 | 6.4 / 5.5 | 606 / 388 | 1.56 | 217 | 224 (103 %) | -3 (-2 %) | -3 (-1 %) | 9.86 / 8.30 | 68.8 / 66.6 | 79 / 57 | 67 / 62 |
+| palier courant 13-30 | 6 / 2 | 12.7 / 1.4 | 604 / 438 | 1.38 | 166 | 96 (58 %) | 39 (24 %) | 31 (19 %) | 14.13 / 8.82 | 64.9 / 71.5 | 53 / 62 | 63 / 55 |
+| palier courant 1-12, coupe a 180 s | 14 / 20 | 27.2 / 43.4 | 357 / 229 | 1.56 | 128 | 106 (83 %) | 9 (7 %) | 13 (10 %) | 7.69 / 6.84 | 51.3 / 38.0 | 79 / 79 | 76 / 62 |
+
+## 3. A palier egal (palier courant exact, les joueurs ponderes par les minutes de c0025 a chaque palier)
+- tout (47.3 min de c0025 aux paliers ou les joueurs ont plus de 0,3 min) : pieces/min J 339 / B 248 = x1.36 ; route au sol 295 / 221 ; en l'air 17 / 12 ; figures 27 / 15
+- coupe a 180 s (43.4 min de c0025 aux paliers ou les joueurs ont plus de 0,3 min) : pieces/min J 319 / B 229 = x1.39 ; route au sol 279 / 205 ; en l'air 15 / 10 ; figures 25 / 14
+- sans seconde chance (38.2 min de c0025 aux paliers ou les joueurs ont plus de 0,3 min) : pieces/min J 337 / B 228 = x1.48 ; route au sol 295 / 204 ; en l'air 16 / 10 ; figures 27 / 14
+
+## 4. Sans une partie de joueur (le rapport des pieces par minute, tout)
+- avec les 14 : x1.76
+- sans J11 (262 s, palier 21) : x1.68
+- sans J2 (545 s, palier 28) : x1.72
+- sans J4 (170 s, palier 14) : x1.74
+- sans J0 (194 s, palier 15) : x1.75
+- sans les deux plus longues (396 et 545 s) : x1.70
+
+## 5. Intervalles a 95 % (tirage des parties avec remise, 2000 fois)
+- tout : pieces/min x1.76 [1.46 ; 2.06] ; route au sol x1.67 [1.38 ; 1.98] ; km de sol par min de sol [1.12 ; 1.53] ; route par km de sol [1.20 ; 1.60] ; part des figures dans l'ecart [0.07 ; 0.21]
+- coupe a 180 s : pieces/min x1.58 [1.33 ; 1.84] ; route au sol x1.53 [1.25 ; 1.77] ; km de sol par min de sol [1.08 ; 1.19] ; route par km de sol [1.17 ; 1.57] ; part des figures dans l'ecart [0.05 ; 0.24]
+- fenetre 0-60 s : pieces/min x1.30 [1.00 ; 1.61] ; route au sol x1.29 [0.97 ; 1.65] ; km de sol par min de sol [1.03 ; 1.15] ; route par km de sol [0.96 ; 1.45] ; part des figures dans l'ecart [-0.08 ; 0.66]
+- fenetre 60-180 s : pieces/min x1.73 [1.42 ; 2.09] ; route au sol x1.66 [1.34 ; 2.04] ; km de sol par min de sol [1.10 ; 1.23] ; route par km de sol [1.21 ; 1.78] ; part des figures dans l'ecart [0.06 ; 0.24]
+- sans seconde chance : pieces/min x1.85 [1.47 ; 2.23] ; route au sol x1.74 [1.33 ; 2.11] ; km de sol par min de sol [1.08 ; 1.23] ; route par km de sol [1.29 ; 1.79] ; part des figures dans l'ecart [0.05 ; 0.26]
+- a palier egal (tout) : [1.25 ; 1.57] ; a palier egal coupe a 180 s : [1.26 ; 1.63]
+
+## 6. La route au sol = part du temps au sol x km de sol par minute de sol x pieces par km de sol (partage par logarithme)
+- tout : ecart total 188 ; route au sol 148 = temps au sol -26 + vitesse de sol 83 (x1.34) + densite de sol 91 (x1.37) ; en l'air 19 ; figures 22 ; km en tout par minute 11.18 / 6.98
+- coupe a 180 s : ecart total 134 ; route au sol 108 = temps au sol -4 + vitesse de sol 33 (x1.14) + densite de sol 80 (x1.37) ; en l'air 9 ; figures 17 ; km en tout par minute 8.48 / 6.80
+- palier courant 1-12 : ecart total 119 ; route au sol 101 = temps au sol 3 + vitesse de sol 33 (x1.13) + densite de sol 65 (x1.28) ; en l'air 7 ; figures 12 ; km en tout par minute 8.40 / 6.90
+
+## 7. Pieces de route par km de sol, par zone (r = portails franchis, 3 = 3 et plus) et a zone egale
+| zone | km de sol J / B | route par km de sol J / B | rapport |
+|---|---|---|---|
+| 0 | 70 / 138 | 35.2 / 32.3 | 1.09 |
+| 1 | 53 / 69 | 54.0 / 44.8 | 1.20 |
+| 2 | 35 / 32 | 66.7 / 50.7 | 1.31 |
+| 3 | 110 / 16 | 67.1 / 79.2 | 0.85 |
+- a zone egale (joueurs ponderes par les km de sol de c0025 dans chaque zone) : x1.13 [1.01 ; 1.28] ; tel quel x1.37 ; part du melange des zones dans le rapport (logarithme) : 61 %
+- a palier egal (km de sol de c0025 par palier exact) : x1.16 [1.05 ; 1.36]
+- vitesse de sol a palier egal : x1.10 [1.06 ; 1.14] ; coupe a 180 s : x1.09 [1.05 ; 1.12]

@@ -1,0 +1,150 @@
+
+## JOUEURS (ml/bot/etalon, partiesJoueurs) : 14 parties, 40.8 min
+pieces ramassees 17817 · par minute 436.4 [371–480]
+  route   15057 = 84.5 % · 368.8/min [308–410]
+  air      1248 = 7.0 % · 30.6/min [20–39]
+  fig      1512 = 8.5 % · 37.0/min [30–44]
+  poses payees 205 (5.0/min) · pieces par pose payee 7.4 · vols 327 (8.0/min) · poses payees par vol 0.63 · figures de la main ('fig') 86
+| tranche | parties vivantes | min | km/min | pieces route par km | route/min | air/min | figures/min | total/min | en l'air % | vols/min | poses payees/vol | nitro % | km/h au sol |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0–60 s | 14 | 12.3 | 7.0 | 32.6 | 227 | 5 | 12 | 244 | 15.7 | 3.9 | 0.58 | 71 | 405 |
+| 60–120 s | 11 | 9.1 | 8.8 | 36.3 | 318 | 30 | 43 | 391 | 24.8 | 6.9 | 0.76 | 67 | 503 |
+| 120–180 s | 9 | 7.2 | 10.7 | 42.8 | 456 | 26 | 47 | 529 | 30.4 | 8.5 | 0.70 | 53 | 598 |
+| 180 s et + | 5 | 12.2 | 17.5 | 28.5 | 498 | 59 | 52 | 609 | 45.0 | 12.7 | 0.55 | 50 | 920 |
+partie par partie : duree s · palier · total/min · route/min · air/min · fig/min · km/min · vols/min
+  194s P15 474=404+26+43 11.7km 8.1v
+  63s P5 260=210+39+11 7.3km 7.6v
+  545s P28 472=393+41+38 16.8km 11.0v
+  65s P5 266=238+6+23 7.4km 8.3v
+  170s P14 490=424+8+57 9.8km 7.4v
+  153s P8 240=175+6+59 8.4km 6.3v
+  52s P4 229=194+5+31 7.5km 5.8v
+  157s P12 415=364+23+28 9.0km 6.1v
+  130s P11 423=365+40+18 7.9km 2.8v
+  237s P16 423=333+38+52 8.5km 9.4v
+  14s P1 74=74+0+0 2.8km 4.4v
+  262s P21 596=516+57+23 9.0km 6.2v
+  12s P1 71=71+0+0 1.9km 5.1v
+  396s P22 444=386+23+35 12.0km 8.2v
+
+##   dont Sacha (clavier) : 10 parties, 30.1 min
+pieces ramassees 12612 · par minute 418.8 [332–455]
+  route   10683 = 84.7 % · 354.7/min [277–387]
+  air       762 = 6.0 % · 25.3/min [13–34]
+  fig      1167 = 9.3 % · 38.7/min [32–46]
+  poses payees 153 (5.1/min) · pieces par pose payee 7.6 · vols 256 (8.5/min) · poses payees par vol 0.60 · figures de la main ('fig') 81
+| tranche | parties vivantes | min | km/min | pieces route par km | route/min | air/min | figures/min | total/min | en l'air % | vols/min | poses payees/vol | nitro % | km/h au sol |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0–60 s | 10 | 9.1 | 7.1 | 28.1 | 199 | 7 | 14 | 220 | 18.8 | 4.7 | 0.58 | 71 | 408 |
+| 60–120 s | 8 | 6.1 | 9.0 | 35.1 | 316 | 21 | 50 | 388 | 29.2 | 7.3 | 0.76 | 67 | 516 |
+| 120–180 s | 6 | 5.0 | 11.5 | 40.4 | 463 | 22 | 51 | 536 | 37.3 | 9.2 | 0.63 | 53 | 624 |
+| 180 s et + | 3 | 9.9 | 19.0 | 24.5 | 466 | 47 | 48 | 560 | 46.9 | 12.3 | 0.53 | 50 | 993 |
+partie par partie : duree s · palier · total/min · route/min · air/min · fig/min · km/min · vols/min
+  194s P15 474=404+26+43 11.7km 8.1v
+  63s P5 260=210+39+11 7.3km 7.6v
+  545s P28 472=393+41+38 16.8km 11.0v
+  65s P5 266=238+6+23 7.4km 8.3v
+  170s P14 490=424+8+57 9.8km 7.4v
+  153s P8 240=175+6+59 8.4km 6.3v
+  52s P4 229=194+5+31 7.5km 5.8v
+  157s P12 415=364+23+28 9.0km 6.1v
+  12s P1 71=71+0+0 1.9km 5.1v
+  396s P22 444=386+23+35 12.0km 8.2v
+
+##   dont Leo (doigt) : 4 parties, 10.7 min
+pieces ramassees 5205 · par minute 485.9 [372–571]
+  route    4374 = 84.0 % · 408.3/min [295–494]
+  air       486 = 9.3 % · 45.4/min [32–55]
+  fig       345 = 6.6 % · 32.2/min [17–49]
+  poses payees 52 (4.9/min) · pieces par pose payee 6.6 · vols 71 (6.6/min) · poses payees par vol 0.73 · figures de la main ('fig') 5
+| tranche | parties vivantes | min | km/min | pieces route par km | route/min | air/min | figures/min | total/min | en l'air % | vols/min | poses payees/vol | nitro % | km/h au sol |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0–60 s | 4 | 3.2 | 6.6 | 46.3 | 307 | 0 | 5 | 312 | 6.8 | 1.5 | 0.60 | 73 | 395 |
+| 60–120 s | 3 | 3.0 | 8.3 | 38.9 | 321 | 49 | 29 | 399 | 15.9 | 6.0 | 0.78 | 66 | 480 |
+| 120–180 s | 3 | 2.2 | 8.8 | 49.9 | 441 | 35 | 38 | 514 | 14.4 | 6.9 | 0.93 | 54 | 554 |
+| 180 s et + | 2 | 2.3 | 10.9 | 58.2 | 633 | 113 | 69 | 816 | 36.4 | 14.3 | 0.64 | 49 | 656 |
+partie par partie : duree s · palier · total/min · route/min · air/min · fig/min · km/min · vols/min
+  130s P11 423=365+40+18 7.9km 2.8v
+  237s P16 423=333+38+52 8.5km 9.4v
+  14s P1 74=74+0+0 2.8km 4.4v
+  262s P21 596=516+57+23 9.0km 6.2v
+
+## c0025 = pilote-voltige (note-voltige4-t900, tmax 900, allege, jeu cashcar-v1627) : 20 parties, 47.3 min
+pieces ramassees 11739 · par minute 248.3 [218–276]
+  route   10443 = 89.0 % · 220.9/min [194–245]
+  air       571 = 4.9 % · 12.1/min [7–16]
+  fig       725 = 6.2 % · 15.3/min [12–19]
+  poses payees 115 (2.4/min) · pieces par pose payee 6.3 · vols 271 (5.7/min) · poses payees par vol 0.42 · figures de la main ('fig') 26
+| tranche | parties vivantes | min | km/min | pieces route par km | route/min | air/min | figures/min | total/min | en l'air % | vols/min | poses payees/vol | nitro % | km/h au sol |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0–60 s | 20 | 19.1 | 6.1 | 28.8 | 176 | 3 | 9 | 187 | 14.2 | 3.7 | 0.42 | 58 | 374 |
+| 60–120 s | 18 | 16.3 | 7.3 | 30.9 | 224 | 11 | 14 | 249 | 20.4 | 5.1 | 0.42 | 52 | 455 |
+| 120–180 s | 11 | 8.0 | 7.6 | 31.5 | 238 | 21 | 27 | 286 | 37.9 | 8.8 | 0.45 | 44 | 497 |
+| 180 s et + | 4 | 3.9 | 8.9 | 44.3 | 395 | 41 | 30 | 466 | 38.1 | 11.9 | 0.39 | 43 | 553 |
+partie par partie : duree s · palier · total/min · route/min · air/min · fig/min · km/min · vols/min
+  148s P7 181=167+5+8 6.9km 4.1v
+  179s P10 261=243+5+13 7.0km 4.7v
+  142s P7 203=184+10+9 6.8km 5.5v
+  112s P8 280=274+1+6 7.2km 3.2v
+  111s P6 169=156+3+9 6.6km 2.2v
+  20s P3 278=233+45+0 5.5km 6.0v
+  107s P8 306=295+1+11 6.9km 3.9v
+  97s P6 201=192+5+4 6.6km 6.2v
+  208s P11 273=229+14+31 6.5km 8.1v
+  96s P5 184=176+0+8 6.4km 1.9v
+  266s P14 353=318+20+14 7.5km 8.3v
+  279s P13 314=268+21+25 8.1km 8.0v
+  154s P9 255=193+39+23 7.1km 5.0v
+  47s P2 90=86+0+4 5.3km 3.8v
+  132s P7 201=184+3+14 6.5km 5.0v
+  104s P5 149=113+7+28 7.1km 8.7v
+  167s P9 233=212+8+14 6.9km 5.0v
+  109s P6 180=159+8+13 6.4km 3.3v
+  198s P10 259=229+15+16 6.9km 6.7v
+  159s P9 268=235+19+14 6.9km 6.0v
+
+## JOUEURS, parties de 120 a 300 s : 7 parties, 21.7 min
+pieces ramassees 9805 · par minute 451.6 [365–522]
+  route    8263 = 84.3 % · 380.6/min [301–448]
+  air       669 = 6.8 % · 30.8/min [17–44]
+  fig       873 = 8.9 % · 40.2/min [29–51]
+  poses payees 111 (5.1/min) · pieces par pose payee 7.9 · vols 149 (6.9/min) · poses payees par vol 0.74 · figures de la main ('fig') 46
+| tranche | parties vivantes | min | km/min | pieces route par km | route/min | air/min | figures/min | total/min | en l'air % | vols/min | poses payees/vol | nitro % | km/h au sol |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0–60 s | 7 | 7.0 | 7.1 | 36.3 | 258 | 1 | 11 | 271 | 11.4 | 3.1 | 0.73 | 74 | 405 |
+| 60–120 s | 7 | 7.0 | 9.0 | 38.0 | 341 | 31 | 47 | 419 | 25.2 | 6.6 | 0.80 | 66 | 507 |
+| 120–180 s | 7 | 5.2 | 11.3 | 42.7 | 480 | 34 | 57 | 572 | 30.0 | 8.7 | 0.80 | 51 | 605 |
+| 180 s et + | 3 | 2.5 | 11.5 | 54.1 | 623 | 104 | 67 | 794 | 37.7 | 14.2 | 0.61 | 47 | 671 |
+partie par partie : duree s · palier · total/min · route/min · air/min · fig/min · km/min · vols/min
+  194s P15 474=404+26+43 11.7km 8.1v
+  170s P14 490=424+8+57 9.8km 7.4v
+  153s P8 240=175+6+59 8.4km 6.3v
+  157s P12 415=364+23+28 9.0km 6.1v
+  130s P11 423=365+40+18 7.9km 2.8v
+  237s P16 423=333+38+52 8.5km 9.4v
+  262s P21 596=516+57+23 9.0km 6.2v
+
+## c0025, parties de 120 a 300 s : 11 parties, 33.9 min
+pieces ramassees 8992 · par minute 265.2 [234–295]
+  route    7896 = 87.8 % · 232.9/min [206–260]
+  air       513 = 5.7 % · 15.1/min [10–20]
+  fig       583 = 6.5 % · 17.2/min [13–22]
+  poses payees 94 (2.8/min) · pieces par pose payee 6.2 · vols 215 (6.3/min) · poses payees par vol 0.44 · figures de la main ('fig') 25
+| tranche | parties vivantes | min | km/min | pieces route par km | route/min | air/min | figures/min | total/min | en l'air % | vols/min | poses payees/vol | nitro % | km/h au sol |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0–60 s | 11 | 11.0 | 6.0 | 31.0 | 186 | 3 | 9 | 198 | 14.5 | 3.7 | 0.46 | 57 | 375 |
+| 60–120 s | 11 | 11.0 | 7.3 | 30.2 | 219 | 13 | 14 | 247 | 19.7 | 5.2 | 0.44 | 52 | 452 |
+| 120–180 s | 11 | 8.0 | 7.6 | 31.5 | 238 | 21 | 27 | 286 | 37.9 | 8.8 | 0.45 | 44 | 497 |
+| 180 s et + | 4 | 3.9 | 8.9 | 44.3 | 395 | 41 | 30 | 466 | 38.1 | 11.9 | 0.39 | 43 | 553 |
+partie par partie : duree s · palier · total/min · route/min · air/min · fig/min · km/min · vols/min
+  148s P7 181=167+5+8 6.9km 4.1v
+  179s P10 261=243+5+13 7.0km 4.7v
+  142s P7 203=184+10+9 6.8km 5.5v
+  208s P11 273=229+14+31 6.5km 8.1v
+  266s P14 353=318+20+14 7.5km 8.3v
+  279s P13 314=268+21+25 8.1km 8.0v
+  154s P9 255=193+39+23 7.1km 5.0v
+  132s P7 201=184+3+14 6.5km 5.0v
+  167s P9 233=212+8+14 6.9km 5.0v
+  198s P10 259=229+15+16 6.9km 6.7v
+  159s P9 268=235+19+14 6.9km 6.0v

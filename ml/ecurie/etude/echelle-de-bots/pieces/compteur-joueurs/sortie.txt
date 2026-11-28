@@ -1,0 +1,181 @@
+COMPTEUR DES JOUEURS : d'ou viennent les pieces (coinsGot). Lecture seule, 2026-11-28
+Joueurs : ml/bot/etalon/*.json via partiesJoueurs (14 parties). c0025 : ml/ecurie/agents/tmp-voltige/note-voltige4-t900.json (20 courses, tmax 900, meme enregistreur).
+S = joueur au clavier, L = joueur au doigt (les deux habitues de l'etude). Sources : route_sol / route_air = pieces ramassees (1 chacune) au sol / en vol ;
+fig_vol = pieces payees a la pose d'un vol a figures ; fig_route = figure de route (au sol) ; perte = ce que la seconde chance a repris.
+
+## 1. Partie par partie
+
+JOUEURS (14)
+qui | palier | duree s | pieces | /min | route_sol | route_air | fig_vol (nb fig) | fig_route (nb) | %fig | km/min | route/km | %air | vols/min | fig/vol | %nitro | portails | perte SC
+L | 1 | 13.7 | 17 | 74 | 17 | 0 | 0 (0) | 0 (0) | 0.0 | 2.84 | 26 | 44 | 4.4 | 0.00 | 0 | 0 | 0
+S | 1 | 11.8 | 14 | 71 | 14 | 0 | 0 (0) | 0 (0) | 0.0 | 1.90 | 38 | 51 | 5.1 | 0.00 | 0 | 0 | 0
+S | 4 | 51.8 | 198 | 229 | 167 | 4 | 27 (3) | 0 (0) | 13.6 | 7.54 | 26 | 23 | 5.8 | 0.60 | 72 | 0 | 0
+S | 5 | 63.4 | 275 | 260 | 222 | 41 | 12 (3) | 0 (0) | 4.4 | 7.29 | 34 | 24 | 7.6 | 0.38 | 64 | 1 | 0
+S | 5 | 65.1 | 289 | 266 | 258 | 6 | 25 (5) | 0 (0) | 8.7 | 7.45 | 33 | 34 | 8.3 | 0.56 | 75 | 1 | 0
+S | 8 | 153.0 | 612 | 240 | 446 | 15 | 151 (15) | 0 (0) | 24.7 | 8.42 | 21 | 31 | 6.3 | 0.94 | 65 | 2 | 0
+L | 11 | 130.4 | 920 | 423 | 793 | 87 | 15 (3) | 25 (4) | 4.3 | 7.91 | 51 | 7 | 2.8 | 0.50 | 71 | 2 | 0
+S | 12 | 156.8 | 1086 | 416 | 951 | 61 | 74 (8) | 0 (0) | 6.8 | 8.96 | 43 | 22 | 6.1 | 0.50 | 70 | 3 | 0
+S | 14 | 170.4 | 1390 | 489 | 1205 | 22 | 143 (15) | 20 (3) | 11.7 | 9.77 | 44 | 28 | 7.4 | 0.71 | 63 | 4 | 0
+S | 15 | 193.6 | 1529 | 474 | 1304 | 85 | 136 (15) | 4 (1) | 9.2 | 11.72 | 37 | 35 | 8.1 | 0.58 | 56 | 4 | 0
+L | 16 | 237.0 | 1671 | 423 | 1316 | 149 | 168 (25) | 38 (5) | 12.3 | 8.47 | 44 | 25 | 9.4 | 0.68 | 59 | 4 | 0
+L | 21 | 261.6 | 2597 | 596 | 2248 | 250 | 77 (12) | 22 (3) | 3.8 | 9.00 | 64 | 14 | 6.2 | 0.44 | 63 | 4 | 0
+S | 22 | 396.1 | 2932 | 444 | 2548 | 155 | 223 (27) | 6 (1) | 7.8 | 12.08 | 34 | 30 | 8.2 | 0.50 | 64 | 8 | 255
+S | 28 | 545.1 | 4287 | 472 | 3568 | 373 | 315 (47) | 31 (4) | 8.1 | 16.84 | 26 | 42 | 11.0 | 0.47 | 53 | 13 | 364
+
+c0025 (20 courses enregistrees)
+qui | palier | duree s | pieces | /min | route_sol | route_air | fig_vol (nb fig) | fig_route (nb) | %fig | km/min | route/km | %air | vols/min | fig/vol | %nitro | portails | perte SC
+c0025 | 2 | 47.4 | 71 | 90 | 68 | 0 | 3 (1) | 0 (0) | 4.2 | 5.34 | 16 | 16 | 3.8 | 0.33 | 61 | 0 | 0
+c0025 | 3 | 20.1 | 93 | 278 | 78 | 15 | 0 (0) | 0 (0) | 0.0 | 5.53 | 51 | 5 | 6.0 | 0.00 | 65 | 0 | 0
+c0025 | 5 | 95.6 | 294 | 185 | 281 | 0 | 13 (2) | 0 (0) | 4.4 | 6.36 | 28 | 12 | 1.9 | 0.67 | 60 | 1 | 0
+c0025 | 5 | 103.8 | 257 | 149 | 196 | 12 | 49 (7) | 0 (0) | 19.1 | 7.14 | 17 | 40 | 8.7 | 0.47 | 55 | 1 | 0
+c0025 | 6 | 110.9 | 312 | 169 | 289 | 6 | 17 (2) | 0 (0) | 5.4 | 6.60 | 24 | 17 | 2.2 | 0.50 | 56 | 0 | 0
+c0025 | 6 | 97.2 | 325 | 201 | 311 | 8 | 6 (1) | 0 (0) | 1.8 | 6.63 | 30 | 22 | 6.2 | 0.10 | 55 | 1 | 0
+c0025 | 6 | 108.9 | 327 | 180 | 289 | 14 | 24 (3) | 0 (0) | 7.3 | 6.43 | 26 | 13 | 3.3 | 0.50 | 54 | 1 | 0
+c0025 | 7 | 147.8 | 445 | 181 | 412 | 13 | 20 (3) | 0 (0) | 4.5 | 6.85 | 25 | 19 | 4.1 | 0.30 | 53 | 2 | 0
+c0025 | 7 | 142.4 | 481 | 203 | 436 | 24 | 21 (5) | 0 (0) | 4.4 | 6.79 | 29 | 23 | 5.5 | 0.38 | 55 | 2 | 0
+c0025 | 7 | 132.1 | 443 | 201 | 406 | 7 | 30 (5) | 0 (0) | 6.8 | 6.48 | 29 | 17 | 5.0 | 0.45 | 47 | 1 | 0
+c0025 | 8 | 112.3 | 524 | 280 | 512 | 1 | 11 (1) | 0 (0) | 2.1 | 7.22 | 38 | 5 | 3.2 | 0.17 | 53 | 0 | 0
+c0025 | 8 | 106.5 | 544 | 306 | 523 | 2 | 19 (4) | 0 (0) | 3.5 | 6.91 | 43 | 13 | 3.9 | 0.57 | 61 | 1 | 0
+c0025 | 9 | 154.5 | 656 | 255 | 496 | 101 | 59 (7) | 0 (0) | 9.0 | 7.06 | 33 | 25 | 5.0 | 0.54 | 56 | 2 | 0
+c0025 | 9 | 167.4 | 650 | 233 | 591 | 21 | 38 (6) | 0 (0) | 5.8 | 6.95 | 32 | 14 | 5.0 | 0.43 | 51 | 2 | 0
+c0025 | 9 | 159.2 | 710 | 268 | 623 | 51 | 36 (5) | 0 (0) | 5.1 | 6.95 | 37 | 22 | 6.0 | 0.31 | 48 | 2 | 0
+c0025 | 10 | 179.3 | 780 | 261 | 726 | 16 | 38 (5) | 0 (0) | 4.9 | 7.05 | 35 | 19 | 4.7 | 0.36 | 51 | 2 | 0
+c0025 | 10 | 198.4 | 858 | 259 | 757 | 48 | 53 (9) | 0 (0) | 6.2 | 6.94 | 35 | 28 | 6.7 | 0.41 | 50 | 2 | 0
+c0025 | 11 | 208.2 | 948 | 273 | 794 | 47 | 107 (13) | 0 (0) | 11.3 | 6.54 | 37 | 35 | 8.1 | 0.46 | 48 | 2 | 0
+c0025 | 13 | 278.7 | 1457 | 314 | 1243 | 96 | 118 (21) | 0 (0) | 8.1 | 8.08 | 36 | 33 | 8.0 | 0.57 | 51 | 4 | 236
+c0025 | 14 | 266.1 | 1564 | 353 | 1412 | 89 | 63 (13) | 0 (0) | 4.0 | 7.52 | 45 | 25 | 8.3 | 0.35 | 50 | 4 | 251
+
+## 2. Minute par minute (temps de toutes les parties encore en vie dans la fenetre ; taux = total / minutes vecues)
+
+JOUEURS
+fenetre | parties vivantes | minutes | pieces/min | route_sol/min | route_air/min | fig_vol/min | fig_route/min | figures payees/min | pieces/figure | km/min | pieces de route/km | %air | vols/min | %nitro | km/h sol | portails/min
+min 1 | 14 | 12.3 | 245 | 228 | 5 | 11 | 1 | 2.3 | 5.3 | 6.98 | 33 | 16 | 3.9 | 72 | 405 | 0.41
+min 2 | 11 | 9.1 | 392 | 318 | 30 | 40 | 3 | 5.0 | 8.6 | 8.76 | 40 | 25 | 6.9 | 67 | 503 | 1.20
+min 3 | 9 | 7.2 | 529 | 456 | 26 | 39 | 8 | 5.7 | 8.2 | 10.67 | 45 | 30 | 8.5 | 53 | 598 | 1.67
+min 4+ | 5 | 12.2 | 610 | 499 | 59 | 48 | 4 | 6.9 | 7.5 | 17.51 | 32 | 45 | 12.7 | 50 | 920 | 1.48
+TOUT | 14 | 40.8 | 437 | 369 | 31 | 33 | 4 | 4.9 | 7.6 | 11.18 | 36 | 29 | 8.0 | 61 | 581 | 1.13
+recette sur 100 pieces : fenetre | route_sol | route_air | fig_vol | fig_route | autre
+min 1 | 93 | 2 | 4 | 1 | 0
+min 2 | 81 | 8 | 10 | 1 | 0
+min 3 | 86 | 5 | 7 | 1 | 0
+min 4+ | 82 | 10 | 8 | 1 | 0
+TOUT | 85 | 7 | 8 | 1 | 0
+
+c0025
+fenetre | parties vivantes | minutes | pieces/min | route_sol/min | route_air/min | fig_vol/min | fig_route/min | figures payees/min | pieces/figure | km/min | pieces de route/km | %air | vols/min | %nitro | km/h sol | portails/min
+min 1 | 20 | 19.1 | 188 | 176 | 3 | 9 | 0 | 1.5 | 5.7 | 6.10 | 29 | 14 | 3.7 | 58 | 375 | 0.16
+min 2 | 18 | 16.2 | 249 | 224 | 11 | 14 | 0 | 2.2 | 6.6 | 7.26 | 32 | 20 | 5.1 | 52 | 455 | 0.92
+min 3 | 11 | 8.0 | 286 | 238 | 21 | 27 | 0 | 3.9 | 7.0 | 7.55 | 34 | 38 | 8.8 | 44 | 497 | 1.12
+min 4+ | 4 | 3.9 | 466 | 395 | 41 | 30 | 0 | 4.7 | 6.4 | 8.92 | 49 | 38 | 11.9 | 43 | 553 | 0.78
+TOUT | 20 | 47.3 | 248 | 221 | 12 | 15 | 0 | 2.4 | 6.4 | 6.98 | 33 | 22 | 5.7 | 53 | 432 | 0.63
+recette sur 100 pieces : fenetre | route_sol | route_air | fig_vol | fig_route | autre
+min 1 | 94 | 2 | 5 | 0 | 0
+min 2 | 90 | 5 | 6 | 0 | 0
+min 3 | 83 | 7 | 9 | 0 | 0
+min 4+ | 85 | 9 | 6 | 0 | 0
+TOUT | 89 | 5 | 6 | 0 | 0
+
+JOUEUR S seul (clavier, 10 parties)
+fenetre | parties vivantes | minutes | pieces/min | route_sol/min | route_air/min | fig_vol/min | fig_route/min | figures payees/min | pieces/figure | km/min | pieces de route/km | %air | vols/min | %nitro | km/h sol | portails/min
+min 1 | 10 | 9.0 | 221 | 200 | 7 | 13 | 1 | 2.8 | 5.2 | 7.10 | 29 | 19 | 4.8 | 71 | 409 | 0.44
+min 2 | 8 | 6.1 | 388 | 316 | 21 | 49 | 2 | 5.2 | 9.7 | 9.01 | 37 | 29 | 7.3 | 67 | 516 | 1.30
+min 3 | 6 | 5.0 | 536 | 463 | 22 | 46 | 5 | 5.4 | 9.4 | 11.47 | 42 | 37 | 9.2 | 53 | 624 | 1.80
+min 4+ | 3 | 9.9 | 562 | 467 | 47 | 46 | 2 | 6.4 | 7.5 | 19.06 | 27 | 47 | 12.3 | 50 | 993 | 1.52
+TOUT | 10 | 30.1 | 419 | 355 | 25 | 37 | 2 | 4.9 | 7.9 | 12.15 | 31 | 33 | 8.5 | 60 | 618 | 1.20
+recette sur 100 pieces : fenetre | route_sol | route_air | fig_vol | fig_route | autre
+min 1 | 90 | 3 | 6 | 0 | 0
+min 2 | 81 | 5 | 13 | 0 | 0
+min 3 | 86 | 4 | 9 | 1 | 0
+min 4+ | 83 | 8 | 8 | 0 | 0
+TOUT | 85 | 6 | 9 | 0 | 0
+
+JOUEUR L seul (doigt, 4 parties)
+fenetre | parties vivantes | minutes | pieces/min | route_sol/min | route_air/min | fig_vol/min | fig_route/min | figures payees/min | pieces/figure | km/min | pieces de route/km | %air | vols/min | %nitro | km/h sol | portails/min
+min 1 | 4 | 3.2 | 312 | 307 | 0 | 2 | 3 | 0.9 | 5.3 | 6.64 | 46 | 7 | 1.6 | 73 | 396 | 0.31
+min 2 | 3 | 3.0 | 400 | 322 | 49 | 22 | 6 | 4.7 | 6.1 | 8.27 | 45 | 16 | 6.0 | 66 | 480 | 1.00
+min 3 | 3 | 2.2 | 514 | 440 | 35 | 24 | 14 | 6.4 | 5.9 | 8.82 | 54 | 14 | 6.9 | 54 | 554 | 1.38
+min 4+ | 2 | 2.3 | 816 | 633 | 113 | 58 | 11 | 9.1 | 7.6 | 10.87 | 69 | 36 | 14.3 | 49 | 656 | 1.30
+TOUT | 4 | 10.7 | 486 | 409 | 45 | 24 | 8 | 4.9 | 6.6 | 8.45 | 54 | 17 | 6.6 | 62 | 496 | 0.93
+recette sur 100 pieces : fenetre | route_sol | route_air | fig_vol | fig_route | autre
+min 1 | 98 | 0 | 1 | 1 | 0
+min 2 | 81 | 12 | 6 | 2 | 0
+min 3 | 86 | 7 | 5 | 3 | 0
+min 4+ | 78 | 14 | 7 | 1 | 0
+TOUT | 84 | 9 | 5 | 2 | 0
+
+## 3. L'effet du palier : vitesse (km/min) ou densite (pieces de route / km) ?
+
+JOUEURS — par palier courant
+paliers | minutes | km/min | pieces de route/km | pieces de route/min | fig/min (pieces) | km/h sol | %air
+1-4 | 12.3 | 6.95 | 29 | 203 | 17 | 401 | 18
+5-8 | 9.4 | 8.69 | 40 | 347 | 37 | 496 | 25
+9-12 | 6.4 | 10.76 | 53 | 575 | 29 | 613 | 21
+13-30 | 12.7 | 17.34 | 31 | 541 | 60 | 917 | 47
+JOUEURS — par nombre de portails franchis (la route n° r de l'enregistrement ; economie.md : densite 55, 97, 141, 188, 240 /km)
+portails | minutes | km/min | pieces de route/km
+0 | 12.6 | 6.85 | 30
+1 | 8.6 | 8.82 | 40
+2 | 5.0 | 10.09 | 50
+3 | 5.3 | 11.92 | 49
+4+ | 9.3 | 19.36 | 28
+
+c0025 — par palier courant
+paliers | minutes | km/min | pieces de route/km | pieces de route/min | fig/min (pieces) | km/h sol | %air
+1-4 | 22.0 | 6.25 | 29 | 183 | 9 | 384 | 15
+5-8 | 18.4 | 7.25 | 34 | 245 | 17 | 465 | 24
+9-12 | 5.6 | 8.30 | 41 | 341 | 31 | 521 | 42
+13-30 | 1.3 | 9.63 | 46 | 444 | 27 | 590 | 42
+c0025 — par nombre de portails franchis (la route n° r de l'enregistrement ; economie.md : densite 55, 97, 141, 188, 240 /km)
+portails | minutes | km/min | pieces de route/km
+0 | 25.1 | 6.42 | 28
+1 | 12.2 | 7.21 | 37
+2 | 6.9 | 7.55 | 34
+3 | 2.0 | 9.37 | 50
+4+ | 1.0 | 9.38 | 52
+
+## 4. L'ecart joueurs / c0025, fenetre par fenetre (rapports ; log-decomposition de route/min = km/min x pieces/km)
+fenetre | pieces/min J / B | route/min J / B | km/min J / B | route/km J / B | part de l'ecart de route/min due aux km (log) | fig/min J / B
+min 1 | 245 / 188 | 233 / 179 | 6.98 / 6.10 | 33 / 29 | 51 % | 12 / 9
+min 2 | 392 / 249 | 348 / 235 | 8.76 / 7.26 | 40 / 32 | 48 % | 43 / 14
+min 3 | 529 / 286 | 482 / 259 | 10.67 / 7.55 | 45 / 34 | 56 % | 47 / 27
+min 4+ | 610 / 466 | 558 / 436 | 17.51 / 8.92 | 32 / 49 | 274 % | 52 / 30
+
+## 5. Fourchettes (bootstrap sur les parties, 4000 tirages ; 2,5 % - 97,5 %)
+
+toutes minutes : mesure | joueurs | c0025 | rapport J/B [IC 95 %]
+pmin | 437 | 248 | 1.76 [1.47 ; 2.07]
+route | 400 | 233 | 1.72 [1.40 ; 2.04]
+km | 11.18 | 6.98 | 1.60 [1.23 ; 1.95]
+dens | 36 | 33 | 1.07 [0.86 ; 1.44]
+fig | 37 | 15 | 2.42 [1.81 ; 3.33]
+pfig | 8 | 6 | 1.37 [0.97 ; 1.94]
+air | 29 | 22 | 1.30 [0.93 ; 1.70]
+vols | 8 | 6 | 1.40 [1.06 ; 1.78]
+
+min 1 (0-60 s) : mesure | joueurs | c0025 | rapport J/B [IC 95 %]
+pmin | 245 | 188 | 1.30 [0.99 ; 1.64]
+route | 233 | 179 | 1.30 [0.96 ; 1.68]
+km | 6.98 | 6.10 | 1.14 [1.06 ; 1.23]
+dens | 33 | 29 | 1.14 [0.86 ; 1.45]
+fig | 12 | 9 | 1.40 [0.70 ; 2.66]
+pfig | 5 | 5 | 1.07 [0.47 ; 2.31]
+air | 16 | 14 | 1.10 [0.68 ; 1.94]
+vols | 4 | 4 | 1.05 [0.65 ; 1.72]
+
+apres 60 s : mesure | joueurs | c0025 | rapport J/B [IC 95 %]
+pmin | 520 | 290 | 1.79 [1.55 ; 2.22]
+route | 472 | 270 | 1.75 [1.48 ; 2.20]
+km | 12.99 | 7.57 | 1.72 [1.29 ; 2.09]
+dens | 36 | 36 | 1.02 [0.80 ; 1.48]
+fig | 48 | 20 | 2.40 [1.77 ; 3.55]
+pfig | 9 | 7 | 1.34 [0.91 ; 2.01]
+air | 35 | 28 | 1.25 [0.89 ; 1.62]
+vols | 10 | 7 | 1.38 [1.07 ; 1.71]
+
+## 6. La premiere route (avant le premier portail) : pieces de route par km et km/min
+joueurs : 12.6 min, 6.85 km/min, 30 pieces de route/km, 15 pieces de figure/min
+c0025 : 25.1 min, 6.42 km/min, 28 pieces de route/km, 8 pieces de figure/min
+
+## 7. Le premier portail : instant (s) et longueur de la premiere route (m)
+joueurs : premier portail atteint par 11/14 ; instants 31 38 42 47 51 62 62 75 84 86 100 ; mediane 62 s ; longueur mediane route 1 : 8750 m
+c0025 : premier portail atteint par 16/20 ; instants 47 56 56 63 67 77 81 82 83 84 84 84 85 88 89 95 ; mediane 83 s ; longueur mediane route 1 : 9178 m
