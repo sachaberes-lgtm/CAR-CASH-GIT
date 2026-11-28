@@ -1,0 +1,187 @@
+{
+ "date": "2026-11-28T16:00:13.625Z",
+ "fenetre_s": 10,
+ "humains": {
+  "qui": "clavier",
+  "parties": 10,
+  "fenetres": 147,
+  "etalon": 14,
+  "recollees": 2,
+  "doublons": 3
+ },
+ "bot": {
+  "sources": [
+   "note-voltige4-t900.json"
+  ],
+  "parties": 20,
+  "fenetres": 246
+ },
+ "auc": 0.924,
+ "verdict": "DISCERNABLE A COUP SUR",
+ "temoin": {
+  "auc": [
+   0.461,
+   0.383,
+   0.407,
+   0.472,
+   0.433,
+   0.435,
+   0.342,
+   0.554,
+   0.307,
+   0.538,
+   0.475,
+   0.504,
+   0.318,
+   0.64,
+   0.294,
+   0.557,
+   0.651,
+   0.552,
+   0.513,
+   0.606,
+   0.507,
+   0.359,
+   0.66,
+   0.32,
+   0.597,
+   0.464,
+   0.751,
+   0.487,
+   0.664,
+   0.473
+  ],
+  "moyenne": 0.491,
+  "ecart_max": 0.206
+ },
+ "mesures": [
+  {
+   "mesure": "ondulation (ecart-type de la vitesse laterale / vitesse au sol)",
+   "auc": 0.333,
+   "ecart": 0.167,
+   "z": 3.57,
+   "humains": 0.168,
+   "bot": 0.216
+  },
+  {
+   "mesure": "part du temps en l'air",
+   "auc": 0.643,
+   "ecart": 0.143,
+   "z": -1.43,
+   "humains": 0.283,
+   "bot": 0.186
+  },
+  {
+   "mesure": "hauteur max (m)",
+   "auc": 0.692,
+   "ecart": 0.192,
+   "z": -1.35,
+   "humains": 56.68,
+   "bot": 19.102
+  },
+  {
+   "mesure": "decollages par 10 s",
+   "auc": 0.632,
+   "ecart": 0.132,
+   "z": -1.31,
+   "humains": 1.295,
+   "bot": 0.852
+  },
+  {
+   "mesure": "figures par 10 s",
+   "auc": 0.57,
+   "ecart": 0.07,
+   "z": -0.98,
+   "humains": 0.373,
+   "bot": 0.104
+  },
+  {
+   "mesure": "pieces par seconde",
+   "auc": 0.675,
+   "ecart": 0.175,
+   "z": -0.86,
+   "humains": 7.193,
+   "bot": 4.177
+  },
+  {
+   "mesure": "vol moyen (s)",
+   "auc": 0.607,
+   "ecart": 0.107,
+   "z": -0.7,
+   "humains": 1.649,
+   "bot": 1.195
+  },
+  {
+   "mesure": "bascules de nitro par 10 s",
+   "auc": 0.438,
+   "ecart": 0.062,
+   "z": 0.54,
+   "humains": 9.756,
+   "bot": 10.301
+  },
+  {
+   "mesure": "vitesse : ecart-type / moyenne",
+   "auc": 0.555,
+   "ecart": 0.055,
+   "z": -0.37,
+   "humains": 0.195,
+   "bot": 0.187
+  },
+  {
+   "mesure": "changements de cote par seconde",
+   "auc": 0.653,
+   "ecart": 0.153,
+   "z": -0.35,
+   "humains": 0.948,
+   "bot": 0.737
+  },
+  {
+   "mesure": "ecart au milieu (part de la demi-route)",
+   "auc": 0.472,
+   "ecart": 0.028,
+   "z": 0.31,
+   "humains": 0.287,
+   "bot": 0.291
+  },
+  {
+   "mesure": "ecart-type de l'ecart",
+   "auc": 0.48,
+   "ecart": 0.02,
+   "z": 0.29,
+   "humains": 0.337,
+   "bot": 0.34
+  },
+  {
+   "mesure": "part du temps en drift",
+   "auc": 0.478,
+   "ecart": 0.022,
+   "z": 0.19,
+   "humains": 0.001,
+   "bot": 0.002
+  },
+  {
+   "mesure": "part du temps nitro",
+   "auc": 0.64,
+   "ecart": 0.14,
+   "z": -0.17,
+   "humains": 0.631,
+   "bot": 0.541
+  },
+  {
+   "mesure": "acceleration laterale (ecart-type, / vitesse au sol, 1/s)",
+   "auc": 0.602,
+   "ecart": 0.102,
+   "z": -0.17,
+   "humains": 0.693,
+   "bot": 0.624
+  },
+  {
+   "mesure": "part du temps pres du bord (> 80 %)",
+   "auc": 0.528,
+   "ecart": 0.028,
+   "z": -0.05,
+   "humains": 0.045,
+   "bot": 0.044
+  }
+ ]
+}

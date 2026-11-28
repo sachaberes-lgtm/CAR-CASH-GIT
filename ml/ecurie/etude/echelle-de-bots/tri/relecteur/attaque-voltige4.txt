@@ -1,0 +1,20 @@
+bot : 20 parties (ml/ecurie/agents/tmp-voltige/note-voltige4-t900.json) ; joueurs : 14 (10 au clavier) ; T = 109.5 s
+grille 5 s clavier entiers : joueurs 10/252, bot 20/446 -> AUC 0.895 (par partie 0.9)
+grille 5 s clavier < 109.5 s : joueurs 10/134, bot 20/446 -> AUC 0.842 (par partie 0.9)
+grille 5 s tous    entiers : joueurs 14/357, bot 20/446 -> AUC 0.912 (par partie 0.857)
+grille 5 s tous    < 109.5 s : joueurs 14/191, bot 20/446 -> AUC 0.879 (par partie 0.857)
+grille 10 s clavier entiers : joueurs 10/147, bot 20/246 -> AUC 0.924 (par partie 0.9)
+grille 10 s clavier < 109.5 s : joueurs 10/72, bot 20/246 -> AUC 0.85 (par partie 0.9)
+grille 10 s tous    entiers : joueurs 14/203, bot 20/246 -> AUC 0.928 (par partie 0.857)
+grille 10 s tous    < 109.5 s : joueurs 14/100, bot 20/246 -> AUC 0.874 (par partie 0.857)
+grille 20 s clavier entiers : joueurs 9/75, bot 19/123 -> AUC 0.974 (par partie 1)
+grille 20 s clavier < 109.5 s : joueurs 9/34, bot 19/123 -> AUC 0.951 (par partie 1)
+grille 20 s tous    entiers : joueurs 12/101, bot 19/123 -> AUC 0.97 (par partie 1)
+grille 20 s tous    < 109.5 s : joueurs 12/46, bot 19/123 -> AUC 0.954 (par partie 1)
+taille : 5 parties du bot (20 tirages) -> AUC moyenne 0.816, q05 0.774, q95 0.898
+taille : 10 parties du bot (20 tirages) -> AUC moyenne 0.844, q05 0.828, q95 0.871
+melange (10 contre 20, 30 fois) -> AUC moyenne 0.475, q05 0.34, q95 0.568, max 0.582
+Sacha (10) contre Leo (4) entiers -> AUC 0.93
+Sacha (10) contre Leo (4) < 109.5 s -> AUC 0.947
+Sacha 60aa15e (8) contre Sacha ccdca9b (2) -> AUC 0.033
+ecrit : ml\ecurie\etude\echelle-de-bots\tri\relecteur\attaque-voltige4.json

@@ -1,0 +1,22 @@
+bot : 40 parties (ml/ecurie/etude/echelle-de-bots/tri/relecteur/note-test-b-40.json) ; joueurs : 14 (10 au clavier) ; T = 109.45 s
+grille 5 s clavier entiers : joueurs 10/252, bot 40/697 -> AUC 0.924 (par partie 0.9)
+grille 5 s clavier < 109.45 s : joueurs 10/134, bot 40/697 -> AUC 0.874 (par partie 0.9)
+grille 5 s tous    entiers : joueurs 14/357, bot 40/697 -> AUC 0.936 (par partie 0.857)
+grille 5 s tous    < 109.45 s : joueurs 14/191, bot 40/697 -> AUC 0.903 (par partie 0.857)
+grille 10 s clavier entiers : joueurs 10/147, bot 40/372 -> AUC 0.953 (par partie 0.9)
+grille 10 s clavier < 109.45 s : joueurs 10/72, bot 40/372 -> AUC 0.904 (par partie 0.9)
+grille 10 s tous    entiers : joueurs 14/203, bot 40/372 -> AUC 0.953 (par partie 0.857)
+grille 10 s tous    < 109.45 s : joueurs 14/100, bot 40/372 -> AUC 0.914 (par partie 0.857)
+grille 20 s clavier entiers : joueurs 9/75, bot 40/181 -> AUC 0.984 (par partie 1)
+grille 20 s clavier < 109.45 s : joueurs 9/34, bot 40/181 -> AUC 0.963 (par partie 1)
+grille 20 s tous    entiers : joueurs 12/101, bot 40/181 -> AUC 0.986 (par partie 1)
+grille 20 s tous    < 109.45 s : joueurs 12/46, bot 40/181 -> AUC 0.97 (par partie 1)
+taille : 5 parties du bot (20 tirages) -> AUC moyenne 0.878, q05 0.83, q95 0.943
+taille : 10 parties du bot (20 tirages) -> AUC moyenne 0.896, q05 0.873, q95 0.932
+taille : 20 parties du bot (20 tirages) -> AUC moyenne 0.902, q05 0.889, q95 0.924
+melange (10 contre 40, 30 fois) -> AUC moyenne 0.497, q05 0.38, q95 0.625, max 0.627
+Sacha (10) contre Leo (4) entiers -> AUC 0.93
+Sacha (10) contre Leo (4) < 109.45 s -> AUC 0.947
+Sacha 60aa15e (8) contre Sacha ccdca9b (2) -> AUC 0.033
+bot (40) contre l'autre lot du bot (20), les deux coupes a 109.45 s -> AUC 0.513
+ecrit : ml\ecurie\etude\echelle-de-bots\tri\relecteur\attaque-test-b-40.json

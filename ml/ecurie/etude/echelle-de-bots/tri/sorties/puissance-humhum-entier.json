@@ -1,0 +1,41 @@
+{
+ "date": "2026-11-28T15:53:27.763Z",
+ "fenetre_s": 10,
+ "thum": null,
+ "tbot": null,
+ "humains": {
+  "qui": "clavier",
+  "parties": 10,
+  "fenetres": 147,
+  "etalon": 14,
+  "recollees": 2,
+  "doublons": 3,
+  "fenetresParPartie": [
+   15,
+   5,
+   43,
+   5,
+   14,
+   13,
+   4,
+   14,
+   1,
+   33
+  ]
+ },
+ "bot": {
+  "sources": [],
+  "parties": 0,
+  "fenetres": 0
+ },
+ "humhum": {
+  "partages": 200,
+  "moyenne": 0.457,
+  "ecart_type": 0.113,
+  "q05": 0.219,
+  "q50": 0.48,
+  "q95": 0.607,
+  "max": 0.677,
+  "ecart95": 0.281
+ }
+}

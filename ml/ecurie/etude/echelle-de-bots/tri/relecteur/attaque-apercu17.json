@@ -1,0 +1,200 @@
+{
+ "date": "2026-11-28T16:16:14.417Z",
+ "source": "ml/ecurie/etude/echelle-de-bots/tri/parties-banc",
+ "autre": "ml/ecurie/agents/tmp-voltige/note-voltige4-t900.json",
+ "T": 109.5,
+ "bot": 17,
+ "humains": {
+  "clavier": 10,
+  "tous": 14
+ },
+ "grille": [
+  {
+   "fenetre": 5,
+   "humains": "clavier",
+   "thum": null,
+   "partiesH": 10,
+   "fenH": 252,
+   "partiesB": 17,
+   "fenB": 298,
+   "auc": 0.915,
+   "aucParPartie": 0.9
+  },
+  {
+   "fenetre": 5,
+   "humains": "clavier",
+   "thum": 109.5,
+   "partiesH": 10,
+   "fenH": 134,
+   "partiesB": 17,
+   "fenB": 298,
+   "auc": 0.865,
+   "aucParPartie": 0.9
+  },
+  {
+   "fenetre": 5,
+   "humains": "tous",
+   "thum": null,
+   "partiesH": 14,
+   "fenH": 357,
+   "partiesB": 17,
+   "fenB": 298,
+   "auc": 0.928,
+   "aucParPartie": 0.857
+  },
+  {
+   "fenetre": 5,
+   "humains": "tous",
+   "thum": 109.5,
+   "partiesH": 14,
+   "fenH": 191,
+   "partiesB": 17,
+   "fenB": 298,
+   "auc": 0.896,
+   "aucParPartie": 0.857
+  },
+  {
+   "fenetre": 10,
+   "humains": "clavier",
+   "thum": null,
+   "partiesH": 10,
+   "fenH": 147,
+   "partiesB": 17,
+   "fenB": 157,
+   "auc": 0.942,
+   "aucParPartie": 0.9
+  },
+  {
+   "fenetre": 10,
+   "humains": "clavier",
+   "thum": 109.5,
+   "partiesH": 10,
+   "fenH": 72,
+   "partiesB": 17,
+   "fenB": 157,
+   "auc": 0.89,
+   "aucParPartie": 0.9
+  },
+  {
+   "fenetre": 10,
+   "humains": "tous",
+   "thum": null,
+   "partiesH": 14,
+   "fenH": 203,
+   "partiesB": 17,
+   "fenB": 157,
+   "auc": 0.941,
+   "aucParPartie": 0.857
+  },
+  {
+   "fenetre": 10,
+   "humains": "tous",
+   "thum": 109.5,
+   "partiesH": 14,
+   "fenH": 100,
+   "partiesB": 17,
+   "fenB": 157,
+   "auc": 0.9,
+   "aucParPartie": 0.857
+  },
+  {
+   "fenetre": 20,
+   "humains": "clavier",
+   "thum": null,
+   "partiesH": 9,
+   "fenH": 75,
+   "partiesB": 17,
+   "fenB": 75,
+   "auc": 0.976,
+   "aucParPartie": 1
+  },
+  {
+   "fenetre": 20,
+   "humains": "clavier",
+   "thum": 109.5,
+   "partiesH": 9,
+   "fenH": 34,
+   "partiesB": 17,
+   "fenB": 75,
+   "auc": 0.956,
+   "aucParPartie": 1
+  },
+  {
+   "fenetre": 20,
+   "humains": "tous",
+   "thum": null,
+   "partiesH": 12,
+   "fenH": 101,
+   "partiesB": 17,
+   "fenB": 75,
+   "auc": 0.98,
+   "aucParPartie": 1
+  },
+  {
+   "fenetre": 20,
+   "humains": "tous",
+   "thum": 109.5,
+   "partiesH": 12,
+   "fenH": 46,
+   "partiesB": 17,
+   "fenB": 75,
+   "auc": 0.967,
+   "aucParPartie": 1
+  }
+ ],
+ "taille": [
+  {
+   "partiesBot": 5,
+   "n": 20,
+   "moyenne": 0.852,
+   "q05": 0.815,
+   "q50": 0.85,
+   "q95": 0.903,
+   "min": 0.766,
+   "max": 0.903
+  },
+  {
+   "partiesBot": 10,
+   "n": 20,
+   "moyenne": 0.882,
+   "q05": 0.866,
+   "q50": 0.88,
+   "q95": 0.901,
+   "min": 0.858,
+   "max": 0.901
+  }
+ ],
+ "melange": {
+  "n": 30,
+  "moyenne": 0.47,
+  "q05": 0.374,
+  "q50": 0.468,
+  "q95": 0.598,
+  "min": 0.333,
+  "max": 0.6
+ },
+ "sachaLeo": [
+  {
+   "thum": null,
+   "sacha": 10,
+   "leo": 4,
+   "auc": 0.93
+  },
+  {
+   "thum": 109.5,
+   "sacha": 10,
+   "leo": 4,
+   "auc": 0.947
+  }
+ ],
+ "sachaVersions": {
+  "a": 8,
+  "b": 2,
+  "auc": 0.033
+ },
+ "botBot": {
+  "a": 17,
+  "b": 20,
+  "auc": 0.509
+ }
+}
