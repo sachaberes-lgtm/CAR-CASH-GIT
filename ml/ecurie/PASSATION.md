@@ -1,6 +1,126 @@
-# Passation — l'écurie, le 27/11/2026 à 23 h 15 (mise à jour ; l'état du 26/11 suit, en partie périmé)
+# Passation — l'écurie, le 28/11/2026 vers 7 h 40 (mise à jour ; l'état du 27/11 au soir et celui du 26/11 suivent, en partie périmés)
 
-À lire en premier par la session qui reprend. Le détail de chaque étape est dans `ETAPES.md` ; ici, l'état exact, ce qui tourne, et quoi faire.
+À lire en premier par la session qui reprend. Le détail de chaque étape est dans `ETAPES.md` (« La nuit du 27 au 28/11 ») ; le récit pour le portfolio
+dans `portfolio/journal/2026-11-28.md` ; ici, l'état exact, ce qui tourne, et quoi faire. Heures de Paris.
+
+## L'état au 28/11/2026 au matin
+
+**En bref.** La sélection naturelle tourne sur le Ryzen depuis le 28/11 à 0 h 29, mais n'envoie plus rien depuis 2 h. La boucle payante y est arrêtée,
+et jugée : sur les 40 graines du coffre, ses champions ne font pas mieux que le pilote de départ c0025 (+0,03 palier [−1,18 ; +1,38], commit `00fb4cfad`).
+L'étude du réglage a montré pourquoi : le hasard d'une course (3,26 paliers en écart-type) pèse environ dix fois plus que l'écart vrai entre deux
+mutants (0,32 [0 ; 1,07]). D'où la méthode retenue par la session principale : des changements de structure, écrits comme des gènes éteints à la
+naissance, jugés un par un sur le **banc des gènes**, qui tourne sur le Xeon.
+
+### Ce qui tourne
+
+| | État au 28/11 vers 7 h 40 |
+|---|---|
+| **Le banc des gènes, sur le Xeon** | **en marche** depuis 3 h 28, dans ce worktree : `node ml/ecurie/etude/banc-des-genes/jouer.js --travailleurs 4 --graines 96`. 13 pilotes × 96 graines = 1 248 courses, plus 2 de contrôle. À 7 h 40 : 744 sur 1 250, « reste ~172 min » (dernière ligne de `jouer.log`). **Aucun résultat** : `sorties/resume.txt` n'existe pas encore. Le dossier n'est pas dans git |
+| **La sélection, sur le Ryzen** | lancée le 28/11 à 0 h 29 avec le code `e93ff5cb5` (génome v:2), dans `CASH-CAR-evolution` sur le Ryzen. Banc de la machine : 10 courses à la fois ; génération 0 : 280 courses en 40 minutes, 418 à l'heure ; champion = témoin (branche `origin/evolution-ryzen`, `machine.json` et `resume.txt`). **Silencieuse depuis 2 h 00** (dernier envoi `71e7c7c2c`) : sélection arrêtée, PC éteint ou en veille, ou envoi bloqué, on ne sait pas (`ml/evolution/notes/LIVRAISON-REGLAGE.md` § 5) |
+| **La boucle payante, sur le Ryzen** | **arrêtée** le 28/11 à 0 h 12 (`b1ff8af89`) ; ses résultats sont fusionnés dans `bots-ecurie` (`7f9543955`) |
+| **Les prochaines idées** (11 agents Opus, lancés vers 7 h 20) | en cours : relever dans les études déjà écrites les changements de structure à mettre sur le banc. Dans `ml/ecurie/etude/prochaines-idees/`, un `LISEZ-MOI.md` (écrit à 7 h 35) et un `candidats.json` (7 h 37) ; l'équipe n'avait pas rendu son bilan à 7 h 40 : ne pas s'y fier avant sa fin et sa relecture |
+
+**Ce qui ne doit pas bouger pendant le banc** : `ml/evolution/modele.js`, `enfant.js`, le jeu, les yeux, la version de Node. Le banc lit le code de ce
+worktree ; s'ils changent, toutes ses courses sont rejouées (`banc-des-genes/LISEZ-MOI.md`, « Reprendre »). Arrêt propre : un fichier vide
+`ml/ecurie/etude/banc-des-genes/etat/STOP`. Pas d'autre course lourde sur le Xeon d'ici là.
+
+### Ce qui est poussé, ce qui ne l'est pas
+
+- **`origin/bots-ecurie` est au commit `2a3bea3c1`** (28/11, 7 h 22), le même que la branche locale : le portage (`7b1df608e`), le coffre (`00fb4cfad`) et
+  le réglage (`3b1bf15e5`, `2a3bea3c1`) sont sur GitHub.
+- **Pas encore commités** au 28/11 à 7 h 40 : le chapitre `portfolio/journal/2026-11-28.md` et les mises à jour du journal (`LISEZ-MOI.md`, `LEXIQUE.md`),
+  les quatre travaux de la nuit dans `portfolio/orchestration/` (et son `LISEZ-MOI.md`, et `outils/orchestration.js`), `ETAPES.md`, cette passation,
+  et tout `ml/ecurie/etude/banc-des-genes/`. À relire, puis à commiter sur `bots-ecurie` par la session principale.
+
+### La mise à jour du Ryzen, qui attend Sacha
+
+Le Ryzen tourne encore le code `e93ff5cb5`. En fusionnant `origin/bots-ecurie`, il recevra deux mises à jour d'un coup : le portage (génome v:3, témoin
+au choix, Node fixe, tâches sans limite ; `notes/LIVRAISON-C0101.md`) et le réglage (`notes/LIVRAISON-REGLAGE.md`). Le portage change `modele.js` :
+**une nouvelle époque** (les notes repartent de zéro, les courses sont rejouées, les pilotes restent). La fusion ne fait aucun conflit
+(`git merge-tree`, § 5 de la livraison).
+1. **D'abord** (§ 5) : sur le Ryzen, `node ml\evolution\etat.js` et les 30 dernières lignes de `etat\sortie.log` et `etat\traces.log`, à donner à Claude.
+   Si la ligne 2 dit EN MARCHE et que la génération a avancé, c'est seulement l'envoi ; sinon, la cause de l'arrêt compte avant de relancer.
+2. **Puis** les sept gestes du § 4 : arrêter, fusionner, le Node fixe, relancer (le témoin reste c0025), rien à faire pour les tâches, vérifier
+   (dont `"regle6"` dans `population.json`), mettre à l'abri.
+Ces gestes se font sur le Ryzen par Sacha, avec l'assistant de Sacha sur le Ryzen. Aucune session Claude du Xeon ne les fait.
+
+### Les décisions prises cette nuit
+
+- **Sacha** (27/11, 23:22 UTC) : arrêter la boucle payante, installer la sélection sur le Ryzen, « j'accepte l'envoi horaire de l'histoire sur GitHub ».
+  Aucun message de lui après 23:35 UTC dans le relevé refait le 28/11 au matin.
+- **La session principale** (méthode) :
+  - le témoin reste **c0025** (le pilote écrit à la main, `pilote-voltige.js`) : le coffre a montré que c0064 et c0101 ne font pas mieux ;
+  - **ne pas relancer la boucle payante telle quelle** (3 h 05) : ses 20 courses de validation, réutilisées à chaque sacre, ont couronné la chance ;
+  - les idées de la boucle, et toute idée nouvelle, deviennent des **gènes éteints à la naissance**, jugés un par un sur le banc des gènes ;
+  - les changements sûrs de l'étude du réglage entrent dans la sélection (`3b1bf15e5`) ; les autres (§ 2 B à E de `etude/reglage-de-la-selection/LISEZ-MOI.md`)
+    attendent : B avec la prochaine époque voulue, C après la mesure de τ, E écartés.
+- **Une erreur de Claude, à garder en tête** : à 0 h 23, Claude a d'abord conseillé de prendre c0101 comme point de départ ; le coffre l'a démenti.
+
+### Les décisions qui attendent Sacha
+
+1. **La sévérité des deux garde-fous du sacre** (`validation.seuilB` et `seuilC` dans `ml/evolution/config.json`, à 1 aujourd'hui, ou 2) : à 2, un +2 paliers
+   est reconnu 86 fois sur 100 au lieu de 80, mais un pilote qui ressemble un peu moins aux joueurs passe plus souvent (`LIVRAISON-REGLAGE.md` § 1, point 8 ;
+   `etude/reglage-de-la-selection/LISEZ-MOI.md`, D1).
+2. **Les 141 € de crédit d'API qui restent** sur 200 (58,53 € dépensés, `b1ff8af89`), à utiliser d'ici le 08/12. La boucle payante telle quelle est
+   écartée ; un lancement payant se fait par Sacha seulement.
+3. **Le nom de l'école** visée : il apparaît dans `portfolio/journal/2026-11-22_23.md` (les points laissés à Sacha par le plan) et dans
+   `portfolio/orchestration/journal/comptes-rendus.md` (le compte rendu du critique). Le dépôt est public : garder ou retirer, à lui de dire.
+4. **Sa page `portfolio/journal/LA-VOIX-DE-SACHA.md`**, vide exprès : à écrire par lui, ou à laisser.
+5. Les décisions de l'étude du réglage qui lui reviennent aussi (D2 à D5 du même LISEZ-MOI : le poids de E dans la note, `seuilSacre`, tout ce qui change les
+   yeux, committer ou non les copies de données des études) : aucune n'est urgente.
+
+L'abonnement : 27 % de la semaine utilisés à 7 h 20 le 28/11 (18 % la veille à 23 h 15), d'après les messages de la session principale.
+
+### À faire ensuite, dans l'ordre (28/11/2026)
+
+1. **Lire le banc des gènes** quand `jouer.log` finit par le total : `node ml/ecurie/etude/banc-des-genes/analyser.js`, puis `sorties/resume.txt`.
+   Le lire avec ses limites (son LISEZ-MOI, « Ce qu'on ne pourra pas conclure ») : 12 bras comparés, donc environ une chance sur deux qu'un « aide » sorte
+   par hasard ; regarder le seuil corrigé ; « on ne sait pas » ne veut pas dire « ne fait rien ». Écrire le résultat dans le LISEZ-MOI du banc, dans le
+   journal (le chapitre du jour) et ici.
+2. **Choisir les prochaines idées** dans `ml/ecurie/etude/prochaines-idees/` (quand l'équipe aura rendu), en relisant ce qu'elle propose contre les études.
+   Ce que son LISEZ-MOI marque comme décision de Sacha (par exemple ce qui change les yeux, ou la façon de compter un palier) lui revient.
+3. **Les écrire comme gènes éteints à la naissance** dans `ml/evolution/genome.js` : tout éteint, le pilote doit redonner c0025 au bit près. Attention :
+   ce qui touche `modele.js` ou `enfant.js` change l'époque (pour le Ryzen) et fait tout rejouer au banc s'il tourne encore.
+4. **Les passer au banc**, sur les mêmes 96 graines (ou une nouvelle plage, jamais sous 2 000 000), un bras par idée.
+5. Entre-temps, dès que Sacha a envoyé les lignes du Ryzen : l'aider pour la mise à jour (plus haut).
+6. Restent ouverts depuis le 27/11 : `tests/courses.test.js` non relancé ; inscrire un champion au labo (`sansCout()`) ; le biais des rayons `versRoute`
+   (change `yeux.js`, donc l'époque : prévenir Sacha) ; archiver les courses des époques closes ; `morts.jsonl` qui grossit.
+
+### Les règles qui tiennent toujours (28/11/2026)
+
+- **Ne jamais lancer `chaine.js` ni `boucle.js` sur le Xeon.**
+- **La clé d'API ne s'affiche ni ne s'écrit nulle part.**
+- **Un lancement payant se fait par Sacha**, jamais par une session Claude.
+- **`installer-tache.cmd` se lance par Sacha seulement** (il change des réglages de Windows).
+- **Rien dans `code/` ni dans `VERSION PRINCIPALE/`** : le jeu ne change pas.
+- Le dépôt GitHub est **public** : aucun nom de PC, aucune adresse, aucune clé, aucun détail de famille ou de logement dans ce qui part. Les deux PC
+  s'appellent « le Xeon » et « le Ryzen » ; celui qui tape les commandes sur le Ryzen, « l'assistant de Sacha sur le Ryzen ».
+- **Une seule mesure lourde à la fois sur un PC**, et rien ne change dans les fichiers de l'époque pendant qu'elle joue (le 28/11, le portage a changé
+  `modele.js` pendant que la mesure du coffre jouait : voir `portfolio/orchestration/LISEZ-MOI.md`).
+- **Un gain se juge sur des graines neuves, jamais réutilisées pour choisir**, et par comparaison appariée (le coffre, le banc).
+- Chaque travail d'agent est relu par un second agent qui refait les mesures ; la session principale relit avant de commiter.
+- Garder des traces de chaque décision pour le portfolio (journal, `ETAPES.md`, `portfolio/orchestration/`).
+
+### Un dossier d'essai à retirer un jour
+
+Le worktree `C:\Users\sacha\code\CASH-CAR-evolution-essai` (code `e2ea8d2c9`), à côté du dépôt : la première vraie évolution du 27/11 au soir, sur le Xeon.
+Ses chiffres servent de premier repère (chapitre du 27/11). À retirer avec `git worktree remove` quand Sacha le veut ; ses `etat/` ne sont pas dans git.
+
+### Le texte à coller dans la session qui reprend (28/11/2026)
+
+> Dans `C:\Users\sacha\code\CASH-CAR-bots-ecurie` (branche `bots-ecurie`), lis `ml/ecurie/PASSATION.md` (la partie du 28/11), puis
+> `ml/ecurie/etude/banc-des-genes/LISEZ-MOI.md` et `ml/evolution/notes/LIVRAISON-REGLAGE.md`. Si le banc des gènes est fini, lance son `analyser.js` et
+> lis `sorties/resume.txt` avec ses limites ; sinon, ne touche ni à `modele.js` ni à `enfant.js`. Puis suis « À faire ensuite ». Ne lance jamais
+> `chaine.js` ni `boucle.js` sur le Xeon, ne touche ni à `code/` ni à `VERSION PRINCIPALE/`, et garde des traces de chaque décision pour le portfolio.
+
+---
+
+# L'état du 27/11/2026 à 23 h 15 (gardé pour l'histoire)
+
+> ⚠ **Périmé en partie depuis le 28/11/2026** : le tableau d'état (finitions non poussées, Ryzen « jamais lancée », boucle payante en marche), les
+> étapes 1 à 4 de « À faire ensuite » (faites dans la nuit), le point « le sacre est prudent » (remplacé par le sacre séquentiel, `3b1bf15e5`) et le
+> texte à coller de cette partie ne sont plus à jour : voir l'état du 28/11, plus haut. Le récit du changement de cap, la première évolution sur le Xeon
+> et les finitions restent justes.
 
 ## Le changement de cap du 27/11/2026 : la sélection naturelle
 

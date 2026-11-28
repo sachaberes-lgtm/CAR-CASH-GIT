@@ -21,7 +21,7 @@ const SESSION = process.argv[2];
 const SORTIE = process.argv[3] || path.join(__dirname, '..', 'orchestration');
 if (!SESSION) { console.error('usage : node orchestration.js <dossier de la session Claude Code> [dossier de sortie]'); process.exit(2); }
 
-/* ----- Les quatre travaux du 27/11 et le rôle de chaque agent, dit en mots simples (tiré des phases de chaque script) ----- */
+/* ----- Les travaux du 27/11 et de la nuit du 27 au 28/11, et le rôle de chaque agent, dit en mots simples (tiré des phases de chaque script) ----- */
 const TRAVAUX = [
   { dossier: 'construction', wf: 'wf_403c6fab-ee7', titre: 'La construction de ml/evolution (la sélection naturelle des bots)',
     roles: [
@@ -50,6 +50,39 @@ const TRAVAUX = [
       [/^gestes$/, 'constructeur du lot « gestes » : les cinq gestes des enquêtes deviennent des gènes éteints à la naissance'],
       [/^relecture:(.*)$/, 'relecteur du lot « $1 » : essaie de casser le travail d\'un autre agent, puis corrige lui-même ce qu\'il trouve'],
       [/^integration$/, 'intégrateur : fusionne les notes des trois lots, lance tous les tests et une évolution d\'essai'] ] },
+  /* ===== LES QUATRE TRAVAUX DE LA NUIT DU 27 AU 28/11 (28/11/2026, Sacha : « il faut qu'on garde des traces de tous les process, pour un portfolio ») =====
+     Ajoutés après coup : les quatre travaux ci-dessus sortent à l'identique. « nouveau: true » ne vaut que pour eux : les champs
+     « passe » des tests deviennent « Réussi : oui / non » au lieu de « Passe : true / false ». */
+  { dossier: 'traces-du-soir', wf: 'wf_2c24b21c-ec9', titre: 'Les traces du soir du 27/11 (journal, passation, orchestrations)', nouveau: true,
+    roles: [
+      [/^ecrire:journal$/, 'rédacteur du journal : ajoute le soir du 27/11 au chapitre du jour, au sommaire et au lexique'],
+      [/^ecrire:passation$/, 'rédacteur de la passation : inscrit le changement de cap et l\'état du soir dans ETAPES.md et PASSATION.md'],
+      [/^ecrire:orchestration$/, 'rédacteur des traces des orchestrations : écrit l\'outil orchestration.js, range les quatre travaux du 27/11 et écrit leur LISEZ-MOI'],
+      [/^verifier$/, 'vérificateur : recontrôle chiffres, dates et citations des trois autres, cherche les détails privés, relance l\'outil'] ] },
+  { dossier: 'reglage', wf: 'wf_f29df098-2f4', titre: 'L\'étude du réglage de la sélection naturelle', nouveau: true,
+    roles: [
+      [/^etude:effets$/, 'auteur de l\'étude « effets » : ce que font vraiment les mutations, mesuré sur la vraie génération 0'],
+      [/^etude:simulateur$/, 'auteur de l\'étude « simulateur » : une sélection simulée, sans aucune course, pour savoir si elle progresse et à quelle vitesse'],
+      [/^etude:vitesse$/, 'auteur de l\'étude « vitesse » : où part le temps d\'une course et comment en jouer plus par heure'],
+      [/^etude:tri-precoce$/, 'auteur de l\'étude « tri précoce » : faut-il finir les courses d\'un enfant visiblement raté ?'],
+      [/^etude:sacre$/, 'auteur de l\'étude « sacre » : comment reconnaître un vrai meilleur sans sacrer un chanceux'],
+      [/^relire:(.*)$/, 'relecteur de l\'étude « $1 » : cherche à la réfuter, refait un résultat par un autre chemin, corrige son LISEZ-MOI'],
+      [/^synthese$/, 'auteur de la synthèse : classe les changements (à faire, à essayer, à ne pas faire, à décider par Sacha)'] ] },
+  { dossier: 'portage', wf: 'wf_a57ffbdc-230', titre: 'Les idées de la boucle payante deviennent des gènes, le Node fixe, la mesure du coffre', nouveau: true,
+    roles: [
+      [/^faire:mesure$/, 'constructeur du lot « mesure » : joue quatre champions sur les 40 graines du coffre et compare chacun au pilote de départ'],
+      [/^faire:lignee$/, 'constructeur du lot « lignée » : raconte la boucle payante du Ryzen génération par génération, avec sa courbe'],
+      [/^faire:portage$/, 'constructeur du lot « portage » : le génome apprend à écrire c0101 comme il écrit c0025 (génome v:3)'],
+      [/^faire:lanceurs$/, 'constructeur du lot « lanceurs » : un Node fixe par PC et des tâches planifiées sans limite de 72 heures'],
+      [/^relire:(.*)$/, 'relecteur du lot « $1 » : cherche à le réfuter, refait une preuve par un autre chemin, corrige ce qu\'il trouve'],
+      [/^integrer$/, 'intégrateur : vérifie que les lots tiennent ensemble, relance tous les tests, écrit la note de livraison'] ] },
+  { dossier: 'changements-surs', wf: 'wf_adf7db90-3c8', titre: 'Les changements sûrs de l\'étude du réglage entrent dans la sélection', nouveau: true,
+    roles: [
+      [/^faire:sacre$/, 'constructeur du lot « sacre » : la validation séquentielle et l\'alarme « malédiction » coupée'],
+      [/^faire:tau$/, 'constructeur du lot « tau » : mesure-tau.js, la sélection mesure seule si les mutations comptent'],
+      [/^faire:regles$/, 'constructeur du lot « règles » : protection des enfants par l\'âge, ordre des courses, réserve de graines, gènes muets hors de l\'urne'],
+      [/^relire:(.*)$/, 'relecteur du lot « $1 » : cherche à le réfuter, refait une preuve par un autre chemin, corrige ce qu\'il trouve'],
+      [/^integrer$/, 'intégrateur : branche la mesure, relance tous les tests (lents compris), reprend un état écrit par l\'ancien code, écrit la note de livraison'] ] },
 ];
 
 /* ----- Le nettoyage : chaque règle compte ses remplacements ----- */
@@ -93,14 +126,23 @@ const CHAMPS = {
   defauts_de_rendu_corriges: 'Défauts de rendu corrigés', images_inserees: 'Images insérées', entrees_lexique: 'Entrées du lexique',
   compris: 'Ce que le lecteur a compris', accroche: 'Ce qui accroche', perdu: 'Où le lecteur se perd',
   titre: 'Titre', gravite: 'Gravité', preuve: 'Preuve', correction: 'Correction proposée', nom: 'Nom', etat: 'État', detail: 'Détail',
+  /* (28/11) les champs des études du réglage : absents des quatre premiers travaux, ils n'y changent rien */
+  recommandations: 'Recommandations', changement: 'Changement', gain: 'Gain attendu', cout: 'Coût', confiance: 'Confiance',
+  verdicts: 'Verdicts du relecteur', recommandation: 'Recommandation', pourquoi: 'Pourquoi',
 };
-const nomChamp = function (k) { return CHAMPS[k] || (k.charAt(0).toUpperCase() + k.slice(1)).replace(/_/g, ' '); };
+/* (28/11) pour les travaux marqués « nouveau » seulement : « passe » (un test) se dit « Réussi », et vrai / faux se dit oui / non */
+let NOUVEAU = false;
+const nomChamp = function (k) { if (NOUVEAU && k === 'passe') return 'Réussi'; return CHAMPS[k] || (k.charAt(0).toUpperCase() + k.slice(1)).replace(/_/g, ' '); };
+const valeur = function (v) { if (NOUVEAU && typeof v === 'boolean') return v ? 'oui' : 'non'; return String(v); };
+/* (28/11) les noms de lots écrits sans accent dans les étiquettes des scripts, remis avec leurs accents dans les rôles (travaux « nouveau » seulement) */
+const ACCENTS = { 'tri-precoce': 'tri précoce', lignee: 'lignée', regles: 'règles' };
+const accents = function (t) { return t.replace(/« ([a-z-]+) »/g, function (m, nom) { return ACCENTS[nom] ? '« ' + ACCENTS[nom] + ' »' : m; }); };
 
 /* Remet une valeur JSON en texte : une chaîne telle quelle, une liste en puces, un objet en « Champ : valeur ». */
 const enTexte = function (v, retrait) {
   retrait = retrait || '';
   if (v === null || v === undefined) return retrait + '(rien)';
-  if (typeof v !== 'object') return String(v).split('\n').map(function (l) { return retrait + l; }).join('\n');
+  if (typeof v !== 'object') return valeur(v).split('\n').map(function (l) { return retrait + l; }).join('\n');
   if (Array.isArray(v)) {
     if (!v.length) return retrait + '(rien)';
     return v.map(function (x) {
@@ -113,7 +155,7 @@ const enTexte = function (v, retrait) {
           if (k === tete) continue;
           const val = x[k], debut = lignes.length ? retrait + '  ' : retrait + '- ';
           if (val && typeof val === 'object') lignes.push(debut + nomChamp(k) + ' :\n' + enTexte(val, retrait + '    '));
-          else lignes.push(debut + nomChamp(k) + ' : ' + String(val).replace(/\n+/g, ' '));
+          else lignes.push(debut + nomChamp(k) + ' : ' + valeur(val).replace(/\n+/g, ' '));
         }
         return lignes.join('  \n');
       }
@@ -123,7 +165,7 @@ const enTexte = function (v, retrait) {
   return Object.keys(v).map(function (k) {
     const val = v[k];
     if (val && typeof val === 'object') return retrait + nomChamp(k) + ' :\n' + enTexte(val, retrait + '  ');
-    return retrait + nomChamp(k) + ' : ' + String(val);
+    return retrait + nomChamp(k) + ' : ' + valeur(val);
   }).join('\n');
 };
 
@@ -132,6 +174,7 @@ const millions = function (n) { return (n / 1e6).toFixed(2).replace('.', ',') + 
 
 const total = {};
 for (const T of TRAVAUX) {
+  NOUVEAU = !!T.nouveau;
   const compte = {};
   const dossierScripts = path.join(SESSION, 'workflows', 'scripts');
   const nomScript = fs.readdirSync(dossierScripts).find(function (f) { return f.endsWith('-' + T.wf + '.js'); });
@@ -166,12 +209,14 @@ for (const T of TRAVAUX) {
   for (const a of agents) {
     let role = a.label;
     for (const r of T.roles) if (r[0].test(a.label)) { role = a.label.replace(r[0], r[1]); break; }
+    if (NOUVEAU) role = accents(role);
     md.push(a.index + '. ' + role + ' (phase « ' + a.phaseTitle + ' »)');
   }
   md.push('');
   for (const a of agents) {
     let role = a.label;
     for (const r of T.roles) if (r[0].test(a.label)) { role = a.label.replace(r[0], r[1]); break; }
+    if (NOUVEAU) role = accents(role);
     md.push('## ' + a.index + '. ' + a.label);
     md.push('');
     md.push('*Rôle : ' + role + '. Phase : ' + a.phaseTitle + '.*');
