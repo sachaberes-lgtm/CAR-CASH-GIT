@@ -1,0 +1,55 @@
+{
+ "format": "banc-vague-1",
+ "numero": 1,
+ "nom": "v001-confirmation-gestes",
+ "question": "Sur des graines neuves, les pistes du banc d etude du 28/11 tiennent-elles ? bord, bord-slalom, suit et fuir-vite sont juges sur la note F de la selection (palier - 4 E) ; slalom est juge sur E (la distance aux joueurs), avec une garde annoncee ici : un « net » de slalom ne vaudra candidat que si son palier moyen, lu sur toutes ses graines, ne perd pas plus de 0,75 palier sur le temoin.",
+ "temoin": "c0025",
+ "tmax": 900,
+ "carte": null,
+ "fixes": {},
+ "plan": {
+  "premier": 24,
+  "pas": 24,
+  "plafond": 192,
+  "alpha": 0.05,
+  "futilite": 0.5,
+  "fMin": 0.1
+ },
+ "bras": [
+  {
+   "nom": "bord",
+   "critere": {
+    "type": "F",
+    "sens": "haut"
+   }
+  },
+  {
+   "nom": "slalom",
+   "critere": {
+    "type": "E",
+    "sens": "bas"
+   }
+  },
+  {
+   "nom": "bord-slalom",
+   "critere": {
+    "type": "F",
+    "sens": "haut"
+   }
+  },
+  {
+   "nom": "suit",
+   "critere": {
+    "type": "F",
+    "sens": "haut"
+   }
+  },
+  {
+   "nom": "fuir-vite",
+   "critere": {
+    "type": "F",
+    "sens": "haut"
+   }
+  }
+ ]
+}

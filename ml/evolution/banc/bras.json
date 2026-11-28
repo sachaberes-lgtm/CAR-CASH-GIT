@@ -11,6 +11,12 @@
     "fidele-juge": { "dit": "juger le vol sur la loi fidele", "genes": { "loiFidele": 1 } },
     "fidele-suit": { "dit": "suivre la loi fidele", "genes": { "loiFidele": 2 } },
     "secours":     { "dit": "les secours en vol", "genes": { "secoursOn": 1 } },
-    "retour":      { "dit": "la loi retour seule (reference du n° 3)", "genes": { "retourOn": 1 } }
+    "retour":      { "dit": "la loi retour seule (reference du n° 3)", "genes": { "retourOn": 1 } },
+    "bord":        { "dit": "la nitro gardee au decollage hors des maps a decor (banc d etude du 28/11 : piste sur F, E plus bas)", "genes": { "bordOn": 1 } },
+    "slalom":      { "dit": "le slalom demande par le pilote (banc d etude du 28/11 : E plus bas, environ 25 km/h de moins)", "genes": { "slalomOn": 1 } },
+    "bord-slalom": { "dit": "les deux ensemble, jamais joues ensemble", "genes": { "bordOn": 1, "slalomOn": 1 } },
+    "suit":        { "dit": "au sol apres la pose, la ligne suit la glisse de la caisse", "genes": { "suitOn": 1 } },
+    "fuir-vite":   { "dit": "fuir le danger plus tot quand la caisse va vite (sacre c0026)", "genes": { "fuirVite": 1 } },
+    "bord-sortie": { "dit": "la nitro gardee au decollage sur toutes les maps (bordOn hors decor, sortieOn sur decor)", "genes": { "bordOn": 1, "sortieOn": 1 } }
   }
 }
