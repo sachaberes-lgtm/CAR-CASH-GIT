@@ -1,0 +1,10 @@
+Generation 0, phase A, epoque 29ae5fffc2b9 (depuis la gen. 0), 12 graines par generation, 20 vivants
+EN MARCHE (pid 8004, signe de vie il y a 7 s, lance le 28/11 00:29)
+Debit : pas encore de generation finie ; 10 a la fois (banc du 28/11)
+Champion 19e3767cc346 (= le temoin) : pas encore note
+Meneur   ? : pas encore note
+Temoin   19e3767cc346 : pas encore note
+Coffre : pas encore mesure
+Validation : aucune encore
+Courses : rien encore
+Alertes : aucune

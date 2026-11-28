@@ -1,0 +1,60 @@
+{
+ "format": "evolution-machine-1",
+ "ordinateur": "pc-d8463bd3",
+ "cpus": 12,
+ "modeleCpu": "AMD Ryzen 5 3600 6-Core Processor",
+ "memoireGo": 15.9,
+ "node": "v24.22.3",
+ "travailleurs": 10,
+ "source": "banc",
+ "date": "2026-11-27T23:46:15.160Z",
+ "banc": {
+  "date": "2026-11-27T23:46:15.155Z",
+  "liste": [
+   6,
+   8,
+   10,
+   11
+  ],
+  "tmax": 300,
+  "resultats": [
+   {
+    "travailleurs": 6,
+    "coursesParHeure": 275.6,
+    "pannes": 0,
+    "nonMesurees": 0,
+    "relancees": 0,
+    "courses": 24,
+    "duree_s": 314
+   },
+   {
+    "travailleurs": 8,
+    "coursesParHeure": 326.8,
+    "pannes": 0,
+    "nonMesurees": 0,
+    "relancees": 0,
+    "courses": 24,
+    "duree_s": 264
+   },
+   {
+    "travailleurs": 10,
+    "coursesParHeure": 363.5,
+    "pannes": 0,
+    "nonMesurees": 0,
+    "relancees": 0,
+    "courses": 20,
+    "duree_s": 198
+   },
+   {
+    "travailleurs": 11,
+    "coursesParHeure": 337.7,
+    "pannes": 0,
+    "nonMesurees": 0,
+    "relancees": 0,
+    "courses": 22,
+    "duree_s": 235
+   }
+  ],
+  "retenu": 10
+ }
+}

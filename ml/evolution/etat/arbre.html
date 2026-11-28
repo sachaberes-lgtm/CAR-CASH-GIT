@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arbre des pilotes</title>
+<style>
+:root{--fond:#f7f6f2;--carte:#ffffff;--texte:#1d2329;--doux:#5f6a75;--trait:#d9dcdf;--grille:#eceef0;--bande:#eef0ee;
+  --champion:#1d9a5b;--temoin:#8a9099;--meneur:#2f6fd6;--g0:#178a8a;--mutation:#2f6fd6;--croisement:#d98a1a;--immigre:#9b6bd3;--fil:#b8bec4;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--fond:#15181b;--carte:#1e2226;--texte:#e7eaed;--doux:#9aa4ae;--trait:#353b41;--grille:#2a2f34;--bande:#1a1e21;
+  --champion:#3cc47f;--temoin:#9aa1aa;--meneur:#5e94f0;--g0:#3bbcbc;--mutation:#5e94f0;--croisement:#eba340;--immigre:#b590e6;--fil:#4a5258;color-scheme:dark}}
+:root[data-theme="dark"]{--fond:#15181b;--carte:#1e2226;--texte:#e7eaed;--doux:#9aa4ae;--trait:#353b41;--grille:#2a2f34;--bande:#1a1e21;
+  --champion:#3cc47f;--temoin:#9aa1aa;--meneur:#5e94f0;--g0:#3bbcbc;--mutation:#5e94f0;--croisement:#eba340;--immigre:#b590e6;--fil:#4a5258;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fond);color:var(--texte);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1240px;margin:0 auto;padding:18px 16px 60px}
+h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.15rem;margin:0 0 .4em}h3{font-size:1.05rem;margin:0 0 .5em}h4{font-size:.95rem;margin:1em 0 .3em}
+a{color:var(--meneur)}header .sous{color:var(--doux);margin:.2em 0 1em;font-size:.92rem}
+section{background:var(--carte);border:1px solid var(--trait);border-radius:10px;padding:14px 16px;margin:12px 0}
+.lire p{margin:.2em 0 .6em;max-width:72em}.chiffres{font-size:1.02rem}
+.legende{list-style:none;margin:.4em 0 0;padding:0;display:flex;flex-wrap:wrap;gap:4px 18px;font-size:.86rem;color:var(--doux)}
+.legende li{display:flex;align-items:center;gap:6px}.legende svg{flex:none;overflow:visible}
+.outils{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-bottom:8px;font-size:.9rem}
+.boutons{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;font-size:.88rem;color:var(--texte);background:var(--fond);border:1px solid var(--trait);border-radius:6px;padding:3px 9px;cursor:pointer}
+button:hover,button:focus-visible{border-color:var(--meneur)}input{font:inherit;font-size:.88rem;color:var(--texte);background:var(--fond);border:1px solid var(--trait);border-radius:6px;padding:3px 6px;width:8.5em}
+.case{color:var(--doux);display:flex;align-items:center;gap:6px}.case input{width:auto}
+.defile{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;border-top:1px solid var(--grille);border-bottom:1px solid var(--grille)}
+#dessin{display:block}
+#dessin .resserre{fill:var(--bande)}#dessin .grille{stroke:var(--grille);stroke-width:1}
+#dessin .axe{fill:var(--doux);font-size:11px}#dessin .axe.titre{font-size:11.5px}
+#dessin .repere{stroke:var(--doux);stroke-dasharray:2 4;stroke-width:1}#dessin .repere-texte{fill:var(--doux);font-size:10.5px}
+.fil{fill:none;stroke:var(--fil);stroke-width:1}.fil.second{stroke-dasharray:3 2}.fil.lig{stroke:var(--champion);stroke-width:2.6;stroke-dasharray:none}
+.vie{stroke-width:2;stroke-linecap:round;opacity:.5}.vie.fine{stroke-width:1.2;opacity:.42}.vie.vivant{opacity:.85}
+.vie.lig{stroke:var(--champion)!important;stroke-width:3.6;opacity:.9}.vie.lig.fine{stroke-width:2.4}
+.o0{stroke:var(--temoin);fill:var(--temoin)}.o1{stroke:var(--g0);fill:var(--g0)}.o2{stroke:var(--mutation);fill:var(--mutation)}
+.o3{stroke:var(--croisement);fill:var(--croisement)}.o4{stroke:var(--immigre);fill:var(--immigre)}.o5{stroke:var(--doux);fill:var(--doux)}
+.pt{stroke:var(--carte);stroke-width:1.2;cursor:pointer}.pt.petit{opacity:.75;stroke-width:.6}
+.pt.anneau{fill:var(--carte);stroke:var(--croisement);stroke-width:2.2}.pt.anneau.petit{stroke-width:1.4}
+.pt:focus{outline:none;stroke:var(--texte);stroke-width:2.4}
+.etoile{fill:var(--champion);font-size:10px;pointer-events:none}.etoile.titre{font-size:14px}
+.nom{font-size:12px;font-weight:600;pointer-events:none}.nom.temoin{fill:var(--temoin)}.nom.champion{fill:var(--champion)}
+#choisi{fill:none;stroke:var(--texte);stroke-width:2;pointer-events:none}
+.fiche{min-height:8em}.fiche p{margin:.3em 0}.fiche ul.diff{margin:.2em 0 .4em;padding-left:1.2em}.fiche li{margin:.1em 0}
+.notes{display:grid;grid-template-columns:max-content 1fr;gap:2px 12px;margin:.2em 0}.notes dt{color:var(--doux)}.notes dd{margin:0}
+.badge{display:inline-block;font-size:.75rem;font-weight:600;border-radius:4px;padding:1px 6px;vertical-align:middle;border:1px solid}
+.badge.champion{color:var(--champion)}.badge.temoin{color:var(--temoin)}.badge.meneur{color:var(--meneur)}.badge.lignee{color:var(--champion);border-style:dashed}
+.lien{border:none;background:none;padding:0 2px;color:var(--meneur);text-decoration:underline;font-size:.92em}
+.code{font-family:ui-monospace,Consolas,monospace;font-size:.9em}.doux{color:var(--doux)}.petit{font-size:.84rem;color:var(--doux);margin:.5em 0 0}
+@media (max-width:560px){section{padding:12px 12px}main{padding:12px 10px 40px}.notes{grid-template-columns:1fr}.notes dd{margin-bottom:4px}}
+</style>
+</head>
+<body>
+<main>
+<header><h1>L'arbre généalogique des pilotes</h1><p class="sous">CASH CAR · la sélection naturelle des bots · page refaite à la fin de chaque génération (dernière fois : 28/11/2026 à 01 h 00) · <a href="tableau.html">le tableau de bord</a> · <a href="histoire.md">le récit</a></p></header>
+<section class="lire"><h2>Comment le lire</h2><p>Chaque point est un pilote, posé à la génération où il est né ; le trait qui part vers la droite est sa vie, jusqu'à son renvoi, ou jusqu'à aujourd'hui s'il vit encore. Un fil courbe le relie à son parent (deux fils pour un croisement), et la forme du point dit d'où il vient. Le trait vert épais remonte la lignée du champion en titre jusqu'au témoin, le pilote de départ ; touchez un point pour lire sa fiche : ce qui a changé par rapport à son parent, et ses notes.</p><p class="chiffres"><b>0</b> génération · <b>20</b> pilotes nés · <b>0</b> renvoyés · <b>20</b> vivants · <b>0</b> sacre</p><ul class="legende"><li><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path class="pt o0" d="M8 2l6 6-6 6-6-6z"/></svg>le témoin (pilote-voltige, jamais modifié)</li><li><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><rect class="pt o1" x="3" y="3" width="10" height="10"/></svg>mutant de départ (génération 0)</li><li><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle class="pt o2" cx="8" cy="8" r="5"/></svg>mutation : une copie changée d'un parent</li><li><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle class="pt o3 anneau" cx="8" cy="8" r="4.3"/></svg>croisement : le mélange de deux parents</li><li><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path class="pt o4" d="M8 2l6 11H2z"/></svg>immigré : une copie très changée du champion</li><li><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><text class="etoile titre" x="8" y="13" text-anchor="middle">★</text></svg>sacré champion</li><li><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><line class="vie lig" x1="1" x2="15" y1="8" y2="8"/></svg>la lignée du champion en titre</li></ul></section>
+<section class="toile"><div class="outils"><div id="aller" class="boutons"><button type="button" data-aller="champion">le champion en titre</button><button type="button" data-aller="temoin">le témoin</button></div><form id="chercher" role="search"><label for="cle">pilote</label> <input id="cle" size="12" autocomplete="off" spellcheck="false" placeholder="77ab12cd"> <button type="submit">ouvrir</button></form><label class="case"><input type="checkbox" id="tous"> montrer aussi les pilotes renvoyés sans enfant</label></div><div id="arbre" class="defile" tabindex="-1"><p class="doux">Le dessin a besoin de JavaScript (il est dans la page, rien ne vient d'Internet).</p></div></section>
+<section id="fiche" class="fiche" aria-live="polite"><p class="doux">Touchez un point de l'arbre pour lire la fiche d'un pilote.</p></section>
+</main>
+<script type="application/json" id="donnees">{"g":0,"detail":60,"voies":20,"genes":["marge","bandeDecor","nitroDecor","margeCouloir","avance","glisse","glisseUrgence","ligneLoin","piecesLoin","capLigne","avanceCap","capAvance","braqueDoux","braqueFort","braqueNitro","margeAllumer","margeTenir","jaugeAllume","jaugeCoupe","capMax","bascule","tenirFacon","derive","raccVirage","raccGain","raccAxe","raccTmin","raccChute","raccTmax","raccAir","raccBord","raccAttente","raccRepos","figPlongeon","figTemps","figJauge","figEcart","dessousMax","dessousPose","departMin","departMax","volRetour","volAvance","figDepuis","figHaut","raccCartes_nuages","raccCartes_ville","raccCartes_jade","raccCartes_espace","raccCartes_grotte","raccCartes_canyon","raccJumeau_nuages","raccJumeau_ville","raccJumeau_jade","raccJumeau_espace","raccJumeau_grotte","raccJumeau_canyon","dessousAveugle","dessousDecor","dessousNitro","dessousFuir","portailVol","volDemiTour","volRetourOn","figMax","retourOn","retMarge","retCap","retGain","retAvance","retourPrime","volMieux","axePoids","vTemps","vPortail","vLevre","vLibreBase","vLibrePente","vCourt","rAxe","rTemps","rPlane","rLourde","bVersRoute","bVersRoutePlane","bRien","lacheOn","lacheAvant","slalomOn","slalomCap","slalomDemi","slalomH","coupOn","coupDepuis","coupEcart","coupDuree","coupPoseMin","coupAxe","coupAir","coupJauge","coupPerte","coupDecor","relacheOn","relacheT","suitOn","suitDerive","suitMarge"],"types":["r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","r","d","d","d","d","d","d","d","d","d","d","d","d","d","c","d","d","d","d","d","e","d","r","r","r","r","r","d","r","r","r","r","r","r","r","r","r","r","r","r","r","r","d","r","d","r","r","r","d","r","r","r","r","r","r","r","r","d","d","r","d","r","r"],"mots":["marge gardée au bord de la route","écart permis à l'axe sur les maps à décor","prudence de la nitro sur les maps à décor","marge gardée dans un couloir","distance minimale de ce qu'on vise","vitesse à laquelle la ligne visée se déplace","la même, quand la route lâche","portée de la ligne parfaite","portée des pièces visées","cap le plus fort pour rejoindre la ligne","anticipation des virages","limite de cette anticipation","virage sous lequel toute la route est permise","virage au-dessus duquel on serre l'intérieur","virage au-dessus duquel pas de nitro","marge de vitesse pour allumer la nitro","marge de vitesse pour la garder","jauge à partir de laquelle la nitro s'allume","jauge sous laquelle la nitro se coupe","travers au-delà duquel pas de nitro","avance qu'il faut pour changer de trajectoire en vol","temps minimal sur une trajectoire en vol","glissade après la pose","virage minimal pour chercher un raccourci","piste à gagner pour tenter un raccourci","angle d'arrivée maximal d'un raccourci","vol minimal d'un raccourci","chute maximale d'un raccourci","vol maximal d'un raccourci","air qui doit rester à la pose","distance au bord de la pose annoncée","distance au bord pour s'engager","pause après un raccourci abandonné","avance d'une figure en plongeon","avance d'une figure avant la pose","jauge minimale pour une figure","temps entre deux gestes","temps sous la route avant d'en sortir","malus d'une pose sous la route","ligne droite minimale au départ","ligne droite maximale au départ","douceur du retour vers la route en vol","anticipation en vol","vol avant la première figure","hauteur minimale pour une figure","raccourcis permis sur la map nuages","raccourcis permis sur la map ville","raccourcis permis sur la map jade","raccourcis permis sur la map espace","raccourcis permis sur la map grotte","raccourcis permis sur la map canyon","double vérification des raccourcis, map nuages","double vérification des raccourcis, map ville","double vérification des raccourcis, map jade","double vérification des raccourcis, map espace","double vérification des raccourcis, map grotte","double vérification des raccourcis, map canyon","sortir de sous la route sans attendre","sortie de sous la route sur les maps à décor (0, 1 ou 2)","nitro pendant la sortie de dessous","fuir une trajectoire qui mène sous la route","passer les portails en vol","braquer en vol même de travers","retour vers la route réglable en vol","figures par vol au plus","la loi « retour » des yeux","loi « retour » : marge","loi « retour » : cap","loi « retour » : gain","loi « retour » : anticipation","bonus de la loi « retour »","changer de trajectoire « pour mieux »","poids de l'angle de pose","poids de la durée d'un vol","valeur d'un portail","valeur d'une lèvre","valeur d'un vol libre","valeur d'un vol libre (pente)","valeur d'une trajectoire courte","raccourci : poids de l'angle","raccourci : poids de la durée","raccourci : malus en planant","raccourci : malus d'une pose lourde","bonus de « vers la route »","bonus de « vers la route en planant »","bonus de « ne rien faire »","geste : lâcher le volant juste avant de retomber","combien de temps avant la pose on lâche le volant","geste : petits zigzags rapides sur la route","ampleur des zigzags","durée d'un aller du zigzag","portée du regard pendant les zigzags","geste : petits coups de nitro en l'air","temps de vol avant le premier coup","temps entre deux coups","durée d'un coup de nitro","temps de vol qu'il doit rester après le coup","travers permis à la pose après le coup","temps de vol minimal pour donner un coup","jauge minimale pour donner un coup","distance qu'un coup peut faire perdre","coups de nitro permis aussi sur les maps à décor","geste : garder la nitro un instant après le décollage","combien de temps on garde la nitro après le décollage","geste : laisser la voiture finir sa glisse à la pose","durée pendant laquelle on suit la glisse","temps de plus avant de revenir à la ligne"],"tetes":{"WV":{"nom":"tête rayon","mot":"le petit réseau qui juge les trajectoires en vol"},"WS":{"nom":"tête sol","mot":"le petit réseau qui ajuste la conduite au sol"}},"noeuds":[["19e3767cc346",0,-1,0,-1,-1,0,41,null,null,null,null,null,null,null,null,[]],["374cae70caf0",0,-1,1,0,-1,1,0,null,null,null,null,null,null,[[13,0.5,0.5694],[14,0.7,0.9484],[30,5,4.9975],[36,0.55,0.6975],[51,0,1],[58,1,2],[61,1,0],[83,3,2.836]],null,[]],["64b8863f1ae7",0,-1,1,0,-1,2,0,null,null,null,null,null,null,[[15,0.05,0.0469],[85,1,0.4529],[94,0.7,0.5264]],null,[]],["e9a6f6ee1301",0,-1,1,0,-1,3,0,null,null,null,null,null,null,[[0,10,10.445],[6,0.3,0.3261],[13,0.5,0.5977],[52,1,0],[66,8,8.4099]],null,[]],["772e9d0d32bd",0,-1,1,0,-1,4,0,null,null,null,null,null,null,[[3,15,16.7636],[5,0.12,0.0807],[28,3.6,3.7578],[70,4,5.7486],[82,40,42.8501],[96,0.8,1.0283]],null,[]],["37070c8290bb",0,-1,1,0,-1,5,0,null,null,null,null,null,null,[[39,1.5,1.013],[74,94,82.9188],[98,0.8,0.865]],null,[]],["e289fcde9402",0,-1,1,0,-1,6,0,null,null,null,null,null,null,[[5,0.12,0.1376],[10,0.25,0.1413],[23,0.2,0.109],[31,1.6,1.2601],[62,1,0],[81,40,42.5429]],null,[]],["988cb46985cd",0,-1,1,0,-1,7,0,null,null,null,null,null,null,[[5,0.12,0.0735],[6,0.3,0.3306],[29,1.2,1.0672],[36,0.55,0.5443],[59,0,1],[84,2,1.7342]],null,[]],["991b57027b5d",0,-1,1,0,-1,8,0,null,null,null,null,null,null,[[5,0.12,0.1027],[9,0.3,0.2851],[22,0.3,0.4093],[82,40,38.2698],[86,0,1],[91,3,3.3446],[106,0.25,0.2885]],null,[]],["cf6d727e1623",0,-1,1,0,-1,9,0,null,null,null,null,null,null,[[1,99,78.3615],[3,15,15.3378],[26,0.7,0.7706],[30,5,5.9221],[47,0,1],[68,0.8,0.9517]],null,[]],["5ac8b21b6164",0,-1,1,0,-1,10,0,null,null,null,null,null,null,[[1,99,83.7859],[29,1.2,2.0795],[46,1,0],[52,1,0],[58,1,0],[90,0.45,0.4447],[106,0.25,0.2369]],null,[]],["bbd840aa45c3",0,-1,1,0,-1,11,0,null,null,null,null,null,null,[[6,0.3,0.4056],[22,0.3,0.3501],[23,0.2,0.3513],[52,1,0],[96,0.8,0.6394]],null,[]],["3381581a804c",0,-1,1,0,-1,12,0,null,null,null,null,null,null,[[36,0.55,0.7267],[62,1,0],[72,20,23.9234],[98,0.8,0.8271]],null,[]],["0e6f21f75ac5",0,-1,1,0,-1,13,0,null,null,null,null,null,null,[[11,0.25,0.2683],[84,2,1.4713],[98,0.8,0.7194]],null,[]],["55404fa19cc3",0,-1,1,0,-1,14,0,null,null,null,null,null,null,[[8,180,245.7638],[27,120,121.7464],[42,0.25,0.1923]],null,[]],["8ded66d8d42f",0,-1,1,0,-1,15,0,null,null,null,null,null,null,[[35,0.4,0.6068],[37,0.8,0.2561],[39,1.5,0.7953],[52,1,0],[67,0.8,0.7603],[103,0.25,0.1868]],null,[]],["62ee2146c2ba",0,-1,1,0,-1,16,0,null,null,null,null,null,null,[[2,1,0.9656],[87,0.35,0.3621],[106,0.25,0.1692]],null,[]],["5dd04fbc6f9f",0,-1,1,0,-1,17,0,null,null,null,null,null,null,[[1,99,92.0379],[33,2.2,1.8715],[54,0,1],[56,0,1],[68,0.8,0.7096],[73,3,2.6349],[95,0.15,0.1102],[106,0.25,0.2942]],null,[]],["919d8a478380",0,-1,1,0,-1,18,0,null,null,null,null,null,null,[[34,1.5,1.4817],[103,0.25,0.3121],[105,0.3,0.3311]],null,[]],["1410b8e2c162",0,-1,1,0,-1,19,0,null,null,null,null,null,null,[[6,0.3,0.4351],[21,0.35,0.4176],[33,2.2,2.2772],[51,0,1],[76,12,10.8289],[90,0.45,0.4468],[98,0.8,1.0342]],null,[]]],"sacres":{},"reperes":[],"chiffres":{"generations":0,"nes":20,"morts":0,"vivants":20,"sacres":0},"champion":0,"temoin":0,"meneur":-1}</script>
+<script>
+(function programme(){
+  'use strict';
+  const D=typeof DONNEES!=='undefined'?DONNEES:JSON.parse(document.getElementById('donnees').textContent);
+  const ORIG=['temoin','g0','mutation','croisement','immigre','inconnue'];
+  const N=D.noeuds,n=N.length;
+  /* les champs d'un noeud */
+  const ID=0,NE=1,FIN=2,OR=3,P1=4,P2=5,VOIE=6,DR=7,F=8,PAL=9,E=10,NB=11,SEF=12,RAISON=13,DIFF=14,NOTEG=15,PINC=16;
+  const enfants=N.map(()=>[]);
+  for(let i=0;i<n;i++){const a=N[i];if(a[P1]>=0)enfants[a[P1]].push(i);if(a[P2]>=0&&a[P2]!==a[P1])enfants[a[P2]].push(i);}
+  const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const fini=x=>typeof x==='number'&&isFinite(x);
+  const fr=(x,d)=>fini(x)?x.toFixed(d).replace('.',',').replace('-','−'):'–';
+  const court=i=>String(N[i][ID]).slice(0,8);
+  function val(x,t){
+    if(x===null||x===undefined)return '?';
+    if(t==='d')return x?'oui':'non';
+    if(typeof x!=='number')return esc(x);
+    if(Number.isInteger(x))return String(x).replace('-','−');
+    let s=x.toFixed(4).replace(/0+$/,'');if(s.split('.')[1].length<2)s=x.toFixed(2);
+    return s.replace('.',',').replace('-','−');}
+  const lien=i=>i>=0?'<button type="button" class="lien code" data-va="'+i+'">'+esc(court(i))+'</button>':'?';
+  const fin=i=>N[i][FIN]<0?D.g:N[i][FIN];
+
+  /* LA FICHE D'UN PILOTE : un texte HTML */
+  function fiche(i){
+    const a=N[i];if(!a)return '';
+    const o=ORIG[a[OR]],dr=a[DR],h=[];
+    const badges=[];
+    if(dr&1)badges.push('<span class="badge temoin">témoin</span>');
+    if(i===D.champion)badges.push('<span class="badge champion">champion en titre</span>');
+    else if(dr&4)badges.push('<span class="badge champion">ancien champion</span>');
+    if(dr&16)badges.push('<span class="badge meneur">meneur</span>');
+    if((dr&8)&&!(dr&2))badges.push('<span class="badge lignee">ancêtre du champion</span>');
+    h.push('<h3>Pilote <span class="code">'+esc(a[ID])+'</span> '+badges.join(' ')+'</h3>');
+    const inc=(a[PINC]||[]).map(p=>'<span class="code">'+esc(String(p).slice(0,8))+'</span>');
+    const p1=a[P1]>=0?lien(a[P1]):(inc[0]||'un parent inconnu'),p2=a[P2]>=0?lien(a[P2]):(inc[1]||'un parent inconnu');
+    if(o==='temoin')h.push('<p><b>Le témoin</b> : pilote-voltige, le pilote écrit à la main, tel qu\'il est. Il n\'est jamais modifié ni renvoyé : '+
+      'c\'est le mètre étalon. Tous les autres descendent de lui.</p>');
+    else if(o==='g0')h.push('<p>Né à la <b>génération '+a[NE]+'</b>, <b>mutant de départ</b> : une copie de '+p1+' (le témoin) dont quelques réglages ont été changés au hasard.</p>');
+    else if(o==='mutation')h.push('<p>Né à la <b>génération '+a[NE]+'</b> par <b>mutation</b> de '+p1+' : une copie dont un ou quelques réglages ont été changés au hasard.</p>');
+    else if(o==='croisement')h.push('<p>Né à la <b>génération '+a[NE]+'</b> par <b>croisement</b> de '+p1+' et de '+p2+' : chaque réglage est pris chez l\'un ou chez l\'autre, puis une petite mutation.</p>');
+    else if(o==='immigre')h.push('<p>Né à la <b>génération '+a[NE]+'</b>, <b>immigré</b> : une copie très changée '+
+      (a[P1]>=0||inc.length?'de '+p1+', le champion d\'alors,':'du champion d\'alors (son nom n\'est pas dans les journaux),')+' pour garder de la variété.</p>');
+    else h.push('<p>Né à la <b>génération '+a[NE]+'</b>'+(a[P1]>=0||inc.length?', de '+p1:'')+'.</p>');
+    /* ce qui a change */
+    const d=a[DIFF];
+    if(o!=='temoin'&&a[P1]<0&&!inc.length)h.push('<h4>Ce qui a changé</h4><p class="doux">Pas de parent connu : on ne peut pas dire ce qui a changé.</p>');
+    else if(o!=='temoin'){
+      h.push('<h4>Ce qui a changé par rapport à '+(o==='croisement'?'son premier parent, '+p1:'son parent, '+p1)+'</h4>');
+      if(d&&!Array.isArray(d)){
+        h.push(d.c&&d.c.length?'<p>Réglages changés : '+d.c.map(k=>'<span class="code">'+esc(k)+'</span>').join(', ')+' (le génome complet n\'est plus dans les journaux : les valeurs manquent).</p>':
+          '<p class="doux">Le génome n\'est pas dans les journaux : on ne peut pas dire ce qui a changé.</p>');}
+      else if(d){
+        const mut=d.filter(x=>x[0]>=0&&!x[3]),pris=d.filter(x=>x[0]>=0&&x[3]),tet=d.filter(x=>x[0]<0);
+        const ligne=x=>{const k=D.genes[x[0]],m=D.mots[x[0]];
+          return '<li><span class="code">'+esc(k)+'</span>'+(m?' <span class="doux">('+esc(m)+')</span>':'')+' : '+val(x[1],D.types[x[0]])+' → <b>'+val(x[2],D.types[x[0]])+'</b></li>';};
+        if(mut.length)h.push((pris.length?'<p>Mutations :</p>':'')+'<ul class="diff">'+mut.map(ligne).join('')+'</ul>');
+        if(pris.length)h.push('<p>Pris chez '+p2+' :</p><ul class="diff">'+pris.map(ligne).join('')+'</ul>');
+        for(const x of tet){const t=D.tetes[x[0]===-1?'WV':'WS'];
+          h.push('<p><b>'+esc(t.nom)+'</b> <span class="doux">('+esc(t.mot)+')</span> : '+(x[3]?'prise chez '+p2+', ':'')+
+            (fini(x[1])?x[1]+' poids changé'+(x[1]>1?'s':'')+' sur '+x[2]:'changée')+'.</p>');}
+        if(!d.length)h.push('<p class="doux">Aucun réglage ne diffère'+(o==='croisement'?' de '+p1+' (tout a été pris chez lui, sans mutation visible)':'')+'.</p>');}
+      else h.push('<p class="doux">Pas de parent connu.</p>');}
+    /* les notes */
+    h.push('<h4>Ses notes'+(fini(a[NOTEG])?' <span class="doux">('+(a[FIN]>=0?'à son renvoi, génération '+a[NOTEG]:'à la génération '+a[NOTEG])+')</span>':'')+'</h4>');
+    if(fini(a[F])||fini(a[PAL]))h.push('<dl class="notes"><dt>palier</dt><dd>'+fr(a[PAL],2)+' <span class="doux">· jusqu\'où il va, corrigé de la difficulté des courses</span></dd>'+
+      '<dt>écart aux joueurs</dt><dd>'+fr(a[E],2)+' <span class="doux">· 0 = il conduit comme un joueur</span></dd>'+
+      '<dt>note F</dt><dd><b>'+fr(a[F],2)+'</b>'+(fini(a[SEF])?' ± '+fr(a[SEF],2):'')+' <span class="doux">· palier − 4 × écart : elle décide qui reste</span></dd>'+
+      '<dt>courses</dt><dd>'+(fini(a[NB])?a[NB]:'–')+'</dd></dl>');
+    else h.push('<p class="doux">Pas encore noté.</p>');
+    /* la vie */
+    const R={renvoi:'sa note F était parmi les plus basses',pannes:'renvoyé d\'office : pannes de cerveau','non-mesuree':'renvoyé d\'office : deux courses ratées dans la même génération'};
+    if(a[FIN]>=0)h.push('<p>Renvoyé à la <b>génération '+a[FIN]+'</b>'+(a[RAISON]?' ('+esc(R[a[RAISON]]||a[RAISON])+')':'')+', après '+(a[FIN]-a[NE]+1)+' génération'+(a[FIN]-a[NE]?'s':'')+' de vie.</p>');
+    else h.push('<p><b>Encore en vie</b> à la génération '+D.g+(o==='temoin'?'':' ('+(D.g-a[NE]+1)+' génération'+(D.g-a[NE]?'s':'')+' de vie)')+'.</p>');
+    const S=D.sacres[i];if(S&&S.length)h.push('<p>Sacré champion à la génération '+S.join(', ')+' : il a prouvé sur des courses neuves qu\'il faisait mieux que le champion d\'alors.</p>');
+    const E2=enfants[i];
+    if(E2.length)h.push('<p>'+E2.length+' enfant'+(E2.length>1?'s':'')+' : '+E2.slice(0,40).map(lien).join(' ')+(E2.length>40?' …':'')+'</p>');
+    else h.push('<p class="doux">Aucun enfant.</p>');
+    return h.join('');}
+
+  /* les pilotes dessines : tous, ou ceux qui comptent (vivants, parents, champions, lignee) */
+  function visibles(tous){const V=[];for(let i=0;i<n;i++){const a=N[i];if(tous||a[FIN]<0||(a[DR]&(1|2|4|8|16|32)))V.push(i);}return V;}
+  function chercher(t){t=String(t||'').trim().toLowerCase();if(!t)return -1;
+    for(let i=0;i<n;i++)if(N[i][ID]===t)return i;for(let i=0;i<n;i++)if(N[i][ID].indexOf(t)===0)return i;return -1;}
+  const ARBRE={fiche,visibles,chercher,enfants};
+  if(typeof window!=='undefined')window.ARBRE=ARBRE;
+  if(typeof document==='undefined'||!document.getElementById)return;
+
+  /* ---------- LE DESSIN ---------- */
+  const boite=document.getElementById('arbre'),panneau=document.getElementById('fiche'),caseTous=document.getElementById('tous');
+  caseTous.checked=n<=2500;
+  let geo=null,choisi=-1,largeurVue=0;
+  function dessiner(){
+    const W=Math.max(320,boite.clientWidth||900),tous=caseTous.checked;
+    largeurVue=W;
+    const Gc=D.g,gd=Math.max(0,Gc-D.detail+1),nV=gd,nD=Gc-gd+1;
+    const p0=nV>300?2:4,mg=14,md=56;
+    /* (27/11/2026, le relecteur) jusqu'a 110 px par generation : un arbre de quelques generations n'occupait qu'un quart de la largeur */
+    const p1=Math.max(14,Math.min(110,(W-mg-md-nV*p0)/nD));
+    const X=g=>g<gd?mg+g*p0:mg+nV*p0+(g-gd)*p1,pas=g=>g<gd?p0:p1;
+    const H=15,haut=30,Ht=haut+D.voies*H+30,Wt=Math.ceil(X(Gc)+p1+md),Y=v=>haut+v*H+H/2;
+    const V=visibles(tous),vu=new Uint8Array(n);for(const i of V)vu[i]=1;
+    const o=[];
+    o.push('<svg id="dessin" width="'+Wt+'" height="'+Ht+'" viewBox="0 0 '+Wt+' '+Ht+'" role="group" aria-label="arbre généalogique des pilotes">');
+    if(nV>0){o.push('<rect class="resserre" x="'+mg+'" y="'+(haut-6)+'" width="'+(nV*p0).toFixed(1)+'" height="'+(D.voies*H+12)+'"/>');
+      if(nV*p0>110)o.push('<text class="axe" x="'+(mg+4)+'" y="'+(haut-10)+'">générations 0 à '+(gd-1)+' resserrées</text>');}
+    /* l'axe : une graduation lisible tous les ~40 px */
+    const kD=[1,2,5,10,20,25,50,100].find(k=>k*p1>=38)||100,kV=[10,20,50,100,200,500,1000].find(k=>k*p0>=40)||1000;
+    for(let g=0;g<=Gc;g++){const det=g>=gd;if(det?(g%kD):(g%kV))continue;if(!det&&g>gd-kV/2&&gd>0)continue;
+      o.push('<line class="grille" x1="'+X(g).toFixed(1)+'" x2="'+X(g).toFixed(1)+'" y1="'+(haut-4)+'" y2="'+(Ht-22)+'"/>');
+      o.push('<text class="axe" x="'+X(g).toFixed(1)+'" y="'+(Ht-8)+'" text-anchor="middle">'+g+'</text>');}
+    o.push('<text class="axe titre" x="'+(Wt-4)+'" y="'+(Ht-8)+'" text-anchor="end">génération</text>');
+    let finTexte=-1e9;   /* deux reperes trop proches : le second garde son trait, pas son texte (ils se chevauchaient a 380 px) */
+    for(const r of D.reperes){const x=X(r[0])-pas(r[0])/2;
+      o.push('<line class="repere" x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'" y1="'+(haut-14)+'" y2="'+(Ht-22)+'"/>');
+      if(r[0]>=gd&&x>finTexte){o.push('<text class="repere-texte" x="'+(x+3).toFixed(1)+'" y="'+(haut-16)+'">'+esc(r[1])+'</text>');finTexte=x+8+6*r[1].length;}}
+    /* les fils vers les parents, puis les vies, puis les points (dans cet ordre : les points dessus) */
+    const fils=[],filsL=[],vies=[],viesL=[],pts=[];
+    for(const i of V){const a=N[i],x1=X(a[NE]),y=Y(a[VOIE]),det=a[NE]>=gd,lig=(a[DR]&8)!==0;
+      for(const k of [P1,P2]){const p=a[k];if(p<0||!vu[p]||(k===P2&&p===a[P1]))continue;
+        const yp=Y(N[p][VOIE]),xp=x1-pas(a[NE])*(det?.75:1.5),c=(xp+x1)/2;
+        const t='<path class="fil'+(k===P2?' second':'')+(lig&&(N[p][DR]&8)?' lig':'')+'" d="M'+xp.toFixed(1)+' '+yp+'C'+c.toFixed(1)+' '+yp+' '+c.toFixed(1)+' '+y+' '+x1.toFixed(1)+' '+y+'"/>';
+        (lig&&(N[p][DR]&8)?filsL:fils).push(t);}
+      const f=fin(i),x2=X(f)+pas(f)*(a[FIN]<0?.95:.55);
+      const t='<line class="vie o'+a[OR]+(lig?' lig':'')+(det?'':' fine')+(a[FIN]<0?' vivant':'')+'" x1="'+x1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y1="'+y+'" y2="'+y+'"/>';
+      (lig?viesL:vies).push(t);
+      const gros=(a[DR]&(1|2|4|32))||a[FIN]<0,r=det?(gros?4.6:3):(gros?2.4:1.5),cl='pt o'+a[OR]+(gros?'':' petit');
+      const attr=det?' tabindex="0" role="button" aria-label="pilote '+court(i)+', né génération '+a[NE]+'" data-i="'+i+'"':' data-i="'+i+'"';
+      const xs=x1.toFixed(1);
+      if(a[OR]===0)pts.push('<path class="'+cl+'"'+attr+' d="M'+xs+' '+(y-r*1.5)+'l'+(r*1.5)+' '+(r*1.5)+'l'+(-r*1.5)+' '+(r*1.5)+'l'+(-r*1.5)+' '+(-r*1.5)+'z"/>');
+      else if(a[OR]===1)pts.push('<rect class="'+cl+'"'+attr+' x="'+(x1-r).toFixed(1)+'" y="'+(y-r)+'" width="'+(2*r)+'" height="'+(2*r)+'"/>');
+      else if(a[OR]===4)pts.push('<path class="'+cl+'"'+attr+' d="M'+xs+' '+(y-r*1.3)+'l'+(r*1.2)+' '+(r*2.1)+'h'+(-r*2.4)+'z"/>');
+      else if(a[OR]===3)pts.push('<circle class="'+cl+' anneau"'+attr+' cx="'+xs+'" cy="'+y+'" r="'+(r*.85).toFixed(2)+'"/>');
+      else pts.push('<circle class="'+cl+'"'+attr+' cx="'+xs+'" cy="'+y+'" r="'+r+'"/>');
+      if(a[DR]&(2|4)){pts.push('<text class="etoile'+(a[DR]&2?' titre':'')+'" x="'+xs+'" y="'+(y-(det?6:4))+'" text-anchor="middle">★</text>');}}
+    o.push(fils.join(''),filsL.join(''),vies.join(''),viesL.join(''),pts.join(''));
+    /* les noms du temoin et du champion en titre, au bout de leur vie */
+    for(const [i,txt,cl] of [[D.temoin,'témoin','temoin'],[D.champion,'champion','champion']]){if(i<0||!vu[i]||(cl==='champion'&&i===D.temoin))continue;
+      o.push('<text class="nom '+cl+'" x="'+(X(fin(i))+pas(fin(i))+3).toFixed(1)+'" y="'+(Y(N[i][VOIE])+4)+'">'+txt+'</text>');}
+    o.push('<circle id="choisi" r="8" cx="-20" cy="-20"/>');
+    o.push('</svg>');
+    boite.innerHTML=o.join('');
+    geo={X,pas,Y,H,haut,gd,p0,p1,mg,nV,V,vu};
+    boite.scrollLeft=boite.scrollWidth;
+    if(choisi>=0)marquer(choisi);}
+  function marquer(i){const c=document.getElementById('choisi');if(!c||!geo)return;
+    if(!geo.vu[i]){c.setAttribute('cx',-20);return;}
+    c.setAttribute('cx',geo.X(N[i][NE]).toFixed(1));c.setAttribute('cy',geo.Y(N[i][VOIE]));}
+  function ouvrir(i,defiler){
+    if(i<0||i>=n)return;choisi=i;panneau.innerHTML=fiche(i);marquer(i);
+    try{history.replaceState(null,'','#p='+N[i][ID]);}catch(e){}
+    if(defiler&&geo&&geo.vu[i]){const x=geo.X(N[i][NE]);if(x<boite.scrollLeft+20||x>boite.scrollLeft+boite.clientWidth-20)boite.scrollLeft=x-boite.clientWidth/2;}
+    if(defiler&&panneau.scrollIntoView)panneau.scrollIntoView({block:'nearest',behavior:'smooth'});}
+  /* un clic n'importe ou sur la vie d'un pilote l'ouvre : on retrouve la voie et la generation sous le doigt */
+  function sous(x,y){
+    const g=geo,v=Math.round((y-g.haut-g.H/2)/g.H);
+    const gen=x<g.mg+g.nV*g.p0?(x-g.mg)/g.p0:g.gd+(x-g.mg-g.nV*g.p0)/g.p1;
+    let best=-1,ecart=1e9;
+    for(const i of g.V){const a=N[i];if(a[VOIE]!==v)continue;const f=fin(i);
+      if(gen>=a[NE]-.45&&gen<=f+.9){const e=Math.abs(gen-a[NE]);if(e<ecart){ecart=e;best=i;}}}
+    return best;}
+  boite.addEventListener('click',ev=>{
+    const t=ev.target.closest?ev.target.closest('[data-i]'):null;
+    if(t){ouvrir(+t.getAttribute('data-i'),false);return;}
+    const s=document.getElementById('dessin');if(!s)return;const r=s.getBoundingClientRect();
+    const i=sous(ev.clientX-r.left,ev.clientY-r.top);if(i>=0)ouvrir(i,false);});
+  boite.addEventListener('keydown',ev=>{const t=ev.target;if(!t.getAttribute||!t.hasAttribute('data-i'))return;
+    if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();ouvrir(+t.getAttribute('data-i'),true);}});
+  panneau.addEventListener('click',ev=>{const t=ev.target.closest?ev.target.closest('[data-va]'):null;if(t)ouvrir(+t.getAttribute('data-va'),true);});
+  document.getElementById('aller').addEventListener('click',ev=>{const t=ev.target.closest?ev.target.closest('[data-aller]'):null;if(!t)return;
+    const k=t.getAttribute('data-aller');ouvrir(k==='champion'?D.champion:k==='temoin'?D.temoin:D.meneur,true);});
+  document.getElementById('chercher').addEventListener('submit',ev=>{ev.preventDefault();
+    const i=chercher(document.getElementById('cle').value);if(i>=0)ouvrir(i,true);else panneau.innerHTML='<p class="doux">Aucun pilote ne commence par « '+esc(document.getElementById('cle').value)+' ».</p>';});
+  caseTous.addEventListener('change',dessiner);
+  let minuterie=0;
+  window.addEventListener('resize',()=>{clearTimeout(minuterie);minuterie=setTimeout(()=>{if(Math.abs((boite.clientWidth||0)-largeurVue)>30)dessiner();},150);});
+  dessiner();
+  const m=/[#&]p=([0-9a-f]+)/.exec(location.hash||'');
+  const depart=m?chercher(m[1]):-1;
+  if(depart>=0)ouvrir(depart,false);
+  else if(D.champion>=0)ouvrir(D.champion,false);
+  document.documentElement.setAttribute('data-pret','1');
+})();
+</script>
+</body>
+</html>
