@@ -220,13 +220,20 @@ function pauseMs(ctx){const x=ctx.pause;return x?x.total+(x.debut!=null?Date.now
 /* L'EMPREINTE D'IDENTITE (2026-11-27, le correcteur ; relecture determinisme « le controle d'identite ne se relance pas quand genome.js ou
    pilote-voltige.js changent ») : sha1 de genome.js et de pilote-voltige.js TELS QUE CHARGES (lus au chargement de ce module) et du texte du
    temoin. Gardee dans population.json (identite) ; si elle change, le controle d'identite est refait, sans changer l'epoque des courses. */
-const OCTETS_IDENTITE=(function(){
-  const lire=f=>{try{return fs.readFileSync(f);}catch(e){return Buffer.from('absent');}};
-  return [lire(path.join(__dirname,'genome.js')),lire(Gn.VOLTIGE)];
-})();
+/* (28/11/2026, tache « portage ») le fichier du temoin est celui de cfg.temoin (genome.sourceTemoin : pilote-voltige.js pour c0025, le fichier du labo
+   pour c0101…) ; ses octets sont lus a la premiere demande et gardes pour toute la marche, comme ceux de genome.js. Pour c0025 l'empreinte se
+   calcule exactement comme avant le portage (genome.js, pilote-voltige.js, le texte du temoin). */
+const lireOctets=f=>{try{return fs.readFileSync(f);}catch(e){return Buffer.from('absent');}};
+const OCTETS_GENOME=lireOctets(path.join(__dirname,'genome.js'));
+const OCTETS_TEMOIN=new Map();
+function octetsIdentite(cfg){
+  const f=Gn.sourceTemoin(cfg);
+  if(!OCTETS_TEMOIN.has(f))OCTETS_TEMOIN.set(f,lireOctets(f));
+  return [OCTETS_GENOME,OCTETS_TEMOIN.get(f)];
+}
 function shaIdentite(cfg){
   const h=require('crypto').createHash('sha1');
-  for(const b of OCTETS_IDENTITE){h.update(b);h.update('\n--\n');}
+  for(const b of octetsIdentite(cfg)){h.update(b);h.update('\n--\n');}
   h.update(Gn.ecrirePilote(Gn.genomeTemoin(cfg),{cfg:cfg}));
   return h.digest('hex').slice(0,12);
 }
@@ -260,6 +267,18 @@ function charger(cfg,o){
     for(const v of pop.vivants){const d=Gn.valider(v.genome,cfg);if(d)throw new Error('evoluer : genome incompatible pour '+v.id+' ('+d+') : population.json vient d\'un autre genome.js');}
     if(!pop.etape)pop.etape='courses';
   }
+  /* LE TEMOIN DE LA POPULATION (28/11/2026, tache « portage ») : une population garde le temoin dont elle est nee (population.json temoinNom ;
+     absent = c0025, le seul temoin d'avant le portage). config.json "temoin" ne sert qu'a une population NEUVE ; s'il en demande un autre, on le
+     dit et on garde celui de la population : changer de temoin = evoluer.js --repartir-de <nom> (l'etat est archive, une population neuve nait). */
+  if(cfg._temoinDemande===undefined)cfg._temoinDemande=Gn.nomTemoin(cfg);
+  if(pop){
+    const nomPop=pop.temoinNom||Gn.TEMOIN_DEFAUT;
+    if(!Gn.TEMOINS[nomPop])throw new Error('evoluer : population.json est nee du temoin « '+nomPop+' », que genome.js ne connait pas');
+    if(nomPop!==cfg._temoinDemande&&!cfg._temoinDit){cfg._temoinDit=true;
+      dire0('temoin : la config demande '+cfg._temoinDemande+', la population est nee de '+nomPop+' : elle le garde (pour repartir de '+cfg._temoinDemande+
+        ' : ml\\evolution\\lancer.cmd --repartir-de '+cfg._temoinDemande+', qui prend le Node fixe de ce PC)');}
+    cfg.temoin=nomPop;
+  }else cfg.temoin=cfg._temoinDemande;
   const ctx={cfg:cfg,P:P,dossier:P.dossier,pop:pop,epoque:K.epoque(cfg),ord:null,REF:null,dire:dire0,bavard:!!o.bavard,
     evenements:[],textes:new Map(),lignes:new Map(),arret:{demande:false,stopVu:false,pauseVue:false,epoque:false},fatal:null,taches:0,
     pause:{debut:null,total:0},
@@ -395,12 +414,12 @@ function generation0(ctx){
   ctx.pop={format:'evolution-population-1',generation:0,etape:'courses',phase:'A',phaseDepuis:0,sansSacre:0,
     epoque:{courses:ctx.epoque.courses,note:ctx.epoque.note,depuis:0,composants:ctx.epoque.composants},
     rng:rng.etat(),graines:r.eg,grainesGeneration:r.graines,nGraines:nG,grainesRetirees:[],regle6:cfg.validation.regle6,
-    temoin:tid,champion:{id:tid,depuis:0,fichier:null,revalider:false},derniereValidation:-99,dernierCoffre:null,nSacres:0,coffreEpoque:true,
+    temoin:tid,temoinNom:Gn.nomTemoin(cfg),champion:{id:tid,depuis:0,fichier:null,revalider:false},derniereValidation:-99,dernierCoffre:null,nSacres:0,coffreEpoque:true,
     vivants:vivants,dejaVus:[...vus],naissancesGeneration:vivants.map(v=>({id:v.id,parents:v.parents,origine:v.origine,mutes:v.mutes.map(m=>m.cle)})),abandonsGeneration:[]};
   for(const v of vivants)texteDe(ctx,v);
   ecrirePop(ctx);
   ctx.neeIci=true;
-  ctx.dire('generation 0 : le temoin '+tid+' et '+(vivants.length-1)+' mutants ; graines '+r.graines.join(' '));
+  ctx.dire('generation 0 : le temoin '+tid+' ('+Gn.nomTemoin(cfg)+') et '+(vivants.length-1)+' mutants ; graines '+r.graines.join(' '));
 }
 
 /* ---------- L'EPOQUE ET L'IDENTITE (§ 6.1, etape 1) ---------- */
@@ -414,11 +433,12 @@ function ceQuiAChange(a,b){
 }
 async function controleIdentite(ctx){
   const I=require('./identite');
-  ctx.dire('identite : le temoin doit rejouer pilote-voltige au bit pres ('+((ctx.cfg.identite&&ctx.cfg.identite.graines)||[]).join(' ')+', '+((ctx.cfg.identite&&ctx.cfg.identite.tmax)||45)+' s)');
+  const fT=path.basename(Gn.sourceTemoin(ctx.cfg));
+  ctx.dire('identite : le temoin '+Gn.nomTemoin(ctx.cfg)+' doit rejouer '+fT+' au bit pres ('+((ctx.cfg.identite&&ctx.cfg.identite.graines)||[]).join(' ')+', '+((ctx.cfg.identite&&ctx.cfg.identite.tmax)||45)+' s)');
   const r=await I.verifier({cfg:ctx.cfg,travailleurs:Math.max(1,Math.min(4,ctx.cfg.travailleurs||1))});
   for(const l of r.lignes)ctx.dire('identite : graine '+l.graine+' : '+(l.identique?'IDENTIQUE ('+(l.temoin&&l.temoin.empreinte)+')':
-    'DIFFERENT (temoin '+(l.temoin&&l.temoin.empreinte)+(l.temoin&&l.temoin.raison?' ['+l.temoin.raison+']':'')+' ; voltige '+(l.voltige&&l.voltige.empreinte)+')'));
-  if(!r.ok)throw new Error('evoluer : identite ratee : le genome temoin ne rejoue plus pilote-voltige.js (modele.js, genome.js ou les yeux ont change)');
+    'DIFFERENT (temoin '+(l.temoin&&l.temoin.empreinte)+(l.temoin&&l.temoin.raison?' ['+l.temoin.raison+']':'')+' ; '+fT+' '+(l.voltige&&l.voltige.empreinte)+')'));
+  if(!r.ok)throw new Error('evoluer : identite ratee : le genome temoin ne rejoue plus '+fT+' (modele.js, genome.js ou les yeux ont change)');
   evenement(ctx,'identite verifiee');
 }
 async function preparer(ctx){
@@ -434,8 +454,10 @@ async function preparer(ctx){
   ctx.REF=N.referenceEpoque({recharger:noteChangee});
   const shaId=shaIdentite(cfg);
   if(!ctx.pop){
-    evenement(ctx,'premier lancement : epoque '+ep.courses);
-    await controleIdentite(ctx);
+    evenement(ctx,'premier lancement : epoque '+ep.courses+', temoin '+Gn.nomTemoin(cfg));
+    /* --repartir-de vient de faire ce controle, avant d'archiver l'etat (meme empreinte) : on ne le refait pas */
+    if(cfg._identiteVerifiee===shaId)evenement(ctx,'identite verifiee');
+    else await controleIdentite(ctx);
     generation0(ctx);
     ctx.pop.identite=shaId;ecrirePop(ctx);
     return;
@@ -444,7 +466,7 @@ async function preparer(ctx){
   const temoinNeuf=Gn.idDe(Gn.genomeTemoin(cfg));
   if(temoinNeuf!==pop.temoin&&ctx.temoinDit!==temoinNeuf){
     ctx.temoinDit=temoinNeuf;
-    evenement(ctx,'ATTENTION : pilote-voltige.js ne donne plus le genome du temoin de la population ('+court(pop.temoin)+' ; aujourd\'hui '+court(temoinNeuf)+
+    evenement(ctx,'ATTENTION : '+path.basename(Gn.sourceTemoin(cfg))+' ne donne plus le genome du temoin de la population ('+court(pop.temoin)+' ; aujourd\'hui '+court(temoinNeuf)+
       ') : le temoin reste celui de la naissance de la population');
   }
   if(pop.epoque.courses!==ep.courses){
@@ -502,6 +524,7 @@ function ecrireChampion(ctx,v,G,o){
     reels.slice(0,8).map(m=>m.cle+' '+nombreCourt(m.temoin)+'→'+nombreCourt(m.valeur)).join(', ')+(reels.length>8?', …':''):'')+
     (tetes.length?' ; tetes modifiees : '+tetes.map(m=>m.cle).join(', '):'')+' ; phase '+pop.phase;
   const j={format:'evolution-champion-1',generation:G,id:v.id,shaPilote:sha,epoque:ctx.epoque.courses,phase:pop.phase,date:new Date().toISOString(),
+    temoin:pop.temoinNom||Gn.TEMOIN_DEFAUT,   /* (28/11, portage) le temoin dont la population est nee : mutesDepuisTemoin se lit par rapport a lui */
     genome:v.genome,parents:v.parents,ne:v.ne,precedent:o.precedent||null,mutesDepuisTemoin:mutes,raison:raison,
     entrainement:o.entrainement||null,validation:o.validation||null,coffre:null};
   C.ecrireAtomique(fjson,JSON.stringify(j,null,1)+'\n');
@@ -869,6 +892,69 @@ async function banc(cfg,dire,o){
   return {travailleurs:travailleurs,retenu:retenu,interrompu:interrompu,raison:raison,resultats:res,machine:machine};
 }
 
+/* ===== REPARTIR D'UN AUTRE TEMOIN (28/11/2026, tache « portage » — « la selection doit pouvoir PARTIR de c0101, sans perdre c0025 ») =====
+   evoluer.js --repartir-de c0101 (le maitre doit etre arrete : le verrou est pris avant, comme pour toute marche) :
+     1. le controle d'identite du NOUVEAU temoin (son genome contre son fichier ecrit a la main, au bit pres). S'il rate : refus, rien ne bouge.
+     2. tout le dossier d'etat passe dans <etat>/archives/<date>-<ancien temoin>/ (population.json, journaux, cache des courses, tableau, pages…),
+        sauf ce qui est propre au PC ou a la marche (machine.json, verrou, sortie.log, STOP, PAUSE, ARRETE, PAS-D-ENVOI, traces.log, le Node du PC) et les
+        archives d'avant ; les champions (dossierChampions) vont dans <archive>/champions/. RIEN n'est efface ; ARCHIVE.json dit ce qui a bouge.
+        Un deplacement qui rate : ceux deja faits sont remis en place, refus.
+     3. la marche continue comme un premier lancement : une population neuve nait du nouveau temoin (population.json temoinNom), sans refaire le
+        controle d'identite qui vient de passer.
+   Sans cette option, un etat existant garde son temoin (voir charger). Revenir a l'ancienne population : arreter, deplacer a la main le contenu de
+   l'archive a sa place (apres avoir archive l'actuelle de la meme facon). */
+/* (le Node de ce PC, choisi par les lanceurs du 28/11 : node.txt, NODE-REFUSE.txt, node-choix-*, CHANGER-DE-NODE, reste aussi : il est propre au PC) */
+const GARDES_ETAT=new Set(['machine.json','sortie.log','archives','STOP','PAUSE','ARRETE','PAS-D-ENVOI','NODE-REFUSE.txt','CHANGER-DE-NODE']);
+const gardeEtat=n=>GARDES_ETAT.has(n)||/^verrou\.json/.test(n)||/^traces\.log/.test(n)||/^node\.txt/.test(n)||/^node-choix-/.test(n);
+function archiverEtat(cfg,neuf,dire){
+  const P=chemins(cfg),pop=C.lireJson(P.pop,null);
+  const ancien=pop?(pop.temoinNom||Gn.TEMOIN_DEFAUT):'sans-population';
+  const aDeplacer=[];
+  try{for(const n of fs.readdirSync(P.dossier))if(!gardeEtat(n))aDeplacer.push({de:path.join(P.dossier,n),nom:n});}catch(e){if(e.code!=='ENOENT')throw e;}
+  let champions=[];
+  /* --etat dossier met les champions DANS le dossier d'etat (<dossier>/champions) : ils partent alors avec lui */
+  const dedans=!path.relative(P.dossier,P.champions).startsWith('..')&&!path.isAbsolute(path.relative(P.dossier,P.champions));
+  if(!dedans)try{champions=fs.readdirSync(P.champions).map(n=>({de:path.join(P.champions,n),nom:path.join('champions',n)}));}catch(e){if(e.code!=='ENOENT')throw e;}
+  if(!aDeplacer.length&&!champions.length){dire('repartir : l\'etat est vide, rien a archiver');return {ok:true,dossier:null};}
+  const date=new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
+  let dest=path.join(P.dossier,'archives',date+'-'+ancien),k=1;
+  while(fs.existsSync(dest))dest=path.join(P.dossier,'archives',date+'-'+ancien+'-'+(++k));
+  fs.mkdirSync(champions.length?path.join(dest,'champions'):dest,{recursive:true});
+  const faits=[];
+  try{for(const x of aDeplacer.concat(champions)){const vers=path.join(dest,x.nom);fs.renameSync(x.de,vers);faits.push({de:x.de,vers:vers});}}
+  catch(e){
+    for(const f of faits.reverse()){try{fs.renameSync(f.vers,f.de);}catch(x){}}
+    return {ok:false,raison:'archivage impossible ('+String(e&&(e.code||e.message)||e).slice(0,120)+') : ce qui etait deplace est remis en place'};}
+  const resume={format:'evolution-archive-1',date:new Date().toISOString(),temoinAncien:ancien,temoinNeuf:neuf,
+    generation:pop?pop.generation:null,champion:pop&&pop.champion?pop.champion.id:null,temoinId:pop?pop.temoin:null,
+    fichiers:aDeplacer.map(x=>x.nom).sort(),champions:champions.length,
+    pourRevenir:'arreter, archiver l\'etat present de la meme facon (--repartir-de), puis remettre ces fichiers dans le dossier d\'etat et champions/ dans '+path.basename(P.champions)};
+  C.ecrireAtomique(path.join(dest,'ARCHIVE.json'),JSON.stringify(resume,null,1)+'\n');
+  dire('repartir : l\'etat de la population du temoin '+ancien+(pop?' (generation '+pop.generation+')':'')+' est archive dans '+dest+' ('+aDeplacer.length+' fichier(s) ou dossier(s), '+champions.length+' champion(s)) ; rien n\'est efface');
+  return {ok:true,dossier:dest,resume:resume};
+}
+/* (28/11/2026, le relecteur) o.doitArreter : un STOP, une PAUSE ou un Ctrl+C arrive pendant le controle d'identite (6 courses, plusieurs minutes) ->
+   refus AVANT d'archiver. Sans cela l'etat etait archive puis la boucle s'arretait avant la generation 0 : etat vide, et le lancement suivant (sans
+   l'option, par exemple la tache planifiee) faisait naitre la population du temoin de config.json (c0025), pas de celui demande. Voir aussi principal. */
+async function repartir(cfg,nom,dire,o){
+  dire=dire||direDefaut;o=o||{};
+  cfg.temoin=nom;cfg._temoinDemande=nom;cfg._temoinDit=true;
+  const I=require('./identite'),fT=path.basename(Gn.sourceTemoin(cfg));
+  dire('repartir de '+nom+' : d\'abord le controle d\'identite (son genome doit rejouer '+fT+' au bit pres), avant de toucher a l\'etat');
+  let r;
+  try{r=await I.verifier({cfg:cfg,travailleurs:Math.max(1,Math.min(4,cfg.travailleurs||1))});}
+  catch(e){return {ok:false,raison:'controle d\'identite de '+nom+' impossible : '+String(e&&e.message||e).slice(0,200)};}
+  for(const l of r.lignes)dire('identite : graine '+l.graine+' : '+(l.identique?'IDENTIQUE ('+(l.temoin&&l.temoin.empreinte)+')':
+    'DIFFERENT (temoin '+(l.temoin&&l.temoin.empreinte)+' ; '+fT+' '+(l.voltige&&l.voltige.empreinte)+')'));
+  if(!r.ok)return {ok:false,raison:'le genome du temoin '+nom+' ne rejoue pas '+fT};
+  if(typeof o.doitArreter==='function'&&o.doitArreter())return {ok:false,raison:'arret demande pendant le controle d\'identite (STOP, PAUSE ou Ctrl+C) : rien n\'est archive'};
+  cfg._identiteVerifiee=shaIdentite(cfg);
+  const a=archiverEtat(cfg,nom,dire);
+  if(!a.ok)return a;
+  dire('repartir : une population neuve va naitre du temoin '+nom);
+  return {ok:true,archive:a.dossier};
+}
+
 /* ===== LA LIGNE DE COMMANDE (27/11/2026, « machine » ; Fable : « node ml/evolution/evoluer.js --aide a LANCE LA VRAIE EVOLUTION ») =====
    Toute option est controlee AVANT la config, le verrou et toute course : --aide / --help / -h affichent l'usage (code 0) ; une option inconnue,
    un mot en trop, une valeur manquante ou absurde, une option donnee deux fois ou deux options incompatibles : l'erreur et l'usage sur stderr, code 2.
@@ -882,15 +968,19 @@ const USAGE=['Usage : node ml/evolution/evoluer.js [options]',
   '  --arret-apres N        N generations (N >= 1), puis arret',
   '  --banc                 refait le banc de ce PC (combien de courses a la fois), l\'ecrit dans <etat>/machine.json, puis sort',
   '  --valider-maintenant   une validation meneur contre champion tout de suite, puis sortie',
+  '  --repartir-de NOM      change de temoin : l\'etat est archive dans <etat>/archives/<date>-<ancien temoin>/ (rien n\'est efface), puis une',
+  '                         population neuve nait du temoin NOM ('+Object.keys(Gn.TEMOINS).join(', ')+') ; refuse si son controle d\'identite rate',
+  '  --nouveau-node         accepte un Node d\'une autre version que celle de l\'epoque (nouvelle epoque voulue : les notes repartent de zero)',
   '  --bavard               le journal entier des courses',
   '  --aide, --help, -h     ce texte',
   'Sans --travailleurs : le nombre de <etat>/machine.json, mesure par le banc ; au premier lancement sur un PC, le banc est fait d\'abord.',
-  'Codes de sortie : 0 arret propre (ou l\'aide) ; 1 erreur fatale ; 2 refus de partir (deja lance, labo, boucle.js) ou option mal ecrite.'].join('\n');
+  'Codes de sortie : 0 arret propre (ou l\'aide) ; 1 erreur fatale ; 2 refus de partir (deja lance, labo, boucle.js, Node d\'une autre version que l\'epoque) ou option mal ecrite.'].join('\n');
 const OPTIONS={'--config':'fichier','--etat':'dossier','--travailleurs':'entier','--arret-apres':'entier',
-  '--une-generation':null,'--banc':null,'--valider-maintenant':null,'--bavard':null};
+  '--une-generation':null,'--banc':null,'--valider-maintenant':null,'--bavard':null,'--repartir-de':'temoin','--nouveau-node':null};
 const INCOMPATIBLES=[['--banc','--valider-maintenant'],['--banc','--une-generation'],['--banc','--arret-apres'],['--banc','--travailleurs'],
-  ['--valider-maintenant','--une-generation'],['--valider-maintenant','--arret-apres'],['--une-generation','--arret-apres']];
-/* -> {aide:true} | {erreur:texte} | {o:{config, etat, travailleurs, arretApres, banc, validerMaintenant, bavard}} ; o.existe(f) (tests) */
+  ['--valider-maintenant','--une-generation'],['--valider-maintenant','--arret-apres'],['--une-generation','--arret-apres'],
+  ['--repartir-de','--banc'],['--repartir-de','--valider-maintenant']];
+/* -> {aide:true} | {erreur:texte} | {o:{config, etat, travailleurs, arretApres, banc, validerMaintenant, bavard, repartirDe}} ; o.existe(f) (tests) */
 function lireOptions(argv,o){
   o=o||{};
   const existe=o.existe||(f=>{try{return fs.existsSync(f);}catch(e){return false;}});
@@ -913,6 +1003,9 @@ function lireOptions(argv,o){
       if(n<1||n>max)return {erreur:a+' attend un nombre de 1 a '+max+' (lu : '+v+')'};
       v=n;
     }
+    if(genre==='temoin'&&!Object.prototype.hasOwnProperty.call(Gn.TEMOINS,v.trim()))
+      return {erreur:a+' : temoin inconnu "'+v+'" (connus : '+Object.keys(Gn.TEMOINS).join(', ')+')'};
+    if(genre==='temoin')v=v.trim();
     if(genre==='fichier'&&!existe(path.resolve(process.cwd(),v))&&!existe(path.resolve(C.DOSSIER,v)))
       return {erreur:a+' : fichier introuvable "'+v+'" (cherche depuis le dossier courant, puis dans ml/evolution/)'};
     vus.set(a,v);
@@ -920,7 +1013,7 @@ function lireOptions(argv,o){
   for(const [x,y] of INCOMPATIBLES)if(vus.has(x)&&vus.has(y))return {erreur:x+' et '+y+' ne vont pas ensemble'};
   const g=k=>vus.has(k)?vus.get(k):null;
   return {o:{config:g('--config'),etat:g('--etat'),travailleurs:g('--travailleurs'),arretApres:vus.has('--une-generation')?1:g('--arret-apres'),
-    banc:vus.has('--banc'),validerMaintenant:vus.has('--valider-maintenant'),bavard:vus.has('--bavard')}};
+    banc:vus.has('--banc'),validerMaintenant:vus.has('--valider-maintenant'),bavard:vus.has('--bavard'),repartirDe:g('--repartir-de'),nouveauNode:vus.has('--nouveau-node')}};
 }
 /* le nombre de travailleurs et d'ou il vient, en une phrase */
 function sourceTravailleurs(cfg){
@@ -929,6 +1022,35 @@ function sourceTravailleurs(cfg){
   if(s==='config')return 'ecrit dans la config';
   if(s==='banc'&&m&&m.banc)return 'mesure par le banc du '+String(m.banc.date||'?').slice(0,10)+', etat/machine.json';
   return 'repli sans banc'+(cfg._bancAFaire?', le banc est a faire':' (banc rate, evoluer.js --banc pour le refaire)');
+}
+
+/* ===== LE NODE DE L'EPOQUE (28/11/2026, l'integrateur : demande n° 1 du lot « lanceurs », « evoluer.js : refuser de partir quand la version de Node
+   a change ») =====
+   La version de Node entre dans l'epoque des courses (courses.js, composants.node) : une autre version ouvre une epoque neuve et toutes les notes
+   repartent de zero. lancer.cmd protege deja l'epoque (node-fixe.js, etat\node.txt) et le dit a evoluer.js par la variable CASHCAR_NODE_FIXE ;
+   un « node ml\evolution\evoluer.js » tape a la main (sur le Ryzen, le node du PATH etait v24.22.1 au lieu de v24.22.3) n'avait aucune garde.
+   Ici : si population.json a une epoque dont le Node differe de process.version, refus (code 2), sauf
+     - CASHCAR_NODE_FIXE (lancer.cmd : node-fixe.js a deja choisi, marqueur compris) ;
+     - l'option --nouveau-node ;
+     - le fichier etat\CHANGER-DE-NODE (le meme marqueur que lancer.cmd) : il sert une fois et est efface ici.
+   --banc n'est pas garde (il ne note aucun pilote). -> null | texte du refus. o.env, o.version : les tests. */
+function refusNode(cfg,op,o){
+  o=o||{};
+  const env=o.env||process.env,version=o.version||process.version,dire=o.dire||(()=>{});
+  if(op&&(op.banc||op.nouveauNode))return null;
+  if(env.CASHCAR_NODE_FIXE)return null;
+  const P=chemins(cfg),pop=C.lireJson(P.pop,null);
+  const v=pop&&pop.epoque&&pop.epoque.composants&&pop.epoque.composants.node;
+  if(!v||v===version)return null;
+  const marqueur=path.join(P.dossier,'CHANGER-DE-NODE');
+  if(fs.existsSync(marqueur)){
+    try{fs.unlinkSync(marqueur);}catch(e){}
+    dire('node : etat\\CHANGER-DE-NODE accepte une fois Node '+version+' (l\'epoque etait en '+v+') : nouvelle epoque voulue, les notes repartent de zero ; le marqueur est efface');
+    return null;}
+  return 'la population de '+P.dossier+' court sous Node '+v+' (son epoque), ce processus est Node '+version+
+    ' : une autre version ouvrirait une nouvelle epoque et toutes les notes repartiraient de zero. Lance plutot ml\\evolution\\lancer.cmd'+
+    ' (il prend le Node de etat\\node.txt, ses options sont passees a evoluer.js, ex. lancer.cmd --repartir-de c0101), ou le node.exe de la version '+v+
+    '. Changer de Node expres : creer le fichier vide etat\\CHANGER-DE-NODE, ou ajouter --nouveau-node';
 }
 
 async function principal(argv){
@@ -951,6 +1073,10 @@ async function principal(argv){
   const avant={demande:false};   /* Ctrl+C avant que ctx n'existe (pendant le banc) */
   const refus=refusDePartir({dire:dire});
   if(refus){dire('REFUS DE PARTIR : '+refus);return 2;}
+  /* (28/11/2026, l'integrateur) le Node de l'epoque, avant le verrou et le banc : un refus ne touche a rien */
+  let refusN;
+  try{refusN=refusNode(cfg,op,{dire:dire});}catch(e){refusN='population.json illisible pour le controle du Node ('+String(e&&e.message||e).slice(0,120)+')';}
+  if(refusN){dire('REFUS DE PARTIR : '+refusN);return 2;}
   /* verrouiller ne leve jamais (toute erreur : refus, code 2) ; surPerte : un autre a pris le verrou, on s'arrete comme sur STOP */
   const V=verrouiller(cfg,{surPerte:function(q){dire('VERROU PERDU ('+q+') : on s\'arrete comme sur STOP');avant.demande=true;if(ctx)ctx.arret.demande=true;}});
   if(!V.ok){dire('REFUS DE PARTIR : '+V.raison);return 2;}
@@ -987,10 +1113,19 @@ async function principal(argv){
         cfg._bancAFaire=C.bancAFaire(R.machine||cfg._machine);
         dire('evoluer : '+cfg.travailleurs+' courses a la fois pour la suite');
       }
-      ctx=charger(cfg,{dire:dire,bavard:op.bavard});
-      if(avant.demande)ctx.arret.demande=true;
-      if(op.validerMaintenant)await validerMaintenant(ctx);
-      else{
+      let refusRepartir=null;
+      if(op.repartirDe&&!arretBanc()){
+        const R=await repartir(cfg,op.repartirDe,dire,{doitArreter:arretBanc});
+        if(!R.ok)refusRepartir=R.raison;
+      }else if(op.repartirDe)refusRepartir='arret demande avant de repartir (STOP, PAUSE ou Ctrl+C)';
+      if(refusRepartir){code=1;dire('REPARTIR REFUSE : '+refusRepartir+' ; l\'etat n\'a pas bouge');}
+      else ctx=charger(cfg,{dire:dire,bavard:op.bavard});
+      /* (28/11/2026, le relecteur) l'etat vient d'etre archive : la population neuve du temoin demande nait TOUT DE SUITE (population.json, temoinNom),
+         avant tout test d'arret. Sinon un STOP pose maintenant laissait un etat vide, que le lancement suivant remplissait depuis config.json. */
+      if(ctx&&op.repartirDe&&!ctx.pop)await preparer(ctx);
+      if(ctx&&avant.demande)ctx.arret.demande=true;
+      if(ctx&&op.validerMaintenant)await validerMaintenant(ctx);
+      else if(ctx){
         let faites=0,relus=0;
         for(;;){
           if(doitArreter(ctx)){dire('arret demande : on s\'arrete entre deux generations');break;}
@@ -1025,7 +1160,9 @@ async function principal(argv){
   return code;
 }
 
-module.exports={generation,charger,verrouiller,refusDePartir,ecrireChampion,validerMaintenant,preparer,banc,chemins,lireOptions,USAGE,planBanc,processusNode};
+module.exports={generation,charger,verrouiller,refusDePartir,ecrireChampion,validerMaintenant,preparer,banc,chemins,lireOptions,USAGE,planBanc,processusNode,
+  repartir,archiverEtat,refusNode,
+  principal};   /* (28/11, le relecteur) pour le test p7 de portage.test.js (--repartir-de et un STOP), lance dans un processus a part */
 
 if(require.main===module){
   principal(process.argv.slice(2)).then(c=>process.exit(c),e=>{ecrireErreur(String(e&&e.stack||e)+'\n');process.exit(1);});

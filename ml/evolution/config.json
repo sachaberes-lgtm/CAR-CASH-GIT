@@ -5,7 +5,8 @@
     "travailleurs : \"auto\" (27/11, « machine ») = le nombre de courses a la fois est mesure sur CHAQUE PC par le banc (au premier lancement, ou evoluer.js --banc) et range dans etat/machine.json, jamais ici. Un nombre ecrit ici l'emporte sur tous les PC ; --travailleurs N l'emporte pour un lancement. banc.travailleurs \"auto\" = essayer {L/2, L-4, L-2, L-1} (L = coeurs logiques) ; une liste reste acceptee.",
     "cartesTirage : les maps du tirage en regime allege (code/maps/niveaux.js SF_CARTES moins SF_HORS : crypto, banquise, dunes) ; a reverifier a l'etape 0.",
     "alarmeDistance 0.04 (27/11, l'integrateur) : avec les gestes, la distance moyenne divise par 107 genes au lieu de 86 ; l'alarme d'avant (0.05) est ramenee d'autant (0.05 x 86/107), elle n'entre dans aucune epoque. Puis 0.012 (27/11, Fable) : une vraie population de 20 mesuree a la naissance (le temoin et 19 mutants) vaut 0.028 sur 86 genes, soit 0.0225 sur 107 ; a 0.04 l'alerte etait levee des la generation 0 et ne disait rien. Le seuil est la moitie de la distance de naissance : l'alerte ne se leve que si la population se resserre vraiment.",
-    "Une autre config (--config config-essai.json) est FUSIONNEE par-dessus celle-ci, cle par cle (objets fusionnes en profondeur, tableaux remplaces)."
+    "Une autre config (--config config-essai.json) est FUSIONNEE par-dessus celle-ci, cle par cle (objets fusionnes en profondeur, tableaux remplaces).",
+    "temoin (28/11, tache « portage ») : le pilote ecrit a la main dont part une population NEUVE : c0025 (ml/ecurie/pilote-voltige.js, par defaut) ou c0101 (ml/labo/cerveaux/c0101-pilote.js, le dernier champion de la boucle payante ; c0026, c0064, c0072, c0087 aussi). Un etat existant garde le temoin dont il est ne (population.json temoinNom) et le dit ; en changer : node ml/evolution/evoluer.js --repartir-de c0101 (l etat est archive dans etat/archives/, rien n est efface). Reste c0025 tant que la session principale n a pas decide."
   ],
   "dossierEtat": "etat",
   "dossierChampions": "champions",
@@ -26,6 +27,7 @@
 
   "graineMaitre": 20261127,
   "graineReseaux": 161,
+  "temoin": "c0025",
 
   "graines": {
     "entrainement": { "depart": 910000, "pas": 37, "n": 1081 },

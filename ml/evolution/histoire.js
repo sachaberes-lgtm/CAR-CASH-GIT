@@ -48,7 +48,7 @@ const note=x=>x?'palier '+fr(x.ahat!=null?x.ahat:x.a)+', écart aux joueurs '+fr
 function evenementClair(e){
   e=String(e);let m;
   if((m=/^premier lancement/.exec(e)))return 'Premier lancement : la population de départ est née.';
-  if(e==='identite verifiee')return 'Contrôle d\'identité réussi : le pilote fabriqué à partir du génome du témoin conduit exactement comme pilote-voltige, au bit près.';
+  if(e==='identite verifiee')return 'Contrôle d\'identité réussi : le pilote fabriqué à partir du génome du témoin conduit exactement comme le fichier écrit du témoin, au bit près.';
   if((m=/^nouvelle epoque de notes : (.*?)( \(les courses restent valables\))?$/.exec(e)))
     return 'Nouvelle époque de notes ('+m[1]+' a changé) : les notes sont recalculées, les courses déjà jouées restent valables.';
   if((m=/^nouvelle epoque : (.*?) \(([0-9a-f]+) -> ([0-9a-f]+)\)$/.exec(e))||(m=/^nouvelle epoque : (.*)$/.exec(e)))
@@ -122,6 +122,16 @@ function phraseApprend(K){
   if(moins)s+=' '+pluriel(moins,'champion','champions')+' '+(moins>1?'vont':'va')+' nettement moins loin que le témoin.';
   return s;}
 
+/* les populations rangees par evoluer.js --repartir-de (<etat>/archives/<date>-<temoin>/ARCHIVE.json), de la plus ancienne a la plus recente */
+function archivesAnciennes(cfg){
+  const R=[];
+  try{const d=path.join(ET.chemin(cfg,cfg.dossierEtat),'archives');
+    for(const n of fs.readdirSync(d).sort()){
+      try{const j=JSON.parse(fs.readFileSync(path.join(d,n,'ARCHIVE.json'),'utf8'));
+        if(j&&j.format==='evolution-archive-1')R.push({dossier:n,temoin:String(j.temoinAncien||'?'),generation:j.generation});}catch(e){}}}
+  catch(e){}
+  return R;}
+
 /* ===== LE TEXTE ===== */
 function texte(cfg,o){
   o=o||{};
@@ -176,7 +186,12 @@ function texte(cfg,o){
   const men=dern&&dern.meneur;
   L.push(men?'Le meneur de la dernière génération (le mieux noté après le champion) est '+court(men.id)+' : '+note(men)+'.':'Pas encore de meneur (il faut '+((cfg.validation&&cfg.validation.nMin)||48)+' courses pour être candidat).');
   const tem=dern&&dern.temoin;
-  L.push('Le témoin, pilote-voltige jamais modifié : '+(tem?note(tem):'pas encore noté')+'.');
+  L.push('Le témoin, '+ET.temoinClair(pop)+', jamais modifié : '+(tem?note(tem):'pas encore noté')+'.');
+  /* (28/11/2026, l'integrateur : « l'arbre et le recit disent le changement de temoin ») une population plus ancienne, rangee par --repartir-de */
+  const arch=archivesAnciennes(cfg);
+  if(arch.length){const a=arch[arch.length-1];
+    L.push('Cette population est née d\'un changement de témoin : '+(arch.length>1?pluriel(arch.length,'population plus ancienne est rangée','populations plus anciennes sont rangées'):'l\'ancienne population est rangée')+
+      ' dans `archives/` (rien n\'est effacé) ; la dernière, née de '+a.temoin+(fini(a.generation)?', s\'était arrêtée à la génération '+a.generation:'')+'.');}
   const Vv=D.validations.filter(v=>v&&v.usage==='validation'&&!v.forcee);
   if(Vv.length){const mal=Vv.map(v=>v.malediction).filter(fini),moy=mal.length?mal.reduce((s,x)=>s+x,0)/mal.length:null;
     L.push(pluriel(Vv.length,'tentative','tentatives')+' de sacre, '+pluriel(Vv.filter(v=>v.sacre).length,'réussie','réussies')+'.'+
@@ -203,7 +218,7 @@ function texte(cfg,o){
   out.push('*De la plus ancienne à la plus récente.*');
   out.push('');
   let avant=null;
-  for(const g of G){out.push(...entree(g,avant,VAL.get(g.generation)||[],COF.get(g.generation)||[],cfg));avant=g;}
+  for(const g of G){out.push(...entree(g,avant,VAL.get(g.generation)||[],COF.get(g.generation)||[],cfg,pop));avant=g;}
   if(pop&&pop.etape!=='fin'&&(!dern||pop.generation>dern.generation)){
     const nesP=pop.naissancesGeneration||[];
     out.push('### Génération '+pop.generation+' — en cours');
@@ -215,14 +230,14 @@ function texte(cfg,o){
 /* le temps sans travail avant la generation g (en s) : son debut moins la fin de la precedente */
 function trou(a,g){const fa=Date.parse(a&&a.date),dg=Date.parse(g&&g.date)-((g&&g.duree_s)||0)*1000;return isFinite(fa)&&isFinite(dg)?(dg-fa)/1000:0;}
 
-function entree(g,avant,vals,cofs,cfg){
+function entree(g,avant,vals,cofs,cfg,pop){   /* pop : le temoin en clair (28/11, portage) */
   const out=[],P=[];
   out.push('### Génération '+g.generation+(g.date?' — '+dateFr(g.date):''));
   out.push('');
   if(avant){const t=trou(avant,g);if(t>3600)P.push('Avant elle, '+duree(t)+' sans génération (arrêt, veille ou coupure).');}
   const nes=g.naissances||[];
   if(g.generation===0){const n=(g.population||[]).length||nes.length;
-    P.push('La population de départ : '+pluriel(n,'pilote')+', le témoin (pilote-voltige, écrit à la main) et '+Math.max(0,n-1)+' mutants de départ, des copies du témoin aux réglages un peu changés.');}
+    P.push('La population de départ : '+pluriel(n,'pilote')+', le témoin ('+ET.temoinClair(pop)+') et '+Math.max(0,n-1)+' mutants de départ, des copies du témoin aux réglages un peu changés.');}
   else P.push(nes.length?pluriel(nes.length,'naissance')+' ('+compter(nes,'origine',ORIG)+').':'Aucune naissance.');
   const mo=g.morts||[];
   P.push(!mo.length?'Aucun renvoi.':mo.every(m=>m&&m.raison==='renvoi')?pluriel(mo.length,'renvoi')+' : '+(mo.length>1?'les notes F les plus basses.':'la note F la plus basse.'):

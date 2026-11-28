@@ -1,0 +1,12 @@
+diff --git a/ml/labo/cerveaux/c0087-pilote.js b/ml/labo/cerveaux/c0101-pilote.js
+index e81f89360..203414e41 100644
+--- a/ml/labo/cerveaux/c0087-pilote.js
++++ b/ml/labo/cerveaux/c0101-pilote.js
+@@ -83,5 +83,6 @@ const REGLAGES={
+   figEcart:.55,      /* s entre deux gestes (la main : 2 par seconde au plus) */
+   /* --- LES FIGURES EN VOL SUBI, MARGE LARGE (maps sans decor) --- */
+-  largeHaut:9,       /* m au-dessus de la route la plus proche au moins (au lieu de figHaut) */
++  largeHaut:4,       /* m au-dessus de la route la plus proche au moins (au lieu de figHaut). 9 avant : la loi « vers la route » pique des 10 m, la hauteur
++                        etait la condition qui bloquait presque tout ; la vraie protection est la pose annoncee a plus de 2,2 s, avec les deux rayons qui se posent */
+   largeT1:2.2,       /* s avant la pose pour la 1re figure (MESURE 26/11 : sous 2,2 s une figure dereglait le vol) */
+   largeT2:1.8,       /* s avant la pose pour les suivantes */

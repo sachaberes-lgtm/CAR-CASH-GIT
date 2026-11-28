@@ -40,11 +40,19 @@ if errorlevel 1 (
   set "LIGNE=git est introuvable sur ce PC : rien n'est sauve"
   goto echec
 )
+REM (28/11/2026, les lanceurs) le Node de etat\node.txt s'il existe (celui de la selection), sinon "node" du PATH.
+REM Ici il ne fait que les pages (tableau, arbre, recit) : aucune course, sa version ne change aucune note ; on ne refuse donc pas sur la version.
+set "NODE="
+if exist "%ETAT%\node.txt" for /f "usebackq delims=" %%n in ("%ETAT%\node.txt") do if not defined NODE set "NODE=%%~n"
+if defined NODE if not exist "%NODE%" set "NODE="
+if defined NODE goto node_trouve
 where node >nul 2>&1
 if errorlevel 1 (
   set "LIGNE=node est introuvable sur ce PC : rien n'est sauve"
   goto echec
 )
+set "NODE=node"
+:node_trouve
 
 REM ----- la branche : jamais main, jamais bots-ecurie, seulement une branche "evolution-..." -----
 set "BRANCHE="
@@ -82,10 +90,10 @@ set "PC=!BRANCHE:~10!"
 if not defined PC set "PC=pc"
 
 REM ----- 1. les pages, refaites a partir des journaux -----
-node "%ICI%tableau.js" >>"%DETAIL%" 2>&1
+"%NODE%" "%ICI%tableau.js" >>"%DETAIL%" 2>&1
 if errorlevel 1 (
-  node "%ICI%arbre.js" >>"%DETAIL%" 2>&1
-  node "%ICI%histoire.js" >>"%DETAIL%" 2>&1
+  "%NODE%" "%ICI%arbre.js" >>"%DETAIL%" 2>&1
+  "%NODE%" "%ICI%histoire.js" >>"%DETAIL%" 2>&1
 )
 
 REM ----- 2. ce qui est leger, et seulement cela : les journaux d'abord (ils disent s'il y a du nouveau), puis les pages -----
@@ -133,7 +141,7 @@ if defined PAGES (
 
 REM ----- 3. le commit local (avec une identite de repli si git ne connait pas encore celle de ce PC) -----
 set "MSG="
-for /f "delims=" %%m in ('node "%ICI%histoire.js" --message 2^>nul') do set "MSG=%%m"
+for /f "delims=" %%m in ('call "%NODE%" "%ICI%histoire.js" --message 2^>nul') do set "MSG=%%m"
 if not defined MSG set "MSG=traces"
 set "QUI="
 git config user.email >nul 2>&1

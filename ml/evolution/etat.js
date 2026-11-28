@@ -163,7 +163,7 @@ function resume(cfg,o){
   const estTemoin=champId&&pop&&pop.temoin===champId;
   L.push('Champion '+court(champId)+(estTemoin?' (= le temoin)':depuis)+' : '+note(G&&G.champion));
   L.push('Meneur   '+court(G&&G.meneur&&G.meneur.id)+' : '+note(G&&G.meneur));
-  L.push('Temoin   '+court((pop&&pop.temoin)||(G&&G.temoin&&G.temoin.id))+' : '+note(G&&G.temoin));
+  L.push('Temoin   '+court((pop&&pop.temoin)||(G&&G.temoin&&G.temoin.id))+(pop?' ('+temoinNom(pop)+')':'')+' : '+note(G&&G.temoin));
 
   /* 7. dernier coffre */
   const K=D.coffre.length?D.coffre[D.coffre.length-1]:null;
@@ -204,7 +204,16 @@ function args(argv){
   for(let i=0;i<argv.length;i++){if(argv[i]==='--config')o.config=argv[++i];}
   return o;}
 
-module.exports={resume,lire,lireConfig,chemin,args,lireJsonlTolerant,fichiersCourses};
+/* ===== LE NOM DU TEMOIN EN CLAIR (28/11/2026, tache « portage ») =====
+   population.json temoinNom (absent = c0025, le seul temoin d'avant le portage) -> les mots des pages et du resume. */
+function temoinNom(pop){return (pop&&typeof pop.temoinNom==='string'&&pop.temoinNom)||'c0025';}
+function temoinClair(pop){
+  const n=temoinNom(pop);
+  if(n==='c0025')return 'pilote-voltige (c0025)';
+  if(n==='c0101')return 'c0101, le dernier champion de la boucle payante';
+  return n+', un champion de la boucle payante';}
+
+module.exports={resume,lire,lireConfig,chemin,args,lireJsonlTolerant,fichiersCourses,temoinNom,temoinClair};
 
 if(require.main===module){
   try{

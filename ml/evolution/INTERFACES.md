@@ -1106,7 +1106,8 @@ Cinq gestes des joueurs (`ml/ecurie/etude/selection-naturelle/PROPOSITIONS.md`, 
 ### 9.5 Ce qui n'est pas fait (connu)
 
 - Le tableau (section « 7. La machine ») ne montre pas encore machine.json (etat.js le montre, ligne 3).
-- Les tâches planifiées s'ouvrent dans une fenêtre noire (`/it`) : une fois par heure, quelques secondes (il faudrait un lanceur caché, `.vbs`).
+- ~~Les tâches planifiées s'ouvrent dans une fenêtre noire (`/it`) : une fois par heure, quelques secondes (il faudrait un lanceur caché, `.vbs`).~~
+  (28/11, l'intégrateur) Fait : `cache.vbs` et les tâches XML, § 10.5.
 - `valider` migre encore en place (le conseil du lot « gestes » : `Gn.migrer` en clair dans `evoluer.charger`, puis `valider` pur) : pas fait, le comportement
   est juste et testé.
 - Un enfant dont seuls des réglages de gestes éteints ont muté conduit comme son parent mais est rejoué (~4 % des enfants) : coût de calcul accepté.
@@ -1114,3 +1115,101 @@ Cinq gestes des joueurs (`ml/ecurie/etude/selection-naturelle/PROPOSITIONS.md`, 
 - `machine.json` se committe sur la branche `evolution-<pc>` de chaque PC : deux PC ne doivent pas partager la même branche.
 - `lancer.cmd` ne dit « Premier lancement sur ce PC » que si `etat\machine.json` manque (pas s'il vient d'un autre PC : le banc a quand même lieu, dit dans sortie.log).
 - `tests/evoluer.test.js` (étapes bd, c, f, g) et `tests/courses.test.js` n'ont pas été relancés avec ce code.
+
+## 10. Le portage de la boucle payante (28/11/2026, tâche « portage » — « le génome doit savoir écrire c0101 comme il écrit c0025 »)
+
+Ce paragraphe complète les § 2.3, 2.7, 2.10, 3.1, 3.2, 3.4, 3.11 et 4.1 ; en cas de doute, il l'emporte sur eux. Le détail et les mesures : `notes/portage.md`.
+
+### 10.1 Le génome v:3 (121 gènes)
+
+- `BORNES` = les 107 gènes de v:2, puis les **14 gènes du portage** (`Gn.PORTAGE`), dans cet ordre :
+  `fuirVite` (drapeau, c0026), `bordOn` (drapeau, c0064), `bordNitro` [0,3 ; 1,2] 0,7, `bordJauge` [0,2 ; 1] 0,5,
+  `largeOn` (drapeau, c0072), `largeHaut` [2 ; 15] 4, `largeT1` [1,6 ; 3] 2,2, `largeT2` [1,2 ; 3] 1,8, `largeAxe` [0,25 ; 0,8] 0,5, `largeAir` [0,5 ; 3] 1,5,
+  `largeMax` (entier) [1 ; 5] 3, `libreOn` (drapeau, c0087), `nitroLibreK` [1 ; 1,6] 1,25, `tenirLibre` [0 ; 0,15] 0,05.
+  Tous `ou:'R'` (lus `R.<clé>` dans `modele.js`, écrits dans REGLAGES après les gestes). 88 réels, 30 drapeaux, 1 choix, 2 entiers (`largeMax` mute comme `figMax`, `pFigMax`).
+- Naissance : drapeaux à 0 (la conduite de c0025, au bit près), réglages à la valeur de c0101 (inertes tant que le drapeau est éteint).
+- `Gn.migrer` : v:1 (86 gènes) → v:3 (gestes et portage à leur naissance) ; v:2 (107 gènes, `Gn.CLES_V2` dans l'ordre) → v:3 (portage à sa naissance). En place.
+- `Gn.shaGenome` : portage tout à sa naissance → le sha du génome v:2 d'avant (lui-même ramené au v:1 si les gestes sont aussi à leur naissance) ; sinon le
+  sha du v:3 entier. **Un pilote né avant le portage garde son identifiant** (`tests/portage.test.js` p4 : 200 mutants écrits par le genome.js du commit 7f9543955).
+- `modele.js` porte les quatre blocs, chacun gardé par son drapeau (`R.fuirVite`, `R.bordOn`, `R.largeOn`, `R.libreOn`) ; `poseNette` est une constante de plus.
+  `modele.js` est dans l'époque : une population existante change d'époque au premier lancement avec ce code (§ 9.3, même règle).
+
+### 10.2 Le témoin choisi
+
+- `config.json` `"temoin"` : `c0025` (défaut, `ml/ecurie/pilote-voltige.js`), `c0026`, `c0064`, `c0072`, `c0087`, `c0101` (`ml/labo/cerveaux/cNNNN-pilote.js`). Hors de l'époque.
+- `Gn.nomTemoin(cfg)` (lève sur un nom inconnu), `Gn.sourceTemoin(cfg)` (le chemin absolu du fichier écrit à la main), `Gn.TEMOINS`, `Gn.TEMOIN_DEFAUT`.
+- `Gn.genomeTemoin(cfg)` lit REGLAGES dans le fichier du témoin ; les drapeaux du portage sont lus dans son **code** (`Gn.BLOCS` : les extraits de chaque bloc) et
+  recoupés avec ses clés de REGLAGES (code sans clés, clés sans code, bloc à moitié : refus).
+- `I.verifier({cfg})` compare le pilote fabriqué au fichier de **ce** témoin ; il rend aussi `temoin` (le nom) et `fichier` (chemin relatif à la racine).
+  Les résumés gardent le nom `voltige` pour le fichier écrit à la main (compatibilité). `node ml/evolution/identite.js --temoin c0101`.
+- `node ml/evolution/genome.js --temoin --nom c0101 [--ecrire f.js]`.
+
+### 10.3 Un état garde son témoin ; `--repartir-de`
+
+- `population.json` : `+ "temoinNom": "c0025"` (absent = c0025). `evoluer.charger` met `cfg.temoin` au témoin de la population ; si `config.json` en demande un
+  autre, il le dit (une ligne) et garde celui de la population. `cfg._temoinDemande` garde la demande de la config.
+- `champions/gNNNN-….json` : `+ "temoin"` (le nom). `inscrire-champion.js` en tire le parent au labo quand le précédent est le témoin.
+- `node ml/evolution/evoluer.js --repartir-de NOM [--config …] [--etat …] [--travailleurs N] [--une-generation | --arret-apres N]` (incompatible avec `--banc`
+  et `--valider-maintenant`) : 1. contrôle d'identité du nouveau témoin (raté : refus, code 1, rien ne bouge) ; 2. tout le dossier d'état va dans
+  `<etat>/archives/<date UTC>-<ancien témoin>/` sauf machine.json, verrou*, sortie.log, STOP, PAUSE, ARRETE, PAS-D-ENVOI, traces.log*, le Node du PC (node.txt*,
+  NODE-REFUSE.txt, node-choix-*, CHANGER-DE-NODE) et `archives/` ; les champions (`dossierChampions`, s'il est hors de l'état) vont dans `<archive>/champions/` ;
+  `ARCHIVE.json` (`format: evolution-archive-1`) dit ce qui a bougé ; **rien n'est effacé** ; un déplacement raté remet les autres en place ; 3. la marche continue
+  comme un premier lancement (génération 0 du nouveau témoin, sans refaire le contrôle qui vient de passer). Exports : `E.repartir(cfg, nom, dire, {doitArreter})`, `E.archiverEtat(cfg, neuf, dire)`.
+  (28/11, le relecteur) Un STOP / PAUSE / Ctrl+C pendant le contrôle : refus **avant** l'archivage. Après l'archivage, la génération 0 naît (population.json
+  écrit, `temoinNom`) avant tout test d'arrêt : un état n'est jamais laissé vide entre deux témoins (`tests/portage.test.js` p7).
+- Pages : `etat.temoinNom(pop)`, `etat.temoinClair(pop)` ; le résumé, le tableau, l'arbre et l'histoire nomment le témoin de la population au lieu de « pilote-voltige ».
+- Tests : `tests/portage.test.js` (sans course, ~20 s) ; `tests/identite.test.js` contrôle c0025 ET c0101 (21 courses de 45 s, 2 à la fois par défaut).
+- (28/11, l'intégrateur) `histoire.md`, « Où on en est » : quand `<etat>/archives/*/ARCHIVE.json` existe (`format: evolution-archive-1`), une ligne de plus dit que
+  la population est née d'un changement de témoin, combien de populations sont rangées et de quel témoin était née la dernière (`histoire.archivesAnciennes`).
+  L'arbre et le tableau nomment le témoin de la population (`temoinClair`) ; ils ne parlent pas des archives.
+
+### 10.4 Le Node fixe par PC (28/11/2026, lot « lanceurs » — « il faudrait que lancer.cmd utilise un chemin de Node fixe »)
+
+La version de Node est dans l'époque des courses (§ 3.10, `composants.node`) : une autre version = une époque neuve, notes à zéro. Le détail : `notes/lanceurs.md`.
+
+- **`etat/node.txt`** : une ligne, le chemin complet de `node.exe` (CRLF ; lu avec ou sans BOM, en UTF-8 ou UTF-16, avec ou sans guillemets). **Propre au PC, jamais
+  committé** (`.gitignore` ; il contient le nom du compte Windows et le dépôt est public). Gardé en place par `--repartir-de` (§ 10.3).
+- **`node node-fixe.js choisir --etat <etat> [--sans-ecrire] [--garder-marqueur]`** : la version attendue est `population.json` → `epoque.composants.node`
+  (absente : aucune). `node.txt` présent : son Node doit exister et avoir cette version, sinon code 2. Absent : recherche (PATH dans l'ordre, le Node courant,
+  Program Files, `%LOCALAPPDATA%\Programs\nodejs`, nvm-windows, fnm, Volta, Scoop, dossiers `nodejs` / `node-v*` près du dépôt et dans le profil), le premier de la
+  bonne version est écrit dans `node.txt`. Sortie : ligne 1 = le chemin, la suite = l'explication. Code 2 = refus (le texte dit attendue, trouvées, comment corriger).
+- **`etat/NODE-REFUSE.txt`** : le texte du dernier refus de `lancer.cmd` (effacé au premier lancement qui passe). **`etat/node-choix-*.tmp`** : la sortie de
+  `node-fixe.js`, le temps d'un lancement.
+- **`etat/CHANGER-DE-NODE`** (vide) : accepte **une fois** un Node d'une autre version (nouvelle époque voulue). Effacé par `node-fixe.js choisir` (sauf
+  `--garder-marqueur`, que passe `installer-tache.cmd`), ou par `evoluer.js` quand c'est lui qui s'en sert (ci-dessous).
+- **`lancer.cmd`** : Node d'amorce (`node.txt`, sinon `where node.exe`, sinon les deux dossiers usuels) → `node-fixe.js choisir` → `"%NODE%" evoluer.js …`, avec
+  **`CASHCAR_NODE_FIXE=<chemin>`** dans l'environnement (28/11, l'intégrateur). `arreter.cmd`, `sauver-traces.cmd` : le Node de `node.txt` s'il existe, sans
+  contrôle de version (ils ne jouent aucune course).
+- **`evoluer.js` se garde seul** (28/11, l'intégrateur ; la demande n° 1 de `notes/lanceurs.md`) : `E.refusNode(cfg, op, {env, version, dire})` avant le verrou et
+  le banc. Si `population.json` a `epoque.composants.node` ≠ `process.version` : **refus, code 2** (« REFUS DE PARTIR : la population … court sous Node … »), sauf
+  `CASHCAR_NODE_FIXE` (lancer.cmd a déjà choisi, marqueur compris), `--nouveau-node`, `--banc`, ou `etat/CHANGER-DE-NODE` (accepté une fois, effacé, dit).
+  Nouvelle option : **`--nouveau-node`**. Test : `tests/node-epoque.test.js` (sans course, quelques secondes).
+  Ce qui reste : avec `--etat` / `--config` à part, `lancer.cmd` (`node-fixe.js`) ne regarde que l'époque de `etat/` ; `evoluer.js` regarde celle de l'état demandé.
+
+### 10.5 Les tâches planifiées sans limite de durée (28/11/2026, lot « lanceurs »)
+
+- `installer-tache.cmd` pose les trois tâches par **`schtasks /create /tn NOM /xml FICHIER /f`** (le `/f` remplace des tâches de mêmes noms, posées à la main
+  comme sur le Ryzen). XML écrits par **`node node-fixe.js taches --ici <ml\evolution> --sortie <dossier> --node <node.exe> [--utilisateur D\nom] [--debut AAAA-MM-JJ]`**
+  (UTF-16 avec BOM, plus `commandes.txt`).
+- Communs : `ExecutionTimeLimit PT0S` (aucune limite ; `schtasks /sc` mettait 72 h), `MultipleInstancesPolicy IgnoreNew`, départ et marche sur batterie,
+  `StartWhenAvailable`, `InteractiveToken` + `LeastPrivilege` (compte de la session, aucun mot de passe), priorité 7 ; action
+  `wscript.exe //B //Nologo "<ici>\cache.vbs" "<ici>\lancer.cmd" auto` (ou `sauver-traces.cmd auto`), dossier de travail `ml\evolution`.
+- `CashCarEvolution` : `LogonTrigger` + 5 min. `CashCarEvolution-relance` : chaque heure (00:05). `CashCarEvolution-traces` : chaque heure (00:35).
+- **`cache.vbs`** : `wscript //B cache.vbs "<x>.cmd" args…` lance le .cmd dans une fenêtre cachée, attend, rend son code. Plus de fenêtre noire (§ 9.5 corrigé).
+- **`installer-tache.cmd essai DOSSIER`** : le même texte, les XML et `commandes.txt` dans DOSSIER, rien de posé (ni `choice`, ni `schtasks`, ni `powercfg`,
+  ni `node.txt`). `installer-tache.cmd enlever` : inchangé.
+- Vérifié sans rien poser : les trois XML acceptés par le Planificateur en validation seule (COM, `TASK_VALIDATE_ONLY`). Non vérifié : le droit de poser le
+  `LogonTrigger` sans administrateur, une stratégie qui couperait `wscript`.
+
+### 10.6 Où ces formats sont décrits
+
+| Format | Écrit par | Décrit dans |
+|---|---|---|
+| génome v:3, `Gn.PORTAGE`, `Gn.BLOCS`, `Gn.TEMOINS` | `genome.js` | § 10.1-10.2, `notes/portage.md`, commentaires de `genome.js` (`PORTAGE`) |
+| `config.json` `"temoin"` | à la main | § 10.2, `config.json` `_notes` |
+| `population.json` `temoinNom`, champion `.json` `temoin` | `evoluer.js` | § 10.3 |
+| `<etat>/archives/<date>-<témoin>/`, `ARCHIVE.json` (`evolution-archive-1`) | `evoluer.js --repartir-de` | § 10.3, `notes/portage.md` |
+| `etat/node.txt`, `NODE-REFUSE.txt`, `CHANGER-DE-NODE`, `node-choix-*` | `node-fixe.js`, `lancer.cmd`, à la main | § 10.4, `notes/lanceurs.md`, en-tête de `node-fixe.js` |
+| `CASHCAR_NODE_FIXE`, `--nouveau-node` | `lancer.cmd`, `evoluer.js` | § 10.4 |
+| les trois tâches (XML), `commandes.txt` | `node-fixe.js taches`, `installer-tache.cmd` | § 10.5, `notes/lanceurs.md` |
+| l'état de la livraison, les gestes sur le Ryzen | — | `notes/LIVRAISON-C0101.md` |

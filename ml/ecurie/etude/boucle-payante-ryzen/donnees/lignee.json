@@ -1,0 +1,2840 @@
+{
+ "source": "ml/labo/journal (fusion 7f9543955), lu par outils/extraire.js",
+ "etape": "C2",
+ "total_c2_euros": 21.61,
+ "total_journal_euros": 58.53,
+ "appels_c2": 88,
+ "jetons_c2": {
+  "entree": 7302437,
+  "sortie": 1776860
+ },
+ "modele": "claude-sonnet-5-5",
+ "debut": "2026-11-27T13:52:53.331Z",
+ "fin": "2026-11-27T23:12:21.949Z",
+ "generations": [
+  {
+   "generation": 0,
+   "date": "2026-11-27T13:52:53.331Z",
+   "parent": null,
+   "champion_avant": "c0025",
+   "ecrites": 0,
+   "perdues": 0,
+   "triees": 0,
+   "promues": [],
+   "jumeaux_du_parent": [],
+   "battent_le_parent": [],
+   "validees": [],
+   "sacre": null,
+   "euros": 0,
+   "appels": 0,
+   "close": true,
+   "meilleure_au_tri": {
+    "id": "c0025",
+    "mixte": -2.5,
+    "parties": 20
+   }
+  },
+  {
+   "generation": 1,
+   "date": "2026-11-27T14:17:39.315Z",
+   "parent": "c0025",
+   "champion_avant": "c0025",
+   "ecrites": 6,
+   "perdues": 0,
+   "triees": 6,
+   "promues": [
+    "c0026",
+    "c0029"
+   ],
+   "jumeaux_du_parent": [],
+   "battent_le_parent": [
+    "c0026",
+    "c0029"
+   ],
+   "validees": [
+    {
+     "id": "c0026",
+     "tient": true,
+     "note": -6.06
+    }
+   ],
+   "sacre": "c0026",
+   "euros": 1.41,
+   "appels": 6,
+   "close": true,
+   "meilleure_au_tri": {
+    "id": "c0026",
+    "mixte": -1.49,
+    "parties": 20
+   }
+  },
+  {
+   "generation": 2,
+   "date": "2026-11-27T14:45:43.812Z",
+   "parent": "c0026",
+   "champion_avant": "c0026",
+   "ecrites": 6,
+   "perdues": 0,
+   "triees": 6,
+   "promues": [
+    "c0036"
+   ],
+   "jumeaux_du_parent": [
+    "c0036"
+   ],
+   "battent_le_parent": [],
+   "validees": [],
+   "sacre": null,
+   "euros": 1.44,
+   "appels": 6,
+   "close": true,
+   "meilleure_au_tri": {
+    "id": "c0035",
+    "mixte": -1.49,
+    "parties": 6
+   }
+  },
+  {
+   "generation": 3,
+   "date": "2026-11-27T15:10:13.396Z",
+   "parent": "c0026",
+   "champion_avant": "c0026",
+   "ecrites": 6,
+   "perdues": 0,
+   "triees": 6,
+   "promues": [
+    "c0038",
+    "c0040"
+   ],
+   "jumeaux_du_parent": [],
+   "battent_le_parent": [],
+   "validees": [],
+   "sacre": null,
+   "euros": 1.46,
+   "appels": 6,
+   "close": true,
+   "meilleure_au_tri": {
+    "id": "c0042",
+    "mixte": -1.42,
+    "parties": 6
+   }
+  },
+  {
+   "generation": 4,
+   "date": "2026-11-27T15:36:29.996Z",
+   "parent": "c0026",
+   "champion_avant": "c0026",
+   "ecrites": 6,
+   "perdues": 0,
+   "triees": 6,
+   "promues": [
+    "c0047",
+    "c0048"
+   ],
+   "jumeaux_du_parent": [
+    "c0047",
+    "c0048"
+   ],
+   "battent_le_parent": [],
+   "validees": [],
+   "sacre": null,
+   "euros": 1.48,
+   "appels": 6,
+   "close": true,
+   "meilleure_au_tri": {
+    "id": "c0047",
+    "mixte": -1.49,
+    "parties": 20
+   }
+  },
+  {
+   "generation": 5,
+   "date": "2026-11-27T15:53:45.058Z",
+   "parent": "c0026",
+   "champion_avant": "c0026",
+   "ecrites": 6,
+   "perdues": 0,
+   "triees": 6,
+   "promues": [],
+   "jumeaux_du_parent": [],
+   "battent_le_parent": [],
+   "validees": [],
+   "sacre": null,
+   "euros": 1.47,
+   "appels": 6,
+   "close": true,
+   "meilleure_au_tri": {
+    "id": "c0054",
+    "mixte": -1.46,
+    "parties": 6
+   }
+  },
+  {
+   "generation": 6,
+   "date": "2026-11-27T16:24:24.869Z",
+   "parent": "c0026",
+   "champion_avant": "c0026",
+   "ecrites": 6,
+   "perdues": 0,
+   "triees": 6,
+   "promues": [
+    "c0057",
+    "c0059"
+   ],
+   "jumeaux_du_parent": [
+    "c0059"
+   ],
+   "battent_le_parent": [],
+   "validees": [],
+   "sacre": null,
+   "euros": 1.45,
+   "appels": 6,
+   "close": true,
+   "meilleure_au_tri": {
+    "id": "c0060",
+    "mixte": -1.44,
+    "parties": 6
+   }
+  },
+  {
+   "generation": 7,
+   "date": "2026-11-27T16:50:13.537Z",
+   "parent": "c0026",
+   "champion_avant": "c0026",
+   "ecrites": 6,
+   "perdues": 0,
+   "triees": 6,
+   "promues": [
+    "c0062",
+    "c0064"
+   ],
+   "jumeaux_du_parent": [],
+   "battent_le_parent": [
+    "c0064"
+   ],
+   "validees": [
+    {
+     "id": "c0064",
+     "tient": true,
+     "note": -2.35
+    }
+   ],
+   "sacre": "c0064",
+   "euros": 1.45,
+   "appels": 6,
+   "close": true,
+   "meilleure_au_tri": {
+    "id": "c0064",
+    "mixte": -1.46,
+    "parties": 20
+   }
+  },
+  {
+   "generation": 8,
+   "date": "2026-11-27T17:24:03.413Z",
+   "parent": "c0064",
+   "champion_avant": "c0064",
+   "ecrites": 6,
+   "perdues": 0,
+   "triees": 6,
+   "promues": [
+    "c0070",
+    "c0072"
+   ],
+   "jumeaux_du_parent": [
+    "c0070"
+   ],
+   "battent_le_parent": [
+    "c0072"
+   ],
+   "validees": [
+    {
+     "id": "c0072",
+     "tient": true,
+     "note": -2.35
+    }
+   ],
+   "sacre": "c0072",
+   "euros": 1.45,
+   "appels": 6,
+   "close": true,
+   "meilleure_au_tri": {
+    "id": "c0073",
+    "mixte": -0.04,
+    "parties": 6
+   }
+  },
+  {
+   "generation": 9,
+   "date": "2026-11-27T17:57:42.070Z",
+   "parent": "c0072",
+   "champion_avant": "c0072",
+   "ecrites": 6,
+   "perdues": 0,
+   "triees": 6,
+   "promues": [
+    "c0076",
+    "c0077"
+   ],
+   "jumeaux_du_parent": [
+    "c0076"
+   ],
+   "battent_le_parent": [],
+   "validees": [],
+   "sacre": null,
+   "euros": 1.51,
+   "appels": 6,
+   "close": true,
+   "meilleure_au_tri": {
+    "id": "c0078",
+    "mixte": 0.24,
+    "parties": 6
+   }
+  },
+  {
+   "generation": 10,
+   "date": "2026-11-27T18:23:43.168Z",
+   "parent": "c0072",
+   "champion_avant": "c0072",
+   "ecrites": 6,
+   "perdues": 0,
+   "triees": 6,
+   "promues": [
+    "c0083",
+    "c0084"
+   ],
+   "jumeaux_du_parent": [
+    "c0084"
+   ],
+   "battent_le_parent": [],
+   "validees": [],
+   "sacre": null,
+   "euros": 1.51,
+   "appels": 6,
+   "close": true,
+   "meilleure_au_tri": {
+    "id": "c0081",
+    "mixte": -0.95,
+    "parties": 6
+   }
+  },
+  {
+   "generation": 11,
+   "date": "2026-11-27T20:42:01.121Z",
+   "parent": "c0072",
+   "champion_avant": "c0072",
+   "ecrites": 6,
+   "perdues": 0,
+   "triees": 6,
+   "promues": [
+    "c0087",
+    "c0089"
+   ],
+   "jumeaux_du_parent": [],
+   "battent_le_parent": [
+    "c0087",
+    "c0089"
+   ],
+   "validees": [
+    {
+     "id": "c0087",
+     "tient": true,
+     "note": -2.35
+    }
+   ],
+   "sacre": "c0087",
+   "euros": 1.48,
+   "appels": 6,
+   "close": true,
+   "meilleure_au_tri": {
+    "id": "c0090",
+    "mixte": 0.24,
+    "parties": 6
+   }
+  },
+  {
+   "generation": 12,
+   "date": "2026-11-27T21:08:54.213Z",
+   "parent": "c0087",
+   "champion_avant": "c0087",
+   "ecrites": 6,
+   "perdues": 1,
+   "triees": 5,
+   "promues": [
+    "c0095"
+   ],
+   "jumeaux_du_parent": [
+    "c0095"
+   ],
+   "battent_le_parent": [],
+   "validees": [],
+   "sacre": null,
+   "euros": 1.29,
+   "appels": 6,
+   "close": true,
+   "meilleure_au_tri": {
+    "id": "c0094",
+    "mixte": -0.46,
+    "parties": 6
+   }
+  },
+  {
+   "generation": 13,
+   "date": "2026-11-27T22:10:05.595Z",
+   "parent": "c0087",
+   "champion_avant": "c0087",
+   "ecrites": 6,
+   "perdues": 0,
+   "triees": 6,
+   "promues": [
+    "c0098",
+    "c0101"
+   ],
+   "jumeaux_du_parent": [],
+   "battent_le_parent": [
+    "c0098",
+    "c0101"
+   ],
+   "validees": [
+    {
+     "id": "c0098",
+     "tient": false,
+     "note": -2.43
+    },
+    {
+     "id": "c0101",
+     "tient": true,
+     "note": -2.35
+    }
+   ],
+   "sacre": "c0101",
+   "euros": 1.54,
+   "appels": 6,
+   "close": true,
+   "meilleure_au_tri": {
+    "id": "c0098",
+    "mixte": -1.07,
+    "parties": 20
+   }
+  },
+  {
+   "generation": 14,
+   "date": "2026-11-27T22:47:27.910Z",
+   "parent": "c0101",
+   "champion_avant": "c0101",
+   "ecrites": 6,
+   "perdues": 0,
+   "triees": 6,
+   "promues": [
+    "c0103",
+    "c0108"
+   ],
+   "jumeaux_du_parent": [],
+   "battent_le_parent": [
+    "c0103"
+   ],
+   "validees": [
+    {
+     "id": "c0103",
+     "tient": false,
+     "note": -3.22
+    }
+   ],
+   "sacre": null,
+   "euros": 1.57,
+   "appels": 6,
+   "close": true,
+   "meilleure_au_tri": {
+    "id": "c0106",
+    "mixte": 0.24,
+    "parties": 6
+   }
+  },
+  {
+   "generation": 15,
+   "date": "2026-11-27T23:12:21.664Z",
+   "parent": "c0101",
+   "champion_avant": "c0101",
+   "ecrites": 4,
+   "perdues": 0,
+   "triees": 4,
+   "promues": [
+    "c0112"
+   ],
+   "jumeaux_du_parent": [
+    "c0112"
+   ],
+   "battent_le_parent": [],
+   "validees": [],
+   "sacre": null,
+   "euros": 1.1,
+   "appels": 4,
+   "close": false,
+   "meilleure_au_tri": null
+  }
+ ],
+ "pilotes": {
+  "c0025": {
+   "id": "c0025",
+   "generation": 0,
+   "parent": null,
+   "raison": "Le pilote de depart de l'etape C2, tel qu'il a ete donne a la boucle (--depuis).",
+   "angle": null,
+   "effort": null,
+   "cout": null,
+   "entrainement": {
+    "graines": {
+     "n": 20,
+     "depart": 910000,
+     "pas": 37
+    },
+    "mixte": -2.5,
+    "palier_median": 7.5,
+    "palier_moyen": 7.75,
+    "palier_record": 14,
+    "ecart": 1.666,
+    "survie_mediane_s": 137.3,
+    "paliers": [
+     7,
+     10,
+     7,
+     8,
+     6,
+     3,
+     8,
+     6,
+     11,
+     5,
+     14,
+     13,
+     9,
+     2,
+     7,
+     5,
+     9,
+     6,
+     10,
+     9
+    ]
+   },
+   "validation": {
+    "graines": {
+     "n": 20,
+     "depart": 950000,
+     "pas": 37
+    },
+    "role": "barre",
+    "mixte": -6.23,
+    "palier_median": 4,
+    "palier_moyen": 4.8,
+    "palier_record": 9,
+    "ecart": 1.705,
+    "survie_mediane_s": 69.2,
+    "paliers": [
+     1,
+     4,
+     3,
+     2,
+     6,
+     8,
+     3,
+     4,
+     5,
+     8,
+     4,
+     7,
+     3,
+     5,
+     2,
+     7,
+     4,
+     9,
+     8,
+     3
+    ]
+   }
+  },
+  "c0026": {
+   "id": "c0026",
+   "generation": 1,
+   "parent": "c0025",
+   "raison": "Une seule idée, le dessous de la dalle. En vol, une pose annoncée sous la dalle perd 40 points au lieu de 25, et le pilote quitte tout de suite la façon tenue si un autre rayon promet une pose propre dessus (avant, il attendait 0,35 s). Au sol, une fois dessous, il cherche la sortie par le bord après 0,4 s au lieu de 0,8 s. Le but est de ramener la part du sol passée dessous (0,041) vers celle des joueurs (0,022), avec des passages plus courts. Rien d'autre ne change, et le profil est inchangé.",
+   "angle": "LE DESSOUS DE LA DALLE : les joueurs y roulent 2 % du temps au sol, par passages d'une seconde ; le parent bien plus. En vol, preferer une pose DESSUS (le rayon dit `dessous`) sans y perdre la vie ; une fois dessous, en ressortir vite par le bord.",
+   "effort": "high",
+   "cout": {
+    "entree": 78895,
+    "sortie": 18763,
+    "euros": 0.38
+   },
+   "entrainement": {
+    "graines": {
+     "n": 20,
+     "depart": 910000,
+     "pas": 37
+    },
+    "mixte": -1.49,
+    "palier_median": 8,
+    "palier_moyen": 8.2,
+    "palier_record": 17,
+    "ecart": 1.581,
+    "survie_mediane_s": 125.3,
+    "paliers": [
+     10,
+     10,
+     5,
+     8,
+     11,
+     3,
+     8,
+     7,
+     2,
+     11,
+     10,
+     7,
+     8,
+     2,
+     11,
+     6,
+     9,
+     6,
+     13,
+     17
+    ]
+   },
+   "validation": {
+    "graines": {
+     "n": 20,
+     "depart": 950000,
+     "pas": 37
+    },
+    "role": "candidat",
+    "tient": true,
+    "barre": [
+     -6.23,
+     9,
+     69.2
+    ],
+    "mixte": -6.06,
+    "palier_median": 4,
+    "palier_moyen": 5.7,
+    "palier_record": 14,
+    "ecart": 1.677,
+    "survie_mediane_s": 80.8,
+    "paliers": [
+     1,
+     13,
+     3,
+     2,
+     8,
+     9,
+     3,
+     4,
+     10,
+     8,
+     4,
+     4,
+     3,
+     5,
+     2,
+     7,
+     4,
+     14,
+     7,
+     3
+    ]
+   },
+   "courses_changees": {
+    "entrainement": [
+     {
+      "graine": 910000,
+      "avant": 7,
+      "apres": 10
+     },
+     {
+      "graine": 910037,
+      "avant": 10,
+      "apres": 10
+     },
+     {
+      "graine": 910074,
+      "avant": 7,
+      "apres": 5
+     },
+     {
+      "graine": 910148,
+      "avant": 6,
+      "apres": 11
+     },
+     {
+      "graine": 910259,
+      "avant": 6,
+      "apres": 7
+     },
+     {
+      "graine": 910296,
+      "avant": 11,
+      "apres": 2
+     },
+     {
+      "graine": 910333,
+      "avant": 5,
+      "apres": 11
+     },
+     {
+      "graine": 910370,
+      "avant": 14,
+      "apres": 10
+     },
+     {
+      "graine": 910407,
+      "avant": 13,
+      "apres": 7
+     },
+     {
+      "graine": 910444,
+      "avant": 9,
+      "apres": 8
+     },
+     {
+      "graine": 910518,
+      "avant": 7,
+      "apres": 11
+     },
+     {
+      "graine": 910555,
+      "avant": 5,
+      "apres": 6
+     },
+     {
+      "graine": 910592,
+      "avant": 9,
+      "apres": 9
+     },
+     {
+      "graine": 910666,
+      "avant": 10,
+      "apres": 13
+     },
+     {
+      "graine": 910703,
+      "avant": 9,
+      "apres": 17
+     }
+    ],
+    "validation": [
+     {
+      "graine": 950037,
+      "avant": 4,
+      "apres": 13
+     },
+     {
+      "graine": 950148,
+      "avant": 6,
+      "apres": 8
+     },
+     {
+      "graine": 950185,
+      "avant": 8,
+      "apres": 9
+     },
+     {
+      "graine": 950296,
+      "avant": 5,
+      "apres": 10
+     },
+     {
+      "graine": 950407,
+      "avant": 7,
+      "apres": 4
+     },
+     {
+      "graine": 950555,
+      "avant": 7,
+      "apres": 7
+     },
+     {
+      "graine": 950629,
+      "avant": 9,
+      "apres": 14
+     },
+     {
+      "graine": 950666,
+      "avant": 8,
+      "apres": 7
+     },
+     {
+      "graine": 950703,
+      "avant": 3,
+      "apres": 3
+     }
+    ]
+   },
+   "palier_apparie": {
+    "entrainement": {
+     "n": 20,
+     "moyenne": 0.45,
+     "erreur_type": 0.88,
+     "t": 0.51
+    },
+    "validation": {
+     "n": 20,
+     "moyenne": 0.9,
+     "erreur_type": 0.58,
+     "t": 1.54
+    },
+    "les_40": {
+     "n": 40,
+     "moyenne": 0.68,
+     "erreur_type": 0.52,
+     "t": 1.29
+    }
+   },
+   "diff": {
+    "fichier": "diffs/c0025-c0026.diff",
+    "lignes_ajoutees": 8,
+    "lignes_retirees": 6
+   }
+  },
+  "c0064": {
+   "id": "c0064",
+   "generation": 7,
+   "parent": "c0026",
+   "raison": "Je change un seul point, la nitro au décollage d'une sortie subie. Sur les maps sans décor (nuages, espace), quand la route lâche et que le bord arrive dans moins de 0,7 s, le parent coupe la nitro, d'où 17 % de décollages nitro allumée contre 63 % chez les joueurs. Ici la nitro reste tenue jusqu'au bord si la jauge dépasse 0,5 et que la caisse n'est ni en glisse, ni en rebond, ni sous la dalle. En vol la loi « vers la route » reprend la main sans changement. Les maps à décor, où la nitro partout a coûté des paliers, gardent la règle du parent. Je n'ai pas lancé la variante : l'effet n'est pas mesuré.",
+   "angle": "S'ENVOLER AU LIEU DE TOMBER : chez les joueurs la nitro est allumee au decollage 63 fois sur 100, leurs vols montent de 40 m et durent 2,2 s ; le parent tombe du bord nitro eteinte. Sortir nitro tenue, cabrer au depart, tapoter la nitro en vol (51 allumages par minute de vol chez les joueurs).",
+   "effort": "high",
+   "cout": {
+    "entree": 83916,
+    "sortie": 19510,
+    "euros": 0.2
+   },
+   "entrainement": {
+    "graines": {
+     "n": 20,
+     "depart": 910000,
+     "pas": 37
+    },
+    "mixte": -1.46,
+    "palier_median": 8,
+    "palier_moyen": 7.75,
+    "palier_record": 14,
+    "ecart": 1.577,
+    "survie_mediane_s": 123.8,
+    "paliers": [
+     10,
+     10,
+     10,
+     8,
+     14,
+     3,
+     4,
+     5,
+     1,
+     12,
+     5,
+     7,
+     14,
+     2,
+     8,
+     6,
+     13,
+     6,
+     9,
+     8
+    ]
+   },
+   "validation": {
+    "graines": {
+     "n": 20,
+     "depart": 950000,
+     "pas": 37
+    },
+    "role": "candidat",
+    "tient": true,
+    "barre": [
+     -6.06,
+     14,
+     80.8
+    ],
+    "mixte": -2.35,
+    "palier_median": 6,
+    "palier_moyen": 6.8,
+    "palier_record": 16,
+    "ecart": 1.392,
+    "survie_mediane_s": 102.5,
+    "paliers": [
+     6,
+     7,
+     3,
+     2,
+     6,
+     16,
+     3,
+     8,
+     14,
+     14,
+     6,
+     8,
+     3,
+     3,
+     2,
+     11,
+     4,
+     10,
+     7,
+     3
+    ]
+   },
+   "courses_changees": {
+    "entrainement": [
+     {
+      "graine": 910000,
+      "avant": 10,
+      "apres": 10
+     },
+     {
+      "graine": 910037,
+      "avant": 10,
+      "apres": 10
+     },
+     {
+      "graine": 910074,
+      "avant": 5,
+      "apres": 10
+     },
+     {
+      "graine": 910148,
+      "avant": 11,
+      "apres": 14
+     },
+     {
+      "graine": 910222,
+      "avant": 8,
+      "apres": 4
+     },
+     {
+      "graine": 910259,
+      "avant": 7,
+      "apres": 5
+     },
+     {
+      "graine": 910296,
+      "avant": 2,
+      "apres": 1
+     },
+     {
+      "graine": 910333,
+      "avant": 11,
+      "apres": 12
+     },
+     {
+      "graine": 910370,
+      "avant": 10,
+      "apres": 5
+     },
+     {
+      "graine": 910444,
+      "avant": 8,
+      "apres": 14
+     },
+     {
+      "graine": 910518,
+      "avant": 11,
+      "apres": 8
+     },
+     {
+      "graine": 910555,
+      "avant": 6,
+      "apres": 6
+     },
+     {
+      "graine": 910592,
+      "avant": 9,
+      "apres": 13
+     },
+     {
+      "graine": 910629,
+      "avant": 6,
+      "apres": 6
+     },
+     {
+      "graine": 910666,
+      "avant": 13,
+      "apres": 9
+     },
+     {
+      "graine": 910703,
+      "avant": 17,
+      "apres": 8
+     }
+    ],
+    "validation": [
+     {
+      "graine": 950000,
+      "avant": 1,
+      "apres": 6
+     },
+     {
+      "graine": 950037,
+      "avant": 13,
+      "apres": 7
+     },
+     {
+      "graine": 950148,
+      "avant": 8,
+      "apres": 6
+     },
+     {
+      "graine": 950185,
+      "avant": 9,
+      "apres": 16
+     },
+     {
+      "graine": 950259,
+      "avant": 4,
+      "apres": 8
+     },
+     {
+      "graine": 950296,
+      "avant": 10,
+      "apres": 14
+     },
+     {
+      "graine": 950333,
+      "avant": 8,
+      "apres": 14
+     },
+     {
+      "graine": 950370,
+      "avant": 4,
+      "apres": 6
+     },
+     {
+      "graine": 950407,
+      "avant": 4,
+      "apres": 8
+     },
+     {
+      "graine": 950481,
+      "avant": 5,
+      "apres": 3
+     },
+     {
+      "graine": 950555,
+      "avant": 7,
+      "apres": 11
+     },
+     {
+      "graine": 950629,
+      "avant": 14,
+      "apres": 10
+     }
+    ]
+   },
+   "palier_apparie": {
+    "entrainement": {
+     "n": 20,
+     "moyenne": -0.45,
+     "erreur_type": 0.79,
+     "t": -0.57
+    },
+    "validation": {
+     "n": 20,
+     "moyenne": 1.1,
+     "erreur_type": 0.75,
+     "t": 1.47
+    },
+    "les_40": {
+     "n": 40,
+     "moyenne": 0.33,
+     "erreur_type": 0.55,
+     "t": 0.59
+    }
+   },
+   "diff": {
+    "fichier": "diffs/c0026-c0064.diff",
+    "lignes_ajoutees": 6,
+    "lignes_retirees": 0
+   }
+  },
+  "c0072": {
+   "id": "c0072",
+   "generation": 8,
+   "parent": "c0064",
+   "raison": "Sur les maps sans décor (nuages, espace), le parent n'ose lancer une figure en vol subi que si la caisse est à plus de 15 m de la dalle. La loi « vers la route » pique dès 10 m, donc presque aucun vol ne remplit cette condition. J'ajoute un palier « marge large » pour les vols où le radar est le plus sûr. Il faut que `versRoute` et `versRoutePlane` se posent tous deux, propres, dessus, avec un axe sous 0,5 rad. La pose doit être annoncée à plus de 2,2 s pour la première figure et à plus de 1,8 s pour les suivantes. Il faut aussi au moins 9 m de haut et plus de 1,5 s d'air de reste à la pose. Ces vols peuvent porter jusqu'à trois figures. Les maps à décor, les plongeons voulus, la nitro, le choix des façons et le `profil` restent ceux du parent. Je n'ai pas lancé la variante : l'effet n'est pas mesuré.",
+   "angle": "LES FIGURES : 3,3 lancees par minute chez les joueurs, toutes en vol, dans les vols de plus de 2,5 s, souvent deux ou trois d'affilee. Une figure lancee trop pres de la pose deregle le vol (mesure) : trouve les vols ou la marge est large (haut, loin de tout decor, les deux rayons se posent) et lances-y plus de figures.",
+   "effort": "high",
+   "cout": {
+    "entree": 84405,
+    "sortie": 21226,
+    "euros": 0.22
+   },
+   "entrainement": {
+    "graines": {
+     "n": 20,
+     "depart": 910000,
+     "pas": 37
+    },
+    "mixte": -1.42,
+    "palier_median": 8,
+    "palier_moyen": 8,
+    "palier_record": 19,
+    "ecart": 1.57,
+    "survie_mediane_s": 123.8,
+    "paliers": [
+     10,
+     10,
+     10,
+     8,
+     14,
+     3,
+     4,
+     5,
+     1,
+     12,
+     5,
+     7,
+     19,
+     2,
+     8,
+     6,
+     13,
+     6,
+     9,
+     8
+    ]
+   },
+   "validation": {
+    "graines": {
+     "n": 20,
+     "depart": 950000,
+     "pas": 37
+    },
+    "role": "candidat",
+    "tient": true,
+    "barre": [
+     -2.35,
+     16,
+     102.5
+    ],
+    "mixte": -2.35,
+    "palier_median": 6,
+    "palier_moyen": 6.8,
+    "palier_record": 16,
+    "ecart": 1.392,
+    "survie_mediane_s": 102.5,
+    "paliers": [
+     6,
+     7,
+     3,
+     2,
+     6,
+     16,
+     3,
+     8,
+     14,
+     14,
+     6,
+     8,
+     3,
+     3,
+     2,
+     11,
+     4,
+     10,
+     7,
+     3
+    ]
+   },
+   "courses_changees": {
+    "entrainement": [
+     {
+      "graine": 910444,
+      "avant": 14,
+      "apres": 19
+     }
+    ],
+    "validation": []
+   },
+   "palier_apparie": {
+    "entrainement": {
+     "n": 20,
+     "moyenne": 0.25,
+     "erreur_type": 0.25,
+     "t": 1
+    },
+    "validation": {
+     "n": 20,
+     "moyenne": 0,
+     "erreur_type": 0,
+     "t": null
+    },
+    "les_40": {
+     "n": 40,
+     "moyenne": 0.13,
+     "erreur_type": 0.13,
+     "t": 1
+    }
+   },
+   "diff": {
+    "fichier": "diffs/c0064-c0072.diff",
+    "lignes_ajoutees": 22,
+    "lignes_retirees": 3
+   }
+  },
+  "c0087": {
+   "id": "c0087",
+   "generation": 11,
+   "parent": "c0072",
+   "raison": "Sur les maps sans décor (nuages, espace), une sortie par le bord ne coûte que de l'air, mais le pilote y coupe la nitro aussi tôt que près des parois : il l'a 62 % du sol contre 78 % chez les joueurs. Sur ces deux maps seulement, la nitro déjà allumée est donc tenue plus longtemps. Le seuil de volant d'un virage est multiplié par 1,25, et la nitro tolère une vitesse 5 % au-dessus de `vSure`. Elle reste coupée quand la route lâche, en glisse, de travers, en rebond ou à jauge basse. Les maps à décor, les figures, les raccourcis et le `profil` ne changent pas. Je n'ai pas lancé la variante : l'effet n'est pas mesuré.",
+   "angle": "LA NITRO AU SOL : les joueurs l'ont allumee 78 % du sol, le parent trois fois moins — et sa jauge n'est JAMAIS vide (mesure) : c'est lui qui ne la demande pas. La tenir par defaut et la lacher AVANT le virage qui ne passe pas, au lieu de ne l'allumer que dans les droites. Attention : demandee partout, elle coute deux a trois paliers (mesure le 26/11) — il faut mieux choisir OU la couper.",
+   "effort": "high",
+   "cout": {
+    "entree": 85248,
+    "sortie": 20424,
+    "euros": 0.21
+   },
+   "entrainement": {
+    "graines": {
+     "n": 20,
+     "depart": 910000,
+     "pas": 37
+    },
+    "mixte": -1.19,
+    "palier_median": 8,
+    "palier_moyen": 7.45,
+    "palier_record": 14,
+    "ecart": 1.531,
+    "survie_mediane_s": 125.9,
+    "paliers": [
+     10,
+     10,
+     10,
+     8,
+     14,
+     3,
+     4,
+     5,
+     1,
+     12,
+     5,
+     7,
+     6,
+     2,
+     8,
+     6,
+     13,
+     8,
+     9,
+     8
+    ]
+   },
+   "validation": {
+    "graines": {
+     "n": 20,
+     "depart": 950000,
+     "pas": 37
+    },
+    "role": "candidat",
+    "tient": true,
+    "barre": [
+     -2.35,
+     16,
+     102.5
+    ],
+    "mixte": -2.35,
+    "palier_median": 6,
+    "palier_moyen": 6.8,
+    "palier_record": 16,
+    "ecart": 1.392,
+    "survie_mediane_s": 102.5,
+    "paliers": [
+     6,
+     7,
+     3,
+     2,
+     6,
+     16,
+     3,
+     8,
+     14,
+     14,
+     6,
+     8,
+     3,
+     3,
+     2,
+     11,
+     4,
+     10,
+     7,
+     3
+    ]
+   },
+   "courses_changees": {
+    "entrainement": [
+     {
+      "graine": 910444,
+      "avant": 19,
+      "apres": 6
+     },
+     {
+      "graine": 910629,
+      "avant": 6,
+      "apres": 8
+     }
+    ],
+    "validation": []
+   },
+   "palier_apparie": {
+    "entrainement": {
+     "n": 20,
+     "moyenne": -0.55,
+     "erreur_type": 0.66,
+     "t": -0.83
+    },
+    "validation": {
+     "n": 20,
+     "moyenne": 0,
+     "erreur_type": 0,
+     "t": null
+    },
+    "les_40": {
+     "n": 40,
+     "moyenne": -0.28,
+     "erreur_type": 0.33,
+     "t": -0.83
+    }
+   },
+   "diff": {
+    "fichier": "diffs/c0072-c0087.diff",
+    "lignes_ajoutees": 10,
+    "lignes_retirees": 2
+   }
+  },
+  "c0101": {
+   "id": "c0101",
+   "generation": 13,
+   "parent": "c0087",
+   "raison": "Sur les maps sans décor (nuages, espace), la « marge large » n'ouvre une figure en vol subi que si la caisse est à plus de 9 m au-dessus de la dalle. Or la loi « vers la route » pique dès 10 m, donc cette condition de hauteur est celle qui bloque presque toujours le geste. Je la ramène de 9 à 4 m (`largeHaut`). Une figure, qui coûte surtout si elle est lancée trop près de la pose, reste protégée par les autres filtres du parent : pose annoncée à plus de 2,2 s (première figure) et 1,8 s (suivantes), `versRoute` et sa jumelle au réacteur qui se posent toutes deux, propres, dessus et sous 0,5 rad, et 1,5 s d'air de reste. Les plongeons voulus, la nitro, les raccourcis, les maps à décor et le `profil` ne changent pas. L'effet n'est pas mesuré.",
+   "angle": "LES FIGURES : 3,3 lancees par minute chez les joueurs, toutes en vol, dans les vols de plus de 2,5 s, souvent deux ou trois d'affilee. Une figure lancee trop pres de la pose deregle le vol (mesure) : trouve les vols ou la marge est large (haut, loin de tout decor, les deux rayons se posent) et lances-y plus de figures.",
+   "effort": "high",
+   "cout": {
+    "entree": 85550,
+    "sortie": 21483,
+    "euros": 0.22
+   },
+   "entrainement": {
+    "graines": {
+     "n": 20,
+     "depart": 910000,
+     "pas": 37
+    },
+    "mixte": -1.15,
+    "palier_median": 8,
+    "palier_moyen": 7.5,
+    "palier_record": 14,
+    "ecart": 1.525,
+    "survie_mediane_s": 125.9,
+    "paliers": [
+     10,
+     10,
+     10,
+     8,
+     14,
+     3,
+     4,
+     5,
+     1,
+     12,
+     5,
+     7,
+     6,
+     2,
+     8,
+     6,
+     13,
+     8,
+     9,
+     9
+    ]
+   },
+   "validation": {
+    "graines": {
+     "n": 20,
+     "depart": 950000,
+     "pas": 37
+    },
+    "role": "candidat",
+    "tient": true,
+    "barre": [
+     -2.35,
+     16,
+     102.5
+    ],
+    "mixte": -2.35,
+    "palier_median": 6,
+    "palier_moyen": 6.8,
+    "palier_record": 16,
+    "ecart": 1.392,
+    "survie_mediane_s": 102.5,
+    "paliers": [
+     6,
+     7,
+     3,
+     2,
+     6,
+     16,
+     3,
+     8,
+     14,
+     14,
+     6,
+     8,
+     3,
+     3,
+     2,
+     11,
+     4,
+     10,
+     7,
+     3
+    ]
+   },
+   "courses_changees": {
+    "entrainement": [
+     {
+      "graine": 910703,
+      "avant": 8,
+      "apres": 9
+     }
+    ],
+    "validation": []
+   },
+   "palier_apparie": {
+    "entrainement": {
+     "n": 20,
+     "moyenne": 0.05,
+     "erreur_type": 0.05,
+     "t": 1
+    },
+    "validation": {
+     "n": 20,
+     "moyenne": 0,
+     "erreur_type": 0,
+     "t": null
+    },
+    "les_40": {
+     "n": 40,
+     "moyenne": 0.03,
+     "erreur_type": 0.02,
+     "t": 1
+    }
+   },
+   "palier_apparie_contre_c0025": {
+    "entrainement": {
+     "n": 20,
+     "moyenne": -0.25,
+     "erreur_type": 1.02,
+     "t": -0.24
+    },
+    "validation": {
+     "n": 20,
+     "moyenne": 2,
+     "erreur_type": 0.68,
+     "t": 2.92
+    },
+    "les_40": {
+     "n": 40,
+     "moyenne": 0.88,
+     "erreur_type": 0.63,
+     "t": 1.38
+    }
+   },
+   "diff": {
+    "fichier": "diffs/c0087-c0101.diff",
+    "lignes_ajoutees": 2,
+    "lignes_retirees": 1
+   }
+  },
+  "c0098": {
+   "id": "c0098",
+   "generation": 13,
+   "parent": "c0087",
+   "raison": "Sur les maps sans décor (nuages, espace), le pilote coupe la nitro dès qu'une seule décision juge le virage trop fort, puis la rallume une décision plus tard. Ces coupures d'une décision laissent la flamme éteinte plus longtemps que le virage ne l'exige (62,8 % du sol allumé contre 77,9 % chez les joueurs). Je ne change que ça : sur ces deux maps, une nitro déjà allumée ne se coupe pour un motif de virage qu'après trois décisions de suite (0,3 s). Une coupure grave reste immédiate : vitesse nettement au-dessus de `vSure`, ou volant demandé à plus de 1,5 fois le seuil. La route qui lâche, la glisse, le travers, le rebond et la jauge coupent toujours tout de suite. Les maps à décor, les figures, les raccourcis et le `profil` ne changent pas.",
+   "angle": "LA NITRO AU SOL : les joueurs l'ont allumee 78 % du sol, le parent trois fois moins — et sa jauge n'est JAMAIS vide (mesure) : c'est lui qui ne la demande pas. La tenir par defaut et la lacher AVANT le virage qui ne passe pas, au lieu de ne l'allumer que dans les droites. Attention : demandee partout, elle coute deux a trois paliers (mesure le 26/11) — il faut mieux choisir OU la couper.",
+   "effort": "high",
+   "cout": {
+    "entree": 85588,
+    "sortie": 21838,
+    "euros": 0.23
+   },
+   "entrainement": {
+    "graines": {
+     "n": 20,
+     "depart": 910000,
+     "pas": 37
+    },
+    "mixte": -1.07,
+    "palier_median": 8,
+    "palier_moyen": 7.45,
+    "palier_record": 14,
+    "ecart": 1.511,
+    "survie_mediane_s": 123.8,
+    "paliers": [
+     10,
+     10,
+     10,
+     8,
+     14,
+     3,
+     4,
+     5,
+     1,
+     12,
+     5,
+     7,
+     6,
+     2,
+     8,
+     6,
+     13,
+     8,
+     9,
+     8
+    ]
+   },
+   "validation": {
+    "graines": {
+     "n": 20,
+     "depart": 950000,
+     "pas": 37
+    },
+    "role": "candidat",
+    "tient": false,
+    "barre": [
+     -2.35,
+     16,
+     102.5
+    ],
+    "mixte": -2.43,
+    "palier_median": 6,
+    "palier_moyen": 6.65,
+    "palier_record": 16,
+    "ecart": 1.405,
+    "survie_mediane_s": 102.5,
+    "paliers": [
+     6,
+     7,
+     3,
+     2,
+     6,
+     16,
+     3,
+     8,
+     14,
+     14,
+     6,
+     8,
+     3,
+     3,
+     2,
+     11,
+     4,
+     7,
+     7,
+     3
+    ]
+   },
+   "courses_changees": {
+    "entrainement": [
+     {
+      "graine": 910444,
+      "avant": 6,
+      "apres": 6
+     }
+    ],
+    "validation": [
+     {
+      "graine": 950629,
+      "avant": 10,
+      "apres": 7
+     }
+    ]
+   },
+   "palier_apparie": {
+    "entrainement": {
+     "n": 20,
+     "moyenne": 0,
+     "erreur_type": 0,
+     "t": null
+    },
+    "validation": {
+     "n": 20,
+     "moyenne": -0.15,
+     "erreur_type": 0.15,
+     "t": -1
+    },
+    "les_40": {
+     "n": 40,
+     "moyenne": -0.07,
+     "erreur_type": 0.08,
+     "t": -1
+    }
+   }
+  },
+  "c0103": {
+   "id": "c0103",
+   "generation": 14,
+   "parent": "c0101",
+   "raison": "Je ne change que `dessousMax`, de 0,4 s à 0,2 s. Le pilote cherche donc à sortir du dessous de la dalle par le bord dès la troisième vue, au lieu de la cinquième. Il y reste 3,5 % du sol par passages de 1,5 s, contre 2,2 % et 1 s chez les joueurs, et raccourcir l'attente doit réduire les deux. Les règles de sortie (aveugle sur les maps sans décor, prudente sur les maps à décor), la nitro, les poses, les figures et le `profil` restent ceux du parent. L'effet n'est pas mesuré.",
+   "angle": "LE DESSOUS DE LA DALLE : les joueurs y roulent 2 % du temps au sol, par passages d'une seconde ; le parent bien plus. En vol, preferer une pose DESSUS (le rayon dit `dessous`) sans y perdre la vie ; une fois dessous, en ressortir vite par le bord.",
+   "effort": "high",
+   "cout": {
+    "entree": 85691,
+    "sortie": 20303,
+    "euros": 0.42
+   },
+   "entrainement": {
+    "graines": {
+     "n": 20,
+     "depart": 910000,
+     "pas": 37
+    },
+    "mixte": -0.95,
+    "palier_median": 8,
+    "palier_moyen": 7.7,
+    "palier_record": 13,
+    "ecart": 1.491,
+    "survie_mediane_s": 125.8,
+    "paliers": [
+     13,
+     13,
+     9,
+     8,
+     13,
+     3,
+     4,
+     5,
+     1,
+     12,
+     3,
+     7,
+     6,
+     2,
+     8,
+     6,
+     13,
+     8,
+     10,
+     10
+    ]
+   },
+   "validation": {
+    "graines": {
+     "n": 20,
+     "depart": 950000,
+     "pas": 37
+    },
+    "role": "candidat",
+    "tient": false,
+    "barre": [
+     -2.35,
+     16,
+     102.5
+    ],
+    "mixte": -3.22,
+    "palier_median": 5.5,
+    "palier_moyen": 5.85,
+    "palier_record": 16,
+    "ecart": 1.453,
+    "survie_mediane_s": 95.9,
+    "paliers": [
+     6,
+     7,
+     3,
+     2,
+     6,
+     16,
+     3,
+     8,
+     5,
+     14,
+     6,
+     8,
+     3,
+     3,
+     2,
+     5,
+     4,
+     3,
+     7,
+     6
+    ]
+   },
+   "courses_changees": {
+    "entrainement": [
+     {
+      "graine": 910000,
+      "avant": 10,
+      "apres": 13
+     },
+     {
+      "graine": 910037,
+      "avant": 10,
+      "apres": 13
+     },
+     {
+      "graine": 910074,
+      "avant": 10,
+      "apres": 9
+     },
+     {
+      "graine": 910148,
+      "avant": 14,
+      "apres": 13
+     },
+     {
+      "graine": 910333,
+      "avant": 12,
+      "apres": 12
+     },
+     {
+      "graine": 910370,
+      "avant": 5,
+      "apres": 3
+     },
+     {
+      "graine": 910444,
+      "avant": 6,
+      "apres": 6
+     },
+     {
+      "graine": 910629,
+      "avant": 8,
+      "apres": 8
+     },
+     {
+      "graine": 910666,
+      "avant": 9,
+      "apres": 10
+     },
+     {
+      "graine": 910703,
+      "avant": 9,
+      "apres": 10
+     }
+    ],
+    "validation": [
+     {
+      "graine": 950296,
+      "avant": 14,
+      "apres": 5
+     },
+     {
+      "graine": 950407,
+      "avant": 8,
+      "apres": 8
+     },
+     {
+      "graine": 950555,
+      "avant": 11,
+      "apres": 5
+     },
+     {
+      "graine": 950629,
+      "avant": 10,
+      "apres": 3
+     },
+     {
+      "graine": 950666,
+      "avant": 7,
+      "apres": 7
+     },
+     {
+      "graine": 950703,
+      "avant": 3,
+      "apres": 6
+     }
+    ]
+   },
+   "palier_apparie": {
+    "entrainement": {
+     "n": 20,
+     "moyenne": 0.2,
+     "erreur_type": 0.26,
+     "t": 0.78
+    },
+    "validation": {
+     "n": 20,
+     "moyenne": -0.95,
+     "erreur_type": 0.64,
+     "t": -1.48
+    },
+    "les_40": {
+     "n": 40,
+     "moyenne": -0.37,
+     "erreur_type": 0.35,
+     "t": -1.06
+    }
+   }
+  }
+ },
+ "toutes_les_variantes": [
+  {
+   "id": "c0025",
+   "generation": 0,
+   "parent": null,
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -2.5,
+   "palier_median": 7.5,
+   "palier_moyen": 7.75,
+   "palier_record": 14,
+   "ecart": 1.666
+  },
+  {
+   "id": "c0026",
+   "generation": 1,
+   "parent": "c0025",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.49,
+   "palier_median": 8,
+   "palier_moyen": 8.2,
+   "palier_record": 17,
+   "ecart": 1.581
+  },
+  {
+   "id": "c0027",
+   "generation": 1,
+   "parent": "c0025",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -4.74,
+   "palier_median": 5.5,
+   "palier_moyen": 5.67,
+   "palier_record": 7,
+   "ecart": 1.706
+  },
+  {
+   "id": "c0028",
+   "generation": 1,
+   "parent": "c0025",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -4.06,
+   "palier_median": 7,
+   "palier_moyen": 6.67,
+   "palier_record": 12,
+   "ecart": 1.844
+  },
+  {
+   "id": "c0029",
+   "generation": 1,
+   "parent": "c0025",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.56,
+   "palier_median": 8.5,
+   "palier_moyen": 7.9,
+   "palier_record": 14,
+   "ecart": 1.677
+  },
+  {
+   "id": "c0030",
+   "generation": 1,
+   "parent": "c0025",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -3.9,
+   "palier_median": 7,
+   "palier_moyen": 6.83,
+   "palier_record": 10,
+   "ecart": 1.817
+  },
+  {
+   "id": "c0031",
+   "generation": 1,
+   "parent": "c0025",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -4.09,
+   "palier_median": 7,
+   "palier_moyen": 6.83,
+   "palier_record": 13,
+   "ecart": 1.848
+  },
+  {
+   "id": "c0032",
+   "generation": 2,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -1.83,
+   "palier_median": 8,
+   "palier_moyen": 7.67,
+   "palier_record": 10,
+   "ecart": 1.639
+  },
+  {
+   "id": "c0033",
+   "generation": 2,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -2.41,
+   "palier_median": 8,
+   "palier_moyen": 7.67,
+   "palier_record": 11,
+   "ecart": 1.735
+  },
+  {
+   "id": "c0034",
+   "generation": 2,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -2.04,
+   "palier_median": 8.5,
+   "palier_moyen": 7.17,
+   "palier_record": 10,
+   "ecart": 1.757
+  },
+  {
+   "id": "c0035",
+   "generation": 2,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -1.49,
+   "palier_median": 9,
+   "palier_moyen": 7.83,
+   "palier_record": 11,
+   "ecart": 1.748
+  },
+  {
+   "id": "c0036",
+   "generation": 2,
+   "parent": "c0026",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.49,
+   "palier_median": 8,
+   "palier_moyen": 8.2,
+   "palier_record": 17,
+   "ecart": 1.581
+  },
+  {
+   "id": "c0037",
+   "generation": 2,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -4.17,
+   "palier_median": 6.5,
+   "palier_moyen": 6.17,
+   "palier_record": 8,
+   "ecart": 1.779
+  },
+  {
+   "id": "c0038",
+   "generation": 3,
+   "parent": "c0026",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -2.22,
+   "palier_median": 7.5,
+   "palier_moyen": 7.1,
+   "palier_record": 13,
+   "ecart": 1.62
+  },
+  {
+   "id": "c0039",
+   "generation": 3,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -4.5,
+   "palier_median": 5.5,
+   "palier_moyen": 7,
+   "palier_record": 15,
+   "ecart": 1.667
+  },
+  {
+   "id": "c0040",
+   "generation": 3,
+   "parent": "c0026",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.7,
+   "palier_median": 8,
+   "palier_moyen": 7.45,
+   "palier_record": 13,
+   "ecart": 1.616
+  },
+  {
+   "id": "c0041",
+   "generation": 3,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -4.43,
+   "palier_median": 5,
+   "palier_moyen": 5.67,
+   "palier_record": 10,
+   "ecart": 1.572
+  },
+  {
+   "id": "c0042",
+   "generation": 3,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -1.42,
+   "palier_median": 9,
+   "palier_moyen": 7.83,
+   "palier_record": 11,
+   "ecart": 1.737
+  },
+  {
+   "id": "c0043",
+   "generation": 3,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -3.77,
+   "palier_median": 7.5,
+   "palier_moyen": 6.5,
+   "palier_record": 9,
+   "ecart": 1.879
+  },
+  {
+   "id": "c0044",
+   "generation": 4,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -4.95,
+   "palier_median": 6.5,
+   "palier_moyen": 6,
+   "palier_record": 8,
+   "ecart": 1.908
+  },
+  {
+   "id": "c0045",
+   "generation": 4,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -3.02,
+   "palier_median": 8,
+   "palier_moyen": 8.33,
+   "palier_record": 12,
+   "ecart": 1.836
+  },
+  {
+   "id": "c0046",
+   "generation": 4,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -2.96,
+   "palier_median": 8,
+   "palier_moyen": 8,
+   "palier_record": 13,
+   "ecart": 1.827
+  },
+  {
+   "id": "c0047",
+   "generation": 4,
+   "parent": "c0026",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.49,
+   "palier_median": 8,
+   "palier_moyen": 8.2,
+   "palier_record": 17,
+   "ecart": 1.581
+  },
+  {
+   "id": "c0048",
+   "generation": 4,
+   "parent": "c0026",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.49,
+   "palier_median": 8,
+   "palier_moyen": 8.2,
+   "palier_record": 17,
+   "ecart": 1.581
+  },
+  {
+   "id": "c0049",
+   "generation": 4,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -1.6,
+   "palier_median": 8.5,
+   "palier_moyen": 7.33,
+   "palier_record": 11,
+   "ecart": 1.683
+  },
+  {
+   "id": "c0050",
+   "generation": 5,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -3.34,
+   "palier_median": 7,
+   "palier_moyen": 8.5,
+   "palier_record": 18,
+   "ecart": 1.723
+  },
+  {
+   "id": "c0051",
+   "generation": 5,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -4.11,
+   "palier_median": 6.5,
+   "palier_moyen": 7.5,
+   "palier_record": 16,
+   "ecart": 1.769
+  },
+  {
+   "id": "c0052",
+   "generation": 5,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -1.63,
+   "palier_median": 9,
+   "palier_moyen": 9.17,
+   "palier_record": 16,
+   "ecart": 1.772
+  },
+  {
+   "id": "c0053",
+   "generation": 5,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -2.12,
+   "palier_median": 8,
+   "palier_moyen": 7.5,
+   "palier_record": 11,
+   "ecart": 1.687
+  },
+  {
+   "id": "c0054",
+   "generation": 5,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -1.46,
+   "palier_median": 9,
+   "palier_moyen": 7.83,
+   "palier_record": 11,
+   "ecart": 1.744
+  },
+  {
+   "id": "c0055",
+   "generation": 5,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -4.59,
+   "palier_median": 6.5,
+   "palier_moyen": 5.83,
+   "palier_record": 8,
+   "ecart": 1.849
+  },
+  {
+   "id": "c0056",
+   "generation": 6,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -2.53,
+   "palier_median": 7.5,
+   "palier_moyen": 8,
+   "palier_record": 15,
+   "ecart": 1.671
+  },
+  {
+   "id": "c0057",
+   "generation": 6,
+   "parent": "c0026",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -3.27,
+   "palier_median": 7,
+   "palier_moyen": 7.95,
+   "palier_record": 14,
+   "ecart": 1.711
+  },
+  {
+   "id": "c0058",
+   "generation": 6,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -1.46,
+   "palier_median": 9,
+   "palier_moyen": 8.67,
+   "palier_record": 13,
+   "ecart": 1.743
+  },
+  {
+   "id": "c0059",
+   "generation": 6,
+   "parent": "c0026",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.49,
+   "palier_median": 8,
+   "palier_moyen": 8.2,
+   "palier_record": 17,
+   "ecart": 1.581
+  },
+  {
+   "id": "c0060",
+   "generation": 6,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -1.44,
+   "palier_median": 9,
+   "palier_moyen": 8,
+   "palier_record": 12,
+   "ecart": 1.74
+  },
+  {
+   "id": "c0061",
+   "generation": 6,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -3.57,
+   "palier_median": 6.5,
+   "palier_moyen": 6.83,
+   "palier_record": 12,
+   "ecart": 1.679
+  },
+  {
+   "id": "c0062",
+   "generation": 7,
+   "parent": "c0026",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.53,
+   "palier_median": 8,
+   "palier_moyen": 8.15,
+   "palier_record": 16,
+   "ecart": 1.589
+  },
+  {
+   "id": "c0063",
+   "generation": 7,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -2.98,
+   "palier_median": 7.5,
+   "palier_moyen": 7.33,
+   "palier_record": 12,
+   "ecart": 1.747
+  },
+  {
+   "id": "c0064",
+   "generation": 7,
+   "parent": "c0026",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.46,
+   "palier_median": 8,
+   "palier_moyen": 7.75,
+   "palier_record": 14,
+   "ecart": 1.577
+  },
+  {
+   "id": "c0065",
+   "generation": 7,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -2.26,
+   "palier_median": 8.5,
+   "palier_moyen": 8.17,
+   "palier_record": 11,
+   "ecart": 1.793
+  },
+  {
+   "id": "c0066",
+   "generation": 7,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -3.52,
+   "palier_median": 7.5,
+   "palier_moyen": 7.17,
+   "palier_record": 10,
+   "ecart": 1.837
+  },
+  {
+   "id": "c0067",
+   "generation": 7,
+   "parent": "c0026",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -1.66,
+   "palier_median": 8,
+   "palier_moyen": 7.17,
+   "palier_record": 10,
+   "ecart": 1.61
+  },
+  {
+   "id": "c0068",
+   "generation": 8,
+   "parent": "c0064",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -0.38,
+   "palier_median": 10,
+   "palier_moyen": 9.33,
+   "palier_record": 13,
+   "ecart": 1.73
+  },
+  {
+   "id": "c0069",
+   "generation": 8,
+   "parent": "c0064",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -0.95,
+   "palier_median": 9,
+   "palier_moyen": 8.5,
+   "palier_record": 14,
+   "ecart": 1.659
+  },
+  {
+   "id": "c0070",
+   "generation": 8,
+   "parent": "c0064",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.46,
+   "palier_median": 8,
+   "palier_moyen": 7.75,
+   "palier_record": 14,
+   "ecart": 1.577
+  },
+  {
+   "id": "c0071",
+   "generation": 8,
+   "parent": "c0064",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -1.18,
+   "palier_median": 9,
+   "palier_moyen": 8.33,
+   "palier_record": 12,
+   "ecart": 1.697
+  },
+  {
+   "id": "c0072",
+   "generation": 8,
+   "parent": "c0064",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.42,
+   "palier_median": 8,
+   "palier_moyen": 8,
+   "palier_record": 19,
+   "ecart": 1.57
+  },
+  {
+   "id": "c0073",
+   "generation": 8,
+   "parent": "c0064",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -0.04,
+   "palier_median": 9.5,
+   "palier_moyen": 8.5,
+   "palier_record": 11,
+   "ecart": 1.59
+  },
+  {
+   "id": "c0074",
+   "generation": 9,
+   "parent": "c0072",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -0.87,
+   "palier_median": 8.5,
+   "palier_moyen": 8.5,
+   "palier_record": 13,
+   "ecart": 1.561
+  },
+  {
+   "id": "c0075",
+   "generation": 9,
+   "parent": "c0072",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -2.06,
+   "palier_median": 7.5,
+   "palier_moyen": 7.17,
+   "palier_record": 11,
+   "ecart": 1.593
+  },
+  {
+   "id": "c0076",
+   "generation": 9,
+   "parent": "c0072",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.42,
+   "palier_median": 8,
+   "palier_moyen": 8,
+   "palier_record": 19,
+   "ecart": 1.57
+  },
+  {
+   "id": "c0077",
+   "generation": 9,
+   "parent": "c0072",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.53,
+   "palier_median": 8,
+   "palier_moyen": 8.2,
+   "palier_record": 19,
+   "ecart": 1.588
+  },
+  {
+   "id": "c0078",
+   "generation": 9,
+   "parent": "c0072",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": 0.24,
+   "palier_median": 10,
+   "palier_moyen": 9.17,
+   "palier_record": 14,
+   "ecart": 1.627
+  },
+  {
+   "id": "c0079",
+   "generation": 9,
+   "parent": "c0072",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -1.27,
+   "palier_median": 9,
+   "palier_moyen": 8,
+   "palier_record": 11,
+   "ecart": 1.711
+  },
+  {
+   "id": "c0080",
+   "generation": 10,
+   "parent": "c0072",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -5.51,
+   "palier_median": 6.5,
+   "palier_moyen": 5.67,
+   "palier_record": 8,
+   "ecart": 2.001
+  },
+  {
+   "id": "c0081",
+   "generation": 10,
+   "parent": "c0072",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -0.95,
+   "palier_median": 9,
+   "palier_moyen": 8.5,
+   "palier_record": 14,
+   "ecart": 1.659
+  },
+  {
+   "id": "c0082",
+   "generation": 10,
+   "parent": "c0072",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -1.19,
+   "palier_median": 9,
+   "palier_moyen": 8.67,
+   "palier_record": 12,
+   "ecart": 1.699
+  },
+  {
+   "id": "c0083",
+   "generation": 10,
+   "parent": "c0072",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.77,
+   "palier_median": 7.5,
+   "palier_moyen": 7.6,
+   "palier_record": 14,
+   "ecart": 1.545
+  },
+  {
+   "id": "c0084",
+   "generation": 10,
+   "parent": "c0072",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.42,
+   "palier_median": 8,
+   "palier_moyen": 8,
+   "palier_record": 19,
+   "ecart": 1.57
+  },
+  {
+   "id": "c0085",
+   "generation": 10,
+   "parent": "c0072",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -5.23,
+   "palier_median": 6,
+   "palier_moyen": 5.33,
+   "palier_record": 8,
+   "ecart": 1.871
+  },
+  {
+   "id": "c0086",
+   "generation": 11,
+   "parent": "c0072",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -0.87,
+   "palier_median": 8.5,
+   "palier_moyen": 8.5,
+   "palier_record": 13,
+   "ecart": 1.561
+  },
+  {
+   "id": "c0087",
+   "generation": 11,
+   "parent": "c0072",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.19,
+   "palier_median": 8,
+   "palier_moyen": 7.45,
+   "palier_record": 14,
+   "ecart": 1.531
+  },
+  {
+   "id": "c0088",
+   "generation": 11,
+   "parent": "c0072",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -0.26,
+   "palier_median": 9,
+   "palier_moyen": 8.83,
+   "palier_record": 14,
+   "ecart": 1.543
+  },
+  {
+   "id": "c0089",
+   "generation": 11,
+   "parent": "c0072",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.29,
+   "palier_median": 8,
+   "palier_moyen": 8.15,
+   "palier_record": 17,
+   "ecart": 1.549
+  },
+  {
+   "id": "c0090",
+   "generation": 11,
+   "parent": "c0072",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": 0.24,
+   "palier_median": 10,
+   "palier_moyen": 9.17,
+   "palier_record": 14,
+   "ecart": 1.627
+  },
+  {
+   "id": "c0091",
+   "generation": 11,
+   "parent": "c0072",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -2.75,
+   "palier_median": 7.5,
+   "palier_moyen": 7.33,
+   "palier_record": 10,
+   "ecart": 1.709
+  },
+  {
+   "id": "c0092",
+   "generation": 12,
+   "parent": "c0087",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -1.25,
+   "palier_median": 9,
+   "palier_moyen": 8.17,
+   "palier_record": 11,
+   "ecart": 1.708
+  },
+  {
+   "id": "c0093",
+   "generation": 12,
+   "parent": "c0087",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -3.99,
+   "palier_median": 5,
+   "palier_moyen": 4.83,
+   "palier_record": 7,
+   "ecart": 1.499
+  },
+  {
+   "id": "c0094",
+   "generation": 12,
+   "parent": "c0087",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -0.46,
+   "palier_median": 9.5,
+   "palier_moyen": 9.83,
+   "palier_record": 15,
+   "ecart": 1.66
+  },
+  {
+   "id": "c0095",
+   "generation": 12,
+   "parent": "c0087",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.19,
+   "palier_median": 8,
+   "palier_moyen": 7.45,
+   "palier_record": 14,
+   "ecart": 1.531
+  },
+  {
+   "id": "c0096",
+   "generation": 12,
+   "parent": "c0087",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -1.41,
+   "palier_median": 9,
+   "palier_moyen": 8.5,
+   "palier_record": 13,
+   "ecart": 1.735
+  },
+  {
+   "id": "c0097",
+   "generation": 13,
+   "parent": "c0087",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -3.71,
+   "palier_median": 6.5,
+   "palier_moyen": 6.17,
+   "palier_record": 10,
+   "ecart": 1.702
+  },
+  {
+   "id": "c0098",
+   "generation": 13,
+   "parent": "c0087",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.07,
+   "palier_median": 8,
+   "palier_moyen": 7.45,
+   "palier_record": 14,
+   "ecart": 1.511
+  },
+  {
+   "id": "c0099",
+   "generation": 13,
+   "parent": "c0087",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -2.09,
+   "palier_median": 8,
+   "palier_moyen": 7.17,
+   "palier_record": 10,
+   "ecart": 1.682
+  },
+  {
+   "id": "c0100",
+   "generation": 13,
+   "parent": "c0087",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -1.18,
+   "palier_median": 9,
+   "palier_moyen": 8.33,
+   "palier_record": 12,
+   "ecart": 1.697
+  },
+  {
+   "id": "c0101",
+   "generation": 13,
+   "parent": "c0087",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.15,
+   "palier_median": 8,
+   "palier_moyen": 7.5,
+   "palier_record": 14,
+   "ecart": 1.525
+  },
+  {
+   "id": "c0102",
+   "generation": 13,
+   "parent": "c0087",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -2.85,
+   "palier_median": 7.5,
+   "palier_moyen": 8.33,
+   "palier_record": 14,
+   "ecart": 1.725
+  },
+  {
+   "id": "c0103",
+   "generation": 14,
+   "parent": "c0101",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -0.95,
+   "palier_median": 8,
+   "palier_moyen": 7.7,
+   "palier_record": 13,
+   "ecart": 1.491
+  },
+  {
+   "id": "c0104",
+   "generation": 14,
+   "parent": "c0101",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -0.95,
+   "palier_median": 9,
+   "palier_moyen": 8.5,
+   "palier_record": 14,
+   "ecart": 1.659
+  },
+  {
+   "id": "c0105",
+   "generation": 14,
+   "parent": "c0101",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -0.16,
+   "palier_median": 9.5,
+   "palier_moyen": 9,
+   "palier_record": 14,
+   "ecart": 1.61
+  },
+  {
+   "id": "c0106",
+   "generation": 14,
+   "parent": "c0101",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": 0.24,
+   "palier_median": 10,
+   "palier_moyen": 9.17,
+   "palier_record": 14,
+   "ecart": 1.627
+  },
+  {
+   "id": "c0107",
+   "generation": 14,
+   "parent": "c0101",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": 0.24,
+   "palier_median": 10,
+   "palier_moyen": 9.17,
+   "palier_record": 14,
+   "ecart": 1.627
+  },
+  {
+   "id": "c0108",
+   "generation": 14,
+   "parent": "c0101",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.32,
+   "palier_median": 8.5,
+   "palier_moyen": 8.35,
+   "palier_record": 14,
+   "ecart": 1.636
+  },
+  {
+   "id": "c0109",
+   "generation": 15,
+   "parent": "c0101",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -3.42,
+   "palier_median": 7,
+   "palier_moyen": 6.33,
+   "palier_record": 8,
+   "ecart": 1.736
+  },
+  {
+   "id": "c0110",
+   "generation": 15,
+   "parent": "c0101",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -1.25,
+   "palier_median": 9,
+   "palier_moyen": 8.33,
+   "palier_record": 12,
+   "ecart": 1.708
+  },
+  {
+   "id": "c0111",
+   "generation": 15,
+   "parent": "c0101",
+   "lot": "tri",
+   "parties": 6,
+   "mixte": -1.19,
+   "palier_median": 9,
+   "palier_moyen": 8.5,
+   "palier_record": 12,
+   "ecart": 1.698
+  },
+  {
+   "id": "c0112",
+   "generation": 15,
+   "parent": "c0101",
+   "lot": "entrainement",
+   "parties": 20,
+   "mixte": -1.15,
+   "palier_median": 8,
+   "palier_moyen": 7.5,
+   "palier_record": 14,
+   "ecart": 1.525
+  }
+ ]
+}

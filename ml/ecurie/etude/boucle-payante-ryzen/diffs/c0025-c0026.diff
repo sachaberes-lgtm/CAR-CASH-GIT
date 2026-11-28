@@ -1,0 +1,36 @@
+diff --git a/ml/labo/cerveaux/c0025-pilote.js b/ml/labo/cerveaux/c0026-pilote.js
+index 14a26069b..160196dbf 100644
+--- a/ml/labo/cerveaux/c0025-pilote.js
++++ b/ml/labo/cerveaux/c0026-pilote.js
+@@ -75,11 +75,12 @@ const REGLAGES={
+   figJauge:.4,       /* jauge + reserve au moins (une figure coute 0,35 ; une pose propre en rend 0,40) */
+   figEcart:.55,      /* s entre deux gestes (la main : 2 par seconde au plus) */
+-  dessousMax:.8,     /* s sous la dalle avant de chercher a en sortir par le bord (MESURE, ml/ecurie/etude/realisme.md : les joueurs y roulent 3 % du sol,
+-                        par passages de 1,2 s ; le pilote d'avant 29 %, par passages de 4 a 60 s — c'est ce qui saute le plus aux yeux d'un spectateur) */
++  dessousMax:.4,     /* s sous la dalle avant de chercher a en sortir par le bord (MESURE, ml/ecurie/etude/realisme.md : les joueurs y roulent 3 % du sol,
++                        par passages de 1,2 s ; le pilote d'avant 29 %, par passages de 4 a 60 s). Ici .4 au lieu de .8 : le parent y reste 4,1 % du sol,
++                        par passages de 1,5 s (les joueurs : 2,2 %, 1 s) */
+   dessousAveugle:1,  /* 1 = sous la dalle, on file au bord SANS attendre qu'un rayon promette une pose (les joueurs : 1,1 s dessous) ; 0 = on attend la promesse */
+   dessousDecor:1,    /* sur les maps a decor (canyon, grotte, jade, ville) : 0 = on reste dessous · 1 = on sort si un rayon de ce cote sauve · 2 = on sort comme ailleurs */
+   dessousNitro:0,    /* 1 = nitro tenue pendant la sortie du dessous (les joueurs decollent nitro allumee) */
+-  dessousFuir:1,     /* 1 = en vol, quitter une facon qui mene SOUS la dalle des qu'un autre rayon promet une pose propre dessus */
+-  dessousPose:25,    /* points que perd une pose annoncee SOUS la dalle */
++  dessousFuir:1,     /* 1 = en vol, quitter une facon qui mene SOUS la dalle des qu'un autre rayon promet une pose propre dessus (maintenant sans attendre tenirFacon) */
++  dessousPose:40,    /* points que perd une pose annoncee SOUS la dalle (25 chez le parent : une pose dessous valait presque une pose dessus) */
+   departMin:1.5,     /* s : au depart, le pilote file droit au moins ce temps-la… */
+   departMax:5.5,     /* …et au plus celui-la (tire de la piste, pas du hasard). MESURE (ml/ecurie/etude/realisme.md § 1.8) : le premier coup de volant
+@@ -308,5 +309,6 @@ const sauve=r=>!!r&&(r.issue==='pose'||r.issue==='levre'||r.issue==='portail');
+    · au decollage, la loi « vers la route » (la seule mesuree : 9 retours sur 10 apres une sortie par le bord) ;
+    · tant que le radar dit que la facon tenue mene a une pose (ou a la levre, au portail), on n'en change pas ;
+-   · sinon, et pas plus souvent que toutes les 0,35 s (sauf mort annoncee dans la seconde), on prend la facon du rayon qui vaut le plus. */
++   · sinon, et pas plus souvent que toutes les 0,35 s (sauf mort annoncee dans la seconde), on prend la facon du rayon qui vaut le plus.
++   · EXCEPTION (dessous) : si la facon tenue mene a une pose SOUS la dalle et qu'un autre rayon se pose propre DESSUS, on change tout de suite. */
+ function enVol(v,m){
+   const R=REGLAGES,f=v.vol,Y=f.radar&&Array.isArray(f.radar.rayons)?f.radar.rayons:null;
+@@ -333,5 +335,5 @@ function enVol(v,m){
+     /* FUIR LE DESSOUS : la facon tenue se pose, mais sous la dalle — on cherche un rayon qui se pose dessus */
+     const fuit=R.dessousFuir>0&&!!mien&&mien.issue==='pose'&&!!mien.dessous;
+-    if((!sauve(mien)||fuit)&&!patience&&(depuis>R.tenirFacon||(mien&&(+mien.t||0)<1))){
++    if((!sauve(mien)||fuit)&&!patience&&(depuis>R.tenirFacon||fuit||(mien&&(+mien.t||0)<1))){
+       let mieux=null,sMieux=-9,cibleMieux=null;
+       for(const nom in FACONS){

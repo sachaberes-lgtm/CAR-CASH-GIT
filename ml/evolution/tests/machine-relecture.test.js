@@ -32,6 +32,8 @@ function testLancerParentheses(){
   const D=path.join(neuf('depot avec espaces (2)'),'ml','evolution');
   fs.mkdirSync(D,{recursive:true});
   fs.copyFileSync(path.join(C.DOSSIER,'lancer.cmd'),path.join(D,'lancer.cmd'));
+  /* (28/11/2026, les lanceurs) lancer.cmd prend son Node par node-fixe.js (etat\node.txt) : il voyage avec lui */
+  fs.copyFileSync(path.join(C.DOSSIER,'node-fixe.js'),path.join(D,'node-fixe.js'));
   fs.writeFileSync(path.join(D,'evoluer.js'),"process.stdout.write('ARGV='+JSON.stringify(process.argv.slice(2))+String.fromCharCode(10));\n");
   const lancer=options=>{
     try{fs.rmSync(path.join(D,'etat'),{recursive:true,force:true});}catch(e){}

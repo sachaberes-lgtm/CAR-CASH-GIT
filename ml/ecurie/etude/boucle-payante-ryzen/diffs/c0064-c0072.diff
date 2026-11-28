@@ -1,0 +1,44 @@
+diff --git a/ml/labo/cerveaux/c0064-pilote.js b/ml/labo/cerveaux/c0072-pilote.js
+index 7a9702479..331b8a736 100644
+--- a/ml/labo/cerveaux/c0064-pilote.js
++++ b/ml/labo/cerveaux/c0072-pilote.js
+@@ -78,4 +78,11 @@ const REGLAGES={
+   figJauge:.4,       /* jauge + reserve au moins (une figure coute 0,35 ; une pose propre en rend 0,40) */
+   figEcart:.55,      /* s entre deux gestes (la main : 2 par seconde au plus) */
++  /* --- LES FIGURES EN VOL SUBI, MARGE LARGE (maps sans decor) --- */
++  largeHaut:9,       /* m au-dessus de la route la plus proche au moins (au lieu de figHaut) */
++  largeT1:2.2,       /* s avant la pose pour la 1re figure (MESURE 26/11 : sous 2,2 s une figure dereglait le vol) */
++  largeT2:1.8,       /* s avant la pose pour les suivantes */
++  largeAxe:.5,       /* rad : les DEUX rayons vers la route doivent se poser sous cet angle d'arrivee */
++  largeAir:1.5,      /* s d'air qui doivent rester a la pose annoncee */
++  largeMax:3,        /* figures par vol au plus dans un vol a marge large */
+   dessousMax:.4,     /* s sous la dalle avant de chercher a en sortir par le bord (MESURE, ml/ecurie/etude/realisme.md : les joueurs y roulent 3 % du sol,
+                         par passages de 1,2 s ; le pilote d'avant 29 %, par passages de 4 a 60 s). Ici .4 au lieu de .8 : le parent y reste 4,1 % du sol,
+@@ -310,4 +317,6 @@ function vaut(r,long,v){
+ }
+ const sauve=r=>!!r&&(r.issue==='pose'||r.issue==='levre'||r.issue==='portail');
++/* une pose propre, dessus, sous l'angle donne : ce qu'on exige des DEUX rayons pour une figure a marge large */
++const poseNette=(r,axeMax)=>!!r&&r.issue==='pose'&&r.propre!==false&&!r.dessous&&Math.abs(+r.axe||0)<axeMax;
+ /* LE VOL. Une facon de piloter est TENUE : la main met 0,2 a 0,3 s a obeir et le vol tourne de 3 rad par seconde — changer de facon a chaque
+    vue, c'est zigzaguer d'un cote a l'autre de la route jusqu'a la jauge vide (MESURE, tour 3 : deux morts « air » sur quatre courses, la caisse
+@@ -361,7 +370,17 @@ function enVol(v,m){
+      alternance (↑ pique, ↓ cabre : 0,2 rad sur le geste) ; de cote seulement du cote ou le vol braque deja (la fleche tient 0,27 s : 0,8 rad). */
+   const M=v.main||{},jauge=(v.nitro||0)+(v.reserve||0),enCours=f.figure?(f.figure.enCours|0):0;
+-  if(tenuPose&&!o.nitro&&!M.geste&&(m.nFigVol|0)<R.figMax&&enCours<2&&(jauge>=R.figJauge||v.nitroLibre)
+-     &&(+tenuPose.t||0)>=(m.voulu?R.figPlongeon:R.figTemps)&&(m.tGeste==null||v.t-m.tGeste>=R.figEcart)&&(!f.air||f.air.reste>(+tenuPose.t||0)+.8)
+-     &&f.t>=R.figDepuis&&!(f.bumps>0)&&(m.voulu||(f.proche&&f.proche.haut>R.figHaut&&!DECOR[v.carte]))){
++  /* LA MARGE LARGE (maps sans decor, vol subi) : le parent exige 15 m de haut, que la loi « vers la route » (qui pique des 10 m) ne laisse presque
++     jamais. A la place, on regarde ce qui compte : la facon tenue ET sa jumelle au reacteur se posent toutes deux, propres, dessus, droites ; la pose est
++     lointaine (2,2 s pour la 1re figure : le seuil mesure sur) ; il reste de l'air a la pose. Un tel vol peut porter jusqu'a trois figures. */
++  const parentOk=!!m.voulu||!!(f.proche&&f.proche.haut>R.figHaut&&!DECOR[v.carte]);
++  let large=false;
++  if(!parentOk&&tenuPose&&Y&&!DECOR[v.carte]&&m.facon==='versRoute'&&f.proche&&f.proche.haut>R.largeHaut){
++    const jum=Y.find(x=>x&&x.m==='versRoutePlane');
++    large=poseNette(tenuPose,R.largeAxe)&&poseNette(jum,R.largeAxe)&&(!f.air||f.air.reste>(+tenuPose.t||0)+R.largeAir)&&(tenuPose.air==null||tenuPose.air>=R.largeAir);}
++  const nMax=parentOk?R.figMax:R.largeMax;
++  const tSeuil=m.voulu?R.figPlongeon:parentOk?R.figTemps:((m.nFigVol|0)>0?R.largeT2:R.largeT1);
++  if(tenuPose&&!o.nitro&&!M.geste&&(m.nFigVol|0)<nMax&&enCours<2&&(jauge>=R.figJauge||v.nitroLibre)
++     &&(+tenuPose.t||0)>=tSeuil&&(m.tGeste==null||v.t-m.tGeste>=R.figEcart)&&(!f.air||f.air.reste>(+tenuPose.t||0)+.8)
++     &&f.t>=R.figDepuis&&!(f.bumps>0)&&(parentOk||large)){
+     /* LA DIRECTION DU GESTE EST CELLE QUE LE VOL DEMANDE DEJA. Le geste tient sa fleche 0,27 s : ↑ pique, ↓ cabre, ← → braquent (jusqu'a 0,8 rad).
+        MESURE (26/11, 12 courses) : avec une direction prise en alternance, 5 plongeons voulus sur 23 finissaient mal (3 contre un pic de la jade) ;

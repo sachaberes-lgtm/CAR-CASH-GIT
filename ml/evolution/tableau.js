@@ -315,7 +315,7 @@ function page(cfg,o){
 
   /* LE PETIT LEXIQUE */
   S.push('<section class="lexique"><h2>Les mots de cette page</h2><dl>'+
-    '<dt>Témoin</dt><dd>Le pilote de départ (pilote-voltige), jamais modifié, jamais renvoyé. Il sert de mètre étalon.</dd>'+
+    '<dt>Témoin</dt><dd>Le pilote de départ ('+esc(ET.temoinClair(pop))+'), jamais modifié, jamais renvoyé. Il sert de mètre étalon.</dd>'+
     '<dt>Champion</dt><dd>Le meilleur pilote prouvé sur des courses neuves. Au début, c\'est le témoin. Chaque nouveau champion est rangé dans le dossier champions/.</dd>'+
     '<dt>Meneur</dt><dd>Le mieux noté des autres, candidat au titre.</dd>'+
     '<dt>Palier</dt><dd>Jusqu\'où le pilote va dans une course (le niveau atteint), corrigé de la difficulté de la course.</dd>'+

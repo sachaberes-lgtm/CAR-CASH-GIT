@@ -1,0 +1,31 @@
+diff --git a/ml/labo/cerveaux/c0072-pilote.js b/ml/labo/cerveaux/c0087-pilote.js
+index 331b8a736..e81f89360 100644
+--- a/ml/labo/cerveaux/c0072-pilote.js
++++ b/ml/labo/cerveaux/c0087-pilote.js
+@@ -14,4 +14,6 @@
+       demande peu de volant ; coupee AVANT le virage, de travers, en glisse. Moins volontiers sur les maps a decor (canyon, grotte, jade, ville :
+       une sortie y finit contre un mur). Un fond de jauge est garde : c'est lui qui fait planer la caisse quand il faut revenir.
++      Sur les maps SANS decor (nuages, espace) une sortie ne coute que de l'air : la nitro allumee y est tenue plus longtemps dans les virages
++      (seuil de volant x1,25, vitesse jusqu'a 5 % au-dessus de vSure), les joueurs l'ayant 78 % du sol.
+    4. EN VOL, LE RADAR. Au decollage : la loi « vers la route » (la seule mesuree apres une sortie par le bord). Tant que le radar annonce que la
+       facon tenue mene a une pose, a la levre ou au portail, il n'en change pas (la main met 0,2 a 0,3 s a obeir et le vol tourne de 3 rad/s :
+@@ -32,4 +34,6 @@ const REGLAGES={
+   bandeDecor:99,     /* m : sur une map a decor, la ligne visee ne s'ecarte pas plus de l'axe (99 = pas de limite) */
+   nitroDecor:1,    /* sur une map a decor, les seuils de virage de la nitro sont multiplies par ca (0 = jamais de nitro) */
++  nitroLibreK:1.25,  /* sur une map SANS decor (nuages, espace), seuil de volant de la nitro DEJA allumee multiplie par ca : une sortie n'y coute que de l'air */
++  tenirLibre:.05,    /* sur une map sans decor, la nitro allumee tolere une vitesse de cette part au-dessus de vSure */
+   margeCouloir:15,   /* m gardes dans un couloir : le bord y est un mur */
+   avance:.3,         /* s : on ne vise rien de plus proche (la reaction du volant : 0,2 s) */
+@@ -219,6 +223,10 @@ function auSol(v,m){
+   if(jauge>R.jaugeAllume)m.plein=true;else if(jauge<R.jaugeCoupe)m.plein=false;
+   const proche=!!(vg&&vg.d<vit*3),margeV=proche?vg.marge/vit:9;
+-  const k=decor?R.nitroDecor:1,seuil=(m.nitro?R.braqueNitro:R.braqueNitro-.1)*k;
+-  const sur=margeV>(m.nitro?R.margeTenir:R.margeAllumer)&&Math.max(force,Math.abs(lIci)/lmax)<seuil;
++  /* MAPS SANS DECOR : une sortie par le bord ne coute que de l'air (aucun choc mesure sur 13 plongeons) ; la nitro deja allumee y est donc
++     gardee plus longtemps dans les virages (seuil de volant x nitroLibreK, vitesse jusqu'a tenirLibre au-dessus de vSure). Elle reste coupee
++     quand la route lache, en glisse, de travers, en rebond ou jauge basse. */
++  const k=decor?R.nitroDecor:(m.nitro?R.nitroLibreK:1),seuil=(m.nitro?R.braqueNitro:R.braqueNitro-.1)*k;
++  const mTenir=decor?R.margeTenir:R.margeTenir-R.tenirLibre;
++  const sur=margeV>(m.nitro?mTenir:R.margeAllumer)&&Math.max(force,Math.abs(lIci)/lmax)<seuil;
+   m.nitro=!lache&&pose&&sur&&(v.nitroLibre||!!m.plein);
+   /* LE DECOLLAGE NITRO ALLUMEE : sur une map sans decor, quand le bord est imminent (la sortie ne se discute plus), on garde la nitro tenue

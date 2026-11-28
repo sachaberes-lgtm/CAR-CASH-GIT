@@ -73,6 +73,7 @@ function chiffres(V){
 const C=require(path.join(D,'commun.js')),Gn=require(path.join(D,'genome.js')),Gr=require(path.join(D,'graines.js'));
 const {charger}=require(path.join(D,'..','bot','piloter.js'));
 const cfg=C.lireConfig();
+cfg.temoin='c0025';   /* (28/11, portage) les gestes sont decrits sur le temoin pilote-voltige, quel que soit le temoin de config.json */
 let rates=0,passes=0;
 function bilan(nom,ok,detail){if(ok)passes++;else rates++;console.log((ok?'PASSE  ':'ECHEC  ')+nom+(detail?'\n       '+String(detail).split('\n').join('\n       '):''));}
 function test(nom,f){try{const d=f();bilan(nom,true,d);}catch(e){bilan(nom,false,String(e&&e.stack||e));}}
@@ -88,9 +89,9 @@ function inerte(){const g=copie(T);let i=0;for(const b of Gn.GESTES)if(b.type===
 
 /* ===== (g1) LA TABLE ===== */
 test('(g1) 21 genes de plus, en fin de BORNES : 6 drapeaux a 0, 15 reglages, naissances dans leurs bornes ; le temoin les a a leur naissance',()=>{
-  vrai(Gn.VERSION===2,'version '+Gn.VERSION);
+  vrai(Gn.VERSION===3,'version '+Gn.VERSION);   /* (28/11, portage) v:3 : les 14 genes du portage viennent apres les gestes (tests/portage.test.js) */
   vrai(Gn.GESTES.length===21,'gestes '+Gn.GESTES.length);
-  const fin=Gn.BORNES.slice(86).map(b=>b.cle);vrai(JSON.stringify(fin)===JSON.stringify(Gn.GESTES.map(b=>b.cle)),'les gestes ne sont pas en fin de BORNES');
+  const fin=Gn.BORNES.slice(86,107).map(b=>b.cle);vrai(JSON.stringify(fin)===JSON.stringify(Gn.GESTES.map(b=>b.cle)),'les gestes ne sont pas juste apres les 86 genes v:1');
   vrai(JSON.stringify(Gn.CLES_V1)===JSON.stringify(Gn.BORNES.slice(0,86).map(b=>b.cle)),'les 86 genes v:1 ont bouge');
   const dr=Gn.GESTES.filter(b=>b.type==='drapeau'),re=Gn.GESTES.filter(b=>b.type==='reel');
   vrai(dr.length===6&&re.length===15,dr.length+' drapeaux, '+re.length+' reels');
@@ -126,7 +127,8 @@ test('(g2) un genome v:1 de tests/etat-exemple/ se lit : gestes a leur naissance
   const g1={v:1,A:A,WV:base.WV.slice(),WS:base.WS.slice()};
   const avant=copie(g1),idAvant=V1?V1.idDe(copie(g1)):null;
   const d=Gn.valider(g1,cfg);vrai(d===null,'refuse : '+d);
-  vrai(g1.v===2&&Object.keys(g1.A).length===107,'pas migre : v '+g1.v+', '+Object.keys(g1.A).length+' genes');
+  vrai(g1.v===Gn.VERSION&&Object.keys(g1.A).length===Gn.BORNES.length,'pas migre : v '+g1.v+', '+Object.keys(g1.A).length+' genes');
+  for(const b of Gn.PORTAGE)vrai(g1.A[b.cle]===b.naissance,'portage : '+b.cle+' '+g1.A[b.cle]);
   for(const k of Gn.CLES_V1)vrai(g1.A[k]===avant.A[k],'valeur changee : '+k);
   for(const b of Gn.GESTES)vrai(g1.A[b.cle]===b.naissance,b.cle+' '+g1.A[b.cle]);
   vrai(JSON.stringify(g1.WV)===JSON.stringify(avant.WV)&&JSON.stringify(g1.WS)===JSON.stringify(avant.WS),'tetes changees');
@@ -225,12 +227,12 @@ test('(r1) coup + relache : pas de coup pendant la nitro tenue ni a la vue qui s
   vrai(JSON.stringify(N)===JSON.stringify([true,false,true,true,false]),'nitro demandee '+JSON.stringify(N)+' (attendu true,false,true,true,false)');
   return 'nitro vue par vue : '+N.join(', ');});
 /* (r2) le croisement d'un genome v:1 et d'un v:2 ; un genome hors bornes refuse ; reparer le ramene */
-test('(r2) croiser un v:1 et un v:2 : un v:2 conforme, gestes de l\'un ou a la naissance ; valider refuse un geste hors borne',()=>{
+test('(r2) croiser un v:1 et un genome a gestes : un genome conforme (v:3), gestes de l\'un ou a la naissance ; valider refuse un geste hors borne',()=>{
   const g1={v:1,A:{},WV:T.WV.slice(),WS:T.WS.slice()};for(const k of Gn.CLES_V1)g1.A[k]=T.A[k];
   const g2=copie(T);g2.A.coupOn=1;g2.A.slalomCap=.5;g2.A.suitOn=1;
   const rng=Gr.mulberry32(99);let vu1=0,vu0=0;
   for(let i=0;i<200;i++){const e=Gn.croiser(copie(g1),copie(g2),rng);vrai(Gn.valider(e,cfg)===null,'enfant '+i+' : '+Gn.valider(e,cfg));
-    vrai(e.v===2,'v '+e.v);vrai(e.A.coupOn===0||e.A.coupOn===1,'coupOn '+e.A.coupOn);vrai(e.A.slalomCap===.35||e.A.slalomCap===.5,'slalomCap '+e.A.slalomCap);
+    vrai(e.v===Gn.VERSION,'v '+e.v);vrai(e.A.coupOn===0||e.A.coupOn===1,'coupOn '+e.A.coupOn);vrai(e.A.slalomCap===.35||e.A.slalomCap===.5,'slalomCap '+e.A.slalomCap);
     if(e.A.coupOn)vu1++;else vu0++;}
   vrai(vu1>50&&vu0>50,'le drapeau ne vient pas des deux parents : '+vu1+' / '+vu0);
   const h=copie(T);h.A.lacheAvant=.9;vrai(/lacheAvant.*hors borne/.test(String(Gn.valider(h,cfg))),'lacheAvant 0,9 accepte');

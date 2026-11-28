@@ -23,7 +23,8 @@ fs.rmSync(BAC,{recursive:true,force:true});fs.mkdirSync(BAC,{recursive:true});
   ok('installer : ASCII seulement',![...brut].some(o=>o>127));
   ok('installer : CRLF partout',!/[^\r]\n/.test(t)&&t.includes('\r\n'));
   ok('installer : la tache des traces lance sauver-traces.cmd auto toutes les heures',
-    /schtasks \/create \/tn "%TACHE_TRACES%" \/sc hourly \/mo 1 \/tr "\\"%TRACES%\\" auto"/.test(t)&&t.includes('set "TRACES=%~dp0sauver-traces.cmd"'));
+    /* (28/11/2026, les lanceurs) les taches sont posees par XML (sans limite de 72 h) : le contenu est controle dans tests/lanceurs.test.js */
+    /schtasks \/create \/tn "%TACHE_TRACES%" \/xml "%XML%\\%TACHE_TRACES%\.xml" \/f/.test(t)&&t.includes('set "TRACES=%~dp0sauver-traces.cmd"'));
   ok('installer : enlever retire les trois taches',/schtasks \/delete \/tn "%TACHE%"/.test(t)&&/schtasks \/delete \/tn "%RELANCE%"/.test(t)&&/schtasks \/delete \/tn "%TACHE_TRACES%"/.test(t));
   ok('installer : la phrase fausse « Rien n\'est envoye sur Internet » est partie',!/Rien n'est envoye sur Internet/.test(t));
   const iChoix=t.indexOf('choice /c ON');
@@ -31,14 +32,15 @@ fs.rmSync(BAC,{recursive:true,force:true});fs.mkdirSync(BAC,{recursive:true});
   ok('installer : avant le O / N, il dit ENVOIE SUR INTERNET, l\'adresse, la branche, ce qui part et PAS-D-ENVOI',
     iChoix>0&&/ENVOIE SUR INTERNET/.test(avant)&&/adresse :  %ORIGINE%/.test(avant)&&/branche :  %BRANCHE%/.test(avant)&&/PAS-D-ENVOI/.test(avant)&&/ni les courses/.test(avant));
   ok('installer : les deux premieres taches et la veille sont gardees',
-    /\/sc onlogon \/delay 0005:00 \/tr "\\"%LANCER%\\" auto"/.test(t)&&/\/sc hourly \/mo 1 \/tr "\\"%LANCER%\\" auto"/.test(t)&&/powercfg \/change standby-timeout-ac 0/.test(t));
+    /schtasks \/create \/tn "%TACHE%" \/xml "%XML%\\%TACHE%\.xml" \/f/.test(t)&&/schtasks \/create \/tn "%RELANCE%" \/xml "%XML%\\%RELANCE%\.xml" \/f/.test(t)&&
+    !/^schtasks \/create [^\r\n]*\/sc /m.test(t)&&/powercfg \/change standby-timeout-ac 0/.test(t));
 
   /* le debut, pour de vrai : recopie jusqu'a la question (exclue), dans un depot jetable avec espace et parentheses, origin avec un faux jeton */
   if(process.platform==='win32'){
     const D=path.join(os.tmpdir(),'cashcar-integration-installer','depot (2) a'),ICI=path.join(D,'ml','evolution');
     fs.rmSync(path.dirname(D),{recursive:true,force:true});fs.mkdirSync(ICI,{recursive:true});
     fs.copyFileSync(path.join(EV,'histoire.js'),path.join(ICI,'histoire.js'));
-    for(const f of ['config.json','commun.js','etat.js','arbre.js','genome.js','graines.js','note.js'])if(fs.existsSync(path.join(EV,f)))fs.copyFileSync(path.join(EV,f),path.join(ICI,f));
+    for(const f of ['config.json','commun.js','etat.js','arbre.js','genome.js','graines.js','note.js','node-fixe.js','cache.vbs'])if(fs.existsSync(path.join(EV,f)))fs.copyFileSync(path.join(EV,f),path.join(ICI,f));
     fs.writeFileSync(path.join(ICI,'apercu.cmd'),avant+'exit /b 0\r\n','latin1');
     const git=(a)=>cp.spawnSync('git',a,{cwd:D,encoding:'utf8'});
     git(['init','-q','-b','evolution-essai-integration']);
@@ -80,7 +82,8 @@ fs.rmSync(BAC,{recursive:true,force:true});fs.mkdirSync(BAC,{recursive:true});
     const M=A.modele(cfg,{donnees:D}),P=A.donneesPage(M,{});
     const i=P.noeuds.findIndex(n=>n[0]==='29a13852a980');
     const diff=i>=0?P.noeuds[i][14]:null;
-    ok('arbre : le parent mort v:1 est lu migre (v:2, 107 genes)',M.individus.some(x=>x.id==='f68459c46a57'&&x.genome&&x.genome.v===2&&Object.keys(x.genome.A).length===Gn.BORNES.length));
+    /* (28/11/2026, portage) migre jusqu'a la version courante (v:3, 121 genes depuis le portage ; v:2, 107 genes avant) */
+    ok('arbre : le parent mort v:1 est lu migre (v:'+Gn.VERSION+', '+Gn.BORNES.length+' genes)',M.individus.some(x=>x.id==='f68459c46a57'&&x.genome&&x.genome.v===Gn.VERSION&&Object.keys(x.genome.A).length===Gn.BORNES.length));
     ok('arbre : un seul changement, braqueNitro (et pas 21 « undefined -> naissance »)',Array.isArray(diff)&&diff.length===1&&P.genes[diff[0][0]]==='braqueNitro',JSON.stringify(diff));
     ok('arbre : morts.jsonl lui-meme n\'est pas reecrit',fs.readFileSync(path.join(cfg.dossierEtat,'morts.jsonl'),'utf8').indexOf('"lacheOn"')<0);
   }

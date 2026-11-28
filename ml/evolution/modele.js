@@ -12,6 +12,11 @@
        slalom demande par le pilote (R.slalomOn), le coup de nitro vu en vol (R.coupOn), le relache apres le decollage (R.relacheOn), la ligne qui suit
        la caisse apres la pose (R.suitOn). Chacun est garde par son drapeau : drapeau a 0, son code ne s'execute pas, ses reglages ne sont pas lus,
        et le pilote joue au bit pres comme pilote-voltige. Le detail : ml/evolution/notes/gestes.md.
+     · LE PORTAGE DE LA BOUCLE PAYANTE (28/11/2026, tache « portage ») : les quatre blocs de code que la boucle payante a ajoutes a c0025 pour
+       faire c0026, c0064, c0072, c0087 et c0101 (ml/labo/cerveaux/), chacun garde par son drapeau : fuir le dessous sans attendre (R.fuirVite,
+       c0026), le decollage nitro allumee (R.bordOn, c0064), les figures a marge large (R.largeOn, c0072), la nitro libre dans les virages
+       (R.libreOn, c0087). Drapeaux a 0 : pilote-voltige au bit pres ; tous a 1 avec les reglages de c0101 : c0101 au bit pres. Le detail :
+       ml/evolution/notes/portage.md.
    Seul fichier qu'on retouche a la main quand on ajoute un geste (une nouvelle sortie de tete : W2 a 0 pour rester muette a la naissance).
    Pas de require, Date, Math.random, eval, Function : le bac les refuse. Changer ce fichier change l'epoque des courses (tout est rejoue).
    Ce qui suit est l'en-tete de pilote-voltige.js, tel quel. */
@@ -234,9 +239,19 @@ function auSol(v,m){
      qui demande du volant ; sur les maps a decor, encore moins. */
   const pose=Math.abs(v.lat)<v.demi-6&&Math.abs(v.cap)<R.capMax&&!v.glisse&&!v.rebond;
   if(jauge>R.jaugeAllume)m.plein=true;else if(jauge<R.jaugeCoupe)m.plein=false;
-  const k=decor?R.nitroDecor:1,seuil=(m.nitro?R.braqueNitro:R.braqueNitro-.1)*k*kSeuil;
-  const sur=margeV>(m.nitro?R.margeTenir:R.margeAllumer)&&Math.max(force,Math.abs(lIci)/lmax)<seuil;
+  /* PORTAGE c0087 (28/11/2026, R.libreOn ; le bloc de c0087-pilote.js, recopie) — MAPS SANS DECOR : une sortie par le bord ne coute que de l'air
+     (aucun choc mesure sur 13 plongeons) ; la nitro deja allumee y est donc gardee plus longtemps dans les virages (seuil de volant x nitroLibreK,
+     vitesse jusqu'a tenirLibre au-dessus de vSure). Elle reste coupee quand la route lache, en glisse, de travers, en rebond ou jauge basse.
+     libreOn eteint : k = 1 et la marge margeTenir, comme pilote-voltige. kSeuil (la tete SOL) multiplie le seuil dans les deux cas. */
+  const libre=R.libreOn>0&&!decor;
+  const k=decor?R.nitroDecor:(libre&&m.nitro?R.nitroLibreK:1),seuil=(m.nitro?R.braqueNitro:R.braqueNitro-.1)*k*kSeuil;
+  const mTenir=libre?R.margeTenir-R.tenirLibre:R.margeTenir;
+  const sur=margeV>(m.nitro?mTenir:R.margeAllumer)&&Math.max(force,Math.abs(lIci)/lmax)<seuil;
   m.nitro=!lache&&pose&&sur&&(v.nitroLibre||!!m.plein);
+  /* PORTAGE c0064 (28/11/2026, R.bordOn ; recopie de c0064-pilote.js) — LE DECOLLAGE NITRO ALLUMEE : sur une map sans decor, quand le bord est
+     imminent (la sortie ne se discute plus), on garde la nitro tenue jusqu'au decollage au lieu de la couper : les joueurs partent nitro allumee
+     63 fois sur 100, le parent 17. En vol, la loi « vers la route » reprend. (Avec le geste 4, le relache, cette nitro tenue compte comme demandee.) */
+  if(R.bordOn>0&&!decor&&lache&&!v.dessous&&!v.glisse&&!v.rebond&&tn.t!=null&&tn.t<R.bordNitro&&jauge>R.bordJauge)m.nitro=true;
   m.facon=null;m.nFigVol=0;
   /* LE RACCOURCI : on regarde les sorties la ou la route tourne (ou quand un troncon s'offre en contrebas), hors des couloirs et du dessous */
   /* SOUS LA DALLE : on n'y reste pas. Apres dessousMax secondes, on regarde les sorties et l'on prend celle qui se pose DESSUS (hors des maps a decor). */
@@ -338,6 +353,8 @@ function vaut(r,long,v){
   return Math.min(30,5*t);                                    /* choc, air, fond : le plus tard possible */
 }
 const sauve=r=>!!r&&(r.issue==='pose'||r.issue==='levre'||r.issue==='portail');
+/* (portage c0072, 28/11/2026) une pose propre, dessus, sous l'angle donne : ce qu'on exige des DEUX rayons pour une figure a marge large */
+const poseNette=(r,axeMax)=>!!r&&r.issue==='pose'&&r.propre!==false&&!r.dessous&&Math.abs(+r.axe||0)<axeMax;
 /* LE VOL. Une facon de piloter est TENUE : la main met 0,2 a 0,3 s a obeir et le vol tourne de 3 rad par seconde — changer de facon a chaque
    vue, c'est zigzaguer d'un cote a l'autre de la route jusqu'a la jauge vide (MESURE, tour 3 : deux morts « air » sur quatre courses, la caisse
    passee quatre fois au-dessus de la dalle sans s'y poser). Donc :
@@ -385,7 +402,9 @@ function enVol(v,m){
     const fuit=R.dessousFuir>0&&!!mien&&mien.issue==='pose'&&!!mien.dessous;
     /* POUR MIEUX (faire-pR.js) : la loi tenue se pose, mais une autre loi de retour se pose bien mieux (plus droit, plus tot, sans ressortir) */
     const pourMieux=R.volMieux>0&&sauve(mien)&&!fuit&&estRetour(m.facon)&&depuis>R.tenirFacon;
-    if(pourMieux||((!sauve(mien)||fuit)&&!patience&&(depuis>R.tenirFacon||(mien&&(+mien.t||0)<1)))){
+    /* PORTAGE c0026 (28/11/2026, R.fuirVite ; recopie de c0026-pilote.js) — EXCEPTION (dessous) : si la facon tenue mene a une pose SOUS la dalle et
+       qu'un autre rayon se pose propre DESSUS, on change tout de suite (sans attendre tenirFacon). fuirVite eteint : la condition de pilote-voltige. */
+    if(pourMieux||((!sauve(mien)||fuit)&&!patience&&(depuis>R.tenirFacon||(R.fuirVite>0&&fuit)||(mien&&(+mien.t||0)<1)))){
       let mieux=null,sMieux=-9,cibleMieux=null;
       for(const nom in FACONS){
         if(nom===m.facon)continue;
@@ -418,9 +437,21 @@ function enVol(v,m){
      figTemps secondes, que la jauge la paie et que le reacteur ne sert pas (tenir la NITRO redresse la figure). La direction : avant, arriere en
      alternance (↑ pique, ↓ cabre : 0,2 rad sur le geste) ; de cote seulement du cote ou le vol braque deja (la fleche tient 0,27 s : 0,8 rad). */
   const M=v.main||{},jauge=(v.nitro||0)+(v.reserve||0),enCours=f.figure?(f.figure.enCours|0):0;
-  if(tenuPose&&!o.nitro&&!M.geste&&(m.nFigVol|0)<R.figMax&&enCours<2&&(jauge>=R.figJauge||v.nitroLibre)
-     &&(+tenuPose.t||0)>=(m.voulu?R.figPlongeon:R.figTemps)&&(m.tGeste==null||v.t-m.tGeste>=R.figEcart)&&(!f.air||f.air.reste>(+tenuPose.t||0)+.8)
-     &&f.t>=R.figDepuis&&!(f.bumps>0)&&(m.voulu||(f.proche&&f.proche.haut>R.figHaut&&!DECOR[v.carte]))){
+  /* PORTAGE c0072 (28/11/2026, R.largeOn ; recopie de c0072-pilote.js, largeHaut 4 chez c0101) — LA MARGE LARGE (maps sans decor, vol subi) : le
+     parent exige figHaut (15 m) de haut, que la loi « vers la route » (qui pique des 10 m) ne laisse presque jamais. A la place, on regarde ce qui
+     compte : la facon tenue ET sa jumelle au reacteur se posent toutes deux, propres, dessus, droites ; la pose est lointaine (largeT1 pour la 1re
+     figure : le seuil mesure sur) ; il reste de l'air a la pose. Un tel vol peut porter jusqu'a largeMax figures.
+     largeOn eteint : large reste faux, nMax = figMax et le seuil de temps sont ceux du parent, la condition est celle de pilote-voltige. */
+  const parentOk=!!m.voulu||!!(f.proche&&f.proche.haut>R.figHaut&&!DECOR[v.carte]);
+  let large=false;
+  if(R.largeOn>0&&!parentOk&&tenuPose&&Y&&!DECOR[v.carte]&&m.facon==='versRoute'&&f.proche&&f.proche.haut>R.largeHaut){
+    const jum=Y.find(x=>x&&x.m==='versRoutePlane');
+    large=poseNette(tenuPose,R.largeAxe)&&poseNette(jum,R.largeAxe)&&(!f.air||f.air.reste>(+tenuPose.t||0)+R.largeAir)&&(tenuPose.air==null||tenuPose.air>=R.largeAir);}
+  const nMax=parentOk?R.figMax:R.largeMax;
+  const tSeuil=m.voulu?R.figPlongeon:parentOk?R.figTemps:((m.nFigVol|0)>0?R.largeT2:R.largeT1);
+  if(tenuPose&&!o.nitro&&!M.geste&&(m.nFigVol|0)<nMax&&enCours<2&&(jauge>=R.figJauge||v.nitroLibre)
+     &&(+tenuPose.t||0)>=tSeuil&&(m.tGeste==null||v.t-m.tGeste>=R.figEcart)&&(!f.air||f.air.reste>(+tenuPose.t||0)+.8)
+     &&f.t>=R.figDepuis&&!(f.bumps>0)&&(parentOk||large)){
     /* LA DIRECTION DU GESTE EST CELLE QUE LE VOL DEMANDE DEJA. Le geste tient sa fleche 0,27 s : ↑ pique, ↓ cabre, ← → braquent (jusqu'a 0,8 rad).
        MESURE (26/11, 12 courses) : avec une direction prise en alternance, 5 plongeons voulus sur 23 finissaient mal (3 contre un pic de la jade) ;
        sans aucune figure, 2 sur 30. La fleche du geste est donc celle que la loi du vol tient a cet instant ; si elle n'en tient aucune : avant
