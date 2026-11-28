@@ -68,6 +68,7 @@ Ce que ça fait :
 - Depuis le 28/11, `lancer.cmd` prend toujours le même Node (celui de `etat/node.txt`, qu'il trouve tout seul la première fois). Tape donc les commandes de la sélection **par `lancer.cmd`**, pas par `node …` : sur le Ryzen, le `node` tout court n'est pas le bon. Les options passent : `ml\evolution\lancer.cmd --une-generation`.
 - La mise à jour de la fin novembre (le « portage », voir plus bas) et ses gestes pas à pas sont dans `notes/LIVRAISON-C0101.md`.
 - La mise à jour du réglage de la sélection (28/11, voir « Le réglage de la sélection » plus bas) : ses gestes, et ce qui change, sont dans `notes/LIVRAISON-REGLAGE.md`. Elle reprend ceux de `LIVRAISON-C0101.md`.
+- La mise à jour des idées v4 (28/11, voir « Les idées v4 et le banc des gènes » plus bas) : ses gestes sont dans `notes/LIVRAISON-GENES-V4.md`. **Elle demande un geste de plus avant de relancer : copier `etat\` et `champions\` à part** (le code d'avant ne relit plus un état ouvert par le nouveau).
 
 ---
 
@@ -236,6 +237,21 @@ La sélection écrit elle-même son histoire, à la fin de chaque génération, 
 
 ---
 
+## Les idées v4 et le banc des gènes (depuis le 28/11, lot « gènes v4 »)
+
+- Les pilotes ont reçu **quatre idées nouvelles**, chacune derrière un interrupteur **éteint à la naissance** (éteintes, le pilote conduit exactement comme c0025, et chaque pilote garde son nom) :
+  - **la nitro au décollage sur les maps à décor** (`sortieOn`) : à la grotte, au canyon, à la jade et en ville, quand la voiture va sortir par le bord, garder la nitro jusqu'au décollage, comme les joueurs (63 vols sur 100 partent nitro allumée chez eux, aucun chez le pilote sur ces maps) ; c'est ce que `bordOn` fait déjà sur les maps sans décor. (Jusqu'au 28/11, cette idée s'appelait « la sortie préparée » : partir en vol plané quand seul lui se posait. Une mesure a montré que cela n'arrivait jamais et que ce serait dangereux : `ml/ecurie/etude/sortie-preparee/`.)
+  - **lâcher le volant pour mieux se poser** (`rienOn`) : en vol, si « ne rien faire » promet une pose nettement plus droite, le pilote lâche le volant ;
+  - **la loi fidèle** (`loiFidele`, 0, 1 ou 2) : juger son vol (1), ou aussi le piloter (2), sur la trajectoire exacte que les yeux calculent pour lui, au lieu d'une trajectoire un peu fausse ;
+  - **les secours en vol** (`secoursOn`) : quand toutes les façons de rentrer annoncent une chute, essayer deux façons de plus (planer bas, se cabrer) et prendre celle qui se pose.
+- Comme pour les gestes, la sélection en allume une de temps en temps chez un nouveau-né. Si elle aide, elle reste.
+- **La seconde chance** (reprendre la partie après une chute) est maintenant un réglage du pilote, `chancePalierMin`, à **12** comme avant : le pilote la prend à partir du palier 12. Ce réglage est **figé** : la sélection n'a pas le droit d'y toucher. Pourquoi : le palier noté est le plus haut atteint dans la partie, et une reprise ne peut que l'augmenter. Une sélection qui pourrait prendre la seconde chance plus tôt la prendrait toujours plus tôt, et paraîtrait progresser sans mieux conduire. **Le changer reste ta décision** (il faudra alors renommer tous les pilotes, témoin compris ; il n'y a pas encore d'outil pour cela).
+- Chaque course dit maintenant **combien de fois chaque idée a vraiment agi** (le champ `declenchements` des lignes de courses). Une idée qui n'agit jamais se voit tout de suite.
+- **Le banc des gènes** (`ml/evolution/banc/`, son mode d'emploi : `banc/README.md`) compare 1 à 5 idées à la fois au pilote de départ, sur des courses neuves, en annonçant d'avance ce qu'il mesure. Il s'arrête tôt quand c'est clair. Un « ça aide » du banc n'est **qu'un candidat** : il faut une seconde vague, sur d'autres courses, pour le croire (la leçon du coffre du 28/11). Le banc n'allume jamais rien lui-même. **Ne le lance pas sur le Ryzen pendant que la sélection y tourne** (le PC surchargé fait des pannes).
+- Cette mise à jour fait **une nouvelle époque** : toutes les courses sont rejouées une fois, les pilotes et leurs noms restent. Elle est **à sens unique** : avant de la faire sur le Ryzen, copie `etat\` et `champions\` à part (voir `notes/LIVRAISON-GENES-V4.md`).
+
+---
+
 ## Prendre un champion
 
 Chaque champion sacré laisse deux fichiers dans `champions/` :
@@ -325,4 +341,6 @@ Le journal complet est `etat/sortie.log`. La fin du fichier est le plus récent.
 | `notes/LIVRAISON.md` | Ce qui est prêt, et les commandes à taper sur le PC de nuit. |
 | `notes/LIVRAISON-C0101.md` | La mise à jour du 28/11 (témoin c0101, Node fixe, tâches sans limite) : le verdict de la mesure et les gestes sur le Ryzen. |
 | `notes/LIVRAISON-REGLAGE.md` | La mise à jour du réglage de la sélection (28/11) : ce qui est prêt, ce qu'elle fera sur le Ryzen, les gestes. |
+| `notes/LIVRAISON-GENES-V4.md` | La mise à jour des idées v4 (28/11) : ce qui est prêt, ce qui est vérifié, les gestes sur le Ryzen, les décisions qui restent. |
+| `banc/` | Le banc des gènes v2 : comparer des idées au pilote de départ (`banc/README.md`). Son cache (`banc/etat/`) ne va jamais dans git. |
 | `INTERFACES.md` | Pour les développeurs : comment les morceaux s'emboîtent. |

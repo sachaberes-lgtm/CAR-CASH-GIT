@@ -54,7 +54,10 @@ essai('V',()=>{
   const m=leve(()=>Gf.lireGreffes({greffes:[{slalomOn:1},{bordOn:1}]},{bornes:figees}));
   ok('V refus : gene fige (simule)',m&&/ensemble n° 2.*« bordOn » est fige/.test(m),m);
   ok('V un gene non fige passe avec les bornes simulees',json(Gf.lireGreffes({greffes:[{slalomOn:1}]},{bornes:figees}))==='[{"slalomOn":1}]');
-  ok('V aucun gene de genome.js n\'est fige aujourd\'hui',!Gn.BORNES.some(b=>b.fige===true));
+  /* (28/11/2026, lot « genes v4 ») le seul gene fige de genome.js est chancePalierMin : il ne se greffe pas, avec les vraies bornes */
+  ok('V le seul gene fige de genome.js est chancePalierMin',Gn.BORNES.filter(x=>x.fige===true).map(x=>x.cle).join(',')==='chancePalierMin');
+  const mf=leve(()=>Gf.lireGreffes({greffes:[{chancePalierMin:8}]}));
+  ok('V refus : chancePalierMin (fige, vraies bornes)',mf&&/« chancePalierMin » est fige/.test(mf),mf);
 });
 
 /* la ligne de commande : une config mal ecrite -> code 1 et le message, avant toute course (aucun banc, aucun dossier d'etat cree) */

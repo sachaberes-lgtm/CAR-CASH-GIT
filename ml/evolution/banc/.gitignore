@@ -1,0 +1,4 @@
+etat/
+*.tmp
+# la vague d essai (numero 0) : hors de git, ses graines resservent d un essai a l autre
+vagues/v000-essai/

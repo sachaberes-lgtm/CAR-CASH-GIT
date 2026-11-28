@@ -1,0 +1,194 @@
+LES DECOLLAGES DE c0025 (etude « sortie preparee », 2026-11-28)
+40 courses relues, 252 decollages (185 subis, 67 voulus), 66.7 min de course.
+Categories d'un rayon : P pose propre sur la dalle, p pose de travers ou dessous, L levre, T portail, C choc, A air ou fond, F libre, - absent.
+
+== 0. Les courses ==
+  canyon-tenue-3970400         palier  5    63.4 s  paroi   canyon  vols 5 (decol 5)  morts ["paroi"]
+  canyon-tenue-3970437         palier  6    92.2 s  paroi   canyon  vols 1 (decol 1)  morts ["paroi"]
+  canyon-tenue-3970474         palier  5    64.6 s  paroi   canyon  vols 3 (decol 3)  morts ["paroi"]
+  canyon-tenue-3970511         palier  6   104.5 s  paroi   canyon  vols 4 (decol 4)  morts ["paroi"]
+  canyon-tenue-3970548         palier  7   101.7 s  paroi   canyon  vols 4 (decol 4)  morts ["paroi"]
+  canyon-tenue-3970585         palier  6   103.6 s  canyon  canyon  vols 4 (decol 4)  morts ["canyon"]
+  canyon-tenue-3970622         palier  6      98 s  paroi   canyon  vols 3 (decol 4)  morts ["paroi"]  (ATTENTION : 3 vols vus, 4 decollages dans les evenements)
+  canyon-tenue-3970659         palier  4    62.3 s  paroi   canyon  vols 4 (decol 4)  morts ["paroi"]
+  grotte-tenue-3970400         palier  4    77.7 s  roche   grotte  vols 1 (decol 1)  morts ["roche"]
+  grotte-tenue-3970437         palier  7     101 s  roche   grotte>grotte  vols 5 (decol 5)  morts ["roche"]
+  grotte-tenue-3970474         palier  5    84.2 s  roche   grotte>grotte  vols 2 (decol 2)  morts ["roche"]
+  grotte-tenue-3970511         palier  4    67.4 s  roche   grotte  vols 3 (decol 4)  morts ["roche"]  (ATTENTION : 3 vols vus, 4 decollages dans les evenements)
+  grotte-tenue-3970548         palier  8   144.3 s  roche   grotte>grotte  vols 7 (decol 7)  morts ["roche"]
+  grotte-tenue-3970585         palier  5    92.7 s  roche   grotte>grotte  vols 6 (decol 6)  morts ["roche"]
+  grotte-tenue-3970622         palier  8     180 s  temps   grotte>grotte>grotte  vols 8 (decol 8)  morts []
+  grotte-tenue-3970659         palier  8   133.1 s  roche   grotte>grotte  vols 6 (decol 6)  morts ["roche"]
+  jade-tenue-3970400           palier  9     180 s  temps   jade>jade>jade  vols 12 (decol 12)  morts []
+  jade-tenue-3970437           palier 10     180 s  temps   jade>jade>jade  vols 14 (decol 14)  morts []
+  jade-tenue-3970474           palier  9     180 s  temps   jade>jade>jade  vols 15 (decol 15)  morts []
+  jade-tenue-3970511           palier  3    49.3 s  vide    jade  vols 4 (decol 4)  morts ["vide"]
+  jade-tenue-3970548           palier  3    61.1 s  pic     jade  vols 6 (decol 6)  morts ["pic"]
+  jade-tenue-3970585           palier  4    72.8 s  air     jade>jade  vols 3 (decol 3)  morts ["air"]
+  jade-tenue-3970622           palier  7   138.3 s  pic     jade>jade  vols 11 (decol 11)  morts ["pic"]
+  jade-tenue-3970659           palier  8     180 s  temps   jade>jade>jade  vols 15 (decol 15)  morts []
+  libre-3970400                palier  4    77.7 s  roche   grotte  vols 1 (decol 1)  morts ["roche"]
+  libre-3970437                palier  7     180 s  temps   espace>nuages>jade  vols 18 (decol 18)  morts []
+  libre-3970474                palier  7   134.1 s  vide    espace>jade  vols 10 (decol 10)  morts ["vide"]
+  libre-3970511                palier  5    91.7 s  air     espace>nuages  vols 6 (decol 6)  morts ["air"]
+  libre-3970548                palier  9     180 s  temps   grotte>nuages>jade  vols 17 (decol 18)  morts []  (ATTENTION : 17 vols vus, 18 decollages dans les evenements)
+  libre-3970585                palier  6   103.6 s  canyon  canyon  vols 4 (decol 4)  morts ["canyon"]
+  libre-3970622                palier  2    29.7 s  roche   grotte  vols 1 (decol 1)  morts ["roche"]
+  libre-3970659                palier  4    62.3 s  paroi   canyon  vols 4 (decol 4)  morts ["paroi"]
+  ville-tenue-3970400          palier  1    13.5 s  tour    ville  vols 1 (decol 1)  morts ["tour"]
+  ville-tenue-3970437          palier  8   108.3 s  tour    ville>ville>ville  vols 7 (decol 7)  morts ["tour"]
+  ville-tenue-3970474          palier  8   141.2 s  tour    ville>ville>ville  vols 13 (decol 13)  morts ["tour"]
+  ville-tenue-3970511          palier  3    64.1 s  air     ville>ville  vols 5 (decol 5)  morts ["air"]
+  ville-tenue-3970548          palier  4    59.6 s  tour    ville>ville  vols 5 (decol 5)  morts ["tour"]
+  ville-tenue-3970585          palier  3    59.8 s  tour    ville  vols 4 (decol 4)  morts ["tour"]
+  ville-tenue-3970622          palier  3    52.5 s  tour    ville  vols 8 (decol 8)  morts ["tour"]
+  ville-tenue-3970659          palier  3    29.7 s  tour    ville  vols 2 (decol 2)  morts ["tour"]
+
+== a. Par carte (la map ou la caisse decolle) : decollages subis par le bord, part mortelle, causes ==
+  carte    decol  voulus(morts)  subis  dont bord  subis morts  bord morts  causes des morts subies            mort apres (s, mediane)
+  canyon      36       3(0)       33         33    10 (30 %)   10 (30 %)   {"paroi":8,"canyon":2}             0.15
+  espace      12       5(0)        7          7      0 (0 %)     0 (0 %)   {}                                 null
+  grotte      42       5(0)       37         37     9 (24 %)    9 (24 %)   {"roche":9}                        0.55
+  jade        96      22(1)       74         74      4 (5 %)     4 (5 %)   {"vide":2,"air":1,"pic":1}         5.95
+  nuages      21      10(0)       11         11      1 (9 %)     1 (9 %)   {"air":1}                          5.95
+  ville       45      22(5)       23         23     3 (13 %)    3 (13 %)   {"tour":2,"air":1}                 1.95
+  morts au sol (pas en vol) : 0 {}
+  vols coupes par tmax : 2
+  rayon du bord vu avant un decollage subi : 184 sur 185 (la derniere vue au sol : 184) ; temps du bord annonce a la derniere vue au sol (tn.t), quantiles 10/50/90 % : [0.02,0.05,0.1]
+  premiere annonce du bord (tient:false) avant le decollage, quantiles 10/50/90 % (s) : [0.2,0.3,0.6]
+  rayons du bord dispo a 0,3 s / 0,7 s / 1,2 s avant le decollage : 130 / 13 / 1 (sur 185)
+
+== b. La fiabilite des yeux : ce que le rayon de la facon prise annoncait, et ce qui est arrive ==
+  b1. vols SUBIS, rayon du bord « versRoute » (la facon prise au decollage) a la derniere vue au sol ou il existe :
+    annonce A (air ou fond)                    :   26 vols, poses 22 (85 %), morts 4
+    annonce C (choc)                           :   29 vols, poses 12 (41 %), morts 17
+    annonce F (libre (jauge vide a venir))     :    5 vols, poses 4 (100 %), morts 0, coupes 1
+    annonce L (levre)                          :    9 vols, poses 9 (100 %), morts 0
+    annonce P (pose propre)                    :   93 vols, poses 87 (94 %), morts 6
+    annonce T (portail)                        :    2 vols, poses 2 (100 %), morts 0
+    annonce p (pose de travers ou dessous)     :   20 vols, poses 20 (100 %), morts 0
+  b2. les memes, sans aucune bascule pendant le vol (versRoute tenu jusqu'au bout) :
+    annonce C (choc)                           :   16 vols, poses 1 (6 %), morts 15
+    annonce F (libre (jauge vide a venir))     :    2 vols, poses 1 (100 %), morts 0, coupes 1
+    annonce L (levre)                          :    9 vols, poses 9 (100 %), morts 0
+    annonce P (pose propre)                    :   80 vols, poses 76 (95 %), morts 4
+    annonce p (pose de travers ou dessous)     :    9 vols, poses 9 (100 %), morts 0
+  b3. tous les vols, rayon du radar de vol de la facon tenue a la PREMIERE vue en vol :
+    annonce - (absent)                         :    1 vols, poses 1 (100 %), morts 0
+    annonce A (air ou fond)                    :   44 vols, poses 41 (93 %), morts 3
+    annonce C (choc)                           :   43 vols, poses 20 (48 %), morts 22, coupes 1
+    annonce F (libre (jauge vide a venir))     :    6 vols, poses 4 (67 %), morts 2
+    annonce L (levre)                          :   24 vols, poses 24 (100 %), morts 0
+    annonce P (pose propre)                    :  107 vols, poses 101 (95 %), morts 5, coupes 1
+    annonce T (portail)                        :    3 vols, poses 3 (100 %), morts 0
+    annonce p (pose de travers ou dessous)     :   24 vols, poses 23 (96 %), morts 1
+  b4. les memes, sans bascule :
+    annonce A (air ou fond)                    :    3 vols, poses 3 (100 %), morts 0
+    annonce C (choc)                           :   22 vols, poses 3 (14 %), morts 18, coupes 1
+    annonce L (levre)                          :   23 vols, poses 23 (100 %), morts 0
+    annonce P (pose propre)                    :   81 vols, poses 79 (98 %), morts 2
+    annonce T (portail)                        :    2 vols, poses 2 (100 %), morts 0
+    annonce p (pose de travers ou dessous)     :   12 vols, poses 12 (100 %), morts 0
+  b5. vols VOULUS (raccourci) : la facon engagee, rayon du radar a la premiere vue en vol :
+    annonce - (absent)                         :    1 vols, poses 1 (100 %), morts 0
+    annonce A (air ou fond)                    :   17 vols, poses 17 (100 %), morts 0
+    annonce C (choc)                           :   11 vols, poses 8 (73 %), morts 3
+    annonce F (libre (jauge vide a venir))     :    3 vols, poses 1 (33 %), morts 2
+    annonce P (pose propre)                    :   26 vols, poses 24 (96 %), morts 1, coupes 1
+    annonce T (portail)                        :    3 vols, poses 3 (100 %), morts 0
+    annonce p (pose de travers ou dessous)     :    6 vols, poses 6 (100 %), morts 0
+
+== c. Les decollages subis MORTELS : que disaient les rayons du bord a la derniere vue au sol ou ils existent ? ==
+  combinaison                            mortels   non mortels (poses)
+  rien C  versRoute C  plane C                16          11
+  rien C  versRoute P  plane C                 6          32
+  rien A  versRoute A  plane A                 3          16
+  rien A  versRoute A  plane C                 1           2
+  rien A  versRoute C  plane A                 1           1
+  rien A  versRoute P  plane A                 0          23
+  rien A  versRoute p  plane A                 0          16
+  rien L  versRoute L  plane L                 0           6
+  rien P  versRoute P  plane P                 0           6
+  rien C  versRoute P  plane P                 0           5
+  rien A  versRoute P  plane C                 0           4
+  rien F  versRoute P  plane F                 0           4
+  rien C  versRoute F  plane C                 0           3
+  rien C  versRoute P  plane A                 0           3
+  rien C  versRoute p  plane C                 0           2
+  rien C  versRoute A  plane C                 0           2
+  rien F  versRoute P  plane C                 0           2
+  rien P  versRoute P  plane C                 0           1
+  rien C  versRoute L  plane P                 0           1
+  rien p  versRoute P  plane p                 0           1
+  rien P  versRoute p  plane P                 0           1
+  rien A  versRoute L  plane A                 0           1
+  rien P  versRoute P  plane A                 0           1
+  rien C  versRoute P  plane p                 0           1
+  rien A  versRoute F  plane A                 0           1
+  rien C  versRoute P  plane F                 0           1
+  rien A  versRoute T  plane A                 0           1
+  rien p  versRoute P  plane C                 0           1
+  rien p  versRoute A  plane A                 0           1
+  rien P  versRoute P  plane L                 0           1
+  rien C  versRoute A  plane A                 0           1
+  rien P  versRoute L  plane A                 0           1
+  rien C  versRoute T  plane C                 0           1
+  rien p  versRoute p  plane p                 0           1
+  rien A  versRoute P  plane P                 0           1
+  (pas de rayon du bord)                       0           1
+  mortels ou un autre rayon du bord (rien ou plane) annoncait une pose ou la levre : 0 sur 27 (une pose PROPRE : 0)
+  mortels ou versRoute lui-meme annoncait une pose ou la levre : 6
+  mortels ou, en vol, un rayon long (rien, plane, versRoute, versRoutePlane) autre que la facon tenue promettait une pose propre ou la levre alors que la facon tenue ne sauvait pas : 1 vols
+  mortels avec au moins une vue ou la condition des secours (secoursOn) est vraie : 27 ; dont un secours S1 propose une pose propre : 1, S2 : 4
+  non mortels avec la condition des secours vraie : 45 (S1 propre 1, S2 propre 25)
+  mortels ou le pilote a bascule en vol : 8 ; duree du vol mortel (s), quantiles 10/50/90 % : [0.11,0.65,5.95]
+  voulus mortels : 6 sur 67
+
+== d, e. Les regles candidates, evaluees a la derniere vue au sol (garde commune : map a decor, route qui lache dans moins de 0,7 s, jauge > 0,5, ni dessous,
+   ni glisse, ni rebond, aucun raccourci engage — la garde du contrat) ==
+  decollages subis qui passent la garde : 120 sur 167 subis sur decor (nitro deja tenue au sol : 0)
+  R1 — le contrat : rien au choc, versRoute au choc, plane se pose propre (ou levre)
+     se declenche sur 0 decollages (0 par course de 180 s) {} ; mortels touches 0 (le rayon choisi y annoncait une pose propre : 0), non mortels touches 0 (dont versRoute annoncait deja une pose propre : 0)
+     par course de 180 s, groupe par groupe : {"canyon (tenue)":0,"grotte (tenue)":0,"jade (tenue)":0,"sans carte":0,"ville (tenue)":0}
+     vues au sol ou elle part : 0, dont sans decollage dans les 0,55 s : 0
+  R2 — plane se pose propre et versRoute ne se pose pas propre
+     se declenche sur 2 decollages (0.09 par course de 180 s) {"grotte":2} ; mortels touches 0 (le rayon choisi y annoncait une pose propre : 0), non mortels touches 2 (dont versRoute annoncait deja une pose propre : 0)
+     par course de 180 s, groupe par groupe : {"canyon (tenue)":0,"grotte (tenue)":0.41,"jade (tenue)":0,"sans carte":0,"ville (tenue)":0}
+     vues au sol ou elle part : 3, dont sans decollage dans les 0,55 s : 0
+  R3 — plane se pose (propre ou non) et versRoute finit en choc
+     se declenche sur 0 decollages (0 par course de 180 s) {} ; mortels touches 0 (le rayon choisi y annoncait une pose propre : 0), non mortels touches 0 (dont versRoute annoncait deja une pose propre : 0)
+     par course de 180 s, groupe par groupe : {"canyon (tenue)":0,"grotte (tenue)":0,"jade (tenue)":0,"sans carte":0,"ville (tenue)":0}
+     vues au sol ou elle part : 0, dont sans decollage dans les 0,55 s : 0
+  R4 — le meilleur rayon du bord (pose propre > pose > libre > choc) s'il bat versRoute
+     se declenche sur 4 decollages (0.18 par course de 180 s) {"grotte":2,"jade":2} ; mortels touches 0 (le rayon choisi y annoncait une pose propre : 0), non mortels touches 4 (dont versRoute annoncait deja une pose propre : 0)
+     par course de 180 s, groupe par groupe : {"canyon (tenue)":0,"grotte (tenue)":0.41,"jade (tenue)":0.17,"sans carte":0.21,"ville (tenue)":0}
+     vues au sol ou elle part : 8, dont sans decollage dans les 0,55 s : 2
+  R5 — la nitro seule : garder la nitro au decollage (la garde de R1 sans les rayons ; la facon ne change pas)
+     se declenche sur 120 decollages (5.4 par course de 180 s) {"canyon":25,"grotte":28,"jade":49,"ville":18} ; mortels touches 20 (le rayon choisi y annoncait une pose propre : 0), non mortels touches 99 (dont versRoute annoncait deja une pose propre : 63)
+     par course de 180 s, groupe par groupe : {"canyon (tenue)":5.22,"grotte (tenue)":5.11,"jade (tenue)":7.09,"sans carte":3.35,"ville (tenue)":6.13}
+     vues au sol ou elle part : 448, dont sans decollage dans les 0,55 s : 60
+
+== f. rienOn : en vol, les vues ou « rien » promet une pose propre ==
+  vues ou « rien » se pose propre et la facon tenue se pose aussi : 879 ; ecart |axe facon tenue| - |axe rien| (rad, + = rien plus droit), quantiles 5/25/50/75/95 % : [-0.53,-0.13,0,0.02,0.311]
+  rien plus droit : 255 ; rien plus tordu : 367 ; egal : 257
+  les memes vues sous la garde de rienOn (facon tenue = loi de retour, tenue depuis plus de 0,35 s) : 662, quantiles 5/25/50/75/95 % : [-0.549,-0.17,0,0.01,0.299]
+  rienEcart = 0.02 : 144 vues passent (3.60 par course ; 6.48 par course de 180 s) ; la regle entiere (deux vues de suite, une fois par vol) partirait 30 fois
+  rienEcart = 0.05 : 116 vues passent (2.90 par course ; 5.22 par course de 180 s) ; la regle entiere (deux vues de suite, une fois par vol) partirait 27 fois
+  rienEcart = 0.1 : 90 vues passent (2.25 par course ; 4.05 par course de 180 s) ; la regle entiere (deux vues de suite, une fois par vol) partirait 21 fois
+  rienEcart = 0.2 : 46 vues passent (1.15 par course ; 2.07 par course de 180 s) ; la regle entiere (deux vues de suite, une fois par vol) partirait 10 fois
+
+== g. loiFidele.suit : la commande des yeux (loi fidele, retour0) contre celle de versRoute du pilote, aux vues en versRoute ==
+  vues en versRoute avec la loi fidele : 3163 ; le compteur d'aujourd'hui (toute difference) en compterait 1979 (63 %)
+  |volant des yeux - volant du pilote|, quantiles 10/25/50/75/90/95/99 % : [0,0,0.08,0.317,0.577,0.82,1.081]
+  manche different : 3 vues
+  vues comptees selon le seuil (volant different de plus que le seuil, ou manche different) :
+    seuil 0     : 1977 (63 %)
+    seuil 0.005 : 1948 (62 %)
+    seuil 0.01  : 1905 (60 %)
+    seuil 0.02  : 1852 (59 %)
+    seuil 0.05  : 1699 (54 %)
+    seuil 0.1   : 1497 (47 %)
+    seuil 0.2   : 1148 (36 %)
+    seuil 0.5   : 415 (13 %)
+  repartition : {">0,5":412,"0,05-0,1":213,"<=0,005":1216,"0,2-0,5":735,"0,1-0,2":349,"0,02-0,05":147,"0,005-0,01":37,"0,01-0,02":54}
+

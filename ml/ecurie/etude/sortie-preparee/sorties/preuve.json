@@ -1,0 +1,85 @@
+{
+ "cles": [
+  "empreinte",
+  "empreinteVues",
+  "empreinteTouches",
+  "palier",
+  "survie_s",
+  "cause",
+  "pieces"
+ ],
+ "preuve": [
+  {
+   "course": "grotte-tenue-3970400-ref",
+   "verdict": "IDENTIQUE",
+   "sansDiag": [
+    "c51ab14fd94f",
+    "abe50e0ec984",
+    "ef9d984e0e58",
+    4,
+    77.7,
+    "roche",
+    212
+   ],
+   "avecDiag": [
+    "c51ab14fd94f",
+    "abe50e0ec984",
+    "ef9d984e0e58",
+    4,
+    77.7,
+    "roche",
+    212
+   ],
+   "shaSansDiag": "256fbbc42f78111b7f558452f614c4e01fa65128",
+   "shaAvecDiag": "59d824adea4e6f1405db9567df873628d77ab8c9"
+  },
+  {
+   "course": "libre-3970400-ref",
+   "verdict": "IDENTIQUE",
+   "sansDiag": [
+    "c51ab14fd94f",
+    "5c5ef14f41e8",
+    "ef9d984e0e58",
+    4,
+    77.7,
+    "roche",
+    212
+   ],
+   "avecDiag": [
+    "c51ab14fd94f",
+    "5c5ef14f41e8",
+    "ef9d984e0e58",
+    4,
+    77.7,
+    "roche",
+    212
+   ],
+   "shaSansDiag": "256fbbc42f78111b7f558452f614c4e01fa65128",
+   "shaAvecDiag": "59d824adea4e6f1405db9567df873628d77ab8c9"
+  },
+  {
+   "course": "jade-tenue-3970437-ref",
+   "verdict": "IDENTIQUE",
+   "sansDiag": [
+    "d52937d0bf45",
+    "6d1560424e23",
+    "374a1581e0b0",
+    10,
+    180,
+    "temps",
+    767
+   ],
+   "avecDiag": [
+    "d52937d0bf45",
+    "6d1560424e23",
+    "374a1581e0b0",
+    10,
+    180,
+    "temps",
+    767
+   ],
+   "shaSansDiag": "256fbbc42f78111b7f558452f614c4e01fa65128",
+   "shaAvecDiag": "59d824adea4e6f1405db9567df873628d77ab8c9"
+  }
+ ]
+}

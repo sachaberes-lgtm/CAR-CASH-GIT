@@ -1,20 +1,21 @@
 /* ===== LES GENES MUETS HORS DE L'URNE (28/11/2026, lot « regles » ; la synthese ml/ecurie/etude/reglage-de-la-selection/LISEZ-MOI.md § 2 C2 :
    « ne tirer les reels que parmi ceux que le pilote lit ») =====
    Sans course, quelques dizaines de secondes :
-     (m1) la table genome.GARDES : 10 drapeaux, 30 reels ; tous les reels des gestes, du portage et de la loi « retour », et volRetour, y sont ;
+     (m1) la table genome.GARDES : 12 drapeaux, 33 reels (lot « genes v4 ») ; tous les reels des gestes, du portage, des genes v4 et de la loi
+          « retour », et volRetour, y sont ;
      (m2) DRAPEAU ETEINT : pour chaque reel garde, pousse a sa borne basse puis haute, le pilote ecrit ne change AUCUNE decision, sur les vues de
           l'inventaire (ml/ecurie/etude/selection-naturelle/inventaire/vue-exemple.json), les suites de tests/portage.test.js (recopiees ici) et des
           suites faites pour declencher chaque bloc ; dans deux pilotes : le temoin c0025 (tout eteint ; chaque reel seul) et « tout allume sauf ce
-          drapeau » (c0101, les cinq gestes, retourOn, volRetourOn ; les reels du drapeau ensemble) ;
+          drapeau » (c0101, les cinq gestes, retourOn, volRetourOn, sortieOn, rienOn, secoursOn, loiFidele 2 ; les reels du drapeau ensemble) ;
      (m3) DRAPEAU ALLUME : chaque reel garde, de sa borne basse a sa borne haute, change au moins une decision sur ces memes suites (sinon la table
           pourrait garder un reel qui ne sert a rien, et (m2) ne prouverait rien) ;
      (m4) muter : 20 000 naissances du temoin, et 5 000 d'un genome a drapeaux tires au hasard : aucun reel garde par un drapeau a 0 chez le parent ne
           mute ; le nombre de reels tires, les drapeaux, le choix, les entiers et les tetes de l'enfant sont EXACTEMENT ceux de l'ancienne urne
           (o.urneComplete) a la meme graine ; un drapeau allume garde ses reels dans l'urne ;
-     (m5) la part de mutations muettes, avant / apres, sur les naissances du temoin de (m4) : avant ~34 % en v:3 (27 % en v:2, le Ryzen :
-          tests/mesure-muettes.js --v2), apres 0 % ;
-     (m6) genome.js n'entre pas dans l'epoque des courses (commun.FICHIERS_EPOQUE) et, a genome egal, le pilote ecrit est le meme texte qu'avec le
-          genome.js du commit de depart (7b1df608e) : aucune course ne change, seulement la suite des naissances.
+     (m5) la part de mutations muettes, avant / apres, sur les naissances du temoin de (m4) : avant ~36 % en v:4 (34 % en v:3, 27 % en v:2,
+          le Ryzen : tests/mesure-muettes.js --v2), apres 0 % ;
+     (m6) genome.js n'entre pas dans l'epoque des courses (commun.FICHIERS_EPOQUE) ; (lot « genes v4 », recrit dans l'autre sens) des mutants faits par
+          le genome.js de ddca156d8 (v:3), migres, gardent leur identifiant et leur pilote decide comme celui que l'ancien code ecrivait.
    usage : node ml/evolution/tests/genes-muets.test.js   (code 0 si tout passe ; Node pur, aucun jeu charge) */
 'use strict';
 const path=require('path'),fs=require('fs');
@@ -26,17 +27,19 @@ let rates=0,passes=0;
 function bilan(nom,ok,detail){if(ok)passes++;else rates++;console.log((ok?'PASSE  ':'ECHEC  ')+nom+(detail?'\n       '+String(detail).split('\n').join('\n       '):''));}
 function test(nom,f){try{const d=f();bilan(nom,true,d);}catch(e){bilan(nom,false,String(e&&e.stack||e));}}
 function vrai(x,m){if(!x)throw new Error(m||'faux');}
-const copie=x=>JSON.parse(JSON.stringify(x));
+const copie=x=>JSON.parse(JSON.stringify(x)),J=JSON.stringify;
 const T=Gn.genomeTemoin(cfg),T101=Gn.genomeTemoin(Object.assign({},cfg,{temoin:'c0101'}));
 const PAR=Gn.BORNES.reduce((o,b)=>{o[b.cle]=b;return o;},{});
 
 /* ===== (m1) LA TABLE ===== */
-test('(m1) GARDES : 10 drapeaux, 30 reels ; les reels des gestes, du portage, de la loi « retour » et volRetour y sont tous',()=>{
+/* (28/11/2026, lot « genes v4 ») 12 drapeaux, 33 reels : sortieOn garde sortieT et sortieJauge, rienOn garde rienEcart */
+test('(m1) GARDES : 12 drapeaux, 33 reels ; les reels des gestes, du portage, des genes v4, de la loi « retour » et volRetour y sont tous',()=>{
   const dr=Object.keys(Gn.GARDES),re=Object.keys(Gn.GARDE_DE);
-  vrai(dr.length===10&&re.length===30,dr.length+' drapeaux, '+re.length+' reels');
+  vrai(dr.length===12&&re.length===33,dr.length+' drapeaux, '+re.length+' reels');
   for(const d of dr)vrai(PAR[d].type==='drapeau',d);
   for(const r of re)vrai(PAR[r].type==='reel'&&Gn.CONTINUS.includes(r),r);
-  const attendus=['volRetour','retMarge','retCap','retGain','retAvance','retourPrime'].concat(Gn.GESTES.filter(b=>b.type==='reel').map(b=>b.cle),Gn.PORTAGE.filter(b=>b.type==='reel').map(b=>b.cle));
+  const attendus=['volRetour','retMarge','retCap','retGain','retAvance','retourPrime'].concat(Gn.GESTES.filter(b=>b.type==='reel').map(b=>b.cle),Gn.PORTAGE.filter(b=>b.type==='reel').map(b=>b.cle),
+    Gn.GENES_V4.filter(b=>b.type==='reel').map(b=>b.cle));
   vrai(JSON.stringify(attendus.slice().sort())===JSON.stringify(re.slice().sort()),'attendus '+attendus.join(',')+' ; table '+re.join(','));
   vrai(T.A.volRetourOn===0&&T.A.retourOn===0&&dr.every(d=>T.A[d]===0),'le temoin c0025 a un drapeau de garde allume');
   vrai(Gn.reelsLus(T).length===58,'le temoin lit '+Gn.reelsLus(T).length+' reels');
@@ -113,7 +116,10 @@ function suitesBlocs(){
     Object.assign(par.versRoute,{issue:'pose',t:Math.max(.2,tp-.1*i),axe:.2,propre:true,dessous:false,air:air-.5});Object.assign(par.versRoutePlane,{issue:'pose',t:Math.max(.2,tp-.1*i)+.2,axe:.22,propre:true,dessous:false,air:air-1});
     Object.assign(par.tenu,par.versRoute,{m:'tenu'});}))});
   return S;}
-const SUITES=suitesPortage().concat(suitesBlocs());
+/* (28/11/2026, lot « genes v4 ») et les suites des genes v4 (tests/vues-genes-v4.js) : la nitro au decollage sur decor, ex-sortie preparee (sortieT, sortieJauge), la bascule vers
+   « rien » (rienEcart), la loi fidele et les secours (aucun reel, mais ils changent les lois demandees et la facon : m2 y verifie que retourPrime,
+   garde par retourOn, n'est jamais lu pour une loi de secours) */
+const SUITES=suitesPortage().concat(suitesBlocs(),require(path.join(__dirname,'vues-genes-v4.js')).suitesV4());
 function decisions(P,S){return S.map(s=>{P.neuve();return s.vues.map(v=>essai(P,copie(v)));});}
 const pilote=g=>charger('evolution.js',{source:Gn.ecrirePilote(g,{cfg})});
 const empreinte=R=>JSON.stringify(R);
@@ -121,6 +127,8 @@ const empreinte=R=>JSON.stringify(R);
 function genomeDe(base,poser){const g=copie(base);Object.assign(g.A,poser);Gn.reparer(g,cfg);for(const k in poser)vrai(g.A[k]===poser[k],'reparer a change '+k);return g;}
 /* « tout allume sauf d » : c0101 (le portage allume), les cinq gestes, retourOn, volRetourOn ; puis d eteint */
 const TOUT={};for(const d in Gn.GARDES)TOUT[d]=1;
+/* (28/11/2026, lot « genes v4 ») « tout allume » allume aussi les deux genes v4 sans reel : les secours et la loi fidele suivie */
+TOUT.secoursOn=1;TOUT.loiFidele=2;
 const BASES={c0025:d=>({base:T,poser:{}}),toutSauf:d=>({base:T101,poser:Object.assign({},TOUT,{[d]:0})})};
 
 /* ===== (m2) DRAPEAU ETEINT : aucune decision ne change ===== */
@@ -190,25 +198,33 @@ test('(m4) muter : aucun reel garde par un drapeau eteint chez le parent ne mute
 
 /* ===== (m5) LA PART DE MUTATIONS MUETTES, AVANT / APRES ===== */
 /* les memes 20 000 naissances du temoin que (m4) ; la mesure complete (et en v:2, la population du Ryzen) : node ml/evolution/tests/mesure-muettes.js [--v2] */
-test('(m5) la part de mutations muettes sur 20 000 naissances du temoin : ~34 % avant (ancienne urne, v:3), 0 % apres',()=>{
+test('(m5) la part de mutations muettes sur 20 000 naissances du temoin : ~36 % avant (ancienne urne, v:4), 0 % apres',()=>{
   vrai(MUETTES,'(m4) n\'a pas tourne');
   const av=100*MUETTES.avant/MUETTES.reelsAvant,ap=100*MUETTES.apres/MUETTES.reelsApres;
   vrai(av>30&&av<38,'avant '+av.toFixed(2)+' %');vrai(MUETTES.apres===0,'apres '+ap.toFixed(2)+' %');
   return 'temoin, '+MUETTES.naissances+' naissances : avant '+av.toFixed(2)+' % des reels mutes ('+MUETTES.avant+' sur '+MUETTES.reelsAvant+'), apres '+ap.toFixed(2)+' % ('+MUETTES.apres+' sur '+MUETTES.reelsApres+')';});
 
 /* ===== (m6) genome.js ET L'EPOQUE (la contradiction C7 de la synthese) ===== */
-test('(m6) genome.js n\'est pas dans l\'epoque des courses ; le pilote ecrit d\'un meme genome est le meme texte qu\'avec le genome.js du commit de depart',()=>{
+/* (28/11/2026, lot « genes v4 ») m6 RECRIT DANS L'AUTRE SENS (contrat notes/genes-v4.md § 8.1) : un v:4 ne se donne plus a un genome.js d'avant (son
+   valider dit « version 4 », et 3 % par drapeau allument des genes qu'il ne sait pas ecrire). Les mutants sont donc faits par l'ANCIEN genome.js
+   (ddca156d8, v:3), puis migres : meme identifiant, et le pilote de l'ancien (ecrit avec SON modele.js) decide comme celui d'aujourd'hui. */
+test('(m6) genome.js n\'est pas dans l\'epoque des courses ; 120 mutants du genome.js de ddca156d8, migres : meme identifiant, memes decisions',()=>{
   vrai(!C.FICHIERS_EPOQUE.includes('ml/evolution/genome.js'),'genome.js est dans FICHIERS_EPOQUE');
-  const cp=require('child_process');let G0=null;
-  try{const t=cp.execFileSync('git',['show','7b1df608e:ml/evolution/genome.js'],{cwd:D,encoding:'utf8',stdio:['ignore','pipe','ignore']}).replace(/\r\n/g,'\n');
-    const dos=path.join(D,'essais','regles');fs.mkdirSync(dos,{recursive:true});const f=path.join(dos,'genome-depart.js');
-    C.ecrireAtomique(f,t.replace("require('./commun')","require('../../commun')").replace("require('./graines')","require('../../graines')"));delete require.cache[f];G0=require(f);}catch(e){G0=null;}
-  if(!G0)return 'SAUTE (git ne donne pas genome.js du commit 7b1df608e) ; FICHIERS_EPOQUE sans genome.js';
-  vrai(!G0.GARDES,'le genome.js de depart a deja GARDES');
-  const rng=Gr.mulberry32(42);let n=0;
-  for(const base of [T,T101]){let g=base;for(let i=0;i<60;i++){g=Gn.muter(i%5?g:base,rng,{phase:['A','B','C'][i%3],cfg}).genome;
-    vrai(Gn.ecrirePilote(g,{cfg})===G0.ecrirePilote(copie(g),{cfg}),'mutant '+i+' : le texte du pilote differe');vrai(Gn.idDe(g)===G0.idDe(copie(g)),'mutant '+i+' : identifiant');n++;}}
-  return n+' genomes : meme texte de pilote (donc meme shaPilote, memes cles de courses) et meme identifiant qu\'avec le genome.js de depart ; seule la suite des naissances change';});
+  const cp=require('child_process'),COMMIT='ddca156d8';
+  const lire=f=>cp.execFileSync('git',['show',COMMIT+':ml/evolution/'+f],{cwd:D,encoding:'utf8',stdio:['ignore','pipe','ignore'],maxBuffer:64<<20}).replace(/\r\n/g,'\n');
+  const t=lire('genome.js'),modele=lire('modele.js');
+  vrai(t.indexOf('const VERSION=3;')>=0&&modele.indexOf('chancePalierMin')<0&&modele.indexOf('palierMin:12}')>=0,'le code de '+COMMIT+' n\'est pas celui d\'avant les genes v4');
+  const dos=path.join(D,'essais','regles');fs.mkdirSync(dos,{recursive:true});const f=path.join(dos,'genome-ddca156d8.js');
+  C.ecrireAtomique(f,t.replace("require('./commun')","require('../../commun')").replace("require('./graines')","require('../../graines')"));delete require.cache[f];const G0=require(f);
+  const rng=Gr.mulberry32(42),S=SUITES.filter((s,i)=>i<3||i%13===0);let n=0,vues=0;
+  for(const nom of ['c0025','c0101']){const base=G0.genomeTemoin(Object.assign({},cfg,{temoin:nom}));let g=base;
+    for(let i=0;i<60;i++){g=G0.muter(i%5?g:base,rng,{phase:['A','B','C'][i%3],cfg}).genome;
+      const h=copie(g);vrai(Gn.valider(h,cfg)===null&&h.v===Gn.VERSION,nom+' mutant '+i+' non migre');
+      vrai(Gn.idDe(h)===G0.idDe(copie(g)),nom+' mutant '+i+' : identifiant');n++;
+      if(i%6===0){const a=decisions(charger('evolution.js',{source:G0.ecrirePilote(copie(g),{cfg,modele})}),S),b=decisions(pilote(h),S);
+        for(let k=0;k<S.length;k++)for(let j=0;j<a[k].length;j++){vues++;const x=a[k][j],y=b[k][j],o=y.o&&y.o.declic?(({declic,...r})=>r)(y.o):y.o;
+          vrai(J(x.o)===J(o)&&x.erreur===y.erreur,nom+' mutant '+i+' / '+S[k].nom+' vue '+j);}}}}
+  return n+' genomes v:3 migres en v:'+Gn.VERSION+' : meme identifiant ; '+vues+' decisions de l\'ancien pilote (ancien modele.js) egales au nouveau';});
 
 console.log((rates?'ECHEC':'OK')+' : '+passes+' passes, '+rates+' rates');
 process.exit(rates?1:0);

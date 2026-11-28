@@ -80,7 +80,7 @@ corriger, et le code de sortie 1 (comme une config illisible). Sont refusés :
 | `greffes.js` (nouveau) | La lecture et le contrôle de `"greffes"`, le cycle, la greffe elle-même. Des fonctions pures : aucun tirage, aucune écriture. |
 | `evoluer.js` | `naissances()` : la place de l'immigré suit le cycle ; le champ `greffe`, le journal, l'événement (`texteGreffe`, redit par `generation()` à la reprise d'une génération interrompue). Le contrôle de la config au lancement (`principal`, avant le banc) et dans `charger`. Un avertissement si des greffes sont demandées avec `immigres` à 0. `naissances` et `generation0` sont exportées pour le test. |
 | `histoire.js` | La phrase « né par greffe » et l'événement en clair. Sans greffe, le récit est identique. |
-| `tests/greffes.test.js` (nouveau) | 70 contrôles, environ 45 s, aucune course. |
+| `tests/greffes.test.js` (nouveau) | 70 contrôles à sa naissance, 71 depuis le lot « gènes v4 » (le seul gène figé, `chancePalierMin`, ne se greffe pas) ; environ 45 s, aucune course. |
 
 ## Ce qui a été vérifié
 

@@ -1,0 +1,16 @@
+{ "format": "banc-bras-1",
+  "_notes": [
+    "Le catalogue des bras du banc des genes v2 (ml/evolution/banc/README.md). Chaque bras = des ECARTS au genome du temoin de la vague (genes de ml/evolution/genome.js, BORNES).",
+    "Un bras n'est joue que si une vague le nomme (vagues/<nom>/vague.json) ; son critere est dans la vague, pas ici. chancePalierMin (fige) n'est jamais un bras : il se regle pour toute une vague dans « fixes ».",
+    "Changer les genes d'un bras deja joue dans une vague arrete la reprise de cette vague (code 4) : pour une autre idee, ajouter un bras sous un autre nom."
+  ],
+  "bras": {
+    "sortie":      { "dit": "la nitro au decollage sur les maps a decor", "genes": { "sortieOn": 1 } },
+    "sortie-tot":  { "dit": "la meme, gardee des 1 s avant le bord", "genes": { "sortieOn": 1, "sortieT": 1 } },
+    "rien":        { "dit": "la bascule peut lacher le volant", "genes": { "rienOn": 1 } },
+    "fidele-juge": { "dit": "juger le vol sur la loi fidele", "genes": { "loiFidele": 1 } },
+    "fidele-suit": { "dit": "suivre la loi fidele", "genes": { "loiFidele": 2 } },
+    "secours":     { "dit": "les secours en vol", "genes": { "secoursOn": 1 } },
+    "retour":      { "dit": "la loi retour seule (reference du n° 3)", "genes": { "retourOn": 1 } }
+  }
+}

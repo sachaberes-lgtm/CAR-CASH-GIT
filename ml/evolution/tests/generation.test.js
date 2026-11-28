@@ -105,9 +105,16 @@ async function casA4(n){
    chose avec la reserve d'avant VIDE (le Ryzen apres 90 generations) : la generation prend ses graines dans la suite (1000021 + 37 j), sans en rejouer. */
 /* (28/11/2026, l'integrateur du reglage) aussi tests/etat-e93ff5cb5 : un etat ecrit par le code EXACT du Ryzen (commit e93ff5cb5, git worktree hors du
    depot, config-essai, 2 generations de vraies courses puis --valider-maintenant : une ligne de validation d'avant, epoque d'avant le portage). */
+/* (28/11/2026, lot « genes v4 ») et tests/etat-v3-ddca156d8 : un etat en genome v:3, ECRIT PAR LE CODE de ddca156d8 (son propre generation.test.js,
+   joue dans une copie de l'arbre de ce commit tiree par git archive : etat-e93ff5cb5 relu, puis une generation avec le faux ordonnanceur ; le cas
+   compat-c, ses cinq fichiers sans les courses fabriquees). Pour les trois sources : genomes migres en v:Gn.VERSION, memes identifiants avant et apres
+   la migration, pop.temoin = l'identifiant du temoin (19e3767cc346), dejaVus garde. */
+const Gn=require('../genome');
 async function casCompat(){
   const L=[];let ok=true;
-  for(const [source,lettres] of [['etat-v2-ancien','ab'],['etat-e93ff5cb5','cd']])
+  const idTemoin=Gn.idDe(Gn.genomeTemoin(cfgA('compat-temoin')));
+  if(idTemoin!=='19e3767cc346'){ok=false;L.push('le temoin a change d\'identifiant : '+idTemoin);}
+  for(const [source,lettres] of [['etat-v2-ancien','ab'],['etat-e93ff5cb5','cd'],['etat-v3-ddca156d8','ef']])
   for(const cas of ['tel quel','reserve vide']){
     const src=path.join(__dirname,source);
     const d='compat-'+(cas==='tel quel'?lettres[0]:lettres[1]);fs.rmSync(path.join(BAC,d),{recursive:true,force:true});
@@ -117,14 +124,21 @@ async function casCompat(){
     const v0=[...new Set(p0.vivants.map(v=>v.genome.v))],blocs0='blocs' in p0.graines,joues=new Set();
     for(const g of C.lireJsonl(path.join(cfg.dossierEtat,'generations.jsonl')))for(const s of g.graines||[])joues.add(s);
     if(cas==='reserve vide'){p0.graines.reserve=[];fs.writeFileSync(path.join(cfg.dossierEtat,'population.json'),JSON.stringify(p0)+'\n');}
-    const journal=[];let r=null,err=null;
-    try{const ctx=E.charger(cfg,{dire:t=>journal.push(t)});r=await E.generation(ctx);}catch(e){err=e;}
+    const journal=[];let r=null,err=null,ids=null;
+    try{const ctx=E.charger(cfg,{dire:t=>journal.push(t)});
+      /* (genes v4) apres le chargement (la migration) : les memes vivants, chacun sous son identifiant d'avant, et le meme temoin */
+      ids={avant:p0.vivants.map(v=>v.id).sort().join(','),apres:ctx.pop.vivants.map(v=>v.id).sort().join(','),
+        justes:ctx.pop.vivants.every(v=>v.genome.v===Gn.VERSION&&Gn.idDe(v.genome)===v.id),temoin:ctx.pop.temoin};
+      r=await E.generation(ctx);}catch(e){err=e;}
     const p1=C.lireJson(path.join(cfg.dossierEtat,'population.json'));
-    const bon=!err&&r&&!r.interrompue&&r.generation===p0.generation+1&&p1.etape==='fin'&&p1.vivants.every(v=>v.genome.v===3)&&
+    const idsBons=!!ids&&ids.avant===ids.apres&&ids.justes&&ids.temoin===idTemoin&&!!p1&&p1.temoin===idTemoin&&
+      (p0.dejaVus||[]).every(id=>(p1.dejaVus||[]).includes(id))&&p1.vivants.every(v=>Gn.idDe(v.genome)===v.id);
+    if(!idsBons)L.push(source+', '+cas+' : IDENTIFIANTS '+JSON.stringify(ids)+' temoin apres '+(p1&&p1.temoin));
+    const bon=idsBons&&!err&&r&&!r.interrompue&&r.generation===p0.generation+1&&p1.etape==='fin'&&p1.vivants.every(v=>v.genome.v===Gn.VERSION)&&
       !journal.some(t=>/tableau : non ecrit/.test(t))&&r.graines.every(s=>!joues.has(s))&&
       (cas==='tel quel'?p1.graines.blocs===0&&r.graines.every(s=>s<950000):p1.graines.blocs===1&&r.graines.every(s=>s>=1000021));
     if(!bon)ok=false;
-    L.push(source+', '+cas+' : '+(err?'ERREUR '+String(err.message).slice(0,200):'generation '+(r&&r.generation)+' finie, genomes v:'+v0.join(',')+' -> v:3, « blocs » '+(blocs0?'deja la':'absent')+' -> '+
+    L.push(source+', '+cas+' : '+(err?'ERREUR '+String(err.message).slice(0,200):'generation '+(r&&r.generation)+' finie, genomes v:'+v0.join(',')+' -> v:'+Gn.VERSION+' (memes identifiants), « blocs » '+(blocs0?'deja la':'absent')+' -> '+
       p1.graines.blocs+', graines '+(r&&r.graines.join(' '))+' (aucune deja jouee : '+(r&&r.graines.every(s=>!joues.has(s))?'oui':'NON')+')'));}
   verdict('compatibilite : un etat ecrit par l\'ancien code (genome v:2, graines sans « blocs ») se relit et fait une generation ; reserve d\'avant vide : la suite',ok,L.join(' ; '));
 }

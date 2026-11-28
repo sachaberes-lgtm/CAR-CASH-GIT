@@ -100,6 +100,9 @@ Aucune autre sortie sur stdout (le maître forke avec `silent:true` et ne garde 
 
 **Ligne de commande** (essai manuel seulement) : `node ml/evolution/enfant.js --essai <pilote.js> <graine> [tmax=45]` → joue une course dans CE processus et
 écrit le résultat compact sur stdout (une ligne JSON). Exporte `{resultatCompact(r,J,C,graine)}` pour les tests.
+**(28/11/2026, lot « gènes v4 » : § 12.4 l'emporte)** le message reçu porte aussi `carte` et `carteTenue` ; `course` reçoit `optionsCourse(m)` (`{tmax}`,
+plus `carte` s'il y en a une) ; `C.decide` est enveloppé (le champ d'ordre `declic` est compté puis retiré) ; le résultat compact gagne `declenchements`,
+`cartes`, `causesMorts`, `chancePrise` ; l'essai accepte `[--carte grotte] [--tenue]` ; `resultatCompact(r,J,C,graine,compte)`.
 
 ### 2.2 `courses.js` — l'ordonnanceur, le cache, l'époque
 
@@ -154,6 +157,9 @@ par course (graine, palier, survie, cause, mesurée/raison, « cache » si rendu
 - enfant.js sort (code 3) sur `disconnect` : un enfant dont le maître a été tué ne survit pas à sa course.
 
 ### 2.3 `genome.js` — le génome
+
+**(28/11/2026, lot « gènes v4 » : § 12.1 l'emporte)** `Gn.VERSION` vaut 4 (129 gènes, 91 réels) ; nouveaux exports `GENES_V4`, `ORDRE_V4`, `CLES_V3`,
+`N_V3`, `DECLICS` ; une `Borne` peut porter `fige:true` (seul `chancePalierMin`) : `muter` ne la tire jamais, `croiser` prend celle du premier parent.
 
 ```js
 const Gn=require('./genome');
@@ -469,6 +475,8 @@ Le fichier `ml/evolution/config.json` donne **toutes** les clés et leurs valeur
   `drapeau` 0 ou 1 ; jamais −0.
 - Têtes : `WV.length===222`, `WS.length===90`, chaque poids arrondi à 6 décimales, borné à `±cfg.bornePoids`, jamais −0. Disposition :
   `WV[j*36+i]` = W1 (caché j ∈ 0..5, entrée i ∈ 0..35), `WV[216+j]` = W2 ; `WS[j*12+i]` = W1, `WS[72+j*3+k]` = W2 (sortie k ∈ 0..2).
+- **(28/11/2026, lot « gènes v4 », § 12.1) `"v": 4`** : 129 clés (les 121 de v:3 puis les 8 de `Gn.GENES_V4`) ; v:1, v:2 et v:3 sont migrés à la
+  lecture et gardent leur identifiant tant que les gènes ajoutés sont à leur naissance.
 - Tirage de `tirerReseaux(g)` : `rng=mulberry32(g)` ; WV W1 dans l'ordre des indices (j puis i), `normal()/6` ; puis WS W1, `normal()/Math.sqrt(12)` ; W2 = 0.
 
 ### 3.3 Une ligne de `etat/courses-AAAA-SS.jsonl` (`Ligne`)
@@ -482,6 +490,8 @@ Le fichier `ml/evolution/config.json` donne **toutes** les clés et leurs valeur
 `usage` ∈ `entrainement | validation | coffre | revalidation | essai`. Une course non mesurée a `mesuree:false`, `raison`, et les champs du résultat quand il y en a un
 (`null` sinon). Le cache ne rend que `mesuree:true` (règle 1 de § 2.2). La clé contient l'époque des courses (écart à la spec § 5.3, qui ne listait pas les fichiers
 des yeux : un yeux.js changé ne doit pas rendre une vieille course).
+**(28/11/2026, lot « gènes v4 » : § 12.4 l'emporte)** une ligne porte en plus, à la fin, `declenchements`, `cartes`, `causesMorts`, `chancePrise` et `carte`
+(et `carteTenue:true` pour une carte tenue) ; une tâche à carte a la clé suffixée `|carte:<carte>` (`|tenue` en plus pour une carte tenue).
 
 ### 3.4 `etat/population.json` (`Population`)
 Écrit **une fois par génération**, au début, après les naissances et le tirage des graines (atomique).
@@ -609,6 +619,8 @@ Même objet que § 3.5.
 ## 4. Le génome en détail
 
 ### 4.1 Les gènes du bloc A (`BORNES`)
+**(28/11/2026, lot « gènes v4 » : § 12.1)** la `Borne` gagne un champ optionnel `fige` ; `ou` peut valoir `'profil'` (`chancePalierMin`, écrit dans `REGLAGES`
+et lu par `PROFIL.chance.palierMin`) ; les 8 gènes v4 suivent le portage.
 `Borne = {cle, type:'reel'|'entier'|'drapeau'|'choix', min, max, naissance, ou}` ; `ou` dit où le gène s'écrit dans le pilote :
 `'R'` = une clé de `REGLAGES` du même nom ; `'G'` = une clé de `G` ; `'raccCartes'`/`'raccJumeau'` = une entrée de l'objet ; `'volRetour'`, `'retours'` = règle du § 5.2.
 Le témoin prend la valeur de `pilote-voltige.js` (colonne « témoin ») ; la colonne « naissance » ne sert qu'aux gènes absents de pilote-voltige.
@@ -706,7 +718,8 @@ Puis les poids : borne `±bornePoids`, 6 décimales, −0 → 0.
 
 ### 5.1 La balise
 `modele.js` contient **une seule** ligne égale à `/*@GENOME@*/` (rien d'autre sur la ligne), à l'endroit où pilote-voltige.js a `const REGLAGES={…};`
-(juste après `PROFIL`). `ecrirePilote` remplace cette ligne par le bloc suivant (et rien d'autre dans le fichier ; il remplace aussi les fins de ligne par `\n`) :
+(juste après `PROFIL` ; **(28/11/2026, lot « gènes v4 », § 12.2) `PROFIL` est désormais juste SOUS la balise**, il lit `REGLAGES.chancePalierMin`, et
+`REGLAGES` gagne les 8 clés v4 après le portage, avant `volNitro`). `ecrirePilote` remplace cette ligne par le bloc suivant (et rien d'autre dans le fichier ; il remplace aussi les fins de ligne par `\n`) :
 ```js
 /*@GENOME@ debut : ecrit par ml/evolution/genome.js (ecrirePilote), genome 3f9a0c1d2e4b — ne pas editer */
 const REGLAGES={marge:10,bandeDecor:99,nitroDecor:1,margeCouloir:15,avance:0.3,glisse:0.12,glisseUrgence:0.3,ligneLoin:320,piecesLoin:180,capLigne:0.3,avanceCap:0.25,capAvance:0.25,braqueDoux:0.15,braqueFort:0.5,braqueNitro:0.7,margeAllumer:0.05,margeTenir:0,jaugeAllume:0.45,jaugeCoupe:0.25,capMax:0.35,bascule:10,tenirFacon:0.35,derive:0.3,raccVirage:0.2,raccGain:80,raccAxe:0.75,raccTmin:0.7,raccChute:120,raccTmax:3.6,raccAir:1.2,raccBord:5,raccAttente:1.6,raccCartes:{jade:0,grotte:0,canyon:0},raccJumeau:{ville:1,jade:1},raccRepos:1.5,figPlongeon:2.2,figTemps:1.5,figJauge:0.4,figEcart:0.55,dessousMax:0.8,dessousAveugle:1,dessousDecor:1,dessousNitro:0,dessousFuir:1,dessousPose:25,departMin:1.5,departMax:5.5,portailVol:1,volDemiTour:1,volRetour:0,volAvance:0.25,figMax:2,figDepuis:0.4,figHaut:15,retourOn:0,retMarge:8,retCap:0.8,retGain:0.8,retAvance:0.15,retourPrime:4,volMieux:0,volNitro:0,retours:[]};
@@ -1390,3 +1403,103 @@ complète les § 2.3, 2.5, 2.6, 2.8, 2.9, 2.10, 3.1, 3.4, 3.5, 3.6, 6.1, 6.2 et 
 | `genome.GARDES`, `reelsLus` | `genome.js` | § 11.6, `notes/regles.md` |
 | `evolution-mesure-tau-1`, la ligne « Mutations comptent-elles ? » de resume.txt, la section 1 bis, le paragraphe du récit | `mesure-tau.js`, `etat.js`, `tableau.js`, `histoire.js` | § 11.7, `notes/tau.md`, `notes/integrateur-reglage.md` |
 | l'état de la livraison, les gestes sur le Ryzen | — | `notes/LIVRAISON-REGLAGE.md` |
+
+---
+
+## 12. Le lot « gènes v4 » (28/11/2026, trois lots, trois relecteurs, puis l'intégrateur)
+
+Le contrat : `notes/genes-v4.md` (il fait foi ; sa section « Relecture du contrat » dit ce que les relecteurs ont changé). Les comptes rendus :
+`notes/genes-v4-lot-a.md` (génome, pilote, compteurs, relectures « bit près » et « sémantique »), `notes/genes-v4-lot-b.md` (enfant, ordonnanceur),
+`notes/genes-v4-lot-c.md` (relecture du banc), `banc/README.md` (le banc v2), `notes/LIVRAISON-GENES-V4.md` (l'état exact, les gestes sur le Ryzen).
+Ce paragraphe **l'emporte** sur § 2.1, § 2.3, § 3.2, § 3.3, § 4.1 et § 5.1 là où ils diffèrent. **Une seule nouvelle époque** (`modele.js` et `enfant.js`
+changent ; époque des courses `c8999deeb421` sur ce PC).
+
+### 12.1 Le génome v:4 (129 gènes)
+
+- `BORNES` = les 121 gènes de v:3, puis `Gn.GENES_V4` : `sortieOn` (drapeau, 0), `sortieT` [0,3 ; 1,2] 0,7, `sortieJauge` [0,2 ; 1] 0,5, `rienOn` (drapeau, 0),
+  `rienEcart` [0,1 ; 0,4] 0,2, `loiFidele` (choix 0..2, 0), `secoursOn` (drapeau, 0), `chancePalierMin` (entier [1 ; 30] 12, `ou:'profil'`, **`fige:true`**).
+  91 réels, 33 drapeaux, 2 choix, 3 entiers. `GARDES` : 12 drapeaux, 33 réels (`sortieOn` garde `sortieT`, `sortieJauge` ; `rienOn` garde `rienEcart`).
+- `fige` : `muter` saute le gène **avant tout tirage** (aucun `rng.suivant()` consommé) ; `croiser` prend la valeur du premier parent sans tirage ;
+  `reparer`, `valider`, `distance` le traitent comme un entier. Le banc refuse un bras qui le touche (seulement par `fixes`, pour toute une vague).
+- `migrer` : v:1, v:2 et v:3 (clés exactes, dans l'ordre) → v:4, les gènes ajoutés à leur naissance, en place. `valider` migre.
+- `shaGenome` : les 8 gènes v4 tous à leur naissance → le sha de la forme v:3 (elle-même ramenée à v:2 ou v:1 si le portage, puis les gestes, sont à leur
+  naissance) ; sinon le sha du v:4 entier. **Tout génome d'avant garde son identifiant** : c0025 `19e3767cc346`, c0101 `f70ddcb5a565`, les 26 vivants du Ryzen.
+  `chancePalierMin` ≠ 12 change l'identifiant (voulu : la main conduit autrement).
+- `bloc` écrit les 8 clés après le portage et avant `volNitro`, par exemple
+  `…,libreOn:0,nitroLibreK:1.25,tenirLibre:0.05,sortieOn:0,sortieT:0.7,sortieJauge:0.5,rienOn:0,rienEcart:0.2,loiFidele:0,secoursOn:0,chancePalierMin:12,volNitro:0,retours:[]}`.
+- `genomeTemoin` lit `chancePalierMin` dans le texte du témoin (`chance:{prend:1,palierMin:N}`, mot pour mot ; absent → lève).
+- Exports neufs : `GENES_V4`, `ORDRE_V4`, `CLES_V3`, `N_V3`, `DECLICS` (les 25 noms de compteurs, figés, § 12.3).
+
+### 12.2 Le pilote (`modele.js`)
+
+- `PROFIL` est **sous** la balise : `chance:{prend:1,palierMin:REGLAGES.chancePalierMin}` (à 12 : le même `profilSha` que `pilote-voltige.js`).
+- `RETOURS_DEMANDES` = `REGLAGES.retours`, puis `COUP_LOIS` si `coupOn`, sinon `[copie de LOI_PILOTE]` si `loiFidele>0` (indice `I_FIDELE = R.retours.length`),
+  puis `[S1,S2].slice(0,N_SECOURS)` si `secoursOn` (`N_SECOURS = min(2, 4 − I_SECOURS)`). Rien d'ajouté : `REGLAGES.retours` lui-même.
+  S1 = `LOI_PILOTE + {nitro:3, nitroHaut:5}` (plané bas), S2 = `LOI_PILOTE + {cabre:0}`. `REGLAGES.retours` n'est jamais touché.
+- Les quatre règles (contrat § 3) : `sortieOn` au sol seulement (après `bordOn`, jamais pendant un raccourci engagé) : **la nitro au décollage sur les maps à
+  décor**, le pendant de `bordOn` (réécrite le 28/11 après la mesure des décollages, contrat § 3.1 bis : aucun rayon du bord lu, la façon du vol ne change
+  pas ; au décollage, seulement le compteur et `m.planeBord=null`) ;
+  `rienOn` après la bascule (deux vues de suite **pour de vrai** : une vue où la règle n'est pas évaluée, ou sans radar, efface `m.rienVu` — correction du
+  relecteur « sémantique » ; une fois par vol) ; `loiFidele` 1 (le rayon `retour<I_FIDELE>` remplace le rayon `versRoute` partout où le pilote juge) et 2
+  (en plus, volant et manche de `vue.vol.retours[I_FIDELE]`) ; `secoursOn` après `rienOn` (façons longues seules ; un long `libre` bloque ; pas de `prime`).
+  Pas de figure pendant un vol de secours. La mémoire n'est écrite que gène allumé.
+
+### 12.3 Les compteurs de déclenchements
+
+- Le pilote ajoute à son ordre `declic` (tableau de noms de `Gn.DECLICS`, sans doublon) **seulement** à une décision où une règle née à 0 a vraiment agi.
+  `const COMPTE=true;`, `let DECL,AV,JUM`, `tic(nom)`, `RACC_CARTES_0`, `RACC_JUMEAU_0` sous la balise ; tout le code d'un compteur est dans
+  `if(COMPTE){try{…}catch(e){}}` et n'écrit que `DECL`, `AV`, `JUM`, `m.cSortie`.
+- Les 25 noms : `volRetourOn, retourOn, retourOn.reacteur, volMieux, dessousNitro, lacheOn, slalomOn, coupOn, coupDecor, relacheOn, suitOn, suitOn.ensuite,
+  fuirVite, bordOn, largeOn, libreOn, raccCartes, raccJumeau, sortieOn, sortieOn.vol, sortieOn.pose, rienOn, loiFidele.desaccord, loiFidele.suit, secoursOn`.
+  `loiFidele.desaccord` compte un désaccord entre deux rayons, pas un ordre changé. Les drapeaux nés à 1 n'ont pas de compteur.
+  (28/11, contrat § 3.1 bis) `sortieOn` = la nitro allumée au sol par la règle (à chaque vue où elle agit) ; `sortieOn.vol` = un vol subi décollé moins de
+  0,35 s après l'annonce ; `sortieOn.pose` = la première vue au sol après ce vol ; `loiFidele.suit` = le volant suivi à plus de 0,01 de celui de
+  « vers la route », ou un manche autre.
+- ⚠ Changer un compteur = une nouvelle époque (`modele.js`), sans qu'aucune décision change.
+- `enfant.js` **enveloppe** `C.decide` : il compte chaque nom une fois par décision et **retire** le champ ; piloter.js ne le voit jamais.
+
+### 12.4 La ligne de course et la carte imposée
+
+- Message à l'enfant : `{source, fichier, graine, tmax, regime, complet, carte, carteTenue}` ; `course(J,C,graine,optionsCourse(m))` avec
+  `optionsCourse(m) = {tmax}` plus `carte` si c'est une chaîne non vide. Essai : `node ml/evolution/enfant.js --essai <pilote.js> <graine> [tmax] [--carte grotte] [--tenue]`.
+- **Seule la première map est imposée** (le jeu efface `SF.force`). `carteTenue:true` (au-delà du contrat, lot b) appelle le crochet du jeu
+  `dbgBancCarte(carte, meteo de la 1re map)` juste après le départ : la même carte à chaque portail. Le banc v2 ne s'en sert pas encore.
+- Champs neufs, **à la fin** de la ligne : `declenchements` (`{nom:n}`, clés triées, `{}` sans rien, `null` sur une ligne d'avant), `cartes` (les maps
+  traversées), `causesMorts` (chaque mort, la seconde chance comprise), `chancePrise` (`null` sans profil de chance), `carte` (de la tâche, `null` sinon),
+  `carteTenue:true` (seulement pour une carte tenue). Aucun n'entre dans une empreinte ni dans la note.
+- Clé : sans carte, exactement celle d'avant ; avec carte `…|<epoque.courses>|carte:grotte` (et `|tenue`).
+- `une(t)` refuse une carte hors de `cfg.cartesTirage`, une carte dans le dossier d'état de la sélection, et `carteTenue` sans carte. Une ligne à carte dont
+  `cartes[0]` n'est pas la carte est **non mesurée** (`carte imposee non appliquee (jouee sur x)`), définitive (ni relance, ni second essai). Les 6 cartes de
+  `cartesTirage` s'appliquent dans le simulateur (vérifié le 28/11, 20 s chacune, graine 3963000 : `cartes[0]` = la carte demandée, canyon compris).
+
+Exemple réel (essai de l'intégrateur, c0025 + `rienOn`, graine 910148, 120 s, sans carte ; `pilote` et `mesures` abrégés) :
+```json
+{"cle":"77a2e62b1060a94925f25b9cc6d1c584f888a049|910148|120|e7e1eed4718f|relief-canyon|v24.22.3|c8999deeb421","pilote":"77a2e62b1060…","id":"rienOn",
+ "usage":"essai","generation":null,"epoque":"c8999deeb421","essai":1,"mesuree":true,"raison":null,"date":"2026-11-28T09:58:14.754Z","graine":910148,"tmax":120,
+ "palier":5,"pieces":300,"survie_s":84.1,"cause":"roche","morts":1,"vols":5,"pannes":0,"erreurs":0,"derniereErreur":null,"cerveau_ms_moy":0.812,"yeuxTirages":0,
+ "mesures":{"nitro":0.633,"…":"…"},"jeu":"cashcar-v1627","jeu_sha":"e7e1eed4718f","simulateur":"relief-canyon","node":"v24.22.3","fichiers_sha":"af728636d1ce",
+ "empreinte":"351a97f9f12e","empreinteVues":"f94ed81eede3","empreinteTouches":"eb73a2ad5757","ms":28928,
+ "declenchements":{"rienOn":2},"cartes":["grotte"],"causesMorts":["roche"],"chancePrise":false,"carte":null,"pannesEssais":0}
+```
+Une clé à carte réelle : `256fbbc42f78111b7f558452f614c4e01fa65128|3963000|20|e7e1eed4718f|relief-canyon|v24.22.3|c8999deeb421|carte:grotte`.
+
+### 12.5 Le banc des gènes v2 (`ml/evolution/banc/`)
+
+`node ml/evolution/banc/banc.js --vague <dossier> [--travailleurs 2] [--config f] [--etat d] [--bras f] [--verifier] [--resume]`. Contrat § 6 ; mode
+d'emploi `banc/README.md`. Une vague (`vague.json`, `banc-vague-1`) : numéro unique 1..50 000 (0 = l'essai, hors git), témoin, `tmax`, `carte`, `fixes`, plan
+(`premier`/`pas`/`plafond`, `alpha`, `futilite`, `fMin`), 1 à 5 bras avec un critère annoncé (`palier`, `F`, `E`, `mesure`, `causes`, `survie`, `vols` ; un
+compteur est refusé). Graines `4 000 000 + 37·(1000·(numero−1)+i)`. Regards O'Brien-Fleming, Bonferroni sur k bras ; « identique » = mêmes `empreinte` et
+`empreinteTouches` (le banc d'étude, lui, ne comparait que `empreinte` : `analyser.js`). Sorties : `plan.json`, `regards.json`, `resultat.json` (verdict,
+`dPremier`, `biaiseParLArret`, `candidat`, `secondaires.nonCorrigees`), `resume.txt`, `journal.md`, `vagues/INDEX.md`. Codes : 0 fini, 1 entrée, 2 course
+fautive, 3 interrompue, 4 quelque chose a changé, 5 verrou. Un « net-aide » n'est qu'un candidat (vague de confirmation : un seul bras, graines neuves).
+Correction du relecteur : une seule graine mesurable donne `z = null` (jamais un « net » sur une course).
+
+### 12.6 Où ces formats sont décrits
+
+| Format | Écrit par | Décrit dans |
+|---|---|---|
+| `Gn.GENES_V4`, `fige`, `DECLICS`, la forme v:4, `migrer` v:3 | `genome.js` | § 12.1, contrat § 2 |
+| `declic`, `PROFIL` sous la balise, `RETOURS_DEMANDES`, les quatre règles | `modele.js` | § 12.2-12.3, contrat § 3-4 |
+| `declenchements`, `cartes`, `causesMorts`, `chancePrise`, `carte`, `carteTenue`, le suffixe de clé `carte:` | `enfant.js`, `courses.js` | § 12.4, contrat § 4.4 et § 5 |
+| `banc-bras-1`, `banc-vague-1`, `plan.json`, `regards.json`, `resultat.json`, `INDEX.md` | à la main, `banc/banc.js` | § 12.5, contrat § 6, `banc/README.md` |
+| l'état de la livraison, les gestes sur le Ryzen | — | `notes/LIVRAISON-GENES-V4.md` |
