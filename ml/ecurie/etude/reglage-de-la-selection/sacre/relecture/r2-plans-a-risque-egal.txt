@@ -1,0 +1,18 @@
+reference : seqOBF-2.2-0.5-96, criteres (b) (c) a 2 se : faux sacres 1.56 % sur 1600 essais nuls
+
+1. puissance a risque egal (faux sacres <= 1.56 %), memes essais ; ecart a seqOBF-2.2 avec IC 95 % apparie
+fixe-24                        seuil 2.402 : nul 1.56 %, graines nul 24 | +0.5 : 4.5 % (ref 12.1, ecart -7.6 +- 2.4, graines 24) | +1 : 9.5 % (ref 33.4, ecart -23.9 +- 3.3, graines 24) | +2 : 31.4 % (ref 86.3, ecart -54.9 +- 3.5, graines 24)
+fixe-48                        seuil 2.248 : nul 1.56 %, graines nul 48 | +0.5 : 7.4 % (ref 12.1, ecart -4.8 +- 2.1, graines 48) | +1 : 18.9 % (ref 33.4, ecart -14.5 +- 3.0, graines 48) | +2 : 64.6 % (ref 86.3, ecart -21.6 +- 3.1, graines 48)
+fixe-72                        seuil 2.296 : nul 1.56 %, graines nul 72 | +0.5 : 8.9 % (ref 12.1, ecart -3.3 +- 1.6, graines 72) | +1 : 24.3 % (ref 33.4, ecart -9.1 +- 2.7, graines 72) | +2 : 81.8 % (ref 86.3, ecart -4.5 +- 2.6, graines 72)
+fixe-96                        seuil 2.125 : nul 1.56 %, graines nul 96 | +0.5 : 14.8 % (ref 12.1, ecart 2.6 +- 1.6, graines 96) | +1 : 39.4 % (ref 33.4, ecart 6.0 +- 2.2, graines 96) | +2 : 92.8 % (ref 86.3, ecart 6.5 +- 2.0, graines 96)
+2etages 0,5 -> 96              seuil 2.081 : nul 1.56 %, graines nul 47 | +0.5 : 12.8 % (ref 12.1, ecart 0.6 +- 1.1, graines 60) | +1 : 34.8 % (ref 33.4, ecart 1.4 +- 1.6, graines 73) | +2 : 86.9 % (ref 86.3, ecart 0.6 +- 1.2, graines 89)
+2etages 0,5 -> 96 +direct 3    seuil 2.173 : nul 1.56 %, graines nul 47 | +0.5 : 11.8 % (ref 12.1, ecart -0.4 +- 1.1, graines 59) | +1 : 33.4 % (ref 33.4, ecart 0.0 +- 1.5, graines 69) | +2 : 86.1 % (ref 86.3, ecart -0.1 +- 1.0, graines 78)
+2etages 1 -> 96                seuil 1.977 : nul 1.56 %, graines nul 37 | +0.5 : 10.3 % (ref 12.1, ecart -1.9 +- 1.5, graines 47) | +1 : 29.8 % (ref 33.4, ecart -3.6 +- 2.4, graines 59) | +2 : 77.8 % (ref 86.3, ecart -8.5 +- 2.2, graines 81)
+seqOBF futilite 0,5            seuil 2.197 : nul 1.56 %, graines nul 38 | +0.5 : 12.1 % (ref 12.1, ecart 0.0 +- 0.0, graines 50) | +1 : 33.5 % (ref 33.4, ecart 0.1 +- 0.2, graines 60) | +2 : 86.3 % (ref 86.3, ecart 0.0 +- 0.0, graines 57)
+seqOBF futilite 0              seuil 2.285 : nul 1.56 %, graines nul 49 | +0.5 : 12.4 % (ref 12.1, ecart 0.3 +- 1.0, graines 63) | +1 : 34.0 % (ref 33.4, ecart 0.6 +- 1.7, graines 73) | +2 : 89.5 % (ref 86.3, ecart 3.3 +- 1.6, graines 62)
+
+2. la malediction sous le sequentiel : dF du dernier regard contre dF des 24 premieres graines (meme essai)
+  vrai ecart +0 : dF moyen a 24 graines 0.049 ; dF moyen au dernier regard -0.235 ; biais -0.284 palier
+  vrai ecart +0.5 : dF moyen a 24 graines 0.502 ; dF moyen au dernier regard 0.203 ; biais -0.298 palier
+  vrai ecart +1 : dF moyen a 24 graines 1.000 ; dF moyen au dernier regard 0.726 ; biais -0.274 palier
+  vrai ecart +2 : dF moyen a 24 graines 1.935 ; dF moyen au dernier regard 2.008 ; biais 0.073 palier

@@ -1,0 +1,11 @@
+FAUX SACRES DANS UN MONDE SANS EFFET (tous les pilotes valent le temoin) — 72 evolutions de 50 000 courses
+reglage                       | validations | sacres | faux sacres par validation
+seuil 1 | 12 graines          |         109 |     14 | 12.8 % ± 3.2
+seuil 1 | 24 graines          |         104 |     18 | 17.3 % ± 3.7
+seuil 1 | 48 graines          |          97 |     15 | 15.5 % ± 3.7
+seuil 2 | 12 graines          |         134 |      4 | 3.0 % ± 1.5
+seuil 2 | 24 graines          |         118 |      7 | 5.9 % ± 2.2
+seuil 2 | 48 graines          |         132 |      1 | 0.8 % ± 0.8
+seuil 3 | 12 graines          |         148 |      0 | 0.0 % ± 0.0
+seuil 3 | 24 graines          |         140 |      2 | 1.4 % ± 1.0
+seuil 3 | 48 graines          |         134 |      0 | 0.0 % ± 0.0

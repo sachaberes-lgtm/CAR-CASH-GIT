@@ -1,0 +1,5 @@
+R3 (rejouer jeunes + 4) CONTRE LE DEFAUT, 50 000 COURSES, 400/h, ECONOMIE COUPEE, MONDES NEUFS (graines 7000+k)
+scenario   | mondes | ecart champion F4 | ecart meilleur vivant F | generations
+pessimiste |     40 | 0.00 ± 0.03    | -0.01 ± 0.02   | 163 -> 239 | defaut F4 median 0.10, R3 0.11
+moyen      |     40 | 0.05 ± 0.06    | 0.06 ± 0.03    | 163 -> 230 | defaut F4 median 1.61, R3 1.50
+optimiste  |     40 | 0.20 ± 0.10    | 0.16 ± 0.07    | 162 -> 227.5 | defaut F4 median 2.82, R3 2.86

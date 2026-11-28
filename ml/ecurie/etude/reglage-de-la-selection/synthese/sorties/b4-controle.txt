@@ -1,0 +1,9 @@
+CONTROLE DU PATCH B4 (synthese, 2026-11-28T00:02:15.916Z)
+moyen monde 7000 : tel quel G 31 F4 0.575760 | patch neutre G 31 F4 0.575760 -> IDENTIQUE
+moyen monde 7001 : tel quel G 31 F4 1.167774 | patch neutre G 31 F4 1.167774 -> IDENTIQUE
+moyen monde 7002 : tel quel G 31 F4 0.000000 | patch neutre G 31 F4 0.000000 -> IDENTIQUE
+optimiste monde 7000 : tel quel G 31 F4 0.000000 | patch neutre G 31 F4 0.000000 -> IDENTIQUE
+optimiste monde 7001 : tel quel G 31 F4 0.485225 | patch neutre G 31 F4 0.485225 -> IDENTIQUE
+optimiste monde 7002 : tel quel G 31 F4 3.039421 | patch neutre G 31 F4 3.039421 -> IDENTIQUE
+B4 actif, moyen 7000, 10 000 courses : 63 generations contre 31 pour A -> plus de generations, attendu
+TOUT PASSE (1 s)

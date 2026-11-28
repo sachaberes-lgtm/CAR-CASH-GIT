@@ -1,0 +1,12 @@
+(1) les 5 mutants sans effet classes « nul exact » : 40/40 (attendu 40/40)
+(2) IC 95 % de Student d'un mutant : couvre son effet vrai 95.5 % des fois (attendu ~95 %)
+(3) tau vrai 0 (environ 0.00 une fois les copies comptees), mu vrai -0.5, 12 generations :
+    mu : biais moyen 0.06, couvert par son IC 12/12
+    tau (A) moitie/moitie : moyenne 0.03, IC couvre 12/12 ; (B) moments : moyenne 0.07 ; (C) vraisemblance : moyenne 0.06, IC (union) couvre 12/12
+    l'ancienne facon (bruit du temoin compte chez chacun) : tau moyen 0.00
+(3) tau vrai 1 (environ 0.90 une fois les copies comptees), mu vrai -0.5, 12 generations :
+    mu : biais moyen -0.08, couvert par son IC 12/12
+    tau (A) moitie/moitie : moyenne 0.88, IC couvre 12/12 ; (B) moments : moyenne 0.93 ; (C) vraisemblance : moyenne 0.89, IC (union) couvre 12/12
+    l'ancienne facon (bruit du temoin compte chez chacun) : tau moyen 0.62
+(4) Clopper-Pearson 0/19 = [0.0 ; 17.6] % (attendu [0 ; 17,6]), 5/19 = [9.1 ; 51.2] % (attendu [9,1 ; 51,2])
+TOUT PASSE

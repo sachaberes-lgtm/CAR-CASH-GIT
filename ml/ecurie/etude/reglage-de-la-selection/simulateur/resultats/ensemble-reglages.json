@@ -1,0 +1,7 @@
+[
+ {"nom":"A defaut (la vraie config)","cfg":{},"reps":8},
+ {"nom":"B rejouer jeunes+4","cfg":{"rejouer":4},"reps":8},
+ {"nom":"C B + poissonMutations 4","cfg":{"rejouer":4,"poissonMutations":4},"reps":8},
+ {"nom":"D C + intervalle 2","cfg":{"rejouer":4,"poissonMutations":4,"validation":{"intervalle":2}},"reps":8},
+ {"nom":"E D + seuilSacre 1","cfg":{"rejouer":4,"poissonMutations":4,"validation":{"intervalle":2,"seuilSacre":1}},"reps":8}
+]

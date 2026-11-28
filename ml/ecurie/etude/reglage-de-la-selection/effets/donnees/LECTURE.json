@@ -1,0 +1,26 @@
+{
+ "heure": "2026-11-27T22:31:33.697Z",
+ "heureLocale": "27/11/2026 23:31:33",
+ "source": "etat\\ de l evolution du 27/11 (code e2ea8d2c9)",
+ "fichiers": {
+  "coffre.jsonl": {
+   "octets": 335,
+   "lignes": 1
+  },
+  "courses-2026-48.jsonl": {
+   "octets": 621693,
+   "lignes": 592
+  },
+  "generations.jsonl": {
+   "octets": 9169,
+   "lignes": 2
+  },
+  "population.json": {
+   "octets": 99492,
+   "lignes": 1
+  },
+  "config.json (ml/evolution)": {
+   "octets": 2959
+  }
+ }
+}

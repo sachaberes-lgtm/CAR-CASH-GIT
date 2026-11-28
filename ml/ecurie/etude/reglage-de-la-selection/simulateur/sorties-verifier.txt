@@ -1,0 +1,28 @@
+== 1. le modele pilote + graine ==
+OK    les vraies courses (generations 0 et 1) : 527 courses, 26 pilotes ; plus grand ecart (a, â, se_a, sigmaRes, ā) avec note.ajuster 0.00e+0
+OK    des courses simulees, 15 generations sur 30 graines reutilisees : 2633 courses, 104 pilotes ; plus grand ecart (a, â, se_a, sigmaRes, ā) avec note.ajuster 0.00e+0
+
+== 2. la note de la generation 0 reelle (palier du simulateur + E reel de note.js) ==
+OK    F de la generation 0 : plus grand ecart au journal 4.87e-5 (le journal arrondit a 4 decimales) ; classement identique : true
+
+== 3. les naissances rejouees avec le vrai genome.js du commit de l'evolution ==
+OK    generation 0 : les 20 identifiants identiques ; les 12 graines identiques (912627 949220 922987…)
+OK    generation 1 : 6 naissances sur 6 identiques (identifiant, parents, origine : d361ff immigre, 962790 mutation, 9ae0f5 mutation, 5a2962 croisement, 9e65b2 croisement, 92bcfe mutation)
+OK    generation 1 : graines identiques ; etat du generateur 3114583574 (population.json : 3114583574)
+
+== 4. le simulateur rend-il la generation 0 reelle ? (scenario moyen, 40 mondes) ==
+      mesure                                   | reel (27/11) | simule (moyenne de 40 mondes)
+      sigma des residus (20 x 12 courses)      |        2.92 | 2.85
+      ET observee des a des 19 mutants          |        1.03 | 0.92
+      ET observee des E des 19 mutants (E<4)    |        0.101 | 0.114
+      mutants a E = 4 (moins de 5 parties)      |            0 | 0.28 par generation 0 (une mutation letale : le pilote meurt avant 60 s)
+      se_E moyen (12 courses)                   |        0.104 | 0.101
+      parties de plus de 60 s par pilote        |        8.80 | 8.46
+      part des graines identiques au temoin     |        0.101 | 0.110   (le reel : 44 graines sur 437, les 19 mutants)
+OK    le simulateur rend les ordres de grandeur de la generation 0 reelle
+
+== 5. les cas connus ==
+OK    monde sans effet (6 evolutions de 30 000 courses) : plus grand gain vrai 0.0e+0 (attendu 0) ; 6 sacres (tous faux) sur 82 validations (7.3 % ; la relecture statistique mesurait ~3,7 % de faux sacres quand le meneur ne vaut pas mieux)
+OK    monde sans bruit, scenario optimiste (4 x 40 000 courses) : le champion a recule 0 fois ; meilleur vivant +3.37 +4.22 +4.13 +3.66 F, champion +3.36 +4.21 +2.06 +3.48 F (plafonds 4.8 4.7 5.1 4.4)
+
+TOUT PASSE (4.2 s)

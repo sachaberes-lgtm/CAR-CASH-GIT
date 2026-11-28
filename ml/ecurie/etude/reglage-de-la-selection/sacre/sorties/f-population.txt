@@ -1,0 +1,80 @@
+
+== g = 4 generations communes (n = 48 courses chacun), monde NUL : 900 fenetres de validation ==
+la regle 6 declenche une validation : 14.1 % [12.0 ; 16.5]
+biais du vainqueur (dF d'entrainement du meneur - son vrai ecart), quand la regle 6 declenche : moyenne 1.68 palier ; vrai ecart moyen du meneur valide 0.00
+malediction attendue (dF entrainement - dF des 24 graines neuves) : 1.76 (dF entrainement 1.68, neuves -0.08)
+  actuel (24, z>2)             sacre 2.4 % des validations, 0.3 % des fenetres ; vrai ecart moyen des sacres 0.00 ; sacres moins bons que le champion 0 ; graines neuves jouees en moyenne 24
+  2etages-0.5-96-2.33 +direct  sacre 1.6 % des validations, 0.2 % des fenetres ; vrai ecart moyen des sacres 0.00 ; sacres moins bons que le champion 0 ; graines neuves jouees en moyenne 47
+  seqOBF-2.2-0.5-96            sacre 5.5 % des validations, 0.8 % des fenetres ; vrai ecart moyen des sacres 0.00 ; sacres moins bons que le champion 0 ; graines neuves jouees en moyenne 38
+  plan (c) : entrainement (48 graines) + 24 neuves dans une seule comparaison, z > 2 : sacre 52.8 % des validations
+  entrainement seul, apparie, z > 2 (un « premier etage gratuit ») : passe 97.6 % des validations
+  regle 6 a 1 : 60.4 % des fenetres validees ; actuel 15 sacres (1.7 % des fenetres, vrai ecart moyen 0.00, 0 moins bons) ; seqOBF-2.2 21 sacres (2.3 % des fenetres, vrai ecart moyen 0.00, 0 moins bons) ; seqOBF-2.2 (b)(c) a 2 se 21 sacres (2.3 % des fenetres, vrai ecart moyen 0.00, 0 moins bons)
+  regle 6 a 2 : 14.1 % des fenetres validees ; actuel 3 sacres (0.3 % des fenetres, vrai ecart moyen 0.00, 0 moins bons) ; seqOBF-2.2 7 sacres (0.8 % des fenetres, vrai ecart moyen 0.00, 0 moins bons) ; seqOBF-2.2 (b)(c) a 2 se 7 sacres (0.8 % des fenetres, vrai ecart moyen 0.00, 0 moins bons)
+  regle 6 a 3 : 0.7 % des fenetres validees ; actuel 0 sacres (0.0 % des fenetres, vrai ecart moyen -, 0 moins bons) ; seqOBF-2.2 1 sacres (0.1 % des fenetres, vrai ecart moyen 0.00, 0 moins bons) ; seqOBF-2.2 (b)(c) a 2 se 1 sacres (0.1 % des fenetres, vrai ecart moyen 0.00, 0 moins bons)
+
+== g = 4 generations communes (n = 48 courses chacun), monde UN+1 : 900 fenetres de validation ==
+la regle 6 declenche une validation : 21.9 % [19.3 ; 24.7]
+le vrai +1 est le meneur : 47.3 %
+biais du vainqueur (dF d'entrainement du meneur - son vrai ecart), quand la regle 6 declenche : moyenne 1.12 palier ; vrai ecart moyen du meneur valide 0.63
+malediction attendue (dF entrainement - dF des 24 graines neuves) : 1.24 (dF entrainement 1.76, neuves 0.52)
+  actuel (24, z>2)             sacre 11.7 % des validations, 2.6 % des fenetres ; vrai ecart moyen des sacres 0.87 ; sacres moins bons que le champion 0 ; graines neuves jouees en moyenne 24
+  2etages-0.5-96-2.33 +direct  sacre 15.7 % des validations, 3.4 % des fenetres ; vrai ecart moyen des sacres 1.00 ; sacres moins bons que le champion 0 ; graines neuves jouees en moyenne 56
+  seqOBF-2.2-0.5-96            sacre 18.8 % des validations, 4.1 % des fenetres ; vrai ecart moyen des sacres 0.97 ; sacres moins bons que le champion 0 ; graines neuves jouees en moyenne 47
+  plan (c) : entrainement (48 graines) + 24 neuves dans une seule comparaison, z > 2 : sacre 70.1 % des validations
+  entrainement seul, apparie, z > 2 (un « premier etage gratuit ») : passe 97.5 % des validations
+  regle 6 a 1 : 70.8 % des fenetres validees ; actuel 50 sacres (5.6 % des fenetres, vrai ecart moyen 0.84, 0 moins bons) ; seqOBF-2.2 96 sacres (10.7 % des fenetres, vrai ecart moyen 0.95, 0 moins bons) ; seqOBF-2.2 (b)(c) a 2 se 97 sacres (10.8 % des fenetres, vrai ecart moyen 0.95, 0 moins bons)
+  regle 6 a 2 : 21.9 % des fenetres validees ; actuel 23 sacres (2.6 % des fenetres, vrai ecart moyen 0.87, 0 moins bons) ; seqOBF-2.2 37 sacres (4.1 % des fenetres, vrai ecart moyen 0.97, 0 moins bons) ; seqOBF-2.2 (b)(c) a 2 se 37 sacres (4.1 % des fenetres, vrai ecart moyen 0.97, 0 moins bons)
+  regle 6 a 3 : 3.1 % des fenetres validees ; actuel 4 sacres (0.4 % des fenetres, vrai ecart moyen 1.00, 0 moins bons) ; seqOBF-2.2 5 sacres (0.6 % des fenetres, vrai ecart moyen 1.00, 0 moins bons) ; seqOBF-2.2 (b)(c) a 2 se 5 sacres (0.6 % des fenetres, vrai ecart moyen 1.00, 0 moins bons)
+
+== g = 4 generations communes (n = 48 courses chacun), monde DISPERSE : 900 fenetres de validation ==
+la regle 6 declenche une validation : 29.2 % [26.3 ; 32.3]
+biais du vainqueur (dF d'entrainement du meneur - son vrai ecart), quand la regle 6 declenche : moyenne 1.03 palier ; vrai ecart moyen du meneur valide 0.74
+malediction attendue (dF entrainement - dF des 24 graines neuves) : 1.12 (dF entrainement 1.77, neuves 0.65)
+  actuel (24, z>2)             sacre 12.5 % des validations, 3.7 % des fenetres ; vrai ecart moyen des sacres 1.03 ; sacres moins bons que le champion 0 ; graines neuves jouees en moyenne 24
+  2etages-0.5-96-2.33 +direct  sacre 20.5 % des validations, 6.0 % des fenetres ; vrai ecart moyen des sacres 1.09 ; sacres moins bons que le champion 0 ; graines neuves jouees en moyenne 60
+  seqOBF-2.2-0.5-96            sacre 24.3 % des validations, 7.1 % des fenetres ; vrai ecart moyen des sacres 1.06 ; sacres moins bons que le champion 0 ; graines neuves jouees en moyenne 50
+  plan (c) : entrainement (48 graines) + 24 neuves dans une seule comparaison, z > 2 : sacre 78.7 % des validations
+  entrainement seul, apparie, z > 2 (un « premier etage gratuit ») : passe 97.7 % des validations
+  regle 6 a 1 : 78.1 % des fenetres validees ; actuel 77 sacres (8.6 % des fenetres, vrai ecart moyen 0.88, 2 moins bons) ; seqOBF-2.2 135 sacres (15.0 % des fenetres, vrai ecart moyen 0.97, 0 moins bons) ; seqOBF-2.2 (b)(c) a 2 se 140 sacres (15.6 % des fenetres, vrai ecart moyen 0.98, 0 moins bons)
+  regle 6 a 2 : 29.2 % des fenetres validees ; actuel 33 sacres (3.7 % des fenetres, vrai ecart moyen 1.03, 0 moins bons) ; seqOBF-2.2 64 sacres (7.1 % des fenetres, vrai ecart moyen 1.06, 0 moins bons) ; seqOBF-2.2 (b)(c) a 2 se 67 sacres (7.4 % des fenetres, vrai ecart moyen 1.07, 0 moins bons)
+  regle 6 a 3 : 3.3 % des fenetres validees ; actuel 3 sacres (0.3 % des fenetres, vrai ecart moyen 1.45, 0 moins bons) ; seqOBF-2.2 13 sacres (1.4 % des fenetres, vrai ecart moyen 1.29, 0 moins bons) ; seqOBF-2.2 (b)(c) a 2 se 13 sacres (1.4 % des fenetres, vrai ecart moyen 1.29, 0 moins bons)
+
+== g = 10 generations communes (n = 120 courses chacun), monde NUL : 900 fenetres de validation ==
+la regle 6 declenche une validation : 18.2 % [15.8 ; 20.9]
+biais du vainqueur (dF d'entrainement du meneur - son vrai ecart), quand la regle 6 declenche : moyenne 1.08 palier ; vrai ecart moyen du meneur valide 0.00
+malediction attendue (dF entrainement - dF des 24 graines neuves) : 1.07 (dF entrainement 1.08, neuves 0.00)
+  actuel (24, z>2)             sacre 3.0 % des validations, 0.6 % des fenetres ; vrai ecart moyen des sacres 0.00 ; sacres moins bons que le champion 0 ; graines neuves jouees en moyenne 24
+  2etages-0.5-96-2.33 +direct  sacre 1.2 % des validations, 0.2 % des fenetres ; vrai ecart moyen des sacres 0.00 ; sacres moins bons que le champion 0 ; graines neuves jouees en moyenne 46
+  seqOBF-2.2-0.5-96            sacre 1.8 % des validations, 0.3 % des fenetres ; vrai ecart moyen des sacres 0.00 ; sacres moins bons que le champion 0 ; graines neuves jouees en moyenne 37
+  plan (c) : entrainement (120 graines) + 24 neuves dans une seule comparaison, z > 2 : sacre 61.6 % des validations
+  entrainement seul, apparie, z > 2 (un « premier etage gratuit ») : passe 91.5 % des validations
+  regle 6 a 1 : 65.8 % des fenetres validees ; actuel 21 sacres (2.3 % des fenetres, vrai ecart moyen 0.00, 0 moins bons) ; seqOBF-2.2 13 sacres (1.4 % des fenetres, vrai ecart moyen 0.00, 0 moins bons) ; seqOBF-2.2 (b)(c) a 2 se 13 sacres (1.4 % des fenetres, vrai ecart moyen 0.00, 0 moins bons)
+  regle 6 a 2 : 18.2 % des fenetres validees ; actuel 5 sacres (0.6 % des fenetres, vrai ecart moyen 0.00, 0 moins bons) ; seqOBF-2.2 3 sacres (0.3 % des fenetres, vrai ecart moyen 0.00, 0 moins bons) ; seqOBF-2.2 (b)(c) a 2 se 3 sacres (0.3 % des fenetres, vrai ecart moyen 0.00, 0 moins bons)
+  regle 6 a 3 : 1.6 % des fenetres validees ; actuel 0 sacres (0.0 % des fenetres, vrai ecart moyen -, 0 moins bons) ; seqOBF-2.2 0 sacres (0.0 % des fenetres, vrai ecart moyen -, 0 moins bons) ; seqOBF-2.2 (b)(c) a 2 se 0 sacres (0.0 % des fenetres, vrai ecart moyen -, 0 moins bons)
+
+== g = 10 generations communes (n = 120 courses chacun), monde UN+1 : 900 fenetres de validation ==
+la regle 6 declenche une validation : 50.8 % [47.5 ; 54.0]
+le vrai +1 est le meneur : 82.3 %
+biais du vainqueur (dF d'entrainement du meneur - son vrai ecart), quand la regle 6 declenche : moyenne 0.37 palier ; vrai ecart moyen du meneur valide 0.89
+malediction attendue (dF entrainement - dF des 24 graines neuves) : 0.32 (dF entrainement 1.26, neuves 0.94)
+  actuel (24, z>2)             sacre 15.5 % des validations, 7.9 % des fenetres ; vrai ecart moyen des sacres 0.96 ; sacres moins bons que le champion 0 ; graines neuves jouees en moyenne 24
+  2etages-0.5-96-2.33 +direct  sacre 24.3 % des validations, 12.3 % des fenetres ; vrai ecart moyen des sacres 0.99 ; sacres moins bons que le champion 0 ; graines neuves jouees en moyenne 67
+  seqOBF-2.2-0.5-96            sacre 30.6 % des validations, 15.6 % des fenetres ; vrai ecart moyen des sacres 0.98 ; sacres moins bons que le champion 0 ; graines neuves jouees en moyenne 58
+  plan (c) : entrainement (120 graines) + 24 neuves dans une seule comparaison, z > 2 : sacre 87.3 % des validations
+  entrainement seul, apparie, z > 2 (un « premier etage gratuit ») : passe 92.8 % des validations
+  regle 6 a 1 : 89.1 % des fenetres validees ; actuel 113 sacres (12.6 % des fenetres, vrai ecart moyen 0.96, 0 moins bons) ; seqOBF-2.2 227 sacres (25.2 % des fenetres, vrai ecart moyen 0.99, 0 moins bons) ; seqOBF-2.2 (b)(c) a 2 se 233 sacres (25.9 % des fenetres, vrai ecart moyen 0.99, 0 moins bons)
+  regle 6 a 2 : 50.8 % des fenetres validees ; actuel 71 sacres (7.9 % des fenetres, vrai ecart moyen 0.96, 0 moins bons) ; seqOBF-2.2 140 sacres (15.6 % des fenetres, vrai ecart moyen 0.98, 0 moins bons) ; seqOBF-2.2 (b)(c) a 2 se 145 sacres (16.1 % des fenetres, vrai ecart moyen 0.98, 0 moins bons)
+  regle 6 a 3 : 17.7 % des fenetres validees ; actuel 24 sacres (2.7 % des fenetres, vrai ecart moyen 1.00, 0 moins bons) ; seqOBF-2.2 52 sacres (5.8 % des fenetres, vrai ecart moyen 0.98, 0 moins bons) ; seqOBF-2.2 (b)(c) a 2 se 55 sacres (6.1 % des fenetres, vrai ecart moyen 0.98, 0 moins bons)
+
+== g = 10 generations communes (n = 120 courses chacun), monde DISPERSE : 900 fenetres de validation ==
+la regle 6 declenche une validation : 62.1 % [58.9 ; 65.2]
+biais du vainqueur (dF d'entrainement du meneur - son vrai ecart), quand la regle 6 declenche : moyenne 0.44 palier ; vrai ecart moyen du meneur valide 0.85
+malediction attendue (dF entrainement - dF des 24 graines neuves) : 0.37 (dF entrainement 1.29, neuves 0.92)
+  actuel (24, z>2)             sacre 13.6 % des validations, 8.4 % des fenetres ; vrai ecart moyen des sacres 1.05 ; sacres moins bons que le champion 0 ; graines neuves jouees en moyenne 24
+  2etages-0.5-96-2.33 +direct  sacre 25.0 % des validations, 15.6 % des fenetres ; vrai ecart moyen des sacres 1.03 ; sacres moins bons que le champion 0 ; graines neuves jouees en moyenne 68
+  seqOBF-2.2-0.5-96            sacre 28.8 % des validations, 17.9 % des fenetres ; vrai ecart moyen des sacres 1.04 ; sacres moins bons que le champion 0 ; graines neuves jouees en moyenne 56
+  plan (c) : entrainement (120 graines) + 24 neuves dans une seule comparaison, z > 2 : sacre 87.8 % des validations
+  entrainement seul, apparie, z > 2 (un « premier etage gratuit ») : passe 95.9 % des validations
+  regle 6 a 1 : 90.3 % des fenetres validees ; actuel 99 sacres (11.0 % des fenetres, vrai ecart moyen 1.02, 0 moins bons) ; seqOBF-2.2 202 sacres (22.4 % des fenetres, vrai ecart moyen 1.02, 0 moins bons) ; seqOBF-2.2 (b)(c) a 2 se 213 sacres (23.7 % des fenetres, vrai ecart moyen 1.03, 0 moins bons)
+  regle 6 a 2 : 62.1 % des fenetres validees ; actuel 76 sacres (8.4 % des fenetres, vrai ecart moyen 1.05, 0 moins bons) ; seqOBF-2.2 161 sacres (17.9 % des fenetres, vrai ecart moyen 1.04, 0 moins bons) ; seqOBF-2.2 (b)(c) a 2 se 171 sacres (19.0 % des fenetres, vrai ecart moyen 1.06, 0 moins bons)
+  regle 6 a 3 : 22.2 % des fenetres validees ; actuel 30 sacres (3.3 % des fenetres, vrai ecart moyen 1.10, 0 moins bons) ; seqOBF-2.2 71 sacres (7.9 % des fenetres, vrai ecart moyen 1.11, 0 moins bons) ; seqOBF-2.2 (b)(c) a 2 se 74 sacres (8.2 % des fenetres, vrai ecart moyen 1.12, 0 moins bons)

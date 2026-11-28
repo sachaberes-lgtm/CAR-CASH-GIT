@@ -1,0 +1,46 @@
+{
+ "taille_code_Mo": 11.07,
+ "cache_Mo": 2.7,
+ "lecture_ms": 37,
+ "extraction_blocs_ms": 13,
+ "compilation_froid_ms": 264,
+ "production_cache_ms": 30,
+ "compilation_avec_cache_ms": 9,
+ "cache_rejete": [
+  false,
+  false,
+  false
+ ],
+ "brut": {
+  "lecture": [
+   36.8543,
+   37.3573,
+   30.406
+  ],
+  "blocs": [
+   12.929,
+   13.0935,
+   12.5306
+  ],
+  "froid": [
+   263.7054,
+   273.1081,
+   243.3646
+  ],
+  "production": [
+   33.1552,
+   29.5921,
+   25.7311
+  ],
+  "chaud": [
+   7.5704,
+   10.8664,
+   8.8594
+  ],
+  "rejete": [
+   false,
+   false,
+   false
+  ]
+ }
+}

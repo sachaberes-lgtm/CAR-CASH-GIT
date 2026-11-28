@@ -1,0 +1,17 @@
+GENERATION 1 : 287 courses reconstruites (sur 287 finies)
+  controle : couts fixes negatifs 0 ; la tache la plus tardive finie a son rang k=288
+  cout fixe par course (duree vue du maitre - boucle) : moyenne 26.2 s, mediane 16.2 s, 10 % 9.5 s, 90 % 54.9 s, min 8.4, max 62.6
+  fixe = 26.2 + 0 x boucle_s  (le hors-boucle depend-il de la longueur ?)
+  survie 0-30 s : 17 courses, fixe moyen 27.1 s, boucle moyenne 11.9 s
+  survie 30-60 s : 36 courses, fixe moyen 21.1 s, boucle moyenne 19.6 s
+  survie 60-120 s : 74 courses, fixe moyen 24.4 s, boucle moyenne 59.4 s
+  survie 120-240 s : 123 courses, fixe moyen 25.4 s, boucle moyenne 96.7 s
+  survie 240-... s : 37 courses, fixe moyen 37.5 s, boucle moyenne 184 s
+  duree moyenne d'une course vue du maitre : 109.9 s ; part hors boucle (somme fixe / somme duree) : 23.9 %
+
+CE QUE VAUT UN GAIN ABSOLU, rapporte a la course MOYENNE de la generation 1 (109.9 s) :
+  A1, 3 ciels a 1,7 s (mesure seule, course 1)         : 4.6 %
+  A1, 3 ciels a 1,2 s (la chauffe de la course 4)      : 3.3 %
+  A2, ouvrir 6,7 s (course 2)                          : 6.1 %
+  A2, ouvrir 5,2 s (course 4)                          : 4.7 %
+  A2, ouvrir + node + require 7 s                      : 6.4 %

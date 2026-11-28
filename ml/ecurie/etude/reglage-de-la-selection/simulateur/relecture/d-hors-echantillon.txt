@@ -1,0 +1,5 @@
+ENSEMBLE D ET poissonMutations 4 CONTRE LE DEFAUT, ECART APPARIE DU F4 VRAI DU CHAMPION, MONDES NEUFS (graines 7000+k), 400/h, economie active
+fichier (d-scenario-budget-premier) | mondes | ecarts
+d-moyen-50000-0            |     30 | D : 0.08 ± 0.08   (meilleur vivant 0.06 ± 0.05) | poissonMutations 4 seul : -0.00 ± 0.07
+d-optimiste-50000-0        |     30 | D : 0.37 ± 0.12   (meilleur vivant 0.16 ± 0.06) | poissonMutations 4 seul : 0.20 ± 0.11
+d-pessimiste-50000-0       |     30 | D : -0.00 ± 0.03  (meilleur vivant 0.00 ± 0.02) | poissonMutations 4 seul : 0.01 ± 0.05

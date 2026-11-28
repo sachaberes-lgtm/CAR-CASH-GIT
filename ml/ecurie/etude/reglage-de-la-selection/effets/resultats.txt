@@ -1,0 +1,185 @@
+ETUDE « EFFETS » — 2026-11-27T22:40:35.914Z
+Donnees figees le 27/11/2026 23:31:33 (coffre.jsonl 1 lignes, courses-2026-48.jsonl 592 lignes, generations.jsonl 2 lignes, population.json 1 lignes, config.json (ml/evolution) 2959 o).
+592 lignes de courses, 552 d'entrainement mesurees, epoque(s) 6fa41a143ead ; generations dans generations.jsonl : 0,1.
+Temoin 19e3767cc346 ; 19 mutants de la generation 0 ; 6 nes a la generation 1 ; graines G0 12, G1 12 (jouees par le temoin : 12).
+
+== 0. CONTROLES ==
+(a) 64 paires de courses a la meme empreinte sur la meme graine : 0 different par le palier, la survie, la cause, les pieces ou les vols (attendu 0) ;
+    a partie identique, 10 ont d'autres vues et 1 d'autres touches (sans effet sur la partie : on les compte quand meme comme identiques).
+    1 courses ont le meme palier, la meme survie et la meme cause qu'une autre sur la meme graine SANS la meme empreinte (des courses presque identiques).
+(b) note.js refait sur la generation 0 : plus grand ecart a la note du maitre (F et â) 4.87e-5 (attendu ~0 ; le maitre arrondit) ; sigma des residus 2.915 (maitre 2.9153).
+(c) temoin contre lui-meme : 24/24 identiques, difference de palier 0, classe « nul exact » (attendu : nul exact).
+
+== 1. CHAQUE MUTANT DE LA GENERATION 0 CONTRE LE TEMOIN, GRAINE PAR GRAINE (G0 + G1) ==
+palier : difference moyenne mutant - temoin [IC 95 % Student], p de permutation ; survie en s ; F : note.comparer (bootstrap apparie, 400 tirages)
+id           | n  | ident | dPalier [IC 95 %]        |   p   | dSurvie [IC 95 %]     |  dF  ± se  |  dE   | G0 dP | G1 dP | classe        | genes mutes (taille / etendue ; * = muet par construction)
+780adaceba8f | 24 |  0/24| -1.67 [-3.43 ; +0.09]                | 0.070 |  -30.4 [-67.8 ; 7.0]| -1.42 ± 1.01 | -0.06 | -1.42 | -1.92 | indiscernable | avanceCap(0.09) braqueDoux(0.25) raccGain(0.00) raccAir(0.10) raccJumeau_nuages(0>1) dessousDecor(1>2) portailVol(1>0) axePoids(0.02)
+d0281d911fb9 | 24 |  1/24| -0.79 [-2.41 ; +0.83]                | 0.347 |  -14.1 [-47.8 ; 19.6]| -0.57 ± 0.93 | -0.06 | -0.17 | -1.42 | indiscernable | capAvance(0.01) jaugeCoupe(0.11) dessousPose(0.08) retGain*(0.06) vTemps(0.05) vCourt(0.17)
+189e2ce7fa40 | 24 |  0/24| -1.50 [-3.14 ; +0.14]                | 0.080 |  -25.5 [-60.3 ; 9.2]| -1.24 ± 0.95 | -0.06 | -0.92 | -2.08 | indiscernable | marge(0.03) glisse(0.05) avanceCap(0.12) bascule(0.22) dessousMax(0.04) raccCartes_grotte(0>1) retMarge*(0.05)
+449cb03217b0 | 24 |  0/24| +0.25 [-1.86 ; +2.36]                | 0.843 |   15.6 [-35.6 ; 66.8]| +0.17 ± 1.13 | +0.02 | +2.17 | -1.67 | indiscernable | avance(0.05) glisse(0.15) retourPrime*(0.03)
+75c51f600b13 | 24 |  1/24| -1.04 [-2.70 ; +0.62]                | 0.225 |  -11.7 [-50.8 ; 27.5]| -0.84 ± 0.97 | -0.05 | +0.25 | -2.33 | indiscernable | capAvance(0.05) raccAxe(0.14) raccTmin(0.27) raccChute(0.15) figMax(2>3) rLourde(0.10)
+3032bf8184f5 | 24 |  0/24| +0.17 [-2.38 ; +2.72]                | 0.921 |   11.7 [-42.7 ; 66.1]| +0.19 ± 1.29 | -0.01 | +2.17 | -1.83 | indiscernable | ligneLoin(0.16) avanceCap(0.23) capMax(0.20) raccTmax(0.06) raccJumeau_grotte(0>1) figMax(2>1) retMarge*(0.05) retourPrime*(0.00)
+916e2ab472f8 | 24 |  8/24| -0.13 [-1.73 ; +1.48]                | 0.916 |    4.5 [-33.1 ; 42.0]| -0.10 ± 1.03 | -0.01 | +0.50 | -0.75 | indiscernable | raccBord(0.24) dessousMax(0.01) vPortail(0.10)
+fca7498ee261 | 24 |  8/24| +0.38 [-0.79 ; +1.54]                | 0.560 |   13.9 [-11.2 ; 38.9]| +0.68 ± 0.64 | -0.08 | -0.50 | +1.25 | indiscernable | margeCouloir(0.19) dessousMax(0.00) departMax(0.05) figHaut(0.19) vLibrePente(0.04) rAxe(0.07)
+f6e4be64ff88 | 24 |  0/24| -0.83 [-2.46 ; +0.79]                | 0.322 |   -3.5 [-35.2 ; 28.1]| -1.82 ± 0.83 | +0.25 | -0.83 | -0.83 | indiscernable | capAvance(0.20) margeTenir(0.04) jaugeAllume(0.07) derive(0.05) dessousPose(0.12) dessousAveugle(1>0) figMax(2>3) vPortail(0.01)
+95cd1fe7216b | 24 |  0/24| +0.08 [-1.92 ; +2.08]                | 0.967 |    6.0 [-34.1 ; 46.1]| +0.02 ± 1.07 | +0.02 | +1.08 | -0.92 | indiscernable | avanceCap(0.20) braqueDoux(0.03) braqueNitro(0.07) raccCartes_espace(1>0)
+1a146f9f0ffc | 24 |  1/24| -1.13 [-3.08 ; +0.83]                | 0.268 |  -16.9 [-54.8 ; 21.0]| -0.51 ± 1.02 | -0.15 | +0.58 | -2.83 | indiscernable | avance(0.04) tenirFacon(0.14) raccAir(0.07) departMin(0.07) raccCartes_grotte(0>1) raccJumeau_jade(1>0) dessousNitro(0>1) retourOn(0>1)
+4ee745c9047b | 24 |  3/24| -0.13 [-1.75 ; +1.50]                | 0.917 |   -4.7 [-39.6 ; 30.2]| -0.35 ± 0.99 | +0.06 | +0.50 | -0.75 | indiscernable | glisseUrgence(0.23) bascule(0.11) raccTmax(0.05) figEcart(0.14) dessousFuir(1>0) rAxe(0.16) rTemps(0.00)
+6fc0d3c07790 | 24 |  6/24| -0.75 [-1.91 ; +0.41]                | 0.222 |   -5.3 [-34.7 ; 24.1]| -0.89 ± 0.62 | +0.03 | -1.08 | -0.42 | indiscernable | capLigne(0.05) tenirFacon(0.03) dessousMax(0.08) retourPrime*(0.02) vLevre(0.10) rPlane(0.03)
+75f072ea9346 | 24 |  7/24| -1.00 [-2.31 ; +0.31]                | 0.148 |  -19.1 [-47.7 ; 9.5]| -1.25 ± 0.78 | +0.06 | -1.25 | -0.75 | indiscernable | tenirFacon(0.21) raccBord(0.04) volRetour*(0.09)
+9885ec853c79 | 24 |  3/24| +0.38 [-1.32 ; +2.07]                | 0.692 |    5.5 [-34.3 ; 45.4]| +0.30 ± 1.00 | +0.02 | +0.08 | +0.67 | indiscernable | avance(0.06) margeAllumer(0.36) figJauge(0.12) dessousPose(0.21) volRetour*(0.07) raccCartes_nuages(1>0) bVersRoute(0.17)
+dcd093fdc1bf | 24 |  0/24| +0.46 [-1.18 ; +2.10]                | 0.606 |   15.1 [-19.7 ; 49.8]| +0.43 ± 0.80 | +0.01 | -0.08 | +1.00 | indiscernable | ligneLoin(0.10) capLigne(0.21) raccVirage(0.00) departMin(0.34)
+c725eb9853c8 | 24 |  1/24| -0.50 [-2.47 ; +1.47]                | 0.630 |   -5.0 [-44.9 ; 35.0]| -0.49 ± 1.04 | -0.00 | +0.42 | -1.42 | indiscernable | glisse(0.00) jaugeCoupe(0.19) vPortail(0.11)
+af68f7e8f019 | 24 |  2/24| +0.83 [-0.86 ; +2.53]                | 0.342 |   21.9 [-10.5 ; 54.2]| +0.64 ± 0.94 | +0.05 | +0.67 | +1.00 | indiscernable | ligneLoin(0.08) braqueNitro(0.04) bascule(0.05) retAvance*(0.04) vLevre(0.14)
+25ef7a22a9b2 | 24 |  7/24| -1.08 [-2.63 ; +0.46]                | 0.180 |  -13.1 [-47.8 ; 21.6]| -1.38 ± 0.99 | +0.07 | -0.67 | -1.50 | indiscernable | bandeDecor(0.08) raccVirage(0.00) departMin(0.13) raccCartes_nuages(1>0) raccCartes_jade(0>1) axePoids(0.05) vPortail(0.09) rAxe(0.20)
+
+Repetabilite : correlation entre mutants (19 non identiques au temoin) de leur dPalier sur les graines G0 et sur les graines G1 : r = -0.13 (p unilateral de permutation 0.697).
+Classes (sur le palier, IC 95 %) : indiscernable 19 sur 19 mutants. Faux positifs attendus a 5 % : 1.0 (0.47500000000000003 de chaque cote).
+Sur la note F (|dF| > 2 se) : 1 mutant(s) : f6e4be64ff88 -1.82.
+
+== 2. LES NES DE LA GENERATION 1 (12 graines G1) : contre leur parent, et contre le temoin ==
+id           | origine    | parent(s)                 | n  | ident. parent | dP vs parent [IC]        | ident. temoin | dP vs temoin [IC]        | dP vs les 20 de G0 [IC] | genes mutes
+d361ff1483f5 | immigre    | 19e3767cc346              | 12 |     0/12      | -1.33 [-4.97 ; +2.30]                       |     0/12      | -1.33 [-4.97 ; +2.30] | -0.46 [-3.33 ; +2.41] | capAvance tenirFacon raccChute raccAir figTemps vTemps vLibreBase rLourde
+9627905cd5bb | mutation   | 3032bf8184f5              | 12 |    12/12      | +0.00 [+0.00 ; +0.00]                       |     0/12      | -1.83 [-5.56 ; +1.89] | -0.96 [-3.25 ; +1.33] | figTemps bVersRoutePlane
+9ae0f54f48ae | mutation   | 95cd1fe7216b              | 12 |     2/12      | +0.17 [-1.52 ; +1.85]                       |     0/12      | -0.75 [-4.55 ; +3.05] | +0.13 [-2.73 ; +2.98] | volAvance
+5a2962dde73d | croisement | d0281d911fb9+1a146f9f0ffc | 12 |     0/12      | -0.29 [-3.60 ; +3.02]                       |     0/12      | -2.42 [-6.72 ; +1.89] | -1.54 [-4.87 ; +1.79] | avance capAvance braqueFort jaugeCoupe tenirFacon raccAttente raccCartes_nuages raccJumeau_jade vLevre bVersRoute
+9e65b289560d | croisement | 3032bf8184f5+1a146f9f0ffc | 12 |     0/12      | -0.42 [-3.42 ; +2.58]                       |     0/12      | -2.75 [-5.68 ; +0.18] | -1.88 [-4.21 ; +0.46] | nitroDecor avanceCap capMax tenirFacon departMin raccCartes_grotte portailVol retourPrime*
+92bcfe194dd3 | mutation   | 3032bf8184f5              | 12 |     0/12      | +1.83 [-0.54 ; +4.21]                       |     0/12      | +0.00 [-3.30 ; +3.30] | +0.88 [-1.42 ; +3.17] | glisse jaugeCoupe raccCartes_jade
+
+== 3. LE BRUIT DU PALIER (l'etude du bruit : ecart-type residuel 3,21 par course, sur 300 s) ==
+Modele pilote + graine (note.ajuster) sur 552 courses : sigma des residus 3.26 ; sur les 488 courses distinctes (doublons retires) : 3.26.
+Difference appariee mutant - temoin, graines non identiques, centree par mutant : ecart-type 4.33 (389 ddl) ; deux pilotes independants donneraient 4.61 (racine(2) x sigma) ;
+  la correlation mutant / temoin sur une meme graine qui en decoule : 0.12 (l'etude du bruit : 0,16 entre pilotes differents).
+Temoin seul : palier moyen 7.54, ecart-type entre graines 3.75 (24 graines d'entrainement) ; coffre 6.15 ± 3.08 (40 graines).
+Erreur-type mediane du dPalier d'un mutant (24 graines) : 0.79 ; plus petit effet vu 8 fois sur 10 (bilateral 5 %) : 2.22 palier.
+Graines appariees qu'il faudrait pour voir un effet de 0,5 palier 8 fois sur 10 : 590 ; de 1 palier : 148.
+
+== 4. LA LOI DES EFFETS DES MUTATIONS (pour un simulateur de la selection) ==
+Mutants dont TOUTES les courses sont identiques au temoin (effet exactement nul sur ces graines) : 0/19 = 0 % [IC 95 % 0 % ; 18 %].
+Les 19 autres : effets vrais s_i ~ N(mu, tau), mesures contre le meme temoin (bootstrap des graines ET des mutants, 400 tirages) :
+  mu (effet moyen d'un mutant g0, en palier) = -0.42 [IC 95 % -1.52 ; +0.59]
+  tau (etalement des effets vrais entre mutants) : (A) moitie G0 / moitie G1 0.00 (tau² -0.16) [0.00 ; 0.98] ;
+      (B) moments 0.37 (tau² 0.14) [0.00 ; 1.07] ; (C) vraisemblance 0.32 [vraisemblance 0.00 ; 0.78] [bootstrap 0.00 ; 1.05]
+      (l'ajustement naif, qui compte le bruit du temoin chez chacun : tau 0.00, mu -0.45)
+  Fourchette retenue : mu -1.52 ; +0.59, tau 0 ; 1.07 (la plus haute des bornes de A, B, C).
+  Parts parmi les mutants qui changent quelque chose (seuils : letale = perd plus de la moitie du palier du temoin, < -3.77 ; nuisible < -0,5 ; quasi neutre |s| < 0,5 ; utile > +0,5) :
+    letale       au point   0 % ; bootstrap 2,5 %-97,5 % : 0 % ; 0 %
+    nuisible     au point  40 % ; bootstrap 2,5 %-97,5 % : 0 % ; 100 %
+    quasiNeutre  au point  60 % ; bootstrap 2,5 %-97,5 % : 0 % ; 100 %
+    utile        au point   0 % ; bootstrap 2,5 %-97,5 % : 0 % ; 57 %
+    meilleure    au point   9 % ; bootstrap 2,5 %-97,5 % : 0 % ; 97 %
+  Scenarios (mu, tau) -> parts letale / nuisible / quasi neutre / utile / meilleure que le parent :
+    prudent       mu -1.52 tau 1.07 : 2 % / 83 % / 14 % / 3 % / 8 %
+    central       mu -0.42 tau 0.32 : 0 % / 40 % / 60 % / 0 % / 9 %
+    optimiste     mu +0.59 tau 1.07 : 0 % / 15 % / 31 % / 54 % / 71 %
+    neutreEtroit  mu +0.00 tau 0.30 : 0 % / 5 % / 90 % / 5 % / 50 %
+  Fiabilite du classement des mutants par la note (part de la variance des notes qui est vraie) : tau 0.32 -> 19 % a 24 courses, 10 % a 12 ; tau 1.07 -> 72 % a 24, 56 % a 12.
+  Correlation moitie/moitie attendue (12 + 12 graines) : 0.10 pour tau 0.32, 0.56 pour tau 1.07 ; mesuree -0.13.
+Comptes bruts (IC 95 % de Student par mutant) : nettement pires 0/19 [part vraie 0 % ; 18 %], peut-etre meilleurs 0/19 [0 % ; 18 %].
+Letales (IC entierement sous -3.77) : 0/25 (mutants g0 + nes de G1) => part vraie des letales [0 % ; 14 %].
+Une mutation utile de +2.2 palier ou plus serait vue 8 fois sur 10 ; 0 vue(s) => part des mutations utiles d'au moins +2.2 : au plus ~22 % (borne haute a 95 %, puissance 0,8). Sous ce seuil, ces courses ne disent rien.
+Sur la note F : dF moyen -0.44 (dE moyen +0.01, ET des dE entre mutants 0.08 : l'ecart aux joueurs ne bouge presque pas) ; tau_F moitie/moitie 0.00 [0.00 ; 0.49].
+
+== 5. LES GENES : lesquels cassent, lesquels ne font rien ? ==
+gene                | type    | porteurs | dans « pire » | dans « nul exact » | muet par construction | dPalier moyen des porteurs
+raccGain            | reel    |        1 |             0 |                  0 |                     0 | -1.67
+raccJumeau_nuages   | drapeau |        1 |             0 |                  0 |                     0 | -1.67
+dessousDecor        | choix   |        1 |             0 |                  0 |                     0 | -1.67
+marge               | reel    |        1 |             0 |                  0 |                     0 | -1.50
+raccAir             | reel    |        3 |             0 |                  0 |                     0 | -1.38
+axePoids            | reel    |        2 |             0 |                  0 |                     0 | -1.38
+vLibreBase          | reel    |        1 |             0 |                  0 |                     0 | -1.33
+raccChute           | reel    |        2 |             0 |                  0 |                     0 | -1.19
+rLourde             | reel    |        2 |             0 |                  0 |                     0 | -1.19
+dessousNitro        | drapeau |        1 |             0 |                  0 |                     0 | -1.13
+retourOn            | drapeau |        1 |             0 |                  0 |                     0 | -1.13
+bandeDecor          | reel    |        1 |             0 |                  0 |                     0 | -1.08
+vTemps              | reel    |        2 |             0 |                  0 |                     0 | -1.06
+portailVol          | drapeau |        2 |             0 |                  0 |                     0 | -1.04
+raccAxe             | reel    |        1 |             0 |                  0 |                     0 | -1.04
+raccTmin            | reel    |        1 |             0 |                  0 |                     0 | -1.04
+raccCartes_grotte   | drapeau |        3 |             0 |                  0 |                     0 | -1.01
+capAvance           | reel    |        5 |             0 |                  0 |                     0 | -0.86
+margeTenir          | reel    |        1 |             0 |                  0 |                     0 | -0.83
+jaugeAllume         | reel    |        1 |             0 |                  0 |                     0 | -0.83
+derive              | reel    |        1 |             0 |                  0 |                     0 | -0.83
+dessousAveugle      | drapeau |        1 |             0 |                  0 |                     0 | -0.83
+tenirFacon          | reel    |        6 |             0 |                  0 |                     0 | -0.82
+braqueDoux          | reel    |        2 |             0 |                  0 |                     0 | -0.79
+retGain             | reel    |        1 |             0 |                  0 |                     1 | -0.79
+vCourt              | reel    |        1 |             0 |                  0 |                     0 | -0.79
+rPlane              | reel    |        1 |             0 |                  0 |                     0 | -0.75
+raccJumeau_jade     | drapeau |        2 |             0 |                  0 |                     0 | -0.71
+avanceCap           | reel    |        5 |             0 |                  0 |                     0 | -0.67
+retMarge            | reel    |        2 |             0 |                  0 |                     2 | -0.67
+figTemps            | reel    |        2 |             0 |                  1 |                     0 | -0.67
+vPortail            | reel    |        4 |             0 |                  0 |                     0 | -0.64
+figMax              | entier  |        3 |             0 |                  0 |                     0 | -0.57
+raccBord            | reel    |        2 |             0 |                  0 |                     0 | -0.56
+departMin           | reel    |        4 |             0 |                  0 |                     0 | -0.54
+dessousMax          | reel    |        4 |             0 |                  0 |                     0 | -0.50
+dessousPose         | reel    |        3 |             0 |                  0 |                     0 | -0.42
+nitroDecor          | reel    |        1 |             0 |                  0 |                     0 | -0.42
+raccCartes_nuages   | drapeau |        3 |             0 |                  0 |                     0 | -0.33
+volRetour           | reel    |        2 |             0 |                  0 |                     2 | -0.31
+raccVirage          | reel    |        2 |             0 |                  0 |                     0 | -0.31
+braqueFort          | reel    |        1 |             0 |                  0 |                     0 | -0.29
+raccAttente         | reel    |        1 |             0 |                  0 |                     0 | -0.29
+rAxe                | reel    |        3 |             0 |                  0 |                     0 | -0.28
+bascule             | reel    |        3 |             0 |                  0 |                     0 | -0.26
+avance              | reel    |        4 |             0 |                  0 |                     0 | -0.20
+retourPrime         | reel    |        4 |             0 |                  0 |                     4 | -0.19
+capLigne            | reel    |        2 |             0 |                  0 |                     0 | -0.15
+capMax              | reel    |        2 |             0 |                  0 |                     0 | -0.13
+glisseUrgence       | reel    |        1 |             0 |                  0 |                     0 | -0.13
+figEcart            | reel    |        1 |             0 |                  0 |                     0 | -0.13
+dessousFuir         | drapeau |        1 |             0 |                  0 |                     0 | -0.13
+rTemps              | reel    |        1 |             0 |                  0 |                     0 | -0.13
+vLevre              | reel    |        3 |             0 |                  0 |                     0 | -0.07
+bVersRoutePlane     | reel    |        1 |             0 |                  1 |                     0 | +0.00
+glisse              | reel    |        4 |             0 |                  0 |                     0 | +0.02
+raccTmax            | reel    |        2 |             0 |                  0 |                     0 | +0.02
+bVersRoute          | reel    |        2 |             0 |                  0 |                     0 | +0.04
+jaugeCoupe          | reel    |        4 |             0 |                  0 |                     0 | +0.06
+raccCartes_espace   | drapeau |        1 |             0 |                  0 |                     0 | +0.08
+raccJumeau_grotte   | drapeau |        1 |             0 |                  0 |                     0 | +0.17
+volAvance           | reel    |        1 |             0 |                  0 |                     0 | +0.17
+margeCouloir        | reel    |        1 |             0 |                  0 |                     0 | +0.38
+departMax           | reel    |        1 |             0 |                  0 |                     0 | +0.38
+figHaut             | reel    |        1 |             0 |                  0 |                     0 | +0.38
+vLibrePente         | reel    |        1 |             0 |                  0 |                     0 | +0.38
+margeAllumer        | reel    |        1 |             0 |                  0 |                     0 | +0.38
+figJauge            | reel    |        1 |             0 |                  0 |                     0 | +0.38
+raccCartes_jade     | drapeau |        2 |             0 |                  0 |                     0 | +0.38
+braqueNitro         | reel    |        2 |             0 |                  0 |                     0 | +0.46
+ligneLoin           | reel    |        3 |             0 |                  0 |                     0 | +0.49
+retAvance           | reel    |        1 |             0 |                  0 |                     1 | +0.83
+Mutations de reels observees : 119, dont 10 muettes par construction (8 %) ; au tirage : 6 reels muets sur les reels du genome v:1 (64) = 9 %.
+
+== 6. LES COURSES IDENTIQUES (meme graine, meme empreinte) ==
+64 courses sur 552 (12 %) rejouent EXACTEMENT une course deja jouee (meme graine, meme empreinte) : 48 copies d'une course du temoin, 16 entre deux autres pilotes.
+Temps de calcul de ces courses : 0.58 h sur 10.93 h de courses (5 %) ; par generation : G0 37/240 courses, 5 % du temps ; G1 27/312 courses, 5 % du temps.
+Duree moyenne d'une course (ms reel, 4 a la fois sur le Xeon) : 71.1 s ; une course identique coute autant qu'une autre (l'empreinte n'est connue qu'a la fin).
+Les courses jouees en double (toutes les copies) durent en moyenne 78.2 s (mediane 51.5), les autres 142.5 s (mediane 133.5) : ce sont surtout des courses courtes, finies avant que les genes changes servent.
+Part des courses d'un mutant g0 identiques au temoin : mediane 4 % ; repartition : 0 %-25 % : 14, 25 %-50 % : 5, 50 %-75 % : 0, 75 %-100 % : 0.
+mutant       | identiques | genes mutes (* = muet par construction)
+916e2ab472f8 |    8/24    | raccBord(0.24) dessousMax(0.01) vPortail(0.10)
+fca7498ee261 |    8/24    | margeCouloir(0.19) dessousMax(0.00) departMax(0.05) figHaut(0.19) vLibrePente(0.04) rAxe(0.07)
+75f072ea9346 |    7/24    | tenirFacon(0.21) raccBord(0.04) volRetour*(0.09)
+25ef7a22a9b2 |    7/24    | bandeDecor(0.08) raccVirage(0.00) departMin(0.13) raccCartes_nuages(1>0) raccCartes_jade(0>1) axePoids(0.05) vPortail(0.09) rAxe(0.20)
+6fc0d3c07790 |    6/24    | capLigne(0.05) tenirFacon(0.03) dessousMax(0.08) retourPrime*(0.02) vLevre(0.10) rPlane(0.03)
+4ee745c9047b |    3/24    | glisseUrgence(0.23) bascule(0.11) raccTmax(0.05) figEcart(0.14) dessousFuir(1>0) rAxe(0.16) rTemps(0.00)
+9885ec853c79 |    3/24    | avance(0.06) margeAllumer(0.36) figJauge(0.12) dessousPose(0.21) volRetour*(0.07) raccCartes_nuages(1>0) bVersRoute(0.17)
+af68f7e8f019 |    2/24    | ligneLoin(0.08) braqueNitro(0.04) bascule(0.05) retAvance*(0.04) vLevre(0.14)
+d0281d911fb9 |    1/24    | capAvance(0.01) jaugeCoupe(0.11) dessousPose(0.08) retGain*(0.06) vTemps(0.05) vCourt(0.17)
+75c51f600b13 |    1/24    | capAvance(0.05) raccAxe(0.14) raccTmin(0.27) raccChute(0.15) figMax(2>3) rLourde(0.10)
+1a146f9f0ffc |    1/24    | avance(0.04) tenirFacon(0.14) raccAir(0.07) departMin(0.07) raccCartes_grotte(0>1) raccJumeau_jade(1>0) dessousNitro(0>1) retourOn(0>1)
+c725eb9853c8 |    1/24    | glisse(0.00) jaugeCoupe(0.19) vPortail(0.11)
+d361ff1483f5 (ne G1, immigre) : 0/12 identiques a un parent, 0/12 au temoin ; capAvance tenirFacon raccChute raccAir figTemps vTemps vLibreBase rLourde
+9627905cd5bb (ne G1, mutation) : 12/12 identiques a un parent, 0/12 au temoin ; figTemps bVersRoutePlane
+9ae0f54f48ae (ne G1, mutation) : 2/12 identiques a un parent, 0/12 au temoin ; volAvance
+5a2962dde73d (ne G1, croisement) : 0/12 identiques a un parent, 0/12 au temoin ; avance capAvance braqueFort jaugeCoupe tenirFacon raccAttente raccCartes_nuages raccJumeau_jade vLevre bVersRoute
+9e65b289560d (ne G1, croisement) : 0/12 identiques a un parent, 0/12 au temoin ; nitroDecor avanceCap capMax tenirFacon departMin raccCartes_grotte portailVol retourPrime*
+92bcfe194dd3 (ne G1, mutation) : 0/12 identiques a un parent, 0/12 au temoin ; glisse jaugeCoupe raccCartes_jade
+
+(6.8 s)

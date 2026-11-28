@@ -1,0 +1,55 @@
+DONNEES : 567 lignes (567 mesurees), de 2026-11-27T18:34:25.122Z a 2026-11-27T22:16:37.669Z (heure UTC ; le journal sortie.log est a l'heure de Paris, UTC+1)
+  par usage : {"entrainement gen 0":240,"coffre gen 0":40,"entrainement gen 1":287}
+
+1. LE TEMPS DE LA BOUCLE (ms) EN FONCTION DE LA DUREE DE JEU (survie_s), toutes les courses mesurees, 4 a la fois sur le Xeon
+  boucle_s = -10.26 + 0.608 x survie_s   (R2 0.801, n 567)
+  soit 1.65 secondes de jeu par seconde de calcul (pente), en moyenne 1.89 (total jeu / total boucle)
+  fois le temps reel, course par course : mediane 2.28, 10 % 1.29, 90 % 3.59
+  tranche de survie | courses | survie moy. s | boucle moy. s | x temps reel
+    0-15   s        |       4 |         13.6 |           5.6 | 2.45
+   15-30   s        |      54 |         21.6 |           9.2 | 2.35
+   30-60   s        |      70 |         45.8 |          17.3 | 2.64
+   60-120  s        |     163 |           94 |            47 | 2
+  120-240  s        |     220 |        168.7 |          88.9 | 1.9
+  240-900  s        |      56 |        298.3 |           178 | 1.68
+
+2. LE COUT FIXE (hors boucle : processus neuf, chargement du jeu, premiere piste, mesures), d'apres les fenetres pleines
+  generation 1 (en cours, aucune fin de generation dedans) : 287 courses finies en 7932.7 s ; somme des boucles 23997.8 s ; 4 x duree = 31730.7 s
+     temps par course et par travailleur (fixe + boucle) : 110.6 s au plus ; boucle moyenne 83.6 s
+     cout fixe par course : entre 25.4 et 26.9 s, milieu 26.2
+  generation 0 apres la reprise (fin de generation dedans) : 218 courses finies en 4120 s ; somme des boucles 12156.9 s ; 4 x duree = 16480 s
+     temps par course et par travailleur (fixe + boucle) : 75.6 s au plus ; boucle moyenne 55.8 s
+     cout fixe par course : au plus 19.8 s (le temps inoccupe de la fin de lot y est compte)
+  coffre (fin de lot dedans) : 40 courses finies en 754 s ; somme des boucles 2134.3 s ; 4 x duree = 3016 s
+     temps par course et par travailleur (fixe + boucle) : 75.4 s au plus ; boucle moyenne 53.4 s
+     cout fixe par course : au plus 22 s (le temps inoccupe de la fin de lot y est compte)
+  -> retenu pour la suite (fenetre A, la plus propre) : fixe ~ 26.2 s par course (mesure indirecte ; la mesure directe : chronometrer.js)
+
+3. LA PART DU CERVEAU DU PILOTE (cerveau_ms_moy x 10 decisions par seconde de jeu), dans la boucle
+  cerveau : 930.6 s sur 38900.4 s de boucles = 2.4 % ; une decision : mediane 1.103 ms
+  (les yeux ne sont pas dans la ligne de courses-*.jsonl : bilan.yeux n'est pas recopie ; voir chronometrer.js et analyser-profil.js)
+
+4. LES COURSES COURTES : le cout fixe y pese
+  survie < 15 s : 4 courses sur 567 (0.7 %) ; < 30 s : 58 (10.2 %)
+  part du temps total passee en cout fixe (toutes les courses) : 27.6 %
+  une course de 0 a 15 s de jeu (4 courses) : boucle 5.6 s + fixe 26.2 s = 31.8 s de travailleur, dont 82.4 % de fixe
+  une course de 15 a 30 s de jeu (54 courses) : boucle 9.2 s + fixe 26.2 s = 35.4 s de travailleur, dont 74 % de fixe
+  une course de 30 a 60 s de jeu (70 courses) : boucle 17.3 s + fixe 26.2 s = 43.5 s de travailleur, dont 60.2 % de fixe
+  a comparer : 120 a 240 s de jeu : 115.1 s, dont 22.8 % de fixe
+  les courses de moins de 30 s prennent 3.8 % du temps des travailleurs, dont 2.8 points de fixe
+  au rythme de la fenetre A : une course occupe un travailleur 110.6 s ; 312 courses a 4 a la fois = 143.8 min
+
+5. LES COURSES JOUEES POUR RIEN
+  (a) courses identiques au bit pres a celle d'un AUTRE pilote sur la meme graine : 50 sur 567 (8.8 %) ; groupes par taille {"2":15,"4":3,"5":1,"8":2,"9":1}
+      ces courses en double : survie mediane 47.4 s, 33 sur 50 sous 60 s ; temps de boucle 1496.8 s sur 38900.4 (3.8 %)
+      controle : graines ou la meme empreinte de course va avec des touches differentes : 1
+  (b) paires de pilotes qui conduisent pareil sur TOUTES leurs graines communes (6 au moins) : 1
+      3032bf8184f5 (g0, mutes ["ligneLoin","avanceCap","capMax","raccTmax","raccJumeau_grotte","figMax","retMarge","retourPrime"]) = 9627905cd5bb (?) sur 11 graines
+  (c) une meme cle (pilote, graine, tmax, epoque) ecrite deux fois : 0
+  (d) les 6 naissances de la generation 1, comparees a leurs parents sur les graines de la generation 1 deja jouees :
+      d361ff1483f5 (immigre, mutes [{"cle":"capAvance","avant":0.25,"apres":0.3402},{"cle":"tenirFacon","avant":0.35,"apres":0.4173},{"cle":"raccChute","avant":120,"apres":123.5467},{"cle":"raccAir","avant":1.2,"apres":0.6326},{"cle":"figTemps","avant":1.5,"apres":1.8195},{"cle":"vTemps","avant":3,"apres":6.026},{"cle":"vLibreBase","avant":12,"apres":9.8123},{"cle":"rLourde","avant":40,"apres":61.7756}]) : 11 courses ; identiques au parent : 19e3767cc346 0/11
+      9627905cd5bb (mutation, mutes [{"cle":"figTemps","avant":1.5,"apres":1.5845},{"cle":"bVersRoutePlane","avant":2,"apres":0.1641}]) : 11 courses ; identiques au parent : 3032bf8184f5 11/11
+      9ae0f54f48ae (mutation, mutes [{"cle":"volAvance","avant":0.25,"apres":0.2585}]) : 11 courses ; identiques au parent : 95cd1fe7216b 0/11
+      5a2962dde73d (croisement, mutes [{"cle":"avance","avant":0.3,"apres":0.3247},{"cle":"capAvance","avant":0.2474,"apres":0.25},{"cle":"braqueFort","avant":0.5,"apres":0.4988},{"cle":"jaugeCoupe","avant":0.1646,"apres":0.25},{"cle":"tenirFacon","avant":0.35,"apres":0.542},{"cle":"raccAttente","avant":1.6,"apres":1.0142},{"cle":"raccCartes_nuages","avant":1,"apres":0},{"cle":"raccJumeau_jade","avant":1,"apres":0},{"cle":"vLevre","avant":80,"apres":74.6362},{"cle":"bVersRoute","avant":3,"apres":4.5407}]) : 11 courses ; identiques au parent : d0281d911fb9 0/11, 1a146f9f0ffc 0/11
+      9e65b289560d (croisement, mutes [{"cle":"nitroDecor","avant":1,"apres":0.9131},{"cle":"avanceCap","avant":0.3877,"apres":0.25},{"cle":"capMax","avant":0.2129,"apres":0.35},{"cle":"tenirFacon","avant":0.35,"apres":0.542},{"cle":"departMin","avant":1.5,"apres":1.2172},{"cle":"raccCartes_grotte","avant":0,"apres":1},{"cle":"portailVol","avant":1,"apres":0},{"cle":"retourPrime","avant":3.9506,"apres":4}]) : 10 courses ; identiques au parent : 3032bf8184f5 0/10, 1a146f9f0ffc 0/10
+      92bcfe194dd3 (mutation, mutes [{"cle":"glisse","avant":0.12,"apres":0.0641},{"cle":"jaugeCoupe","avant":0.25,"apres":0.3573},{"cle":"raccCartes_jade","avant":0,"apres":1}]) : 11 courses ; identiques au parent : 3032bf8184f5 0/11

@@ -1,0 +1,186 @@
+{
+ "quoi": "La loi des effets d'une mutation sur le palier (et la note F), mesuree sur la vraie evolution du 27/11 (genome v:1, 86 genes ; generation 0 : temoin + 19 mutants de 3 a 6 genes, sigma 0,15 ; generations 0 et 1 : 24 graines appariees). Ecrit par ml/ecurie/etude/reglage-de-la-selection/effets/analyser.js.",
+ "date": "2026-11-27T22:40:42.682Z",
+ "donnees": "27/11/2026 23:31:33",
+ "unite": "palier moyen par graine ; un effet s = palier(mutant) - palier(parent) sur les memes graines",
+ "bruit": {
+  "sigmaResiduelParCourse": {
+   "estimation": 3.26,
+   "note": "modele pilote + graine, courses distinctes, tmax 900 s (l'etude du bruit : 3,21 sur 300 s)"
+  },
+  "correlationEnfantParentMemeGraine": {
+   "estimation": 0.116,
+   "note": "hors courses identiques ; entre pilotes sans parente : 0,16 (etude du bruit)"
+  },
+  "ecartTypeDifferenceAppariee": {
+   "estimation": 4.334,
+   "note": "par graine, enfant - parent, hors courses identiques"
+  },
+  "partDesCoursesIdentiquesAuParent": {
+   "estimation": 0.105,
+   "note": "moyenne sur les mutants g0 ; une course identique donne une difference exactement nulle"
+  }
+ },
+ "loi": {
+  "partMutantsSansAucunEffet": {
+   "estimation": 0,
+   "ic95": [
+    0,
+    0.176
+   ],
+   "note": "toutes les courses identiques au temoin"
+  },
+  "effetsDesAutres": {
+   "loi": "normale (supposee)",
+   "mu": {
+    "estimation": -0.421,
+    "fourchette": [
+     -1.522,
+     0.594
+    ]
+   },
+   "tau": {
+    "estimation": 0.32,
+    "fourchette": [
+     0,
+     1.069
+    ],
+    "note": "estimation (C) vraisemblance ; (A) moitie/moitie et (B) moments dans resultats.json ; borne haute = la plus haute des trois"
+   }
+  },
+  "partsParmiLesMutantsQuiChangentQuelqueChose": {
+   "letale": {
+    "estimation": 0,
+    "fourchette": [
+     0,
+     0.005
+    ]
+   },
+   "nuisible": {
+    "estimation": 0.403,
+    "fourchette": [
+     0,
+     0.996
+    ]
+   },
+   "quasiNeutre": {
+    "estimation": 0.595,
+    "fourchette": [
+     0.002,
+     1
+    ]
+   },
+   "utile": {
+    "estimation": 0.002,
+    "fourchette": [
+     0,
+     0.568
+    ]
+   },
+   "meilleure": {
+    "estimation": 0.094,
+    "fourchette": [
+     0,
+     0.973
+    ]
+   }
+  },
+  "fourchettes": "mu : bootstrap des graines et des mutants (le bruit du temoin, commun a tous, compris) ; tau : de 0 a la plus haute des bornes des trois estimations ; parts : quantiles 2,5 %-97,5 % sur les tirages du bootstrap (mu et tau C de chaque tirage) ; la forme normale est supposee",
+  "scenarios": {
+   "prudent": {
+    "mu": -1.522,
+    "tau": 1.069,
+    "parts": {
+     "letale": 0.018,
+     "nuisible": 0.831,
+     "quasiNeutre": 0.14,
+     "utile": 0.029,
+     "meilleure": 0.077
+    }
+   },
+   "central": {
+    "mu": -0.421,
+    "tau": 0.32,
+    "parts": {
+     "letale": 0,
+     "nuisible": 0.403,
+     "quasiNeutre": 0.595,
+     "utile": 0.002,
+     "meilleure": 0.094
+    }
+   },
+   "optimiste": {
+    "mu": 0.594,
+    "tau": 1.069,
+    "parts": {
+     "letale": 0,
+     "nuisible": 0.153,
+     "quasiNeutre": 0.312,
+     "utile": 0.535,
+     "meilleure": 0.711
+    }
+   },
+   "neutreEtroit": {
+    "mu": 0,
+    "tau": 0.3,
+    "parts": {
+     "letale": 0,
+     "nuisible": 0.048,
+     "quasiNeutre": 0.904,
+     "utile": 0.048,
+     "meilleure": 0.5
+    }
+   }
+  },
+  "fiabiliteDuClassement": {
+   "tauCentral": {
+    "n24": 0.188,
+    "n12": 0.104
+   },
+   "tauHaut": {
+    "n24": 0.721,
+    "n12": 0.563
+   }
+  },
+  "letalesComptees": {
+   "part": 0,
+   "ic95": [
+    0,
+    0.137
+   ],
+   "note": "aucun mutant (g0 et nes de G1) ne perd la moitie du palier ; borne de Clopper-Pearson"
+  },
+  "seuils": {
+   "letale": -3.771,
+   "nuisible": -0.5,
+   "utile": 0.5
+  },
+  "noteF": {
+   "mu": {
+    "estimation": -0.444,
+    "note": "F = palier - 4 E ; E ne bouge presque pas, la fourchette de mu en palier vaut a peu pres pour F"
+   },
+   "tau": {
+    "estimation": 0,
+    "ic95": [
+     0,
+     0.491
+    ]
+   }
+  }
+ },
+ "ceQuOnNePeutPasDire": "La part des mutations utiles : aucune mutation n'est nettement meilleure, mais avec 24 graines on ne voit qu'un effet de +2.2 palier ou plus. La loi normale ajustee donne une part d'utiles (> +0,5) entre 0 % et 57 % : c'est la forme supposee (normale) qui la donne, pas les courses. Un simulateur doit essayer plusieurs valeurs dans cette fourchette.",
+ "genesMuetsParConstruction": {
+  "genes": [
+   "volRetour",
+   "retMarge",
+   "retCap",
+   "retGain",
+   "retAvance",
+   "retourPrime"
+  ],
+  "part": 0.094,
+  "note": "tant que volRetourOn / retourOn valent 0 (genome.js e2ea8d2c9, lignes 262, 266)"
+ },
+ "aSimuler": "mutant : avec la part partMutantsSansAucunEffet, effet 0 et courses identiques au parent (meme bruit) ; sinon s ~ N(mu, tau). Une course d'un pilote = son niveau vrai + la difficulte de la graine + e, e d'ecart-type sigmaResiduelParCourse ; sur une graine non identique, e(enfant) = r·e(parent) + racine(1 - r²)·sigma·z, r = correlationEnfantParentMemeGraine. Ne pas ajouter a la course du parent un bruit independant d'ecart-type ecartTypeDifferenceAppariee : il contient deja le bruit des deux pilotes (relecture du 27/11). Attention : partMutantsSansAucunEffet et partDesCoursesIdentiquesAuParent sont mesures sur les mutants g0 (4,8 reels changes en moyenne) ; les naissances « mutation » ordinaires (1 + Poisson(2) reels) en ont moins : sur les 3 de la generation 1, 1 nul exact et 14 courses sur 36 identiques au parent (relecture/contre-verifier.txt) ; a balayer de 0 a 0,4."
+}

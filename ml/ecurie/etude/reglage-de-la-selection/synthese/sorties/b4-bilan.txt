@@ -1,0 +1,8 @@
+B4 (anciens sur 4 graines + protection par l'age + note.passes 30) ET LA PROTECTION PAR L'AGE SEULE, CONTRE LA VRAIE CONFIG (A, economie active),
+DANS LE SIMULATEUR CALE (simulateur/simuler.js patche en memoire), MONDES NEUFS 7000+k, ECART APPARIE DU F4 VRAI DU CHAMPION (± erreur-type)
+scenario debit budget    | mondes | ecarts
+moyen 200/h 50000        |  24 | B4 − A : +0.25 ± 0.07  (meilleur vivant +0.12 ± 0.05) | AGE − A : +0.17 ± 0.10  | F4 median A 1.20, B4 1.44 | generations A 220.5, B4 328
+moyen 400/h 50000        |  30 | B4 − A : +0.08 ± 0.10  (meilleur vivant +0.03 ± 0.06) | AGE − A : -0.01 ± 0.02  | F4 median A 1.69, B4 1.57 | generations A 163, B4 328
+optimiste 200/h 50000    |  24 | B4 − A : +0.40 ± 0.16  (meilleur vivant +0.12 ± 0.09) | AGE − A : +0.32 ± 0.12  | F4 median A 2.41, B4 2.86 | generations A 232.5, B4 329
+optimiste 400/h 50000    |  30 | B4 − A : +0.26 ± 0.13  (meilleur vivant +0.12 ± 0.05) | AGE − A : +0.02 ± 0.14  | F4 median A 2.82, B4 2.86 | generations A 162, B4 327
+pessimiste 400/h 50000   |  30 | B4 − A : +0.03 ± 0.04  (meilleur vivant +0.00 ± 0.03) | AGE − A : +0.00 ± 0.00  | F4 median A 0.12, B4 0.17 | generations A 163, B4 329

@@ -1,0 +1,5 @@
+LE COFFRE A 50 000 COURSES (40 graines, champion − temoin, test apparie) — vraie configuration, 400/h, mondes 8000+k
+scenario   | mondes | champion != temoin | vrai dP median | coffre dP median | coffre z > 2 (parmi les mondes ou champion != temoin)
+pessimiste |     24 |                 10 |           0.02 |             0.04 | 0 sur 10
+moyen      |     24 |                 23 |           0.89 |             0.95 | 8 sur 23
+optimiste  |     24 |                 24 |           2.29 |             2.27 | 15 sur 24
