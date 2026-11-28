@@ -138,3 +138,26 @@ Ce sont les gestes de `notes/LIVRAISON-C0101.md` § 3 ; **ce qui change est en g
 dure plus longtemps qu'avant quand le meneur semble devant (jusqu'à 192 courses) ; « trop tôt pour le dire » pendant une trentaine de générations.
 **Si `sortie.log` dit un jour « les graines d'entrainement sont epuisees »** : la sélection s'est arrêtée proprement, rien n'est perdu ; donner la fin de
 `sortie.log` à Claude (`README.md`, « Si ça s'arrête »). À 12 graines, cela n'arrive qu'après 2 millions de générations.
+
+---
+
+## 5. La relecture de la session principale (Fable, 28/11/2026, 7 h 30)
+
+Relu avant d'enregistrer (commit `3b1bf15e5`, poussé sur `bots-ecurie`) : le code des trois lots (`evoluer.js`, `graines.js`, `genome.js`, `note.js`),
+les 19 suites rapides relancées une par une (toutes passent), et trois vérifications de plus.
+
+1. **Le vrai état du Ryzen, lu ici.** Le Ryzen envoie ses journaux sur la branche `evolution-ryzen`. J'ai pris son dernier état envoyé (28/11, 2 h 00 :
+   génération 1 en cours, 26 vivants, génomes v:2, `regle6` 2, réserve de 1 057 graines, pas de champ `blocs`) et je l'ai fait lire par ce code, dans un
+   dossier à part : `etat.js` rend ses 10 lignes, `tableau.js` refait les quatre pages, la ligne « Mutations comptent-elles ? trop tot pour le dire
+   (0 enfant mesure sur 191) » s'écrit, et les 26 génomes se relisent en v:3 avec les mêmes identifiants. Les courses ne sont pas dans la branche
+   (elles restent sur le Ryzen) : le rejeu d'une génération n'est donc prouvé que sur l'état d'essai du § 2.
+2. **La fusion.** `git merge-tree origin/evolution-ryzen origin/bots-ecurie` : aucun conflit (au commit `71e7c7c2c` du Ryzen).
+3. **Les fins de ligne.** L'époque du Ryzen est `29ae5fffc2b9`, la même que celle du dossier temporaire du § 2 : ses fichiers sont en fins de ligne
+   Windows. C'est sans effet sur les courses ; cela explique seulement la liste de fichiers du § 2 (voir le § 3, point 1).
+
+**Un point à regarder d'abord sur le Ryzen** : son dernier envoi date de 2 h 00 le 28/11. À 418 courses à l'heure, une génération dure 45 minutes : il
+aurait dû envoyer cinq fois depuis. Soit la sélection s'est arrêtée, soit le PC s'est éteint ou mis en veille, soit l'envoi ne passe plus (réseau coupé
+la nuit ?). **Avant le geste 1** : dans une fenêtre de commande ouverte dans `CASH-CAR-evolution`, taper `node ml\evolution\etat.js` (il ne fait que lire :
+n'importe quel Node convient) et donner les 10 lignes à Claude, avec les 30 dernières lignes de `ml\evolution\etat\sortie.log` et de
+`ml\evolution\etat\traces.log`. Si la ligne 2 dit EN MARCHE et que la génération a avancé, c'est seulement
+l'envoi : continuer la mise à jour. Sinon, donner ces lignes à Claude avant de relancer : la cause de l'arrêt compte.
