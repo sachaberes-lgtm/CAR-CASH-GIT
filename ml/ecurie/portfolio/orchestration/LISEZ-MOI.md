@@ -1,6 +1,6 @@
 # Les orchestrations du 27 et du 28 novembre 2026
 
-Ce dossier garde la trace de huit travaux faits par des équipes d'agents : quatre le 27/11/2026, quatre dans la nuit du 27 au 28/11. Il montre comment le travail a été réparti, ce que les agents ont rendu, ce que leurs relecteurs ont trouvé, et ce qui a encore dû être corrigé après eux.
+Ce dossier garde la trace de seize travaux faits par des équipes d'agents : quatre le 27/11/2026, quatre dans la nuit du 27 au 28/11, et huit le 28/11, entre 7 h 20 et 14 h 47. Il montre comment le travail a été réparti, ce que les agents ont rendu, ce que leurs relecteurs ont trouvé, et ce qui a encore dû être corrigé après eux.
 
 Pour chaque travail, un sous-dossier contient deux fichiers :
 
@@ -19,9 +19,18 @@ Pour chaque travail, un sous-dossier contient deux fichiers :
 | `portage/` | faire des idées de la boucle payante des gènes, fixer Node, mesurer le coffre | 9 | 1 h 26 | 1 819 083 | 542 |
 | `changements-surs/` | faire entrer les changements sûrs de l'étude dans la sélection | 7 | 5 h 03 | 1 986 602 | 597 |
 | *sous-total de la nuit* | | *31* | | *7 192 979* | *2 018* |
-| **total** | | **84** | | **16 493 721** | **4 198** |
+| `prochaines-idees/` | relever les idées qui restent à essayer sur le banc des gènes | 11 | 32 min | 2 432 325 | 451 |
+| `traces-du-28/` | ranger la nuit du 27 au 28/11 dans le journal, la passation et ce dossier | 4 | 17 min | 761 477 | 178 |
+| `contrat-v4/` | écrire le contrat des gènes v4, sans coder | 5 | 42 min | 1 349 564 | 244 |
+| `code-v4/` | coder les gènes v4 et le banc des gènes v2 | 8 | 3 h 38 | 2 490 163 | 681 |
+| `lecture-du-banc/` | lire le banc des gènes fini | 3 | 15 min | 481 454 | 53 |
+| `greffes/` | faire essayer des interrupteurs par la sélection elle-même | 2 | 1 h 59 | 427 841 | 142 |
+| `sortie-mesure/` | mesurer les décollages au bord des maps à décor | 2 | 43 min | 503 584 | 101 |
+| `sortie-reecrite/` | réécrire sortieOn après cette mesure | 2 | 1 h 44 | 495 749 | 165 |
+| *sous-total du 28/11* | | *37* | | *8 942 157* | *2 015* |
+| **total** | | **121** | | **25 435 878** | **6 213** |
 
-Les chiffres viennent du bilan que Claude Code écrit à la fin de chaque orchestration (`workflows/<identifiant>.json` : `agentCount`, `durationMs`, `totalTokens`, `totalToolCalls`), relus le 28/11 au matin. Ils redonnent les nombres que la session principale avait en mémoire pour la nuit : 0,78, 2,60, 1,82 et 1,99 million de jetons. Le journal et les images ont tourné pendant que la construction tournait encore ; la nuit, les traces du soir et l'étude du réglage ont démarré à moins de trois minutes d'écart, et l'étude tournait encore quand le portage a commencé. Deux autres orchestrations du 27/11, plus tôt dans l'après-midi (la conception de la sélection naturelle et les enquêtes sur ce qui distingue le bot d'un joueur), ne sont pas rangées ici. Deux autres encore ont démarré le 28/11 au matin et n'étaient pas finies quand ce dossier a été complété (les « prochaines idées », et celle qui a rangé les quatre travaux de la nuit) : elles n'ont pas encore de bilan et ne sont pas rangées ici.
+Les chiffres viennent du bilan que Claude Code écrit à la fin de chaque orchestration (`workflows/<identifiant>.json` : `agentCount`, `durationMs`, `totalTokens`, `totalToolCalls`), relus le 28/11 au matin. Ils redonnent les nombres que la session principale avait en mémoire pour la nuit : 0,78, 2,60, 1,82 et 1,99 million de jetons. Le journal et les images ont tourné pendant que la construction tournait encore ; la nuit, les traces du soir et l'étude du réglage ont démarré à moins de trois minutes d'écart, et l'étude tournait encore quand le portage a commencé. Deux autres orchestrations du 27/11, plus tôt dans l'après-midi (la conception de la sélection naturelle et les enquêtes sur ce qui distingue le bot d'un joueur), ne sont pas rangées ici. Deux autres encore ont démarré le 28/11 au matin et n'étaient pas finies quand ce dossier a été complété (les « prochaines idées », et celle qui a rangé les quatre travaux de la nuit) : elles sont rangées depuis, avec les six travaux suivants du 28/11 (`prochaines-idees/` et `traces-du-28/`). Les huit bilans du 28/11 ont été relus le 28/11 après-midi. Ces huit équipes se chevauchent : les prochaines idées et les traces du 28/11 ont démarré à 4 minutes d'écart ; le code des gènes v4 a tourné de 8 h 39 à 12 h 17, pendant que la lecture du banc, les greffes et la mesure de la sortie démarraient ; les greffes et la mesure de la sortie finissaient quand la réécriture de sortieOn a commencé. L'orchestration qui a rangé ces huit travaux n'a pas encore de bilan : elle n'est pas rangée ici.
 
 ---
 
@@ -252,6 +261,124 @@ C'est ce que fait le « banc des gènes » (`ml/ecurie/etude/banc-des-genes/LISE
 
 ---
 
+## Le 28/11 : ce qui se passe autour des huit équipes
+
+Les huit travaux du 28/11 suivent un fil : relever les idées qui restent, les écrire en gènes éteints à la naissance (les « gènes v4 »), lire le banc des gènes, faire essayer les meilleures pistes par la sélection elle-même. Les faits, d'après git et les fichiers cités :
+
+- **Le banc des gènes est fini et lu.** Il a fini ses 1 250 courses vers 10 h 45 (dernière ligne de son journal, d'après le rédacteur de la section 13). Le résultat est enregistré à 11 h 02 (commit `46842ee77`) : aucun interrupteur ne change le palier ni la note F au seuil corrigé, mais trois rapprochent sûrement le pilote des joueurs (l'écart E passe de 0,882 à 0,707 avec slalomOn, 0,728 avec bordOn, 0,665 avec les cinq gestes ensemble).
+- **Le Ryzen n'a pas arrêté.** Ses commits d'une heure à l'autre se suivent sur la branche `evolution-ryzen`, de la génération 0 (1 h et 2 h) à la génération 16 (14 h). D'après la session principale, seul l'envoi horaire vers GitHub a échoué de 2 h à 13 h : sa connexion à Internet a coupé. À 13 h 11, l'assistant de Sacha sur le Ryzen a fait la première mise à jour : la fusion de `bots-ecurie` avec les greffes (commit `98db666ae`, « lance le 28/11 13:11 » dans `resume.txt`). Le `resume.txt` envoyé à 14 h dit : génération 17, nouvelle époque `3c3d44e8bd9b` depuis la génération 16, 495 courses à l'heure, champion = le témoin c0025, aucun sacre. La première greffe est née à la génération 17, comme prévu : l'enfant `2e9b5cc4c924`, le champion recopié avec `raccCartes_ville = 0` (`population.json` et `histoire.md` de la branche). « Mutations comptent-elles ? » : trop tôt pour le dire (109 enfants mesurés sur 191 ; tau 0,45, intervalle de 0,00 à 0,77).
+- **Une consigne de Sacha.** À 12 h 07, heure universelle (13 h 07 à Paris), il écrit, tel quel : « tu utilise plus de opus de sonnet haiku que fable on est a 34% contre 22, tu peux utiliser plus de fable si tu as besoin, c'est pas forcer fait le seulement si y'a des tache que fable peut vraiment faire mieu » (conversation de la session principale, tenue hors git ; ce que mesurent les 34 % et les 22 % n'y est pas dit). Les bilans des huit travaux le montrent : leurs 37 agents ont tous tourné sur Claude Opus. Aucun n'a tourné sur Fable. Les huit avaient tous démarré avant ce message (le dernier, la réécriture de sortieOn, à 13 h 03, heure de Paris).
+- **Après les huit équipes**, la session principale a fusionné le lot « gènes v4 » dans `bots-ecurie` à 14 h 59 (commit `77083d123`), puis écrit la vague 1 du banc v2 avant de la jouer (commit `15c7f1cb3`, 15 h 01). Ces deux pas ne sont pas des orchestrations : ils sont racontés à la fin de la section 16.
+
+Les décisions de cap restent celles de Sacha (la sélection naturelle sur le Ryzen). Le choix des idées, des lots, des consignes et des règles de gène est celui de Claude.
+
+---
+
+## 9. Les prochaines idées pour le banc (28/11, 7 h 20 – 7 h 53)
+
+**Le but.** Avant d'écrire de nouveaux gènes, relever dans ce qui est déjà écrit (études, journaux de la boucle payante, code) les changements de structure qui restent à essayer, et dire lesquels le banc peut mesurer. Aucune course. Le résultat est dans `ml/ecurie/etude/prochaines-idees/LISEZ-MOI.md`.
+
+**L'équipe : 11 agents.** Six **lecteurs** en même temps, un par famille de sources (les morts, la ressemblance aux joueurs, le vol et les yeux, les défauts confirmés, la boucle payante, le génome et les réseaux de neurones). Le script dit qu'ils ont rendu 31 candidats. Un **classeur** les fusionne en 12 idées pour la liste courte et 14 pour la liste longue. Trois **relecteurs** les attaquent en même temps : les chiffres à la source, la faisabilité dans le code, la mesure sur le banc. Un **correcteur** reprend le dossier.
+
+**Ce que les relecteurs ont trouvé : 36 défauts** (4 bloquants, 22 sérieux, 10 mineurs). Le plus net : l'idée classée première, freiner au canyon, reposait sur des chiffres mesurés sur l'ancien pilote, et la source la plus récente sur le pilote actuel dit de ne pas chercher le gain au canyon. Le relecteur du code a vu que ce frein ne partirait presque jamais (le jeu change le frein en dérapage dès que le volant dépasse 0,35), et qu'une idée, la loi fidèle, existait déjà dans le code. Le relecteur de la mesure a recalculé le hasard : même quand une idée change toutes les courses, le banc ne voit un effet qu'à partir d'environ 1 palier, à 96 graines. Le correcteur a fait descendre le frein du n° 1 au n° 4, retiré la seconde chance (elle gagne au banc par construction : c'est une décision pour Sacha) et refait toutes les lignes citées d'`ETAPES.md`, décalées de 68.
+
+**Ce que la session principale a fait après.** Elle a enregistré le dossier à 7 h 53 (commit `ddca156d8`), une minute après la fin. Son message ne signale aucune correction de sa part. Les idées retenues sont devenues le contrat de la section 11.
+
+---
+
+## 10. Les traces du 28/11 au matin (7 h 24 – 7 h 42)
+
+**Le but.** Ranger la nuit du 27 au 28/11 : un chapitre du journal de bord, les traces des quatre équipes de la nuit (les sections 5 à 8 ci-dessus), le sommaire, le lexique et la passation.
+
+**L'équipe : 4 agents.** Deux **rédacteurs** en même temps (le chapitre, les traces), un **vérificateur** du chapitre, puis un **raccordeur** pour le sommaire, le lexique, `ETAPES.md` et `PASSATION.md`.
+
+**Ce que le vérificateur a trouvé.** Il a corrigé le chapitre en place. L'erreur de fait la plus nette : le chapitre disait que l'agent de la mesure du coffre s'était arrêté à 10 graines ; il s'est arrêté après 4, et c'est son relecteur qui a joué les 6 de plus. Il a aussi remplacé « son assistant sur le Ryzen » par « l'assistant de Sacha sur le Ryzen », ajouté au résumé du chapitre une phrase d'impasse sans l'adoucir (les 21,61 EUR de la boucle payante n'ont pas acheté un meilleur pilote), et remplacé une comparaison qui n'avait pas de source exacte. Le rédacteur des traces signale un point qu'il n'avait pas le droit de corriger : un fichier déjà rangé nomme une école.
+
+**Ce que la session principale a fait après.** Elle a enregistré le tout à 7 h 42 (commit `44d048fc4`, qui annonce « onze corrections » du vérificateur). Aucune correction de sa part n'est signalée.
+
+---
+
+## 11. Le contrat des gènes v4 (7 h 55 – 8 h 37)
+
+**Le but.** Écrire, avant tout code, le contrat d'un seul lot : quatre idées de la section 9 en gènes éteints à la naissance, des compteurs qui disent combien de fois chaque gène a agi, des courses où la carte est imposée, et un banc des gènes v2 qui s'arrête dès que le résultat est net. Le contrat est `ml/evolution/notes/genes-v4.md`. La consigne donne la décision de la session principale : un seul lot, une seule nouvelle époque.
+
+**L'équipe : 5 agents.** Un **architecte** écrit le contrat sans coder. Trois **relecteurs** l'attaquent en même temps : le pilote « éteint » doit rejouer l'ancien au bit près ; chaque gène doit faire ce qu'il dit dans le code ; le banc et la sélection. Puis l'architecte **reprend** son contrat.
+
+**Ce que les relecteurs ont trouvé : 37 défauts** (1 bloquant, 14 sérieux, 22 mineurs). Le bloquant : le contrat proposait de juger un bras du banc sur son compteur de déclenchements. Or le témoin n'a jamais le gène allumé, son compteur vaut toujours zéro : la différence ne peut pencher que d'un côté, par construction. C'est le même piège qui avait sorti la seconde chance du banc à la section 9. L'architecte dit avoir corrigé les 37, dont un en partie seulement (les noms courts des compteurs).
+
+**Ce que la session principale a fait après.** Le contrat n'a pas été enregistré à part : il est entré dans le commit du lot (section 12). Aucun compte rendu de cette équipe ne dit que la règle de « la sortie préparée » ne se déclencherait jamais : ce sont des courses qui l'ont montré (sections 12 et 15).
+
+---
+
+## 12. Le code des gènes v4 (8 h 39 – 12 h 17)
+
+**Le but.** Coder le contrat dans une copie à part du dépôt, sur la branche `genes-v4`, pendant que le banc des gènes finissait ses courses sur le Xeon. Le détail est dans `ml/evolution/notes/LIVRAISON-GENES-V4.md`.
+
+**L'équipe : 8 agents.** Trois lots en même temps : le lot (a) en deux temps (le génome v:4 et les règles des gènes, puis les compteurs), le lot (b) (les compteurs et la carte imposée du côté des courses), le lot (c) (le banc v2). Puis trois **relecteurs** qui corrigent eux-mêmes, et un **intégrateur**.
+
+**Ce que les relecteurs ont trouvé.**
+
+- **Au bit près : rien.** Le relecteur a rejoué 4 050 vues de quatre vraies courses à l'ancien et au nouveau pilote : toutes les décisions sont égales, et les identifiants des pilotes ne changent pas (c0025, c0101, les 26 génomes du Ryzen).
+- **Un gène qui ne tenait pas sa promesse.** Pour le relecteur « sémantique », la règle « rien » devait voir la même chose deux vues de suite ; dans un cas, une seule suffisait. Corrigé.
+- **Un gène qui ne part jamais.** Le même relecteur a joué des courses gène par gène : la sortie préparée (sortieOn) ne s'est déclenchée dans aucune des cinq. Ce n'est pas une faute de code : c'est la règle du contrat. Il écrit que la décision revient à la session principale.
+- **Le banc.** Avec une seule graine mesurable, un bras pouvait s'arrêter « net » sur une seule course. Corrigé. Le relecteur a vérifié le taux de faux résultats nets sur 1 500 vagues tirées des vraies courses : 4,67 %, pour 4,9 % attendus.
+
+L'intégrateur a retiré un nom de PC du contrat, corrigé un test qui échouait à cause des fins de ligne de Windows (défaut plus ancien que le lot), et relancé tous les tests, lents compris : 24 suites rapides, identité 9/9, `evoluer.test` (78 contrôles, 2 720 secondes), `courses.test` 9/9. Il a fait le commit `7f85efb38` à 12 h 16, sur `genes-v4` seulement. Trois des huit comptes rendus sont en anglais, au moins en partie.
+
+**Ce que la session principale a fait après.** Elle n'a pas fusionné tout de suite. Elle a d'abord fait mesurer pourquoi sortieOn ne partait jamais (section 15).
+
+---
+
+## 13. La lecture du banc des gènes (10 h 47 – 11 h 02)
+
+**Le but.** Le banc venait de finir. Lire ce qu'il dit, sans rejouer de course : bras par bras, le palier, et de quels morceaux est fait l'écart aux joueurs E.
+
+**L'équipe : 3 agents.** Un **analyste** écrit l'outil `composantes.js`, un **relecteur** refait les calculs avec ses propres scripts, un **rédacteur** écrit le résultat dans le LISEZ-MOI de l'étude, le journal et la passation.
+
+**Ce que le relecteur a trouvé.** Aucune erreur de calcul : il retrouve les mêmes paliers et les mêmes E. Il a vérifié que le gain de E ne vient ni de la survie ni du choix des courses. Mais il a refusé ou affaibli des chiffres et des conclusions, et le rédacteur les a laissés de côté : un seuil de comparaisons, « ne font pas mourir plus tôt » (devenu « aucun effet visible sur la survie »), et l'effet d'un interrupteur sur E (devenu « aucun effet sûr »). Le rédacteur a aussi relevé une phrase fausse de l'analyste : avec slalomOn, l'aller du slalom n'est plus le premier morceau de E.
+
+**Ce que la session principale a fait après.** Elle a enregistré le tout à 11 h 02 (commit `46842ee77`). D'après son message, le relecteur a affaibli six phrases. Sa décision : rien n'est allumé à la naissance ; cinq bras passent en vague de confirmation sur des graines neuves.
+
+---
+
+## 14. Les greffes de la sélection (11 h 04 – 13 h 03)
+
+**Le but.** Que la sélection essaie elle-même les interrupteurs que le banc a fait ressortir. À la place de l'immigré (le pilote né au hasard de chaque génération), selon un cycle, elle fait naître une « greffe » : le champion du moment recopié, avec seulement quelques interrupteurs forcés. La note est `ml/evolution/notes/greffes.md`.
+
+**L'équipe : 2 agents.** Un **auteur**, puis un **relecteur** qui doit prouver qu'au bit près rien ne change sans greffe, essayer en vraies courses et corriger sur place.
+
+**Ce que le relecteur a trouvé.** L'auteur disait que les greffes marchaient comme prévu, mais aucune vraie génération n'avait tourné avec des greffes. Le relecteur en a fait tourner. Au troisième essai, après un arrêt en pleine génération puis une relance, le journal avait perdu la ligne qui dit qu'une greffe est née. Corrigé, avec deux contrôles de plus au test (70 au lieu de 68). Il a aussi corrigé une phrase du récit, fausse dans un cas. Sa preuve : sans greffe, trois générations et 56 vraies courses donnent les mêmes populations, les mêmes journaux et les mêmes pilotes qu'avec l'ancien code.
+
+**Ce que la session principale a fait après.** Elle a écrit le cycle des greffes dans `config.json` (cinq ensembles, dont `raccCartes_ville = 0`, parce que les raccourcis voulus tuent en ville) et enregistré le tout à 13 h 05 (commit `5e7f311aa`). C'est ce commit que l'assistant de Sacha sur le Ryzen a installé à 13 h 11, et la première greffe y est née à la génération 17.
+
+---
+
+## 15. La mesure de la sortie préparée (12 h 19 – 13 h 02)
+
+**Le but.** Comprendre pourquoi sortieOn ne part jamais (section 12) : mesurer, sur les maps à décor, ce que le pilote voit et fait aux décollages par le bord. Dans la copie `genes-v4`. L'étude est `ml/ecurie/etude/sortie-preparee/LISEZ-MOI.md`.
+
+**L'équipe : 2 agents.** Un **mesureur** (un pilote de diagnostic, 40 courses à carte imposée), puis un **relecteur** qui refait les calculs par un autre chemin et propose une règle chiffrée.
+
+**Ce que le relecteur a trouvé.** Trois courses étaient comptées deux fois : il reste 180 décollages subis distincts et 24 morts, et non 185 et 27. Une mort était attribuée aux rayons du mauvais décollage, une médiane était fausse (0,26 s et non 0,55 s), et un chiffre du mesureur comptait des vues au lieu de déclenchements. Le fond tient : sur les 24 décollages mortels, les yeux ne voient aucune issue ; le bord est annoncé 0,28 s avant le décollage, pour une main qui met 0,2 s à obéir ; partir en « plane » au bord se serait écrasé dans 57 vols qui se sont posés. Sa recommandation : écrire l'impasse et laisser sortieOn éteint. Le levier est au sol, avant le bord.
+
+**Ce que la session principale a fait après.** **C'est l'impasse du jour.** La sortie préparée par les rayons du bord ne peut rien sauver. La session principale ne suit pourtant pas la recommandation à la lettre : elle fait réécrire sortieOn en « la nitro au décollage sur les maps à décor », le pendant de bordOn. L'étude en donne la raison : sur ces maps, le pilote ne décolle jamais nitro allumée (0 sur 253), quand les joueurs le font environ 63 fois sur 100. Ce que cela fait au palier n'est pas mesuré : seul le banc le dira.
+
+---
+
+## 16. sortieOn réécrit (13 h 03 – 14 h 47)
+
+**Le but.** Appliquer cette décision dans la copie `genes-v4` : la règle, le contrat, les tests, les notes et l'étude, puis un commit.
+
+**L'équipe : 2 agents.** Un **auteur**, puis un agent qui est à la fois **relecteur et intégrateur** : il vérifie l'identité, joue de vraies courses, relance les tests lents et fait le commit.
+
+**Ce que le relecteur a trouvé.** Aucun défaut dans le code, tous dans les textes. Le contrat décrivait encore « la sortie préparée » dans ses mots simples. L'étude ne disait pas que la décision s'écarte de la proposition de son relecteur : il a ajouté pourquoi, et d'où vient le « 0 sur 253 ». La note de livraison disait « un seul commit » et donnait une époque périmée. D'après le message du commit `d30db9519` (14 h 46), éteint, le pilote décide comme avant sur 4 050 vues de vraies courses, et allumé, il a joué 8 vraies courses de 120 secondes sans erreur ; `courses.test` n'a pas été relancé.
+
+**Ce que la session principale a fait après** (commits `77083d123` à 14 h 59 et `15c7f1cb3` à 15 h 01). Elle a fusionné le lot dans `bots-ecurie`, sans conflit avec les greffes. Elle a porté le cycle des greffes à 10 ensembles, dont cinq qui allument des gènes v4, soit un cycle de 11 générations. Elle a corrigé un contrôle périmé du test des greffes (71/71). 24 suites rapides et le test du banc passent sur l'arbre fusionné ; `identite.test`, `evoluer.test` et `courses.test` étaient encore en cours quand cette section a été écrite. Puis elle a écrit la vague 1 du banc v2 et l'a enregistrée **avant** de la jouer : cinq bras (bord, slalom, bord + slalom, suit, fuir vite) contre le témoin c0025, sur des graines neuves. Ainsi, le critère ne peut plus être choisi après avoir vu les résultats. La vague tourne sur le Xeon ; elle n'a encore aucun résultat.
+
+**Ce qui attend, le 28/11 à 15 h** (d'après la session principale) : la deuxième mise à jour du Ryzen, avec le lot v4, n'est pas faite. Elle fait passer les génomes en v:4, sans retour possible : il faudra d'abord copier `etat\` et `champions\`. Trois questions restent à Sacha : le seuil de la seconde chance (`chancePalierMin`, 12 aujourd'hui), la décision D1 (`seuilB` / `seuilC`), et l'emploi des crédits d'API qui restent.
+
+---
+
 ## Ce que cette méthode ne garantit pas
 
 Un compte rendu d'agent n'est pas une preuve. C'est ce que l'agent dit avoir fait. Les exemples de ce dossier :
@@ -275,6 +402,15 @@ Ajouté le 28/11, avec les quatre travaux de la nuit :
 - **La langue n'est toujours pas fixée.** Sept des 31 comptes rendus de la nuit sont en anglais, au moins en partie.
 - **Des tests ne sont toujours pas tous relancés.** `tests/courses.test.js` n'a pas tourné avec le code des changements sûrs, et rien de ce code n'a encore tourné sur le Ryzen.
 
+Ajouté le 28/11 après-midi, avec les huit travaux du 28/11 :
+
+- **Une règle relue par plusieurs agents peut ne jamais servir.** La sortie préparée a été écrite par un architecte, attaquée par trois relecteurs (37 défauts corrigés), codée, puis relue par trois autres. Ce sont de vraies courses qui ont montré qu'elle ne partait jamais, et la mesure qui a suivi en a fait une impasse.
+- **Un classement peut reposer sur le mauvais pilote.** L'idée classée première à la section 9 venait de chiffres mesurés sur l'ancien pilote. C'est le relecteur des chiffres qui l'a vu, en rouvrant les sources.
+- **Un relecteur trouve ce que l'auteur n'a pas essayé.** Le défaut des greffes n'apparaît qu'après un arrêt en pleine génération, en vraies courses : l'auteur n'en avait fait tourner aucune.
+- **Une décision peut s'écarter de la recommandation.** Le relecteur de la mesure proposait de laisser sortieOn éteint ; la session principale l'a réécrit en autre chose. L'étude le dit, avec sa raison, et ce que cela vaut n'est pas mesuré.
+- **La langue n'est toujours pas fixée.** Trois des 37 comptes rendus du 28/11 sont en anglais, au moins en partie, tous dans l'équipe du code des gènes v4.
+- **Des tests tournaient encore.** Sur l'arbre fusionné, `identite.test`, `evoluer.test` et `courses.test` n'avaient pas fini quand ce dossier a été complété, et le lot v4 n'a pas encore tourné sur le Ryzen.
+
 ---
 
 ## Comment ce dossier est fait
@@ -289,4 +425,6 @@ L'outil nettoie tout ce qu'il écrit, parce que le dépôt est public. Le 27/11 
 
 Le 28/11 au matin, l'outil a reçu les quatre travaux de la nuit et il a été relancé sur les huit. Les fichiers des quatre travaux du 27/11 sortent à l'identique (`git diff` vide sur leurs dossiers). Pour les nouveaux seulement, l'outil écrit « Réussi : oui / non » au lieu de « Passe : true / false » pour un test, et remet les accents dans les noms de lots. Sur les quatre travaux de la nuit, il a fait 6 remplacements, tous dans `traces-du-soir/` : 3 noms de PC (des noms d'exemple écrits dans les consignes et les comptes rendus, pas le vrai nom), 2 chemins temporaires et 1 détail familial. Rien dans les trois autres. Une recherche à la main sur les mêmes motifs ne trouve ni clé, ni jeton, ni adresse e-mail, ni nom de PC réel ; l'assistant de Sacha sur le Ryzen n'est nommé dans aucun des nouveaux fichiers.
 
-Ce LISEZ-MOI a été écrit par un agent Opus le 27/11 au soir, à partir de ces comptes rendus, des bilans des orchestrations, des messages de commit et des journaux de l'évolution en cours. Les sections sur la nuit du 27 au 28/11 (de « La nuit du 27 au 28/11 » à « La leçon de méthode de la nuit ») ont été ajoutées par un autre agent Opus le 28/11 au matin, à partir des mêmes sources : les huit bilans, les quatre scripts et les 31 comptes rendus de la nuit, les messages des commits `b1ff8af89` à `2a3bea3c1`, le `resume.txt` de la branche `evolution-ryzen`, et les LISEZ-MOI des études citées.
+Le 28/11 après-midi, l'outil a reçu les huit travaux du 28/11 et il a été relancé sur les seize. Les fichiers des huit travaux déjà rangés sortent à l'identique (`git diff` vide sur leurs dossiers). Sur les huit nouveaux, il a fait 14 remplacements : 8 chemins vers le dossier temporaire de Claude Code (dans `prochaines-idees/`, `traces-du-28/`, `lecture-du-banc/` et `greffes/`) ; 2 noms de PC dans `traces-du-28/`, qui sont des noms d'exemple cités par un compte rendu, pas le vrai nom ; 3 adresses e-mail, dans `code-v4/` et `sortie-reecrite/`, qui sont l'adresse générique « noreply » d'Anthropic des lignes de signature des commits ; et 1 nom propre, celui de l'assistant de Sacha sur le Ryzen, écrit par le vérificateur des traces du 28/11 dans la liste de ce qu'il avait cherché. Pour ce dernier, l'outil a reçu une règle de plus. Le nom n'est écrit nulle part dans le dépôt : l'outil le lit dans un petit fichier local que git ignore, et refuse d'écrire si ce fichier manque. (La première version gardait dans l'outil l'empreinte SHA-256 du nom ; la relecture l'a retirée, parce qu'un prénom se retrouve en quelques secondes à partir de son empreinte, en essayant une liste de prénoms. Relancé ainsi, l'outil redonne les seize dossiers à l'identique.) Une recherche à la main sur les nouveaux dossiers ne trouve ni clé, ni jeton, ni nom de PC réel, ni le nom de l'assistant.
+
+Ce LISEZ-MOI a été écrit par un agent Opus le 27/11 au soir, à partir de ces comptes rendus, des bilans des orchestrations, des messages de commit et des journaux de l'évolution en cours. Les sections sur la nuit du 27 au 28/11 (de « La nuit du 27 au 28/11 » à « La leçon de méthode de la nuit ») ont été ajoutées par un autre agent Opus le 28/11 au matin, à partir des mêmes sources : les huit bilans, les quatre scripts et les 31 comptes rendus de la nuit, les messages des commits `b1ff8af89` à `2a3bea3c1`, le `resume.txt` de la branche `evolution-ryzen`, et les LISEZ-MOI des études citées. Les sections sur le 28/11 (de « Le 28/11 : ce qui se passe autour des huit équipes » à la section 16) ont été ajoutées par un troisième agent Opus le 28/11 après-midi : à partir des huit bilans, des huit scripts et des 37 comptes rendus, des messages des commits `44d048fc4` à `15c7f1cb3`, du `resume.txt`, de `population.json` et de `histoire.md` envoyés par le Ryzen à 14 h, des notes `greffes.md` et `LIVRAISON-GENES-V4.md` et de l'étude de la sortie préparée. Ce que la session principale lui a donné sans source dans le dépôt est marqué « d'après la session principale ».

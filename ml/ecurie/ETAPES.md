@@ -13,14 +13,61 @@ Le plan d'ensemble est dans `PLAN.md`, l'étude dans `etude/`.
 | B | Les fondations : défauts corrigés, yeux v2, doigts v2 | **faite** (25/11/2026) : défauts corrigés, yeux v2 et doigts v2 écrits, relus par des agents, corrigés, puis contrôlés une dernière fois (`verifier.js` TOUT PASSE en régime max et en régime allégé, 5 rejeux exacts sur 5, la boucle à blanc va au bout avec un cerveau à profil) ; **finitions du 25/11 au soir** : le radar sonde le canyon à chaque image (exact, +0,2 % de coût), la justesse refaite avec la main réglée, les fins de ligne du labo. Ce qui reste faux ou non mesuré est écrit plus bas : ce sont des limites connues, pas des oublis |
 | C | Le pilote d'élite, amélioré par tours (le réglage à la main s'arrête le 27/11/2026 : le dernier pilote réglé, `pilote-voltige.js`, devient le témoin et le point de départ de la sélection) | **commencée (25/11/2026) : le premier pilote existe** (`ml/ecurie/pilote.js`, main `clavier`). Au tri (12 graines, 600 s, allégé) : **palier médian 12,5, meilleur 20**, contre 6 et 17 pour le bot de référence sur les mêmes graines. **Contrôlé le 25/11 au soir** (aucune erreur ; sur 8 graines de 600 s : médian 11,5 et meilleur 18, contre 7 et 16). **Pas encore fait** (le travail de la chaîne) : la note de 20 graines de 900 s, l'inscription au labo, les tours payés de la boucle |
 | C bis | La boucle automatique sur le crédit API (les 200 €), avec un plafond de dépense | **prête, essayée à blanc** : un tour complet le 24/11 puis de nouveau le 25/11 avec un cerveau à profil (0 €) ; la clé d'API est acceptée par les quatre modèles (`essai-api.js` du 24/11 : Opus 5.5, Sonnet 5.5 et Fable 5.2 avec repli, Haiku 5.5 sans) ; `boucle.js` a un plafond général de 200 € lu au journal des dépenses (`--plafond`, commit `71f3c7bea`). **Calibrée le 25/11** : un tour de 6 variantes par modèle sur le même pilote (4,63 €) ; aucun palier gagné validé, écart entre modèles dans le bruit ; **choix : Sonnet 5.5, départ `pilote.js`** (`agents/choix.json`, détails dans la partie C bis). **Abandonnée comme voie le 27/11/2026** (décision de Sacha : la sélection naturelle, étape S) ; lancée par Sacha sur le Ryzen le 27/11, **arrêtée le 28/11 à 0 h 12** (`b1ff8af89`). **Jugée le 28/11** sur les 40 graines du coffre : ses champions ne font pas mieux que le pilote de départ (+0,03 palier [−1,18 ; +1,38], `00fb4cfad`) ; à ne pas relancer telle quelle (voir « La nuit du 27 au 28/11 », ci-dessous) |
-| S | **La sélection naturelle** (`ml/evolution/`, décidée par Sacha le 27/11/2026) : remplace l'amélioration à la main et la boucle payante | **construite le 27/11/2026** (`e2ea8d2c9`, `7c5204afa`) ; **tourne sur le Ryzen depuis le 28/11 à 0 h 29** (code `e93ff5cb5`, 418 courses à l'heure ; aucun envoi depuis 2 h) ; le réglage de la nuit (`3b1bf15e5`, `2a3bea3c1`) est poussé, **pas encore installé sur le Ryzen** (voir « La nuit du 27 au 28/11 », ci-dessous) |
+| S | **La sélection naturelle** (`ml/evolution/`, décidée par Sacha le 27/11/2026) : remplace l'amélioration à la main et la boucle payante | **construite le 27/11/2026** (`e2ea8d2c9`, `7c5204afa`) ; **tourne sur le Ryzen depuis le 28/11 à 0 h 29** (code `e93ff5cb5`, 418 courses à l'heure) ; envoi coupé de 2 h à 13 h (sa connexion à Internet), la sélection n'a pas arrêté ; **mise à jour n° 1 le 28/11 à 13 h 11** (portage, réglage, greffes : `98db666ae`, époque `3c3d44e8bd9b`) ; à 14 h, génération 17, 495 courses à l'heure, champion = témoin, première greffe née. Le lot « gènes v4 » (`77083d123`) n'est **pas encore installé sur le Ryzen** (mise à jour n° 2) ; la vague 1 du banc v2 tourne sur le Xeon (voir « L'après-midi du 28/11 », ci-dessous) |
 | D | Le facteur humain et les 30 niveaux | à faire |
 | E | Le juge, niveau par niveau | à faire |
 | F | Le paquet du matchmaking et le dossier du portfolio | à faire |
 
 ---
 
-## OÙ ON EN EST — à lire en premier (mis à jour le 28/11/2026 vers 7 h 40 ; le titre d'origine, du 25/11, disait « la chaîne tourne » : périmé)
+## OÙ ON EN EST — à lire en premier (mis à jour le 28/11/2026 vers 15 h ; le titre d'origine, du 25/11, disait « la chaîne tourne » : périmé)
+
+### L'après-midi du 28/11/2026 : les greffes, le Ryzen mis à jour, le lot « gènes v4 », l'impasse de la sortie préparée, la vague 1
+
+Le récit pour le portfolio : `portfolio/journal/2026-11-28_suite.md`. Heures de Paris ; les messages de Sacha en UTC.
+
+**Ce qui a été fait.**
+- **Le banc des gènes, lu et poussé** (`46842ee77`, 11 h 02) : le résultat est écrit plus bas (« Mise à jour, 28/11 à 10 h 45 ») et dans
+  `etude/banc-des-genes/LISEZ-MOI.md`.
+- **Les greffes** (`5e7f311aa`, 13 h 05 ; `ml/evolution/greffes.js`, `ml/evolution/notes/greffes.md` ; 2 agents Opus) : à la place de l'immigré, selon un
+  cycle, naît le champion du moment recopié avec quelques interrupteurs forcés, sans aucun tirage au hasard. Cinq essais dans ce commit (`bordOn` ;
+  `slalomOn` ; les deux ; `bordOn` + `suitOn` + `fuirVite` ; `raccCartes_ville` à 0), un cycle de 6 générations. Sans la clé, identique au code d'avant
+  au bit près (3 générations et 56 vraies courses ; 6 générations sans course) ; `greffes.test` 70/70.
+- **Le Ryzen** : il n'a jamais arrêté. Les comptes rendus horaires de `origin/evolution-ryzen` sont datés de 3 h à 13 h (générations 1 à 15) ; seul l'envoi a
+  échoué (sa connexion à Internet a coupé, d'après la session principale). **Mise à jour n° 1** par l'assistant de Sacha sur le Ryzen (compte rendu collé
+  par Sacha à 12:17 UTC) : fusion de `origin/bots-ecurie` (`98db666ae`, avec les greffes), relance à 13 h 11, nouvelle époque (`modele.js` :
+  `29ae5fffc2b9` → `3c3d44e8bd9b`), identité « IDENTIQUE ×3 », témoin c0025. Envoi de 14 h (`9fcfbd2a0`) : génération 17 en cours, 495 courses à l'heure,
+  0 sacre sur 3 tentatives, champion = témoin, `regle6` = 2 ; première greffe à la génération 17 (`2e9b5cc4c924`, `raccCartes_ville = 0`) ; « mutations
+  comptent-elles ? » trop tôt (109 enfants sur 191 ; r 0,17 ; τ 0,45 [0,00 ; 0,77]).
+- **Le lot « gènes v4 »** (`7f85efb38`, 12 h 16, branche `genes-v4` ; contrat `ml/evolution/notes/genes-v4.md`, livraison `LIVRAISON-GENES-V4.md`, lots
+  `genes-v4-lot-a/b/c.md` ; 4 auteurs, 3 relecteurs, 1 intégrateur) : 8 gènes nouveaux, éteints ou figés (`sortieOn` + `sortieT` + `sortieJauge`, `rienOn` +
+  `rienEcart`, `loiFidele`, `secoursOn`, `chancePalierMin` figé à 12) ; génome v:4, 129 gènes, mêmes identifiants ; 25 compteurs de déclenchements ;
+  les courses à map imposée et la carte tenue ; le banc v2 (`ml/evolution/banc/README.md` : critère annoncé, regards O'Brien-Fleming, Bonferroni,
+  candidat à confirmer). Vérifié sur la branche : 24 suites rapides, identité 9/9, `evoluer.test` 78 contrôles, `courses.test` 9/9.
+- **L'impasse de la sortie préparée** (`ml/ecurie/etude/sortie-preparee/LISEZ-MOI.md` ; `d30db9519`, 14 h 46 ; 1 auteur, 1 relecteur-intégrateur) : la
+  règle du contrat ne se déclenche jamais (0 en 13 vraies courses, 0 dans l'étude) ; 40 courses à carte tenue, 180 décollages subis distincts, 24 morts ;
+  aucune issue vue aux 24 morts ; le bord annoncé 0,28 s avant le décollage (la main met 0,2 s) ; « plane » au bord se crasherait dans 57 vols posés ;
+  0 décollage nitro allumée sur 253 (joueurs 0,625). Décision de la session principale : `sortieOn` devient **la nitro au décollage sur les maps à
+  décor**, le pendant de `bordOn` (115 décollages distincts touchés sur 180, dont 17 des 24 mortels) ; éteint = 510 300 décisions identiques ; allumé,
+  8 courses de 120 s sans erreur ni panne. Effet sur le palier **non mesuré**.
+- **La fusion** (`77083d123`, 14 h 59) : sans conflit avec les greffes ; le cycle passe à 10 ensembles (cycle de 11 générations), avec cinq ensembles v4
+  (`sortieOn` ; `bordOn` + `sortieOn` ; `bordOn` + `sortieOn` + `slalomOn` ; `secoursOn` ; `loiFidele` à 2) ; un contrôle périmé de `greffes.test`
+  remplacé par deux (71/71) ; 24 suites rapides et `banc.test` passent sur l'arbre fusionné.
+- **La vague 1 du banc v2** (`15c7f1cb3`, 15 h 01 ; `ml/evolution/banc/vagues/v001-confirmation-gestes/vague.json` et `plan.json`) : écrite et commitée
+  **avant d'être jouée** ; cinq bras (`bord`, `bord-slalom`, `suit`, `fuir-vite` sur F ; `slalom` sur E, garde annoncée : pas plus de 0,75 palier perdu)
+  contre c0025, graines neuves 4 000 000 à 4 007 067, regards de 24 à 192, 5 % par vague (1 % par bras), époque `ad6cc000299a`.
+
+**Ce qui tourne à 15 h.** La sélection sur le Ryzen ; la vague 1 sur le Xeon (aucun résultat) ; `identite.test`, `evoluer.test` et `courses.test` sur
+l'arbre fusionné (**en cours**).
+
+**Ce qui est écarté.** **La sortie préparée par les rayons du bord** (le `sortieOn` du contrat, § 3.1 de `genes-v4.md`, marqué « remplacé ») : muette par
+construction chez c0025, et nuisible si on la forçait (le registre des impasses du journal la garde). Le dernier recours proposé par le relecteur
+(0,85 décollage par course, gain « minuscule ») n'est pas retenu non plus.
+
+**Ce qui attend.** La mise à jour n° 2 du Ryzen (le lot v4 ; migration v:4 à sens unique : copier `etat\` et `champions\` hors du dépôt d'abord,
+`LIVRAISON-GENES-V4.md` § 4, geste 1 bis) ; le push de `7f85efb38`, `d30db9519`, `77083d123`, `15c7f1cb3` ; les décisions de Sacha : le seuil de la
+seconde chance (`chancePalierMin`, 12), D1 (`seuilB` / `seuilC`), l'emploi des crédits d'API restants. La suite, dans l'ordre : **`PASSATION.md`, partie
+du 28/11 vers 15 h**.
 
 ### La nuit du 27 au 28/11/2026 : la sélection sur le Ryzen, la boucle payante jugée, le mur du hasard
 

@@ -12,7 +12,11 @@
      - une chaîne qui ressemble à une clé ou à un jeton (sk-ant-…, ghp_…, github_pat_…, « api key = … ») devient « [retiré] » ;
      - une adresse e-mail devient « [adresse retirée] » ;
      - un chemin sous C:\Users\sacha\AppData\… (dossier temporaire de Claude Code) est raccourci en « <dossier temporaire>\… » ;
-     - un détail de famille (un lien de parenté accolé à une personne ou à une machine) est retiré.
+     - un détail de famille (un lien de parenté accolé à une personne ou à une machine) est retiré ;
+     - (28/11) le nom propre de l'assistant qui tape les commandes sur le Ryzen devient « l'assistant de Sacha sur le Ryzen ». Ce nom
+       n'est écrit nulle part dans le dépôt : l'outil le lit dans ml/ecurie/agents/tmp-portfolio/mots-caches.json, un fichier local que
+       git ignore (motif tmp-* du .gitignore). Sans ce fichier, l'outil refuse d'écrire (voir MOTS_CACHES). Une empreinte SHA-256 du
+       nom, écrite d'abord à sa place, a été retirée par la relecture : un prénom se retrouve en quelques secondes à partir de son empreinte.
    L'outil affiche le nombre de remplacements de chaque sorte, travail par travail. Il ne lance rien, il ne fait que lire et écrire. */
 'use strict';
 const fs = require('fs'), path = require('path');
@@ -83,6 +87,52 @@ const TRAVAUX = [
       [/^faire:regles$/, 'constructeur du lot « règles » : protection des enfants par l\'âge, ordre des courses, réserve de graines, gènes muets hors de l\'urne'],
       [/^relire:(.*)$/, 'relecteur du lot « $1 » : cherche à le réfuter, refait une preuve par un autre chemin, corrige ce qu\'il trouve'],
       [/^integrer$/, 'intégrateur : branche la mesure, relance tous les tests (lents compris), reprend un état écrit par l\'ancien code, écrit la note de livraison'] ] },
+  /* ===== LES HUIT TRAVAUX DU 28/11 (28/11/2026, Sacha : « il faut qu'on garde des traces de tous les process, pour un portfolio ») =====
+     Ajoutés après coup, dans l'ordre où ils ont démarré : les huit travaux ci-dessus sortent à l'identique. */
+  { dossier: 'prochaines-idees', wf: 'wf_b84c1055-e3c', titre: 'Les prochaines idées pour le banc des gènes', nouveau: true,
+    roles: [
+      [/^lire:(.*)$/, 'lecteur « $1 » : lit une famille de sources déjà écrites et rend des idées candidates, chacune avec son chiffre'],
+      [/^classer$/, 'classeur : fusionne les candidats, retire les doublons, classe et écrit le dossier'],
+      [/^attaquer:chiffres$/, 'relecteur « chiffres » : rouvre chaque source citée et recontrôle chaque chiffre'],
+      [/^attaquer:code$/, 'relecteur « code » : vérifie que chaque idée peut s\'écrire dans le code du pilote'],
+      [/^attaquer:mesure$/, 'relecteur « mesure » : vérifie que chaque idée peut se mesurer sur le banc des gènes'],
+      [/^reprendre$/, 'correcteur : reprend le dossier d\'après les trois attaques'] ] },
+  { dossier: 'traces-du-28', wf: 'wf_e7c9c530-0ea', titre: 'Les traces du 28/11 au matin (le chapitre du jour, les orchestrations de la nuit)', nouveau: true,
+    roles: [
+      [/^ecrire:2026-11-28$/, 'rédacteur du chapitre du 28/11 : écrit la nuit du 27 au 28/11 et le matin du 28/11 dans le journal de bord'],
+      [/^traces:orchestrations$/, 'rédacteur des traces des orchestrations : range les quatre travaux de la nuit avec l\'outil orchestration.js'],
+      [/^verifier:2026-11-28$/, 'vérificateur du chapitre du 28/11 : recontrôle chaque chiffre, date et citation, et corrige le fichier'],
+      [/^raccorder$/, 'raccordeur : met à jour le sommaire, le lexique, ETAPES.md et PASSATION.md'] ] },
+  { dossier: 'contrat-v4', wf: 'wf_a8860828-eec', titre: 'Le contrat des gènes v4', nouveau: true,
+    roles: [
+      [/^architecte$/, 'architecte : écrit le contrat du lot « gènes v4 », sans coder'],
+      [/^attaquer:(.*)$/, 'relecteur « $1 » : attaque le contrat sous cet angle et relève ses défauts'],
+      [/^reprendre$/, 'architecte, second passage : corrige le contrat d\'après les trois attaques'] ] },
+  { dossier: 'code-v4', wf: 'wf_97cc59d9-d7e', titre: 'Le code des gènes v4', nouveau: true,
+    roles: [
+      [/^lot-a:genes$/, 'constructeur du lot (a), premier temps : le génome v:4 et les règles des nouveaux gènes'],
+      [/^lot-a:compteurs$/, 'constructeur du lot (a), second temps : les compteurs de déclenchements dans le pilote'],
+      [/^lot-b:courses$/, 'constructeur du lot (b) : les compteurs et la carte imposée du côté des courses'],
+      [/^lot-c:banc$/, 'constructeur du lot (c) : le banc des gènes v2, dans un dossier neuf'],
+      [/^relire:(.*)$/, 'relecteur « $1 » : cherche les défauts du lot sous cet angle et les corrige en place'],
+      [/^integrateur$/, 'intégrateur : relance tous les tests, lents compris, joue une vague d\'essai du banc, écrit la livraison'] ] },
+  { dossier: 'lecture-du-banc', wf: 'wf_f91dd3e4-3e4', titre: 'La lecture du banc des gènes', nouveau: true,
+    roles: [
+      [/^analyste$/, 'analyste : calcule, bras par bras, le palier et les morceaux de l\'écart aux joueurs, sans rejouer de course'],
+      [/^relecteur$/, 'relecteur : refait les calculs par un autre chemin et attaque les conclusions'],
+      [/^redacteur$/, 'rédacteur : écrit le résultat dans le LISEZ-MOI de l\'étude, le journal et la passation'] ] },
+  { dossier: 'greffes', wf: 'wf_3dbb33d5-4d2', titre: 'Les greffes de la sélection', nouveau: true,
+    roles: [
+      [/^auteur$/, 'auteur : écrit les greffes (greffes.js, le branchement dans evoluer.js, le test, la note)'],
+      [/^relecteur$/, 'relecteur : vérifie au bit près que rien ne change sans greffe, essaie en vraies courses, corrige sur place'] ] },
+  { dossier: 'sortie-mesure', wf: 'wf_e9f81f3f-6ec', titre: 'La mesure de la sortie préparée', nouveau: true,
+    roles: [
+      [/^mesureur$/, 'mesureur : un pilote de diagnostic, des courses à carte tenue, le tableau des décollages au bord'],
+      [/^relecteur$/, 'relecteur : refait les calculs par un autre chemin et propose une règle chiffrée'] ] },
+  { dossier: 'sortie-reecrite', wf: 'wf_a86ae302-f88', titre: 'sortieOn réécrit après la mesure', nouveau: true,
+    roles: [
+      [/^auteur$/, 'auteur : réécrit sortieOn dans le pilote, le contrat, les tests, les notes et l\'étude'],
+      [/^relecteur-integrateur$/, 'relecteur et intégrateur : vérifie l\'identité, joue de vraies courses, relance les tests lents, fait le commit'] ] },
 ];
 
 /* ----- Le nettoyage : chaque règle compte ses remplacements ----- */
@@ -107,11 +157,23 @@ const REGLES = [
   { sorte: 'détail familial', re: new RegExp('\\ble (PC|ordinateur|machine) ' + DE_QUI + ' ' + LIENS + '\\b', 'gi'), par: 'ce PC' },
   { sorte: 'détail familial', re: new RegExp('\\b(PC|ordinateur|machine) ' + DE_QUI + ' ' + LIENS + '\\b', 'gi'), par: '[détail privé retiré]' },
 ];
+/* (28/11, après-midi) le nom propre de l'assistant qui tape les commandes sur le Ryzen : il ne doit jamais sortir, et l'outil ne doit pas
+   l'écrire lui-même. Il est lu dans un fichier local que git ignore : [{sorte, mot, par}], le mot en majuscules sans accents.
+   Chaque mot du texte, mis en majuscules sans accents, lui est comparé. Sans ce fichier, l'outil s'arrête avant d'écrire quoi que ce soit. */
+const FICHIER_MOTS_CACHES = path.join(__dirname, '..', '..', 'agents', 'tmp-portfolio', 'mots-caches.json');
+let MOTS_CACHES;
+try { MOTS_CACHES = JSON.parse(fs.readFileSync(FICHIER_MOTS_CACHES, 'utf8')); }
+catch (e) { console.error('refus : ' + FICHIER_MOTS_CACHES + ' est absent ou illisible ; sans lui, un nom privé pourrait sortir. Rien n\'est écrit.'); process.exit(1); }
 const nettoyer = function (texte, compte) {
   let t = String(texte);
   for (const r of REGLES) {
     t = t.replace(r.re, function (m, g1) { compte[r.sorte] = (compte[r.sorte] || 0) + 1; return r.par.indexOf('$1') >= 0 ? r.par.replace('$1', g1) : r.par; });
   }
+  t = t.replace(/[A-Za-zÀ-ÿ]{5,}/g, function (m) {
+    const u = m.toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    for (const c of MOTS_CACHES) if (c.mot === u) { compte[c.sorte] = (compte[c.sorte] || 0) + 1; return c.par; }
+    return m;
+  });
   return t;
 };
 
@@ -129,13 +191,20 @@ const CHAMPS = {
   /* (28/11) les champs des études du réglage : absents des quatre premiers travaux, ils n'y changent rien */
   recommandations: 'Recommandations', changement: 'Changement', gain: 'Gain attendu', cout: 'Coût', confiance: 'Confiance',
   verdicts: 'Verdicts du relecteur', recommandation: 'Recommandation', pourquoi: 'Pourquoi',
+  /* (28/11, après-midi) les champs des huit travaux du 28/11 : absents des huit premiers, ils n'y changent rien */
+  candidats: 'Candidats', constat: 'Constat', mecanisme: 'Mécanisme', ou: 'Où', changeLesYeux: 'Change ce que voient les yeux',
+  effetPalier: 'Effet attendu sur le palier', effetRessemblance: 'Effet attendu sur la ressemblance', dejaEssaye: 'Déjà essayé',
+  trous: 'Trous', retenus: 'Retenus', idee: 'Idée', defaut: 'Défaut', oublis: 'Oublis', decisions: 'Décisions',
 };
 /* (28/11) pour les travaux marqués « nouveau » seulement : « passe » (un test) se dit « Réussi », et vrai / faux se dit oui / non */
 let NOUVEAU = false;
 const nomChamp = function (k) { if (NOUVEAU && k === 'passe') return 'Réussi'; return CHAMPS[k] || (k.charAt(0).toUpperCase() + k.slice(1)).replace(/_/g, ' '); };
 const valeur = function (v) { if (NOUVEAU && typeof v === 'boolean') return v ? 'oui' : 'non'; return String(v); };
 /* (28/11) les noms de lots écrits sans accent dans les étiquettes des scripts, remis avec leurs accents dans les rôles (travaux « nouveau » seulement) */
-const ACCENTS = { 'tri-precoce': 'tri précoce', lignee: 'lignée', regles: 'règles' };
+const ACCENTS = { 'tri-precoce': 'tri précoce', lignee: 'lignée', regles: 'règles',
+  /* (28/11, après-midi) les angles et les familles des huit travaux du 28/11 */
+  defauts: 'défauts', 'genome-et-tetes': 'génome et têtes', 'vol-et-yeux': 'vol et yeux', 'boucle-payante': 'boucle payante',
+  'bit-pres': 'au bit près', semantique: 'sémantique', 'banc-et-selection': 'banc et sélection', 'banc-courses': 'banc et courses' };
 const accents = function (t) { return t.replace(/« ([a-z-]+) »/g, function (m, nom) { return ACCENTS[nom] ? '« ' + ACCENTS[nom] + ' »' : m; }); };
 
 /* Remet une valeur JSON en texte : une chaîne telle quelle, une liste en puces, un objet en « Champ : valeur ». */

@@ -1,7 +1,83 @@
-# Passation — l'écurie, le 28/11/2026 vers 7 h 40 (mise à jour ; l'état du 27/11 au soir et celui du 26/11 suivent, en partie périmés)
+# Passation — l'écurie, le 28/11/2026 vers 15 h (mise à jour ; l'état du 28/11 au matin, celui du 27/11 au soir et celui du 26/11 suivent, en partie périmés)
 
-À lire en premier par la session qui reprend. Le détail de chaque étape est dans `ETAPES.md` (« La nuit du 27 au 28/11 ») ; le récit pour le portfolio
-dans `portfolio/journal/2026-11-28.md` ; ici, l'état exact, ce qui tourne, et quoi faire. Heures de Paris.
+À lire en premier par la session qui reprend. Le détail de chaque étape est dans `ETAPES.md` (« L'après-midi du 28/11 », puis « La nuit du 27 au 28/11 ») ;
+le récit pour le portfolio dans `portfolio/journal/2026-11-28.md` et `2026-11-28_suite.md` ; ici, l'état exact, ce qui tourne, et quoi faire. Heures de Paris.
+
+## L'état au 28/11/2026 vers 15 h
+
+**En bref.** Le Ryzen n'avait pas arrêté : seul son envoi horaire a échoué de 2 h à 13 h (sa connexion à Internet a coupé). Il a reçu la mise à jour
+n° 1 à 13 h 11 (portage, réglage et greffes) et tourne. Sur le Xeon, le lot « gènes v4 » est écrit, relu et fusionné dans `bots-ecurie` (`77083d123`) ;
+l'idée n° 1 du lot, la sortie préparée, est une impasse mesurée (`ml/ecurie/etude/sortie-preparee/`) : `sortieOn` est réécrit en « nitro au décollage
+sur les maps à décor », effet non mesuré. La vague 1 du banc v2 est écrite et commitée avant d'être jouée (`15c7f1cb3`) ; elle tourne.
+
+### Ce qui tourne
+
+| | État au 28/11 vers 15 h |
+|---|---|
+| **La sélection, sur le Ryzen** | **en marche** depuis la relance de 13 h 11 (fusion `98db666ae` de `origin/bots-ecurie` au commit `5e7f311aa`, par l'assistant de Sacha sur le Ryzen). Nouvelle époque `3c3d44e8bd9b` depuis la génération 16 ; contrôle d'identité « IDENTIQUE ×3 » d'après le compte rendu collé par Sacha à 12:17 UTC (le récit envoyé dit « Contrôle d'identité réussi » à la génération 16) ; témoin c0025 (`19e3767cc346`). Envoi de 14 h (`9fcfbd2a0`) : génération 17 en cours, 495 courses à l'heure, 10 à la fois, 0 sacre sur 3 tentatives, champion = témoin, `regle6` = 2, alertes : aucune. **Première greffe née à la génération 17** : `2e9b5cc4c924` (`raccCartes_ville = 0`). « Mutations comptent-elles ? » : trop tôt (109 enfants mesurés sur 191 ; r 0,17 ; τ 0,45 [0,00 ; 0,77]). Ses génomes sont en **v:3** ; il tourne le cycle de greffes à **cinq** essais (celui de `5e7f311aa`), pas celui à dix de `bots-ecurie` |
+| **La vague 1 du banc v2, sur le Xeon** | **en marche** : `ml/evolution/banc/vagues/v001-confirmation-gestes/` (5 bras contre c0025, graines 4 000 000 à 4 007 067, regards de 24 à 192, époque `ad6cc000299a`). **Aucun résultat à lire** : ne rien conclure de `regards.json` ni de `resume.txt` avant la fin. Durée non mesurée (estimation de `LIVRAISON-GENES-V4.md` § 2 ter : environ 29 h pour 5 bras au plafond, 2 à la fois). Arrêt propre : un fichier vide `ml/evolution/banc/etat/STOP`, puis la même commande pour reprendre |
+| **Les tests longs sur l'arbre fusionné** | **en cours** : `identite.test`, `evoluer.test`, `courses.test` (passés sur `genes-v4` seul, pas encore sur `77083d123`). 24 suites rapides et `banc.test` passent sur l'arbre fusionné ; `greffes.test` 71/71 |
+
+**Ce qui ne doit pas bouger pendant la vague** : `ml/evolution/modele.js`, `enfant.js`, le jeu, les yeux, la version de Node (sinon la vague sort avec
+le code 4 et doit être refaite sous un autre numéro : `ml/evolution/banc/banc.js`, contrat `genes-v4.md`, tableau des codes de sortie). Pas d'autre course lourde sur le Xeon d'ici là.
+
+### Ce qui est poussé, ce qui ne l'est pas
+
+- **`origin/bots-ecurie` est au commit `5e7f311aa`** (les greffes, 13 h 05) d'après la dernière lecture locale, sans `git fetch` : le banc des gènes lu
+  (`46842ee77`) et les greffes sont sur GitHub ; c'est ce que le Ryzen a fusionné.
+- **Pas poussés** : `7f85efb38` et `d30db9519` (le lot v4, d'abord sur la branche `genes-v4`), la fusion `77083d123` et la vague 1 `15c7f1cb3`.
+  Les pousser fera arriver le lot v4 au prochain `git merge` du Ryzen : ne le faire qu'avec les gestes de la mise à jour n° 2 (ci-dessous) en tête.
+- **Commités ensemble, non poussés** : le chapitre `portfolio/journal/2026-11-28_suite.md`, les mises à jour du journal (`LISEZ-MOI.md`, `LEXIQUE.md`),
+  les huit orchestrations du 28/11 (`portfolio/orchestration/`), `ETAPES.md` et cette passation, relus par un relecteur adverse. Non suivis, laissés tels quels :
+  `ml/bot/results/note-essai-main-allege-t120-parties.json` et `ml/evolution/banc/vagues/INDEX.md`.
+
+### La mise à jour n° 2 du Ryzen, qui attend (le lot v4)
+
+Pas faite. Elle apporte le génome v:4, les compteurs, les courses à map imposée, `sortieOn` réécrit et le cycle de greffes à dix ensembles ; elle ouvre
+**une nouvelle époque** (toutes les courses rejouées une fois, les pilotes et leurs noms restent). **La migration des génomes en v:4 est à sens unique** :
+l'ancien code ne les relit plus. Les gestes : `ml/evolution/notes/LIVRAISON-GENES-V4.md` § 4, et d'abord le **geste 1 bis** : arrêter, puis copier les
+dossiers `etat\` et `champions\` hors du dépôt, avant toute fusion. Ces gestes se font sur le Ryzen par Sacha, avec l'assistant de Sacha sur le Ryzen ;
+aucune session Claude du Xeon ne les fait. Ne pas lancer de banc sur le Ryzen pendant que la sélection y tourne.
+
+### Les décisions prises cet après-midi
+
+- **La session principale** : les greffes à la place de l'immigré, selon un cycle (`5e7f311aa`) ; les huit gènes v4 éteints à la naissance
+  (`chancePalierMin` figé à 12) ; **l'impasse de la sortie préparée** écrite, et `sortieOn` réécrit en « nitro au décollage sur les maps à décor » plutôt que
+  la proposition du relecteur (`d30db9519`, étude § 9) ; la fusion, et dix ensembles de greffes (`77083d123`) ; la vague 1 écrite et commitée avant d'être
+  jouée (`15c7f1cb3`).
+- **Sacha** (28/11, 12:07 UTC) : « tu peux utiliser plus de Fable si tu as besoin, c'est pas forcé, fais-le seulement s'il y a des tâches que Fable peut
+  vraiment faire mieux ». À 12:17 UTC, il colle le compte rendu de la mise à jour n° 1 du Ryzen.
+
+### Les décisions qui attendent Sacha
+
+1. **La seconde chance** (`chancePalierMin`, figée à 12) : la garder ou la changer. La changer renomme tous les pilotes, témoin compris, et demande un outil
+   qui n'existe pas encore (`LIVRAISON-GENES-V4.md` § 5).
+2. **La décision D1** : la sévérité des deux garde-fous du sacre (`validation.seuilB` et `seuilC`, à 1 ou 2 ; `LIVRAISON-REGLAGE.md`).
+3. **L'emploi des crédits d'API restants** (environ 141 € au matin, `b1ff8af89` ; un lancement payant se fait par Sacha seulement).
+4. **L'accord pour pousser** le lot v4 sur `bots-ecurie`, puis faire la mise à jour n° 2 du Ryzen (geste 1 bis d'abord).
+5. Restent du matin : le nom de l'école dans deux fichiers du dépôt public, sa page `LA-VOIX-DE-SACHA.md`, les décisions D2 à D5 (plus bas).
+
+### À faire ensuite, dans l'ordre (28/11/2026, après-midi)
+
+1. **Lire les tests longs** quand ils finissent (`identite.test`, `evoluer.test`, `courses.test` sur `77083d123`), et l'écrire dans `ETAPES.md` et ici.
+2. **Laisser la vague 1 aller au bout**, sans toucher aux fichiers de l'époque ; puis lire son `resume.txt` et son `resultat.json` avec leurs limites
+   (`banc/README.md`, « Ce qu'un résultat veut dire » : un « net » n'est qu'un candidat ; la garde de 0,75 palier du bras `slalom`) ; l'écrire dans le
+   journal, `INDEX.md` de `vagues/`, `ETAPES.md` et ici.
+3. **La mise à jour n° 2 du Ryzen**, avec Sacha (plus haut).
+4. **Une vague pour `sortieOn` réécrit** (le palier, la note, et les morts contre le décor : roche, paroi, pic), sur des graines neuves ; la famille
+   « décor » est à relire contre `code/gameplay/mort.js` avant de la figer (`LIVRAISON-GENES-V4.md` § 5, point 3).
+5. **La piste notée** : le levier est au sol, avant le bord, sur les maps à décor ; les raccourcis voulus tuent en ville (5 morts sur 22).
+6. Restent ouverts : l'arbre qui dit « immigré » pour une greffe ; `morts.jsonl` sans le champ `greffe` ; le dossier parasite hors du dépôt signalé au § 6
+   de `LIVRAISON-GENES-V4.md`, à effacer à la main par Sacha.
+
+### Le texte à coller dans la session qui reprend (28/11/2026, après-midi)
+
+> Dans `C:\Users\sacha\code\CASH-CAR-bots-ecurie` (branche `bots-ecurie`), lis `ml/ecurie/PASSATION.md` (la partie du 28/11 vers 15 h), puis
+> `ml/evolution/banc/README.md` et `ml/evolution/notes/LIVRAISON-GENES-V4.md`. La vague 1 du banc v2 tourne : ne touche ni à `modele.js` ni à `enfant.js`,
+> et ne conclus rien avant sa fin. Suis « À faire ensuite ». Ne lance jamais `chaine.js` ni `boucle.js` sur le Xeon, ne touche ni à `code/` ni à
+> `VERSION PRINCIPALE/`, et garde des traces de chaque décision pour le portfolio.
+
+---
 
 ## L'état au 28/11/2026 au matin
 

@@ -4,7 +4,7 @@ Ce dossier raconte comment des bots apprennent à jouer à CASH CAR, le jeu de S
 
 Un mot vous arrête (palier, graine, génome, écart aux joueurs, témoin…) ? Il est expliqué en une ou deux phrases dans le **lexique**, [`LEXIQUE.md`](LEXIQUE.md), rangé par ordre alphabétique.
 
-*Heures : les messages de Sacha sont donnés en heure UTC, comme dans leur relevé (`ml/ecurie/agents/tmp-voltige/paroles-sacha.md`). Les commits sont à l'heure de Paris (UTC + 1). Exception : les deux chapitres du 25/11 donnent aussi les messages de Sacha à l'heure de Paris, et le disent en tête. Le chapitre du 28/11 donne les messages de Claude et les journaux des machines à l'heure de Paris.*
+*Heures : les messages de Sacha sont donnés en heure UTC, comme dans leur relevé (`ml/ecurie/agents/tmp-voltige/paroles-sacha.md`). Les commits sont à l'heure de Paris (UTC + 1). Exception : les deux chapitres du 25/11 donnent aussi les messages de Sacha à l'heure de Paris, et le disent en tête. Les deux chapitres du 28/11 (`2026-11-28.md` et `2026-11-28_suite.md`) donnent les messages de Claude et les journaux des machines à l'heure de Paris.*
 
 ---
 
@@ -22,10 +22,10 @@ Un mot vous arrête (palier, graine, génome, écart aux joueurs, témoin…) ? 
 6. Le 25/11, quatre modèles de Claude ont écrit des variantes d'un premier pilote. Aucune n'a tenu sur des courses neuves.
 7. Les 26 et 27/11, Claude a réglé un pilote à la main pour qu'il vole comme un joueur. Il ressemble davantage aux joueurs (écart aux joueurs 1,67, contre 3,05 pour le premier pilote), mais il atteint des paliers plus bas.
 8. Un juge automatique reconnaît toujours le bot (AUC 0,97, où 0,5 voudrait dire « pile ou face »).
-9. Le 27/11, Sacha a écarté le réglage à la main. Il a demandé une sélection naturelle qui tourne seule sur son PC. Le système est construit (`ml/evolution/`). Le soir, il a tourné sur le Xeon, l'ordinateur de travail (191 courses à l'heure). Depuis le 28/11 à 0 h 29, il tourne sur le Ryzen, le second PC de Sacha (418 courses à l'heure). À son dernier envoi, à 2 h, aucun pilote n'y avait battu le pilote de départ ; ensuite, plus rien n'est arrivé.
+9. Le 27/11, Sacha a écarté le réglage à la main. Il a demandé une sélection naturelle qui tourne seule sur son PC. Le système est construit (`ml/evolution/`). Le soir, il a tourné sur le Xeon, l'ordinateur de travail (191 courses à l'heure). Depuis le 28/11 à 0 h 29, il tourne sur le Ryzen, le second PC de Sacha (418 courses à l'heure). De 2 h à 13 h, sa connexion à Internet a coupé : il a continué de jouer, mais n'envoyait plus rien. À son envoi de 14 h (génération 17), aucun pilote n'y avait encore battu le pilote de départ, et la première « greffe » venait de naître (le meilleur pilote recopié avec un réglage forcé : ici, les raccourcis de la ville éteints).
 10. La boucle payante que Sacha avait lancée sur le Ryzen annonçait deux paliers de plus. Rejoués le 28/11 sur 40 courses neuves, ses champions ne vont pas plus loin que le pilote de départ : 21,61 € dépensés sans obtenir un meilleur pilote. Au total, 58,53 € de crédit d'API ont été dépensés sur 200 (montants estimés en dollars, 1 € compté pour 1 $). La leçon : le hasard d'une course cache les petits réglages ; on essaie désormais des changements de fond, un par un, sur beaucoup de courses identiques.
 
-Sources : chapitres `2026-11-24.md`, `2026-11-25_suite.md`, `2026-11-26.md`, `2026-11-27.md`, `2026-11-28.md`, `comment-on-a-travaille.md`.
+Sources : chapitres `2026-11-24.md`, `2026-11-25_suite.md`, `2026-11-26.md`, `2026-11-27.md`, `2026-11-28.md`, `2026-11-28_suite.md`, `comment-on-a-travaille.md`.
 
 ---
 
@@ -44,7 +44,7 @@ La même histoire, date par date :
 - **25/11 : la boucle payante.** Des modèles de Claude, payés sur le crédit d'API, écrivent des variantes d'un premier pilote. *Résultat :* aucun gain qui tienne sur des courses neuves. → `2026-11-25.md`, `2026-11-25_suite.md`
 - **26/11 : un pilote réglé à la main, un défaut à la fois.** *Provoqué par* Sacha, qui trouve les bots « trop frileux de s'envoler » et demande à 12:11 UTC une enquête sur tout ce qui distingue encore un bot d'un joueur. Claude choisit de ne pas relancer la boucle payante : elle ne notait que le palier. Il écrit une mesure de ressemblance, « l'écart aux joueurs ». → `2026-11-26.md`
 - **27/11 : retour à la sélection naturelle, mais hybride et dans le vrai jeu.** *Décidé par* Sacha à 15:25 UTC : « le plan que tu as fait ne me correspond pas vraiment » ; la veille (26/11, 12:54 UTC), il demandait déjà pourquoi ne pas lancer « plein de simulations en local » sur un autre PC. *Forme choisie par* Claude : le génome part du pilote écrit à la main, avec deux petits réseaux « muets » à la naissance. Un bot est jugé sur toutes ses courses, pas sur une seule manche. *Le soir même*, le système construit tourne pour la première fois sur le Xeon ; les cinq gestes de joueurs relevés par les enquêtes du jour ne sont plus réglés à la main, mais offerts à la sélection, éteints à la naissance. → `2026-11-27.md`
-- **28/11 : le mur du hasard ; on juge les idées une par une.** *Provoqué par* deux mesures de la nuit. Le coffre (40 courses jamais utilisées pour choisir un pilote) montre que les champions de la boucle payante ne vont pas plus loin que le pilote de départ. L'étude du réglage montre que le hasard d'une course (3,26 paliers) pèse environ dix fois plus que l'écart vrai entre deux enfants (0,32). *Décidé par* Claude (la session principale), Sacha n'ayant rien écrit après 23:35 UTC : ne plus chercher de petits réglages, mais des changements de structure, écrits comme des gènes éteints à la naissance et jugés un par un sur 96 courses identiques (le « banc des gènes »). La sélection reste en marche, comme juge gratuit. La frise s'arrête au 27/11 : ce virage n'y est pas dessiné. → `2026-11-28.md`
+- **28/11 : le mur du hasard ; on juge les idées une par une.** *Provoqué par* deux mesures de la nuit. Le coffre (40 courses jamais utilisées pour choisir un pilote) montre que les champions de la boucle payante ne vont pas plus loin que le pilote de départ. L'étude du réglage montre que le hasard d'une course (3,26 paliers) pèse environ dix fois plus que l'écart vrai entre deux enfants (0,32). *Décidé par* Claude (la session principale), Sacha n'ayant rien écrit après 23:35 UTC : ne plus chercher de petits réglages, mais des changements de structure, écrits comme des gènes éteints à la naissance et jugés un par un sur 96 courses identiques (le « banc des gènes »). La sélection reste en marche, comme juge gratuit. *L'après-midi*, quatre idées nouvelles deviennent des gènes éteints (le lot « gènes v4 »), le banc devient plus rigoureux (question écrite avant de jouer, arrêt quand c'est clair), et la sélection du Ryzen essaie elle-même les interrupteurs du banc (les greffes). La première des quatre idées, la sortie préparée, se révèle muette par construction : mesurée, écartée, remplacée par la nitro au décollage sur les maps à décor (décision de la session principale). La frise s'arrête au 27/11 : ce virage n'y est pas dessiné. → `2026-11-28.md`, `2026-11-28_suite.md`
 
 ---
 
@@ -115,6 +115,7 @@ Tout ce qui a été essayé puis écarté ou remplacé, une ligne par essai. Le 
 | Compter les courses d'entraînement dans le jugement du sacre | 28/11 | 53 à 62 % de faux sacres (étude du sacre) | écarté | 28 |
 | Le tri précoce des enfants (couper après 3 courses) | 28/11 | environ 1 % du temps gagné par enfant coupé, aucun effet au simulateur | écarté | 28 |
 | Rejouer seulement les jeunes et les 4 meilleurs | 28/11 | gain choisi et jugé sur les mêmes mondes simulés ; sur des mondes neufs, +0,05 ± 0,06 palier | le même piège que la boucle, dans le simulateur | 28 |
+| **La sortie préparée par les rayons du bord** (`sortieOn` du contrat : au bord d'une map à décor, planer si c'est le seul vol que les yeux voient se poser ; n° 1 des prochaines idées) | 28/11 | 0 déclenchement en 13 vraies courses ; puis 40 courses mesurées, 180 décollages subis distincts, 24 morts : la règle aurait agi 0 fois ; aux 24 morts, aucune autre façon de voler n'annonçait de pose ; le bord n'est annoncé que 0,28 s avant le décollage (la main met 0,2 s) ; « planer » au bord finit contre le décor dans 57 vols qui s'étaient posés | muette par construction, et nuisible si on la forçait : remplacée par la nitro au décollage sur les maps à décor (même gène, éteint, effet sur le palier non mesuré) | 28_suite |
 
 ---
 
@@ -150,6 +151,8 @@ Les citations ont leur orthographe rectifiée, jamais leur sens. Les heures sont
 - **27/11, 17:14** : « il faut qu'on garde des traces de tous les process, pour un portfolio ». Ce journal en est la réponse. → 27, comment
 - **27/11, 23:22** : il colle le compte rendu de l'assistant de Sacha sur le Ryzen : la boucle payante s'arrête, la sélection naturelle s'installe sur le Ryzen, et « j'accepte l'envoi horaire de l'histoire sur GitHub ». → 28
 - **27/11, 23:35** : les résultats de la boucle sont poussés sur une branche à part (13 commits), la sélection tourne « depuis 00:29 » ; il signale deux défauts de l'installation (une autre version de Node passait devant ; les tâches planifiées avaient une limite de 72 heures). Le relevé, refait le 28/11 au matin, ne contient aucun message de lui ensuite. → 28
+- **28/11, 12:07** : « tu peux utiliser plus de Fable si tu as besoin, c'est pas forcé, fais-le seulement s'il y a des tâches que Fable peut vraiment faire mieux ». → 28_suite
+- **28/11, 12:17** : il colle le compte rendu de la mise à jour du Ryzen, faite par l'assistant de Sacha sur le Ryzen (relance à 13 h 11, heure de Paris). → 28_suite
 
 ---
 
@@ -176,6 +179,9 @@ Les citations ont leur orthographe rectifiée, jamais leur sens. Les heures sont
 | Sacre : un vrai +1 palier reconnu | 15 → 33 fois sur 100 (sacre séquentiel) | `3b1bf15e5`, `ml/evolution/notes/LIVRAISON-REGLAGE.md` | 28 |
 | Sélection sur le Ryzen, génération 0 | 280 courses en 40 min, 418 à l'heure, 10 à la fois | `origin/evolution-ryzen`, `resume.txt` | 28 |
 | Jetons des quatre équipes d'agents de la nuit | 7 192 979, 31 agents | `portfolio/orchestration/LISEZ-MOI.md` | 28 |
+| Sélection sur le Ryzen, envoi du 28/11 à 14 h | génération 17 ; 495 courses à l'heure ; 0 sacre sur 3 tentatives ; champion = témoin | `origin/evolution-ryzen`, `resume.txt`, `histoire.md` | 28_suite |
+| Génome v:4 | 129 gènes (8 nouveaux, éteints ou figés), 25 compteurs de déclenchements | `7f85efb38`, `ml/evolution/notes/genes-v4.md` | 28_suite |
+| La sortie préparée, mesurée | 0 déclenchement ; 180 décollages subis distincts, 24 morts, aucune issue vue ; 0 décollage nitro allumée sur 253 (joueurs : 0,625) | `etude/sortie-preparee/LISEZ-MOI.md` | 28_suite |
 
 ---
 
@@ -220,9 +226,12 @@ Contrôlé le 27/11 avec `ls` et `git ls-files` ; recontrôlé le 27/11 à 23 h 
 | `ml/ecurie/portfolio/images/boucle-payante-lignee-clair.svg` et `-sombre.svg` | la **lignée de la boucle payante** : génération par génération, la note de validation et la note d'entraînement du champion ; la validation fait un seul saut, à c0064, puis reste plate (`2026-11-28.md`). Fabriquée par `ml/ecurie/etude/boucle-payante-ryzen/outils/figure.js` | oui (`7b1df608e`) |
 | `ml/ecurie/etude/boucle-payante-ryzen/` | l'histoire de la boucle payante : ce que chaque champion a changé, les écarts de code entre champions (`diffs/`), et le **coffre** (`coffre/` : l'outil, les 160 courses, `sorties/resume.txt`, le tableau qui a démenti le « +2 ») | oui (`7b1df608e`, `00fb4cfad`) |
 | `ml/ecurie/etude/reglage-de-la-selection/` | l'étude du réglage de la sélection : cinq études, chacune avec sa relecture, et la synthèse classée (`LISEZ-MOI.md`) | oui (`1f64c426b`) |
-| `ml/ecurie/etude/banc-des-genes/` | le **banc des gènes** : l'outil (`jouer.js`, `analyser.js`), son mode d'emploi, son journal (`jouer.log`) ; le tableau des résultats (`sorties/resume.txt`) n'existe pas encore | **non** (pas encore enregistré ; la mesure tourne) |
+| `ml/ecurie/etude/banc-des-genes/` | le **banc des gènes** : l'outil (`jouer.js`, `analyser.js`), son mode d'emploi, son journal (`jouer.log`) et, depuis la fin de la mesure, le tableau des résultats (`sorties/resume.txt`) | oui depuis `46842ee77` (28/11, 11 h 02 ; `sorties/resume.txt` vu dans `git ls-files` vers 15 h) |
+| `ml/ecurie/etude/sortie-preparee/` | l'**impasse de la sortie préparée** : l'étude des décollages, sa relecture adverse et la décision (`LISEZ-MOI.md`), ses tableaux (`sorties/decollages.txt`, `sorties/relecture.txt`) et les vues de chaque course (`sorties/lignes/`) ; `node analyser.js` et `node relecture.js` refont les tableaux sans jouer de course (`2026-11-28_suite.md`) | oui (`d30db9519`, fusionné dans `77083d123`) |
+| `ml/evolution/notes/greffes.md`, `notes/genes-v4.md`, `notes/LIVRAISON-GENES-V4.md`, `ml/evolution/banc/README.md` | les **greffes**, le contrat du lot **gènes v4**, sa livraison, et le mode d'emploi du **banc v2** | oui (`5e7f311aa`, `7f85efb38`, `d30db9519`) |
+| `ml/evolution/banc/vagues/v001-confirmation-gestes/` | la **vague 1** du banc v2 : sa question (`vague.json`) et son plan (`plan.json` : pilotes, graines, époque), enregistrés avant tout résultat ; ses résultats s'y ajouteront quand elle aura fini | les deux fichiers oui (`15c7f1cb3`) ; au 28/11 vers 15 h, aucun résultat |
 | `ml/evolution/notes/LIVRAISON-REGLAGE.md` | la mise à jour du réglage de la sélection : ce qu'elle change, ce qui est vérifié, les gestes sur le Ryzen | oui (`3b1bf15e5`, `2a3bea3c1`) |
-| la branche `origin/evolution-ryzen` | ce que la sélection du Ryzen envoie seule chaque heure : son banc (`machine.json`), ses dix lignes (`resume.txt`) ; dernier envoi le 28/11 à 2 h (`71e7c7c2c`) | sur GitHub, branche à part |
+| la branche `origin/evolution-ryzen` | ce que la sélection du Ryzen envoie seule chaque heure : son banc (`machine.json`), ses dix lignes (`resume.txt`), la population (`population.json`), le récit (`histoire.md`) ; après l'envoi de 2 h (`71e7c7c2c`), plus rien n'est arrivé jusqu'à celui de 14 h (sa connexion à Internet a coupé ; les commits de chaque heure, faits sur place, sont arrivés avec lui) : l'envoi de 14 h (`9fcfbd2a0` : génération 17, la première greffe) | sur GitHub, branche à part |
 
 **Ce que le plan prévoyait et qui n'existe pas encore** (`passation/BOTS-ML.md`, § 5.2 et 5.3)
 
@@ -248,6 +257,7 @@ Contrôlé le 27/11 avec `ls` et `git ls-files` ; recontrôlé le 27/11 à 23 h 
 | `2026-11-26.md` | 26/11 | apprendre au pilote à voler, un défaut à la fois ; l'écart aux joueurs |
 | `2026-11-27.md` | 27/11 | Sacha change de cap : du réglage à la main à la sélection naturelle ; le soir, la sélection tourne pour la première fois, sur le Xeon, et se prépare pour le Ryzen |
 | `2026-11-28.md` | nuit du 27 au 28/11, et le matin | la sélection démarre sur le Ryzen ; le coffre montre que le « +2 paliers » de la boucle payante était de la chance ; le mur du hasard ; le banc des gènes est lancé |
+| `2026-11-28_suite.md` | 28/11, de 11 h à 15 h | les greffes ; le Ryzen n'avait pas arrêté, seule sa connexion avait coupé ; le lot « gènes v4 » ; l'impasse de la sortie préparée, mesurée puis remplacée ; la vague 1 écrite avant d'être jouée |
 | `LA-VOIX-DE-SACHA.md` | — | une page laissée vide exprès, à écrire par Sacha, avec les questions que le journal laisse ouvertes |
 | `comment-on-a-travaille.md` | 21–27/11 | qui fait quoi, les règles de travail et le raté d'où chacune vient |
 | `LEXIQUE.md` | — | les mots du chantier, par ordre alphabétique, en une ou deux phrases chacun |

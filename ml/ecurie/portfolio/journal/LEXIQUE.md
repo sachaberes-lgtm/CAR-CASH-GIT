@@ -28,6 +28,8 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 
 **Banc des gènes.** La mesure lancée le 28/11 à 3 h 28 sur le Xeon (`ml/ecurie/etude/banc-des-genes/`) pour juger les *gènes éteints* un par un, sans passer par la sélection : 13 pilotes (le pilote de départ c0025, et des copies qui allument chacune un interrupteur, ou quelques mélanges) jouent les mêmes 96 *graines*, prises dans une plage que la sélection n'utilise jamais, et chaque copie est comparée au départ graine par graine (*comparaison appariée*). Il ne voit qu'un effet d'environ un palier ou plus. Rien à voir avec le *banc* d'une machine.
 
+**Banc des gènes v2, vague, bras.** Le banc rangé dans la sélection le 28/11 après-midi (`ml/evolution/banc/`). Une vague est une mesure : elle compare 1 à 5 bras au *témoin* sur les mêmes *graines*. Un bras est une copie du pilote de départ qui allume une idée (un ou quelques *gènes éteints*). Avant de jouer, la vague écrit sa question et, pour chaque bras, ce qu'elle va regarder ; ensuite le banc refuse une vague modifiée. La vague 1, sur 5 bras, a été enregistrée dans git avant d'être jouée (`15c7f1cb3`).
+
 **Boucle (payante).** Le cycle où Claude écrit des *variantes* du *pilote*, où le vrai jeu les note, et où l'on garde la meilleure avant de recommencer ; elle est payée sur le *crédit d'API*. Elle a tourné pour le *calibrage* du 25/11, puis Sacha l'a lancée sur son second PC le 27/11 : 88 versions, cinq *champions*, 21,61 €. Arrêtée le 28/11 à 0 h 12 ; jugés sur le *coffre*, ses champions ne vont pas plus loin que le pilote de départ.
 
 **Bot.** Un programme qui joue à CASH CAR à la place d'un joueur : des *yeux*, un *cerveau* (ou *pilote*) et une *main*.
@@ -39,6 +41,8 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 **Cache (des courses).** La mémoire des courses déjà jouées : une course déjà jouée par le même pilote, sur la même *graine* et dans la même *époque*, est relue au lieu d'être rejouée. Le 27/11 au soir, après la mort du premier lancement, 22 courses ont été rendues par le cache.
 
 **Calibrage.** L'essai du 25/11 qui a mis quatre modèles de Claude à la même tâche (écrire des variantes du pilote) pour savoir lequel vaut son prix : 4,63 €, aucune variante gardée.
+
+**Carte tenue, course à map imposée.** Depuis le 28/11 après-midi, une course peut commencer sur une *map* choisie (le jeu tire ensuite les suivantes, comme d'habitude) ; avec la carte tenue, c'est la même map à chaque *portail*. Utile pour mesurer une idée là où elle agit, par exemple à la grotte.
 
 **Cerveau.** Le fichier de code qui décide, dix fois par seconde, ce que fait le bot : il reçoit ce que voient les *yeux* et rend un ordre (braquer, nitro, voler…). Dans les essais de septembre et octobre, le cerveau était un *réseau de neurones*.
 
@@ -59,6 +63,10 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 **Comparaison appariée.** Comparer deux pilotes course par course, sur les mêmes *graines*, plutôt que comparer leurs moyennes : sur la même route, le hasard que les deux courses partagent s'annule. C'est la méthode du *coffre* et du *banc des gènes*.
 
 **Commit.** Un enregistrement daté dans l'historique du code (git), avec un message qui dit ce qui a changé. On le désigne par un court code, comme `1ee936e15` : c'est là que le journal retrouve chaque mesure.
+
+**Compteur de déclenchements.** Depuis le lot « gènes v4 » (28/11), chaque course dit combien de fois chaque interrupteur né éteint a vraiment agi (25 compteurs ; certains comptent un désaccord plutôt qu'un ordre changé). Un gène qui ne se déclenche jamais se voit tout de suite : c'est ainsi que la *sortie préparée* s'est montrée muette (0 fois en 13 courses). Un compteur n'est jamais le critère d'un *bras* : chez le témoin, l'idée est éteinte et le compteur vaut 0 par construction.
+
+**Contrat (d'un lot).** Le texte écrit avant le code, qui dit ce que chaque agent doit faire et comment le vérifier. Exemple : `ml/evolution/notes/genes-v4.md`, le contrat du lot « gènes v4 » ; quand une règle y est abandonnée, l'ancien texte reste, marqué « remplacé ».
 
 **Contrat du bot.** Les règles fixes que tout *cerveau* respecte : appelé dix fois par seconde, il reçoit la vue et rend un ordre, sans jamais toucher au jeu ; ses doigts appuient sur les mêmes touches qu'un joueur.
 
@@ -92,11 +100,13 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 
 **Génération.** Un tour de sélection. En septembre et octobre : une manche où toutes les voitures courent, après quoi la moitié la moins bonne est remplacée par des enfants. Dans la *sélection naturelle* du 27/11 : 6 enfants naissent, les 26 pilotes courent les mêmes 12 courses, puis les 6 moins bien notés sur toutes leurs courses sont renvoyés (les nouveau-nés, le *témoin* et le *champion* sont protégés).
 
-**Génome.** Ce qui se transmet d'un pilote à ses enfants et peut muter. Dans la sélection du 27/11 : environ 75 réglages du pilote écrit à la main et les 312 *poids* de deux petits *réseaux de neurones* ; les *yeux*, la *main* et la forme du code restent hors du génome, figés. Construit, il compte 86 *gènes* (réglages et interrupteurs) ; les cinq gestes ajoutés le 27/11 au soir le portent à 107 ; les quatre interrupteurs et dix réglages des idées de la boucle, le 28/11, à 121 (le génome « v:3 »). Tout éteint, il redonne c0025 au bit près ; tout allumé, c0101.
+**Génome.** Ce qui se transmet d'un pilote à ses enfants et peut muter. Dans la sélection du 27/11 : environ 75 réglages du pilote écrit à la main et les 312 *poids* de deux petits *réseaux de neurones* ; les *yeux*, la *main* et la forme du code restent hors du génome, figés. Construit, il compte 86 *gènes* (réglages et interrupteurs) ; les cinq gestes ajoutés le 27/11 au soir le portent à 107 ; les quatre interrupteurs et dix réglages des idées de la boucle, le 28/11, à 121 (le génome « v:3 ») ; le lot « gènes v4 », le 28/11 après-midi, à 129 (« v:4 »). Tout éteint, il redonne c0025 au bit près ; tout allumé jusqu'à v:3, c0101.
 
 **Graine.** Le nombre qui fixe le hasard d'une course : même graine, même piste, mêmes tirages. On peut ainsi faire courir plusieurs bots sur exactement les mêmes courses.
 
 **Graines neuves (validation sur).** Refaire courir une variante sur des courses qu'elle n'a jamais vues, pour vérifier que son gain n'était pas de la chance. Exemple : la meilleure variante du 25/11, 13 contre 11 en note en grand, tombe à 10,5 contre 11 sur 20 graines neuves.
+
+**Greffe (de la sélection).** Depuis le 28/11 (`5e7f311aa`), une naissance qui prend, selon un cycle fixe, la place de l'*immigré* : une copie exacte du *champion* du moment, sur laquelle on force seulement quelques gènes choisis d'avance (par exemple, allumer `bordOn`, ou éteindre les raccourcis de la ville). Elle ne tire rien au hasard et court comme tout enfant : la sélection la juge. La première est née sur le Ryzen à la génération 17 (`2e9b5cc4c924`, les raccourcis de la ville éteints). À ne pas confondre avec un réseau *greffé*.
 
 **Greffé, muet.** Un *réseau de neurones* ajouté à un *pilote* déjà écrit, réglé pour ne rien changer à la conduite à la naissance, puis libre d'évoluer. C'est la forme choisie le 27/11, parce qu'un réseau parti de zéro n'avait pas appris à voler.
 
@@ -126,6 +136,8 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 
 **« Les mutations comptent-elles ? » (τ).** La mesure que la *sélection naturelle* fait d'elle-même depuis le 28/11, sans jouer une course de plus : un enfant bien classé sur ses premières courses l'est-il encore sur les suivantes ? τ (la lettre grecque tau) est l'écart vrai entre deux enfants voisins. Estimé sur les courses du 27/11 : 0,32 palier (entre 0 et 1,07), contre 3,26 de hasard par course. La sélection répond « trop tôt pour le dire » tant qu'elle n'a pas mesuré 191 enfants.
 
+**« Net », « trop rare », « futilité », « plafond ».** Les quatre fins possibles d'un *bras* dans une *vague* du banc v2. Net : l'écart au témoin dépasse un seuil fixé d'avance, assez haut pour qu'une vague où rien n'agit ne se trompe que moins de 5 fois sur 100 ; un « net » n'est qu'un candidat, à confirmer sur des graines neuves. Trop rare : l'idée ne change presque aucune course. Futilité : elle ne montre rien et ne montrera sans doute rien. Plafond : 192 graines jouées sans verdict ; « rien de net » ne veut pas dire « ne fait rien ».
+
 **Neuroévolution.** Faire évoluer des programmes, dont de petits *réseaux de neurones*, par *mutation* et sélection, comme une population animale, au lieu d'écrire la conduite à la main et sans leur montrer la bonne réponse. C'était la méthode de septembre et d'octobre (partie de zéro) ; c'est celle du 27/11 (partie d'un pilote déjà écrit).
 
 **Nitro.** Le turbo de la voiture, qui puise dans une jauge. Le même bouton, tenu, fait accélérer et, tapé deux fois en l'air, lance une figure : la nitro et les figures se paient sur la même jauge.
@@ -154,6 +166,8 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 
 **Récitation (surapprentissage).** Un cerveau qui a appris une piste par cœur et ne sait plus conduire ailleurs. Exemple : 2 456 m sur sa piste, 38 m sur une inconnue (septembre).
 
+**Regard.** Dans une *vague* du banc v2, un moment fixé d'avance où l'on lit les résultats et où chaque *bras* peut s'arrêter : après 24 *graines*, puis toutes les 24, jusqu'à 192. Comme on regarde plusieurs fois, le seuil d'un « net » est plus sévère au début (règle d'O'Brien-Fleming) et partagé entre les bras (Bonferroni) : c'est ce qui garde le risque de se tromper sous 5 % par vague.
+
 **Régime allégé, régime maximum.** Le régime allégé est la version du jeu prévue pour les téléphones et les machines lentes, avec moins de détails à l'image : c'est celle des joueurs de l'*étalon*, donc celle où courent les bots depuis le 24/11. Le régime maximum est la version la plus riche, pour les ordinateurs puissants ; la map Crypto City n'y est tirée qu'à ce régime.
 
 **Règle du rythme.** La limite de dépense par jour qui disait à la *chaîne* quand elle pouvait payer un nouveau tour (14 € par jour). Elle comptait aussi les agents déjà payés, et a bloqué la chaîne du 25/11 au soir au 26/11 midi.
@@ -175,6 +189,8 @@ Une ou deux phrases par mot, par ordre alphabétique, avec un exemple tiré du c
 **Sélection naturelle.** Le mot de Sacha, le 27/11, pour un système « où le bot le moins bon est viré », qui tourne seul sur son PC sans rien payer. Techniquement, c'est un *algorithme génétique* de la famille de la *neuroévolution* (`ml/evolution/`). Construit le 27/11, lancé pour la première fois le soir même sur le Xeon, puis sur le Ryzen le 28/11 à 0 h 29.
 
 **Session principale.** La conversation que Sacha a ouverte avec Claude (le modèle Fable). Elle conçoit le travail, écrit les consignes des *agents* Opus, relit ce qui revient, décide de la méthode et parle à Sacha. Exemple : c'est elle qui a fait finir la mesure du *coffre* sur 40 graines, quand l'agent s'était arrêté à 4.
+
+**Sortie préparée.** L'idée n° 1 des « prochaines idées » du 28/11 : au bord d'une map à décor, planer si c'est le seul vol que les yeux voient se poser. Écrite au contrat du lot « gènes v4 », elle ne s'est jamais déclenchée ; mesurée sur 40 courses (`ml/ecurie/etude/sortie-preparee/`), elle est muette par construction et a été remplacée, sous le même nom de gène (`sortieOn`), par la nitro gardée au décollage sur les maps à décor. C'est une impasse du registre.
 
 **SVG.** Un format d'image dessinée par le code, nette à n'importe quelle taille. Toutes les images du journal sont des SVG, en clair et en sombre.
 
